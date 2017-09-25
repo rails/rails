@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
@@ -38,10 +40,7 @@ module ApplicationTests
       @app ||= begin
         ENV["RAILS_ENV"] = env
 
-        # FIXME: shush Sass warning spam, not relevant to testing Railties
-        Kernel.silence_warnings do
-          require "#{app_path}/config/environment"
-        end
+        require "#{app_path}/config/environment"
 
         Rails.application
       ensure
@@ -238,6 +237,66 @@ module ApplicationTests
       assert_instance_of Pathname, Rails.public_path
     end
 
+    test "does not eager load controller actions in development" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads controller actions in production" do
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index;end
+          def show;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(index show).to_set, PostsController.instance_variable_get(:@action_methods)
+    end
+
+    test "does not eager load mailer actions in development" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      app "development"
+
+      assert_nil PostsMailer.instance_variable_get(:@action_methods)
+    end
+
+    test "eager loads mailer actions in production" do
+      app_file "app/mailers/posts_mailer.rb", <<-RUBY
+        class PostsMailer < ActionMailer::Base
+          def noop_email;end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
@@ -255,6 +314,7 @@ module ApplicationTests
     end
 
     test "the application can be eager loaded even when there are no frameworks" do
+      FileUtils.rm_rf("#{app_path}/app/jobs/application_job.rb")
       FileUtils.rm_rf("#{app_path}/app/models/application_record.rb")
       FileUtils.rm_rf("#{app_path}/app/mailers/application_mailer.rb")
       FileUtils.rm_rf("#{app_path}/config/environments")
@@ -416,45 +476,35 @@ module ApplicationTests
 
     test "application message verifier can be used when the key_generator is ActiveSupport::LegacyKeyGenerator" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
         Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
       RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
 
-      app "development"
+      app "production"
 
-      assert_equal app.env_config["action_dispatch.key_generator"], Rails.application.key_generator
-      assert_equal app.env_config["action_dispatch.key_generator"].class, ActiveSupport::LegacyKeyGenerator
+      assert_kind_of ActiveSupport::LegacyKeyGenerator, Rails.application.key_generator
       message = app.message_verifier(:sensitive_value).generate("some_value")
       assert_equal "some_value", Rails.application.message_verifier(:sensitive_value).verify(message)
     end
 
-    test "warns when secrets.secret_key_base is blank and config.secret_token is set" do
+    test "raises when secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+        Rails.application.credentials.secret_key_base = nil
       RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
 
-      app "development"
-
-      assert_deprecated(/You didn't set `secret_key_base`./) do
-        app.env_config
+      error = assert_raise(ArgumentError) do
+        app "production"
       end
+      assert_match(/Missing `secret_key_base`./, error.message)
     end
 
-    test "raise when secrets.secret_key_base is not a type of string" do
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base: 123
-      YAML
+    test "raise when secret_key_base is not a type of string" do
+      add_to_config <<-RUBY
+        Rails.application.credentials.secret_key_base = 123
+      RUBY
 
       assert_raise(ArgumentError) do
-        app "development"
+        app "production"
       end
     end
 
@@ -474,7 +524,7 @@ module ApplicationTests
 
     test "application verifier can build different verifiers" do
       make_basic_app do |application|
-        application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
         application.config.session_store :disabled
       end
 
@@ -592,37 +642,15 @@ module ApplicationTests
 
     test "uses ActiveSupport::LegacyKeyGenerator as app.key_generator when secrets.secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.credentials.secret_key_base = nil
         Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
       RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
 
-      app "development"
+      app "production"
 
       assert_equal "b3c631c314c0bbca50c1b2843150fe33", app.config.secret_token
-      assert_nil app.secrets.secret_key_base
-      assert_equal app.key_generator.class, ActiveSupport::LegacyKeyGenerator
-    end
-
-    test "uses ActiveSupport::LegacyKeyGenerator with config.secret_token as app.key_generator when secrets.secret_key_base is blank" do
-      app_file "config/initializers/secret_token.rb", <<-RUBY
-        Rails.application.config.secret_token = ""
-      RUBY
-      app_file "config/secrets.yml", <<-YAML
-        development:
-          secret_key_base:
-      YAML
-
-      app "development"
-
-      assert_equal "", app.config.secret_token
-      assert_nil app.secrets.secret_key_base
-      e = assert_raise ArgumentError do
-        app.key_generator
-      end
-      assert_match(/\AA secret is required/, e.message)
+      assert_nil app.credentials.secret_key_base
+      assert_kind_of ActiveSupport::LegacyKeyGenerator, app.key_generator
     end
 
     test "that nested keys are symbolized the same as parents for hashes more than one level deep" do
@@ -637,6 +665,20 @@ module ApplicationTests
       app "development"
 
       assert_equal "697361616320736c6f616e2028656c6f7265737429", app.secrets.smtp_settings[:password]
+    end
+
+    test "require_master_key aborts app boot when missing key" do
+      skip "can't run without fork" unless Process.respond_to?(:fork)
+
+      remove_file "config/master.key"
+      add_to_config "config.require_master_key = true"
+
+      error = capture(:stderr) do
+        Process.wait(Process.fork { app "development" })
+      end
+
+      assert_equal 1, $?.exitstatus
+      assert_match(/Missing.*RAILS_MASTER_KEY/, error)
     end
 
     test "protect from forgery is the default in a new app" do
@@ -1129,6 +1171,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1140,6 +1183,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w(controller action), ActionController::Parameters.always_permitted_parameters
     end
@@ -1152,6 +1196,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal %w( controller action format ), ActionController::Parameters.always_permitted_parameters
     end
@@ -1176,6 +1221,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
 
@@ -1187,6 +1233,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1195,6 +1242,7 @@ module ApplicationTests
       app "test"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1203,6 +1251,7 @@ module ApplicationTests
       app "production"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
 
       assert_equal false, ActionController::Parameters.action_on_unpermitted_parameters
     end
@@ -1222,6 +1271,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal true, ActionController::Parameters.permit_all_parameters
     end
 
@@ -1233,6 +1283,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal [], ActionController::Parameters.always_permitted_parameters
     end
 
@@ -1244,6 +1295,7 @@ module ApplicationTests
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
+      force_lazy_load_hooks { ActionController::API }
       assert_equal :raise, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
@@ -1261,10 +1313,10 @@ module ApplicationTests
         end
       end
 
-      get "/", {}, "HTTP_ACCEPT" => "application/xml"
+      get "/", {}, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "HTML", last_response.body
 
-      get "/", { format: :xml }, "HTTP_ACCEPT" => "application/xml"
+      get "/", { format: :xml }, { "HTTP_ACCEPT" => "application/xml" }
       assert_equal "XML", last_response.body
     end
 

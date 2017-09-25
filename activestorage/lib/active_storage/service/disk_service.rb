@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "pathname"
 require "digest/md5"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
-  # Wraps a local disk path as a Active Storage service. See `ActiveStorage::Service` for the generic API
+  # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
     attr_reader :root
@@ -54,7 +56,7 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key do |payload|
         verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
@@ -62,9 +64,9 @@ module ActiveStorage
           if defined?(Rails.application)
             Rails.application.routes.url_helpers.rails_disk_service_path \
               verified_key_with_expiration,
-              disposition: disposition, filename: filename, content_type: content_type
+              filename: filename, disposition: disposition, content_type: content_type
           else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?disposition=#{disposition}&content_type=#{content_type}"
+            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}&disposition=#{disposition}"
           end
 
         payload[:url] = generated_url
@@ -82,8 +84,8 @@ module ActiveStorage
             content_length: content_length,
             checksum: checksum
           },
-          expires_in: expires_in,
-          purpose: :blob_token
+          { expires_in: expires_in,
+          purpose: :blob_token }
         )
 
         generated_url =
@@ -124,4 +126,3 @@ module ActiveStorage
       end
   end
 end
-

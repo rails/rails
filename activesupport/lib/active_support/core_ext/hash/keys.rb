@@ -18,7 +18,7 @@ class Hash
       result[yield(key)] = self[key]
     end
     result
-  end
+  end unless method_defined? :transform_keys
 
   # Destructively converts all keys using the +block+ operations.
   # Same as +transform_keys+ but modifies +self+.
@@ -28,7 +28,7 @@ class Hash
       self[yield(key)] = delete(key)
     end
     self
-  end
+  end unless method_defined? :transform_keys!
 
   # Returns a new hash with all keys converted to strings.
   #

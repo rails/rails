@@ -296,13 +296,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read content type with default charset utf-8" do
-    original = ActionDispatch::Response.default_charset
-    begin
-      resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
-      assert_equal("utf-8", resp.charset)
-    ensure
-      ActionDispatch::Response.default_charset = original
-    end
+    resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
+    assert_equal("utf-8", resp.charset)
   end
 
   test "read content type with charset utf-16" do
@@ -383,10 +378,10 @@ class ResponseTest < ActiveSupport::TestCase
     app = lambda { |env| @response.to_a }
     env = Rack::MockRequest.env_for("/")
 
-    status, headers, body = app.call(env)
+    _status, headers, _body = app.call(env)
     assert_nil headers["Content-Length"]
 
-    status, headers, body = Rack::ContentLength.new(app).call(env)
+    _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_equal "5", headers["Content-Length"]
   end
 end

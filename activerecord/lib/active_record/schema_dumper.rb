@@ -19,7 +19,7 @@ module ActiveRecord
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
-        new(connection, generate_options(config)).dump(stream)
+        connection.create_schema_dumper(generate_options(config)).dump(stream)
         stream
       end
 
@@ -123,7 +123,7 @@ HEADER
           when String
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
-            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            pkcolspec = column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
@@ -132,20 +132,19 @@ HEADER
           else
             tbl.print ", id: false"
           end
-          tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts " do |t|"
+          tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            type, colspec = @connection.column_spec(column)
+            type, colspec = column_spec(column)
             tbl.print "    t.#{type} #{column.name.inspect}"
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
@@ -163,8 +162,6 @@ HEADER
           stream.puts "#   #{e.message}"
           stream.puts
         end
-
-        stream
       end
 
       # Keep it for indexing materialized views
@@ -243,7 +240,9 @@ HEADER
       end
 
       def remove_prefix_and_suffix(table)
-        table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
+        prefix = Regexp.escape(@options[:table_name_prefix].to_s)
+        suffix = Regexp.escape(@options[:table_name_suffix].to_s)
+        table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
       def ignored?(table_name)

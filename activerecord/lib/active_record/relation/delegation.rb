@@ -39,12 +39,11 @@ module ActiveRecord
     # for each different klass, and the delegations are compiled into that subclass only.
 
     delegate :to_xml, :encode_with, :length, :each, :uniq, :to_ary, :join,
-             :[], :&, :|, :+, :-, :sample, :reverse, :compact, :in_groups, :in_groups_of,
+             :[], :&, :|, :+, :-, :sample, :reverse, :rotate, :compact, :in_groups, :in_groups_of,
              :to_sentence, :to_formatted_s, :as_json,
-             :shuffle, :split, :index, to: :records
+             :shuffle, :split, :slice, :index, :rindex, to: :records
 
-    delegate :table_name, :quoted_table_name, :primary_key, :quoted_primary_key,
-             :connection, :columns_hash, to: :klass
+    delegate :primary_key, :connection, to: :klass
 
     module ClassSpecificRelation # :nodoc:
       extend ActiveSupport::Concern
@@ -75,13 +74,6 @@ module ActiveRecord
             end
           end
         end
-
-        def delegate(method, opts = {})
-          @delegation_mutex.synchronize do
-            return if method_defined?(method)
-            super
-          end
-        end
       end
 
       private
@@ -93,7 +85,6 @@ module ActiveRecord
           elsif arel.respond_to?(method)
             ActiveSupport::Deprecation.warn \
               "Delegating #{method} to arel is deprecated and will be removed in Rails 6.0."
-            self.class.delegate method, to: :arel
             arel.public_send(method, *args, &block)
           else
             super

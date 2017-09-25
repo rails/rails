@@ -1,3 +1,42 @@
+*   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
+
+    This change introduces a `rotate` method to both the `MessageEncryptor` and
+    `MessageVerifier` classes. This method accepts the same arguments and
+    options as the given classes' constructor. The `encrypt_and_verify` method
+    for `MessageEncryptor` and the `verified` method for `MessageVerifier` also
+    accept an optional keyword argument `:on_rotation` block which is called
+    when a rotated instance is used to decrypt or verify the message.
+
+    *Michael J Coyne*
+
+*   Deprecate `Module#reachable?` method.
+
+    *bogdanvlviv*
+
+*   Add `config/credentials.yml.enc` to store production app secrets.
+
+    Allows saving any authentication credentials for third party services
+    directly in repo encrypted with `config/master.key` or `ENV["RAILS_MASTER_KEY"]`.
+
+    This will eventually replace `Rails.application.secrets` and the encrypted
+    secrets introduced in Rails 5.1.
+
+    *DHH*, *Kasper Timm Hansen*
+
+*   Add `ActiveSupport::EncryptedFile` and `ActiveSupport::EncryptedConfiguration`.
+
+    Allows for stashing encrypted files or configuration directly in repo by
+    encrypting it with a key.
+
+    Backs the new credentials setup above, but can also be used independently.
+
+    *DHH*, *Kasper Timm Hansen*
+
+*   `Module#delegate_missing_to` now raises `DelegationError` if target is nil,
+    similar to `Module#delegate`.
+
+    *Anton Khamets*
+
 *   Update `String#camelize` to provide feedback when wrong option is passed
 
     `String#camelize` was returning nil without any feedback when an

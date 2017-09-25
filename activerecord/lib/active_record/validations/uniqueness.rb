@@ -8,6 +8,10 @@ module ActiveRecord
           raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
         end
+        unless Array(options[:scope]).all? { |scope| scope.respond_to?(:to_sym) }
+          raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
+            "Pass a symbol or an array of symbols instead: `scope: :user_id`"
+        end
         super({ case_sensitive: true }.merge!(options))
         @klass = options[:class]
       end
@@ -215,7 +219,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
-      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
+      # {optimistic concurrency control}[https://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

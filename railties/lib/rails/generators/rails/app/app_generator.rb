@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../../app_base"
 
 module Rails
@@ -109,7 +111,6 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
-        template "secrets.yml"
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
@@ -154,6 +155,26 @@ module Rails
         unless assets_config_exist
           remove_file "config/initializers/assets.rb"
         end
+      end
+    end
+
+    def master_key
+      return if options[:pretend]
+
+      require_relative "../master_key/master_key_generator"
+
+      after_bundle do
+        Rails::Generators::MasterKeyGenerator.new.add_master_key_file
+      end
+    end
+
+    def credentials
+      return if options[:pretend]
+
+      require_relative "../credentials/credentials_generator"
+
+      after_bundle do
+        Rails::Generators::CredentialsGenerator.new.add_credentials_file_silently
       end
     end
 
@@ -287,6 +308,14 @@ module Rails
       end
       remove_task :update_config_files
 
+      def create_master_key
+        build(:master_key)
+      end
+
+      def create_credentials
+        build(:credentials)
+      end
+
       def display_upgrade_guide_info
         say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
       end
@@ -395,7 +424,6 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "config/cable.yml"
           remove_file "app/assets/javascripts/cable.js"
           remove_dir "app/channels"
         end

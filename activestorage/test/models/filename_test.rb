@@ -1,6 +1,26 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
 class ActiveStorage::FilenameTest < ActiveSupport::TestCase
+  test "base" do
+    assert_equal "racecar", ActiveStorage::Filename.new("racecar.jpg").base
+    assert_equal "race.car", ActiveStorage::Filename.new("race.car.jpg").base
+    assert_equal "racecar", ActiveStorage::Filename.new("racecar").base
+  end
+
+  test "extension with delimiter" do
+    assert_equal ".jpg", ActiveStorage::Filename.new("racecar.jpg").extension_with_delimiter
+    assert_equal ".jpg", ActiveStorage::Filename.new("race.car.jpg").extension_with_delimiter
+    assert_equal "", ActiveStorage::Filename.new("racecar").extension_with_delimiter
+  end
+
+  test "extension without delimiter" do
+    assert_equal "jpg", ActiveStorage::Filename.new("racecar.jpg").extension_without_delimiter
+    assert_equal "jpg", ActiveStorage::Filename.new("race.car.jpg").extension_without_delimiter
+    assert_equal "", ActiveStorage::Filename.new("racecar").extension_without_delimiter
+  end
+
   test "sanitize" do
     "%$|:;/\t\r\n\\".each_char do |character|
       filename = ActiveStorage::Filename.new("foo#{character}bar.pdf")
@@ -10,8 +30,8 @@ class ActiveStorage::FilenameTest < ActiveSupport::TestCase
   end
 
   test "sanitize transcodes to valid UTF-8" do
-    { "\xF6".force_encoding(Encoding::ISO8859_1) => "ö",
-      "\xC3".force_encoding(Encoding::ISO8859_1) => "Ã",
+    { "\xF6".dup.force_encoding(Encoding::ISO8859_1) => "ö",
+      "\xC3".dup.force_encoding(Encoding::ISO8859_1) => "Ã",
       "\xAD" => "�",
       "\xCF" => "�",
       "\x00" => "",

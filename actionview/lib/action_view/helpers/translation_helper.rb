@@ -6,7 +6,7 @@ require "i18n/exceptions"
 
 module ActionView
   # = Action View Translation Helpers
-  module Helpers
+  module Helpers #:nodoc:
     module TranslationHelper
       extend ActiveSupport::Concern
 

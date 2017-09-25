@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "optparse"
 require "action_dispatch"
 require "rails"
+require "active_support/deprecation"
+require "active_support/core_ext/string/filters"
 require_relative "../../dev_caching"
 
 module Rails
@@ -18,10 +22,15 @@ module Rails
       set_environment
     end
 
-    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
       @app ||= begin
         app = super
+        if app.is_a?(Class)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Use `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
+            Please change `run #{app}` to `run Rails.application` in config.ru.
+          MSG
+        end
         app.respond_to?(:to_app) ? app.to_app : app
       end
     end
@@ -117,6 +126,7 @@ module Rails
         desc: "Specifies the PID file."
       class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
+      class_option "restart", type: :boolean, default: nil, hide: true
 
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
@@ -127,6 +137,7 @@ module Rails
 
       def perform
         set_application_directory!
+        prepare_restart
         Rails::Server.new(server_options).tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -213,7 +224,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@server} #{@original_options.join(" ")}"
+          "bin/rails server #{@server} #{@original_options.join(" ")} --restart"
         end
 
         def pid
@@ -222,6 +233,10 @@ module Rails
 
         def self.banner(*)
           "rails server [puma, thin etc] [options]"
+        end
+
+        def prepare_restart
+          FileUtils.rm_f(options[:pid]) if options[:restart]
         end
     end
   end

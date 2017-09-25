@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "service/shared_service_tests"
 
 class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
@@ -6,7 +8,7 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
   include ActiveStorage::Service::SharedServiceTests
 
   test "url generation" do
-    assert_match(/rails\/active_storage\/disk\/.*\/avatar\.png\?.+disposition=inline/,
-      @service.url(FIXTURE_KEY, expires_in: 5.minutes, disposition: :inline, filename: "avatar.png", content_type: "image/png"))
+    assert_match(/rails\/active_storage\/disk\/.*\/avatar\.png\?content_type=image%2Fpng&disposition=inline/,
+      @service.url(FIXTURE_KEY, expires_in: 5.minutes, disposition: "inline; filename=\"avatar.png\"", filename: "avatar.png", content_type: "image/png"))
   end
 end

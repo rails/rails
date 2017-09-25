@@ -367,9 +367,10 @@ All the basic assertions such as `assert_equal` defined in `Minitest::Assertions
 * [`ActiveSupport::TestCase`](http://api.rubyonrails.org/classes/ActiveSupport/TestCase.html)
 * [`ActionMailer::TestCase`](http://api.rubyonrails.org/classes/ActionMailer/TestCase.html)
 * [`ActionView::TestCase`](http://api.rubyonrails.org/classes/ActionView/TestCase.html)
-* [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
 * [`ActiveJob::TestCase`](http://api.rubyonrails.org/classes/ActiveJob/TestCase.html)
+* [`ActionDispatch::IntegrationTest`](http://api.rubyonrails.org/classes/ActionDispatch/IntegrationTest.html)
 * [`ActionDispatch::SystemTestCase`](http://api.rubyonrails.org/classes/ActionDispatch/SystemTestCase.html)
+* [`Rails::Generators::TestCase`](http://api.rubyonrails.org/classes/Rails/Generators/TestCase.html)
 
 Each of these classes include `Minitest::Assertions`, allowing us to use all of the basic assertions in our tests.
 
@@ -451,7 +452,8 @@ You can run multiple files and directories at the same time:
 By default test failures and errors are reported inline during a run.
 
 Rails options:
-    -e, --environment ENV            Run tests in the ENV environment
+    -w, --warnings                   Run with Ruby warnings enabled
+    -e, --environment                Run tests in the ENV environment
     -b, --backtrace                  Show the complete backtrace
     -d, --defer-output               Output test failures and errors after the test run
     -f, --fail-fast                  Abort test run on first failure or error
@@ -614,7 +616,7 @@ $ bin/rails generate system_test users
       create test/system/users_test.rb
 ```
 
-Here's what a freshly-generated system test looks like:
+Here's what a freshly generated system test looks like:
 
 ```ruby
 require "application_system_test_case"
@@ -788,7 +790,7 @@ $ bin/rails generate integration_test user_flows
       create  test/integration/user_flows_test.rb
 ```
 
-Here's what a freshly-generated integration test looks like:
+Here's what a freshly generated integration test looks like:
 
 ```ruby
 require 'test_helper'
@@ -926,7 +928,7 @@ each of the seven default actions, you can use the following command:
 $ bin/rails generate test_unit:scaffold article
 ...
 invoke  test_unit
-create test/controllers/articles_controller_test.rb
+create    test/controllers/articles_controller_test.rb
 ...
 ```
 
@@ -1062,9 +1064,9 @@ end
 
 ### Setting Headers and CGI variables
 
-[HTTP headers](http://tools.ietf.org/search/rfc2616#section-5.3)
+[HTTP headers](https://tools.ietf.org/search/rfc2616#section-5.3)
 and
-[CGI variables](http://tools.ietf.org/search/rfc3875#section-4.1)
+[CGI variables](https://tools.ietf.org/search/rfc3875#section-4.1)
 can be passed as headers:
 
 ```ruby

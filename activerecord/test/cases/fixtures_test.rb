@@ -132,7 +132,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_no_args_record_returns_all_without_array
     all_binaries = binaries
     assert_kind_of(Array, all_binaries)
-    assert_equal 1, binaries.length
+    assert_equal 2, binaries.length
   end
 
   def test_nil_raises
@@ -313,6 +313,7 @@ class FixturesTest < ActiveRecord::TestCase
     data.force_encoding("ASCII-8BIT")
     data.freeze
     assert_equal data, @flowers.data
+    assert_equal data, @binary_helper.data
   end
 
   def test_serialized_fixtures

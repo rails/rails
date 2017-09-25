@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -37,6 +39,8 @@ class CurrentAttributesIntegrationTest < ActiveSupport::TestCase
 
     app_file "app/controllers/customers_controller.rb", <<-RUBY
       class CustomersController < ApplicationController
+        layout false
+
         def set_current_customer
           Current.customer = Customer.new("david")
           render :index

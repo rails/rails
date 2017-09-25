@@ -278,7 +278,7 @@ You can now just call the dependency once with a wildcard.
 
 ### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
 
-`content_tag_for` and `div_for` has been removed in favor of just using `content_tag`. To continue using it, add the `record_tag_helper` gem to your Gemfile:
+`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your Gemfile:
 
 ```ruby
 gem 'record_tag_helper', '~> 1.0'
@@ -396,6 +396,15 @@ Set the following in your config to enable HSTS when using subdomains:
 When using Ruby 2.4, you can preserve the timezone of the receiver when calling `to_time`.
 
     ActiveSupport.to_time_preserves_timezone = false
+
+### Changes with JSON/JSONB serialization
+
+In Rails 5.0, how JSON/JSONB attributes are serialized and deserialized changed. Now, if
+you set a column equal to a `String`, Active Record will no longer turn that string
+into a `Hash`, and will instead only return the string. This is not limited to code
+interacting with models, but also affects `:default` column settings in `db/schema.rb`.
+It is recommended that you do not set columns equal to a `String`, but pass a `Hash`
+instead, which will be converted to and from a JSON string automatically.
 
 Upgrading from Rails 4.1 to Rails 4.2
 -------------------------------------
@@ -1097,7 +1106,7 @@ on the Rails blog.
 
 The errata for the `PATCH` verb [specifies that a 'diff' media type should be
 used with `PATCH`](http://www.rfc-editor.org/errata_search.php?rfc=5789). One
-such format is [JSON Patch](http://tools.ietf.org/html/rfc6902). While Rails
+such format is [JSON Patch](https://tools.ietf.org/html/rfc6902). While Rails
 does not support JSON Patch natively, it's easy enough to add support:
 
 ```
@@ -1301,7 +1310,7 @@ get 'こんにちは', controller: 'welcome', action: 'index'
   get '/' => 'root#index'
 ```
 
-* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per http://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
+* Rails 4.0 has removed `ActionDispatch::BestStandardsSupport` middleware, `<!DOCTYPE html>` already triggers standards mode per https://msdn.microsoft.com/en-us/library/jj676915(v=vs.85).aspx and ChromeFrame header has been moved to `config.action_dispatch.default_headers`.
 
 Remember you must also remove any references to the middleware from your application code, for example:
 

@@ -111,7 +111,7 @@ if ActiveRecord::Base.connection.supports_comments?
 
       # And check that these changes are reflected in dump
       output = dump_table_schema "commenteds"
-      assert_match %r[create_table "commenteds",.+\s+comment: "A table with comment"], output
+      assert_match %r[create_table "commenteds",.*\s+comment: "A table with comment"], output
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output
@@ -141,6 +141,28 @@ if ActiveRecord::Base.connection.supports_comments?
 
       assert_match %r[t\.string\s+"absent_comment"\n], output
       assert_no_match %r[t\.string\s+"absent_comment", comment:\n], output
+    end
+
+    def test_change_table_comment
+      @connection.change_table_comment :commenteds, "Edited table comment"
+      assert_equal "Edited table comment", @connection.table_comment("commenteds")
+    end
+
+    def test_change_table_comment_to_nil
+      @connection.change_table_comment :commenteds, nil
+      assert_nil @connection.table_comment("commenteds")
+    end
+
+    def test_change_column_comment
+      @connection.change_column_comment :commenteds, :name, "Edited column comment"
+      column = Commented.columns_hash["name"]
+      assert_equal "Edited column comment", column.comment
+    end
+
+    def test_change_column_comment_to_nil
+      @connection.change_column_comment :commenteds, :name, nil
+      column = Commented.columns_hash["name"]
+      assert_nil column.comment
     end
   end
 end

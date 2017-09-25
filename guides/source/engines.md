@@ -346,6 +346,9 @@ invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
+invoke  test_unit
+create    test/application_system_test_case.rb
+create    test/system/articles_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/articles.js
@@ -1319,7 +1322,7 @@ engine.
 
 Assets within an engine work in an identical way to a full application. Because
 the engine class inherits from `Rails::Engine`, the application will know to
-look up assets in the engine's 'app/assets' and 'lib/assets' directories.
+look up assets in the engine's `app/assets` and `lib/assets` directories.
 
 Like all of the other components of an engine, the assets should be namespaced.
 This means that if you have an asset called `style.css`, it should be placed at

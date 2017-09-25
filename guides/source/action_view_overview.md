@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * What Action View is and how to use it with Rails.
 * How best to use templates, partials, and layouts.
-* What helpers are provided by Action View and how to make your own.
+* What helpers are provided by Action View.
 * How to use localized views.
 
 --------------------------------------------------------------------------------
@@ -414,7 +414,7 @@ By default, Rails links to these assets on the current host in the public folder
 
 ```ruby
 config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
+image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
 #### auto_discovery_link_tag
@@ -453,7 +453,7 @@ image_url("edit.png") # => http://www.example.com/assets/edit.png
 Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
 
 ```ruby
-image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
+image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
 
 #### javascript_include_tag

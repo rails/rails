@@ -156,6 +156,13 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r3.valid?, "Saving r3"
   end
 
+  def test_validate_uniqueness_with_scope_invalid_syntax
+    error = assert_raises(ArgumentError) do
+      Reply.validates_uniqueness_of(:content, scope: { parent_id: false })
+    end
+    assert_match(/Pass a symbol or an array of symbols instead/, error.to_s)
+  end
+
   def test_validate_uniqueness_with_object_scope
     Reply.validates_uniqueness_of(:content, scope: :topic)
 

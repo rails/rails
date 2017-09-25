@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "../dev_caching"
 
 namespace :dev do

@@ -20,7 +20,7 @@ After reading this guide, you will know:
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
+Active Record is the M in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
 model - which is the layer of the system responsible for representing business
 data and logic. Active Record facilitates the creation and use of business
 objects whose data requires persistent storage to a database. It is an

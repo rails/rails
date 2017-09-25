@@ -1,3 +1,39 @@
+*   Use given algorithm while removing index from database.
+
+    Fixes #24190.
+
+    *Mehmet Emin İNAÇ*
+
+*   Update payload names for `sql.active_record` instrumentation to be
+    more descriptive.
+
+    Fixes #30586.
+
+    *Jeremy Green*
+
+*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
+    when lock wait time expires.
+
+    *Gabriel Courtemanche*
+
+*   Remove deprecated `#migration_keys`.
+
+    *Ryuta Kamizono*
+
+*   Automatically guess the inverse associations for STI.
+
+    *Yuichiro Kaneko*
+
+*   Ensure `sum` honors `distinct` on `has_many :through` associations
+
+    Fixes #16791.
+
+    *Aaron Wortham*
+
+*   Add `binary` fixture helper method.
+
+    *Atsushi Yoshida*
+
 *   When using `Relation#or`, extract the common conditions and put them before the OR condition.
 
     *Maxime Handfield Lapointe*

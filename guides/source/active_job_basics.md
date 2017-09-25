@@ -162,6 +162,7 @@ Here is a noncomprehensive list of documentation:
 
 - [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
 - [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 
@@ -260,8 +261,38 @@ backends you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the life cycle of a job. Callbacks allow you to
-trigger logic during the life cycle of a job.
+Active Job provides hooks to trigger logic during the life cycle of a job. Like
+other callbacks in Rails, you can implement the callbacks as ordinary methods
+and use a macro-style class method to register them as callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  around_perform :around_cleanup
+
+  def perform
+    # Do something later
+  end
+
+  private
+    def around_cleanup(job)
+      # Do something before perform
+      yield
+      # Do something after perform
+    end
+end
+```
+
+The macro-style class methods can also receive a block. Consider using this
+style if the code inside your block is so short that it fits in a single line.
+For example, you could send metrics for every job enqueued:
+
+```ruby
+class ApplicationJob
+  before_enqueue { |job| $statsd.increment "#{job.name.underscore}.enqueue" }
+end
+```
 
 ### Available callbacks
 
@@ -271,28 +302,6 @@ trigger logic during the life cycle of a job.
 * `before_perform`
 * `around_perform`
 * `after_perform`
-
-### Usage
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :default
-
-  before_enqueue do |job|
-    # Do something with the job instance
-  end
-
-  around_perform do |job, block|
-    # Do something before perform
-    block.call
-    # Do something after perform
-  end
-
-  def perform
-    # Do something later
-  end
-end
-```
 
 
 Action Mailer
@@ -371,7 +380,7 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   rescue_from(ActiveRecord::RecordNotFound) do |exception|
-   # Do something with the exception
+    # Do something with the exception
   end
 
   def perform
@@ -379,6 +388,25 @@ class GuestsCleanupJob < ApplicationJob
   end
 end
 ```
+
+### Retrying or Discarding failed jobs
+
+It's also possible to retry or discard a job if an exception is raised during execution.
+For example:
+
+```ruby
+class RemoteServiceJob < ApplicationJob
+  retry_on CustomAppException # defaults to 3s wait, 5 attempts
+
+  discard_on ActiveJob::DeserializationError
+
+  def perform(*args)
+    # Might raise CustomAppException or ActiveJob::DeserializationError
+  end
+end
+```
+
+To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
 ### Deserialization
 

@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 require "action_dispatch/http/upload"
 require "active_support/core_ext/module/delegation"
 
 module ActiveStorage
-# Abstract baseclass for the concrete `ActiveStorage::Attached::One` and `ActiveStorage::Attached::Many`
-# classes that both provide proxy access to the blob association for a record.
+  # Abstract base class for the concrete ActiveStorage::Attached::One and ActiveStorage::Attached::Many
+  # classes that both provide proxy access to the blob association for a record.
   class Attached
-    attr_reader :name, :record
+    attr_reader :name, :record, :dependent
 
-    def initialize(name, record)
-      @name, @record = name, record
+    def initialize(name, record, dependent:)
+      @name, @record, @dependent = name, record, dependent
     end
 
     private
@@ -17,7 +19,7 @@ module ActiveStorage
         case attachable
         when ActiveStorage::Blob
           attachable
-        when ActionDispatch::Http::UploadedFile
+        when ActionDispatch::Http::UploadedFile, Rack::Test::UploadedFile
           ActiveStorage::Blob.create_after_upload! \
             io: attachable.open,
             filename: attachable.original_filename,

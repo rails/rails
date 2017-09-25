@@ -73,11 +73,6 @@ module ActiveRecord
       assert_equal({}, relation.where_values_hash)
     end
 
-    def test_table_name_delegates_to_klass
-      relation = Relation.new(FakeKlass, :b, Post.predicate_builder)
-      assert_equal "posts", relation.table_name
-    end
-
     def test_scope_for_create
       relation = Relation.new(FakeKlass, :b, nil)
       assert_equal({}, relation.scope_for_create)

@@ -31,7 +31,7 @@ module ActionController
     #   redirect_to post_url(@post), status: 301
     #   redirect_to action: 'atom', status: 302
     #
-    # The status code can either be a standard {HTTP Status code}[http://www.iana.org/assignments/http-status-codes] as an
+    # The status code can either be a standard {HTTP Status code}[https://www.iana.org/assignments/http-status-codes] as an
     # integer, or a symbol representing the downcased, underscored and symbolized description.
     # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
@@ -95,7 +95,7 @@ module ActionController
       # The scheme name consist of a letter followed by any combination of
       # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
       # characters; and is terminated by a colon (":").
-      # See http://tools.ietf.org/html/rfc3986#section-3.1
+      # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
       when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
         options

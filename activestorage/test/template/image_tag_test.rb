@@ -1,9 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "database/setup"
-
-class User < ActiveRecord::Base
-  has_one_attached :avatar
-end
 
 class ActiveStorage::ImageTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
@@ -13,17 +11,17 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   end
 
   test "blob" do
-    assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url @blob}" />), image_tag(@blob)
+    assert_dom_equal %(<img src="#{polymorphic_url @blob}" />), image_tag(@blob)
   end
 
   test "variant" do
     variant = @blob.variant(resize: "100x100")
-    assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url variant}" />), image_tag(variant)
+    assert_dom_equal %(<img src="#{polymorphic_url variant}" />), image_tag(variant)
   end
 
   test "attachment" do
     attachment = ActiveStorage::Attachment.new(blob: @blob)
-    assert_dom_equal %(<img alt="Racecar" src="#{polymorphic_url attachment}" />), image_tag(attachment)
+    assert_dom_equal %(<img src="#{polymorphic_url attachment}" />), image_tag(attachment)
   end
 
   test "error when attachment's empty" do

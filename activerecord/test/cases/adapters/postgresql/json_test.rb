@@ -21,8 +21,8 @@ module PostgresqlJSONSharedTestCases
     @connection.add_column "json_data_type", "permissions", column_type, default: { "users": "read", "posts": ["read", "write"] }
     klass.reset_column_information
 
-    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.column_defaults["permissions"])
-    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, JsonDataType.new.permissions)
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.column_defaults["permissions"])
+    assert_equal({ "users" => "read", "posts" => ["read", "write"] }, klass.new.permissions)
   end
 
   def test_deserialize_with_array
@@ -32,15 +32,6 @@ module PostgresqlJSONSharedTestCases
     assert_equal ["foo" => "bar"], x.objects
     x.reload
     assert_equal ["foo" => "bar"], x.objects
-  end
-
-  def test_not_compatible_with_serialize_macro
-    new_klass = Class.new(klass) do
-      serialize :payload, JSON
-    end
-    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
-      new_klass.new
-    end
   end
 end
 

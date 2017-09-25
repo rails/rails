@@ -359,4 +359,9 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # TransactionTimeout will be raised when lock wait timeout expires.
+  # Wait time value is set by innodb_lock_wait_timeout.
+  class TransactionTimeout < StatementInvalid
+  end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -15,7 +17,7 @@ module ApplicationTests
 
       test "dev:cache creates file and outputs message" do
         Dir.chdir(app_path) do
-          output = `rails dev:cache`
+          output = rails("dev:cache")
           assert File.exist?("tmp/caching-dev.txt")
           assert_match(/Development mode is now being cached/, output)
         end
@@ -23,19 +25,23 @@ module ApplicationTests
 
       test "dev:cache deletes file and outputs message" do
         Dir.chdir(app_path) do
-          `rails dev:cache` # Create caching file.
-          output = `rails dev:cache` # Delete caching file.
+          rails "dev:cache" # Create caching file.
+          output = rails("dev:cache") # Delete caching file.
           assert_not File.exist?("tmp/caching-dev.txt")
           assert_match(/Development mode is no longer being cached/, output)
         end
       end
 
-      test "dev:cache removes server.pid also" do
+      test "dev:cache touches tmp/restart.txt" do
         Dir.chdir(app_path) do
-          FileUtils.mkdir_p("tmp/pids")
-          FileUtils.touch("tmp/pids/server.pid")
-          `rails dev:cache`
-          assert_not File.exist?("tmp/pids/server.pid")
+          rails "dev:cache"
+          assert File.exist?("tmp/restart.txt")
+
+          prev_mtime = File.mtime("tmp/restart.txt")
+          sleep(1)
+          rails "dev:cache"
+          curr_mtime = File.mtime("tmp/restart.txt")
+          assert_not_equal prev_mtime, curr_mtime
         end
       end
     end

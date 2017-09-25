@@ -91,13 +91,13 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
       def preload(records, associations, preload_scope = nil)
-        records       = Array.wrap(records).compact.uniq
-        associations  = Array.wrap(associations)
+        records = records.compact
 
         if records.empty?
           []
         else
-          associations.flat_map { |association|
+          records.uniq!
+          Array.wrap(associations).flat_map { |association|
             preloaders_on association, records, preload_scope
           }
         end

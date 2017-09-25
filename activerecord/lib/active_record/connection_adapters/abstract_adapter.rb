@@ -72,7 +72,6 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
@@ -443,7 +442,11 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        visitor.accept(node, collector).value
+        column_name_from_arel_node(node)
+      end
+
+      def column_name_from_arel_node(node) # :nodoc:
+        visitor.accept(node, Arel::Collectors::SQLString.new).value
       end
 
       def default_index_type?(index) # :nodoc:

@@ -1,3 +1,54 @@
+*   Simplify cookies middleware with key rotation support
+
+    Use the `rotate` method for both `MessageEncryptor` and
+    `MessageVerifier` to add key rotation support for encrypted and
+    signed cookies. This also helps simplify support for legacy cookie
+    security.
+
+    *Michael J Coyne*
+
+*  Use Capybara registered `:puma` server config.
+
+    The Capybara registered `:puma` server ensures the puma server is run in process so
+    connection sharing and open request detection work correctly by default.
+
+    *Thomas Walpole*
+
+*  Cookies `:expires` option supports `ActiveSupport::Duration` object.
+
+        cookies[:user_name] = { value: "assain", expires: 1.hour }
+        cookies[:key] = { value: "a yummy cookie", expires: 6.months }
+
+    Pull Request: #30121
+
+    *Assain Jaleel*
+
+*  Enforce signed/encrypted cookie expiry server side.
+
+    Rails can thwart attacks by malicious clients that don't honor a cookie's expiry.
+
+    It does so by stashing the expiry within the written cookie and relying on the
+    signing/encrypting to vouch that it hasn't been tampered with. Then on a
+    server-side read, the expiry is verified and any expired cookie is discarded.
+
+    Pull Request: #30121
+
+    *Assain Jaleel*
+
+*   Make `take_failed_screenshot` work within engine.
+
+    Fixes #30405.
+
+    *Yuji Yaginuma*
+
+*   Deprecate `ActionDispatch::TestResponse` response aliases
+
+    `#success?`, `#missing?` & `#error?` are not supported by the actual
+    `ActionDispatch::Response` object and can produce false-positives. Instead,
+    use the response helpers provided by `Rack::Response`.
+
+    *Trevor Wistaff*
+
 *   Protect from forgery by default
 
     Rather than protecting from forgery in the generated `ApplicationController`,

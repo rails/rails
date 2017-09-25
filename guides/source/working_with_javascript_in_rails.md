@@ -24,11 +24,11 @@ In order to understand Ajax, you must first understand what a web browser does
 normally.
 
 When you type `http://localhost:3000` into your browser's address bar and hit
-'Go,' the browser (your 'client') makes a request to the server. It parses the
+'Go', the browser (your 'client') makes a request to the server. It parses the
 response, then fetches all associated assets, like JavaScript files,
 stylesheets and images. It then assembles the page. If you click a link, it
 does the same process: fetch the page, fetch the assets, put it all together,
-show you the results. This is called the 'request response cycle.'
+show you the results. This is called the 'request response cycle'.
 
 JavaScript can also make requests to the server, and parse the response. It
 also has the ability to update information on the page. Combining these two
@@ -57,7 +57,7 @@ will show you how Rails can help you write websites in this way, but it's
 all built on top of this fairly simple technique.
 
 Unobtrusive JavaScript
--------------------------------------
+----------------------
 
 Rails uses a technique called "Unobtrusive JavaScript" to handle attaching
 JavaScript to the DOM. This is generally considered to be a best-practice
@@ -139,7 +139,7 @@ JavaScript) in this style, and you can expect that many libraries will also
 follow this pattern.
 
 Built-in Helpers
-----------------------
+----------------
 
 ### Remote elements
 
@@ -256,7 +256,7 @@ attributes to accomplish this.
 #### `data-method`
 
 Activating hyperlinks always results in an HTTP GET request. However, if your
-application is [RESTful](http://en.wikipedia.org/wiki/Representational_State_Transfer),
+application is [RESTful](https://en.wikipedia.org/wiki/Representational_State_Transfer),
 some links are in fact actions that change data on the server, and must be
 performed with non-GET requests. This attribute allows marking up such links
 with an explicit method such as "post", "put" or "delete".
@@ -372,9 +372,9 @@ is also useful for manipulating form data before serialization. The
 `ajax:beforeSend` event is also useful for adding custom request headers.
 
 If you stop the `ajax:aborted:file` event, the default behavior of allowing the
-browser to submit the form via normal means (i.e. non-AJAX submission) will be
+browser to submit the form via normal means (i.e. non-Ajax submission) will be
 canceled and the form will not be submitted at all. This is useful for
-implementing your own AJAX file upload workaround.
+implementing your own Ajax file upload workaround.
 
 ### Rails-ujs event handlers
 
@@ -382,7 +382,7 @@ Rails 5.1 introduced rails-ujs and dropped jQuery as a dependency.
 As a result the Unobtrusive JavaScript (UJS) driver has been rewritten to operate without jQuery.
 These introductions cause small changes to `custom events` fired during the request:
 
-NOTE: Signature of calls to UJS’s event handlers has changed.
+NOTE: Signature of calls to UJS's event handlers has changed.
 Unlike the version with jQuery, all custom events return only one parameter: `event`.
 In this parameter, there is an additional attribute `detail` which contains an array of extra parameters.
 

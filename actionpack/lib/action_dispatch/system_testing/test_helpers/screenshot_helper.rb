@@ -16,12 +16,12 @@ module ActionDispatch
         # You can set the +RAILS_SYSTEM_TESTING_SCREENSHOT+ environment variable to
         # control the output. Possible values are:
         # * [+inline+ (default)]    display the screenshot in the terminal using the
-        #                           iTerm image protocol (http://iterm2.com/documentation-images.html).
+        #                           iTerm image protocol (https://iterm2.com/documentation-images.html).
         # * [+simple+]              only display the screenshot path.
         #                           This is the default value if the +CI+ environment variables
         #                           is defined.
         # * [+artifact+]            display the screenshot in the terminal, using the terminal
-        #                           artifact format (http://buildkite.github.io/terminal/inline-images/).
+        #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
         def take_screenshot
           save_image
           puts display_image
@@ -44,11 +44,15 @@ module ActionDispatch
           end
 
           def image_path
-            "tmp/screenshots/#{image_name}.png"
+            @image_path ||= absolute_image_path.relative_path_from(Pathname.pwd).to_s
+          end
+
+          def absolute_image_path
+            Rails.root.join("tmp/screenshots/#{image_name}.png")
           end
 
           def save_image
-            page.save_screenshot(Rails.root.join(image_path))
+            page.save_screenshot(absolute_image_path)
           end
 
           def output_type
@@ -65,14 +69,14 @@ module ActionDispatch
           end
 
           def display_image
-            message = "[Screenshot]: #{image_path}\n"
+            message = "[Screenshot]: #{image_path}\n".dup
 
             case output_type
             when "artifact"
-              message << "\e]1338;url=artifact://#{image_path}\a\n"
+              message << "\e]1338;url=artifact://#{absolute_image_path}\a\n"
             when "inline"
-              name = inline_base64(File.basename(image_path))
-              image = inline_base64(File.read(image_path))
+              name = inline_base64(File.basename(absolute_image_path))
+              image = inline_base64(File.read(absolute_image_path))
               message << "\e]1337;File=name=#{name};height=400px;inline=1:#{image}\a\n"
             end
 

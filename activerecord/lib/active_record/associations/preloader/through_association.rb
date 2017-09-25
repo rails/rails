@@ -28,6 +28,8 @@ module ActiveRecord
 
           middle_records = through_records.flat_map(&:last)
 
+          reflection_scope = reflection_scope() if reflection.scope
+
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
                                          reflection_scope)
@@ -49,7 +51,7 @@ module ActiveRecord
               }.compact
 
               # Respect the order on `reflection_scope` if it exists, else use the natural order.
-              if reflection_scope.values[:order].present?
+              if reflection_scope && !reflection_scope.order_values.empty?
                 @id_map ||= id_to_index_map @preloaded_records
                 rhs_records.sort_by { |rhs| @id_map[rhs] }
               else
@@ -67,10 +69,7 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name, through_scope)
-            should_reset = (through_scope != through_reflection.klass.unscoped) ||
-               (options[:source_type] && through_reflection.collection?)
-
+          def reset_association(owners, association_name, should_reset)
             # Don't cache the association - we would only be caching a subset
             if should_reset
               owners.each { |owner|
@@ -81,29 +80,40 @@ module ActiveRecord
 
           def through_scope
             scope = through_reflection.klass.unscoped
-            values = reflection_scope.values
+            options = reflection.options
 
             if options[:source_type]
               scope.where! reflection.foreign_type => options[:source_type]
-            else
-              unless reflection_scope.where_clause.empty?
-                scope.includes_values = Array(values[:includes] || options[:source])
-                scope.where_clause = reflection_scope.where_clause
-                if joins = values[:joins]
-                  scope.joins!(source_reflection.name => joins)
-                end
-                if left_outer_joins = values[:left_outer_joins]
-                  scope.left_outer_joins!(source_reflection.name => left_outer_joins)
-                end
+            elsif !reflection_scope.where_clause.empty?
+              scope.where_clause = reflection_scope.where_clause
+              values = reflection_scope.values
+
+              if includes = values[:includes]
+                scope.includes!(source_reflection.name => includes)
+              else
+                scope.includes!(source_reflection.name)
               end
 
-              scope.references! values[:references]
+              if values[:references] && !values[:references].empty?
+                scope.references!(values[:references])
+              else
+                scope.references!(source_reflection.table_name)
+              end
+
+              if joins = values[:joins]
+                scope.joins!(source_reflection.name => joins)
+              end
+
+              if left_outer_joins = values[:left_outer_joins]
+                scope.left_outer_joins!(source_reflection.name => left_outer_joins)
+              end
+
               if scope.eager_loading? && order_values = values[:order]
                 scope = scope.order(order_values)
               end
             end
 
-            scope
+            scope unless scope.empty_scope?
           end
       end
     end

@@ -55,11 +55,16 @@ module ActiveRecord
         pk_type = reflection.association_primary_key_type
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
-        records = klass.where(reflection.association_primary_key => ids).index_by do |r|
-          r.send(reflection.association_primary_key)
+
+        primary_key = reflection.association_primary_key
+        records = klass.where(primary_key => ids).index_by do |r|
+          r.public_send(primary_key)
         end.values_at(*ids).compact
+
         if records.size != ids.size
-          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
+          found_ids = records.map { |record| record.public_send(primary_key) }
+          not_found_ids = ids - found_ids
+          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key, not_found_ids)
         else
           replace(records)
         end
@@ -72,23 +77,19 @@ module ActiveRecord
       end
 
       def find(*args)
-        if block_given?
-          load_target.find(*args) { |*block_args| yield(*block_args) }
-        else
-          if options[:inverse_of] && loaded?
-            args_flatten = args.flatten
-            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
-            result = find_by_scan(*args)
+        if options[:inverse_of] && loaded?
+          args_flatten = args.flatten
+          raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
+          result = find_by_scan(*args)
 
-            result_size = Array(result).size
-            if !result || result_size != args_flatten.size
-              scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
-            else
-              result
-            end
+          result_size = Array(result).size
+          if !result || result_size != args_flatten.size
+            scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
           else
-            scope.find(*args)
+            result
           end
+        else
+          scope.find(*args)
         end
       end
 

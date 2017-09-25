@@ -95,7 +95,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio accepts html options as input" do
     collection = [[1, true], [0, false]]
-    with_collection_radio_buttons :user, :active, collection, :last, :first, {}, class: "special-radio"
+    with_collection_radio_buttons :user, :active, collection, :last, :first, {}, { class: "special-radio" }
 
     assert_select "input[type=radio][value=true].special-radio#user_active_true"
     assert_select "input[type=radio][value=false].special-radio#user_active_false"
@@ -215,7 +215,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection radio buttons generates a hidden field using the given :name in :html_options" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_radio_buttons :user, :category_ids, collection, :id, :name, {}, name: "user[other_category_ids]"
+    with_collection_radio_buttons :user, :category_ids, collection, :id, :name, {}, { name: "user[other_category_ids]" }
 
     assert_select "input[type=hidden][name='user[other_category_ids]'][value='']", count: 1
   end
@@ -259,7 +259,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes generates a hidden field using the given :name in :html_options" do
     collection = [Category.new(1, "Category 1"), Category.new(2, "Category 2")]
-    with_collection_check_boxes :user, :category_ids, collection, :id, :name, {}, name: "user[other_category_ids][]"
+    with_collection_check_boxes :user, :category_ids, collection, :id, :name, {}, { name: "user[other_category_ids][]" }
 
     assert_select "input[type=hidden][name='user[other_category_ids][]'][value='']", count: 1
   end
@@ -446,7 +446,7 @@ class FormCollectionsHelperTest < ActionView::TestCase
 
   test "collection check boxes accepts html options" do
     collection = [[1, "Category 1"], [2, "Category 2"]]
-    with_collection_check_boxes :user, :category_ids, collection, :first, :last, {}, class: "check"
+    with_collection_check_boxes :user, :category_ids, collection, :first, :last, {}, { class: "check" }
 
     assert_select 'input.check[type=checkbox][value="1"]'
     assert_select 'input.check[type=checkbox][value="2"]'

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object/with_options"
 require "active_support/core_ext/object/json"
@@ -56,12 +58,14 @@ class PathGenerationTest < ActiveSupport::TestCase
     Rails.logger    = Logger.new nil
 
     app = Class.new(Rails::Application) {
+      def self.name; "ScriptNameTestApp"; end
+
       attr_accessor :controller
+
       def initialize
         super
         app = self
         @routes = TestSet.new ->(c) { app.controller = c }
-        secrets.secret_key_base = "foo"
         secrets.secret_token = "foo"
       end
       def app; routes; end

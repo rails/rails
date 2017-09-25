@@ -1,9 +1,15 @@
 .bundle/
 log/*.log
 pkg/
-<% unless options[:skip_test] && options[:dummy_path] == 'test/dummy' -%>
+<% if with_dummy_app? -%>
+<% if sqlite3? -%>
 <%= dummy_path %>/db/*.sqlite3
 <%= dummy_path %>/db/*.sqlite3-journal
+<% end -%>
 <%= dummy_path %>/log/*.log
+<% unless options[:skip_yarn] -%>
+<%= dummy_path %>/node_modules/
+<%= dummy_path %>/yarn-error.log
+<% end -%>
 <%= dummy_path %>/tmp/
 <% end -%>

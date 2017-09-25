@@ -45,11 +45,11 @@ module ActiveRecord
         assert_nil TestModel.columns_hash["description"].limit
       end
 
-      if current_adapter?(:Mysql2Adapter)
+      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
         def test_unabstracted_database_dependent_types
-          add_column :test_models, :intelligence_quotient, :tinyint
+          add_column :test_models, :intelligence_quotient, :smallint
           TestModel.reset_column_information
-          assert_match(/tinyint/, TestModel.columns_hash["intelligence_quotient"].sql_type)
+          assert_match(/smallint/, TestModel.columns_hash["intelligence_quotient"].sql_type)
         end
       end
 
@@ -99,7 +99,21 @@ module ActiveRecord
         assert_equal 7, wealth_column.scale
       end
 
+      # Test SQLite3 adapter specifically for decimal types with precision and scale
+      # attributes, since these need to be maintained in schema but aren't actually
+      # used in SQLite3 itself
       if current_adapter?(:SQLite3Adapter)
+        def test_change_column_with_new_precision_and_scale
+          connection.add_column "test_models", "wealth", :decimal, precision: 9, scale: 7
+
+          connection.change_column "test_models", "wealth", :decimal, precision: 12, scale: 8
+          TestModel.reset_column_information
+
+          wealth_column = TestModel.columns_hash["wealth"]
+          assert_equal 12, wealth_column.precision
+          assert_equal 8, wealth_column.scale
+        end
+
         def test_change_column_preserve_other_column_precision_and_scale
           connection.add_column "test_models", "last_name", :string
           connection.add_column "test_models", "wealth", :decimal, precision: 9, scale: 7

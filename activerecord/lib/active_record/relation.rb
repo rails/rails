@@ -63,7 +63,7 @@ module ActiveRecord
 
       @klass.connection.insert(
         im,
-        "SQL",
+        "#{@klass} Create",
         primary_key || false,
         primary_key_value,
         nil,
@@ -86,7 +86,7 @@ module ActiveRecord
 
       @klass.connection.update(
         um,
-        "SQL",
+        "#{@klass} Update",
       )
     end
 
@@ -373,51 +373,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, "SQL"
-    end
-
-    # Updates an object (or multiple objects) and saves it to the database, if validations pass.
-    # The resulting object is returned whether the object was saved successfully to the database or not.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes or an array of hashes.
-    #
-    # ==== Examples
-    #
-    #   # Updates one record
-    #   Person.update(15, user_name: 'Samuel', group: 'expert')
-    #
-    #   # Updates multiple records
-    #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
-    #   Person.update(people.keys, people.values)
-    #
-    #   # Updates multiple records from the result of a relation
-    #   people = Person.where(group: 'expert')
-    #   people.update(group: 'masters')
-    #
-    # Note: Updating a large number of records will run an
-    # UPDATE query for each record, which may cause a performance
-    # issue. When running callbacks is not needed for each record update,
-    # it is preferred to use #update_all for updating all records
-    # in a single query.
-    def update(id = :all, attributes)
-      if id.is_a?(Array)
-        id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
-      elsif id == :all
-        records.each { |record| record.update(attributes) }
-      else
-        if ActiveRecord::Base === id
-          raise ArgumentError, <<-MSG.squish
-            You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
-        object = find(id)
-        object.update(attributes)
-        object
-      end
+      @klass.connection.update stmt, "#{@klass} Update All"
     end
 
     # Destroys the records by instantiating each
@@ -438,33 +394,6 @@ module ActiveRecord
     #   Person.where(age: 0..18).destroy_all
     def destroy_all
       records.each(&:destroy).tap { reset }
-    end
-
-    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
-    # therefore all callbacks and filters are fired off before the object is deleted. This method is
-    # less efficient than #delete but allows cleanup methods and other actions to be run.
-    #
-    # This essentially finds the object (or multiple objects) with the given id, creates a new object
-    # from the attributes, and then calls destroy on it.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - Can be either an Integer or an Array of Integers.
-    #
-    # ==== Examples
-    #
-    #   # Destroy a single object
-    #   Todo.destroy(1)
-    #
-    #   # Destroy multiple objects
-    #   todos = [1,2,3]
-    #   Todo.destroy(todos)
-    def destroy(id)
-      if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
-      else
-        find(id).destroy
-      end
     end
 
     # Deletes the records without instantiating the records
@@ -503,33 +432,10 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      affected = @klass.connection.delete(stmt, "SQL")
+      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
       reset
       affected
-    end
-
-    # Deletes the row with a primary key matching the +id+ argument, using a
-    # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-    # Record objects are not instantiated, so the object's callbacks are not
-    # executed, including any <tt>:dependent</tt> association options.
-    #
-    # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-    #
-    # Note: Although it is often much faster than the alternative,
-    # #destroy, skipping callbacks might bypass business logic in
-    # your application that ensures referential integrity or performs other
-    # essential jobs.
-    #
-    # ==== Examples
-    #
-    #   # Delete a single row
-    #   Todo.delete(1)
-    #
-    #   # Delete multiple rows
-    #   Todo.delete([2,3,4])
-    def delete(id_or_array)
-      where(primary_key => id_or_array).delete_all
     end
 
     # Causes the records to be loaded from the database if they have not
@@ -566,13 +472,12 @@ module ActiveRecord
                     relation = self
 
                     if eager_loading?
-                      find_with_associations { |rel| relation = rel }
+                      find_with_associations { |rel, _| relation = rel }
                     end
 
                     conn = klass.connection
                     conn.unprepared_statement {
-                      sql, _ = conn.to_sql(relation.arel)
-                      sql
+                      conn.to_sql(relation.arel)
                     }
                   end
     end
@@ -581,7 +486,7 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash(relation_table_name = table_name)
+    def where_values_hash(relation_table_name = klass.table_name)
       where_clause.to_h(relation_table_name)
     end
 
@@ -661,7 +566,19 @@ module ActiveRecord
 
       def exec_queries(&block)
         skip_query_cache_if_necessary do
-          @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, &block).freeze
+          @records =
+            if eager_loading?
+              find_with_associations do |relation, join_dependency|
+                if ActiveRecord::NullRelation === relation
+                  []
+                else
+                  rows = connection.select_all(relation.arel, "SQL")
+                  join_dependency.instantiate(rows, &block)
+                end.freeze
+              end
+            else
+              klass.find_by_sql(arel, &block).freeze
+            end
 
           preload = preload_values
           preload += includes_values unless eager_loading?

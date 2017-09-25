@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/time"
 
 module Rails
@@ -151,7 +153,7 @@ module Rails
       end
 
       def inject_options
-        "".tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
+        "".dup.tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options

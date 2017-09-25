@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require "google/cloud/storage"
 require "active_support/core_ext/object/to_query"
 
 module ActiveStorage
-  # Wraps the Google Cloud Storage as a Active Storage service. See `ActiveStorage::Service` for the generic API
+  # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
     attr_reader :client, :bucket
 
-    def initialize(project:, keyfile:, bucket:)
-      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile)
+    def initialize(project:, keyfile:, bucket:, **options)
+      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile, **options)
       @bucket = @client.bucket(bucket)
     end
 
@@ -33,22 +35,26 @@ module ActiveStorage
 
     def delete(key)
       instrument :delete, key do
-        file_for(key).try(:delete)
+        begin
+          file_for(key).delete
+        rescue Google::Cloud::NotFoundError
+          # Ignore files already deleted
+        end
       end
     end
 
     def exist?(key)
       instrument :exist, key do |payload|
-        answer = file_for(key).present?
+        answer = file_for(key).exists?
         payload[:exist] = answer
         answer
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, filename:, content_type:, disposition:)
       instrument :url, key do |payload|
         generated_url = file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => "#{disposition}; filename=\"#{filename}\"",
+          "response-content-disposition" => disposition,
           "response-content-type" => content_type
         }
 
@@ -75,7 +81,7 @@ module ActiveStorage
 
     private
       def file_for(key)
-        bucket.file(key)
+        bucket.file(key, skip_lookup: true)
       end
   end
 end

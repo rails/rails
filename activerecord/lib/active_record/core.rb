@@ -151,7 +151,7 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def allocate
         define_attribute_methods
         super
@@ -259,7 +259,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for association proxies.
+      # Overwrite the default class equality method to provide support for decorated models.
       def ===(object)
         object.is_a?(self)
       end
@@ -537,7 +537,7 @@ module ActiveRecord
       #
       # So we can avoid the +method_missing+ hit by explicitly defining +#to_ary+ as +nil+ here.
       #
-      # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
+      # See also https://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
       def to_ary
         nil
       end

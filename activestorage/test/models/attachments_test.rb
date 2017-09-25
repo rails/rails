@@ -1,12 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "database/setup"
-
-# ActiveRecord::Base.logger = Logger.new(STDOUT)
-
-class User < ActiveRecord::Base
-  has_one_attached  :avatar
-  has_many_attached :highlights
-end
 
 class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
@@ -25,9 +20,40 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
-  test "attach new blob" do
+  test "attach new blob from a Hash" do
     @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
     assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attach new blob from an UploadedFile" do
+    file = file_fixture "racecar.jpg"
+    @user.avatar.attach Rack::Test::UploadedFile.new file
+    assert_equal "racecar.jpg", @user.avatar.filename.to_s
+  end
+
+  test "replace attached blob" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_no_difference -> { ActiveStorage::Blob.count } do
+        @user.avatar.attach create_blob(filename: "town.jpg")
+      end
+    end
+
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
+  test "replace attached blob unsuccessfully" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_raises do
+        @user.avatar.attach nil
+      end
+    end
+
+    assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
+    assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
   end
 
   test "access underlying associations of new blob" do
@@ -56,6 +82,19 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       assert_nil ActiveStorage::Blob.find_by(key: avatar_key)
       assert_not ActiveStorage::Blob.service.exist?(avatar_key)
     end
+  end
+
+  test "find with attached blob" do
+    records = %w[alice bob].map do |name|
+      User.create!(name: name).tap do |user|
+        user.avatar.attach create_blob(filename: "#{name}.jpg")
+      end
+    end
+
+    users = User.where(id: records.map(&:id)).with_attached_avatar.all
+
+    assert_equal "alice.jpg", users.first.avatar.filename.to_s
+    assert_equal "bob.jpg", users.second.avatar.filename.to_s
   end
 
 

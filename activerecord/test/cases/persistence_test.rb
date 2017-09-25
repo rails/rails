@@ -70,12 +70,21 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_many
-    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, nil => {} }
     updated = Topic.update(topic_data.keys, topic_data.values)
 
-    assert_equal 2, updated.size
+    assert_equal [1, 2], updated.map(&:id)
     assert_equal "1 updated", Topic.find(1).content
     assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_class_level_update_is_affected_by_scoping
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
+
+    assert_equal [], Topic.where("1=0").scoping { Topic.update(topic_data.keys, topic_data.values) }
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
   end
 
   def test_delete_all
@@ -165,7 +174,7 @@ class PersistenceTest < ActiveRecord::TestCase
     clients = Client.all.merge!(order: "id").find([2, 3])
 
     assert_difference("Client.count", -2) do
-      destroyed = Client.destroy([2, 3]).sort_by(&:id)
+      destroyed = Client.destroy([2, 3, nil]).sort_by(&:id)
       assert_equal clients, destroyed
       assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
@@ -907,18 +916,39 @@ class PersistenceTest < ActiveRecord::TestCase
     should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_be_destroyed_reply
 
-    Topic.destroy(1)
+    topic = Topic.destroy(1)
+    assert topic.destroyed?
+
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Reply.find(should_be_destroyed_reply.id) }
   end
 
+  def test_class_level_destroy_is_affected_by_scoping
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
+
+    assert_nil Topic.where("1=0").scoping { Topic.destroy(1) }
+
+    assert_nothing_raised { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
+  end
+
   def test_class_level_delete
-    should_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
-    Topic.find(1).replies << should_be_destroyed_reply
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
 
     Topic.delete(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(1) }
-    assert_nothing_raised { Reply.find(should_be_destroyed_reply.id) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
+  end
+
+  def test_class_level_delete_is_affected_by_scoping
+    should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
+    Topic.find(1).replies << should_not_be_destroyed_reply
+
+    Topic.where("1=0").scoping { Topic.delete(1) }
+    assert_nothing_raised { Topic.find(1) }
+    assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }
   end
 
   def test_create_with_custom_timestamps

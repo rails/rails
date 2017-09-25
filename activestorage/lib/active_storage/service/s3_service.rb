@@ -1,9 +1,11 @@
-require "aws-sdk"
+# frozen_string_literal: true
+
+require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
 module ActiveStorage
-  # Wraps the Amazon Simple Storage Service (S3) as a Active Storage service.
-  # See `ActiveStorage::Service` for the generic API documentation that applies to all services.
+  # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
+  # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
@@ -50,10 +52,10 @@ module ActiveStorage
       end
     end
 
-    def url(key, expires_in:, disposition:, filename:, content_type:)
+    def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key do |payload|
-        generated_url = object_for(key).presigned_url :get, expires_in: expires_in,
-          response_content_disposition: "#{disposition}; filename=\"#{filename}\"",
+        generated_url = object_for(key).presigned_url :get, expires_in: expires_in.to_i,
+          response_content_disposition: disposition,
           response_content_type: content_type
 
         payload[:url] = generated_url
@@ -64,7 +66,7 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key do |payload|
-        generated_url = object_for(key).presigned_url :put, expires_in: expires_in,
+        generated_url = object_for(key).presigned_url :put, expires_in: expires_in.to_i,
           content_type: content_type, content_length: content_length, content_md5: checksum
 
         payload[:url] = generated_url

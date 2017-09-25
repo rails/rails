@@ -138,7 +138,7 @@ defaults to `:debug` for all environments. The available log levels are: `:debug
 
 * `config.reload_classes_only_on_change` enables or disables reloading of classes only when tracked files change. By default tracks everything on autoload paths and is set to `true`. If `config.cache_classes` is `true`, this option is ignored.
 
-* `secrets.secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get `secrets.secret_key_base` initialized to a random key present in `config/secrets.yml`.
+* `secret_key_base` is used for specifying a key which allows sessions for the application to be verified against a known secure key to prevent tampering. Applications get a random generated key in test and development environments, other environments should set one in `config/credentials.yml.enc`.
 
 * `config.public_file_server.enabled` configures Rails to serve static files from the public directory. This option defaults to `true`, but in the production environment it is set to `false` because the server software (e.g. NGINX or Apache) used to run the application should serve static files instead. If you are running or testing your app in production mode using WEBrick (it is not recommended to use WEBrick in production) set the option to `true.` Otherwise, you won't be able to use page caching and request for files that exist under the public directory.
 
@@ -486,6 +486,15 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.authenticated_encrypted_cookie_salt` sets the
   authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
   cookie'`.
+
+* `config.action_dispatch.encrypted_cookie_cipher` sets the cipher to be
+  used for encrypted cookies. This defaults to `"aes-256-gcm"`.
+
+* `config.action_dispatch.signed_cookie_digest` sets the digest to be
+  used for signed cookies. This defaults to `"SHA1"`.
+
+* `config.action_dispatch.cookies_rotations` allows rotating
+  secrets, ciphers, and digests for encrypted and signed cookies.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
@@ -1004,7 +1013,7 @@ Once you've configured the application server, you must proxy requests to it by 
 
 ```
 upstream application_server {
-  server 0.0.0.0:8080
+  server 0.0.0.0:8080;
 }
 
 server {

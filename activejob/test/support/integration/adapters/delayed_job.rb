@@ -18,5 +18,6 @@ module DelayedJobJobsManager
 
   def stop_workers
     @worker.stop
+    @thread.join
   end
 end

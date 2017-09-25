@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage
   # Decorated proxy object representing of multiple attachments to a model.
   class Attached::Many < Attached
@@ -5,7 +7,7 @@ module ActiveStorage
 
     # Returns all the associated attachment records.
     #
-    # All methods called on this proxy object that aren't listed here will automatically be delegated to `attachments`.
+    # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
     def attachments
       record.public_send("#{name}_attachments")
     end
@@ -15,7 +17,7 @@ module ActiveStorage
     #
     #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   document.images.attach(io: File.open("~/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
+    #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
       attachables.flatten.collect do |attachable|
@@ -51,4 +53,3 @@ module ActiveStorage
     end
   end
 end
-

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "database/setup"
 
@@ -6,7 +8,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob
 
     get blob.service_url
-    assert_equal "inline; filename=\"#{blob.filename.base}\"", @response.headers["Content-Disposition"]
+    assert_equal "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", @response.headers["Content-Disposition"]
     assert_equal "text/plain", @response.headers["Content-Type"]
   end
 
@@ -14,7 +16,7 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     blob = create_blob
 
     get blob.service_url(disposition: :attachment)
-    assert_equal "attachment; filename=\"#{blob.filename.base}\"", @response.headers["Content-Disposition"]
+    assert_equal "attachment; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", @response.headers["Content-Disposition"]
     assert_equal "text/plain", @response.headers["Content-Type"]
   end
 

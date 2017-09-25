@@ -2,7 +2,7 @@
 
 module ActionView #:nodoc:
   # = Action View Text Template
-  class Template
+  class Template #:nodoc:
     class Text #:nodoc:
       attr_accessor :type
 

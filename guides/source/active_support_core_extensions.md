@@ -135,9 +135,9 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
+In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except
 methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`,
 and `Bignum` instances.
 
 ```ruby
@@ -634,7 +634,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 #### `parent_name`
 
-The `parent_name` method on a nested named module returns the fully-qualified name of the module that contains its corresponding constant:
+The `parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -674,44 +674,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-### Reachable
-
-A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
-
-That is what ordinarily happens, if a module is called "M", the `M` constant exists and holds it:
-
-```ruby
-module M
-end
-
-M.reachable? # => true
-```
-
-But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
-
-```ruby
-module M
-end
-
-orphan = Object.send(:remove_const, :M)
-
-# The module object is orphan now but it still has a name.
-orphan.name # => "M"
-
-# You cannot reach it via the constant M because it does not even exist.
-orphan.reachable? # => false
-
-# Let's define a module called "M" again.
-module M
-end
-
-# The constant M exists now again, and it stores a module
-# object called "M", but it is a new instance.
-orphan.reachable? # => false
-```
-
-NOTE: Defined in `active_support/core_ext/module/reachable.rb`.
-
 ### Anonymous
 
 A module may or may not have a name:
@@ -745,7 +707,6 @@ end
 
 m = Object.send(:remove_const, :M)
 
-m.reachable? # => false
 m.anonymous? # => false
 ```
 
@@ -864,7 +825,11 @@ There are cases where you need to define a method with `define_method`, but don'
 
 The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`.
+You can also use `silence_redefinition_of_method` if you need to define
+the replacement method yourself (because you're using `delegate`, for
+example).
+
+NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`.
 
 Extensions to `Class`
 ---------------------
@@ -1709,7 +1674,7 @@ Specifically performs these transformations:
   * Capitalizes the first word.
 
 The capitalization of the first word can be turned off by setting the
-+:capitalize+ option to false (default is true).
+`:capitalize` option to false (default is true).
 
 ```ruby
 "name".humanize                         # => "Name"
@@ -1989,7 +1954,7 @@ Extensions to `BigDecimal`
 The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s  # => "5.0"
+BigDecimal.new(5.00, 6).to_s       # => "5.0"
 ```
 
 and that symbol specifiers are also supported:
@@ -2359,7 +2324,7 @@ This method is similar in purpose to `Kernel#Array`, but there are some differen
 
 * If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, if the argument does not respond to +to_ary+ it returns an array with the argument as its single element.
+* It does not call `to_a` on the argument, if the argument does not respond to `to_ary` it returns an array with the argument as its single element.
 
 The last point is particularly worth comparing for some enumerables:
 
@@ -3641,7 +3606,7 @@ Durations can be added to and subtracted from time objects:
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now + 1.year
-#  => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+# => Tue, 09 Aug 2011 23:21:11 UTC +00:00
 now - 1.week
 # => Mon, 02 Aug 2010 23:21:11 UTC +00:00
 ```
@@ -3704,9 +3669,9 @@ Extensions to `NameError`
 
 Active Support adds `missing_name?` to `NameError`, which tests whether the exception was raised because of the name passed as argument.
 
-The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
+The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully qualified constant name.
 
-TIP: A symbol can represent a fully-qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
+TIP: A symbol can represent a fully qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
 For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
 

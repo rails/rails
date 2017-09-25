@@ -133,7 +133,7 @@ module ActiveSupport
     class << self
       # Creates a new Duration from string formatted according to ISO 8601 Duration.
       #
-      # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+      # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
       # This method allows negative parts to be present in pattern.
       # If invalid string is provided, it will raise +ActiveSupport::Duration::ISO8601Parser::ParsingError+.
       def parse(iso8601duration)

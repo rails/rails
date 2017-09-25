@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class RunnerCommand < Base # :nodoc:
@@ -30,13 +32,13 @@ module Rails
         ARGV.replace(command_argv)
 
         if code_or_file == "-"
-          eval($stdin.read, binding, "stdin")
+          eval($stdin.read, TOPLEVEL_BINDING, "stdin")
         elsif File.exist?(code_or_file)
           $0 = code_or_file
           Kernel.load code_or_file
         else
           begin
-            eval(code_or_file, binding, __FILE__, __LINE__)
+            eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
           rescue SyntaxError, NameError => error
             $stderr.puts "Please specify a valid ruby command or the path of a script to run."
             $stderr.puts "Run '#{self.class.executable} -h' for help."

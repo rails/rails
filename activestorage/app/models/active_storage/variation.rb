@@ -1,7 +1,7 @@
-require "active_support/core_ext/object/inclusion"
+# frozen_string_literal: true
 
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
-# the `ActiveStorage::Blob#variant` method and should rarely be used directly.
+# the ActiveStorage::Blob#variant method and should rarely be used directly.
 #
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
@@ -13,13 +13,13 @@ class ActiveStorage::Variation
   attr_reader :transformations
 
   class << self
-    # Returns a variation instance with the transformations that were encoded by `#encode`.
+    # Returns a variation instance with the transformations that were encoded by +encode+.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
     end
 
-    # Returns a signed key for the `transformations`, which can be used to refer to a specific
-    # variation in a URL or combined key (like `ActiveStorage::Variant#key`).
+    # Returns a signed key for the +transformations+, which can be used to refer to a specific
+    # variation in a URL or combined key (like <tt>ActiveStorage::Variant#key</tt>).
     def encode(transformations)
       ActiveStorage.verifier.generate(transformations, purpose: :variation)
     end
@@ -29,8 +29,8 @@ class ActiveStorage::Variation
     @transformations = transformations
   end
 
-  # Accepts an open MiniMagick image instance, like what's return by `MiniMagick::Image.read(io)`,
-  # and performs the `transformations` against it. The transformed image instance is then returned.
+  # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
+  # and performs the +transformations+ against it. The transformed image instance is then returned.
   def transform(image)
     transformations.each do |(method, argument)|
       if eligible_argument?(argument)
@@ -41,7 +41,7 @@ class ActiveStorage::Variation
     end
   end
 
-  # Returns a signed key for all the `transformations` that this variation was instantiated with.
+  # Returns a signed key for all the +transformations+ that this variation was instantiated with.
   def key
     self.class.encode(transformations)
   end

@@ -4,6 +4,7 @@ require "base64"
 require_relative "core_ext/object/blank"
 require_relative "security_utils"
 require_relative "messages/metadata"
+require_relative "messages/rotator"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are
@@ -73,7 +74,33 @@ module ActiveSupport
   # Then the messages can be verified and returned upto the expire time.
   # Thereafter, the +verified+ method returns +nil+ while +verify+ raises
   # <tt>ActiveSupport::MessageVerifier::InvalidSignature</tt>.
+  #
+  # === Rotating keys
+  #
+  # MessageVerifier also supports rotating out old configurations by falling
+  # back to a stack of verifiers. Call `rotate` to build and add a verifier to
+  # so either `verified` or `verify` will also try verifying with the fallback.
+  #
+  # By default any rotated verifiers use the values of the primary
+  # verifier unless specified otherwise.
+  #
+  # You'd give your verifier the new defaults:
+  #
+  #   verifier = ActiveSupport::MessageVerifier.new(@secret, digest: "SHA512", serializer: JSON)
+  #
+  # Then gradually rotate the old values out by adding them as fallbacks. Any message
+  # generated with the old values will then work until the rotation is removed.
+  #
+  #   verifier.rotate old_secret          # Fallback to an old secret instead of @secret.
+  #   verifier.rotate digest: "SHA256"    # Fallback to an old digest instead of SHA512.
+  #   verifier.rotate serializer: Marshal # Fallback to an old serializer instead of JSON.
+  #
+  # Though the above would most likely be combined into one rotation:
+  #
+  #   verifier.rotate old_secret, digest: "SHA256", serializer: Marshal
   class MessageVerifier
+    prepend Messages::Rotator::Verifier
+
     class InvalidSignature < StandardError; end
 
     def initialize(secret, options = {})
@@ -120,11 +147,12 @@ module ActiveSupport
     #
     #   incompatible_message = "test--dad7b06c94abba8d46a15fafaef56c327665d5ff"
     #   verifier.verified(incompatible_message) # => TypeError: incompatible marshal file format
-    def verified(signed_message, purpose: nil)
+    def verified(signed_message, purpose: nil, **)
       if valid_message?(signed_message)
         begin
           data = signed_message.split("--".freeze)[0]
-          Messages::Metadata.verify(@serializer.load(decode(data)), purpose)
+          message = Messages::Metadata.verify(decode(data), purpose)
+          @serializer.load(message) if message
         rescue ArgumentError => argument_error
           return if argument_error.message.include?("invalid base64")
           raise
@@ -144,8 +172,8 @@ module ActiveSupport
     #
     #   other_verifier = ActiveSupport::MessageVerifier.new 'd1ff3r3nt-s3Krit'
     #   other_verifier.verify(signed_message) # => ActiveSupport::MessageVerifier::InvalidSignature
-    def verify(signed_message, purpose: nil)
-      verified(signed_message, purpose: purpose) || raise(InvalidSignature)
+    def verify(*args)
+      verified(*args) || raise(InvalidSignature)
     end
 
     # Generates a signed message for the provided value.
@@ -156,7 +184,7 @@ module ActiveSupport
     #   verifier = ActiveSupport::MessageVerifier.new 's3Krit'
     #   verifier.generate 'a private message' # => "BAhJIhRwcml2YXRlLW1lc3NhZ2UGOgZFVA==--e2d724331ebdee96a10fb99b089508d1c72bd772"
     def generate(value, expires_at: nil, expires_in: nil, purpose: nil)
-      data = encode(@serializer.dump(Messages::Metadata.wrap(value, expires_at: expires_at, expires_in: expires_in, purpose: purpose)))
+      data = encode(Messages::Metadata.wrap(@serializer.dump(value), expires_at: expires_at, expires_in: expires_in, purpose: purpose))
       "#{data}--#{generate_digest(data)}"
     end
 

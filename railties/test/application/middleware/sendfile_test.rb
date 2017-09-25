@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -11,10 +13,6 @@ module ApplicationTests
 
     def teardown
       teardown_app
-    end
-
-    def app
-      @app ||= Rails.application
     end
 
     define_method :simple_controller do
