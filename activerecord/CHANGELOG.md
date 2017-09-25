@@ -1,3 +1,11 @@
+*   Fix `bin/rails db:migrate` with specified `VERSION`.
+    `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
+    Check a format of `VERSION`: Allow a migration version number
+    or name of a migration file. Raise error if format of `VERSION` is invalid.
+    Raise error if target migration doesn't exist.
+
+    *bogdanvlviv*
+
 *   Fixed a bug where column orders for an index weren't written to
     db/schema.rb when using the sqlite adapter.
 
