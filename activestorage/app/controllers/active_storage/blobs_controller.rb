@@ -7,7 +7,7 @@
 class ActiveStorage::BlobsController < ActionController::Base
   def show
     if blob = ActiveStorage::Blob.find_signed(params[:signed_id])
-      expires_in 5.minutes # service_url defaults to 5 minutes
+      expires_in blob.default_url_expiry
       redirect_to blob.service_url(disposition: params[:disposition])
     else
       head :not_found
