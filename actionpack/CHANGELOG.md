@@ -7,14 +7,14 @@
 
     *Michael J Coyne*
 
-*  Use Capybara registered `:puma` server config.
+*   Use Capybara registered `:puma` server config.
 
     The Capybara registered `:puma` server ensures the puma server is run in process so
     connection sharing and open request detection work correctly by default.
 
     *Thomas Walpole*
 
-*  Cookies `:expires` option supports `ActiveSupport::Duration` object.
+*   Cookies `:expires` option supports `ActiveSupport::Duration` object.
 
         cookies[:user_name] = { value: "assain", expires: 1.hour }
         cookies[:key] = { value: "a yummy cookie", expires: 6.months }
@@ -23,7 +23,7 @@
 
     *Assain Jaleel*
 
-*  Enforce signed/encrypted cookie expiry server side.
+*   Enforce signed/encrypted cookie expiry server side.
 
     Rails can thwart attacks by malicious clients that don't honor a cookie's expiry.
 
