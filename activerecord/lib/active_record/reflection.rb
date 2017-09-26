@@ -426,7 +426,7 @@ module ActiveRecord
       def initialize(name, scope, options, active_record)
         super
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
-        @foreign_type = options[:foreign_type] || "#{name}_type"
+        @foreign_type = options[:polymorphic] && (options[:foreign_type] || "#{name}_type")
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = Concurrent::Map.new
 
