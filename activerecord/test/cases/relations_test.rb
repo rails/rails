@@ -1912,6 +1912,19 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "#where with set" do
+    david = authors(:david)
+    mary = authors(:mary)
+
+    authors = Author.where(name: ["David", "Mary"].to_set)
+    assert_equal [david, mary], authors
+  end
+
+  test "#where with empty set" do
+    authors = Author.where(name: Set.new)
+    assert_empty authors
+  end
+
   private
     def custom_post_relation
       table_alias = Post.arel_table.alias("omg_posts")

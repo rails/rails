@@ -1,3 +1,8 @@
+*   Passing a `Set` to `Relation#where` now behaves the same as passing an
+    array.
+
+    *Sean Griffin*
+
 *   Use given algorithm while removing index from database.
 
     Fixes #24190.
