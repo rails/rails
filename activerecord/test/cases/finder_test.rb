@@ -813,9 +813,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_hash_condition_find_with_array
-    p1, p2 = Post.limit(2).order(Arel.sql("id asc")).to_a
-    assert_equal [p1, p2], Post.where(id: [p1, p2]).order(Arel.sql("id asc")).to_a
-    assert_equal [p1, p2], Post.where(id: [p1, p2.id]).order(Arel.sql("id asc")).to_a
+    p1, p2 = Post.limit(2).order("id asc").to_a
+    assert_equal [p1, p2], Post.where(id: [p1, p2]).order("id asc").to_a
+    assert_equal [p1, p2], Post.where(id: [p1, p2.id]).order("id asc").to_a
   end
 
   def test_hash_condition_find_with_nil
@@ -1013,7 +1013,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_one_attribute_with_several_options
-    assert_equal accounts(:unknown), Account.order(Arel.sql("id DESC")).where("id != ?", 3).find_by_credit_limit(50)
+    assert_equal accounts(:unknown), Account.order("id DESC").where("id != ?", 3).find_by_credit_limit(50)
   end
 
   def test_find_by_one_missing_attribute
@@ -1041,7 +1041,7 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal devs[2], Developer.offset(2).first
     assert_equal devs[-3], Developer.offset(2).last
-    assert_equal devs[-3], Developer.offset(2).order(Arel.sql("id DESC")).first
+    assert_equal devs[-3], Developer.offset(2).order("id DESC").first
   end
 
   def test_find_by_nil_attribute
@@ -1094,9 +1094,9 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_by_records
-    p1, p2 = Post.limit(2).order(Arel.sql("id asc")).to_a
-    assert_equal [p1, p2], Post.where(["id in (?)", [p1, p2]]).order(Arel.sql("id asc"))
-    assert_equal [p1, p2], Post.where(["id in (?)", [p1, p2.id]]).order(Arel.sql("id asc"))
+    p1, p2 = Post.limit(2).order("id asc").to_a
+    assert_equal [p1, p2], Post.where(["id in (?)", [p1, p2]]).order("id asc")
+    assert_equal [p1, p2], Post.where(["id in (?)", [p1, p2.id]]).order("id asc")
   end
 
   def test_select_value
@@ -1136,7 +1136,7 @@ class FinderTest < ActiveRecord::TestCase
     client_of = Company.
       where(client_of: [2, 1, nil],
             name: ["37signals", "Summit", "Microsoft"]).
-      order(Arel.sql("client_of DESC")).
+      order("client_of DESC").
       map(&:client_of)
 
     assert_includes client_of, nil
@@ -1146,7 +1146,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_with_nil_inside_set_passed_for_attribute
     client_of = Company.
       where(client_of: [nil]).
-      order(Arel.sql("client_of DESC")).
+      order("client_of DESC").
       map(&:client_of)
 
     assert_equal [], client_of.compact
@@ -1155,7 +1155,7 @@ class FinderTest < ActiveRecord::TestCase
   def test_with_limiting_with_custom_select
     posts = Post.references(:authors).merge(
       includes: :author, select: 'posts.*, authors.id as "author_id"',
-      limit: 3, order: Arel.sql("posts.id")
+      limit: 3, order: "posts.id"
     ).to_a
     assert_equal 3, posts.size
     assert_equal [0, 1, 1], posts.map(&:author_id).sort

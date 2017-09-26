@@ -297,7 +297,11 @@ module ActiveRecord
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      @klass.enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
+      @klass.enforce_raw_sql_whitelist(
+        column_names_from_order_arguments(args),
+        whitelist: allowed_order_columns
+      )
+
       preprocess_order_args(args)
 
       self.order_values += args
@@ -320,7 +324,11 @@ module ActiveRecord
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      @klass.enforce_raw_sql_whitelist(column_names_from_order_arguments(args))
+      @klass.enforce_raw_sql_whitelist(
+        column_names_from_order_arguments(args),
+        whitelist: allowed_order_columns
+      )
+
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -919,6 +927,20 @@ module ActiveRecord
       end
 
     private
+
+      def allowed_order_columns
+        @klass.attribute_names_and_aliases.map do |name|
+          [name, "#{table_name}.#{name}"].map do |name|
+            [
+              name,
+              "#{name} asc",
+              "#{name} ASC",
+              "#{name} desc",
+              "#{name} DESC"
+            ]
+          end
+        end.flatten
+      end
 
       # Extract column names from arguments passed to #order or #reorder.
       def column_names_from_order_arguments(args)

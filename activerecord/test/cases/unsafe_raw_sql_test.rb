@@ -77,10 +77,40 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_disabled
   end
 
+  test "order: allows table and column name" do
+    ids_expected = Post.order(Arel.sql("title")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows column name and direction in string" do
+    ids_expected = Post.order(Arel.sql("title desc")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("title desc").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("title desc").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: allows table name, column name and direction in string" do
+    ids_expected = Post.order(Arel.sql("title desc")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("posts.title desc").pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("posts.title desc").pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
   test "order: disallows invalid column name" do
     with_unsafe_raw_sql_disabled   do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("title asc").pluck(:id)
+        Post.order("foo asc").pluck(:id)
       end
     end
   end
@@ -166,6 +196,16 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
 
     assert_equal values_expected, values_depr
     assert_equal values_expected, values_disabled
+  end
+
+  test "pluck: allows table and column names" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("posts.title") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("posts.title") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
   end
 
   test "pluck: disallows invalid column name" do

@@ -71,7 +71,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       def self.name; "Person"; end
 
       has_many :readers
-      has_many :posts, -> { order(Arel.sql("posts.id DESC")) }, through: :readers
+      has_many :posts, -> { order("posts.id DESC") }, through: :readers
     end
     posts = person_prime.includes(:posts).first.posts
 
@@ -985,7 +985,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_joining_has_many_through_belongs_to
-    posts = Post.joins(:author_categorizations).order(Arel.sql("posts.id")).
+    posts = Post.joins(:author_categorizations).order("posts.id").
                  where("categorizations.id" => categorizations(:mary_thinking_sti).id)
 
     assert_equal [posts(:eager_other), posts(:misc_by_mary), posts(:other_by_mary)], posts

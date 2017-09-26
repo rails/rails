@@ -439,7 +439,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter)
     def test_update_all_with_order_and_limit
-      assert_equal 1, Topic.limit(1).order(Arel.sql("id DESC")).update_all(content: "bulk updated!")
+      assert_equal 1, Topic.limit(1).order("id DESC").update_all(content: "bulk updated!")
     end
   end
 
@@ -1081,11 +1081,11 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_find_last
     last = Developer.last
-    assert_equal last, Developer.all.merge!(order: Arel.sql("id desc")).first
+    assert_equal last, Developer.all.merge!(order: "id desc").first
   end
 
   def test_last
-    assert_equal Developer.all.merge!(order: Arel.sql("id desc")).first, Developer.last
+    assert_equal Developer.all.merge!(order: "id desc").first, Developer.last
   end
 
   def test_all
@@ -1095,17 +1095,17 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_all_with_conditions
-    assert_equal Developer.all.merge!(order: Arel.sql("id desc")).to_a, Developer.order(Arel.sql("id desc")).to_a
+    assert_equal Developer.all.merge!(order: "id desc").to_a, Developer.order("id desc").to_a
   end
 
   def test_find_ordered_last
-    last = Developer.all.merge!(order: Arel.sql("developers.salary ASC")).last
-    assert_equal last, Developer.all.merge!(order: Arel.sql("developers.salary ASC")).to_a.last
+    last = Developer.all.merge!(order: "developers.salary ASC").last
+    assert_equal last, Developer.all.merge!(order: "developers.salary ASC").to_a.last
   end
 
   def test_find_reverse_ordered_last
-    last = Developer.all.merge!(order: Arel.sql("developers.salary DESC")).last
-    assert_equal last, Developer.all.merge!(order: Arel.sql("developers.salary DESC")).to_a.last
+    last = Developer.all.merge!(order: "developers.salary DESC").last
+    assert_equal last, Developer.all.merge!(order: "developers.salary DESC").to_a.last
   end
 
   def test_find_multiple_ordered_last
@@ -1115,7 +1115,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_find_keeps_multiple_order_values
     combined = Developer.all.merge!(order: Arel.sql("developers.name, developers.salary")).to_a
-    assert_equal combined, Developer.all.merge!(order: [Arel.sql("developers.name"), Arel.sql("developers.salary")]).to_a
+    assert_equal combined, Developer.all.merge!(order: ["developers.name", "developers.salary"]).to_a
   end
 
   def test_find_keeps_multiple_group_values

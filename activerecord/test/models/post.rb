@@ -35,8 +35,8 @@ class Post < ActiveRecord::Base
   def first_comment
     super.body
   end
-  has_one :first_comment, -> { order(Arel.sql("id ASC")) }, class_name: "Comment"
-  has_one :last_comment, -> { order(Arel.sql("id desc")) }, class_name: "Comment"
+  has_one :first_comment, -> { order("id ASC") }, class_name: "Comment"
+  has_one :last_comment, -> { order("id desc") }, class_name: "Comment"
 
   scope :with_special_comments, -> { joins(:comments).where(comments: { type: "SpecialComment" }) }
   scope :with_very_special_comments, -> { joins(:comments).where(comments: { type: "VerySpecialComment" }) }
@@ -52,7 +52,7 @@ class Post < ActiveRecord::Base
 
   has_many :comments do
     def find_most_recent
-      order(Arel.sql("id DESC")).first
+      order("id DESC").first
     end
 
     def newest
@@ -322,6 +322,10 @@ class FakeKlass
 
     def enforce_raw_sql_whitelist(*args)
       # noop
+    end
+
+    def attribute_names_and_aliases
+      []
     end
   end
 end
