@@ -35,7 +35,7 @@ module ActiveRecord
             if value.is_a?(::Range)
               from = type_cast_single_for_database(value.begin)
               to = type_cast_single_for_database(value.end)
-              "[#{from},#{to}#{value.exclude_end? ? ')' : ']'}"
+              ::Range.new(from, to, value.exclude_end?)
             else
               super
             end
