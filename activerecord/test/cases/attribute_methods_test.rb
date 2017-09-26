@@ -1019,14 +1019,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       ActiveRecord::Base.time_zone_aware_types = old_types
     end
 
-    def cached_columns
-      Topic.columns.map(&:name)
-    end
-
-    def time_related_columns_on_topic
-      Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
-    end
-
     def privatize(method_signature)
       @target.class_eval(<<-private_method, __FILE__, __LINE__ + 1)
         private
