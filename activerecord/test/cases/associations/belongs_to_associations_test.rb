@@ -1118,7 +1118,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       validates :post, presence: true
     end
 
-    comment = model.new
+    comment = model.new type: nil
     comment.post_id = 9223372036854775808 # out of range in the bigint
 
     assert_nil comment.post

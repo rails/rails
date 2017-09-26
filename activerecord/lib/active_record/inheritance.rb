@@ -53,8 +53,10 @@ module ActiveRecord
         end
 
         attrs = args.first || {}
-        attrs = attrs.to_h
-        attrs = attrs.stringify_keys.reverse_merge(scope_attributes).presence
+        attrs = attrs.to_h.stringify_keys
+        attrs = attrs.reverse_merge(scope_attributes)
+        attrs = attrs.reject { |_, value| value.nil? }
+        attrs = attrs.presence
         if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attrs)
 
