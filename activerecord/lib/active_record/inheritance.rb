@@ -52,7 +52,7 @@ module ActiveRecord
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
-        attrs = args.first
+        attrs = scope_attributes.merge(args.first || {})
         if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attrs)
 
