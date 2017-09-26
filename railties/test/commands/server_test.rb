@@ -81,6 +81,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     assert_equal false, options[:caching]
   end
 
+  def test_early_hints_with_option
+    args = ["--early-hints"]
+    options = parse_arguments(args)
+    assert_equal true, options[:early_hints]
+  end
+
+  def test_early_hints_is_nil_by_default
+    args = []
+    options = parse_arguments(args)
+    assert_nil options[:early_hints]
+  end
+
   def test_log_stdout
     with_rack_env nil do
       with_rails_env nil do

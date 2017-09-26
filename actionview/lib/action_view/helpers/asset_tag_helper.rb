@@ -37,6 +37,9 @@ module ActionView
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
       #
+      # If the server supports Early Hints header links for these assets will be
+      # automatically pushed.
+      #
       # ==== Options
       #
       # When the last parameter is a hash you can add HTML attributes using that
@@ -77,12 +80,20 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        sources.uniq.map { |source|
+        early_hints_links = []
+
+        sources_tags = sources.uniq.map { |source|
+          href = path_to_javascript(source, path_options)
+          early_hints_links << "<#{href}>; rel=preload; as=script"
           tag_options = {
-            "src" => path_to_javascript(source, path_options)
+            "src" => href
           }.merge!(options)
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
+
+        request.send_early_hints("Link" => early_hints_links.join("\n"))
+
+        sources_tags
       end
 
       # Returns a stylesheet link tag for the sources specified as arguments. If
@@ -91,6 +102,9 @@ module ActionView
       # For historical reasons, the 'media' attribute will always be present and defaults
       # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
+      #
+      # If the server supports Early Hints header links for these assets  will be
+      # automatically pushed.
       #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
@@ -113,14 +127,22 @@ module ActionView
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
-        sources.uniq.map { |source|
+        early_hints_links = []
+
+        sources_tags = sources.uniq.map { |source|
+          href = path_to_stylesheet(source, path_options)
+          early_hints_links << "<#{href}>; rel=preload; as=stylesheet"
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
-            "href" => path_to_stylesheet(source, path_options)
+            "href" => href
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
+
+        request.send_early_hints("Link" => early_hints_links.join("\n"))
+
+        sources_tags
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
