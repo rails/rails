@@ -11,4 +11,6 @@ Rake::TestTask.new do |test|
   test.warning = false
 end
 
+task :package
+
 task default: :test
