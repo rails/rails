@@ -244,8 +244,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_has_many_through
-    posts              = Post.all.merge!(order: Arel.sql("posts.id")).to_a
-    posts_with_authors = Post.all.merge!(includes: :authors, order: Arel.sql("posts.id")).to_a
+    posts              = Post.all.merge!(order: "posts.id").to_a
+    posts_with_authors = Post.all.merge!(includes: :authors, order: "posts.id").to_a
     assert_equal posts.length, posts_with_authors.length
     posts.length.times do |i|
       assert_equal posts[i].authors.length, assert_no_queries { posts_with_authors[i].authors.length }
@@ -269,8 +269,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many_through
-    posts           = Post.all.merge!(order: Arel.sql("posts.id")).to_a
-    posts_with_tags = Post.all.merge!(includes: :tags, order: Arel.sql("posts.id")).to_a
+    posts           = Post.all.merge!(order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -278,8 +278,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_include_polymorphic_has_many
-    posts               = Post.all.merge!(order: Arel.sql("posts.id")).to_a
-    posts_with_taggings = Post.all.merge!(includes: :taggings, order: Arel.sql("posts.id")).to_a
+    posts               = Post.all.merge!(order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }
@@ -326,7 +326,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_with_custom_primary_key_on_has_many_source
-    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order(Arel.sql("authors.id"))
+    assert_equal [authors(:david), authors(:bob)], posts(:thinking).authors_using_custom_pk.order("authors.id")
   end
 
   def test_belongs_to_polymorphic_with_counter_cache
@@ -383,19 +383,19 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_has_many_find_all
-    assert_equal comments(:greetings), authors(:david).comments.order(Arel.sql("comments.id")).to_a.first
+    assert_equal comments(:greetings), authors(:david).comments.order("comments.id").to_a.first
   end
 
   def test_has_many_through_has_many_find_all_with_custom_class
-    assert_equal comments(:greetings), authors(:david).funky_comments.order(Arel.sql("comments.id")).to_a.first
+    assert_equal comments(:greetings), authors(:david).funky_comments.order("comments.id").to_a.first
   end
 
   def test_has_many_through_has_many_find_first
-    assert_equal comments(:greetings), authors(:david).comments.order(Arel.sql("comments.id")).first
+    assert_equal comments(:greetings), authors(:david).comments.order("comments.id").first
   end
 
   def test_has_many_through_has_many_find_conditions
-    options = { where: "comments.#{QUOTED_TYPE}='SpecialComment'", order: Arel.sql("comments.id") }
+    options = { where: "comments.#{QUOTED_TYPE}='SpecialComment'", order: "comments.id" }
     assert_equal comments(:does_it_hurt), authors(:david).comments.merge(options).first
   end
 
@@ -661,8 +661,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorphic_has_many_through
-    posts           = Post.all.merge!(order: Arel.sql("posts.id")).to_a
-    posts_with_tags = Post.all.merge!(includes: :tags, order: Arel.sql("posts.id")).to_a
+    posts           = Post.all.merge!(order: "posts.id").to_a
+    posts_with_tags = Post.all.merge!(includes: :tags, order: "posts.id").to_a
     assert_equal posts.length, posts_with_tags.length
     posts.length.times do |i|
       assert_equal posts[i].tags.length, assert_no_queries { posts_with_tags[i].tags.length }
@@ -688,8 +688,8 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_preload_polymorphic_has_many
-    posts               = Post.all.merge!(order: Arel.sql("posts.id")).to_a
-    posts_with_taggings = Post.all.merge!(includes: :taggings, order: Arel.sql("posts.id")).to_a
+    posts               = Post.all.merge!(order: "posts.id").to_a
+    posts_with_taggings = Post.all.merge!(includes: :taggings, order: "posts.id").to_a
     assert_equal posts.length, posts_with_taggings.length
     posts.length.times do |i|
       assert_equal posts[i].taggings.length, assert_no_queries { posts_with_taggings[i].taggings.length }

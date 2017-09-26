@@ -929,7 +929,7 @@ module ActiveRecord
     private
 
       def allowed_order_columns
-        attribute_names_and_aliases.map do |name|
+        @klass.attribute_names_and_aliases.map do |name|
           [name, "#{table_name}.#{name}"].map do |name|
             [
               name,

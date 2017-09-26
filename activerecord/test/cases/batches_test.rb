@@ -9,7 +9,7 @@ class EachTest < ActiveRecord::TestCase
   fixtures :posts, :subscribers
 
   def setup
-    @posts = Post.order(Arel.sql("id asc"))
+    @posts = Post.order("id asc")
     @total = Post.count
     Post.count("id") # preheat arel's table cache
   end
@@ -101,7 +101,7 @@ class EachTest < ActiveRecord::TestCase
     previous_logger = ActiveRecord::Base.logger
     ActiveRecord::Base.logger = nil
     assert_nothing_raised do
-      Post.order(Arel.sql("comments_count DESC")).find_each { |post| post }
+      Post.order("comments_count DESC").find_each { |post| post }
     end
   ensure
     ActiveRecord::Base.logger = previous_logger
@@ -233,7 +233,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order(Arel.sql("nick asc"))
+    nick_order_subscribers = Subscriber.order("nick asc")
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
@@ -329,7 +329,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_each_record_should_be_ordered_by_id
-    ids = Post.order(Arel.sql("id ASC")).pluck(:id)
+    ids = Post.order("id ASC").pluck(:id)
     assert_queries(6) do
       Post.in_batches(of: 2).each_record.with_index do |post, i|
         assert_equal ids[i], post.id
@@ -384,7 +384,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_start_from_the_start_option
-    post = Post.order(Arel.sql("id ASC")).where("id >= ?", 2).first
+    post = Post.order("id ASC").where("id >= ?", 2).first
     assert_queries(2) do
       relation = Post.in_batches(of: 1, start: 2).first
       assert_equal post, relation.first
@@ -392,7 +392,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_end_at_the_finish_option
-    post = Post.order(Arel.sql("id DESC")).where("id <= ?", 5).first
+    post = Post.order("id DESC").where("id <= ?", 5).first
     assert_queries(7) do
       relation = Post.in_batches(of: 1, finish: 5, load: true).reverse_each.first
       assert_equal post, relation.last
@@ -451,7 +451,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_use_any_column_as_primary_key
-    nick_order_subscribers = Subscriber.order(Arel.sql("nick asc"))
+    nick_order_subscribers = Subscriber.order("nick asc")
     start_nick = nick_order_subscribers.second.nick
 
     subscribers = []
