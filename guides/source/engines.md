@@ -63,7 +63,7 @@ authentication for its parent applications, or
 [Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
-[RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
+[Refinery CMS](https://github.com/refinery/refinerycms), a CMS engine.
 
 Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
