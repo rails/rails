@@ -50,20 +50,14 @@ module ActiveRecord
           end
 
           def owner_keys
-            unless defined?(@owner_keys)
-              @owner_keys = owners.map do |owner|
-                owner[owner_key_name]
-              end
-              @owner_keys.uniq!
-              @owner_keys.compact!
-            end
-            @owner_keys
+            @owner_keys ||= owners_by_key.keys
           end
 
           def owners_by_key
             unless defined?(@owners_by_key)
               @owners_by_key = owners.each_with_object({}) do |owner, h|
-                h[convert_key(owner[owner_key_name])] = owner
+                key = convert_key(owner[owner_key_name])
+                h[key] = owner if key
               end
             end
             @owners_by_key
