@@ -198,6 +198,16 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal values_expected, values_disabled
   end
 
+  test "pluck: allows table and column names" do
+    titles_expected = Post.pluck(Arel.sql("title"))
+
+    titles_depr     = with_unsafe_raw_sql_deprecated { Post.pluck("posts.title") }
+    titles_disabled = with_unsafe_raw_sql_disabled   { Post.pluck("posts.title") }
+
+    assert_equal titles_expected, titles_depr
+    assert_equal titles_expected, titles_disabled
+  end
+
   test "pluck: disallows invalid column name" do
     with_unsafe_raw_sql_disabled   do
       assert_raises(ActiveRecord::UnknownAttributeReference) do

@@ -182,7 +182,7 @@ module ActiveRecord
       if has_include?(column_names.first)
         construct_relation_for_association_calculations.pluck(*column_names)
       else
-        enforce_raw_sql_whitelist(column_names)
+        enforce_raw_sql_whitelist(column_names, whitelist: allowed_pluck_columns)
         relation = spawn
         relation.select_values = column_names.map { |cn|
           @klass.respond_to_attribute?(cn) ? arel_attribute(cn) : cn
@@ -201,6 +201,12 @@ module ActiveRecord
     end
 
     private
+
+      def allowed_pluck_columns
+        @klass.attribute_names_and_aliases.map do |name|
+          [name, "#{table_name}.#{name}"]
+        end.flatten
+      end
 
       def has_include?(column_name)
         eager_loading? || (includes_values.present? && column_name && column_name != :all)
