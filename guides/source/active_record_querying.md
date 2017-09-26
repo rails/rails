@@ -414,7 +414,7 @@ end
 `find_in_batches` works on model classes, as seen above, and also on relations:
 
 ```ruby
-Invoice.pending.find_in_batches do |invoice|
+Invoice.pending.find_in_batches do |invoices|
   pending_invoices_export.add_invoices(invoices)
 end
 ```
