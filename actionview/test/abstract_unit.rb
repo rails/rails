@@ -181,7 +181,6 @@ module ActionController
   class TestCase
     include ActionDispatch::TestProcess
     include ActionDispatch::SharedRoutes
-    include ActionDispatch::DrawOnce
   end
 end
 
@@ -223,6 +222,7 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  include ActionDispatch::DrawOnce
   include ActiveSupport::Testing::MethodCallAssertions
 
   # Skips the current run on Rubinius using Minitest::Assertions#skip
