@@ -280,6 +280,16 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_inheritance_build_with_base_class
+    company = Company.where(type: "Company").build
+    assert_equal Company, company.class
+  end
+
+  def test_inheritance_build_with_subclass
+    firm = Company.where(type: "Firm").build
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
