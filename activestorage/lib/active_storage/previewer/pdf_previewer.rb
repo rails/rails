@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Previewer::PdfPreviewer < Previewer
+  class Previewer::PDFPreviewer < Previewer
     def self.accept?(blob)
       blob.content_type == "application/pdf"
     end
