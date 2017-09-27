@@ -468,14 +468,14 @@ with all the popular application servers -- Unicorn, Puma and Passenger.
 Action Cable does not work with WEBrick, because WEBrick does not support the
 Rack socket hijacking API.
 
-## Frontend assets
+## front-end assets
 
-Action Cable's frontend assets are distributed through two channels: the
+Action Cable's front-end assets are distributed through two channels: the
 official gem and npm package, both titled `actioncable`.
 
 ### Gem usage
 
-Through the `actioncable` gem, Action Cable's frontend assets are
+Through the `actioncable` gem, Action Cable's front-end assets are
 available through the Rails Asset Pipeline. Create a `cable.js` or
 `cable.coffee` file (this is automatically done for you with Rails
 generators), and then simply require the assets:
@@ -495,10 +495,10 @@ In JavaScript...
 ### npm usage
 
 In addition to being available through the `actioncable` gem, Action Cable's
-frontend JS assets are also bundled in an officially supported npm module,
-intended for usage in standalone frontend applications that communicate with a
+front-end JS assets are also bundled in an officially supported npm module,
+intended for usage in standalone front-end applications that communicate with a
 Rails application. A common use case for this could be if you have a decoupled
-frontend application written in React, Ember.js, etc. and want to add real-time
+front-end application written in React, Ember.js, etc. and want to add real-time
 WebSocket functionality.
 
 ### Installation
