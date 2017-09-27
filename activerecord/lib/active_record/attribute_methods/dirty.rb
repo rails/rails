@@ -34,7 +34,7 @@ module ActiveRecord
       def reload(*)
         super.tap do
           @mutations_before_last_save = nil
-          clear_mutation_trackers
+          @mutations_from_database = nil
           @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
       end
@@ -44,22 +44,21 @@ module ActiveRecord
         @attributes = self.class._default_attributes.map do |attr|
           attr.with_value_from_user(@attributes.fetch_value(attr.name))
         end
-        clear_mutation_trackers
+        @mutations_from_database = nil
       end
 
       def changes_applied # :nodoc:
-        @mutations_before_last_save = mutation_tracker
-        @mutations_from_database = AttributeMutationTracker.new(@attributes)
+        @mutations_before_last_save = mutations_from_database
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         forget_attribute_assignments
-        clear_mutation_trackers
+        @mutations_from_database = nil
       end
 
       def clear_changes_information # :nodoc:
         @mutations_before_last_save = nil
         @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         forget_attribute_assignments
-        clear_mutation_trackers
+        @mutations_from_database = nil
       end
 
       def clear_attribute_changes(attr_names) # :nodoc:
@@ -75,7 +74,7 @@ module ActiveRecord
         if defined?(@cached_changed_attributes)
           @cached_changed_attributes
         else
-          super.reverse_merge(mutation_tracker.changed_values).freeze
+          super.reverse_merge(mutations_from_database.changed_values).freeze
         end
       end
 
@@ -90,7 +89,7 @@ module ActiveRecord
       end
 
       def attribute_changed_in_place?(attr_name) # :nodoc:
-        mutation_tracker.changed_in_place?(attr_name)
+        mutations_from_database.changed_in_place?(attr_name)
       end
 
       # Did this attribute change when we last saved? This method can be invoked
@@ -183,26 +182,18 @@ module ActiveRecord
           result
         end
 
-        def mutation_tracker
-          unless defined?(@mutation_tracker)
-            @mutation_tracker = nil
-          end
-          @mutation_tracker ||= AttributeMutationTracker.new(@attributes)
-        end
-
         def mutations_from_database
           unless defined?(@mutations_from_database)
             @mutations_from_database = nil
           end
-          @mutations_from_database ||= mutation_tracker
+          @mutations_from_database ||= AttributeMutationTracker.new(@attributes)
         end
 
         def changes_include?(attr_name)
-          super || mutation_tracker.changed?(attr_name)
+          super || mutations_from_database.changed?(attr_name)
         end
 
         def clear_attribute_change(attr_name)
-          mutation_tracker.forget_change(attr_name)
           mutations_from_database.forget_change(attr_name)
         end
 
@@ -225,11 +216,6 @@ module ActiveRecord
 
         def forget_attribute_assignments
           @attributes = @attributes.map(&:forgetting_assignment)
-        end
-
-        def clear_mutation_trackers
-          @mutation_tracker = nil
-          @mutations_from_database = nil
         end
 
         def mutations_before_last_save
