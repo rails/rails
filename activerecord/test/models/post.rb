@@ -21,7 +21,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments,      -> { order("comments_count DESC") }
+  scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }

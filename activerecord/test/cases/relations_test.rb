@@ -1806,6 +1806,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).take
   end
 
+  test "arel_attribute respects a custom table" do
+    assert_equal [posts(:welcome)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
+  end
+
   test "#load" do
     relation = Post.all
     assert_queries(1) do
