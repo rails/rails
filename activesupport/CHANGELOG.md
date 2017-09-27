@@ -1,3 +1,7 @@
+*   Return an instance of `HashWithIndifferentAccess` from `HashWithIndifferentAccess#transform_keys`.
+
+    *Yuji Yaginuma*
+
 *   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
 
     This change introduces a `rotate` method to both the `MessageEncryptor` and

@@ -399,6 +399,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_transform_keys
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys { |k| k * 2 }
+
+    assert_equal({ "aa" => 1, "bb" => 2 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
   def test_indifferent_compact
     hash_contain_nil_value = @strings.merge("z" => nil)
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
