@@ -21,6 +21,8 @@ module ActionDispatch
               app,
               Port: port,
               Threads: "0:1",
+              workers: 0,
+              daemon: false,
               Silent: self.class.silence_puma
             )
           end
