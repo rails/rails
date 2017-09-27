@@ -1,4 +1,4 @@
-## Rails 4.2.10.rc1 (September 20, 2017) ##
+## Rails 4.2.10 (September 27, 2017) ##
 
 *   `Relation#joins` is no longer affected by the target model's
     `current_scope`, with the exception of `unscoped`.
