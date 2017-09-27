@@ -9,7 +9,9 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   gem "rails", github: "rails/rails"
   gem "arel", github: "rails/arel"
 end
