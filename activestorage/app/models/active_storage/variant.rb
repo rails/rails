@@ -38,8 +38,8 @@ class ActiveStorage::Variant
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
-  def initialize(blob, variation)
-    @blob, @variation = blob, variation
+  def initialize(blob, variation_or_variation_key)
+    @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
   # Returns the variant instance itself after it's been processed or an existing processing has been found on the service.
@@ -61,7 +61,7 @@ class ActiveStorage::Variant
   # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
   # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +service_call+ method
   # for its redirection.
-  def service_url(expires_in: 5.minutes, disposition: :inline)
+  def service_url(expires_in: service.url_expires_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
   end
 

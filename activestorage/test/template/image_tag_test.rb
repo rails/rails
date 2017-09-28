@@ -7,7 +7,7 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   tests ActionView::Helpers::AssetTagHelper
 
   setup do
-    @blob = create_image_blob filename: "racecar.jpg"
+    @blob = create_file_blob filename: "racecar.jpg"
   end
 
   test "blob" do
@@ -17,6 +17,12 @@ class ActiveStorage::ImageTagTest < ActionView::TestCase
   test "variant" do
     variant = @blob.variant(resize: "100x100")
     assert_dom_equal %(<img src="#{polymorphic_url variant}" />), image_tag(variant)
+  end
+
+  test "preview" do
+    blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
+    preview = blob.preview(resize: "100x100")
+    assert_dom_equal %(<img src="#{polymorphic_url preview}" />), image_tag(preview)
   end
 
   test "attachment" do

@@ -14,6 +14,14 @@ services:
 
 addons:
   postgresql: "9.6"
+  apt:
+    sources:
+      - sourceline: "ppa:mc3man/trusty-media"
+      - sourceline: "ppa:ubuntuhandbook1/apps"
+    packages:
+      - ffmpeg
+      - mupdf
+      - mupdf-tools
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:

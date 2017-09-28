@@ -33,7 +33,7 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
 
     test "signed URL generation" do
       url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
-        disposition: "inline; filename=\"avatar.png\"", filename: "avatar.png", content_type: "image/png")
+        disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
 
       assert_match(/s3\.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url

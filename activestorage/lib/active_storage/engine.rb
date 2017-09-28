@@ -3,11 +3,15 @@
 require "rails"
 require "active_storage"
 
+require "active_storage/previewer/pdf_previewer"
+require "active_storage/previewer/video_previewer"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -57,6 +61,12 @@ module ActiveStorage
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
         end
+      end
+    end
+
+    initializer "active_storage.previewers" do
+      config.after_initialize do |app|
+        ActiveStorage.previewers = app.config.active_storage.previewers || []
       end
     end
   end

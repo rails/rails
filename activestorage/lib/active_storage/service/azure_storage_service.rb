@@ -66,7 +66,7 @@ module ActiveStorage
           URI(base_url), false,
           permissions: "r",
           expiry: format_expiry(expires_in),
-          content_disposition: disposition,
+          content_disposition: content_disposition_with(type: disposition, filename: filename),
           content_type: content_type
         ).to_s
 

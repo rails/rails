@@ -33,6 +33,8 @@ module ActiveStorage
 
   autoload :Attached
   autoload :Service
+  autoload :Previewer
 
   mattr_accessor :verifier
+  mattr_accessor :previewers, default: []
 end

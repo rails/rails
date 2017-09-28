@@ -24,12 +24,17 @@ module ActiveStorage
       end
     end
 
-    # FIXME: Add streaming when given a block
+    # FIXME: Download in chunks when given a block.
     def download(key)
       instrument :download, key do
         io = file_for(key).download
         io.rewind
-        io.read
+
+        if block_given?
+          yield io.read
+        else
+          io.read
+        end
       end
     end
 
@@ -54,7 +59,7 @@ module ActiveStorage
     def url(key, expires_in:, filename:, content_type:, disposition:)
       instrument :url, key do |payload|
         generated_url = file_for(key).signed_url expires: expires_in, query: {
-          "response-content-disposition" => disposition,
+          "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
           "response-content-type" => content_type
         }
 

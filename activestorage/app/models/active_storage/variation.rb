@@ -13,6 +13,15 @@ class ActiveStorage::Variation
   attr_reader :transformations
 
   class << self
+    def wrap(variation_or_key)
+      case variation_or_key
+      when self
+        variation_or_key
+      else
+        decode variation_or_key
+      end
+    end
+
     # Returns a variation instance with the transformations that were encoded by +encode+.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
