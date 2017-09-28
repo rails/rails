@@ -87,7 +87,7 @@ module ActionController
 
       # Normalize both text and status options.
       def _normalize_options(options)
-        _normalize_text(options)
+        options = _normalize_text(options)
 
         if options[:html]
           options[:html] = ERB::Util.html_escape(options[:html])
@@ -106,6 +106,7 @@ module ActionController
             options[format] = options[format].to_text
           end
         end
+        options
       end
 
       # Process controller specific options, as status, content-type and location.
