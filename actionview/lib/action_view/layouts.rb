@@ -346,7 +346,7 @@ module ActionView
     end
 
     def _normalize_options(options) # :nodoc:
-      options = super(options)
+      options = super
 
       if _include_layout?(options)
         layout = options.delete(:layout) { :default }
