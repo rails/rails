@@ -147,7 +147,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
-  # Returns true if any previewer accepts the blob. By default, this will return true for videos and PDF documents.
+  # Returns true if any registered previewer accepts the blob. By default, this will return true for videos and PDF documents.
   def previewable?
     ActiveStorage.previewers.any? { |klass| klass.accept?(self) }
   end

@@ -36,8 +36,5 @@ module ActiveStorage
   autoload :Previewer
 
   mattr_accessor :verifier
-
-  mattr_accessor :previewers do
-    [ ActiveStorage::Previewer::PdfPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-  end
+  mattr_accessor :previewers, default: []
 end
