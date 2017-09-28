@@ -599,9 +599,16 @@ module ActionDispatch
       def initialize(parent_jar)
         super
 
-        key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
-        secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
-        @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
+        if request.use_authenticated_cookie_encryption
+          key_len = ActiveSupport::MessageEncryptor.key_len(encrypted_cookie_cipher)
+          secret = request.key_generator.generate_key(request.authenticated_encrypted_cookie_salt, key_len)
+          @encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: encrypted_cookie_cipher, serializer: SERIALIZER)
+        else
+          key_len = ActiveSupport::MessageEncryptor.key_len("aes-256-cbc")
+          secret = request.key_generator.generate_key(request.encrypted_cookie_salt, key_len)
+          sign_secret = request.key_generator.generate_key(request.encrypted_signed_cookie_salt)
+          @encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", serializer: SERIALIZER)
+        end
 
         request.cookies_rotations.encrypted.each do |*secrets, **options|
           @encryptor.rotate(*secrets, serializer: SERIALIZER, **options)

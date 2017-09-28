@@ -899,6 +899,24 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["foo"]
   end
 
+  def test_use_authenticated_cookie_encryption_uses_legacy_hmac_aes_cbc_encrypiton
+    @request.env["action_dispatch.use_authenticated_cookie_encryption"] = false
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+    encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
+    encrypted_signed_cookie_salt = @request.env["action_dispatch.encrypted_signed_cookie_salt"]
+    secret = key_generator.generate_key(encrypted_cookie_salt, ActiveSupport::MessageEncryptor.key_len("aes-256-cbc"))
+    sign_secret = key_generator.generate_key(encrypted_signed_cookie_salt)
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, sign_secret, cipher: "aes-256-cbc", digest: "SHA1", serializer: Marshal)
+
+    get :set_encrypted_cookie
+
+    cookies = @controller.send :cookies
+    assert_not_equal "bar", cookies[:foo]
+    assert_equal "bar", cookies.encrypted[:foo]
+    assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
+  end
+
   def test_legacy_hmac_aes_cbc_encrypted_marshal_cookie_is_upgraded_to_authenticated_encrypted_cookie
     key_generator = @request.env["action_dispatch.key_generator"]
     encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
