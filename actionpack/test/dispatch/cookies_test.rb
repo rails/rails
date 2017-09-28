@@ -899,8 +899,8 @@ class CookiesTest < ActionController::TestCase
     assert_nil @response.cookies["foo"]
   end
 
-  def test_use_authenticated_cookie_encryption_uses_legacy_hmac_aes_cbc_encrypiton
-    @request.env["action_dispatch.use_authenticated_cookie_encryption"] = false
+  def test_use_authenticated_cookie_encryption_uses_legacy_hmac_aes_cbc_encryption_when_not_enabled
+    @request.env["action_dispatch.use_authenticated_cookie_encryption"] = nil
 
     key_generator = @request.env["action_dispatch.key_generator"]
     encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
