@@ -50,12 +50,24 @@ module ActionDispatch
             escape(fragment, FRAGMENT)
           end
 
+          def escaped_fragment?(fragment)
+            escaped?(fragment, FRAGMENT)
+          end
+
           def escape_path(path)
             escape(path, PATH)
           end
 
+          def escaped_path?(path)
+            escaped?(path, PATH)
+          end
+
           def escape_segment(segment)
             escape(segment, SEGMENT)
+          end
+
+          def escaped_segment?(segment)
+            escaped?(segment, SEGMENT)
           end
 
           def unescape_uri(uri)
@@ -66,6 +78,10 @@ module ActionDispatch
           private
             def escape(component, pattern)
               component.gsub(pattern) { |unsafe| percent_encode(unsafe) }.force_encoding(US_ASCII)
+            end
+
+            def escaped?(component, pattern)
+              component.gsub(ESCAPED, "") !~ pattern
             end
 
             def percent_encode(unsafe)
@@ -81,12 +97,24 @@ module ActionDispatch
           ENCODER.escape_path(path.to_s)
         end
 
+        def self.escaped_path?(path)
+          ENCODER.escaped_path?(path.to_s)
+        end
+
         def self.escape_segment(segment)
           ENCODER.escape_segment(segment.to_s)
         end
 
+        def self.escaped_segment?(segment)
+          ENCODER.escaped_segment?(segment.to_s)
+        end
+
         def self.escape_fragment(fragment)
           ENCODER.escape_fragment(fragment.to_s)
+        end
+
+        def self.escaped_fragment?(fragment)
+          ENCODER.escaped_fragment?(fragment.to_s)
         end
 
         # Replaces any escaped sequences with their unescaped representations.

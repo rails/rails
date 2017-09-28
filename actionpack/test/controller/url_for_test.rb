@@ -88,6 +88,12 @@ module AbstractController
         )
       end
 
+      def test_anchor_should_not_escape_escaped_pchar
+        assert_equal("/c/a#%23anchor",
+          W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("%23anchor"))
+        )
+      end
+
       def test_anchor_should_not_escape_safe_pchar
         assert_equal("/c/a#name=user&email=user@domain.com",
           W.new.url_for(only_path: true, controller: "c", action: "a", anchor: Struct.new(:to_param).new("name=user&email=user@domain.com"))

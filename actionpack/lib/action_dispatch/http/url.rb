@@ -88,7 +88,11 @@ module ActionDispatch
 
         def add_anchor(path, anchor)
           if anchor
-            path << "##{Journey::Router::Utils.escape_fragment(anchor.to_param)}"
+            param = anchor.to_param
+            unless Journey::Router::Utils.escaped_fragment?(param)
+              param = Journey::Router::Utils.escape_fragment(param)
+            end
+            path << "##{param}"
           end
         end
 

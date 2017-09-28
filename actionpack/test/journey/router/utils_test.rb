@@ -10,12 +10,27 @@ module ActionDispatch
           assert_equal "a/b%20c+d%25", Utils.escape_path("a/b c+d%")
         end
 
+        def test_path_escaped?
+          assert_equal false, Utils.escaped_path?("a/b c+d%")
+          assert_equal true, Utils.escaped_path?(Utils.escape_path("a/b c+d%"))
+        end
+
         def test_segment_escape
           assert_equal "a%2Fb%20c+d%25", Utils.escape_segment("a/b c+d%")
         end
 
+        def test_segment_escaped?
+          assert_equal false, Utils.escaped_segment?("a/b c+d%")
+          assert_equal true, Utils.escaped_segment?(Utils.escape_segment("a/b c+d%"))
+        end
+
         def test_fragment_escape
           assert_equal "a/b%20c+d%25?e", Utils.escape_fragment("a/b c+d%?e")
+        end
+
+        def test_fragment_escaped?
+          assert_equal false, Utils.escaped_fragment?("a/b c+d%?e")
+          assert_equal true, Utils.escaped_fragment?(Utils.escape_fragment("a/b c+d%?e"))
         end
 
         def test_uri_unescape
