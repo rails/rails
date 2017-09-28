@@ -15,8 +15,18 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
+  test "attach existing blob via setter" do
+    @user.avatar = create_blob(filename: "funky.jpg")
+    assert_equal "funky.jpg", @user.avatar.filename.to_s
+  end
+
   test "attach existing sgid blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg").signed_id
+    assert_equal "funky.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attach existing sgid blob via setter" do
+    @user.avatar = create_blob(filename: "funky.jpg").signed_id
     assert_equal "funky.jpg", @user.avatar.filename.to_s
   end
 
@@ -25,9 +35,20 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "attach new blob from a Hash via setter" do
+    @user.avatar = { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" }
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
   test "attach new blob from an UploadedFile" do
     file = file_fixture "racecar.jpg"
     @user.avatar.attach Rack::Test::UploadedFile.new file
+    assert_equal "racecar.jpg", @user.avatar.filename.to_s
+  end
+
+  test "attach new blob from an UploadedFile via setter" do
+    file = file_fixture "racecar.jpg"
+    @user.avatar = Rack::Test::UploadedFile.new file
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
@@ -105,10 +126,27 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "wonky.jpg", @user.highlights.second.filename.to_s
   end
 
+  test "attach existing blobs via setter" do
+    @user.highlights = [create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")]
+
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "wonky.jpg", @user.highlights.second.filename.to_s
+  end
+
   test "attach new blobs" do
     @user.highlights.attach(
       { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
       { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" })
+
+    assert_equal "town.jpg", @user.highlights.first.filename.to_s
+    assert_equal "country.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attach new blobs via setter" do
+    @user.highlights = [
+      { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" }
+    ]
 
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
