@@ -125,7 +125,7 @@ module AbstractController
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
       _process_variant(options)
-      _normalize_options(options)
+      options = _normalize_options(options)
       options
     end
 

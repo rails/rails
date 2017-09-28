@@ -346,12 +346,14 @@ module ActionView
     end
 
     def _normalize_options(options) # :nodoc:
-      super
+      options = super(options)
 
       if _include_layout?(options)
         layout = options.delete(:layout) { :default }
         options[:layout] = _layout_for_option(layout)
       end
+
+      options
     end
 
     attr_internal_writer :action_has_layout

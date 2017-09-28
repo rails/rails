@@ -97,7 +97,7 @@ module ActionController
           options[:status] = Rack::Utils.status_code(options[:status])
         end
 
-        super
+        super(options)
       end
 
       def _normalize_text(options)
