@@ -1,3 +1,15 @@
+*   Deprecate `secrets.secret_token`.
+
+    The architecture for secrets had a big upgrade between Rails 3 and Rails 4,
+    when the default changed from using `secret_token` to `secret_key_base`.
+
+    `secret_token` has been soft deprecated in documentation for four years
+    but is still in place to support apps created before Rails 4.
+    Deprecation warnings have been added to help developers upgrade their
+    applications to `secret_key_base`.
+
+    *claudiob*, *Kasper Timm Hansen*
+
 *   Return an instance of `HashWithIndifferentAccess` from `HashWithIndifferentAccess#transform_keys`.
 
     *Yuji Yaginuma*

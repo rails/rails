@@ -6,6 +6,7 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
+require "active_support/deprecation"
 require_relative "engine"
 require_relative "secrets"
 
@@ -397,6 +398,11 @@ module Rails
         secrets.secret_key_base ||= config.secret_key_base
         # Fallback to config.secret_token if secrets.secret_token isn't set
         secrets.secret_token ||= config.secret_token
+
+        if secrets.secret_token.present?
+          ActiveSupport::Deprecation.warn \
+            "`secrets.secret_token` is deprecated in favor of `secret_key_base` and will be removed in Rails 6.0."
+        end
 
         secrets
       end

@@ -20,7 +20,6 @@ require "action_controller/railtie"
 
 class TestApp < Rails::Application
   config.root = __dir__
-  secrets.secret_token    = "secret_token"
   secrets.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
