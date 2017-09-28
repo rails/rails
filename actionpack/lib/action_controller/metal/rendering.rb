@@ -58,6 +58,7 @@ module ActionController
         if defined?(request) && !request.nil? && request.variant.present?
           options[:variant] = request.variant
         end
+        options
       end
 
       def _render_in_priorities(options)

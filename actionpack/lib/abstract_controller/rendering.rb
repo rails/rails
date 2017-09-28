@@ -112,6 +112,7 @@ module AbstractController
     end
 
     def _process_variant(options)
+      options
     end
 
     def _set_html_content_type # :nodoc:
@@ -124,7 +125,7 @@ module AbstractController
     # :api: private
     def _normalize_render(*args, &block)
       options = _normalize_args(*args, &block)
-      _process_variant(options)
+      options = _process_variant(options)
       options = _normalize_options(options)
       options
     end
