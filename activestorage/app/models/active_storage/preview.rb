@@ -37,15 +37,27 @@ class ActiveStorage::Preview
     @blob, @variation = blob, ActiveStorage::Variation.wrap(variation_or_variation_key)
   end
 
+  # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
+  #
+  #   blob.preview(resize: "100x100").processed.service_url
+  #
+  # Processing a preview generates an image from its blob and attaches the preview image to the blob. Because the preview
+  # image is stored with the blob, it is only generated once.
   def processed
     process unless processed?
     self
   end
 
+  # Returns the blob's attached preview image.
   def image
     blob.preview_image
   end
 
+  # Returns the URL of the preview's variant on the service. Raises ActiveStorage::Preview::UnprocessedError if the
+  # preview has not been processed yet.
+  #
+  # This method synchronously processes a variant of the preview image, so do not call it in views. Instead, generate
+  # a stable URL that redirects to the short-lived URL returned by this method.
   def service_url(**options)
     if processed?
       variant.service_url(options)
