@@ -1,7 +1,7 @@
 Description:
 ============
     Stubs out a new cable channel for the server (in Ruby) and client (in CoffeeScript).
-    Pass the channel name, either CamelCased or under_scored, and an optional list of channel actions as arguments.
+    Pass the channel name, either CamelCase or under_scored, and an optional list of channel actions as arguments.
 
     Note: Turn on the cable connection in app/assets/javascripts/cable.js after generating any channels.
 
