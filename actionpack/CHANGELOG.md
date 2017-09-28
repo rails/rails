@@ -1,3 +1,7 @@
+*   Ensure dev and prod puma configs do not clobber `ActionDispatch::SystemTesting` defaults. Adds workers: 0 and daemon: false
+
+    *Max Schwenk*
+
 ## Rails 5.1.4 (September 07, 2017) ##
 
 *   Make `take_failed_screenshot` work within engine.
