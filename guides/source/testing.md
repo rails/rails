@@ -1513,7 +1513,7 @@ class BillingJobTest < ActiveJob::TestCase
 end
 ```
 
-This test is pretty simple and only asserts that the job get the work done
+This test is pretty simple and only asserts that the job got the work done
 as expected.
 
 By default, `ActiveJob::TestCase` will set the queue adapter to `:test` so that
