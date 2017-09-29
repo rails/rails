@@ -997,6 +997,18 @@ module Arel
         assert table.able_to_type_cast?
         condition.to_sql.must_equal %("foo"."id" = 1 AND "foo"."other_id" = '2')
       end
+
+      it 'does not type cast SqlLiteral nodes' do
+        fake_caster = Object.new
+        def fake_caster.type_cast_for_database(attr_name, value)
+          value.to_i
+        end
+        table = Table.new(:foo, type_caster: fake_caster)
+        condition = table["id"].eq(Arel.sql("(select 1)"))
+
+        assert table.able_to_type_cast?
+        condition.to_sql.must_equal %("foo"."id" = (select 1))
+      end
     end
   end
 end
