@@ -302,21 +302,21 @@ $ bundle exec rake test
 
 #### For a Particular Component
 
-You can run tests only for a particular component (e.g. Action Pack). For example,
-to run Action Mailer tests:
+To test a particular component (e.g. Action Pack) every component has a dedicated
+`bin/test` script. For example, to run Action Mailer tests:
 
 ```bash
 $ cd actionmailer
-$ bundle exec rake test
+$ bin/test
 ```
 
 #### Running a Single Test
 
-You can run a single test through ruby. For instance:
+You can run a single test using `bin/test`. For instance:
 
 ```bash
 $ cd actionmailer
-$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
 The `-n` option allows you to run a single method instead of the whole
