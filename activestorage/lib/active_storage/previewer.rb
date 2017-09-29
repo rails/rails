@@ -55,7 +55,7 @@ module ActiveStorage
       #   end
       def draw(*argv) # :doc:
         Tempfile.open("output") do |file|
-          capture *argv, to: file
+          capture(*argv, to: file)
           yield file
         end
       end
