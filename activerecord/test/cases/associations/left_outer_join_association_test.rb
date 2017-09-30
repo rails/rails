@@ -20,9 +20,10 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     assert_nothing_raised do
       queries = capture_sql do
         Person.left_outer_joins(agents: { agents: :agents })
-              .left_outer_joins(agents: { agents: { primary_contact: :agents } }).to_a
+              .left_outer_joins(agents: { agents: { primary_contact: :agents } })
+              .joins(:agents).to_a
       end
-      assert queries.any? { |sql| /agents_people_4/i.match?(sql) }
+      assert queries.any? { |sql| /agents_people_5/i.match?(sql) }
     end
   end
 
