@@ -1387,7 +1387,7 @@ traditional `gem install`, specify it inside the `Gem::Specification` block
 inside the `.gemspec` file in the engine:
 
 ```ruby
-s.add_dependency "moo"
+s.add_runtime_dependency "moo"
 ```
 
 To specify a dependency that should only be installed as a development
