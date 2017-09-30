@@ -28,8 +28,8 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activerecord/CHANGELOG.md"
   }
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "activemodel",   version
+  s.add_runtime_dependency "activesupport", version
+  s.add_runtime_dependency "activemodel",   version
 
-  s.add_dependency "arel", "9.0.0.alpha"
+  s.add_runtime_dependency "arel", "9.0.0.alpha"
 end
