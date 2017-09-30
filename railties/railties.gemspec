@@ -30,12 +30,12 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/railties/CHANGELOG.md"
   }
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "actionpack",    version
+  s.add_runtime_dependency "activesupport", version
+  s.add_runtime_dependency "actionpack",    version
 
-  s.add_dependency "rake", ">= 0.8.7"
-  s.add_dependency "thor", ">= 0.18.1", "< 2.0"
-  s.add_dependency "method_source"
+  s.add_runtime_dependency "rake", ">= 0.8.7"
+  s.add_runtime_dependency "thor", ">= 0.18.1", "< 2.0"
+  s.add_runtime_dependency "method_source"
 
   s.add_development_dependency "actionview", version
 end
