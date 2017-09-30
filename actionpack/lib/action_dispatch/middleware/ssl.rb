@@ -49,7 +49,7 @@ module ActionDispatch
 
     # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
     # and greater than the 18-week requirement for browser preload lists.
-    HSTS_EXPIRES_IN = 180.days.to_i
+    HSTS_EXPIRES_IN = 15552000
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
