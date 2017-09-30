@@ -18,8 +18,22 @@ module AbstractController
     extend ActiveSupport::Concern
     include ActionView::ViewPaths
 
-    # Normalizes arguments, options and then delegates render_to_body and
+    # Normalizes arguments, options and then delegates <tt>render_to_body</tt> and
     # sticks the result in <tt>self.response_body</tt>.
+    #
+    # The primary options are:
+    #
+    # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt> for details.
+    # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
+    # * <tt>:inline</tt> - Renders an inline template.
+    # * <tt>:text</tt> - Renders provided text.
+    # * <tt>:plain</tt> - Renders provided text and sets the content type as <tt>text/plain</tt>.
+    # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
+    #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
+    # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
+    #
+    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, the default is
+    # to render a partial and use the second parameter as the locals hash.
     # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
