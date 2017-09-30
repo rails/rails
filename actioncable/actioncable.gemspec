@@ -25,8 +25,8 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actioncable/CHANGELOG.md"
   }
 
-  s.add_dependency "actionpack", version
+  s.add_runtime_dependency "actionpack", version
 
-  s.add_dependency "nio4r",            "~> 2.0"
-  s.add_dependency "websocket-driver", "~> 0.6.1"
+  s.add_runtime_dependency "nio4r",            "~> 2.0"
+  s.add_runtime_dependency "websocket-driver", "~> 0.6.1"
 end
