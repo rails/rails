@@ -26,13 +26,13 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md"
   }
 
-  s.add_dependency "activesupport", version
+  s.add_runtime_dependency "activesupport", version
 
-  s.add_dependency "rack",      "~> 2.0"
-  s.add_dependency "rack-test", ">= 0.6.3"
-  s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.0.2"
-  s.add_dependency "rails-dom-testing", "~> 2.0"
-  s.add_dependency "actionview", version
+  s.add_runtime_dependency "rack",      "~> 2.0"
+  s.add_runtime_dependency "rack-test", ">= 0.6.3"
+  s.add_runtime_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.0.2"
+  s.add_runtime_dependency "rails-dom-testing", "~> 2.0"
+  s.add_runtime_dependency "actionview", version
 
   s.add_development_dependency "activemodel", version
 end

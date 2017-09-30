@@ -26,10 +26,10 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionmailer/CHANGELOG.md"
   }
 
-  s.add_dependency "actionpack", version
-  s.add_dependency "actionview", version
-  s.add_dependency "activejob", version
+  s.add_runtime_dependency "actionpack", version
+  s.add_runtime_dependency "actionview", version
+  s.add_runtime_dependency "activejob", version
 
-  s.add_dependency "mail", ["~> 2.5", ">= 2.5.4"]
-  s.add_dependency "rails-dom-testing", "~> 2.0"
+  s.add_runtime_dependency "mail", ["~> 2.5", ">= 2.5.4"]
+  s.add_runtime_dependency "rails-dom-testing", "~> 2.0"
 end

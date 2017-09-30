@@ -25,6 +25,6 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activejob/CHANGELOG.md"
   }
 
-  s.add_dependency "activesupport", version
-  s.add_dependency "globalid", ">= 0.3.6"
+  s.add_runtime_dependency "activesupport", version
+  s.add_runtime_dependency "globalid", ">= 0.3.6"
 end
