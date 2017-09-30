@@ -59,7 +59,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
   end
 
-  def test_scaffold_plural_names
+  def test_namespaced_scaffold_plural_names
     g = generator ["admin/foo"]
     assert_name g, "admin/foos",  :controller_name
     assert_name g, %w(admin),     :controller_class_path
@@ -69,7 +69,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin.foos",  :controller_i18n_scope
   end
 
-  def test_scaffold_plural_names_as_ruby
+  def test_namespaced_scaffold_plural_names_as_ruby
     g = generator ["Admin::Foo"]
     assert_name g, "Admin::Foos", :controller_name
     assert_name g, %w(admin),     :controller_class_path
