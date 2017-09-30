@@ -19,12 +19,12 @@ require "models/tyre"
 require "models/minivan"
 require "models/possession"
 require "models/reader"
+require "models/category"
 require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -1810,6 +1810,10 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal [posts(:welcome)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
   end
 
+  test "alias_tracker respects a custom table" do
+    assert_equal posts(:welcome), custom_post_relation("categories_posts").joins(:categories).first
+  end
+
   test "#load" do
     relation = Post.all
     assert_queries(1) do
@@ -1930,8 +1934,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   private
-    def custom_post_relation
-      table_alias = Post.arel_table.alias("omg_posts")
+    def custom_post_relation(alias_name = "omg_posts")
+      table_alias = Post.arel_table.alias(alias_name)
       table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
       predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
