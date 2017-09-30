@@ -180,8 +180,6 @@ module AbstractController
       #
       # ==== Parameters
       # * <tt>name</tt> - The name of an action to be tested
-      #
-      # :api: private
       def action_method?(name)
         self.class.action_methods.include?(name)
       end
