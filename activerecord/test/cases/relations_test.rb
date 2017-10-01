@@ -845,32 +845,6 @@ class RelationTest < ActiveRecord::TestCase
     }
   end
 
-  def test_exists
-    davids = Author.where(name: "David")
-    assert davids.exists?
-    assert davids.exists?(authors(:david).id)
-    assert ! davids.exists?(authors(:mary).id)
-    assert ! davids.exists?("42")
-    assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new.id)
-
-    fake = Author.where(name: "fake author")
-    assert ! fake.exists?
-    assert ! fake.exists?(authors(:david).id)
-  end
-
-  def test_exists_uses_existing_scope
-    post = authors(:david).posts.first
-    authors = Author.includes(:posts).where(name: "David", posts: { id: post.id })
-    assert authors.exists?(authors(:david).id)
-  end
-
-  def test_any_with_scope_on_hash_includes
-    post = authors(:david).posts.first
-    categories = Categorization.includes(author: :posts).where(posts: { id: post.id })
-    assert categories.exists?
-  end
-
   def test_last
     authors = Author.all
     assert_equal authors(:bob), authors.last
