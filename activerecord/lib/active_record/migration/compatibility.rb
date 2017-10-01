@@ -42,11 +42,8 @@ module ActiveRecord
           end
 
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -55,11 +52,8 @@ module ActiveRecord
 
         def change_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -70,11 +64,8 @@ module ActiveRecord
           column_options.reverse_merge!(type: :integer)
 
           if block_given?
-            super(table_1, table_2, column_options: column_options, **options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -85,6 +76,14 @@ module ActiveRecord
           super(table_name, ref_name, type: :integer, **options)
         end
         alias :add_belongs_to :add_reference
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V4_2 < V5_0
@@ -103,11 +102,8 @@ module ActiveRecord
 
         def create_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -116,11 +112,8 @@ module ActiveRecord
 
         def change_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -156,6 +149,12 @@ module ActiveRecord
         end
 
         private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
 
           def index_name_for_remove(table_name, options = {})
             index_name = index_name(table_name, options)
