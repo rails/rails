@@ -366,7 +366,7 @@ module ActiveRecord
         # preexisting join in joins_values to categorizations (by way of
         # the `has_many :through` for categories).
         #
-        join_dependency = construct_join_dependency(joins_values)
+        join_dependency = construct_join_dependency
 
         relation = apply_join_dependency(join_dependency)
         relation._select!(join_dependency.aliases.columns)
@@ -387,15 +387,15 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(joins = [], eager_loading: true)
+      def construct_join_dependency(eager_loading: true)
         including = eager_load_values + includes_values
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including, alias_tracker(joins), eager_loading: eager_loading
+          klass, table, including, alias_tracker(joins_values), eager_loading: eager_loading
         )
       end
 
       def construct_relation_for_association_calculations
-        apply_join_dependency(construct_join_dependency(joins_values))
+        apply_join_dependency(construct_join_dependency)
       end
 
       def apply_join_dependency(join_dependency)
