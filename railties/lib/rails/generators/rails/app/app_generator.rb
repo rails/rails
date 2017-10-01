@@ -159,7 +159,7 @@ module Rails
     end
 
     def master_key
-      return if options[:pretend]
+      return if options[:pretend] || options[:dummy_app]
 
       require_relative "../master_key/master_key_generator"
 
@@ -169,7 +169,7 @@ module Rails
     end
 
     def credentials
-      return if options[:pretend]
+      return if options[:pretend] || options[:dummy_app]
 
       require_relative "../credentials/credentials_generator"
 
