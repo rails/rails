@@ -71,6 +71,7 @@ module AbstractController
       }
     end
 
+  private
     # Normalize args by converting <tt>render "foo"</tt> to
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
