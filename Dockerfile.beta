@@ -1,0 +1,10 @@
+FROM ruby:2.4.0
+
+#Install rmagick
+RUN apt-get update && apt-get install -y libmagickwand-dev
+
+
+### ###
+### Could not find not_found with version 0
+### ###
+

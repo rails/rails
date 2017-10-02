@@ -1,0 +1,50 @@
+version: "2"
+
+---
+volumes:
+  postgresql-data:
+    driver: local
+  not_found-data:
+    driver: local
+  redis-data:
+    driver: local
+
+
+---
+services:
+  db:
+    image: postgres:9.6
+    ports:
+    - 5433:5432
+    volumes:
+    - postgresql-data:/var/lib/postgresql/data
+    env_file:
+    - dev.env
+  web:
+    image: NOT_FOUND
+  redis:
+    image: redis:3.0
+    ports:
+    - 6379:6379
+    volumes:
+    - redis-data:/var/lib/redis
+    env_file:
+    - dev.env
+  sidekiq:
+    image: your_image_name_here:latest
+    build:
+      context: "."
+      dockerfile: dev.Dockerfile
+    command: sidekiq -c 1 -q default
+    working_dir: "/usr/src/app"
+    volumes:
+    - ".:/usr/src/app"
+    - rails-data:/usr/local/bundle
+    stdin_open: true
+    tty: true
+    links:
+    - redis
+    depends_on:
+    - redis
+    env_file:
+    - dev.env
