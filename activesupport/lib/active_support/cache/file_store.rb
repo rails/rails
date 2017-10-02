@@ -39,9 +39,8 @@ module ActiveSupport
       def cleanup(options = nil)
         options = merged_options(options)
         search_dir(cache_path) do |fname|
-          key = file_path_key(fname)
-          entry = read_entry(key, options)
-          delete_entry(key, options) if entry && entry.expired?
+          entry = read_entry(fname, options)
+          delete_entry(fname, options) if entry && entry.expired?
         end
       end
 
