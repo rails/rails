@@ -70,6 +70,9 @@ namespace :db do
 
   desc "Retrieves the current schema version number"
   app_task "version"
+
+  # desc 'Load the test schema'
+  app_task "test:prepare"
 end
 
 def find_engine_path(path)
