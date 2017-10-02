@@ -19,10 +19,14 @@ module ActionDispatch
         @set = ActionDispatch::Routing::RouteSet.new
       end
 
-      def draw(options = nil, &block)
+      def draw(filter: nil, show_internal: false, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
-        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options).split("\n")
+        inspector.format(
+          ActionDispatch::Routing::ConsoleFormatter.new,
+          filter: filter,
+          show_internal: show_internal
+        ).split("\n")
       end
 
       def test_displaying_routes_for_engines
@@ -305,7 +309,7 @@ module ActionDispatch
       end
 
       def test_routes_can_be_filtered
-        output = draw("posts") do
+        output = draw(filter: "posts") do
           resources :articles
           resources :posts
         end
@@ -322,7 +326,7 @@ module ActionDispatch
       end
 
       def test_routes_can_be_filtered_with_namespaced_controllers
-        output = draw("admin/posts") do
+        output = draw(filter: "admin/posts") do
           resources :articles
           namespace :admin do
             resources :posts
@@ -365,7 +369,7 @@ module ActionDispatch
       end
 
       def test_routes_with_undefined_filter
-        output = draw(controller: "Rails::MissingController") do
+        output = draw(filter: { controller: "Rails::MissingController" }) do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
@@ -376,7 +380,7 @@ module ActionDispatch
       end
 
       def test_no_routes_matched_filter
-        output = draw("rails/dummy") do
+        output = draw(filter: "rails/dummy") do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
@@ -387,7 +391,7 @@ module ActionDispatch
       end
 
       def test_no_routes_were_defined
-        output = draw("Rails::DummyController") {}
+        output = draw(filter: "Rails::DummyController") {}
 
         assert_equal [
           "You don't have any routes defined!",
@@ -418,6 +422,19 @@ module ActionDispatch
         assert_equal [
           "       Prefix Verb URI Pattern              Controller#Action",
           "custom_assets GET  /custom/assets(.:format) custom_assets#show",
+        ], output
+      end
+
+      def test_displaying_hidden_internal_routes
+        output = draw(show_internal: true) do
+          get "/visible", to: "controller#visible"
+          get "/hidden", to: "controller#hidden", internal: true
+        end
+
+        assert_equal [
+          " Prefix Verb URI Pattern        Controller#Action",
+          "visible GET  /visible(.:format) controller#visible",
+          " hidden GET  /hidden(.:format)  controller#hidden"
         ], output
       end
     end
