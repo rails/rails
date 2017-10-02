@@ -41,6 +41,7 @@ module ActiveRecord
             end
           end
 
+          
           def type_cast_for_schema(value)
             if ActiveRecord::Point === value
               [value.x, value.y]
@@ -48,6 +49,10 @@ module ActiveRecord
               super
             end
           end
+
+          # "ActiveRecord::Point === value" checks whether "value" of type "Point"
+          # If it's equal, it will return an array of two values (x and y). if not, it will call type_cast_for_schema method of the superclass
+
 
           private
 
