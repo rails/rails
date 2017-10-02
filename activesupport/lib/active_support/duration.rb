@@ -266,11 +266,11 @@ module ActiveSupport
     # Divides this Duration by a Numeric and returns a new Duration.
     def /(other)
       if Scalar === other
-        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value] })
+        Duration.new(value / other.value, parts.map { |type, number| [type, number / other.value.to_f] })
       elsif Duration === other
         value / other.value
       elsif Numeric === other
-        Duration.new(value / other, parts.map { |type, number| [type, number / other] })
+        Duration.new(value / other, parts.map { |type, number| [type, number / other.to_f] })
       else
         raise_type_error(other)
       end

@@ -1,3 +1,12 @@
+*   Restores functionality to `Duration` to allow for partial times
+
+    Previously in Rails 5.0.2 dividing a duration would return a partial duration
+    such as `Time.now.ago(1.days / 2)` returning half a day ago. Starting in
+    Rails 5.1.0, this functionality was lost, but now the functionality is back.
+    Fixes #30546.
+
+    *Kevin M. Hall*
+
 *   Deprecate `secrets.secret_token`.
 
     The architecture for secrets had a big upgrade between Rails 3 and Rails 4,

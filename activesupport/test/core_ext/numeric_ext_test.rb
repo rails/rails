@@ -73,6 +73,16 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     assert_equal Time.utc(2005, 2, 28, 15, 15, 10), Time.utc(2004, 2, 29, 15, 15, 10) + 1.year
     assert_equal DateTime.civil(2005, 2, 28, 15, 15, 10), DateTime.civil(2004, 2, 29, 15, 15, 10) + 1.year
   end
+
+  def test_partial_days
+    assert_equal @now - 0.5.days, @now.ago(1.day / 2)
+    assert_equal @now - 8.hours, @now.ago(1.day / 3)
+    assert_equal @now - 0.25.days, @now.ago(1.day / 4)
+    assert_equal @now - 4.hours, @now.ago(1.day / 6)
+    assert_equal @now - 1.hour, @now.ago(1.day / 24)
+    assert_equal @now - 0.5.days, @now.ago(2.days / 4)
+    assert_equal @now - 0.5.days, @now.ago(1.day / ActiveSupport::Duration::Scalar.new(2))
+  end
 end
 
 class NumericExtDateTest < ActiveSupport::TestCase
