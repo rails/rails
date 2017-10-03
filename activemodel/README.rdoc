@@ -251,7 +251,7 @@ Active Model is released under the MIT license:
 
 == Support
 
-API documentation is at
+API documentation is at:
 
 * http://api.rubyonrails.org
 
