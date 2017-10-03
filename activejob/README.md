@@ -100,7 +100,7 @@ The latest version of Active Job can be installed with RubyGems:
   $ gem install activejob
 ```
 
-Source code can be downloaded as part of the Rails project on GitHub
+Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activejob
 
