@@ -7,6 +7,11 @@ class BooksController < ActionController::Base
     params.require(:book).require(:name)
     head :ok
   end
+
+  def index
+    params.require(:book).permit(:name)
+    head :ok
+  end
 end
 
 class ActionControllerRequiredParamsTest < ActionController::TestCase
@@ -19,6 +24,14 @@ class ActionControllerRequiredParamsTest < ActionController::TestCase
 
     assert_raise ActionController::ParameterMissing do
       post :create, params: { book: { title: "Mjallo!" } }
+    end
+
+    assert_raise ActionController::ParameterMissing do
+      post :create, params: { book: 'Mjallo!' }
+    end
+
+    assert_raise ActionController::ParameterMissing do
+      get :index, params: { book: 'Mjallo!' }
     end
   end
 
