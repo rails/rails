@@ -46,7 +46,7 @@ module ActiveRecord
     end
 
     def associated_table(table_name)
-      association = klass._reflect_on_association(table_name) || klass._reflect_on_association(table_name.to_s.singularize)
+      association = table_to_assoc(table_name)
 
       if !association && table_name == arel_table.name
         return self
@@ -60,6 +60,18 @@ module ActiveRecord
       end
 
       TableMetadata.new(association_klass, arel_table, association)
+    end
+
+    def table_to_assoc(table_name)
+      klass._reflect_on_association(table_name) ||
+          klass._reflect_on_association(table_name.to_s.singularize) ||
+          klass.reflect_on_all_associations.detect do |assoc|
+            begin
+              assoc.table_name == table_name
+            rescue NameError
+              false
+            end
+          end
     end
 
     def polymorphic_association?

@@ -369,6 +369,8 @@ ActiveRecord::Schema.define do
   end
 
   create_table :guitars, force: true do |t|
+    t.integer :company_id
+    t.integer :person_id
     t.string :color
   end
 

@@ -14,6 +14,9 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "models/guitar"
+require "models/person"
+require "models/company"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -86,6 +89,26 @@ module ActiveRecord
 
       expected = Post.where(comments: { parent_id: 1 }).joins(:comments)
       actual   = Post.where(comments: { parent: parent }).joins(:comments)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_named_belongs_to_nested_where
+      number1_fan = Person.new
+      number1_fan.id = 1
+
+      expected = Guitar.where(people: { number1_fan_id: number1_fan.id }).joins(:player)
+      actual   = Guitar.where(people: { number1_fan: number1_fan }).joins(:player)
+
+      assert_equal expected.to_sql, actual.to_sql
+    end
+
+    def test_named_has_many_nested_where
+      manufacturer = Company.new
+      manufacturer.id = 2
+
+      expected = Person.where(guitars: { company_id: manufacturer.id }).joins(:fancy_guitars)
+      actual = Person.where(guitars: { manufacturer: manufacturer }).joins(:fancy_guitars)
 
       assert_equal expected.to_sql, actual.to_sql
     end

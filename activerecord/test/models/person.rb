@@ -38,6 +38,8 @@ class Person < ActiveRecord::Base
   has_many :agents_posts_authors, through: :agents_posts, source: :author
   has_many :essays, primary_key: "first_name", foreign_key: "writer_id"
 
+  has_many :fancy_guitars, class_name: "Guitar"
+
   scope :males,   -> { where(gender: "M") }
 end
 
