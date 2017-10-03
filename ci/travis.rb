@@ -135,7 +135,7 @@ class Build
     if activesupport? && !isolated?
       # There is a known issue with the listen tests that causes files to be
       # incorrectly GC'ed even when they are still in-use. The current solution
-      # is to only run them in isolation to avoid randomly failing our test suite.
+      # is to only run them in isolation to avoid random failures of our test suite.
       { "LISTEN" => "0" }
     else
       {}
