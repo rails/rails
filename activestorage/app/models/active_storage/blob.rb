@@ -23,6 +23,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   class_attribute :service
 
+  has_many :attachments
+
   has_one_attached :preview_image
 
   class << self
