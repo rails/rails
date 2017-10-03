@@ -30,7 +30,7 @@ API documentation is at:
 
 * http://api.rubyonrails.org
 
-Bug reports can be filed for the Ruby on Rails project here:
+Bug reports for the Ruby on Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 
