@@ -366,6 +366,12 @@ class ParametersPermitTest < ActiveSupport::TestCase
     end
   end
 
+  test "#to_hash when params are permitted" do
+    assert_not_deprecated do
+      assert_equal({ "person" => { "age" => "32" } }, @params.permit(person: [:age]).to_hash)
+    end
+  end
+
   test "to_hash raises UnfilteredParameters on unfiltered params if raise_on_unfiltered_parameters is true" do
     begin
       old_value = ActionController::Parameters.raise_on_unfiltered_parameters
@@ -382,12 +388,8 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "to_hash returns converted hash on permitted params" do
     @params.permit!
 
-    assert_deprecated do
-      assert_instance_of Hash, @params.to_hash
-    end
-    assert_deprecated do
-      assert_not_kind_of ActionController::Parameters, @params.to_hash
-    end
+    assert_instance_of Hash, @params.to_hash
+    assert_not_kind_of ActionController::Parameters, @params.to_hash
   end
 
   test "to_hash returns converted hash when .permit_all_parameters is set" do
@@ -395,15 +397,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert_deprecated do
-        assert_instance_of Hash, params.to_hash
-      end
-      assert_deprecated do
-        assert_not_kind_of ActionController::Parameters, params.to_hash
-      end
-      assert_deprecated do
-        assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
-      end
+      assert_instance_of Hash, params.to_hash
+      assert_not_kind_of ActionController::Parameters, params.to_hash
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
     ensure
       ActionController::Parameters.permit_all_parameters = false
     end
