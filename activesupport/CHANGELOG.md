@@ -61,12 +61,12 @@
     Previously:
 
         'one_two'.camelize(true)
-        => nil
+        # => nil
 
     Now:
 
         'one_two'.camelize(true)
-        => ArgumentError: Invalid option, use either :upper or :lower.
+        # => ArgumentError: Invalid option, use either :upper or :lower.
 
     *Ricardo Díaz*
 
@@ -81,12 +81,12 @@
     Prior to Rails 5.1:
 
         5.minutes % 2.minutes
-        => 60
+        # => 60
 
     Now:
 
         5.minutes % 2.minutes
-        => 1 minute
+        # => 1 minute
 
     Fixes #29603 and #29743.
 

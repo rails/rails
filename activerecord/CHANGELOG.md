@@ -1,22 +1,22 @@
-* PostgreSQL `tsrange` now preserves subsecond precision
+*   PostgreSQL `tsrange` now preserves subsecond precision.
 
     PostgreSQL 9.1+ introduced range types, and Rails added support for using
-    this datatype in ActiveRecord. However, the serialization of
-    PostgreSQL::OID::Range was incomplete, because it did not properly
+    this datatype in Active Record. However, the serialization of
+    `PostgreSQL::OID::Range` was incomplete, because it did not properly
     cast the bounds that make up the range. This led to subseconds being
     dropped in SQL commands:
 
-        (byebug) from = type_cast_single_for_database(range.first)
-        2010-01-01 13:30:00 UTC
+    Before:
 
-        (byebug) to = type_cast_single_for_database(range.last)
-        2011-02-02 19:30:00 UTC
+        connection.type_cast(tsrange.serialize(range_value))
+        # => "[2010-01-01 13:30:00 UTC,2011-02-02 19:30:00 UTC)"
 
-        (byebug) "[#{from},#{to}#{value.exclude_end? ? ')' : ']'}"
-        "[2010-01-01 13:30:00 UTC,2011-02-02 19:30:00 UTC)"
+    Now:
 
-        (byebug) "[#{type_cast(from)},#{type_cast(to)}#{value.exclude_end? ? ')' : ']'}"
-        "['2010-01-01 13:30:00.670277','2011-02-02 19:30:00.745125')"
+        connection.type_cast(tsrange.serialize(range_value))
+        # => "[2010-01-01 13:30:00.670277,2011-02-02 19:30:00.745125)"
+
+    *Thomas Cannon*
 
 *   Passing a `Set` to `Relation#where` now behaves the same as passing an
     array.
