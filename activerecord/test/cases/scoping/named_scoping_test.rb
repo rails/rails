@@ -178,6 +178,20 @@ class NamedScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_to_a_should_retain_preloaded_positions
+    topics = Topic.order('random()')
+    second = topics.second
+    fourth = topics.fourth
+    assert_equal second, topics.to_a.second
+    assert_equal fourth, topics.to_a.fourth
+  end
+
+  def test_to_a_should_retain_first_position
+    topics = Topic.order('random()')
+    first = topics.first
+    assert_not_equal first, topics.to_a.last
+  end
+
   def test_empty_should_not_load_results
     topics = Topic.base
     assert_queries(2) do
