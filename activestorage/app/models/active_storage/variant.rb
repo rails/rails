@@ -50,7 +50,7 @@ class ActiveStorage::Variant
 
   # Returns a combination key of the blob and the variation that together identifies a specific variant.
   def key
-    "variants/#{blob.key}/#{variation.key}"
+    "variants/#{blob.key}/#{Digest::SHA256.hexdigest(variation.key)}"
   end
 
   # Returns the URL of the variant on the service. This URL is intended to be short-lived for security and not used directly

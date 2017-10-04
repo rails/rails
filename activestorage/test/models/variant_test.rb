@@ -26,4 +26,9 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 67, image.height
     assert_match(/Gray/, image.colorspace)
   end
+
+  test "service_url doesn't grow in length despite long variant options" do
+    variant = @blob.variant(font: "a" * 10_000).processed
+    assert_operator variant.service_url.length, :<, 500
+  end
 end
