@@ -12,7 +12,7 @@ module ActiveRecord
           raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
             "Pass a symbol or an array of symbols instead: `scope: :user_id`"
         end
-        super({ case_sensitive: true }.merge!(options))
+        super
         @klass = options[:class]
       end
 
@@ -62,6 +62,8 @@ module ActiveRecord
 
           if bind.nil?
             attr.eq(bind)
+          elsif !options.key?(:case_sensitive)
+            klass.connection.default_uniqueness_comparison(attr, bind)
           elsif options[:case_sensitive]
             klass.connection.case_sensitive_comparison(attr, bind)
           else
