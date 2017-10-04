@@ -1,3 +1,11 @@
+*   Add ability to enable Early Hints for HTTP/2
+
+    If supported by the server, and enabled in Puma this allows H2 Early Hints to be used.
+
+    The `javascript_include_tag` and the `stylesheet_link_tag` automatically add Early Hints if requested.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Simplify cookies middleware with key rotation support
 
     Use the `rotate` method for both `MessageEncryptor` and

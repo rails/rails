@@ -19,6 +19,7 @@ class AssetTagHelperTest < ActionView::TestCase
       def ssl?() false end
       def host_with_port() "localhost" end
       def base_url() "http://www.example.com" end
+      def send_early_hints(links) end
     end.new
 
     @controller.request = @request
@@ -653,7 +654,9 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller = BasicController.new
     @controller.config.relative_url_root = "/collaboration/hieraki"
 
-    @request = Struct.new(:protocol, :base_url).new("gopher://", "gopher://www.example.com")
+    @request = Struct.new(:protocol, :base_url) do
+      def send_early_hints(links); end
+    end.new("gopher://", "gopher://www.example.com")
     @controller.request = @request
   end
 
