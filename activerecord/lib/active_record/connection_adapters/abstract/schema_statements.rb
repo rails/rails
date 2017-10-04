@@ -1174,7 +1174,7 @@ module ActiveRecord
       end
 
       # Changes the comment for a column or removes it if +nil+.
-      def change_column_comment(table_name, column_name, comment) #:nodoc:
+      def change_column_comment(table_name, column_name, comment)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
