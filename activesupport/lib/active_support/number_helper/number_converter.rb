@@ -117,21 +117,23 @@ module ActiveSupport
       }
 
       def self.convert(number, options)
-        new(number, options).execute
+        new(options).execute(number)
       end
 
-      def initialize(number, options)
-        @number = number
-        @opts   = options.symbolize_keys
+      def initialize(*args)
+        raise ArgumentError if args.size > 2
+
+        @opts = args.extract_options!.symbolize_keys
+        @number = args.shift
       end
 
-      def execute
+      def execute(number = self.number)
         if !number
           nil
-        elsif validate_float? && !valid_float?
+        elsif validate_float? && !valid_float?(number)
           number
         else
-          convert
+          convert(number)
         end
       end
 
@@ -174,7 +176,7 @@ module ActiveSupport
           key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
-        def valid_float?
+        def valid_float?(number)
           Float(number)
         rescue ArgumentError, TypeError
           false

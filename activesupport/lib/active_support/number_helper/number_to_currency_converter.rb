@@ -7,8 +7,8 @@ module ActiveSupport
     class NumberToCurrencyConverter < NumberConverter # :nodoc:
       self.namespace = :currency
 
-      def convert
-        number = self.number.to_s.strip
+      def convert(number = self.number)
+        number = number.to_s.strip
         format = options[:format]
 
         if number.to_f.negative?
@@ -16,11 +16,15 @@ module ActiveSupport
           number = absolute_value(number)
         end
 
-        rounded_number = NumberToRoundedConverter.convert(number, options)
+        rounded_number = number_to_rounded_converter.execute(number)
         format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, options[:unit])
       end
 
       private
+
+        def number_to_rounded_converter
+          @number_to_rounded_converter ||= NumberToRoundedConverter.new(options)
+        end
 
         def absolute_value(number)
           number.respond_to?(:abs) ? number.abs : number.sub(/\A-/, "")

@@ -406,6 +406,20 @@ module ActiveSupport
           assert_equal "x", number_helper.number_to_human("x")
         end
       end
+
+      def test_number_helpers_reuse_converter
+        [
+          NumberToCurrencyConverter, NumberToDelimitedConverter,
+          NumberToHumanConverter, NumberToHumanSizeConverter,
+          NumberToPercentageConverter, NumberToPhoneConverter,
+          NumberToRoundedConverter
+        ].each do |converter_class|
+          converter = converter_class.new(1_000)
+          assert_equal(converter.execute, converter.execute(1_000))
+          assert_not_equal(converter.execute, converter.execute(2_000))
+          assert_not_equal(converter.execute(2_000), converter.execute(3_000))
+        end
+      end
     end
   end
 end

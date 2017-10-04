@@ -6,13 +6,12 @@ module ActiveSupport
       self.namespace      = :precision
       self.validate_float = true
 
-      def convert
-        helper = RoundingHelper.new(options)
-        rounded_number = helper.round(number)
+      def convert(number = self.number)
+        rounded_number = rounding_helper.round(number)
 
         if precision = options[:precision]
           if options[:significant] && precision > 0
-            digits = helper.digit_count(rounded_number)
+            digits = rounding_helper.digit_count(rounded_number)
             precision -= digits
             precision = 0 if precision < 0 # don't let it be negative
           end
@@ -31,14 +30,18 @@ module ActiveSupport
           formatted_string = rounded_number
         end
 
-        delimited_number = NumberToDelimitedConverter.convert(formatted_string, options)
+        delimited_number = number_to_delimited_converter.execute(formatted_string)
         format_number(delimited_number)
       end
 
       private
 
-        def calculate_rounded_number(multiplier)
-          (number / BigDecimal.new(multiplier.to_f.to_s)).round * multiplier
+        def rounding_helper
+          @rounding_helper ||= RoundingHelper.new(options)
+        end
+
+        def number_to_delimited_converter
+          @number_to_delimited_converter ||= NumberToDelimitedConverter.new(options)
         end
 
         def digit_count(number)

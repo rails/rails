@@ -10,9 +10,9 @@ module ActiveSupport
       self.namespace      = :human
       self.validate_float = true
 
-      def convert # :nodoc:
-        @number = RoundingHelper.new(options).round(number)
-        @number = Float(number)
+      def convert(number = self.number) # :nodoc:
+        number = rounding_helper.round(number)
+        number = Float(number)
 
         # for backwards compatibility with those that didn't add strip_insignificant_zeros to their locale files
         unless options.key?(:strip_insignificant_zeros)
@@ -20,21 +20,29 @@ module ActiveSupport
         end
 
         units = opts[:units]
-        exponent = calculate_exponent(units)
-        @number = number / (10**exponent)
+        exponent = calculate_exponent(number, units)
+        number = number / (10**exponent)
 
-        rounded_number = NumberToRoundedConverter.convert(number, options)
-        unit = determine_unit(units, exponent)
+        rounded_number = number_to_rounded_converter.execute(number)
+        unit = determine_unit(number, units, exponent)
         format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, unit).strip
       end
 
       private
 
+        def rounding_helper
+          @rounding_helper ||= RoundingHelper.new(options)
+        end
+
+        def number_to_rounded_converter
+          @number_to_rounded_converter ||= NumberToRoundedConverter.new(options)
+        end
+
         def format
           options[:format] || translate_in_locale("human.decimal_units.format")
         end
 
-        def determine_unit(units, exponent)
+        def determine_unit(number, units, exponent)
           exp = DECIMAL_UNITS[exponent]
           case units
           when Hash
@@ -46,7 +54,7 @@ module ActiveSupport
           end
         end
 
-        def calculate_exponent(units)
+        def calculate_exponent(number, units)
           exponent = number != 0 ? Math.log10(number.abs).floor : 0
           unit_exponents(units).find { |e| exponent >= e } || 0
         end
