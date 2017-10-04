@@ -55,10 +55,10 @@ class Time
     #     end
     #   end
     #
-    #  NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
-    #  objects that have already been created, e.g. any model timestamp
-    #  attributes that have been read before the block will remain in
-    #  the application's default timezone.
+    # NOTE: This won't affect any <tt>ActiveSupport::TimeWithZone</tt>
+    # objects that have already been created, e.g. any model timestamp
+    # attributes that have been read before the block will remain in
+    # the application's default timezone.
     def use_zone(time_zone)
       new_zone = find_zone!(time_zone)
       begin
