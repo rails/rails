@@ -441,7 +441,7 @@ module ActiveRecord
     #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #
     def left_outer_joins(*args)
-      check_if_method_has_arguments!(:left_outer_joins, args)
+      check_if_method_has_arguments!(__callee__, args)
 
       args.compact!
       args.flatten!
