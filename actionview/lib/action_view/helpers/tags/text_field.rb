@@ -25,7 +25,7 @@ module ActionView
 
           if datalist_values
             option_tags = options_for_datalist(datalist_values)
-            output += content_tag("datalist", option_tags, { "id" => options["list"] }.reject{ |_,v| v.blank? })
+            output += content_tag("datalist", option_tags, { "id" => options["list"] }.reject { |_, v| v.blank? })
           end
 
           output

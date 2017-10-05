@@ -438,7 +438,7 @@ class FormTagHelperTest < ActionView::TestCase
   end
 
   def test_text_field_tag_with_datalist_option_and_list_attribute
-    actual = text_field_tag 'title', nil, datalist: options_for_datalist(["Developer"]), list: 'list-of-titles'
+    actual = text_field_tag "title", nil, datalist: options_for_datalist(["Developer"]), list: "list-of-titles"
     expected = %(<input id="title" name="title" type="text" list="list-of-titles" /><datalist id="list-of-titles"><option value="Developer">Developer</option></datalist>)
     assert_dom_equal expected, actual
   end

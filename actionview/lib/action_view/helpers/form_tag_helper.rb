@@ -207,7 +207,7 @@ module ActionView
         output = tag(:input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options))
 
         if option_tags
-          output.safe_concat(content_tag(:datalist, option_tags, { "id" => options["list"] }))
+          output.safe_concat(content_tag(:datalist, option_tags, "id" => options["list"]))
         end
 
         output

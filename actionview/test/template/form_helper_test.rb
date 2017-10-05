@@ -492,7 +492,7 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field_with_array_datalist_and_label
     assert_dom_equal(
       '<input id="post_cost" name="post[cost]" list="post_cost_list" type="text" /><datalist id="post_cost_list"><option label="Uno" value="One">One</option></datalist>',
-      text_field(:post, :cost, datalist: [["One", label: 'Uno']])
+      text_field(:post, :cost, datalist: [["One", label: "Uno"]])
     )
   end
 
@@ -506,7 +506,7 @@ class FormHelperTest < ActionView::TestCase
   def test_text_field_with_datalist_and_list_attribute
     assert_dom_equal(
       '<input id="post_cost" name="post[cost]" list="datalist_id" type="text" /><datalist id="datalist_id"></datalist>',
-      text_field(:post, :cost, datalist: [], list: 'datalist_id')
+      text_field(:post, :cost, datalist: [], list: "datalist_id")
     )
   end
 
