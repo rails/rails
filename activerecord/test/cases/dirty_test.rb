@@ -831,7 +831,7 @@ class DirtyTest < ActiveRecord::TestCase
         end
       end
     end
-    person = klass.create!(first_name: "Sean")
+    klass.create!(first_name: "Sean")
     assert_nil double_saved_changes["first_name"]
     assert_equal [0, 1], double_saved_changes["followers_count"]
   end
