@@ -1317,7 +1317,7 @@ know which pages it is allowed to index.
 
 Rails creates this file for you inside the `/public` folder. By default, it allows
 search engines to index all pages of your application. If you want to block
-indexing on all pages of you application, use this:
+indexing on all pages of your application, use this:
 
 ```
 User-agent: *
