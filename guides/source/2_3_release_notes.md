@@ -231,7 +231,7 @@ Rails chooses between file, template, and action depending on whether there is a
 
 ### Application Controller Renamed
 
-If you're one of the people who has always been bothered by the special-case naming of `application.rb`, rejoice! It's been reworked to be application_controller.rb in Rails 2.3. In addition, there's a new rake task, `rake rails:update:application_controller` to do this automatically for you - and it will be run as part of the normal `rake rails:update` process.
+If you're one of the people who has always been bothered by the special-case naming of `application.rb`, rejoice! It's been reworked to be `application_controller.rb` in Rails 2.3. In addition, there's a new rake task, `rake rails:update:application_controller` to do this automatically for you - and it will be run as part of the normal `rake rails:update` process.
 
 * More Information:
     * [The Death of Application.rb](http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/)
@@ -304,7 +304,7 @@ Rails now keeps a per-request local cache of read from the remote cache stores, 
 
 Rails can now provide localized views, depending on the locale that you have set. For example, suppose you have a `Posts` controller with a `show` action. By default, this will render `app/views/posts/show.html.erb`. But if you set `I18n.locale = :da`, it will render `app/views/posts/show.da.html.erb`. If the localized template isn't present, the undecorated version will be used. Rails also includes `I18n#available_locales` and `I18n::SimpleBackend#available_locales`, which return an array of the translations that are available in the current Rails project.
 
-In addition, you can use the same scheme to localize the rescue files in the `public` directory: `public/500.da.html` or `public/404.en.html` work, for example.
+In addition, you can use the same scheme to localize the rescue files in the public directory: `public/500.da.html` or `public/404.en.html` work, for example.
 
 ### Partial Scoping for Translations
 

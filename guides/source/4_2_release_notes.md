@@ -179,7 +179,7 @@ change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
 `respond_with` and the corresponding class-level `respond_to` have been moved
 to the [responders](https://github.com/plataformatec/responders) gem. Add
-`gem 'responders', '~> 2.0'` to your Gemfile to use it:
+`gem 'responders', '~> 2.0'` to your `Gemfile` to use it:
 
 ```ruby
 # app/controllers/users_controller.rb

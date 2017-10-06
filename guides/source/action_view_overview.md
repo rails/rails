@@ -490,7 +490,7 @@ stylesheet_link_tag "application" # => <link href="/assets/application.css" medi
 
 #### stylesheet_path
 
-Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by `stylesheet_link_tag` to build the stylesheet path.
 
 ```ruby
 stylesheet_path "application" # => /assets/application.css

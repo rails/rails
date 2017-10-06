@@ -391,7 +391,7 @@ by setting up a Rake task which runs
     ```
 
   for all models and all boolean columns, after which the flag must be set to true
-by adding the following to your application.rb file:
+by adding the following to your `application.rb` file:
 
     ```ruby
     Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
@@ -572,7 +572,7 @@ Defaults to `'signed cookie'`.
   error should be raised for missing translations.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
-  submit_tag should automatically disable on click, this defaults to `true`.
+  `submit_tag` should automatically disable on click, this defaults to `true`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
