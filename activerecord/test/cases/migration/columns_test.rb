@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -140,6 +142,10 @@ module ActiveRecord
       end
 
       def test_remove_column_with_multi_column_index
+        # MariaDB starting with 10.2.8
+        # Dropping a column that is part of a multi-column UNIQUE constraint is not permitted.
+        skip if current_adapter?(:Mysql2Adapter) && connection.mariadb? && connection.version >= "10.2.8"
+
         add_column "test_models", :hat_size, :integer
         add_column "test_models", :hat_style, :string, limit: 100
         add_index "test_models", ["hat_style", "hat_size"], unique: true

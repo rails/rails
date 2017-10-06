@@ -1,6 +1,8 @@
-require "active_support/concern"
-require "active_support/core_ext/class/attribute"
-require "active_support/core_ext/string/inflections"
+# frozen_string_literal: true
+
+require_relative "concern"
+require_relative "core_ext/class/attribute"
+require_relative "core_ext/string/inflections"
 
 module ActiveSupport
   # Rescuable module adds support for easier exception handling.
@@ -8,8 +10,7 @@ module ActiveSupport
     extend Concern
 
     included do
-      class_attribute :rescue_handlers
-      self.rescue_handlers = []
+      class_attribute :rescue_handlers, default: []
     end
 
     module ClassMethods

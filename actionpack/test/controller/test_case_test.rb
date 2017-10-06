@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/json/decoding"
@@ -122,7 +124,7 @@ XML
     end
 
     def test_send_file
-      send_file(File.expand_path(__FILE__))
+      send_file(__FILE__)
     end
 
     def redirect_to_same_controller
@@ -390,9 +392,9 @@ XML
 
   def test_assert_generates
     assert_generates "controller/action/5", controller: "controller", action: "action", id: "5"
-    assert_generates "controller/action/7", { id: "7" }, controller: "controller", action: "action"
-    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, name: "bob"
-    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, name: "bob"
+    assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action" }
+    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, { name: "bob" }
+    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, { name: "bob" }
     assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action", name: "bob" }, {}
   end
 
@@ -403,7 +405,7 @@ XML
   def test_assert_routing_with_method
     with_routing do |set|
       set.draw { resources(:content) }
-      assert_routing({ method: "post", path: "content" }, controller: "content", action: "create")
+      assert_routing({ method: "post", path: "content" }, { controller: "content", action: "create" })
     end
   end
 
@@ -780,7 +782,7 @@ XML
     end
   end
 
-  FILES_DIR = File.dirname(__FILE__) + "/../fixtures/multipart"
+  FILES_DIR = File.expand_path("../fixtures/multipart", __dir__)
 
   READ_BINARY = "rb:binary"
   READ_PLAIN = "r:binary"
@@ -855,7 +857,7 @@ XML
   end
 
   def test_fixture_file_upload_ignores_fixture_path_given_full_path
-    TestCaseTest.stub :fixture_path, File.dirname(__FILE__) do
+    TestCaseTest.stub :fixture_path, __dir__ do
       uploaded_file = fixture_file_upload("#{FILES_DIR}/ruby_on_rails.jpg", "image/jpg")
       assert_equal File.open("#{FILES_DIR}/ruby_on_rails.jpg", READ_PLAIN).read, uploaded_file.read
     end

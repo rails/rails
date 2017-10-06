@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActionCable
@@ -10,7 +12,7 @@ module ActionCable
       include ActionCable::Server::Broadcasting
       include ActionCable::Server::Connections
 
-      cattr_accessor(:config, instance_accessor: true) { ActionCable::Server::Configuration.new }
+      cattr_accessor :config, instance_accessor: true, default: ActionCable::Server::Configuration.new
 
       def self.logger; config.logger; end
       delegate :logger, to: :config
@@ -28,7 +30,7 @@ module ActionCable
         config.connection_class.call.new(self, env).process
       end
 
-      # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
+      # Disconnect all the connections identified by +identifiers+ on this server or any others via RemoteConnections.
       def disconnect(identifiers)
         remote_connections.where(identifiers).disconnect
       end

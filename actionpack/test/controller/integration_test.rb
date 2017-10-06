@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
@@ -332,6 +334,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       get "/moved"
       assert_response :redirect
       assert_redirected_to "/method"
+    end
+  end
+
+  def test_redirect_reset_html_document
+    with_test_route_set do
+      get "/redirect"
+      previous_html_document = html_document
+
+      follow_redirect!
+
+      assert_response :ok
+      refute_same previous_html_document, html_document
     end
   end
 
@@ -1091,7 +1105,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   end
 
   def self.fixture_path
-    File.dirname(__FILE__) + "/../fixtures/multipart"
+    File.expand_path("../fixtures/multipart", __dir__)
   end
 
   routes.draw do

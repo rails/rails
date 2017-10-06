@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 require "pathname"
@@ -180,6 +182,9 @@ if current_adapter?(:SQLite3Adapter)
           "adapter"  => "sqlite3",
           "database" => @database
         }
+
+        `sqlite3 #{@database} 'CREATE TABLE bar(id INTEGER)'`
+        `sqlite3 #{@database} 'CREATE TABLE foo(id INTEGER)'`
       end
 
       def test_structure_dump
@@ -189,10 +194,52 @@ if current_adapter?(:SQLite3Adapter)
         ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
         assert File.exist?(dbfile)
         assert File.exist?(filename)
+        assert_match(/CREATE TABLE foo/, File.read(filename))
+        assert_match(/CREATE TABLE bar/, File.read(filename))
       ensure
         FileUtils.rm_f(filename)
         FileUtils.rm_f(dbfile)
       end
+
+      def test_structure_dump_with_ignore_tables
+        dbfile   = @database
+        filename = "awesome-file.sql"
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo"])
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        assert File.exist?(dbfile)
+        assert File.exist?(filename)
+        assert_match(/bar/, File.read(filename))
+        assert_no_match(/foo/, File.read(filename))
+      ensure
+        FileUtils.rm_f(filename)
+        FileUtils.rm_f(dbfile)
+      end
+
+      def test_structure_dump_execution_fails
+        dbfile   = @database
+        filename = "awesome-file.sql"
+        Kernel.expects(:system).with("sqlite3", "--noop", "db_create.sqlite3", ".schema", out: "awesome-file.sql").returns(nil)
+
+        e = assert_raise(RuntimeError) do
+          with_structure_dump_flags(["--noop"]) do
+            quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
+          end
+        end
+        assert_match("failed to execute:", e.message)
+      ensure
+        FileUtils.rm_f(filename)
+        FileUtils.rm_f(dbfile)
+      end
+
+      private
+        def with_structure_dump_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
     end
 
     class SqliteStructureLoadTest < ActiveRecord::TestCase

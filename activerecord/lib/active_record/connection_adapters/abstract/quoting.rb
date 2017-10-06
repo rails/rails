@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/multibyte/chars"
 
@@ -5,7 +7,7 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Quoting
       # Quotes the column value to help prevent
-      # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
+      # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 
@@ -20,6 +22,10 @@ module ActiveRecord
           ActiveSupport::Deprecation.warn \
             "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
           return value.quoted_id
+        end
+
+        if value.respond_to?(:value_for_database)
+          value = value.value_for_database
         end
 
         _quote(value)
@@ -106,19 +112,19 @@ module ActiveRecord
       end
 
       def quoted_true
-        "'t'".freeze
+        "TRUE".freeze
       end
 
       def unquoted_true
-        "t".freeze
+        true
       end
 
       def quoted_false
-        "'f'".freeze
+        "FALSE".freeze
       end
 
       def unquoted_false
-        "f".freeze
+        false
       end
 
       # Quote date/time values for use in SQL input. Includes microseconds

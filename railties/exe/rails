@@ -1,9 +1,10 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-git_path = File.expand_path("../../../.git", __FILE__)
+git_path = File.expand_path("../../.git", __dir__)
 
 if File.exist?(git_path)
-  railties_path = File.expand_path("../../lib", __FILE__)
+  railties_path = File.expand_path("../lib", __dir__)
   $:.unshift(railties_path)
 end
 require "rails/cli"

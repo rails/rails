@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 Scroll = Struct.new(:id, :to_param, :title, :body, :updated_at, :created_at) do
@@ -194,7 +196,7 @@ class ScrollsController < ActionController::Base
   FEEDS["provide_builder"] = <<-'EOT'
           # we pass in the new_xml to the helper so it doesn't
           # call anything on the original builder
-          new_xml = Builder::XmlMarkup.new(:target=>'')
+          new_xml = Builder::XmlMarkup.new(:target=>''.dup)
           atom_feed(:xml => new_xml) do |feed|
             feed.title("My great blog!")
             feed.updated(@scrolls.first.created_at)

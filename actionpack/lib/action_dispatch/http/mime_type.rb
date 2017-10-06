@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # -*- frozen-string-literal: true -*-
 
 require "singleton"
@@ -337,4 +339,4 @@ module Mime
   end
 end
 
-require "action_dispatch/http/mime_types"
+require_relative "mime_types"

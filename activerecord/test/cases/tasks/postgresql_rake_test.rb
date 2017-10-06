@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
@@ -227,7 +229,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def teardown
@@ -259,6 +260,14 @@ if current_adapter?(:PostgreSQLAdapter)
         end
       end
 
+      def test_structure_dump_with_ignore_tables
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+
       def test_structure_dump_with_schema_search_path
         @configuration["schema_search_path"] = "foo,bar"
 
@@ -283,6 +292,16 @@ if current_adapter?(:PostgreSQLAdapter)
         with_dump_schemas("foo,bar") do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
         end
+      end
+
+      def test_structure_dump_execution_fails
+        filename = "awesome-file.sql"
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", filename, "my-app-db").returns(nil)
+
+        e = assert_raise(RuntimeError) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+        assert_match("failed to execute:", e.message)
       end
 
       private
@@ -313,7 +332,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def test_structure_load

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     # = Action View Rendering
     #
     # Implements methods that allow rendering from a view context.

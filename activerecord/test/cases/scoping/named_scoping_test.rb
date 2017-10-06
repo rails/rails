@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/topic"
@@ -115,7 +117,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_equal Post.containing_the_letter_a, authors(:david).posts
     assert !Post.containing_the_letter_a.empty?
 
-    assert_equal authors(:david).posts & Post.containing_the_letter_a, authors(:david).posts.containing_the_letter_a
+    expected = authors(:david).posts & Post.containing_the_letter_a
+    assert_equal expected.sort_by(&:id), authors(:david).posts.containing_the_letter_a.sort_by(&:id)
   end
 
   def test_scope_with_STI
@@ -127,7 +130,8 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_not_equal Comment.containing_the_letter_e, authors(:david).comments
     assert !Comment.containing_the_letter_e.empty?
 
-    assert_equal authors(:david).comments & Comment.containing_the_letter_e, authors(:david).comments.containing_the_letter_e
+    expected = authors(:david).comments & Comment.containing_the_letter_e
+    assert_equal expected.sort_by(&:id), authors(:david).comments.containing_the_letter_e.sort_by(&:id)
   end
 
   def test_scopes_honor_current_scopes_from_when_defined
@@ -549,6 +553,12 @@ class NamedScopingTest < ActiveRecord::TestCase
 
   def test_subclass_merges_scopes_properly
     assert_equal 1, SpecialComment.where(body: "go crazy").created.count
+  end
+
+  def test_model_class_should_respond_to_extending
+    assert_raises OopsError do
+      Comment.unscoped.oops_comments.destroy_all
+    end
   end
 
   def test_model_class_should_respond_to_none

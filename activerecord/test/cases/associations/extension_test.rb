@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -76,6 +78,12 @@ class AssociationsExtensionsTest < ActiveRecord::TestCase
     post = posts(:welcome)
     assert_equal post.association(:comments), post.comments.the_association
     assert_equal post.association(:comments), post.comments.where("1=1").the_association
+  end
+
+  def test_association_with_default_scope
+    assert_raises OopsError do
+      posts(:welcome).comments.destroy_all
+    end
   end
 
   private

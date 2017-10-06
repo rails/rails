@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
-require "rails/engine/configuration"
-require "rails/source_annotation_extractor"
+require_relative "../engine/configuration"
+require_relative "../source_annotation_extractor"
 
 module Rails
   class Application
@@ -77,8 +79,32 @@ module Rails
             assets.unknown_asset_fallback = false
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = true
+          end
+
         when "5.2"
           load_defaults "5.1"
+
+          if respond_to?(:active_record)
+            active_record.cache_versioning = true
+            # Remove the temporary load hook from SQLite3Adapter when this is removed
+            ActiveSupport.on_load(:active_record_sqlite3adapter) do
+              ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+            end
+          end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_authenticated_cookie_encryption = true
+          end
+
+          if respond_to?(:active_support)
+            active_support.use_authenticated_message_encryption = true
+          end
+
+          if respond_to?(:action_controller)
+            action_controller.default_protect_from_forgery = true
+          end
 
         else
           raise "Unknown version #{target_version.to_s.inspect}"
@@ -125,7 +151,7 @@ module Rails
       end
 
       # Loads and returns the entire raw configuration of database from
-      # values stored in `config/database.yml`.
+      # values stored in <tt>config/database.yml</tt>.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path

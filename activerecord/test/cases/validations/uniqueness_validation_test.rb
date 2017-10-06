@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -152,6 +154,13 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2 = Topic.create("title" => "I'm unique too!")
     r3 = t2.replies.create "title" => "r3", "content" => "hello world"
     assert r3.valid?, "Saving r3"
+  end
+
+  def test_validate_uniqueness_with_scope_invalid_syntax
+    error = assert_raises(ArgumentError) do
+      Reply.validates_uniqueness_of(:content, scope: { parent_id: false })
+    end
+    assert_match(/Pass a symbol or an array of symbols instead/, error.to_s)
   end
 
   def test_validate_uniqueness_with_object_scope

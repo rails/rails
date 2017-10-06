@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Copyright (c) 2004-2017 David Heinemeier Hansson
 #
@@ -21,4 +23,4 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require "action_pack/version"
+require_relative "action_pack/version"

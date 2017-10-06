@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module Admin; class User; end; end
@@ -170,6 +172,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_no_double_wrap_if_key_exists_and_value_is_nil
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      post :parse, params: { "user" => nil }
+      assert_parameters("user" => nil)
+    end
+  end
+
   def test_nested_params
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
@@ -215,6 +225,14 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_parameters(
         "user" => { "username" => "nixon" }
       )
+    end
+  end
+
+  def test_preserves_query_string_params_in_filtered_params
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      get :parse, params: { "user" => { "username" => "nixon" } }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "user" => { "username" => "nixon" } }, @request.filtered_parameters)
     end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new
@@ -5,7 +7,6 @@ module ActiveRecord
     def initialize(attributes)
       @attributes = attributes
       @forced_changes = Set.new
-      @deprecated_forced_changes = Set.new
     end
 
     def changed_values
@@ -26,13 +27,14 @@ module ActiveRecord
     end
 
     def change_to_attribute(attr_name)
+      attr_name = attr_name.to_s
       if changed?(attr_name)
         [attributes[attr_name].original_value, attributes.fetch_value(attr_name)]
       end
     end
 
     def any_changes?
-      attr_names.any? { |attr| changed?(attr) } || deprecated_forced_changes.any?
+      attr_names.any? { |attr| changed?(attr) }
     end
 
     def changed?(attr_name, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN)
@@ -44,7 +46,7 @@ module ActiveRecord
     end
 
     def changed_in_place?(attr_name)
-      attributes[attr_name].changed_in_place?
+      attributes[attr_name.to_s].changed_in_place?
     end
 
     def forget_change(attr_name)
@@ -54,22 +56,18 @@ module ActiveRecord
     end
 
     def original_value(attr_name)
-      attributes[attr_name].original_value
+      attributes[attr_name.to_s].original_value
     end
 
     def force_change(attr_name)
       forced_changes << attr_name.to_s
     end
 
-    def deprecated_force_change(attr_name)
-      deprecated_forced_changes << attr_name.to_s
-    end
-
     # TODO Change this to private once we've dropped Ruby 2.2 support.
     # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-      attr_reader :attributes, :forced_changes, :deprecated_forced_changes
+      attr_reader :attributes, :forced_changes
 
     private
 

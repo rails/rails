@@ -1,6 +1,8 @@
-require "active_support/core_ext/marshal"
-require "active_support/core_ext/file/atomic"
-require "active_support/core_ext/string/conversions"
+# frozen_string_literal: true
+
+require_relative "../core_ext/marshal"
+require_relative "../core_ext/file/atomic"
+require_relative "../core_ext/string/conversions"
 require "uri/common"
 
 module ActiveSupport
@@ -27,7 +29,7 @@ module ActiveSupport
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear
+      def clear(options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT

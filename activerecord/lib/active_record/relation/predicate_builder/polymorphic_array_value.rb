@@ -1,8 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder
     class PolymorphicArrayValue # :nodoc:
-      attr_reader :associated_table, :values
-
       def initialize(associated_table, values)
         @associated_table = associated_table
         @values = values
@@ -12,10 +12,15 @@ module ActiveRecord
         type_to_ids_mapping.map do |type, ids|
           {
             associated_table.association_foreign_type.to_s => type,
-            associated_table.association_foreign_key.to_s => ids.size > 1 ? ids : ids.first
+            associated_table.association_foreign_key.to_s => ids
           }
         end
       end
+
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
+      protected
+        attr_reader :associated_table, :values
 
       private
         def type_to_ids_mapping

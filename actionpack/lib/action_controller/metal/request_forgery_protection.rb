@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
-require "action_controller/metal/exceptions"
+require_relative "exceptions"
 require "active_support/security_utils"
 
 module ActionController #:nodoc:
@@ -20,7 +22,7 @@ module ActionController #:nodoc:
   # Since HTML and JavaScript requests are typically made from the browser, we
   # need to ensure to verify request authenticity for the web browser. We can
   # use session-oriented authentication for these types of requests, by using
-  # the `protect_from_forgery` method in our controllers.
+  # the <tt>protect_from_forgery</tt> method in our controllers.
   #
   # GET requests are not protected since they don't have side effects like writing
   # to the database and don't leak sensitive information. JavaScript requests are
@@ -85,6 +87,10 @@ module ActionController #:nodoc:
       config_accessor :per_form_csrf_tokens
       self.per_form_csrf_tokens = false
 
+      # Controls whether forgery protection is enabled by default.
+      config_accessor :default_protect_from_forgery
+      self.default_protect_from_forgery = false
+
       helper_method :form_authenticity_token
       helper_method :protect_against_forgery?
     end
@@ -126,6 +132,15 @@ module ActionController #:nodoc:
         self.request_forgery_protection_token ||= :authenticity_token
         before_action :verify_authenticity_token, options
         append_after_action :verify_same_origin_request
+      end
+
+      # Turn off request forgery protection. This is a wrapper for:
+      #
+      #   skip_before_action :verify_authenticity_token
+      #
+      # See +skip_before_action+ for allowed options.
+      def skip_forgery_protection(options = {})
+        skip_before_action :verify_authenticity_token, options
       end
 
       private

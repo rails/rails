@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "stringio"
 require "rack/test"
@@ -136,7 +138,7 @@ module RailtiesTest
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.bukkits\.rb from bukkits/, output.first)
-        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.last)
+        assert_match(/Copied migration \d+_create_blogs\.blog_engine\.rb from blog_engine/, output.second)
       end
     end
 
@@ -171,7 +173,7 @@ module RailtiesTest
       Dir.chdir(app_path) do
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
-        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
+        assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.second)
         assert_match(/Copied migration \d+_create_keys\.api_engine\.rb from api_engine/, output.last)
       end
     end
@@ -503,7 +505,7 @@ YAML
 
       def call(env)
         response = @app.call(env)
-        response[2].each(&:upcase!)
+        response[2] = response[2].collect(&:upcase)
         response
       end
     end
@@ -882,7 +884,17 @@ YAML
         end
       RUBY
 
-      add_to_config "isolate_namespace AppTemplate"
+      engine "loaded_first" do |plugin|
+        plugin.write "lib/loaded_first.rb", <<-RUBY
+          module AppTemplate
+            module LoadedFirst
+              class Engine < ::Rails::Engine
+                isolate_namespace(AppTemplate)
+              end
+            end
+          end
+        RUBY
+      end
 
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do end
@@ -890,7 +902,7 @@ YAML
 
       boot_rails
 
-      assert_equal AppTemplate::Engine, AppTemplate.railtie_namespace
+      assert_equal AppTemplate::LoadedFirst::Engine, AppTemplate.railtie_namespace
     end
 
     test "properly reload routes" do
@@ -1285,10 +1297,10 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
@@ -1334,11 +1346,126 @@ YAML
 
       boot_rails
 
-      get("/bukkits/bukkit", {}, "SCRIPT_NAME" => "/foo")
+      get("/bukkits/bukkit", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bar", last_response.body
 
-      get("/bar", {}, "SCRIPT_NAME" => "/foo")
+      get("/bar", {}, { "SCRIPT_NAME" => "/foo" })
       assert_equal "/foo/bukkits/bukkit", last_response.body
+    end
+
+    test "isolated engine can be mounted under multiple static locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          scope "/fruits" do
+            mount Bukkits::Engine => "/bukkits", as: :fruit_bukkits
+          end
+
+          scope "/vegetables" do
+            mount Bukkits::Engine => "/bukkits", as: :vegetable_bukkits
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/bukkits/posts", last_response.body
+    end
+
+    test "isolated engine can be mounted under multiple dynamic locations" do
+      app_file "app/controllers/foos_controller.rb", <<-RUBY
+        class FoosController < ApplicationController
+          def through_fruits
+            render plain: fruit_bukkits.posts_path(fruit_id: 1)
+          end
+
+          def through_vegetables
+            render plain: vegetable_bukkits.posts_path(vegetable_id: 1)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :fruits do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          resources :vegetables do
+            mount Bukkits::Engine => "/bukkits"
+          end
+
+          get "/through_fruits" => "foos#through_fruits"
+          get "/through_vegetables" => "foos#through_vegetables"
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/through_fruits")
+      assert_equal "/fruits/1/bukkits/posts", last_response.body
+
+      get("/through_vegetables")
+      assert_equal "/vegetables/1/bukkits/posts", last_response.body
+    end
+
+    test "route helpers resolve script name correctly when called with different script name from current one" do
+      @plugin.write "app/controllers/posts_controller.rb", <<-RUBY
+        class PostsController < ActionController::Base
+          def index
+            render plain: fruit_bukkits.posts_path(fruit_id: 2)
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :fruits do
+            mount Bukkits::Engine => "/bukkits"
+          end
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          resources :posts, only: :index
+        end
+      RUBY
+
+      boot_rails
+
+      get("/fruits/1/bukkits/posts")
+      assert_equal "/fruits/2/bukkits/posts", last_response.body
     end
 
   private

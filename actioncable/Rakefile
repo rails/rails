@@ -1,9 +1,9 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 require "pathname"
 require "open3"
 require "action_cable"
-
-dir = File.dirname(__FILE__)
 
 task default: :test
 
@@ -11,7 +11,7 @@ task package: %w( assets:compile assets:verify )
 
 Rake::TestTask.new do |t|
   t.libs << "test"
-  t.test_files = Dir.glob("#{dir}/test/**/*_test.rb")
+  t.test_files = Dir.glob("#{__dir__}/test/**/*_test.rb")
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -46,7 +46,7 @@ namespace :assets do
   desc "Verify compiled Action Cable assets"
   task :verify do
     file = "lib/assets/compiled/action_cable.js"
-    pathname = Pathname.new("#{dir}/#{file}")
+    pathname = Pathname.new("#{__dir__}/#{file}")
 
     print "[verify] #{file} exists "
     if pathname.exist?
@@ -64,8 +64,8 @@ namespace :assets do
       fail
     end
 
-    print "[verify] #{dir} can be required as a module "
-    stdout, stderr, status = Open3.capture3("node", "--print", "window = {}; require('#{dir}');")
+    print "[verify] #{__dir__} can be required as a module "
+    _, stderr, status = Open3.capture3("node", "--print", "window = {}; require('#{__dir__}');")
     if status.success?
       puts "[OK]"
     else

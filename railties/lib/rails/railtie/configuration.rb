@@ -1,4 +1,6 @@
-require "rails/configuration"
+# frozen_string_literal: true
+
+require_relative "../configuration"
 
 module Rails
   class Railtie

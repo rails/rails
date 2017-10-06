@@ -1,11 +1,15 @@
-require "active_record/type"
-require "active_record/connection_adapters/determine_if_preparable_visitor"
-require "active_record/connection_adapters/schema_cache"
-require "active_record/connection_adapters/sql_type_metadata"
-require "active_record/connection_adapters/abstract/schema_dumper"
-require "active_record/connection_adapters/abstract/schema_creation"
+# frozen_string_literal: true
+
+require_relative "../type"
+require_relative "determine_if_preparable_visitor"
+require_relative "schema_cache"
+require_relative "sql_type_metadata"
+require_relative "abstract/schema_dumper"
+require_relative "abstract/schema_creation"
 require "arel/collectors/bind"
+require "arel/collectors/composite"
 require "arel/collectors/sql_string"
+require "arel/collectors/substitute_binds"
 
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
@@ -68,7 +72,6 @@ module ActiveRecord
       include Quoting, DatabaseStatements, SchemaStatements
       include DatabaseLimits
       include QueryCache
-      include ColumnDumper
       include Savepoints
 
       SIMPLE_INT = /\A\d+\z/
@@ -127,19 +130,6 @@ module ActiveRecord
         end
       end
 
-      class BindCollector < Arel::Collectors::Bind
-        def compile(bvs, conn)
-          casted_binds = bvs.map(&:value_for_database)
-          super(casted_binds.map { |value| conn.quote(value) })
-        end
-      end
-
-      class SQLString < Arel::Collectors::SQLString
-        def compile(bvs, conn)
-          super(bvs)
-        end
-      end
-
       def valid_type?(type) # :nodoc:
         !native_database_types[type].nil?
       end
@@ -147,7 +137,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, "
+          msg = "Cannot lease connection, ".dup
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else
@@ -451,32 +441,12 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def type_map # :nodoc:
-        @type_map ||= Type::TypeMap.new.tap do |mapping|
-          initialize_type_map(mapping)
-        end
-      end
-
       def column_name_for_operation(operation, node) # :nodoc:
-        visitor.accept(node, collector).value
+        column_name_from_arel_node(node)
       end
 
-      def combine_bind_parameters(
-        from_clause: [],
-        join_clause: [],
-        where_clause: [],
-        having_clause: [],
-        limit: nil,
-        offset: nil
-      ) # :nodoc:
-        result = from_clause + join_clause + where_clause + having_clause
-        if limit
-          result << limit
-        end
-        if offset
-          result << offset
-        end
-        result
+      def column_name_from_arel_node(node) # :nodoc:
+        visitor.accept(node, Arel::Collectors::SQLString.new).value
       end
 
       def default_index_type?(index) # :nodoc:
@@ -484,8 +454,13 @@ module ActiveRecord
       end
 
       private
+        def type_map
+          @type_map ||= Type::TypeMap.new.tap do |mapping|
+            initialize_type_map(mapping)
+          end
+        end
 
-        def initialize_type_map(m)
+        def initialize_type_map(m = type_map)
           register_class_with_limit m, %r(boolean)i,       Type::Boolean
           register_class_with_limit m, %r(char)i,          Type::String
           register_class_with_limit m, %r(binary)i,        Type::Binary
@@ -503,6 +478,8 @@ module ActiveRecord
           m.alias_type %r(number)i,    "decimal"
           m.alias_type %r(double)i,    "float"
 
+          m.register_type %r(^json)i, Type::Json.new
+
           m.register_type(%r(decimal)i) do |sql_type|
             scale = extract_scale(sql_type)
             precision = extract_precision(sql_type)
@@ -518,7 +495,7 @@ module ActiveRecord
 
         def reload_type_map
           type_map.clear
-          initialize_type_map(type_map)
+          initialize_type_map
         end
 
         def register_class_with_limit(mapping, key, klass)
@@ -576,12 +553,14 @@ module ActiveRecord
             type_casted_binds: type_casted_binds,
             statement_name:    statement_name,
             connection_id:     object_id) do
+            begin
               @lock.synchronize do
                 yield
               end
+            rescue => e
+              raise translate_exception_class(e, sql)
             end
-        rescue => e
-          raise translate_exception_class(e, sql)
+          end
         end
 
         def translate_exception(exception, message)
@@ -606,9 +585,15 @@ module ActiveRecord
 
         def collector
           if prepared_statements
-            SQLString.new
+            Arel::Collectors::Composite.new(
+              Arel::Collectors::SQLString.new,
+              Arel::Collectors::Bind.new,
+            )
           else
-            BindCollector.new
+            Arel::Collectors::SubstituteBinds.new(
+              self,
+              Arel::Collectors::SQLString.new,
+            )
           end
         end
 

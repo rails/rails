@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * What Action View is and how to use it with Rails.
 * How best to use templates, partials, and layouts.
-* What helpers are provided by Action View and how to make your own.
+* What helpers are provided by Action View.
 * How to use localized views.
 
 --------------------------------------------------------------------------------
@@ -414,12 +414,12 @@ By default, Rails links to these assets on the current host in the public folder
 
 ```ruby
 config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
+image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
 #### auto_discovery_link_tag
 
-Returns a link tag that browsers and feed readers can use to auto-detect an RSS or Atom feed.
+Returns a link tag that browsers and feed readers can use to auto-detect an RSS, Atom, or JSON feed.
 
 ```ruby
 auto_discovery_link_tag(:rss, "http://www.example.com/feed.rss", { title: "RSS Feed" }) # =>
@@ -453,7 +453,7 @@ image_url("edit.png") # => http://www.example.com/assets/edit.png
 Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
 
 ```ruby
-image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
+image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
 
 #### javascript_include_tag
@@ -462,25 +462,6 @@ Returns an HTML script tag for each of the sources provided. You can pass in the
 
 ```ruby
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
-```
-
-If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass `:defaults` as the source. When using `:defaults`, if an `application.js` file exists in your `app/assets/javascripts` directory, it will be included as well.
-
-```ruby
-javascript_include_tag :defaults
-```
-
-You can also include all JavaScript files in the `app/assets/javascripts` directory using `:all` as the source.
-
-```ruby
-javascript_include_tag :all
-```
-
-You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-javascript_include_tag :all, cache: true # =>
-  <script src="/javascripts/all.js"></script>
 ```
 
 #### javascript_path
@@ -505,19 +486,6 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 
 ```ruby
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
-```
-
-You can also include all styles in the stylesheet directory using `:all` as the source:
-
-```ruby
-stylesheet_link_tag :all
-```
-
-You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-stylesheet_link_tag :all, cache: true
-# => <link href="/assets/all.css" media="screen" rel="stylesheet" />
 ```
 
 #### stylesheet_path

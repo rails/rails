@@ -1,5 +1,7 @@
-require "active_support/core_ext/string/multibyte"
-require "active_support/i18n"
+# frozen_string_literal: true
+
+require_relative "../core_ext/string/multibyte"
+require_relative "../i18n"
 
 module ActiveSupport
   module Inflector
@@ -59,9 +61,10 @@ module ActiveSupport
     def transliterate(string, replacement = "?".freeze)
       raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
 
-      I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
-        ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-          replacement: replacement)
+      I18n.transliterate(
+        ActiveSupport::Multibyte::Unicode.normalize(
+          ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
+        replacement: replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of

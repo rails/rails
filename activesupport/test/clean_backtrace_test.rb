@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
@@ -8,8 +10,8 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
 
   test "backtrace should filter all lines in a backtrace, removing prefixes" do
     assert_equal \
-        ["/my/class.rb", "/my/module.rb"],
-        @bc.clean(["/my/prefix/my/class.rb", "/my/prefix/my/module.rb"])
+      ["/my/class.rb", "/my/module.rb"],
+      @bc.clean(["/my/prefix/my/class.rb", "/my/prefix/my/module.rb"])
   end
 
   test "backtrace cleaner should allow removing filters" do

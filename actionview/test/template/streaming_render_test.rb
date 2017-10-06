@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TestController < ActionController::Base
@@ -17,7 +19,7 @@ class FiberedTest < ActiveSupport::TestCase
 
   def buffered_render(options)
     body = render_body(options)
-    string = ""
+    string = "".dup
     body.each do |piece|
       string << piece
     end

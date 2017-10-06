@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ReadonlyAttributes
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_attr_readonly, instance_accessor: false
-      self._attr_readonly = []
+      class_attribute :_attr_readonly, instance_accessor: false, default: []
     end
 
     module ClassMethods

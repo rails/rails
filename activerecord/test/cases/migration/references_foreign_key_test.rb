@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
@@ -136,6 +138,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           assert_difference "@connection.foreign_keys('testings').size", -1 do
             @connection.remove_reference :testings, :testing_parent, foreign_key: true
+          end
+        end
+
+        test "removing column removes foreign key" do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, index: true, foreign_key: true
+          end
+
+          assert_difference "@connection.foreign_keys('testings').size", -1 do
+            @connection.remove_column :testings, :testing_parent_id
           end
         end
 

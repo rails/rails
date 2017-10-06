@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/tagging"
@@ -38,6 +40,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_nil member.favourite_club
   end
 
+  def test_should_work_inverse_of_with_eager_load
+    author = authors(:david)
+    assert_same author, author.posts.first.author
+    assert_same author, author.posts.eager_load(:comments).first.author
+  end
+
   def test_loading_with_one_association
     posts = Post.all.merge!(includes: :comments).to_a
     post = posts.find { |p| p.id == 1 }
@@ -66,6 +74,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ).to_a
     assert_nil posts.detect { |p| p.author_id != authors(:david).id },
       "expected to find only david's posts"
+  end
+
+  def test_loading_with_scope_including_joins
+    assert_equal clubs(:boring_club), Member.preload(:general_club).find(1).general_club
+    assert_equal clubs(:boring_club), Member.eager_load(:general_club).find(1).general_club
   end
 
   def test_with_ordering
@@ -271,9 +284,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert_nothing_raised do
-      Author.all.merge!(includes: :hello_posts_with_hash_conditions).to_a
-    end
     assert !Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
   end
 
@@ -518,6 +528,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_has_many_through_an_sti_join_model
     author = Author.all.merge!(includes: :special_post_comments, order: "authors.id").first
     assert_equal [comments(:does_it_hurt)], assert_no_queries { author.special_post_comments }
+  end
+
+  def test_preloading_has_many_through_with_implicit_source
+    authors = Author.includes(:very_special_comments).to_a
+    assert_no_queries do
+      special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
+      assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
+    end
   end
 
   def test_eager_with_has_many_through_an_sti_join_model_with_conditions_on_both
@@ -851,10 +869,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
-  def find_all_ordered(className, include = nil)
-    className.all.merge!(order: "#{className.table_name}.#{className.primary_key}", includes: include).to_a
-  end
-
   def test_limited_eager_with_order
     assert_equal(
       posts(:thinking, :sti_comments),
@@ -1094,12 +1108,6 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal authors(:david), assert_no_queries { posts[0].author }
 
     posts = assert_queries(2) do
-      Post.all.merge!(select: "distinct posts.*", includes: :author, joins: [:comments], where: "comments.body like 'Thank you%'", order: "posts.id").to_a
-    end
-    assert_equal [posts(:welcome)], posts
-    assert_equal authors(:david), assert_no_queries { posts[0].author }
-
-    posts = assert_queries(2) do
       Post.all.merge!(includes: :author, joins: { taggings: :tag }, where: "tags.name = 'General'", order: "posts.id").to_a
     end
     assert_equal posts(:welcome, :thinking), posts
@@ -1293,6 +1301,11 @@ class EagerAssociationTest < ActiveRecord::TestCase
     project.developers << developer
     projects = Project.references(:mentors).includes(mentor: { developers: :contracts }, developers: :contracts)
     assert_equal projects.last.mentor.developers.first.contracts, projects.last.developers.last.contracts
+  end
+
+  def test_preloading_has_many_through_with_custom_scope
+    project = Project.includes(:developers_named_david_with_hash_conditions).find(projects(:active_record).id)
+    assert_equal [developers(:david)], project.developers_named_david_with_hash_conditions
   end
 
   test "scoping with a circular preload" do
@@ -1493,4 +1506,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
     ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
     Author.preload(:readonly_comments).first!
   end
+
+  private
+    def find_all_ordered(klass, include = nil)
+      klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
+    end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 # Tests the controller dispatching happy path
@@ -45,7 +47,6 @@ module Dispatching
   end
 
   class BaseTest < Rack::TestCase
-    # :api: plugin
     test "simple dispatching" do
       get "/dispatching/simple/index"
 
@@ -54,14 +55,12 @@ module Dispatching
       assert_content_type "text/plain; charset=utf-8"
     end
 
-    # :api: plugin
     test "directly modifying response body" do
       get "/dispatching/simple/modify_response_body"
 
       assert_body "success"
     end
 
-    # :api: plugin
     test "directly modifying response body twice" do
       get "/dispatching/simple/modify_response_body_twice"
 

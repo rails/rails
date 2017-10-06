@@ -1,4 +1,4 @@
-# frozen-string-literal: true
+# frozen_string_literal: true
 
 require "active_support/core_ext/string/output_safety"
 require "set"

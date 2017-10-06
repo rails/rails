@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Implements the logic behind the rake tasks for annotations like
 #
 #   rails notes
@@ -19,7 +21,7 @@ class SourceAnnotationExtractor
     end
 
     # Registers additional directories to be included
-    #  SourceAnnotationExtractor::Annotation.register_directories("spec","another")
+    #   SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
     def self.register_directories(*dirs)
       directories.push(*dirs)
     end
@@ -45,7 +47,7 @@ class SourceAnnotationExtractor
     # If +options+ has a flag <tt>:tag</tt> the tag is shown as in the example above.
     # Otherwise the string contains just line and text.
     def to_s(options = {})
-      s = "[#{line.to_s.rjust(options[:indent])}] "
+      s = "[#{line.to_s.rjust(options[:indent])}] ".dup
       s << "[#{tag}] " if options[:tag]
       s << text
     end

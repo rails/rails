@@ -1,11 +1,15 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "stringio"
 require "active_support/key_generator"
+require "active_support/messages/rotation_configuration"
 
 class CookieStoreTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   SessionSecret = "b3c631c314c0bbca50c1b2843150fe33"
   Generator = ActiveSupport::LegacyKeyGenerator.new(SessionSecret)
+  Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
   Verifier = ActiveSupport::MessageVerifier.new(SessionSecret, digest: "SHA1")
   SignedBar = Verifier.generate(foo: "bar", session_id: SecureRandom.hex(16))
@@ -22,6 +26,11 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     def set_session_value
       session[:foo] = "bar"
       render plain: Rack::Utils.escape(Verifier.generate(session.to_hash))
+    end
+
+    def set_session_value_expires_in_five_hours
+      session[:foo] = "bar"
+      render plain: Rack::Utils.escape(Verifier.generate(session.to_hash, expires_in: 5.hours))
     end
 
     def get_session_value
@@ -281,7 +290,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
         cookies[SessionKey] = SignedBar
 
-        get "/set_session_value"
+        get "/set_session_value_expires_in_five_hours"
         assert_response :success
 
         cookie_body = response.body
@@ -297,7 +306,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         get "/no_session_access"
         assert_response :success
 
-        assert_equal "_myapp_session=#{cookie_body}; path=/; expires=#{expected_expiry}; HttpOnly",
+        assert_equal "_myapp_session=#{cookies[SessionKey]}; path=/; expires=#{expected_expiry}; HttpOnly",
           headers["Set-Cookie"]
       end
     end
@@ -339,6 +348,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       args[0] ||= {}
       args[0][:headers] ||= {}
       args[0][:headers]["action_dispatch.key_generator"] ||= Generator
+      args[0][:headers]["action_dispatch.cookies_rotations"] ||= Rotations
+
       super(path, *args)
     end
 

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
-ActionController::Base.helpers_path = File.expand_path("../../fixtures/helpers", __FILE__)
+ActionController::Base.helpers_path = File.expand_path("../fixtures/helpers", __dir__)
 
 module Fun
   class GamesController < ActionController::Base
@@ -48,7 +50,7 @@ end
 
 class HelpersPathsController < ActionController::Base
   paths = ["helpers2_pack", "helpers1_pack"].map do |path|
-    File.join(File.expand_path("../../fixtures", __FILE__), path)
+    File.join(File.expand_path("../fixtures", __dir__), path)
   end
   $:.unshift(*paths)
 
@@ -61,7 +63,7 @@ class HelpersPathsController < ActionController::Base
 end
 
 class HelpersTypoController < ActionController::Base
-  path = File.expand_path("../../fixtures/helpers_typo", __FILE__)
+  path = File.expand_path("../fixtures/helpers_typo", __dir__)
   $:.unshift(path)
   self.helpers_path = path
 end
@@ -106,7 +108,7 @@ class HelperTest < ActiveSupport::TestCase
 
   def setup
     # Increment symbol counter.
-    @symbol = (@@counter ||= "A0").succ!.dup
+    @symbol = (@@counter ||= "A0").succ.dup
 
     # Generate new controller class.
     controller_class_name = "Helper#{@symbol}Controller"
@@ -178,7 +180,7 @@ class HelperTest < ActiveSupport::TestCase
   end
 
   def test_all_helpers_with_alternate_helper_dir
-    @controller_class.helpers_path = File.expand_path("../../fixtures/alternate_helpers", __FILE__)
+    @controller_class.helpers_path = File.expand_path("../fixtures/alternate_helpers", __dir__)
 
     # Reload helpers
     @controller_class._helpers = Module.new

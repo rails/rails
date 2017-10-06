@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/hash"
 require "bigdecimal"
@@ -397,6 +399,36 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
+  def test_indifferent_transform_keys
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys { |k| k * 2 }
+
+    assert_equal({ "aa" => 1, "bb" => 2 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_transform_keys_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.transform_keys! { |k| k * 2 }
+
+    assert_equal({ "aa" => 1, "bb" => 2 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
+  def test_indifferent_transform_values
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_values { |v| v * 2 }
+
+    assert_equal({ "a" => 2, "b" => 4 }, hash)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+  end
+
+  def test_indifferent_transform_values_bang
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.transform_values! { |v| v * 2 }
+
+    assert_equal({ "a" => 2, "b" => 4 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+  end
+
   def test_indifferent_compact
     hash_contain_nil_value = @strings.merge("z" => nil)
     hash = ActiveSupport::HashWithIndifferentAccess.new(hash_contain_nil_value)
@@ -533,6 +565,32 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     skip if RUBY_VERSION < "2.3.0"
     data = { "this" => { "views" => 1234 } }.with_indifferent_access
     assert_equal 1234, data.dig(:this, :views)
+  end
+
+  def test_argless_default_with_existing_nil_key
+    h = Hash.new(:default).merge(nil => "defined").with_indifferent_access
+
+    assert_equal :default, h.default
+  end
+
+  def test_default_with_argument
+    h = Hash.new { 5 }.merge(1 => 2).with_indifferent_access
+
+    assert_equal 5, h.default(1)
+  end
+
+  def test_default_proc
+    h = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+
+    assert_nil h.default
+    assert_equal "foo", h.default("foo")
+    assert_equal "foo", h.default(:foo)
+  end
+
+  def test_double_conversion_with_nil_key
+    h = { nil => "defined" }.with_indifferent_access.with_indifferent_access
+
+    assert_nil h[:undefined_key]
   end
 
   def test_assorted_keys_not_stringified

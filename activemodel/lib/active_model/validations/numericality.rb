@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
@@ -36,7 +38,9 @@ module ActiveModel
           return
         end
 
-        unless raw_value.is_a?(Numeric)
+        if raw_value.is_a?(Numeric)
+          value = raw_value
+        else
           value = parse_raw_value_as_a_number(raw_value)
         end
 

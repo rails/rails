@@ -1,4 +1,6 @@
-require "rails/generators/test_unit"
+# frozen_string_literal: true
+
+require_relative "../../test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:

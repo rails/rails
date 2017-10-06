@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 
 module ActionDispatch
@@ -101,11 +103,13 @@ module ActionDispatch
 
       # Returns keys of the session as Array.
       def keys
+        load_for_read!
         @delegate.keys
       end
 
       # Returns values of the session as Array.
       def values
+        load_for_read!
         @delegate.values
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module CompiledTemplates #:nodoc:
     # holds compiled template code
@@ -17,7 +19,6 @@ module ActionView
     attr_accessor :output_buffer, :view_flow
 
     # Prepares the context by setting the appropriate instance variables.
-    # :api: plugin
     def _prepare_context
       @view_flow     = OutputFlow.new
       @output_buffer = nil
@@ -27,7 +28,6 @@ module ActionView
     # Encapsulates the interaction with the view flow so it
     # returns the correct buffer on +yield+. This is usually
     # overwritten by helpers to add more behavior.
-    # :api: plugin
     def _layout_for(name = nil)
       name ||= :layout
       view_flow.get(name).html_safe

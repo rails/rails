@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -147,8 +149,7 @@ module ActiveRecord
     def last(limit = nil)
       return find_last(limit) if loaded? || limit_value
 
-      result = limit(limit)
-      result.order!(arel_attribute(primary_key)) if order_values.empty? && primary_key
+      result = ordered_relation.limit(limit)
       result = result.reverse_order!
 
       limit ? result.reverse : result.first
@@ -316,7 +317,7 @@ module ActiveRecord
 
       relation = construct_relation_for_exists(relation, conditions)
 
-      connection.select_value(relation, "#{name} Exists", relation.bound_attributes) ? true : false
+      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
     rescue ::RangeError
       false
     end
@@ -329,22 +330,22 @@ module ActiveRecord
     # of results obtained should be provided in the +result_size+ argument and
     # the expected number of results should be provided in the +expected_size+
     # argument.
-    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key) # :nodoc:
-      conditions = arel.where_sql(@klass.arel_engine)
+    def raise_record_not_found_exception!(ids = nil, result_size = nil, expected_size = nil, key = primary_key, not_found_ids = nil) # :nodoc:
+      conditions = arel.where_sql(@klass)
       conditions = " [#{conditions}]" if conditions
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}"
+        error = "Couldn't find #{name}".dup
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': "
-        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})"
-
+        error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
+        error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
+        error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
         raise RecordNotFound.new(error, name, primary_key, ids)
       end
     end
@@ -371,17 +372,7 @@ module ActiveRecord
         relation = select aliases.columns
         relation = apply_join_dependency(relation, join_dependency)
 
-        if block_given?
-          yield relation
-        else
-          if ActiveRecord::NullRelation === relation
-            []
-          else
-            arel = relation.arel
-            rows = connection.select_all(arel, "SQL", relation.bound_attributes)
-            join_dependency.instantiate(rows, aliases)
-          end
-        end
+        yield relation, join_dependency
       end
 
       def construct_relation_for_exists(relation, conditions)
@@ -399,7 +390,7 @@ module ActiveRecord
 
       def construct_join_dependency(joins = [], eager_loading: true)
         including = eager_load_values + includes_values
-        ActiveRecord::Associations::JoinDependency.new(@klass, including, joins, eager_loading: eager_loading)
+        ActiveRecord::Associations::JoinDependency.new(klass, table, including, joins, eager_loading: eager_loading)
       end
 
       def construct_relation_for_association_calculations
@@ -422,12 +413,13 @@ module ActiveRecord
 
       def limited_ids_for(relation)
         values = @klass.connection.columns_for_distinct(
-          "#{quoted_table_name}.#{quoted_primary_key}", relation.order_values)
+          connection.column_name_from_arel_node(arel_attribute(primary_key)),
+          relation.order_values
+        )
 
         relation = relation.except(:select).select(values).distinct!
-        arel = relation.arel
 
-        id_rows = @klass.connection.select_all(arel, "SQL", relation.bound_attributes)
+        id_rows = skip_query_cache_if_necessary { @klass.connection.select_all(relation.arel, "SQL") }
         id_rows.map { |row| row[primary_key] }
       end
 
@@ -535,11 +527,7 @@ module ActiveRecord
         if loaded?
           records[index, limit] || []
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           if limit_value.nil? || index < limit_value
             relation = relation.offset(offset_index + index) unless index.zero?
@@ -554,11 +542,7 @@ module ActiveRecord
         if loaded?
           records[-index]
         else
-          relation = if order_values.empty? && primary_key
-            order(arel_attribute(primary_key).asc)
-          else
-            self
-          end
+          relation = ordered_relation
 
           relation.to_a[-index]
           # TODO: can be made more performant on large result sets by
@@ -571,6 +555,14 @@ module ActiveRecord
 
       def find_last(limit)
         limit ? records.last(limit) : records.last
+      end
+
+      def ordered_relation
+        if order_values.empty? && primary_key
+          order(arel_attribute(primary_key).asc)
+        else
+          self
+        end
       end
   end
 end

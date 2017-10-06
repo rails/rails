@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # Association proxies in Active Record are middlemen between the object that
@@ -31,6 +33,9 @@ module ActiveRecord
       def initialize(klass, association) #:nodoc:
         @association = association
         super klass, klass.arel_table, klass.predicate_builder
+
+        extensions = association.extensions
+        extend(*extensions) if extensions.any?
       end
 
       def target
@@ -130,8 +135,9 @@ module ActiveRecord
       #   #       #<Pet id: 2, name: "Spook", person_id: 1>,
       #   #       #<Pet id: 3, name: "Choo-Choo", person_id: 1>
       #   #    ]
-      def find(*args, &block)
-        @association.find(*args, &block)
+      def find(*args)
+        return super if block_given?
+        @association.find(*args)
       end
 
       ##
@@ -1084,9 +1090,8 @@ module ActiveRecord
       #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
-        @scope = nil
         proxy_association.reload
-        self
+        reset_scope
       end
 
       # Unloads the association. Returns +self+.
@@ -1106,9 +1111,14 @@ module ActiveRecord
       #   person.pets  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reset
-        @scope = nil
         proxy_association.reset
         proxy_association.reset_scope
+        reset_scope
+      end
+
+      def reset_scope # :nodoc:
+        @offsets = {}
+        @scope = nil
         self
       end
 
@@ -1120,19 +1130,6 @@ module ActiveRecord
       } - self.public_instance_methods(false) - [:select] + [:scoping]
 
       delegate(*delegate_methods, to: :scope)
-
-      module DelegateExtending # :nodoc:
-        private
-          def method_missing(method, *args, &block)
-            extending_values = association_scope.extending_values
-            if extending_values.any? && (extending_values - self.class.included_modules).any?
-              self.class.include(*extending_values)
-              public_send(method, *args, &block)
-            else
-              super
-            end
-          end
-      end
 
       private
 
@@ -1154,16 +1151,8 @@ module ActiveRecord
           @association.find_from_target?
         end
 
-        def association_scope
-          @association.association_scope
-        end
-
         def exec_queries
           load_target
-        end
-
-        def respond_to_missing?(method, _)
-          association_scope.respond_to?(method) || super
         end
     end
   end

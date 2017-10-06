@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Lint
     # == Active \Model \Lint \Tests

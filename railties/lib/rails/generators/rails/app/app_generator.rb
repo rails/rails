@@ -1,4 +1,6 @@
-require "rails/generators/app_base"
+# frozen_string_literal: true
+
+require_relative "../../app_base"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -49,6 +51,10 @@ module Rails
       copy_file "README.md", "README.md"
     end
 
+    def ruby_version
+      template "ruby-version", ".ruby-version"
+    end
+
     def gemfile
       template "Gemfile"
     end
@@ -63,7 +69,7 @@ module Rails
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
-        run "git init"
+        run "git init", capture: options[:quiet]
       end
     end
 
@@ -105,10 +111,10 @@ module Rails
         template "routes.rb"
         template "application.rb"
         template "environment.rb"
-        template "secrets.yml"
         template "cable.yml" unless options[:skip_action_cable]
         template "puma.rb"   unless options[:skip_puma]
         template "spring.rb" if spring_install?
+        template "storage.yml"
 
         directory "environments"
         directory "initializers"
@@ -118,10 +124,10 @@ module Rails
 
     def config_when_updating
       cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
-      action_cable_config_exist = File.exist?("config/cable.yml")
-      rack_cors_config_exist = File.exist?("config/initializers/cors.rb")
-      assets_config_exist = File.exist?("config/initializers/assets.rb")
-      new_framework_defaults_5_1_exist = File.exist?("config/initializers/new_framework_defaults_5_1.rb")
+      action_cable_config_exist      = File.exist?("config/cable.yml")
+      active_storage_config_exist    = File.exist?("config/storage.yml")
+      rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
+      assets_config_exist            = File.exist?("config/initializers/assets.rb")
 
       config
 
@@ -129,8 +135,12 @@ module Rails
         gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
       end
 
-      unless action_cable_config_exist
+      if !options[:skip_action_cable] && !action_cable_config_exist
         template "config/cable.yml"
+      end
+
+      if !active_storage_config_exist
+        template "config/storage.yml"
       end
 
       unless rack_cors_config_exist
@@ -145,12 +155,26 @@ module Rails
         unless assets_config_exist
           remove_file "config/initializers/assets.rb"
         end
+      end
+    end
 
-        # Sprockets owns the only new default for 5.1:
-        # In API-only Applications, we don't want the file.
-        unless new_framework_defaults_5_1_exist
-          remove_file "config/initializers/new_framework_defaults_5_1.rb"
-        end
+    def master_key
+      return if options[:pretend]
+
+      require_relative "../master_key/master_key_generator"
+
+      after_bundle do
+        Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet]).add_master_key_file
+      end
+    end
+
+    def credentials
+      return if options[:pretend]
+
+      require_relative "../credentials/credentials_generator"
+
+      after_bundle do
+        Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
       end
     end
 
@@ -174,6 +198,11 @@ module Rails
 
     def public_directory
       directory "public", "public", recursive: false
+    end
+
+    def storage
+      empty_directory_with_keep_file "storage"
+      empty_directory_with_keep_file "tmp/storage"
     end
 
     def test
@@ -208,10 +237,12 @@ module Rails
   module Generators
     # We need to store the RAILS_DEV_PATH in a constant, otherwise the path
     # can change in Ruby 1.8.7 when we FileUtils.cd.
-    RAILS_DEV_PATH = File.expand_path("../../../../../..", File.dirname(__FILE__))
+    RAILS_DEV_PATH = File.expand_path("../../../../../..", __dir__)
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
+      WEBPACKS = %w( react vue angular elm )
+
       add_shared_options_for "application"
 
       # Add bin/rails options
@@ -223,6 +254,9 @@ module Rails
 
       class_option :skip_bundle, type: :boolean, aliases: "-B", default: false,
                                  desc: "Don't run bundle install"
+
+      class_option :webpack, type: :string, default: nil,
+                             desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
 
       def initialize(*args)
         super
@@ -244,6 +278,7 @@ module Rails
       def create_root_files
         build(:readme)
         build(:rakefile)
+        build(:ruby_version)
         build(:configru)
         build(:gitignore)   unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
@@ -272,6 +307,14 @@ module Rails
         build(:config_when_updating)
       end
       remove_task :update_config_files
+
+      def create_master_key
+        build(:master_key)
+      end
+
+      def create_credentials
+        build(:credentials)
+      end
 
       def display_upgrade_guide_info
         say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
@@ -381,7 +424,6 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "config/cable.yml"
           remove_file "app/assets/javascripts/cable.js"
           remove_dir "app/channels"
         end
@@ -401,7 +443,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_5_1.rb"
+          remove_file "config/initializers/new_framework_defaults_5_2.rb"
         end
       end
 
@@ -517,7 +559,7 @@ module Rails
 
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
-            require "rails/version"
+            require_relative "../../../version"
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end

@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
+require "active_support/messages/rotation_configuration"
 
 # common controller actions
 module RequestForgeryProtectionActions
@@ -161,6 +164,13 @@ class PerFormTokensController < ActionController::Base
   def post_two
     render plain: ""
   end
+end
+
+class SkipProtectionController < ActionController::Base
+  include RequestForgeryProtectionActions
+  protect_from_forgery with: :exception
+  skip_forgery_protection if: :skip_requested
+  attr_accessor :skip_requested
 end
 
 # common test methods
@@ -621,13 +631,14 @@ end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
-    def generate_key(secret)
+    def generate_key(secret, length = nil)
       "03312270731a2ed0d11ed091c2338a06"
     end
   end
 
   def setup
     @request.env[ActionDispatch::Cookies::GENERATOR_KEY] = NullSessionDummyKeyGenerator.new
+    @request.env[ActionDispatch::Cookies::COOKIES_ROTATIONS] = ActiveSupport::Messages::RotationConfiguration.new
   end
 
   test "should allow to set signed cookies" do
@@ -963,4 +974,27 @@ class PerFormTokensControllerTest < ActionController::TestCase
       expected = @controller.send(:per_form_csrf_token, session, "/per_form_tokens/post_one", method)
       assert_equal expected, actual
     end
+end
+
+class SkipProtectionControllerTest < ActionController::TestCase
+  def test_should_not_allow_post_without_token_when_not_skipping
+    @controller.skip_requested = false
+    assert_blocked { post :index }
+  end
+
+  def test_should_allow_post_without_token_when_skipping
+    @controller.skip_requested = true
+    assert_not_blocked { post :index }
+  end
+
+  def assert_blocked
+    assert_raises(ActionController::InvalidAuthenticityToken) do
+      yield
+    end
+  end
+
+  def assert_not_blocked
+    assert_nothing_raised { yield }
+    assert_response :success
+  end
 end

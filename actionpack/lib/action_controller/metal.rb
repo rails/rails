@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 require "action_dispatch/http/request"
@@ -208,8 +210,7 @@ module ActionController
       @_request.reset_session
     end
 
-    class_attribute :middleware_stack
-    self.middleware_stack = ActionController::MiddlewareStack.new
+    class_attribute :middleware_stack, default: ActionController::MiddlewareStack.new
 
     def self.inherited(base) # :nodoc:
       base.middleware_stack = middleware_stack.dup

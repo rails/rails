@@ -14,7 +14,7 @@ AcceptHeaders =
 Rails.ajax = (options) ->
   options = prepareOptions(options)
   xhr = createXHR options, ->
-    response = processResponse(xhr.response, xhr.getResponseHeader('Content-Type'))
+    response = processResponse(xhr.response ? xhr.responseText, xhr.getResponseHeader('Content-Type'))
     if xhr.status // 100 == 2
       options.success?(response, xhr.statusText, xhr)
     else

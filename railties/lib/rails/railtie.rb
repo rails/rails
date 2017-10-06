@@ -1,4 +1,6 @@
-require "rails/initializable"
+# frozen_string_literal: true
+
+require_relative "initializable"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/delegation"
@@ -102,6 +104,9 @@ module Rails
   #       require 'path/to/my_railtie_generator'
   #     end
   #   end
+  #
+  # Since filenames on the load path are shared across gems, be sure that files you load
+  # through a railtie have unique names.
   #
   # == Application and Engine
   #

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
-require "active_support/key_generator"
+require "active_support/messages/rotation_configuration"
 
 class FlashTest < ActionController::TestCase
   class TestController < ActionController::Base
@@ -241,6 +243,7 @@ end
 class FlashIntegrationTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
 
   class TestController < ActionController::Base
     add_flash_types :bar
@@ -346,6 +349,7 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
       args[0] ||= {}
       args[0][:env] ||= {}
       args[0][:env]["action_dispatch.key_generator"] ||= Generator
+      args[0][:env]["action_dispatch.cookies_rotations"] = Rotations
       super(path, *args)
     end
 

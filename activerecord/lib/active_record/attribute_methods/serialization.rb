@@ -1,7 +1,19 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeMethods
     module Serialization
       extend ActiveSupport::Concern
+
+      class ColumnNotSerializableError < StandardError
+        def initialize(name, type)
+          super <<-EOS.strip_heredoc
+            Column `#{name}` of type #{type.class} does not support `serialize` feature.
+            Usually it means that you are trying to use `serialize`
+            on a column that already implements serialization natively.
+          EOS
+        end
+      end
 
       module ClassMethods
         # If you have an attribute that needs to be saved to the database as an
@@ -58,9 +70,20 @@ module ActiveRecord
           end
 
           decorate_attribute_type(attr_name, :serialize) do |type|
+            if type_incompatible_with_serialize?(type, class_name_or_coder)
+              raise ColumnNotSerializableError.new(attr_name, type)
+            end
+
             Type::Serialized.new(type, coder)
           end
         end
+
+        private
+
+          def type_incompatible_with_serialize?(type, class_name)
+            type.is_a?(ActiveRecord::Type::Json) && class_name == ::JSON ||
+              type.respond_to?(:type_cast_array, true) && class_name == ::Array
+          end
       end
     end
   end

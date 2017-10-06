@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/controller/controller_generator"
 require "rails/generators/rails/model/model_generator"
 require "rails/generators/mailer/mailer_generator"
 require "rails/generators/rails/scaffold/scaffold_generator"
+require "rails/generators/rails/application_record/application_record_generator"
 
 class NamespacedGeneratorTestCase < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -149,7 +152,7 @@ class NamespacedMailerGeneratorTest < NamespacedGeneratorTestCase
     assert_file "app/mailers/test_app/notifier_mailer.rb" do |mailer|
       assert_match(/module TestApp/, mailer)
       assert_match(/class NotifierMailer < ApplicationMailer/, mailer)
-      assert_no_match(/default from: "from@example.com"/, mailer)
+      assert_no_match(/default from: "from@example\.com"/, mailer)
     end
   end
 
@@ -419,5 +422,15 @@ class NamespacedScaffoldGeneratorTest < NamespacedGeneratorTestCase
     end
     assert_file "test/controllers/test_app/admin/roles_controller_test.rb",
                 /module TestApp\n  class Admin::RolesControllerTest < ActionDispatch::IntegrationTest/
+  end
+end
+
+class NamespacedApplicationRecordGeneratorTest < NamespacedGeneratorTestCase
+  include GeneratorsTestHelper
+  tests Rails::Generators::ApplicationRecordGenerator
+
+  def test_adds_namespace_to_application_record
+    run_generator
+    assert_file "app/models/test_app/application_record.rb", /module TestApp/, /  class ApplicationRecord < ActiveRecord::Base/
   end
 end

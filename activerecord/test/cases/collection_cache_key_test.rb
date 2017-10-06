@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/computer"
 require "models/developer"
@@ -42,6 +44,24 @@ module ActiveRecord
 
     test "cache_key for loaded relation" do
       developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5).load
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+
+      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with table alias" do
+      table_alias = Developer.arel_table.alias("omg_developers")
+      table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
+
+      developers = ActiveRecord::Relation.create(Developer, table_alias, predicate_builder)
+      developers = developers.where(salary: 100000).order(updated_at: :desc)
       last_developer_timestamp = developers.first.updated_at
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)

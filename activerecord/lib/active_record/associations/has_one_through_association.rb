@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has One Through Association
   module Associations
+    # = Active Record Has One Through Association
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Schema
   #
@@ -37,7 +39,7 @@ module ActiveRecord
     # The +info+ hash is optional, and if given is used to define metadata
     # about the current schema (currently, only the schema's version):
     #
-    #   ActiveRecord::Schema.define(version: 20380119000001) do
+    #   ActiveRecord::Schema.define(version: 2038_01_19_000001) do
     #     ...
     #   end
     def self.define(info = {}, &block)

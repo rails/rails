@@ -1,11 +1,13 @@
-require "active_record/connection_adapters/abstract_adapter"
-require "active_record/connection_adapters/statement_pool"
-require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
-require "active_record/connection_adapters/sqlite3/quoting"
-require "active_record/connection_adapters/sqlite3/schema_creation"
-require "active_record/connection_adapters/sqlite3/schema_definitions"
-require "active_record/connection_adapters/sqlite3/schema_dumper"
-require "active_record/connection_adapters/sqlite3/schema_statements"
+# frozen_string_literal: true
+
+require_relative "abstract_adapter"
+require_relative "statement_pool"
+require_relative "sqlite3/explain_pretty_printer"
+require_relative "sqlite3/quoting"
+require_relative "sqlite3/schema_creation"
+require_relative "sqlite3/schema_definitions"
+require_relative "sqlite3/schema_dumper"
+require_relative "sqlite3/schema_statements"
 
 gem "sqlite3", "~> 1.3.6"
 require "sqlite3"
@@ -55,7 +57,6 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
-      include SQLite3::ColumnDumper
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
@@ -72,16 +73,29 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your <tt>application.rb</tt> file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
+
       class StatementPool < ConnectionAdapters::StatementPool
         private
 
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
-      end
-
-      def update_table_definition(table_name, base) # :nodoc:
-        SQLite3::Table.new(table_name, base)
       end
 
       def initialize(connection, logger, connection_options, config)
@@ -169,7 +183,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = select_value("PRAGMA foreign_keys")
+        old = query_value("PRAGMA foreign_keys")
 
         begin
           execute("PRAGMA foreign_keys = OFF")
@@ -272,7 +286,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
+      # See: https://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
       def valid_alter_table_type?(type)
         type.to_sym != :primary_key
@@ -337,7 +351,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -346,6 +360,12 @@ module ActiveRecord
             on_update: extract_foreign_key_action(row["on_update"])
           }
           ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
+      end
+
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
         end
       end
 
@@ -437,7 +457,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -506,5 +526,6 @@ module ActiveRecord
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -120,7 +122,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -129,7 +131,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -576,7 +578,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = AssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
@@ -590,7 +592,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = TempAssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "the view is not rendered when mail was never called" do
@@ -979,8 +981,7 @@ class BasePreviewTest < ActiveSupport::TestCase
   test "has access to params" do
     params = { name: "World" }
 
-    assert_called_with(BaseMailer, :welcome, [params]) do
-      BaseMailerPreview.call(:welcome, params)
-    end
+    message = BaseMailerPreview.call(:welcome, params)
+    assert_equal "World", message["name"].decoded
   end
 end

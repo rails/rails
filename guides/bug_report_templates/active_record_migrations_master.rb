@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,6 +9,9 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   gem "rails", github: "rails/rails"
   gem "arel", github: "rails/arel"
   gem "sqlite3"
@@ -48,16 +53,14 @@ end
 
 class BugTest < Minitest::Test
   def test_migration_up
-    migrator = ActiveRecord::Migrator.new(:up, [ChangeAmountToAddScale])
-    migrator.run
+    ChangeAmountToAddScale.migrate(:up)
     Payment.reset_column_information
 
     assert_equal "decimal(10,2)", Payment.columns.last.sql_type
   end
 
   def test_migration_down
-    migrator = ActiveRecord::Migrator.new(:down, [ChangeAmountToAddScale])
-    migrator.run
+    ChangeAmountToAddScale.migrate(:down)
     Payment.reset_column_information
 
     assert_equal "decimal(10,0)", Payment.columns.last.sql_type

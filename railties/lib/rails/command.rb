@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
@@ -23,7 +25,7 @@ module Rails
       end
 
       def environment # :nodoc:
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+        ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.

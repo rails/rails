@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Relation
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
-                            :order, :joins, :left_joins, :left_outer_joins, :references,
+                            :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
 
@@ -18,6 +20,7 @@ module ActiveRecord
     attr_reader :table, :klass, :loaded, :predicate_builder
     alias :model :klass
     alias :loaded? :loaded
+    alias :locked? :lock_value
 
     def initialize(klass, table, predicate_builder, values = {})
       @klass  = klass
@@ -50,7 +53,7 @@ module ActiveRecord
       im = arel.create_insert
       im.into @table
 
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       if values.empty? # empty insert
         im.values = Arel.sql(connection.empty_insert_statement_value)
@@ -60,15 +63,15 @@ module ActiveRecord
 
       @klass.connection.insert(
         im,
-        "SQL",
+        "#{@klass} Create",
         primary_key || false,
         primary_key_value,
         nil,
-        binds)
+      )
     end
 
     def _update_record(values, id, id_was) # :nodoc:
-      substitutes, binds = substitute_values values
+      substitutes = substitute_values values
 
       scope = @klass.unscoped
 
@@ -77,28 +80,21 @@ module ActiveRecord
       end
 
       relation = scope.where(@klass.primary_key => (id_was || id))
-      bvs = binds + relation.bound_attributes
       um = relation
         .arel
         .compile_update(substitutes, @klass.primary_key)
 
       @klass.connection.update(
         um,
-        "SQL",
-        bvs,
+        "#{@klass} Update",
       )
     end
 
     def substitute_values(values) # :nodoc:
-      binds = []
-      substitutes = []
-
-      values.each do |arel_attr, value|
-        binds.push QueryAttribute.new(arel_attr.name, value, klass.type_for_attribute(arel_attr.name))
-        substitutes.push [arel_attr, Arel::Nodes::BindParam.new]
+      values.map do |arel_attr, value|
+        bind = predicate_builder.build_bind_attribute(arel_attr.name, value)
+        [arel_attr, bind]
       end
-
-      [substitutes, binds]
     end
 
     def arel_attribute(name) # :nodoc:
@@ -332,7 +328,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope, self
+      previous, klass.current_scope = klass.current_scope(true), self
       yield
     ensure
       klass.current_scope = previous
@@ -377,51 +373,7 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      @klass.connection.update stmt, "SQL", bound_attributes
-    end
-
-    # Updates an object (or multiple objects) and saves it to the database, if validations pass.
-    # The resulting object is returned whether the object was saved successfully to the database or not.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - This should be the id or an array of ids to be updated.
-    # * +attributes+ - This should be a hash of attributes or an array of hashes.
-    #
-    # ==== Examples
-    #
-    #   # Updates one record
-    #   Person.update(15, user_name: 'Samuel', group: 'expert')
-    #
-    #   # Updates multiple records
-    #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
-    #   Person.update(people.keys, people.values)
-    #
-    #   # Updates multiple records from the result of a relation
-    #   people = Person.where(group: 'expert')
-    #   people.update(group: 'masters')
-    #
-    # Note: Updating a large number of records will run an
-    # UPDATE query for each record, which may cause a performance
-    # issue. So if it is not needed to run callbacks for each update, it is
-    # preferred to use #update_all for updating all records using
-    # a single query.
-    def update(id = :all, attributes)
-      if id.is_a?(Array)
-        id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }
-      elsif id == :all
-        records.each { |record| record.update(attributes) }
-      else
-        if ActiveRecord::Base === id
-          raise ArgumentError, <<-MSG.squish
-            You are passing an instance of ActiveRecord::Base to `update`.
-            Please pass the id of the object by calling `.id`.
-          MSG
-        end
-        object = find(id)
-        object.update(attributes)
-        object
-      end
+      @klass.connection.update stmt, "#{@klass} Update All"
     end
 
     # Destroys the records by instantiating each
@@ -442,33 +394,6 @@ module ActiveRecord
     #   Person.where(age: 0..18).destroy_all
     def destroy_all
       records.each(&:destroy).tap { reset }
-    end
-
-    # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
-    # therefore all callbacks and filters are fired off before the object is deleted. This method is
-    # less efficient than #delete but allows cleanup methods and other actions to be run.
-    #
-    # This essentially finds the object (or multiple objects) with the given id, creates a new object
-    # from the attributes, and then calls destroy on it.
-    #
-    # ==== Parameters
-    #
-    # * +id+ - Can be either an Integer or an Array of Integers.
-    #
-    # ==== Examples
-    #
-    #   # Destroy a single object
-    #   Todo.destroy(1)
-    #
-    #   # Destroy multiple objects
-    #   todos = [1,2,3]
-    #   Todo.destroy(todos)
-    def destroy(id)
-      if id.is_a?(Array)
-        id.map { |one_id| destroy(one_id) }
-      else
-        find(id).destroy
-      end
     end
 
     # Deletes the records without instantiating the records
@@ -507,33 +432,10 @@ module ActiveRecord
         stmt.wheres = arel.constraints
       end
 
-      affected = @klass.connection.delete(stmt, "SQL", bound_attributes)
+      affected = @klass.connection.delete(stmt, "#{@klass} Destroy")
 
       reset
       affected
-    end
-
-    # Deletes the row with a primary key matching the +id+ argument, using a
-    # SQL +DELETE+ statement, and returns the number of rows deleted. Active
-    # Record objects are not instantiated, so the object's callbacks are not
-    # executed, including any <tt>:dependent</tt> association options.
-    #
-    # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
-    #
-    # Note: Although it is often much faster than the alternative,
-    # #destroy, skipping callbacks might bypass business logic in
-    # your application that ensures referential integrity or performs other
-    # essential jobs.
-    #
-    # ==== Examples
-    #
-    #   # Delete a single row
-    #   Todo.delete(1)
-    #
-    #   # Delete multiple rows
-    #   Todo.delete([2,3,4])
-    def delete(id_or_array)
-      where(primary_key => id_or_array).delete_all
     end
 
     # Causes the records to be loaded from the database if they have not
@@ -555,8 +457,7 @@ module ActiveRecord
     end
 
     def reset
-      @last = @to_sql = @order_clause = @scope_for_create = @arel = @loaded = nil
-      @should_eager_load = @join_dependency = nil
+      @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
       self
@@ -571,12 +472,12 @@ module ActiveRecord
                     relation = self
 
                     if eager_loading?
-                      find_with_associations { |rel| relation = rel }
+                      find_with_associations { |rel, _| relation = rel }
                     end
 
                     conn = klass.connection
                     conn.unprepared_statement {
-                      conn.to_sql(relation.arel, relation.bound_attributes)
+                      conn.to_sql(relation.arel)
                     }
                   end
     end
@@ -585,12 +486,12 @@ module ActiveRecord
     #
     #   User.where(name: 'Oscar').where_values_hash
     #   # => {name: "Oscar"}
-    def where_values_hash(relation_table_name = table_name)
+    def where_values_hash(relation_table_name = klass.table_name)
       where_clause.to_h(relation_table_name)
     end
 
     def scope_for_create
-      @scope_for_create ||= where_values_hash.merge(create_with_value)
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -642,6 +543,14 @@ module ActiveRecord
       "#<#{self.class.name} [#{entries.join(', ')}]>"
     end
 
+    def empty_scope? # :nodoc:
+      @values == klass.unscoped.values
+    end
+
+    def has_limit_or_offset? # :nodoc:
+      limit_value || offset_value
+    end
+
     protected
 
       def load_records(records)
@@ -656,20 +565,44 @@ module ActiveRecord
       end
 
       def exec_queries(&block)
-        @records = eager_loading? ? find_with_associations.freeze : @klass.find_by_sql(arel, bound_attributes, &block).freeze
+        skip_query_cache_if_necessary do
+          @records =
+            if eager_loading?
+              find_with_associations do |relation, join_dependency|
+                if ActiveRecord::NullRelation === relation
+                  []
+                else
+                  rows = connection.select_all(relation.arel, "SQL")
+                  join_dependency.instantiate(rows, &block)
+                end.freeze
+              end
+            else
+              klass.find_by_sql(arel, &block).freeze
+            end
 
-        preload = preload_values
-        preload += includes_values unless eager_loading?
-        preloader = nil
-        preload.each do |associations|
-          preloader ||= build_preloader
-          preloader.preload @records, associations
+          preload = preload_values
+          preload += includes_values unless eager_loading?
+          preloader = nil
+          preload.each do |associations|
+            preloader ||= build_preloader
+            preloader.preload @records, associations
+          end
+
+          @records.each(&:readonly!) if readonly_value
+
+          @loaded = true
+          @records
         end
+      end
 
-        @records.each(&:readonly!) if readonly_value
-
-        @loaded = true
-        @records
+      def skip_query_cache_if_necessary
+        if skip_query_cache_value
+          uncached do
+            yield
+          end
+        else
+          yield
+        end
       end
 
       def build_preloader

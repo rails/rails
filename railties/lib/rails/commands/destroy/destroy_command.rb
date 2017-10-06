@@ -1,4 +1,6 @@
-require "rails/generators"
+# frozen_string_literal: true
+
+require_relative "../../generators"
 
 module Rails
   module Command

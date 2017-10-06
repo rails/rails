@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -743,7 +745,6 @@ class FinderTest < ActiveRecord::TestCase
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "HHC", replies_count: 1, approved: false).find(1) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
   end
 
   def test_condition_interpolation
@@ -1024,16 +1025,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
   end
 
-  def test_find_all_with_join
-    developers_on_project_one = Developer.
-      joins("LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id").
-      where("project_id=1").to_a
-    assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map(&:name)
-    assert_includes developer_names, "David"
-    assert_includes developer_names, "Jamis"
-  end
-
   def test_joins_dont_clobber_id
     first = Firm.
       joins("INNER JOIN companies clients ON clients.firm_id = companies.id").
@@ -1162,7 +1153,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2)", e.message
+      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
     end
   end
 
@@ -1186,6 +1177,10 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with multi-arg conditions returns the first matching record" do
     assert_equal posts(:eager_other), Post.find_by("id = ?", posts(:eager_other).id)
+  end
+
+  test "find_by with range conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by(id: posts(:eager_other).id...posts(:misc_by_bob).id)
   end
 
   test "find_by returns nil if the record is missing" do
@@ -1241,6 +1236,34 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  test "#skip_query_cache! for #exists?" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.exists?
+        Topic.exists?
+      end
+
+      assert_queries(2) do
+        Topic.all.skip_query_cache!.exists?
+        Topic.all.skip_query_cache!.exists?
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #exists? with a limited eager load" do
+    Topic.cache do
+      assert_queries(2) do
+        Topic.eager_load(:replies).limit(1).exists?
+        Topic.eager_load(:replies).limit(1).exists?
+      end
+
+      assert_queries(4) do
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+      end
+    end
   end
 
   private

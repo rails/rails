@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
       class ColorField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
-          options["value"] ||= validate_color_string(value(object))
+          options["value"] ||= validate_color_string(value)
           @options = options
           super
         end

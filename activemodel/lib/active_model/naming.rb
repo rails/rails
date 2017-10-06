@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 
 module ActiveModel
   class Name
@@ -47,7 +49,7 @@ module ActiveModel
     # :method: <=>
     #
     # :call-seq:
-    #   ==(other)
+    #   <=>(other)
     #
     # Equivalent to <tt>String#<=></tt>.
     #
@@ -216,7 +218,7 @@ module ActiveModel
   # provided method below, or rolling your own is required.
   module Naming
     def self.extended(base) #:nodoc:
-      base.remove_possible_method :model_name
+      base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class
     end
 

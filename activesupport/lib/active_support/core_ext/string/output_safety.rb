@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "erb"
-require "active_support/core_ext/kernel/singleton_class"
-require "active_support/multibyte/unicode"
+require_relative "../kernel/singleton_class"
+require_relative "../module/redefine_method"
+require_relative "../../multibyte/unicode"
 
 class ERB
   module Util
@@ -21,13 +24,12 @@ class ERB
       unwrapped_html_escape(s).html_safe
     end
 
-    # Aliasing twice issues a warning "discarding old...". Remove first to avoid it.
-    remove_method(:h)
+    silence_redefinition_of_method :h
     alias h html_escape
 
     module_function :h
 
-    singleton_class.send(:remove_method, :html_escape)
+    singleton_class.silence_redefinition_of_method :html_escape
     module_function :html_escape
 
     # HTML escapes strings but doesn't wrap them with an ActiveSupport::SafeBuffer.

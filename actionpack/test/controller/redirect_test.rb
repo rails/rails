@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class Workshop
@@ -33,7 +35,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_with_status_hash
-    redirect_to({ action: "hello_world" }, status: 301)
+    redirect_to({ action: "hello_world" }, { status: 301 })
   end
 
   def redirect_with_protocol

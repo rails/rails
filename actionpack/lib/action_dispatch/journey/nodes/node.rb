@@ -1,4 +1,6 @@
-require "action_dispatch/journey/visitors"
+# frozen_string_literal: true
+
+require_relative "../visitors"
 
 module ActionDispatch
   module Journey # :nodoc:

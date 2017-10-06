@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/enumerable"
 
 module ActionView
   # = Active Model Helpers
-  module Helpers
+  module Helpers #:nodoc:
     module ActiveModelHelper
     end
 

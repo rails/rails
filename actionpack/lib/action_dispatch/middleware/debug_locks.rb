@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   # This middleware can be used to diagnose deadlocks in the autoload interlock.
   #
@@ -41,7 +43,7 @@ module ActionDispatch
 
     private
       def render_details(req)
-        threads = ActiveSupport::Dependencies.interlock.raw_state do |threads|
+        threads = ActiveSupport::Dependencies.interlock.raw_state do |raw_threads|
           # The Interlock itself comes to a complete halt as long as this block
           # is executing. That gives us a more consistent picture of everything,
           # but creates a pretty strong Observer Effect.
@@ -51,29 +53,29 @@ module ActionDispatch
           # strictly diagnostic tool (to be used when something has gone wrong),
           # and not for any sort of general monitoring.
 
-          threads.each.with_index do |(thread, info), idx|
+          raw_threads.each.with_index do |(thread, info), idx|
             info[:index] = idx
             info[:backtrace] = thread.backtrace
           end
 
-          threads
+          raw_threads
         end
 
         str = threads.map do |thread, info|
           if info[:exclusive]
-            lock_state = "Exclusive"
+            lock_state = "Exclusive".dup
           elsif info[:sharing] > 0
-            lock_state = "Sharing"
+            lock_state = "Sharing".dup
             lock_state << " x#{info[:sharing]}" if info[:sharing] > 1
           else
-            lock_state = "No lock"
+            lock_state = "No lock".dup
           end
 
           if info[:waiting]
             lock_state << " (yielded share)"
           end
 
-          msg = "Thread #{info[:index]} [0x#{thread.__id__.to_s(16)} #{thread.status || 'dead'}]  #{lock_state}\n"
+          msg = "Thread #{info[:index]} [0x#{thread.__id__.to_s(16)} #{thread.status || 'dead'}]  #{lock_state}\n".dup
 
           if info[:sleeper]
             msg << "  Waiting in #{info[:sleeper]}"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/scaffold_controller/scaffold_controller_generator"
 
@@ -57,7 +59,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     ActiveRecord::Base.pluralize_table_names = original_pluralize_table_names
   end
 
-  def test_scaffold_plural_names
+  def test_namespaced_scaffold_plural_names
     g = generator ["admin/foo"]
     assert_name g, "admin/foos",  :controller_name
     assert_name g, %w(admin),     :controller_class_path
@@ -67,7 +69,7 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin.foos",  :controller_i18n_scope
   end
 
-  def test_scaffold_plural_names_as_ruby
+  def test_namespaced_scaffold_plural_names_as_ruby
     g = generator ["Admin::Foo"]
     assert_name g, "Admin::Foos", :controller_name
     assert_name g, %w(admin),     :controller_class_path
@@ -129,6 +131,19 @@ class NamedBaseTest < Rails::Generators::TestCase
     assert_name g, "admin/foos",  :controller_file_path
     assert_name g, "foos",        :controller_file_name
     assert_name g, "admin.foos",  :controller_i18n_scope
+    assert_name g, "admin_user",  :singular_route_name
+    assert_name g, "admin_users", :plural_route_name
+    assert_name g, "[:admin, @user]", :redirect_resource_name
+    assert_name g, "[:admin, user]",  :model_resource_name
+    assert_name g, "admin_users", :index_helper
+  end
+
+  def test_scaffold_plural_names
+    g = generator ["User"]
+    assert_name g, "@user", :redirect_resource_name
+    assert_name g, "user",  :model_resource_name
+    assert_name g, "user",  :singular_route_name
+    assert_name g, "users", :plural_route_name
   end
 
   private

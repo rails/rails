@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/hash/transform_values"
@@ -33,6 +35,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not @params.as_json.key? "parameters"
     assert_not @params.as_json.key? "permitted"
     assert @params.as_json.key? "person"
+  end
+
+  test "to_s returns the string representation of the parameters hash" do
+    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
+      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
   end
 
   test "each carries permitted status" do

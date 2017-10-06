@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Errors
   #
@@ -105,7 +107,7 @@ module ActiveRecord
   class WrappedDatabaseException < StatementInvalid
   end
 
-  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  # Raised when a record cannot be inserted or updated because it would violate a uniqueness constraint.
   class RecordNotUnique < WrappedDatabaseException
   end
 
@@ -167,7 +169,7 @@ module ActiveRecord
   class NoDatabaseError < StatementInvalid
   end
 
-  # Raised when Postgres returns 'cached plan must not change result type' and
+  # Raised when PostgreSQL returns 'cached plan must not change result type' and
   # we cannot retry gracefully (e.g. inside a transaction)
   class PreparedStatementCacheExpired < StatementInvalid
   end
@@ -313,7 +315,7 @@ module ActiveRecord
   #
   # See the following:
   #
-  # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+  # * https://www.postgresql.org/docs/current/static/transaction-iso.html
   # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
   end
@@ -331,5 +333,10 @@ module ActiveRecord
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
+  end
+
+  # TransactionTimeout will be raised when lock wait timeout expires.
+  # Wait time value is set by innodb_lock_wait_timeout.
+  class TransactionTimeout < StatementInvalid
   end
 end

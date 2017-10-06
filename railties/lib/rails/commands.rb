@@ -1,4 +1,6 @@
-require "rails/command"
+# frozen_string_literal: true
+
+require_relative "command"
 
 aliases = {
   "g"  => "generate",

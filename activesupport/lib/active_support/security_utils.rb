@@ -1,4 +1,6 @@
-require "digest"
+# frozen_string_literal: true
+
+require "digest/sha2"
 
 module ActiveSupport
   module SecurityUtils

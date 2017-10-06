@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -211,9 +213,9 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, { name: "new_index" }]], remove
       end
 
-      def test_invert_add_index_with_no_options
-        remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
-        assert_equal [:remove_index, [:table, { column: [:one, :two] }]], remove
+      def test_invert_add_index_with_algorithm_option
+        remove = @recorder.inverse_of :add_index, [:table, :one, algorithm: :concurrently]
+        assert_equal [:remove_index, [:table, { column: :one, algorithm: :concurrently }]], remove
       end
 
       def test_invert_remove_index

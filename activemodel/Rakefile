@@ -1,6 +1,6 @@
-require "rake/testtask"
+# frozen_string_literal: true
 
-dir = File.dirname(__FILE__)
+require "rake/testtask"
 
 task default: :test
 
@@ -8,7 +8,7 @@ task :package
 
 Rake::TestTask.new do |t|
   t.libs << "test"
-  t.test_files = Dir.glob("#{dir}/test/cases/**/*_test.rb")
+  t.test_files = Dir.glob("#{__dir__}/test/cases/**/*_test.rb")
   t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
@@ -16,8 +16,8 @@ end
 
 namespace :test do
   task :isolated do
-    Dir.glob("#{dir}/test/**/*_test.rb").all? do |file|
-      sh(Gem.ruby, "-w", "-I#{dir}/lib", "-I#{dir}/test", file)
+    Dir.glob("#{__dir__}/test/**/*_test.rb").all? do |file|
+      sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
     end || raise("Failures")
   end
 end

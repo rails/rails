@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tempfile"
 
 module ActiveRecord
@@ -20,7 +22,7 @@ module ActiveRecord
           configuration.merge("encoding" => encoding)
         establish_connection configuration
       rescue ActiveRecord::StatementInvalid => error
-        if /database .* already exists/.match?(error.message)
+        if error.cause.is_a?(PG::DuplicateDatabase)
           raise DatabaseAlreadyExists
         else
           raise
@@ -66,6 +68,12 @@ module ActiveRecord
             "--schema=#{part.strip}"
           end
         end
+
+        ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
+        if ignore_tables.any?
+          args += ignore_tables.flat_map { |table| ["-T", table] }
+        end
+
         args << configuration["database"]
         run_cmd("pg_dump", args, "dumping")
         remove_sql_header_comments(filename)
@@ -109,7 +117,7 @@ module ActiveRecord
         end
 
         def run_cmd_error(cmd, args, action)
-          msg = "failed to execute:\n"
+          msg = "failed to execute:\n".dup
           msg << "#{cmd} #{args.join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg
@@ -128,7 +136,7 @@ module ActiveRecord
           ensure
             tempfile.close
           end
-          FileUtils.mv(tempfile.path, filename)
+          FileUtils.cp(tempfile.path, filename)
         end
     end
   end

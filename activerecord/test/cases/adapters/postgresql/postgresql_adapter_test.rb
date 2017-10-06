@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
@@ -202,8 +204,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            binds = [bind_attribute("id", 1)]
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
+            bind = Relation::QueryAttribute.new("id", 1, Type::Value.new)
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
@@ -217,8 +219,8 @@ module ActiveRecord
             string = @connection.quote("foo")
             @connection.exec_query("INSERT INTO ex (id, data) VALUES (1, #{string})")
 
-            binds = [bind_attribute("id", "1-fuu", Type::Integer.new)]
-            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, binds)
+            bind = Relation::QueryAttribute.new("id", "1-fuu", Type::Integer.new)
+            result = @connection.exec_query("SELECT id, data FROM ex WHERE id = $1", nil, [bind])
 
             assert_equal 1, result.rows.length
             assert_equal 2, result.columns.length
@@ -324,29 +326,35 @@ module ActiveRecord
         reset_connection
       end
 
-      def test_only_reload_type_map_once_for_every_unknown_type
+      def test_only_reload_type_map_once_for_every_unrecognized_type
+        reset_connection
+        connection = ActiveRecord::Base.connection
+
         silence_warnings do
           assert_queries 2, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 1, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 2, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyarray"
+            connection.select_all "SELECT NULL::anyarray"
           end
         end
       ensure
         reset_connection
       end
 
-      def test_only_warn_on_first_encounter_of_unknown_oid
+      def test_only_warn_on_first_encounter_of_unrecognized_oid
+        reset_connection
+        connection = ActiveRecord::Base.connection
+
         warning = capture(:stderr) {
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
         }
-        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'\. It will be treated as String\.\n\z/, warning)
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
         reset_connection
       end

@@ -304,7 +304,7 @@ Action Mailer
   mailer: "Notification",
   message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
   subject: "Rails Guides",
-  to: ["users@rails.com", "ddh@rails.com"],
+  to: ["users@rails.com", "dhh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
   mail: "..." # omitted for brevity
@@ -330,7 +330,7 @@ Action Mailer
   mailer: "Notification",
   message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
   subject: "Rails Guides",
-  to: ["users@rails.com", "ddh@rails.com"],
+  to: ["users@rails.com", "dhh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
   mail: "..." # omitted for brevity

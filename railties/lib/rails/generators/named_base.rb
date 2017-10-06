@@ -1,13 +1,13 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/introspection"
-require "rails/generators/base"
-require "rails/generators/generated_attribute"
+require_relative "base"
+require_relative "generated_attribute"
 
 module Rails
   module Generators
     class NamedBase < Base
       argument :name, type: :string
-      class_option :skip_namespace, type: :boolean, default: false,
-                                    desc: "Skip namespace (affects only isolated applications)"
 
       def initialize(args, *options) #:nodoc:
         @inside_template = nil
@@ -45,24 +45,6 @@ module Rails
           file_name
         end
 
-        # Wrap block with namespace of current application
-        # if namespace exists and is not skipped
-        def module_namespacing(&block) # :doc:
-          content = capture(&block)
-          content = wrap_with_namespace(content) if namespaced?
-          concat(content)
-        end
-
-        def indent(content, multiplier = 2) # :doc:
-          spaces = " " * multiplier
-          content.each_line.map { |line| line.blank? ? line : "#{spaces}#{line}" }.join
-        end
-
-        def wrap_with_namespace(content) # :doc:
-          content = indent(content).chomp
-          "module #{namespace.name}\n#{content}\nend\n"
-        end
-
         def inside_template # :doc:
           @inside_template = true
           yield
@@ -72,18 +54,6 @@ module Rails
 
         def inside_template? # :doc:
           @inside_template
-        end
-
-        def namespace # :doc:
-          Rails::Generators.namespace
-        end
-
-        def namespaced? # :doc:
-          !options[:skip_namespace] && namespace
-        end
-
-        def namespace_dirs
-          @namespace_dirs ||= namespace.name.split("::").map(&:underscore)
         end
 
         def file_path # :doc:
@@ -100,10 +70,6 @@ module Rails
 
         def namespaced_class_path # :doc:
           @namespaced_class_path ||= namespace_dirs + @class_path
-        end
-
-        def namespaced_path # :doc:
-          @namespaced_path ||= namespace_dirs.join("/")
         end
 
         def class_name # :doc:
@@ -134,11 +100,11 @@ module Rails
         end
 
         def index_helper # :doc:
-          uncountable? ? "#{plural_table_name}_index" : plural_table_name
+          uncountable? ? "#{plural_route_name}_index" : plural_route_name
         end
 
         def show_helper # :doc:
-          "#{singular_table_name}_url(@#{singular_table_name})"
+          "#{singular_route_name}_url(@#{singular_table_name})"
         end
 
         def edit_helper # :doc:
@@ -146,7 +112,7 @@ module Rails
         end
 
         def new_helper # :doc:
-          "new_#{singular_table_name}_url"
+          "new_#{singular_route_name}_url"
         end
 
         def field_id(attribute_name)
@@ -183,6 +149,35 @@ module Rails
             Rails.application.class.name.split("::").first.underscore
           else
             "application"
+          end
+        end
+
+        def redirect_resource_name # :doc:
+          model_resource_name(prefix: "@")
+        end
+
+        def model_resource_name(prefix: "") # :doc:
+          resource_name = "#{prefix}#{singular_table_name}"
+          if controller_class_path.empty?
+            resource_name
+          else
+            "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
+          end
+        end
+
+        def singular_route_name # :doc:
+          if controller_class_path.empty?
+            singular_table_name
+          else
+            "#{controller_class_path.join('_')}_#{singular_table_name}"
+          end
+        end
+
+        def plural_route_name # :doc:
+          if controller_class_path.empty?
+            plural_table_name
+          else
+            "#{controller_class_path.join('_')}_#{plural_table_name}"
           end
         end
 

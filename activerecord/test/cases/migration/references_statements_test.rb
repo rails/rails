@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -48,6 +50,14 @@ module ActiveRecord
       def test_creates_reference_type_column_with_default
         add_reference table_name, :taggable, polymorphic: { default: "Photo" }, index: true
         assert column_exists?(table_name, :taggable_type, :string, default: "Photo")
+      end
+
+      def test_creates_reference_type_column_with_not_null
+        connection.create_table table_name, force: true do |t|
+          t.references :taggable, null: false, polymorphic: true
+        end
+        assert column_exists?(table_name, :taggable_id, :integer, null: false)
+        assert column_exists?(table_name, :taggable_type, :string, null: false)
       end
 
       def test_does_not_share_options_with_reference_type_column

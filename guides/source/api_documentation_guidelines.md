@@ -82,12 +82,12 @@ used. Instead of:
 English
 -------
 
-Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Oxford Comma
 ------------
 
-Please use the [Oxford comma](http://en.wikipedia.org/wiki/Serial_comma)
+Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").
 
 Example Code
@@ -281,7 +281,7 @@ Methods created with `(module|class)_eval(STRING)` have a comment by their side 
 
 ```ruby
 for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__
+  class_eval <<-EOT, __FILE__, __LINE__ + 1
     def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
       add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
     end                                                              # end
@@ -350,7 +350,7 @@ into account, one such example is
 
 ```ruby
 # image_tag("icon.png")
-#   # => <img alt="Icon" src="/assets/icon.png" />
+#   # => <img src="/assets/icon.png" />
 ```
 
 Although the default behavior for `#image_tag` is to always return

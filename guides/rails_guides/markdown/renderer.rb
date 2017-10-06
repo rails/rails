@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
@@ -93,7 +95,7 @@ HTML
         def github_file_url(file_path)
           tree = version || edge
 
-          root = file_path[%r{(.+)/}, 1]
+          root = file_path[%r{(\w+)/}, 1]
           path = \
             case root
             when "abstract_controller", "action_controller", "action_dispatch"

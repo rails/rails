@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class Integer < Value # :nodoc:
       include Helpers::Numeric
 
       # Column storage size in bytes.
-      # 4 bytes means a MySQL int or Postgres integer as opposed to smallint etc.
+      # 4 bytes means an integer as opposed to smallint etc.
       DEFAULT_LIMIT = 4
 
       def initialize(*)

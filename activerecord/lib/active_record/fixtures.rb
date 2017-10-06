@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "erb"
 require "yaml"
 require "zlib"
 require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
-require "active_record/fixture_set/file"
-require "active_record/errors"
+require_relative "fixture_set/file"
+require_relative "errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -145,7 +147,7 @@ module ActiveRecord
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
   # that is included in ActiveRecord::FixtureSet.context_class.
   #
-  # - define a helper method in `test_helper.rb`
+  # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
@@ -492,8 +494,7 @@ module ActiveRecord
       end
     end
 
-    cattr_accessor :all_loaded_fixtures
-    self.all_loaded_fixtures = {}
+    cattr_accessor :all_loaded_fixtures, default: {}
 
     class ClassCache
       def initialize(class_names, config)
@@ -568,9 +569,7 @@ module ActiveRecord
               end
 
               table_rows.each do |fixture_set_name, rows|
-                rows.each do |row|
-                  conn.insert_fixture(row, fixture_set_name)
-                end
+                conn.insert_fixtures(rows, fixture_set_name)
               end
 
               # Cap primary key sequences to max(pk).
@@ -878,20 +877,12 @@ module ActiveRecord
 
     included do
       class_attribute :fixture_path, instance_writer: false
-      class_attribute :fixture_table_names
-      class_attribute :fixture_class_names
-      class_attribute :use_transactional_tests
-      class_attribute :use_instantiated_fixtures # true, false, or :no_instances
-      class_attribute :pre_loaded_fixtures
-      class_attribute :config
-
-      self.fixture_table_names = []
-      self.use_instantiated_fixtures = false
-      self.pre_loaded_fixtures = false
-      self.config = ActiveRecord::Base
-
-      self.fixture_class_names = {}
-      self.use_transactional_tests = true
+      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_class_names, default: {}
+      class_attribute :use_transactional_tests, default: true
+      class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
+      class_attribute :pre_loaded_fixtures, default: false
+      class_attribute :config, default: ActiveRecord::Base
     end
 
     module ClassMethods
@@ -1073,6 +1064,10 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
     Class.new ActiveRecord::FixtureSet.context_class do
       def get_binding
         binding()
+      end
+
+      def binary(path)
+        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
       end
     end
   end

@@ -151,7 +151,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - [bundler homepage](http://bundler.io/)
+More information: - [bundler homepage](https://bundler.io/)
 
 ### Living on the Edge
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "active_support/core_ext/string/strip"
 require "env_helpers"
@@ -16,13 +18,13 @@ module ApplicationTests
     end
 
     def test_run_via_backwardscompatibility
-      require "rails/test_unit/minitest_plugin"
+      require "minitest/rails_plugin"
 
       assert_nothing_raised do
         Minitest.run_via[:ruby] = true
       end
 
-      assert_predicate Minitest.run_via, :ruby?
+      assert Minitest.run_via[:ruby]
     end
 
     def test_run_single_file
@@ -31,10 +33,24 @@ module ApplicationTests
       assert_match "1 runs, 1 assertions, 0 failures", run_test_command("test/models/foo_test.rb")
     end
 
+    def test_run_single_file_with_absolute_path
+      create_test_file :models, "foo"
+      create_test_file :models, "bar"
+      assert_match "1 runs, 1 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb")
+    end
+
     def test_run_multiple_files
       create_test_file :models,  "foo"
       create_test_file :models,  "bar"
       assert_match "2 runs, 2 assertions, 0 failures", run_test_command("test/models/foo_test.rb test/models/bar_test.rb")
+    end
+
+    def test_run_multiple_files_with_absolute_paths
+      create_test_file :models,  "foo"
+      create_test_file :controllers,  "foobar_controller"
+      create_test_file :models, "bar"
+
+      assert_match "2 runs, 2 assertions, 0 failures", run_test_command("#{app_path}/test/models/foo_test.rb #{app_path}/test/controllers/foobar_controller_test.rb")
     end
 
     def test_run_file_with_syntax_error
@@ -43,7 +59,7 @@ module ApplicationTests
         def; end
       RUBY
 
-      error = capture(:stderr) { run_test_command("test/models/error_test.rb") }
+      error = capture(:stderr) { run_test_command("test/models/error_test.rb", stderr: true) }
       assert_match "syntax error", error
     end
 
@@ -75,13 +91,11 @@ module ApplicationTests
       create_test_file :unit, "baz_unit"
       create_test_file :controllers, "foobar_controller"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:units`.tap do |output|
-          assert_match "FooTest", output
-          assert_match "BarHelperTest", output
-          assert_match "BazUnitTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:units").tap do |output|
+        assert_match "FooTest", output
+        assert_match "BarHelperTest", output
+        assert_match "BazUnitTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -124,13 +138,11 @@ module ApplicationTests
       create_test_file :functional, "baz_functional"
       create_test_file :models, "foo"
 
-      Dir.chdir(app_path) do
-        `bin/rails test:functionals`.tap do |output|
-          assert_match "FooMailerTest", output
-          assert_match "BarControllerTest", output
-          assert_match "BazFunctionalTest", output
-          assert_match "3 runs, 3 assertions, 0 failures", output
-        end
+      rails("test:functionals").tap do |output|
+        assert_match "FooMailerTest", output
+        assert_match "BarControllerTest", output
+        assert_match "BazFunctionalTest", output
+        assert_match "3 runs, 3 assertions, 0 failures", output
       end
     end
 
@@ -258,6 +270,18 @@ module ApplicationTests
       create_test_file :controllers, "accounts_controller"
 
       run_test_command("test/models test/controllers").tap do |output|
+        assert_match "AccountTest", output
+        assert_match "AccountsControllerTest", output
+        assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
+      end
+    end
+
+    def test_run_multiple_folders_with_absolute_paths
+      create_test_file :models, "account"
+      create_test_file :controllers, "accounts_controller"
+      create_test_file :helpers, "foo_helper"
+
+      run_test_command("#{app_path}/test/models #{app_path}/test/controllers").tap do |output|
         assert_match "AccountTest", output
         assert_match "AccountsControllerTest", output
         assert_match "2 runs, 2 assertions, 0 failures, 0 errors, 0 skips", output
@@ -469,7 +493,7 @@ module ApplicationTests
     def test_run_app_without_rails_loaded
       # Simulate a real Rails app boot.
       app_file "config/boot.rb", <<-RUBY
-        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../../Gemfile', __FILE__)
+        ENV['BUNDLE_GEMFILE'] ||= File.expand_path('../Gemfile', __dir__)
 
         require 'bundler/setup' # Set up gems listed in the Gemfile.
       RUBY
@@ -489,18 +513,18 @@ module ApplicationTests
       create_test_file :models, "post", pass: false
 
       output = run_test_command("test/models/post_test.rb")
-      assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+      assert_match %r{Finished in.*\n1 runs, 1 assertions}, output
     end
 
     def test_fail_fast
       create_test_file :models, "post", pass: false
 
       assert_match(/Interrupt/,
-        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast") })
+        capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
     end
 
     def test_raise_error_when_specified_file_does_not_exist
-      error = capture(:stderr) { run_test_command("test/not_exists.rb") }
+      error = capture(:stderr) { run_test_command("test/not_exists.rb", stderr: true) }
       assert_match(%r{cannot load such file.+test/not_exists\.rb}, error)
     end
 
@@ -526,14 +550,16 @@ module ApplicationTests
 
     def test_rails_db_create_all_restores_db_connection
       create_test_file :models, "account"
-      output = Dir.chdir(app_path) { `bin/rails db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
     def test_rails_db_create_all_restores_db_connection_after_drop
       create_test_file :models, "account"
-      Dir.chdir(app_path) { `bin/rails db:create:all` } # create all to avoid warnings
-      output = Dir.chdir(app_path) { `bin/rails db:drop:all db:create:all db:migrate && echo ".tables" | rails dbconsole` }
+      rails "db:create:all" # create all to avoid warnings
+      rails "db:drop:all", "db:create:all", "db:migrate"
+      output = Dir.chdir(app_path) { `echo ".tables" | rails dbconsole` }
       assert_match "ar_internal_metadata", output, "tables should be dumped"
     end
 
@@ -573,7 +599,7 @@ module ApplicationTests
         end
       RUBY
       assert_match(/warning: assigned but unused variable/,
-        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+        capture(:stderr) { run_test_command("test/models/warnings_test.rb -w", stderr: true) })
     end
 
     def test_reset_sessions_before_rollback_on_system_tests
@@ -651,12 +677,12 @@ module ApplicationTests
     end
 
     private
-      def run_test_command(arguments = "test/unit/test_test.rb")
-        Dir.chdir(app_path) { `bin/rails t #{arguments}` }
+      def run_test_command(arguments = "test/unit/test_test.rb", **opts)
+        rails "t", *Shellwords.split(arguments), allow_failure: true, **opts
       end
 
       def create_model_with_fixture
-        script "generate model user name:string"
+        rails "generate", "model", "user", "name:string"
 
         app_file "test/fixtures/users.yml", <<-YAML.strip_heredoc
           vampire:
@@ -727,17 +753,17 @@ module ApplicationTests
       end
 
       def create_scaffold
-        script "generate scaffold user name:string"
-        Dir.chdir(app_path) { File.exist?("app/models/user.rb") }
+        rails "generate", "scaffold", "user", "name:string"
+        assert File.exist?("#{app_path}/app/models/user.rb")
         run_migration
       end
 
       def create_controller
-        script "generate controller admin/dashboard index"
+        rails "generate", "controller", "admin/dashboard", "index"
       end
 
       def run_migration
-        Dir.chdir(app_path) { `bin/rails db:migrate` }
+        rails "db:migrate"
       end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 # Without using prepared statements, it makes no sense to test
@@ -10,7 +12,7 @@ unless current_adapter?(:DB2Adapter)
     FIXTURES = %w(flowers.jpg example.log test.txt)
 
     def test_mixed_encoding
-      str = "\x80"
+      str = "\x80".dup
       str.force_encoding("ASCII-8BIT")
 
       binary = Binary.new name: "いただきます！", data: str

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller"
 
@@ -22,7 +24,7 @@ class AssetHostTest < ActionMailer::TestCase
 
   def test_asset_host_as_string
     mail = AssetHostMailer.email_with_asset
-    assert_dom_equal '<img alt="Somelogo" src="http://www.example.com/images/somelogo.png" />', mail.body.to_s.strip
+    assert_dom_equal '<img src="http://www.example.com/images/somelogo.png" />', mail.body.to_s.strip
   end
 
   def test_asset_host_as_one_argument_proc
@@ -32,6 +34,6 @@ class AssetHostTest < ActionMailer::TestCase
       end
     }
     mail = AssetHostMailer.email_with_asset
-    assert_dom_equal '<img alt="Somelogo" src="http://images.example.com/images/somelogo.png" />', mail.body.to_s.strip
+    assert_dom_equal '<img src="http://images.example.com/images/somelogo.png" />', mail.body.to_s.strip
   end
 end

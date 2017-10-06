@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/core_ext/module/redefine_method"
+
 module ActionCable
   # If you need to disconnect a given connection, you can go through the
   # RemoteConnections. You can find the connections you're looking for by
@@ -45,13 +49,14 @@ module ActionCable
         end
 
         # Returns all the identifiers that were applied to this connection.
-        def identifiers
+        redefine_method :identifiers do
           server.connection_identifiers
         end
 
-        private
+        protected
           attr_reader :server
 
+        private
           def set_identifier_instance_vars(ids)
             raise InvalidIdentifiersError unless valid_identifiers?(ids)
             ids.each { |k, v| instance_variable_set("@#{k}", v) }

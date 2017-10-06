@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -11,7 +13,7 @@ module ActiveRecord
           end
 
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
-            index_sql = select_value(<<-SQL, "SCHEMA")
+            index_sql = query_value(<<-SQL, "SCHEMA")
               SELECT sql
               FROM sqlite_master
               WHERE name = #{quote(row['name'])} AND type = 'index'
@@ -35,6 +37,10 @@ module ActiveRecord
               where: where
             )
           end
+        end
+
+        def create_schema_dumper(options)
+          SQLite3::SchemaDumper.create(self, options)
         end
 
         private
@@ -67,7 +73,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
+            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'".dup
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql

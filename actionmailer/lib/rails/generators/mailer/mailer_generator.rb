@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class MailerGenerator < NamedBase
-      source_root File.expand_path("../templates", __FILE__)
+      source_root File.expand_path("templates", __dir__)
 
       argument :actions, type: :array, default: [], banner: "method method"
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class OverloadedType < ActiveRecord::Base
@@ -106,12 +108,14 @@ module ActiveRecord
 
       assert_equal 6, klass.attribute_types.length
       assert_equal 6, klass.column_defaults.length
+      assert_equal 6, klass.attribute_names.length
       assert_not klass.attribute_types.include?("wibble")
 
       klass.attribute :wibble, Type::Value.new
 
       assert_equal 7, klass.attribute_types.length
       assert_equal 7, klass.column_defaults.length
+      assert_equal 7, klass.attribute_names.length
       assert_includes klass.attribute_types, "wibble"
     end
 

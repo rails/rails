@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "fileutils"
 require "action_view/dependency_tracker"
@@ -14,7 +16,7 @@ class FixtureTemplate
 end
 
 class FixtureFinder < ActionView::LookupContext
-  FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
+  FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
 
   def initialize(details = {})
     super(ActionView::PathSet.new(["digestor", "digestor/api"]), details, [])

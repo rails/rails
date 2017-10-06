@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "digest/md5"
 require "active_support/core_ext/string/strip"
-require "rails/version" unless defined?(Rails::VERSION)
+require_relative "../version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
-require "rails/generators"
+require_relative "../generators"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
@@ -13,7 +15,6 @@ module Rails
       DATABASES = %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver )
       JDBC_DATABASES = %w( jdbcmysql jdbcsqlite3 jdbcpostgresql jdbc )
       DATABASES.concat(JDBC_DATABASES)
-      WEBPACKS = %w( react vue angular )
 
       attr_accessor :rails_template
       add_shebang_option!
@@ -30,9 +31,6 @@ module Rails
 
         class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
-
-        class_option :webpack,            type: :string, default: nil,
-                                          desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
 
         class_option :skip_yarn,          type: :boolean, default: false,
                                           desc: "Don't use Yarn for managing JavaScript dependencies"
@@ -352,8 +350,10 @@ module Rails
         comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
+        elsif RUBY_PLATFORM =~ /mingw|mswin/
+          GemfileEntry.version "duktape", nil, comment
         else
-          GemfileEntry.new "therubyracer", nil, comment, { platforms: :ruby }, true
+          GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
         end
       end
 

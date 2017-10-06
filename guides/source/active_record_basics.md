@@ -20,7 +20,7 @@ After reading this guide, you will know:
 What is Active Record?
 ----------------------
 
-Active Record is the M in [MVC](http://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
+Active Record is the M in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller) - the
 model - which is the layer of the system responsible for representing business
 data and logic. Active Record facilitates the creation and use of business
 objects whose data requires persistent storage to a database. It is an
@@ -314,8 +314,8 @@ already in the database, follows a specific format and many more.
 
 Validation is a very important issue to consider when persisting to the database, so
 the methods `save` and `update` take it into account when
-running: they return `false` when validation fails and they didn't actually
-perform any operation on the database. All of these have a bang counterpart (that
+running: they return `false` when validation fails and they don't actually
+perform any operations on the database. All of these have a bang counterpart (that
 is, `save!` and `update!`), which are stricter in that
 they raise the exception `ActiveRecord::RecordInvalid` if validation fails.
 A quick example to illustrate:

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -71,9 +73,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        'ActiveRecord::Tasks::MySQLDatabaseTasks')
-      register_task(/postgresql/,   'ActiveRecord::Tasks::PostgreSQLDatabaseTasks')
-      register_task(/sqlite/,       'ActiveRecord::Tasks::SQLiteDatabaseTasks')
+      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
+      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first
@@ -259,8 +261,8 @@ module ActiveRecord
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
-          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
+          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}.dup
+          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Persistence
   module Persistence
@@ -67,6 +69,100 @@ module ActiveRecord
         klass = discriminate_class_for_record(attributes)
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
         klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
+      end
+
+      # Updates an object (or multiple objects) and saves it to the database, if validations pass.
+      # The resulting object is returned whether the object was saved successfully to the database or not.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - This should be the id or an array of ids to be updated.
+      # * +attributes+ - This should be a hash of attributes or an array of hashes.
+      #
+      # ==== Examples
+      #
+      #   # Updates one record
+      #   Person.update(15, user_name: "Samuel", group: "expert")
+      #
+      #   # Updates multiple records
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+      #   Person.update(people.keys, people.values)
+      #
+      #   # Updates multiple records from the result of a relation
+      #   people = Person.where(group: "expert")
+      #   people.update(group: "masters")
+      #
+      # Note: Updating a large number of records will run an UPDATE
+      # query for each record, which may cause a performance issue.
+      # When running callbacks is not needed for each record update,
+      # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
+      # for updating all records in a single query.
+      def update(id = :all, attributes)
+        if id.is_a?(Array)
+          id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }.compact
+        elsif id == :all
+          all.each { |record| record.update(attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = find(id)
+          object.update(attributes)
+          object
+        end
+      rescue RecordNotFound
+      end
+
+      # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
+      # therefore all callbacks and filters are fired off before the object is deleted. This method is
+      # less efficient than #delete but allows cleanup methods and other actions to be run.
+      #
+      # This essentially finds the object (or multiple objects) with the given id, creates a new object
+      # from the attributes, and then calls destroy on it.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - This should be the id or an array of ids to be destroyed.
+      #
+      # ==== Examples
+      #
+      #   # Destroy a single object
+      #   Todo.destroy(1)
+      #
+      #   # Destroy multiple objects
+      #   todos = [1,2,3]
+      #   Todo.destroy(todos)
+      def destroy(id)
+        if id.is_a?(Array)
+          id.map { |one_id| destroy(one_id) }.compact
+        else
+          find(id).destroy
+        end
+      rescue RecordNotFound
+      end
+
+      # Deletes the row with a primary key matching the +id+ argument, using a
+      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
+      # Record objects are not instantiated, so the object's callbacks are not
+      # executed, including any <tt>:dependent</tt> association options.
+      #
+      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
+      #
+      # Note: Although it is often much faster than the alternative, #destroy,
+      # skipping callbacks might bypass business logic in your application
+      # that ensures referential integrity or performs other essential jobs.
+      #
+      # ==== Examples
+      #
+      #   # Delete a single row
+      #   Todo.delete(1)
+      #
+      #   # Delete multiple rows
+      #   Todo.delete([2,3,4])
+      def delete(id_or_array)
+        where(primary_key => id_or_array).delete_all
       end
 
       private
@@ -175,7 +271,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      _relation_for_itself.delete_all if persisted?
       @destroyed = true
       freeze
     end
@@ -226,7 +322,7 @@ module ActiveRecord
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutation_tracker", @mutation_tracker) if defined?(@mutation_tracker)
+      became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
@@ -330,10 +426,10 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
+      updated_count = _relation_for_itself.update_all(attributes)
 
       attributes.each do |k, v|
-        raw_write_attribute(k, v)
+        write_attribute_without_type_cast(k, v)
       end
 
       updated_count == 1
@@ -351,7 +447,7 @@ module ActiveRecord
     # Wrapper around #increment that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
@@ -372,7 +468,7 @@ module ActiveRecord
     # Wrapper around #decrement that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def decrement!(attribute, by = 1, touch: nil)
@@ -521,12 +617,11 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
+        scope = _relation_for_itself
 
         if locking_enabled?
           locking_column = self.class.locking_column
-          scope = scope.where(locking_column => _read_attribute(locking_column))
+          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
           changes[locking_column] = increment_lock
         end
 
@@ -555,6 +650,10 @@ module ActiveRecord
     end
 
     def relation_for_destroy
+      _relation_for_itself
+    end
+
+    def _relation_for_itself
       self.class.unscoped.where(self.class.primary_key => id)
     end
 

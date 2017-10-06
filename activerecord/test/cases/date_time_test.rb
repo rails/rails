@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/task"
@@ -57,5 +59,18 @@ class DateTimeTest < ActiveRecord::TestCase
       task = Task.new starting: now
       assert_equal now, task.starting
     end
+  end
+
+  def test_date_time_with_string_value_with_subsecond_precision
+    skip unless subsecond_precision_supported?
+    string_value = "2017-07-04 14:19:00.5"
+    topic = Topic.create(written_on: string_value)
+    assert_equal topic, Topic.find_by(written_on: string_value)
+  end
+
+  def test_date_time_with_string_value_with_non_iso_format
+    string_value = "04/07/2017 2:19pm"
+    topic = Topic.create(written_on: string_value)
+    assert_equal topic, Topic.find_by(written_on: string_value)
   end
 end

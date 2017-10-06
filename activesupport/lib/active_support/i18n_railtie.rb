@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_support"
-require "active_support/file_update_checker"
-require "active_support/core_ext/array/wrap"
+require_relative "file_update_checker"
+require_relative "core_ext/array/wrap"
 
 # :enddoc:
 
@@ -66,10 +68,6 @@ module I18n
       app.reloaders << reloader
       app.reloader.to_run do
         reloader.execute_if_updated { require_unload_lock! }
-        # TODO: remove the following line as soon as the return value of
-        # callbacks is ignored, that is, returning `false` does not
-        # display a deprecation warning or halts the callback chain.
-        true
       end
       reloader.execute
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/admin"
 require "models/admin/account"
@@ -54,6 +56,31 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  class InsertQuerySubscriber
+    attr_reader :events
+
+    def initialize
+      @events = []
+    end
+
+    def call(_, _, _, _, values)
+      @events << values[:sql] if values[:sql] =~ /INSERT/
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    def test_bulk_insert
+      begin
+        subscriber = InsertQuerySubscriber.new
+        subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+        create_fixtures("bulbs")
+        assert_equal 1, subscriber.events.size, "It takes one INSERT query to insert two fixtures"
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription)
+      end
+    end
+  end
+
   def test_broken_yaml_exception
     badyaml = Tempfile.new ["foo", ".yml"]
     badyaml.write "a: : "
@@ -105,7 +132,7 @@ class FixturesTest < ActiveRecord::TestCase
   def test_no_args_record_returns_all_without_array
     all_binaries = binaries
     assert_kind_of(Array, all_binaries)
-    assert_equal 1, binaries.length
+    assert_equal 2, binaries.length
   end
 
   def test_nil_raises
@@ -248,7 +275,12 @@ class FixturesTest < ActiveRecord::TestCase
     e = assert_raise(ActiveRecord::Fixture::FixtureError) do
       ActiveRecord::FixtureSet.create_fixtures(FIXTURES_ROOT + "/naked/yml", "parrots")
     end
-    assert_equal(%(table "parrots" has no column named "arrr".), e.message)
+
+    if current_adapter?(:SQLite3Adapter)
+      assert_equal(%(table "parrots" has no column named "arrr".), e.message)
+    else
+      assert_equal(%(table "parrots" has no columns named "arrr", "foobar".), e.message)
+    end
   end
 
   def test_yaml_file_with_symbol_columns
@@ -281,6 +313,7 @@ class FixturesTest < ActiveRecord::TestCase
     data.force_encoding("ASCII-8BIT")
     data.freeze
     assert_equal data, @flowers.data
+    assert_equal data, @binary_helper.data
   end
 
   def test_serialized_fixtures
@@ -365,6 +398,7 @@ if Account.connection.respond_to?(:reset_pk_sequence!)
   class FixturesResetPkSequenceTest < ActiveRecord::TestCase
     fixtures :accounts
     fixtures :companies
+    self.use_transactional_tests = false
 
     def setup
       @instances = [Account.new(credit_limit: 50), Company.new(name: "RoR Consulting"), Course.new(name: "Test")]
@@ -809,6 +843,8 @@ class FasterFixturesTest < ActiveRecord::TestCase
 end
 
 class FoxyFixturesTest < ActiveRecord::TestCase
+  # Set to false to blow away fixtures cache and ensure our fixtures are loaded
+  self.use_transactional_tests = false
   fixtures :parrots, :parrots_pirates, :pirates, :treasures, :mateys, :ships, :computers,
            :developers, :"admin/accounts", :"admin/users", :live_parrots, :dead_parrots, :books
 

@@ -1,4 +1,6 @@
-require "rails/railtie/configuration"
+# frozen_string_literal: true
+
+require_relative "../railtie/configuration"
 
 module Rails
   class Engine

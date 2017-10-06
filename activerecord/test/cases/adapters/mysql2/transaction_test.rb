@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -55,6 +57,12 @@ module ActiveRecord
         ensure
           thread.join
         end
+      end
+    end
+
+    test "raises TransactionTimeout when mysql raises ER_LOCK_WAIT_TIMEOUT" do
+      assert_raises(ActiveRecord::TransactionTimeout) do
+        ActiveRecord::Base.connection.execute("SIGNAL SQLSTATE 'HY000' SET MESSAGE_TEXT = 'Testing error', MYSQL_ERRNO = 1205;")
       end
     end
   end

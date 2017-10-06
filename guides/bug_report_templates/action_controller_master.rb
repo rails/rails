@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,6 +9,9 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   gem "rails", github: "rails/rails"
   gem "arel", github: "rails/arel"
 end
@@ -14,8 +19,7 @@ end
 require "action_controller/railtie"
 
 class TestApp < Rails::Application
-  config.root = File.dirname(__FILE__)
-  secrets.secret_token    = "secret_token"
+  config.root = __dir__
   secrets.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)

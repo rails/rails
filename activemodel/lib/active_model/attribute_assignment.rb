@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -19,10 +21,10 @@ module ActiveModel
     #   cat = Cat.new
     #   cat.assign_attributes(name: "Gorby", status: "yawning")
     #   cat.name # => 'Gorby'
-    #   cat.status => 'yawning'
+    #   cat.status # => 'yawning'
     #   cat.assign_attributes(status: "sleeping")
     #   cat.name # => 'Gorby'
-    #   cat.status => 'sleeping'
+    #   cat.status # => 'sleeping'
     def assign_attributes(new_attributes)
       if !new_attributes.respond_to?(:stringify_keys)
         raise ArgumentError, "When assigning attributes, you must pass a hash as an argument."
@@ -42,8 +44,9 @@ module ActiveModel
       end
 
       def _assign_attribute(k, v)
-        if respond_to?("#{k}=")
-          public_send("#{k}=", v)
+        setter = :"#{k}="
+        if respond_to?(setter)
+          public_send(setter, v)
         else
           raise UnknownAttributeError.new(self, k)
         end

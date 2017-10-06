@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 task "load_app" do
   namespace :app do
     load APP_RAKEFILE
@@ -6,7 +8,7 @@ task "load_app" do
     task update: [ "update:bin" ]
 
     namespace :update do
-      require "rails/engine/updater"
+      require_relative "../engine/updater"
       # desc "Adds new executables to the engine bin/ directory"
       task :bin do
         Rails::Engine::Updater.run(:create_bin_files)

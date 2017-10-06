@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "erb"
 require "abstract_unit"
 require "controller/fake_controllers"
+require "active_support/messages/rotation_configuration"
 
 class TestRoutingMapper < ActionDispatch::IntegrationTest
   SprocketsApp = lambda { |env|
@@ -4414,22 +4417,24 @@ end
 
 class TestInvalidUrls < ActionDispatch::IntegrationTest
   class FooController < ActionController::Base
+    def self.binary_params_for?(action)
+      action == "show"
+    end
+
     def show
       render plain: "foo#show"
     end
   end
 
-  test "invalid UTF-8 encoding returns a 400 Bad Request" do
+  test "invalid UTF-8 encoding returns a bad request" do
     with_routing do |set|
       set.draw do
         get "/bar/:id", to: redirect("/foo/show/%{id}")
-        get "/foo/show(/:id)", to: "test_invalid_urls/foo#show"
 
         ok = lambda { |env| [200, { "Content-Type" => "text/plain" }, []] }
         get "/foobar/:id", to: ok
 
         ActiveSupport::Deprecation.silence do
-          get "/foo(/:action(/:id))", controller: "test_invalid_urls/foo"
           get "/:controller(/:action(/:id))"
         end
       end
@@ -4440,14 +4445,22 @@ class TestInvalidUrls < ActionDispatch::IntegrationTest
       get "/foo/%E2%EF%BF%BD%A6"
       assert_response :bad_request
 
-      get "/foo/show/%E2%EF%BF%BD%A6"
-      assert_response :bad_request
-
       get "/bar/%E2%EF%BF%BD%A6"
       assert_response :bad_request
 
       get "/foobar/%E2%EF%BF%BD%A6"
       assert_response :bad_request
+    end
+  end
+
+  test "params encoded with binary_params_for? are treated as ASCII 8bit" do
+    with_routing do |set|
+      set.draw do
+        get "/foo/show(/:id)", to: "test_invalid_urls/foo#show"
+      end
+
+      get "/foo/show/%E2%EF%BF%BD%A6"
+      assert_response :ok
     end
   end
 end
@@ -4935,6 +4948,7 @@ end
 class FlashRedirectTest < ActionDispatch::IntegrationTest
   SessionKey = "_myapp_session"
   Generator  = ActiveSupport::LegacyKeyGenerator.new("b3c631c314c0bbca50c1b2843150fe33")
+  Rotations  = ActiveSupport::Messages::RotationConfiguration.new
 
   class KeyGeneratorMiddleware
     def initialize(app)
@@ -4943,6 +4957,8 @@ class FlashRedirectTest < ActionDispatch::IntegrationTest
 
     def call(env)
       env["action_dispatch.key_generator"] ||= Generator
+      env["action_dispatch.cookies_rotations"] ||= Rotations
+
       @app.call(env)
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Copyright (c) 2004-2017 David Heinemeier Hansson
 #
@@ -23,7 +25,7 @@
 
 require "active_support"
 require "active_support/rails"
-require "action_view/version"
+require_relative "action_view/version"
 
 module ActionView
   extend ActiveSupport::Autoload
@@ -92,5 +94,5 @@ end
 require "active_support/core_ext/string/output_safety"
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << "#{File.dirname(__FILE__)}/action_view/locale/en.yml"
+  I18n.load_path << File.expand_path("action_view/locale/en.yml", __dir__)
 end

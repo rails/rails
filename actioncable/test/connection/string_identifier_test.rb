@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_server"
 
@@ -35,9 +37,5 @@ class ActionCable::Connection::StringIdentifierTest < ActionCable::TestCase
 
       @connection.process
       @connection.send :on_open
-    end
-
-    def close_connection
-      @connection.send :on_close
     end
 end

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "irb"
 require "irb/completion"
 
-require "rails/command/environment_argument"
+require_relative "../../command/environment_argument"
 
 module Rails
   class Console
@@ -69,9 +71,6 @@ module Rails
 
       class_option :sandbox, aliases: "-s", type: :boolean, default: false,
         desc: "Rollback database modifications on exit."
-
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
 
       def initialize(args = [], local_options = {}, config = {})
         console_options = []

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "cgi"
-require "action_view/helpers/date_helper"
-require "action_view/helpers/tag_helper"
-require "action_view/helpers/form_tag_helper"
-require "action_view/helpers/active_model_helper"
-require "action_view/model_naming"
-require "action_view/record_identifier"
+require_relative "date_helper"
+require_relative "tag_helper"
+require_relative "form_tag_helper"
+require_relative "active_model_helper"
+require_relative "../model_naming"
+require_relative "../record_identifier"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"
@@ -12,7 +14,7 @@ require "active_support/core_ext/string/inflections"
 
 module ActionView
   # = Action View Form Helpers
-  module Helpers
+  module Helpers #:nodoc:
     # Form helpers are designed to make working with resources much easier
     # compared to using vanilla HTML.
     #
@@ -474,7 +476,7 @@ module ActionView
       end
       private :apply_form_for_options!
 
-      mattr_accessor(:form_with_generates_remote_forms) { true }
+      mattr_accessor :form_with_generates_remote_forms, default: true
 
       # Creates a form tag based on mixing URLs, scopes, or models.
       #
@@ -540,6 +542,36 @@ module ActionView
       # as well as the auto generated hidden fields that enable UTF-8 support
       # and adds an authenticity token needed for cross site request forgery
       # protection.
+      #
+      # === Resource-oriented style
+      #
+      # In many of the examples just shown, the +:model+ passed to +form_with+
+      # is a _resource_. It corresponds to a set of RESTful routes, most likely
+      # defined via +resources+ in <tt>config/routes.rb</tt>.
+      #
+      # So when passing such a model record, Rails infers the URL and method.
+      #
+      #   <%= form_with model: @post do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # is then equivalent to something like:
+      #
+      #   <%= form_with scope: :post, url: post_path(@post), method: :patch do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # And for a new record
+      #
+      #   <%= form_with model: Post.new do |form| %>
+      #     ...
+      #   <% end %>
+      #
+      # is equivalent to something like:
+      #
+      #   <%= form_with scope: :post, url: posts_path do |form| %>
+      #     ...
+      #   <% end %>
       #
       # ==== +form_with+ options
       #
@@ -1191,7 +1223,7 @@ module ActionView
       #   file_field(:attachment, :file, class: 'file_input')
       #   # => <input type="file" id="attachment_file" name="attachment[file]" class="file_input" />
       def file_field(object_name, method, options = {})
-        Tags::FileField.new(object_name, method, self, options).render
+        Tags::FileField.new(object_name, method, self, convert_direct_upload_option_to_url(options.dup)).render
       end
 
       # Returns a textarea opening and closing tag set tailored for accessing a specified attribute (identified by +method+)
@@ -1567,7 +1599,7 @@ module ActionView
     # In the above block, a +FormBuilder+ object is yielded as the
     # +person_form+ variable. This allows you to generate the +text_field+
     # and +check_box+ fields by specifying their eponymous methods, which
-    # modify the underlying template and associates the +@person+ model object
+    # modify the underlying template and associates the <tt>@person</tt> model object
     # with the form.
     #
     # The +FormBuilder+ object can be thought of as serving as a proxy for the
@@ -1606,14 +1638,15 @@ module ActionView
       include ModelNaming
 
       # The methods which wrap a form helper call.
-      class_attribute :field_helpers
-      self.field_helpers = [:fields_for, :fields, :label, :text_field, :password_field,
-                            :hidden_field, :file_field, :text_area, :check_box,
-                            :radio_button, :color_field, :search_field,
-                            :telephone_field, :phone_field, :date_field,
-                            :time_field, :datetime_field, :datetime_local_field,
-                            :month_field, :week_field, :url_field, :email_field,
-                            :number_field, :range_field]
+      class_attribute :field_helpers, default: [
+        :fields_for, :fields, :label, :text_field, :password_field,
+        :hidden_field, :file_field, :text_area, :check_box,
+        :radio_button, :color_field, :search_field,
+        :telephone_field, :phone_field, :date_field,
+        :time_field, :datetime_field, :datetime_local_field,
+        :month_field, :week_field, :url_field, :email_field,
+        :number_field, :range_field
+      ]
 
       attr_accessor :object_name, :object, :options
 
@@ -2162,11 +2195,11 @@ module ActionView
       #     <%= f.submit %>
       #   <% end %>
       #
-      # In the example above, if @post is a new record, it will use "Create Post" as
-      # submit button label, otherwise, it uses "Update Post".
+      # In the example above, if <tt>@post</tt> is a new record, it will use "Create Post" as
+      # submit button label; otherwise, it uses "Update Post".
       #
-      # Those labels can be customized using I18n, under the helpers.submit key and accept
-      # the %{model} as translation interpolation:
+      # Those labels can be customized using I18n under the +helpers.submit+ key and using
+      # <tt>%{model}</tt> for translation interpolation:
       #
       #   en:
       #     helpers:
@@ -2174,7 +2207,7 @@ module ActionView
       #         create: "Create a %{model}"
       #         update: "Confirm changes to %{model}"
       #
-      # It also searches for a key specific for the given object:
+      # It also searches for a key specific to the given object:
       #
       #   en:
       #     helpers:
@@ -2195,11 +2228,11 @@ module ActionView
       #     <%= f.button %>
       #   <% end %>
       #
-      # In the example above, if @post is a new record, it will use "Create Post" as
-      # button label, otherwise, it uses "Update Post".
+      # In the example above, if <tt>@post</tt> is a new record, it will use "Create Post" as
+      # button label; otherwise, it uses "Update Post".
       #
-      # Those labels can be customized using I18n, under the helpers.submit key
-      # (the same as submit helper) and accept the %{model} as translation interpolation:
+      # Those labels can be customized using I18n under the +helpers.submit+ key
+      # (the same as submit helper) and using <tt>%{model}</tt> for translation interpolation:
       #
       #   en:
       #     helpers:
@@ -2207,7 +2240,7 @@ module ActionView
       #         create: "Create a %{model}"
       #         update: "Confirm changes to %{model}"
       #
-      # It also searches for a key specific for the given object:
+      # It also searches for a key specific to the given object:
       #
       #   en:
       #     helpers:
@@ -2317,8 +2350,6 @@ module ActionView
   end
 
   ActiveSupport.on_load(:action_view) do
-    cattr_accessor(:default_form_builder, instance_writer: false, instance_reader: false) do
-      ::ActionView::Helpers::FormBuilder
-    end
+    cattr_accessor :default_form_builder, instance_writer: false, instance_reader: false, default: ::ActionView::Helpers::FormBuilder
   end
 end

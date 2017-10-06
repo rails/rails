@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
-require "rails/generators/rails/app/app_generator"
+require_relative "../app/app_generator"
 require "date"
 
 module Rails
@@ -60,7 +62,12 @@ module Rails
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
       template "lib/%namespaced_name%/version.rb"
-      template "lib/%namespaced_name%/engine.rb" if engine?
+
+      if engine?
+        template "lib/%namespaced_name%/engine.rb"
+      else
+        template "lib/%namespaced_name%/railtie.rb"
+      end
     end
 
     def config
@@ -71,8 +78,8 @@ module Rails
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
-#{rakefile_test_tasks}
 
+#{rakefile_test_tasks}
 task default: :test
       EOF
       if engine?
@@ -81,15 +88,14 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_sprockets, :database,
-      :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
+      :javascript, :skip_yarn, :api, :quiet, :pretend, :skip
     ]
 
     def generate_test_dummy(force = false)
       opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:api] = options.api?
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
@@ -115,7 +121,6 @@ task default: :test
     def test_dummy_clean
       inside dummy_path do
         remove_file "db/seeds.rb"
-        remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"

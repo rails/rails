@@ -1,12 +1,13 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/book"
 
 class EnumTest < ActiveRecord::TestCase
-  fixtures :books, :authors
+  fixtures :books, :authors, :author_addresses
 
   setup do
-    @author = authors(:david)
     @book = books(:awdr)
   end
 
@@ -39,6 +40,8 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal @book, Book.author_visibility_visible.first
     assert_equal @book, Book.illustrator_visibility_visible.first
     assert_equal @book, Book.medium_to_read.first
+    assert_equal books(:ddd), Book.forgotten.first
+    assert_equal books(:rfr), authors(:david).unpublished_books.first
   end
 
   test "find via where with values" do
@@ -57,9 +60,9 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: :written).first
     assert_equal @book, Book.where(status: [:published]).first
     assert_not_equal @book, Book.where(status: [:written]).first
-    assert_not @author.unpublished_books.include?(@book)
     assert_not_equal @book, Book.where.not(status: :published).first
     assert_equal @book, Book.where.not(status: :written).first
+    assert_equal books(:ddd), Book.where(read_status: :forgotten).first
   end
 
   test "find via where with strings" do
@@ -69,6 +72,7 @@ class EnumTest < ActiveRecord::TestCase
     assert_not_equal @book, Book.where(status: ["written"]).first
     assert_not_equal @book, Book.where.not(status: "published").first
     assert_equal @book, Book.where.not(status: "written").first
+    assert_equal books(:ddd), Book.where(read_status: "forgotten").first
   end
 
   test "build from scope" do
@@ -251,12 +255,14 @@ class EnumTest < ActiveRecord::TestCase
     assert Book.illustrator_visibility_invisible.create.illustrator_visibility_invisible?
   end
 
-  test "_before_type_cast returns the enum label (required for form fields)" do
-    if @book.status_came_from_user?
-      assert_equal "published", @book.status_before_type_cast
-    else
-      assert_equal "published", @book.status
-    end
+  test "_before_type_cast" do
+    assert_equal 2, @book.status_before_type_cast
+    assert_equal "published", @book.status
+
+    @book.status = "published"
+
+    assert_equal "published", @book.status_before_type_cast
+    assert_equal "published", @book.status
   end
 
   test "reserved enum names" do

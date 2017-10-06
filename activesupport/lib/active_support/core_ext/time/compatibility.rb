@@ -1,10 +1,12 @@
-require "active_support/core_ext/date_and_time/compatibility"
-require "active_support/core_ext/module/remove_method"
+# frozen_string_literal: true
+
+require_relative "../date_and_time/compatibility"
+require_relative "../module/redefine_method"
 
 class Time
   include DateAndTime::Compatibility
 
-  remove_possible_method :to_time
+  silence_redefinition_of_method :to_time
 
   # Either return +self+ or the time in the local system timezone depending
   # on the setting of +ActiveSupport.to_time_preserves_timezone+.

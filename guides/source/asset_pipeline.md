@@ -154,7 +154,7 @@ environments. You can enable or disable it in your configuration through the
 
 More reading:
 
-* [Optimize caching](http://code.google.com/speed/page-speed/docs/caching.html)
+* [Optimize caching](https://developers.google.com/speed/docs/insights/LeverageBrowserCaching)
 * [Revving Filenames: don't use querystring](http://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/)
 
 
@@ -283,10 +283,10 @@ You can view the search path by inspecting
 `Rails.application.config.assets.paths` in the Rails console.
 
 Besides the standard `assets/*` paths, additional (fully qualified) paths can be
-added to the pipeline in `config/application.rb`. For example:
+added to the pipeline in `config/initializers/assets.rb`. For example:
 
 ```ruby
-config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
+Rails.application.config.assets.paths << Rails.root.join("lib", "videoplayer", "flash")
 ```
 
 Paths are traversed in the order they occur in the search path. By default,
@@ -383,7 +383,7 @@ it would make sense to have an image in one of the asset load paths, such as
 already available in `public/assets` as a fingerprinted file, then that path is
 referenced.
 
-If you want to use a [data URI](http://en.wikipedia.org/wiki/Data_URI_scheme) -
+If you want to use a [data URI](https://en.wikipedia.org/wiki/Data_URI_scheme) -
 a method of embedding the image data directly into the CSS file - you can use
 the `asset_data_uri` helper.
 
@@ -447,15 +447,15 @@ For example, a new Rails application includes a default
 
 ```js
 // ...
-//= require jquery
-//= require jquery_ujs
+//= require rails-ujs
+//= require turbolinks
 //= require_tree .
 ```
 
 In JavaScript files, Sprockets directives begin with `//=`. In the above case,
 the file is using the `require` and the `require_tree` directives. The `require`
 directive is used to tell Sprockets the files you wish to require. Here, you are
-requiring the files `jquery.js` and `jquery_ujs.js` that are available somewhere
+requiring the files `rails-ujs.js` and `turbolinks.js` that are available somewhere
 in the search path for Sprockets. You need not supply the extensions explicitly.
 Sprockets assumes you are requiring a `.js` file when done from within a `.js`
 file.
@@ -571,20 +571,6 @@ would generate this HTML:
 ```
 
 The `body` param is required by Sprockets.
-
-### Runtime Error Checking
-
-By default the asset pipeline will check for potential errors in development mode during
-runtime. To disable this behavior you can set:
-
-```ruby
-config.assets.raise_runtime_errors = false
-```
-
-When this option is true, the asset pipeline will check if all the assets loaded
-in your application are included in the `config.assets.precompile` list.
-If `config.assets.digest` is also true, the asset pipeline will require that
-all requests for assets include digests.
 
 ### Raise an Error When an Asset is Not Found
 
@@ -868,14 +854,14 @@ pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
 
 ```ruby
 group :production do
-  gem 'therubyracer'
+  gem 'mini_racer'
 end
 ```
 
 ### CDNs
 
 CDN stands for [Content Delivery
-Network](http://en.wikipedia.org/wiki/Content_delivery_network), they are
+Network](https://en.wikipedia.org/wiki/Content_delivery_network), they are
 primarily designed to cache assets all over the world so that when a browser
 requests the asset, a cached copy will be geographically close to that browser.
 If you are serving assets directly from your Rails server in production, the
@@ -923,7 +909,7 @@ domain, you do not need to specify a protocol or "scheme" such as `http://` or
 that is generated will match how the webpage is accessed by default.
 
 You can also set this value through an [environment
-variable](http://en.wikipedia.org/wiki/Environment_variable) to make running a
+variable](https://en.wikipedia.org/wiki/Environment_variable) to make running a
 staging copy of your site easier:
 
 ```
@@ -1083,7 +1069,7 @@ Customizing the Pipeline
 ### CSS Compression
 
 One of the options for compressing CSS is YUI. The [YUI CSS
-compressor](http://yui.github.io/yuicompressor/css.html) provides
+compressor](https://yui.github.io/yuicompressor/css.html) provides
 minification.
 
 The following line enables YUI compression, and requires the `yui-compressor`

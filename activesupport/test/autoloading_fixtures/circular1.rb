@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 silence_warnings do
   Circular2
 end

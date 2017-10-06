@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -101,7 +103,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
-    travel_back
   end
 
   def test_tomorrow
@@ -113,7 +114,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 3), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
-    travel_back
   end
 
   def test_yesterday
@@ -125,7 +125,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
-    travel_back
   end
 
   def test_travel_to_a_date
@@ -401,6 +400,16 @@ class TimeZoneTest < ActiveSupport::TestCase
       twz = zone.parse("2013-03-10 02:00:00")
       assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
     end
+  end
+
+  def test_parse_with_invalid_date
+    zone = ActiveSupport::TimeZone["UTC"]
+
+    exception = assert_raises(ArgumentError) do
+      zone.parse("9000")
+    end
+
+    assert_equal "argument out of range", exception.message
   end
 
   def test_rfc3339

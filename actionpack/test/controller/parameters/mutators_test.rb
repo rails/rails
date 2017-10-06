@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/hash/transform_values"
@@ -35,7 +37,7 @@ class ParametersMutatorsTest < ActiveSupport::TestCase
   end
 
   test "delete returns nil when the key is not present" do
-    assert_equal nil, @params[:person].delete(:first_name)
+    assert_nil @params[:person].delete(:first_name)
   end
 
   test "delete returns the value of the given block when the key is not present" do

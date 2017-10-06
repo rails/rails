@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TestResponseTest < ActiveSupport::TestCase
@@ -24,5 +26,12 @@ class TestResponseTest < ActiveSupport::TestCase
 
     response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "application/json" }, '{ "foo": "fighters" }')
     assert_equal({ "foo" => "fighters" }, response.parsed_body)
+  end
+
+  test "response status aliases deprecated" do
+    response = ActionDispatch::TestResponse.create
+    assert_deprecated { response.success? }
+    assert_deprecated { response.missing? }
+    assert_deprecated { response.error? }
   end
 end
