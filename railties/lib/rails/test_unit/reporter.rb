@@ -12,7 +12,7 @@ module Rails
 
       if options[:verbose]
         io.puts color_output(format_line(result), by: result)
-      else
+      elsif output_result_code?
         io.print color_output(result.result_code, by: result)
       end
 
@@ -55,6 +55,10 @@ module Rails
     end
 
     private
+      def output_result_code?
+        !options[:silence_result_code]
+      end
+
       def output_inline?
         options[:output_inline]
       end
