@@ -66,7 +66,7 @@ Major Features
 * **ActiveRecord session store** ([commit](https://github.com/rails/rails/commit/0ffe19056c8e8b2f9ae9d487b896cad2ce9387ad)) - The ActiveRecord session store is extracted to a separate gem. Storing sessions in SQL is costly. Instead, use cookie sessions, memcache sessions, or a custom session store.
 * **ActiveModel mass assignment protection** ([commit](https://github.com/rails/rails/commit/f8c9a4d3e88181cee644f91e1342bfe896ca64c6)) - Rails 3 mass assignment protection is deprecated. Instead, use strong parameters.
 * **ActiveResource** ([commit](https://github.com/rails/rails/commit/f1637bf2bb00490203503fbd943b73406e043d1d)) - ActiveResource is extracted to a separate gem. ActiveResource was not widely used.
-* **vendor/plugins removed** ([commit](https://github.com/rails/rails/commit/853de2bd9ac572735fa6cf59fcf827e485a231c3)) - Use a Gemfile to manage installed gems.
+* **vendor/plugins removed** ([commit](https://github.com/rails/rails/commit/853de2bd9ac572735fa6cf59fcf827e485a231c3)) - Use a `Gemfile` to manage installed gems.
 
 ### ActionPack
 

@@ -653,7 +653,7 @@ there isn't an application handy to test this out in, generate one using the
 $ rails new unicorn
 ```
 
-Usually, specifying the engine inside the Gemfile would be done by specifying it
+Usually, specifying the engine inside the `Gemfile` would be done by specifying it
 as a normal, everyday gem.
 
 ```ruby

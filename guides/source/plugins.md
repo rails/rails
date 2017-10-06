@@ -446,7 +446,7 @@ Publishing Your Gem
 -------------------
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
-commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
+commit the code to a Git repository (like GitHub) and add a line to the `Gemfile` of the application in question:
 
 ```ruby
 gem "yaffle", git: "https://github.com/rails/yaffle.git"
