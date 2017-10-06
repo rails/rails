@@ -5,6 +5,10 @@
 Rails.handleConfirm = (e) ->
   stopEverything(e) unless allowAction(this)
 
+# Overridable at Rails.confirm, for use with custom dialogs.
+Rails.confirm = (message) ->
+  confirm(message)
+
 # For 'data-confirm' attribute:
 # - Fires `confirm` event
 # - Shows the confirmation dialog
@@ -20,7 +24,7 @@ allowAction = (element) ->
 
   answer = false
   if fire(element, 'confirm')
-    try answer = confirm(message)
+    try answer = Rails.confirm(message)
     callback = fire(element, 'confirm:complete', [answer])
 
   answer and callback
