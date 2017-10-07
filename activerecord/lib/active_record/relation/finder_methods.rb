@@ -390,7 +390,9 @@ module ActiveRecord
 
       def construct_join_dependency(joins = [], eager_loading: true)
         including = eager_load_values + includes_values
-        ActiveRecord::Associations::JoinDependency.new(klass, table, including, joins, eager_loading: eager_loading)
+        ActiveRecord::Associations::JoinDependency.new(
+          klass, table, including, alias_tracker(joins), eager_loading: eager_loading
+        )
       end
 
       def construct_relation_for_association_calculations

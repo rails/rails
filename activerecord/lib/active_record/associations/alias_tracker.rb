@@ -6,22 +6,16 @@ module ActiveRecord
   module Associations
     # Keeps track of table aliases for ActiveRecord::Associations::JoinDependency
     class AliasTracker # :nodoc:
-      def self.create(connection, initial_table)
-        aliases = Hash.new(0)
-        aliases[initial_table] = 1
-        new(connection, aliases)
-      end
-
-      def self.create_with_joins(connection, initial_table, joins)
+      def self.create(connection, initial_table, joins)
         if joins.empty?
-          create(connection, initial_table)
+          aliases = Hash.new(0)
         else
           aliases = Hash.new { |h, k|
             h[k] = initial_count_for(connection, k, joins)
           }
-          aliases[initial_table] = 1
-          new(connection, aliases)
         end
+        aliases[initial_table] = 1
+        new(connection, aliases)
       end
 
       def self.initial_count_for(connection, name, table_joins)

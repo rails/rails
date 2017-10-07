@@ -90,8 +90,8 @@ module ActiveRecord
       #    associations # => [:appointments]
       #    joins # =>  []
       #
-      def initialize(base, table, associations, joins, eager_loading: true)
-        @alias_tracker = AliasTracker.create_with_joins(base.connection, table.name, joins)
+      def initialize(base, table, associations, alias_tracker, eager_loading: true)
+        @alias_tracker = alias_tracker
         @eager_loading = eager_loading
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))

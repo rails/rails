@@ -551,6 +551,10 @@ module ActiveRecord
       limit_value || offset_value
     end
 
+    def alias_tracker(joins = []) # :nodoc:
+      ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
+    end
+
     protected
 
       def load_records(records)
