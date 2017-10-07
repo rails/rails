@@ -596,4 +596,4 @@ end
 ```
 
 You should follow Rails conventions when defining your own events. The format is: `event.library`.
-If you application is sending Tweets, you should create an event named `tweet.twitter`.
+If your application is sending Tweets, you should create an event named `tweet.twitter`.
