@@ -1,0 +1,8 @@
+# Our security address
+Contact: security@example.com
+
+# Our PGP key
+Encryption: https://example.com/pgp-key.txt
+
+# Our disclosure policy
+Disclosure: Full
