@@ -518,6 +518,8 @@ module ActiveRecord
         other.to_sql == to_sql
       when Array
         records == other
+      else
+        false
       end
     end
 
