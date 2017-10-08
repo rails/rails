@@ -1752,7 +1752,7 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 "2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
-Default is `:utc`.
+Default is `:local`.
 
 Please refer to the documentation of `Date._parse` for further details.
 
