@@ -112,3 +112,10 @@ Examples:
             Fixtures:   test/fixtures/admin/accounts.yml
             Migration:  db/migrate/XXX_create_admin_accounts.rb
 
+    `rails generate model address --no-orm`
+
+        Creates an Address model as Plain Old Ruby Object.
+
+            Model:      app/models/address.rb
+            Test:       test/models/address_test.rb
+

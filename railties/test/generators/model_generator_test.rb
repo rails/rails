@@ -31,6 +31,12 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/
   end
 
+  def test_model_with_no_orm_option
+    run_generator ["address", "--no-orm"]
+    assert_file "app/models/address.rb", /class Address/
+    assert_no_migration "db/migrate/create_addresses.rb"
+  end
+
   def test_model_with_parent_option
     run_generator ["account", "--parent", "Admin::Account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
