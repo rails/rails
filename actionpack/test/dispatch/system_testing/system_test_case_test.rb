@@ -36,32 +36,37 @@ end
 
 class UndefMethodsTest < DrivenBySeleniumWithChrome
   test "get" do
-    assert_raise NoMethodError do
+    exception = assert_raise NoMethodError do
       get "http://example.com"
     end
+    assert_equal "System tests cannot make direct requests via #get; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 
   test "post" do
-    assert_raise NoMethodError do
+    exception = assert_raise NoMethodError do
       post "http://example.com"
     end
+    assert_equal "System tests cannot make direct requests via #post; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 
   test "put" do
-    assert_raise NoMethodError do
+    exception = assert_raise NoMethodError do
       put "http://example.com"
     end
+    assert_equal "System tests cannot make direct requests via #put; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 
   test "patch" do
-    assert_raise NoMethodError do
+    exception = assert_raise NoMethodError do
       patch "http://example.com"
     end
+    assert_equal "System tests cannot make direct requests via #patch; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 
   test "delete" do
-    assert_raise NoMethodError do
+    exception = assert_raise NoMethodError do
       delete "http://example.com"
     end
+    assert_equal "System tests cannot make direct requests via #delete; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information.", exception.message
   end
 end
