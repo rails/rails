@@ -200,7 +200,7 @@ module ActiveRecord
             # Bubbled up from the adapter require. Prefix the exception message
             # with some guidance about how to address it and reraise.
             else
-              raise e.class, "Error loading the '#{spec[:adapter]}' Action Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+              raise e.class, "Error loading the '#{spec[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
             end
           end
 
