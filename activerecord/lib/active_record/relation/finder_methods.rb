@@ -310,12 +310,12 @@ module ActiveRecord
 
       return false if !conditions || limit_value == 0
 
-      relation = self unless eager_loading?
-      relation ||= apply_join_dependency(self, construct_join_dependency(eager_loading: false))
+      if eager_loading?
+        relation = apply_join_dependency(construct_join_dependency(eager_loading: false))
+        return relation.exists?(conditions)
+      end
 
-      return false if ActiveRecord::NullRelation === relation
-
-      relation = construct_relation_for_exists(relation, conditions)
+      relation = construct_relation_for_exists(conditions)
 
       skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
     rescue ::RangeError
@@ -368,15 +368,14 @@ module ActiveRecord
         #
         join_dependency = construct_join_dependency(joins_values)
 
-        aliases  = join_dependency.aliases
-        relation = select aliases.columns
-        relation = apply_join_dependency(relation, join_dependency)
+        relation = apply_join_dependency(join_dependency)
+        relation._select!(join_dependency.aliases.columns)
 
         yield relation, join_dependency
       end
 
-      def construct_relation_for_exists(relation, conditions)
-        relation = relation.except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+      def construct_relation_for_exists(conditions)
+        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
 
         case conditions
         when Array, Hash
@@ -396,11 +395,11 @@ module ActiveRecord
       end
 
       def construct_relation_for_association_calculations
-        apply_join_dependency(self, construct_join_dependency(joins_values))
+        apply_join_dependency(construct_join_dependency(joins_values))
       end
 
-      def apply_join_dependency(relation, join_dependency)
-        relation = relation.except(:includes, :eager_load, :preload).joins!(join_dependency)
+      def apply_join_dependency(join_dependency)
+        relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if using_limitable_reflections?(join_dependency.reflections)
           relation
