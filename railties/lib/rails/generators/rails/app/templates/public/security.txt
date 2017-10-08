@@ -1,0 +1,12 @@
+# Please visit the following website to generate contents for this file:
+#
+# https://securitytxt.org/#generate
+#
+# Our security address
+Contact: security@example.com
+
+# Our PGP key
+Encryption: https://example.com/pgp-key.txt
+
+# Our disclosure policy
+Disclosure: Full
