@@ -1,3 +1,7 @@
+*   Support redis-rb 4.0.
+
+    *Jeremy Daer*
+
 *   Change logging instrumentation to log errors when a job raises an exception.
 
     Fixes #26848.

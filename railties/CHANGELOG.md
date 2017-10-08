@@ -1,3 +1,7 @@
+*   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
+
+    *Jeremy Daer*
+
 *   Add `mini_magick` to default `Gemfile` as comment.
 
     *Yoshiyuki Hirano*

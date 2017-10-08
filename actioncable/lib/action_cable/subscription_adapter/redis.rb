@@ -2,7 +2,7 @@
 
 require "thread"
 
-gem "redis", "~> 3.0"
+gem "redis", ">= 3", "< 5"
 require "redis"
 
 module ActionCable
@@ -76,7 +76,7 @@ module ActionCable
 
           def listen(conn)
             conn.without_reconnect do
-              original_client = conn.client
+              original_client = conn.respond_to?(:_client) ? conn._client : conn.client
 
               conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|
