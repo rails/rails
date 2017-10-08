@@ -1,3 +1,7 @@
+# Please visit the following website to generate contents for this file:
+#
+# https://securitytxt.org/#generate
+#
 # Our security address
 Contact: security@example.com
 
