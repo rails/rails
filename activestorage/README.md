@@ -23,8 +23,11 @@ class User < ApplicationRecord
   has_one_attached :avatar
 end
 
-# Attach an avatar to the user.
+# Attach an avatar to the user with a local file.
 user.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
+
+# Attach an avatar to the user from a remote file.
+user.avatar.attach(remote_url: "https://example.com/doc.png", filename: "face.jpg", content_type: "image/jpg")
 
 # Does the user have an avatar?
 user.avatar.attached? # => true

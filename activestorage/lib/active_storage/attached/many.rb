@@ -19,8 +19,14 @@ module ActiveStorage
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
     #   document.images.attach([ first_blob, second_blob ])
+    #   document.images.attach(remote_url: "https://example.com/doc.png", filename: "doc.png", content_type: "image/jpg")
     def attach(*attachables)
       attachables.flatten.collect do |attachable|
+        if attachable[:remote_url].present?
+          remote_file = download_remote_file(attachable)
+          attachable[:io] = remote_file
+          attachable.delete(:remote_url)
+        end
         attachments.create!(name: name, blob: create_blob_from(attachable))
       end
     end
