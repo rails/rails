@@ -468,6 +468,55 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
+  def test_text_field_with_nil_datalist
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" type="text" />',
+      text_field(:post, :cost, datalist: nil)
+    )
+  end
+
+  def test_text_field_with_empty_datalist
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" list="post_cost_list" type="text" /><datalist id="post_cost_list"></datalist>',
+      text_field(:post, :cost, datalist: [])
+    )
+  end
+
+  def test_text_field_with_array_datalist
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" list="post_cost_list" type="text" /><datalist id="post_cost_list"><option value="One">One</option></datalist>',
+      text_field(:post, :cost, datalist: ["One"])
+    )
+  end
+
+  def test_text_field_with_array_datalist_and_label
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" list="post_cost_list" type="text" /><datalist id="post_cost_list"><option label="Uno" value="One">One</option></datalist>',
+      text_field(:post, :cost, datalist: [["One", label: "Uno"]])
+    )
+  end
+
+  def test_text_field_with_hash_datalist
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" list="post_cost_list" type="text" /><datalist id="post_cost_list"><option value="1">One</option></datalist>',
+      text_field(:post, :cost, datalist: { "One" => 1 })
+    )
+  end
+
+  def test_text_field_with_datalist_and_list_attribute
+    assert_dom_equal(
+      '<input id="post_cost" name="post[cost]" list="datalist_id" type="text" /><datalist id="datalist_id"></datalist>',
+      text_field(:post, :cost, datalist: [], list: "datalist_id")
+    )
+  end
+
+  def test_text_field_with_datalist_and_without_list_or_id_attribute
+    assert_dom_equal(
+      '<input name="post[cost]" type="text" /><datalist></datalist>',
+      text_field(:post, :cost, datalist: [], skip_default_ids: true)
+    )
+  end
+
   def test_text_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="text" value="Hello World" />',

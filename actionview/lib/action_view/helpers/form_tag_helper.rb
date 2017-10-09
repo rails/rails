@@ -163,6 +163,7 @@ module ActionView
       # * <tt>:size</tt> - The number of visible characters that will fit in the input.
       # * <tt>:maxlength</tt> - The maximum number of characters that the browser will allow the user to enter.
       # * <tt>:placeholder</tt> - The text contained in the field by default which is removed when the field receives focus.
+      # * <tt>:datalist</tt> - A collection of datalist options to associate with the input.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -189,8 +190,27 @@ module ActionView
       #
       #   text_field_tag 'ip', '0.0.0.0', maxlength: 15, size: 20, class: "ip-input"
       #   # => <input class="ip-input" id="ip" maxlength="15" name="ip" size="20" type="text" value="0.0.0.0" />
+      #
+      #   text_field_tag "title", nil, datalist: options_for_datalist(@titles)
+      #   # => <input id="title" name="title" type="text" list="title_list" /><datalist id="title_list"><option value="Developer">Developer</option></datalist>
+      #
+      #   text_field_tag 'title', nil, datalist: options_for_datalist(@titles), list: 'list-of-titles'
+      #   # => <input id="title" name="title" type="text" list="list-of-titles" /><datalist id="list-of-titles"><option value="Developer">Developer</option></datalist>
       def text_field_tag(name, value = nil, options = {})
-        tag :input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options.stringify_keys)
+        options = options.stringify_keys
+        option_tags = options.delete("datalist")
+
+        if option_tags
+          options["list"] = options.fetch("list") { "#{options['id'] || sanitize_to_id(name)}_list" }
+        end
+
+        output = tag(:input, { "type" => "text", "name" => name, "id" => sanitize_to_id(name), "value" => value }.update(options))
+
+        if option_tags
+          output.safe_concat(content_tag(:datalist, option_tags, "id" => options["list"]))
+        end
+
+        output
       end
 
       # Creates a label element. Accepts a block.

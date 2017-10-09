@@ -368,6 +368,7 @@ module ActionView
           tag_builder.content_tag_string(:option, text, html_attributes)
         end.join("\n").html_safe
       end
+      alias options_for_datalist options_for_select
 
       # Returns a string of option tags that have been compiled by iterating over the +collection+ and assigning
       # the result of a call to the +value_method+ as the option value and the +text_method+ as the option text.
