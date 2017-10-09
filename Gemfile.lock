@@ -35,16 +35,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/mperham/sidekiq.git
-  revision: 6332b9f8a316cf1000246701e40e108d16fed6d4
-  specs:
-    sidekiq (5.0.5)
-      concurrent-ruby (~> 1.0)
-      connection_pool (~> 2.2, >= 2.2.0)
-      rack-protection (>= 1.5.0)
-      redis (>= 3.3.4, < 5)
-
-GIT
   remote: https://github.com/rails/arel.git
   revision: 42510bf71472e2e35d9becb546edd05562672344
   specs:
@@ -424,6 +414,11 @@ GEM
     sequel (4.49.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
+    sidekiq (5.0.5)
+      concurrent-ruby (~> 1.0)
+      connection_pool (~> 2.2, >= 2.2.0)
+      rack-protection (>= 1.5.0)
+      redis (>= 3.3.4, < 5)
     sigdump (0.2.4)
     signet (0.7.3)
       addressable (~> 2.3)
@@ -544,7 +539,7 @@ DEPENDENCIES
   sass-rails!
   sdoc!
   sequel
-  sidekiq!
+  sidekiq
   sneakers
   sprockets-export
   sqlite3 (~> 1.3.6)
