@@ -40,7 +40,7 @@ module ApplicationTests
       with_rails_env "test" do
         rails "generate", "model", "product", "name:string"
         rails "db:create", "db:migrate"
-        output = Dir.chdir(app_path) { rails("db:test:prepare", "test") }
+        output = rails("db:test:prepare", "test")
 
         refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
@@ -101,6 +101,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         rake_tasks do
           task do_nothing: :environment do
+            puts 'There is nothing'
           end
         end
       RUBY
@@ -113,10 +114,8 @@ module ApplicationTests
         raise 'should not be pre-required for rake even eager_load=true'
       RUBY
 
-      Dir.chdir(app_path) do
-        assert system("bin/rails do_nothing RAILS_ENV=production"),
-               "should not be pre-required for rake even eager_load=true"
-      end
+      output = rails("do_nothing", "RAILS_ENV=production")
+      assert_match "There is nothing", output
     end
 
     def test_code_statistics_sanity
@@ -294,9 +293,8 @@ module ApplicationTests
 
     def test_scaffold_tests_pass_by_default
       rails "generate", "scaffold", "user", "username:string", "password:string"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -313,9 +311,8 @@ module ApplicationTests
       RUBY
 
       rails "generate", "scaffold", "user", "username:string", "password:string"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -325,9 +322,8 @@ module ApplicationTests
       rails "generate", "model", "Product"
       rails "generate", "model", "Cart"
       rails "generate", "scaffold", "LineItems", "product:references", "cart:belongs_to"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -337,9 +333,7 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
-      output = with_rails_env("test") do
-        rails "db:test:prepare", "--trace"
-      end
+      output = rails("db:test:prepare", "--trace")
       assert_match(/Execute db:test:load_structure/, output)
     end
 
@@ -372,14 +366,12 @@ module ApplicationTests
     end
 
     def test_copy_templates
-      Dir.chdir(app_path) do
-        rails "app:templates:copy"
-        %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
-        end
-        %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
-        end
+      rails "app:templates:copy"
+      %w(controller mailer scaffold).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
+      end
+      %w(controller helper scaffold_controller assets).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
     end
 
