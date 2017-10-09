@@ -537,12 +537,12 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_for [@article, @article.comments.build] do |f| %>
+<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
-  <%= f.submit %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -783,8 +783,8 @@ added above the `title` field with this code:
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br>
-  <%= f.text_field :author_name %>
+  <%= form.label :author_name %><br>
+  <%= form.text_field :author_name %>
 </div>
 ```
 
