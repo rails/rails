@@ -999,6 +999,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
+  test "generated attribute methods ancestors have correct class" do
+    mod = Topic.send(:generated_attribute_methods)
+    assert_match %r(GeneratedAttributeMethods), mod.inspect
+  end
+
   private
 
     def new_topic_like_ar_class(&block)
