@@ -172,21 +172,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      Rails::Command::ConsoleCommand.class_eval do
-        alias_method :old_perform, :perform
-        define_method(:perform) do
-          extract_environment_option_from_argument
-
-          options
-        end
-      end
-
-      Rails::Command.invoke(:console, args)
-    ensure
-      Rails::Command::ConsoleCommand.class_eval do
-        undef_method :perform
-        alias_method :perform, :old_perform
-        undef_method :old_perform
-      end
+      command = Rails::Command::ConsoleCommand.new([], args)
+      command.send(:extract_environment_option_from_argument)
+      command.options
     end
 end
