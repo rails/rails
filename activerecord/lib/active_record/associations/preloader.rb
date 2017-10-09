@@ -90,7 +90,7 @@ module ActiveRecord
       #   [ :books, :author ]
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
-      def preload(records, associations, preload_scope = nil)
+      def preload(records, associations, preload_scope = nil, skip_setting_target = false)
         records = records.compact
 
         if records.empty?
@@ -98,7 +98,7 @@ module ActiveRecord
         else
           records.uniq!
           Array.wrap(associations).flat_map { |association|
-            preloaders_on association, records, preload_scope
+            preloaders_on association, records, preload_scope, skip_setting_target
           }
         end
       end
@@ -106,26 +106,26 @@ module ActiveRecord
       private
 
         # Loads all the given data into +records+ for the +association+.
-        def preloaders_on(association, records, scope)
+        def preloaders_on(association, records, scope, skip_setting_target)
           case association
           when Hash
-            preloaders_for_hash(association, records, scope)
+            preloaders_for_hash(association, records, scope, skip_setting_target)
           when Symbol
-            preloaders_for_one(association, records, scope)
+            preloaders_for_one(association, records, scope, skip_setting_target)
           when String
-            preloaders_for_one(association.to_sym, records, scope)
+            preloaders_for_one(association.to_sym, records, scope, skip_setting_target)
           else
             raise ArgumentError, "#{association.inspect} was not recognized for preload"
           end
         end
 
-        def preloaders_for_hash(association, records, scope)
+        def preloaders_for_hash(association, records, scope, skip_setting_target)
           association.flat_map { |parent, child|
-            loaders = preloaders_for_one parent, records, scope
+            loaders = preloaders_for_one parent, records, scope, skip_setting_target
 
             recs = loaders.flat_map(&:preloaded_records).uniq
             loaders.concat Array.wrap(child).flat_map { |assoc|
-              preloaders_on assoc, recs, scope
+              preloaders_on assoc, recs, scope, skip_setting_target
             }
             loaders
           }
@@ -143,10 +143,10 @@ module ActiveRecord
         # Additionally, polymorphic belongs_to associations can have multiple associated
         # classes, depending on the polymorphic_type field. So we group by the classes as
         # well.
-        def preloaders_for_one(association, records, scope)
+        def preloaders_for_one(association, records, scope, skip_setting_target)
           grouped_records(association, records).flat_map do |reflection, klasses|
             klasses.map do |rhs_klass, rs|
-              loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
+              loader = preloader_for(reflection, rs, skip_setting_target).new(rhs_klass, rs, reflection, scope, skip_setting_target)
               loader.run self
               loader
             end
@@ -168,7 +168,7 @@ module ActiveRecord
         class AlreadyLoaded # :nodoc:
           attr_reader :owners, :reflection
 
-          def initialize(klass, owners, reflection, preload_scope)
+          def initialize(klass, owners, reflection, preload_scope, skip_setting_target)
             @owners = owners
             @reflection = reflection
           end
@@ -178,14 +178,20 @@ module ActiveRecord
           def preloaded_records
             owners.flat_map { |owner| owner.association(reflection.name).target }
           end
+
+          def loaded_associated_records_by_owner
+            owners.map do |owner|
+              [owner, owner.association(reflection.name).target]
+            end.to_h
+          end
         end
 
         # Returns a class containing the logic needed to load preload the data
         # and attach it to a relation. For example +Preloader::Association+ or
         # +Preloader::HasManyThrough+. The class returned implements a `run` method
         # that accepts a preloader.
-        def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
+        def preloader_for(reflection, owners, skip_setting_target)
+          if owners.first.association(reflection.name).loaded? && !skip_setting_target
             return AlreadyLoaded
           end
           reflection.check_preloadable!
