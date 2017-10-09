@@ -130,7 +130,7 @@ module ActiveRecord
     #      end
     def calculate(operation, column_name)
       if has_include?(column_name)
-        relation = construct_relation_for_association_calculations
+        relation = apply_join_dependency(construct_join_dependency)
         relation.distinct! if operation.to_s.downcase == "count"
 
         relation.calculate(operation, column_name)
@@ -180,7 +180,8 @@ module ActiveRecord
       end
 
       if has_include?(column_names.first)
-        construct_relation_for_association_calculations.pluck(*column_names)
+        relation = apply_join_dependency(construct_join_dependency)
+        relation.pluck(*column_names)
       else
         relation = spawn
         relation.select_values = column_names.map { |cn|

@@ -394,10 +394,6 @@ module ActiveRecord
         )
       end
 
-      def construct_relation_for_association_calculations
-        apply_join_dependency(construct_join_dependency)
-      end
-
       def apply_join_dependency(join_dependency)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
