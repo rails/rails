@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/jeremy/resque-scheduler.git
-  revision: 5efd21bb7ee4b326d9c0d26fccad10fc59dd51f0
+  revision: 7cccf7d8db4dbbf54bf549a98b6cbb38106dbed2
   branch: redis-rb-4.0
   specs:
     resque-scheduler (4.3.0)
