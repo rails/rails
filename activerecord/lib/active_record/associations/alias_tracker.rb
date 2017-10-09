@@ -30,6 +30,8 @@ module ActiveRecord
             ).size
           elsif join.respond_to? :left
             join.left.table_name == name ? 1 : 0
+          elsif join.is_a?(Hash)
+            join[name]
           else
             # this branch is reached by two tests:
             #
@@ -73,10 +75,7 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :aliases
+      attr_reader :aliases
 
       private
 

@@ -11,11 +11,12 @@ module ActiveRecord
 
         attr_accessor :tables
 
-        def initialize(reflection, children)
+        def initialize(reflection, children, alias_tracker)
           super(reflection.klass, children)
 
-          @reflection      = reflection
-          @tables          = nil
+          @alias_tracker = alias_tracker
+          @reflection    = reflection
+          @tables        = nil
         end
 
         def match?(other)
@@ -38,11 +39,12 @@ module ActiveRecord
             joins << table.create_join(table, table.create_on(constraint), join_type)
 
             join_scope = reflection.join_scope(table, foreign_klass)
+            arel = join_scope.arel(alias_tracker.aliases)
 
-            if join_scope.arel.constraints.any?
-              joins.concat join_scope.arel.join_sources
+            if arel.constraints.any?
+              joins.concat arel.join_sources
               right = joins.last.right
-              right.expr = right.expr.and(join_scope.arel.constraints)
+              right.expr = right.expr.and(arel.constraints)
             end
 
             # The current table in this iteration becomes the foreign table in the next
@@ -55,6 +57,9 @@ module ActiveRecord
         def table
           tables.first
         end
+
+        protected
+          attr_reader :alias_tracker
       end
     end
   end

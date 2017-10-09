@@ -551,7 +551,8 @@ module ActiveRecord
       limit_value || offset_value
     end
 
-    def alias_tracker(joins = []) # :nodoc:
+    def alias_tracker(joins = [], aliases = nil) # :nodoc:
+      joins += [aliases] if aliases
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
