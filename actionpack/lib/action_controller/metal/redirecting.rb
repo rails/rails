@@ -79,15 +79,18 @@ module ActionController
     #   redirect_back fallback_location: "/images/screenshot.jpg"
     #   redirect_back fallback_location: posts_url
     #   redirect_back fallback_location: proc { edit_post_url(@post) }
+    #   redirect_back fallback_location: '/', allow_other_host: false
     #
-    # All options that can be passed to <tt>redirect_to</tt> are accepted as
+    # ==== Options
+    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing `Referer` header.
+    # * <tt>:allow_other_host</tt> - Allows or dissallow redirection to the host that is different to the current host
+    #
+    # All other options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
-    def redirect_back(fallback_location:, **args)
-      if referer = request.headers["Referer"]
-        redirect_to referer, **args
-      else
-        redirect_to fallback_location, **args
-      end
+    def redirect_back(fallback_location:, allow_other_host: true, **args)
+      referer = request.headers["Referer"]
+      redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
+      redirect_to redirect_to_referer ? referer : fallback_location, **args
     end
 
     def _compute_redirect_to_location(request, options) #:nodoc:
@@ -119,6 +122,12 @@ module ActionController
         else
           302
         end
+      end
+
+      def _url_host_allowed?(url)
+        URI(url.to_s).host == request.host
+      rescue ArgumentError, URI::Error
+        false
       end
   end
 end
