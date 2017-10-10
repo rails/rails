@@ -77,7 +77,7 @@ module ActiveSupport
   # Though if both the secret and the cipher was changed at the same time,
   # the above should be combined into:
   #
-  #   verifier.rotate old_secret, cipher: "aes-256-cbc"
+  #   crypt.rotate old_secret, cipher: "aes-256-cbc"
   class MessageEncryptor
     prepend Messages::Rotator::Encryptor
 
