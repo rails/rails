@@ -917,6 +917,25 @@ class CookiesTest < ActionController::TestCase
     assert_equal "bar", encryptor.decrypt_and_verify(@response.cookies["foo"])
   end
 
+  def test_rotating_signed_cookies_digest
+    @request.env["action_dispatch.signed_cookie_digest"] = "SHA256"
+    @request.env["action_dispatch.cookies_rotations"].rotate :signed, digest: "SHA1"
+
+    key_generator = @request.env["action_dispatch.key_generator"]
+
+    old_secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    old_value = ActiveSupport::MessageVerifier.new(old_secret).generate(45)
+
+    @request.headers["Cookie"] = "user_id=#{old_value}"
+    get :get_signed_cookie
+
+    assert_equal 45, @controller.send(:cookies).signed[:user_id]
+
+    secret = key_generator.generate_key(@request.env["action_dispatch.signed_cookie_salt"])
+    verifier = ActiveSupport::MessageVerifier.new(secret, digest: "SHA256")
+    assert_equal 45, verifier.verify(@response.cookies["user_id"])
+  end
+
   def test_legacy_hmac_aes_cbc_encrypted_marshal_cookie_is_upgraded_to_authenticated_encrypted_cookie
     key_generator = @request.env["action_dispatch.key_generator"]
     encrypted_cookie_salt = @request.env["action_dispatch.encrypted_cookie_salt"]
