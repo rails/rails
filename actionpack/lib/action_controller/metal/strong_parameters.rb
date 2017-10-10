@@ -289,7 +289,7 @@ module ActionController
     #   safe_params = params.permit(:name)
     #   safe_params.to_hash # => {"name"=>"Senjougahara Hitagi"}
     def to_hash
-      if self.class.raise_on_unfiltered_parameters
+      if self.class.raise_on_unfiltered_parameters || permitted?
         to_h.to_hash
       else
         message = <<-DEPRECATE.squish
