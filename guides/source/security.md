@@ -169,11 +169,12 @@ you would first assign the new configuration value:
 Rails.application.config.action_dispatch.signed_cookie_digest = "SHA256"
 ```
 
-Then you'd set up a rotation with the old configuration to keep it alive.
+Now add a rotation for the old SHA1 digest so existing cookies are
+seamlessly upgraded to the new SHA256 digest.
 
 ```ruby
 Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
-  cookies.rotate :signed, digest: "SHA256"
+  cookies.rotate :signed, digest: "SHA1"
 end
 ```
 
