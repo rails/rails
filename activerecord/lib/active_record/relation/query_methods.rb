@@ -1097,6 +1097,10 @@ module ActiveRecord
       end
 
       def does_not_support_reverse?(order)
+        # Account for String subclasses like Arel::Nodes::SqlLiteral that
+        # override methods like #count.
+        order = String.new(order) unless order.instance_of?(String)
+
         # Uses SQL function with multiple arguments.
         (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
           # Uses "nulls first" like construction.
