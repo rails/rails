@@ -60,6 +60,9 @@ module ActiveRecord
       end
 
       def commit!
+        if uncommittable?
+          raise ActiveRecord::TransactionIsolationError, "cannot set state committed when already #{state.to_s}"
+        end
         @state = :committed
       end
 
@@ -195,11 +198,14 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name) if materialized?
+        connection.rollback_to_savepoint(savepoint_name) if materialized? && !state.invalidated?
         @state.rollback!
       end
 
       def commit
+        if state.invalidated?
+          raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
+        end
         connection.release_savepoint(savepoint_name) if materialized?
         @state.commit!
       end
@@ -219,11 +225,14 @@ module ActiveRecord
       end
 
       def rollback
-        connection.rollback_db_transaction if materialized?
+        connection.rollback_db_transaction if materialized? && !state.invalidated?
         @state.full_rollback!
       end
 
       def commit
+        if state.invalidated?
+          raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
+        end
         connection.commit_db_transaction if materialized?
         @state.full_commit!
       end
@@ -301,6 +310,9 @@ module ActiveRecord
       def commit_transaction
         @connection.lock.synchronize do
           transaction = @stack.last
+          if transaction.state.invalidated?
+            raise ActiveRecord::StatementInvalid, "cannot commit after transaction invalidated"
+          end
 
           begin
             transaction.before_commit_records
@@ -316,7 +328,7 @@ module ActiveRecord
       def rollback_transaction(transaction = nil)
         @connection.lock.synchronize do
           transaction ||= @stack.pop
-          transaction.rollback
+          transaction.rollback unless transaction.state.invalidated?
           transaction.rollback_records
         end
       end
@@ -329,6 +341,7 @@ module ActiveRecord
           ret
         rescue Exception => error
           if transaction
+            transaction.state.invalidate! if error.is_a? ActiveRecord::TransactionRollbackError
             rollback_transaction
             after_failure_actions(transaction, error)
           end
