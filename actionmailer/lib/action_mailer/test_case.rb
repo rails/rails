@@ -90,8 +90,14 @@ module ActionMailer
         end
 
         def set_delivery_method(method)
-          @old_delivery_method = ActionMailer::Base.delivery_method
-          ActionMailer::Base.delivery_method = method
+          # This can happen in a scenario where `delivery_method` is not
+          # specified in the test environment.
+          if [:smtp, :sendmail].include? ActionMailer::Base.delivery_method
+            @old_delivery_method = ActionMailer::Base.delivery_method
+            ActionMailer::Base.delivery_method = method
+          else
+            @old_delivery_method = ActionMailer::Base.delivery_method
+          end
         end
 
         def restore_delivery_method
