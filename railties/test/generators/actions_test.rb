@@ -308,6 +308,14 @@ class ActionsTest < Rails::Generators::TestCase
     end
   end
 
+  test "rake command with capture option should run rake command with capture" do
+    assert_called_with(generator, :run, ["rake log:clear RAILS_ENV=development", verbose: false, capture: true]) do
+      with_rails_env nil do
+        action :rake, "log:clear", capture: true
+      end
+    end
+  end
+
   test "rails command should run rails_command with default env" do
     assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
@@ -342,6 +350,14 @@ class ActionsTest < Rails::Generators::TestCase
     assert_called_with(generator, :run, ["sudo rails log:clear RAILS_ENV=development", verbose: false]) do
       with_rails_env nil do
         action :rails_command, "log:clear", sudo: true
+      end
+    end
+  end
+
+  test "rails command with capture option should run rails_command with capture" do
+    assert_called_with(generator, :run, ["rails log:clear RAILS_ENV=development", verbose: false, capture: true]) do
+      with_rails_env nil do
+        action :rails_command, "log:clear", capture: true
       end
     end
   end
