@@ -33,6 +33,14 @@ module ActiveRecord
         @state == :fully_rolledback
       end
 
+      def invalidated?
+        @state == :invalidated
+      end
+
+      def uncommittable?
+        invalidated? || rolledback?
+      end
+
       def fully_completed?
         completed?
       end
@@ -57,6 +65,11 @@ module ActiveRecord
 
       def full_commit!
         @state = :fully_committed
+      end
+
+      def invalidate!
+        @children.each { |c| c.invalidate! }
+        @state = :invalidated
       end
 
       def nullify!
@@ -151,6 +164,10 @@ module ActiveRecord
         end
       ensure
         ite&.each { |i| i.committed!(should_run_callbacks: false) }
+      end
+
+      def invalidate
+        @state.invalidate!
       end
 
       def full_rollback?; true; end
