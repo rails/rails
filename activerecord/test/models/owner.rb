@@ -2,7 +2,7 @@
 
 class Owner < ActiveRecord::Base
   self.primary_key = :owner_id
-  has_many :pets, -> { order Arel.sql("pets.name desc") }
+  has_many :pets, -> { order "pets.name desc" }
   has_many :toys, through: :pets
   has_many :persons, through: :pets
 

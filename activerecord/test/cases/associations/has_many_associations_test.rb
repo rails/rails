@@ -550,7 +550,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_clients = companies(:first_firm).clients_sorted_desc.order(Arel.sql("companies.id"))
+    ordered_clients = companies(:first_firm).clients_sorted_desc.order("companies.id")
     assert_equal ["id DESC", "companies.id"], ordered_clients.order_values
   end
 

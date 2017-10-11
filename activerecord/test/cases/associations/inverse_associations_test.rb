@@ -223,7 +223,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
     f.man.name = "Mungo"
     assert_equal m.name, f.man.name, "Name of man should be the same after changes to child-owned instance"
 
-    m = Man.all.merge!(where: { name: "Gordon" }, includes: :face, order: Arel.sql("faces.id")).first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :face, order: "faces.id").first
     f = m.face
     assert_equal m.name, f.man.name, "Name of man should be the same before changes to parent instance"
     m.name = "Bongo"
@@ -329,7 +329,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
     end
 
-    m = Man.all.merge!(where: { name: "Gordon" }, includes: :interests, order: Arel.sql("interests.id")).first
+    m = Man.all.merge!(where: { name: "Gordon" }, includes: :interests, order: "interests.id").first
     is = m.interests
     is.each do |i|
       assert_equal m.name, i.man.name, "Name of man should be the same before changes to parent instance"
@@ -554,7 +554,7 @@ class InverseBelongsToTests < ActiveRecord::TestCase
     m.face.description = "pleasing"
     assert_equal f.description, m.face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(includes: :man, order: Arel.sql("men.id"), where: { description: "trusting" }).first
+    f = Face.all.merge!(includes: :man, order: "men.id", where: { description: "trusting" }).first
     m = f.man
     assert_equal f.description, m.face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"
@@ -637,7 +637,7 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     m.polymorphic_face.description = "pleasing"
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same after changes to parent-owned instance"
 
-    f = Face.all.merge!(where: { description: "confused" }, includes: :man, order: Arel.sql("men.id")).first
+    f = Face.all.merge!(where: { description: "confused" }, includes: :man, order: "men.id").first
     m = f.polymorphic_man
     assert_equal f.description, m.polymorphic_face.description, "Description of face should be the same before changes to child instance"
     f.description = "gormless"

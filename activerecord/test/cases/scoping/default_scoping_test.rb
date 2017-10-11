@@ -80,7 +80,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_overwrites_default
-    expected = Developer.all.merge!(order: Arel.sql("salary DESC, name DESC")).to_a.collect(&:name)
+    expected = Developer.all.merge!(order: "salary DESC, name DESC").to_a.collect(&:name)
     received = DeveloperOrderedBySalary.by_name.to_a.collect(&:name)
     assert_equal expected, received
   end
@@ -92,7 +92,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_after_reorder_combines_orders
-    expected = Developer.order(Arel.sql("name DESC, id DESC")).collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order("name DESC, id DESC").collect { |dev| [dev.name, dev.id] }
     received = Developer.order("name ASC").reorder("name DESC").order("id DESC").collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
   end
@@ -104,12 +104,12 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_unscope_after_reordering_and_combining
-    expected = Developer.order(Arel.sql("id DESC, name DESC")).collect { |dev| [dev.name, dev.id] }
-    received = DeveloperOrderedBySalary.reorder("name DESC").unscope(:order).order(Arel.sql("id DESC, name DESC")).collect { |dev| [dev.name, dev.id] }
+    expected = Developer.order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }
+    received = DeveloperOrderedBySalary.reorder("name DESC").unscope(:order).order("id DESC, name DESC").collect { |dev| [dev.name, dev.id] }
     assert_equal expected, received
 
     expected_2 = Developer.all.collect { |dev| [dev.name, dev.id] }
-    received_2 = Developer.order(Arel.sql("id DESC, name DESC")).unscope(:order).collect { |dev| [dev.name, dev.id] }
+    received_2 = Developer.order("id DESC, name DESC").unscope(:order).collect { |dev| [dev.name, dev.id] }
     assert_equal expected_2, received_2
 
     expected_3 = Developer.all.collect { |dev| [dev.name, dev.id] }
@@ -192,7 +192,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   end
 
   def test_order_to_unscope_reordering
-    scope = DeveloperOrderedBySalary.order(Arel.sql("salary DESC, name ASC")).reverse_order.unscope(:order)
+    scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
     assert !/order/i.match?(scope.to_sql)
   end
 

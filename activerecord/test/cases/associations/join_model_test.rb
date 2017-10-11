@@ -420,7 +420,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_eager_load_has_many_through_has_many
-    author = Author.all.merge!(where: ["name = ?", "David"], includes: :comments, order: Arel.sql("comments.id")).first
+    author = Author.all.merge!(where: ["name = ?", "David"], includes: :comments, order: "comments.id").first
     SpecialComment.new; VerySpecialComment.new
     assert_no_queries do
       assert_equal [1, 2, 3, 5, 6, 7, 8, 9, 10, 12], author.comments.collect(&:id)
