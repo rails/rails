@@ -240,7 +240,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #
@@ -265,7 +265,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #
