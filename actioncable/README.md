@@ -14,7 +14,7 @@ connection instance per WebSocket connection. A single user may have multiple
 WebSockets open to your application if they use multiple browser tabs or devices.
 The client of a WebSocket connection is called the consumer.
 
-Each consumer can in turn subscribe to multiple cable channels. Each channel encapsulates
+Each consumer can, in turn, subscribe to multiple cable channels. Each channel encapsulates
 a logical unit of work, similar to what a controller does in a regular MVC setup. For example,
 you could have a `ChatChannel` and an `AppearancesChannel`, and a consumer could be subscribed to either
 or to both of these channels. At the very least, a consumer should be subscribed to one channel.
@@ -29,7 +29,7 @@ Each channel can then again be streaming zero or more broadcastings. A broadcast
 pubsub link where anything transmitted by the broadcaster is sent directly to the channel
 subscribers who are streaming that named broadcasting.
 
-As you can see, this is a fairly deep architectural stack. There's a lot of new terminology
+As you can see, this is a fairly deep architectural stack. There's a lot of new terminologies
 to identify the new pieces, and on top of that, you're dealing with both client and server side
 reflections of each unit.
 
@@ -185,7 +185,7 @@ Simply calling `App.cable.subscriptions.create` will setup the subscription, whi
 which in turn is linked to the original `App.cable` -> `ApplicationCable::Connection` instances.
 
 Next, we link the client-side `appear` method to `AppearanceChannel#appear(data)`. This is possible because the server-side
-channel instance will automatically expose the public methods declared on the class (minus the callbacks), so that these
+channel instance will automatically expose the public methods declared on the class (minus the callbacks) so that these
 can be reached as remote procedure calls via a subscription's `perform` method.
 
 ### Channel example 2: Receiving new web notifications
@@ -222,7 +222,7 @@ ActionCable.server.broadcast \
 The `ActionCable.server.broadcast` call places a message in the Action Cable pubsub queue under a separate broadcasting name for each user. For a user with an ID of 1, the broadcasting name would be `web_notifications_1`.
 The channel has been instructed to stream everything that arrives at `web_notifications_1` directly to the client by invoking the
 `#received(data)` callback. The data is the hash sent as the second parameter to the server-side broadcast call, JSON encoded for the trip
-across the wire, and unpacked for the data argument arriving to `#received`.
+across the wire and unpacked for the data argument arriving at `#received`.
 
 
 ### Passing Parameters to Channel
@@ -362,8 +362,8 @@ something like: `App.cable = ActionCable.createConsumer("/cable")`.
 The second option is to pass the server URL through the `action_cable_meta_tag` in your layout.
 This uses a URL or path typically set via `config.action_cable.url` in the environment configuration files, or defaults to "/cable".
 
-This method is especially useful if your WebSocket URL might change between environments. If you host your production server via https, you will need to use the wss scheme
-for your Action Cable server, but development might remain http and use the ws scheme. You might use localhost in development and your
+This method is especially useful if your WebSocket URL might change between environments. If you host your production server via https, you will need to use the WSS scheme
+for your Action Cable server, but development might remain HTTP and use the WS scheme. You might use localhost in development and your
 domain in production.
 
 In any case, to vary the WebSocket URL between environments, add the following configuration to each environment:
@@ -398,7 +398,7 @@ config.action_cable.log_tags = [
 
 For a full list of all configuration options, see the `ActionCable::Server::Configuration` class.
 
-Also note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 4, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
+Also, note that your server must provide at least the same number of database connections as you have workers. The default worker pool is set to 4, so that means you have to make at least that available. You can change that in `config/database.yml` through the `pool` attribute.
 
 
 ## Running the cable server
@@ -434,11 +434,11 @@ class Application < Rails::Application
 end
 ```
 
-For every instance of your server you create and for every worker your server spawns, you will also have a new instance of Action Cable, but the use of Redis keeps messages synced across connections.
+For every instance of your server you create and for every worker, your server spawns, you will also have a new instance of Action Cable, but the use of Redis keeps messages synced across connections.
 
 ### Notes
 
-Beware that currently, the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels, or the model your channels use, you must restart the cable server.
+Beware that currently, the cable server will _not_ auto-reload any changes in the framework. As we've discussed, long-running cable connections mean long-running objects. We don't yet have a way of reloading the classes of those objects in a safe manner. So when you change your channels or the model your channels use, you must restart the cable server.
 
 We'll get all this abstracted properly when the framework is integrated into Rails.
 
@@ -463,9 +463,9 @@ This is because Action Cable uses the [Rack socket hijacking API](http://www.rub
 to take over control of connections from the application server. Action Cable
 then manages connections internally, in a multithreaded manner, regardless of
 whether the application server is multi-threaded or not. So Action Cable works
-with all the popular application servers -- Unicorn, Puma and Passenger.
+with all the popular application servers -- Unicorn, Puma, and Passenger.
 
-Action Cable does not work with WEBrick, because WEBrick does not support the
+Action Cable does not work with WEBrick because WEBrick does not support the
 Rack socket hijacking API.
 
 ## Frontend assets
@@ -498,7 +498,7 @@ In addition to being available through the `actioncable` gem, Action Cable's
 frontend JS assets are also bundled in an officially supported npm module,
 intended for usage in standalone frontend applications that communicate with a
 Rails application. A common use case for this could be if you have a decoupled
-frontend application written in React, Ember.js, etc. and want to add real-time
+frontend application, written in React, Ember.js, etc. and want to add real-time
 WebSocket functionality.
 
 ### Installation

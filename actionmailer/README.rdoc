@@ -5,7 +5,7 @@ are used to consolidate code for sending out forgotten passwords, welcome
 wishes on signup, invoices for billing, and any other use case that requires
 a written notification to either a person or another system.
 
-Action Mailer is in essence a wrapper around Action Controller and the
+Action Mailer is, in essence, a wrapper around Action Controller and the
 Mail gem.  It provides a way to make emails using templates in the same
 way that Action Controller renders views using templates.
 
@@ -52,7 +52,7 @@ generated would look like this:
   Subject: [Signed up] Welcome david@loudthinking.com
   Mime-Version: 1.0
   Content-Type: text/plain;
-  	charset="US-ASCII";
+  charset="US-ASCII";
   Content-Transfer-Encoding: 7bit
 
   Hello there,
@@ -126,7 +126,7 @@ the runner in the trivial case like this:
   rails runner 'Mailman.receive(STDIN.read)'
 
 However, invoking Rails in the runner for each mail to be received is very
-resource intensive. A single instance of Rails should be run within a daemon, if
+resource intensive. A single instance of Rails should be run within a daemon if
 it is going to process more than just a limited amount of email.
 
 == Configuration
