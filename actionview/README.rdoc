@@ -1,6 +1,6 @@
 = Action View
 
-Action View is a framework for handling view template lookup and rendering, and provides
+Action View is a framework for handling view template lookup and rendering and provides
 view helpers that assist when building HTML forms, Atom feeds and more.
 Template formats that Action View handles are ERB (embedded Ruby, typically
 used to inline short Ruby snippets inside HTML), and XML Builder.

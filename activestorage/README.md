@@ -10,7 +10,7 @@ Image files can furthermore be transformed using on-demand variants for quality,
 
 A key difference to how Active Storage works compared to other attachment solutions in Rails is through the use of built-in [Blob](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/blob.rb) and [Attachment](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/attachment.rb) models (backed by Active Record). This means existing application models do not need to be modified with additional columns to associate with files. Active Storage uses polymorphic associations via the `Attachment` join model, which then connects to the actual `Blob`.
 
-`Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
+`Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course, you can delete the previous version later if you don't need it).
 
 ## Examples
 
@@ -41,7 +41,7 @@ user.avatar.attached? # => false
 # Generate a permanent URL for the blob that points to the application.
 # Upon access, a redirect to the actual service endpoint is returned.
 # This indirection decouples the public URL from the actual one, and
-# allows for example mirroring attachments in different services for
+# allows, for example, mirroring attachments in different services for
 # high-availability. The redirection has an HTTP expiration of 5 min.
 url_for(user.avatar)
 

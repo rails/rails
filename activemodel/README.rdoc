@@ -1,6 +1,6 @@
 = Active Model -- model interfaces for Rails
 
-Active Model provides a known set of interfaces for usage in model classes.
+Active Model provides a known set of interfaces for use in model classes.
 They allow for Action Pack helpers to interact with non-Active Record models,
 for example. Active Model also helps with building custom ORMs for use outside of
 the Rails framework.
