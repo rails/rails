@@ -461,7 +461,7 @@ module Rails
 
       def run_active_storage
         unless skip_active_storage?
-          rails_command "active_storage:install"
+          rails_command "active_storage:install", capture: options[:quiet]
         end
       end
 
