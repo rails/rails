@@ -62,7 +62,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_with_one_association_with_non_preload
-    posts = Post.all.merge!(includes: :last_comment, order: Arel.sql("comments.id DESC")).to_a
+    posts = Post.all.merge!(includes: :last_comment, order: "comments.id DESC").to_a
     post = posts.find { |p| p.id == 1 }
     assert_equal Post.find(1).last_comment, post.last_comment
   end
@@ -317,12 +317,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_nested_loading_through_has_one_association_with_order_on_association
-    aa = AuthorAddress.all.merge!(includes: { author: :posts }, order: Arel.sql("authors.id")).find(author_addresses(:david_address).id)
+    aa = AuthorAddress.all.merge!(includes: { author: :posts }, order: "authors.id").find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
   def test_nested_loading_through_has_one_association_with_order_on_nested_association
-    aa = AuthorAddress.all.merge!(includes: { author: :posts }, order: Arel.sql("posts.id")).find(author_addresses(:david_address).id)
+    aa = AuthorAddress.all.merge!(includes: { author: :posts }, order: "posts.id").find(author_addresses(:david_address).id)
     assert_equal aa.author.posts.count, aa.author.posts.length
   end
 
@@ -420,7 +420,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_order_string_with_unquoted_table_name
     assert_nothing_raised do
-      Comment.all.merge!(includes: :post, order: Arel.sql("posts.id")).to_a
+      Comment.all.merge!(includes: :post, order: "posts.id").to_a
     end
   end
 
@@ -1089,12 +1089,12 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_order_on_join_table_with_include_and_limit
-    assert_equal 5, Developer.all.merge!(includes: "projects", order: Arel.sql("developers_projects.joined_on DESC"), limit: 5).to_a.size
+    assert_equal 5, Developer.all.merge!(includes: "projects", order: "developers_projects.joined_on DESC", limit: 5).to_a.size
   end
 
   def test_eager_loading_with_order_on_joined_table_preloads
     posts = assert_queries(2) do
-      Post.all.merge!(joins: :comments, includes: :author, order: Arel.sql("comments.id DESC")).to_a
+      Post.all.merge!(joins: :comments, includes: :author, order: "comments.id DESC").to_a
     end
     assert_equal posts(:eager_other), posts[1]
     assert_equal authors(:mary), assert_no_queries { posts[1].author }
@@ -1190,7 +1190,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     if current_adapter?(:OracleAdapter)
       firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies"[0, 30] + ".name").find(1)
     else
-      firm = Firm.all.merge!(includes: :clients_using_primary_key, order: Arel.sql("clients_using_primary_keys_companies.name")).find(1)
+      firm = Firm.all.merge!(includes: :clients_using_primary_key, order: "clients_using_primary_keys_companies.name").find(1)
     end
     assert_no_queries do
       assert_equal expected, firm.clients_using_primary_key
@@ -1207,7 +1207,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_include_has_one_using_primary_key
     expected = accounts(:signals37)
-    firm = Firm.all.merge!(includes: :account_using_primary_key, order: Arel.sql("accounts.id")).to_a.detect { |f| f.id == 1 }
+    firm = Firm.all.merge!(includes: :account_using_primary_key, order: "accounts.id").to_a.detect { |f| f.id == 1 }
     assert_no_queries do
       assert_equal expected, firm.account_using_primary_key
     end
@@ -1278,7 +1278,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_join_eager_with_empty_order_should_generate_valid_sql
     assert_nothing_raised do
-      Post.includes(:comments).order(Arel.sql("")).where(comments: { body: "Thank you for the welcome" }).first
+      Post.includes(:comments).order("").where(comments: { body: "Thank you for the welcome" }).first
     end
   end
 
@@ -1382,7 +1382,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "preloading associations with string joins and order references" do
     author = assert_queries(2) {
-      Author.includes(:posts).joins("LEFT JOIN posts ON posts.author_id = authors.id").order(Arel.sql("posts.title DESC")).first
+      Author.includes(:posts).joins("LEFT JOIN posts ON posts.author_id = authors.id").order("posts.title DESC").first
     }
     assert_no_queries {
       assert_equal 5, author.posts.size

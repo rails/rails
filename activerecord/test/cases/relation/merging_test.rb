@@ -47,8 +47,8 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_eager_load
     relations = []
-    relations << Post.order(Arel.sql("comments.id DESC")).merge(Post.eager_load(:last_comment)).merge(Post.all)
-    relations << Post.eager_load(:last_comment).merge(Post.order(Arel.sql("comments.id DESC"))).merge(Post.all)
+    relations << Post.order("comments.id DESC").merge(Post.eager_load(:last_comment)).merge(Post.all)
+    relations << Post.eager_load(:last_comment).merge(Post.order("comments.id DESC")).merge(Post.all)
 
     relations.each do |posts|
       post = posts.find { |p| p.id == 1 }
@@ -126,19 +126,19 @@ class MergingDifferentRelationsTest < ActiveRecord::TestCase
 
   test "merging order relations" do
     posts_by_author_name = Post.limit(3).joins(:author).
-      merge(Author.order(:name)).pluck(Arel.sql("authors.name"))
+      merge(Author.order(:name)).pluck("authors.name")
 
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
 
     posts_by_author_name = Post.limit(3).joins(:author).
-      merge(Author.order(Arel.sql("name"))).pluck(Arel.sql("authors.name"))
+      merge(Author.order("name")).pluck("authors.name")
 
     assert_equal ["Bob", "Bob", "David"], posts_by_author_name
   end
 
   test "merging order relations (using a hash argument)" do
     posts_by_author_name = Post.limit(4).joins(:author).
-      merge(Author.order(name: :desc)).pluck(Arel.sql("authors.name"))
+      merge(Author.order(name: :desc)).pluck("authors.name")
 
     assert_equal ["Mary", "Mary", "Mary", "David"], posts_by_author_name
   end

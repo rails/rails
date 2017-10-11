@@ -243,15 +243,15 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_joins
-    assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order(Arel.sql("replies_topics.created_at DESC")).exists?
+    assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
 
   def test_exists_with_left_joins
-    assert_equal true, Topic.left_joins(:replies).where(replies_topics: { approved: true }).order(Arel.sql("replies_topics.created_at DESC")).exists?
+    assert_equal true, Topic.left_joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
 
   def test_exists_with_eager_load
-    assert_equal true, Topic.eager_load(:replies).where(replies_topics: { approved: true }).order(Arel.sql("replies_topics.created_at DESC")).exists?
+    assert_equal true, Topic.eager_load(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
   end
 
   def test_exists_with_includes_limit_and_empty_result
@@ -267,8 +267,8 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order(Arel.sql("comments.tags_count DESC")).limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order(Arel.sql("comments.tags_count DESC")).limit(1).exists?
+    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(0).exists?
+    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(1).exists?
   end
 
   def test_exists_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
@@ -1125,11 +1125,11 @@ class FinderTest < ActiveRecord::TestCase
   def test_find_with_order_on_included_associations_with_construct_finder_sql_for_association_limiting_and_is_distinct
     assert_equal 2, Post.includes(authors: :author_address).
       where.not(author_addresses: { id: nil }).
-      order(Arel.sql("author_addresses.id DESC")).limit(2).to_a.size
+      order("author_addresses.id DESC").limit(2).to_a.size
 
     assert_equal 3, Post.includes(author: :author_address, authors: :author_address).
       where.not(author_addresses_authors: { id: nil }).
-      order(Arel.sql("author_addresses_authors.id DESC")).limit(3).to_a.size
+      order("author_addresses_authors.id DESC").limit(3).to_a.size
   end
 
   def test_find_with_nil_inside_set_passed_for_one_attribute

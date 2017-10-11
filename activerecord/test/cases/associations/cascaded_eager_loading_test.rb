@@ -121,7 +121,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
     silly.parent_id = 1
     assert silly.save
 
-    topics = Topic.all.merge!(includes: :replies, order: ["topics.id", Arel.sql("replies_topics.id")]).to_a
+    topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
     assert_no_queries do
       assert_equal 2, topics[0].replies.size
       assert_equal 0, topics[1].replies.size
@@ -129,14 +129,14 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_sti
-    replies = Reply.all.merge!(includes: :topic, order: Arel.sql("topics.id")).to_a
+    replies = Reply.all.merge!(includes: :topic, order: "topics.id").to_a
     assert_includes replies, topics(:second)
     assert_not_includes replies, topics(:first)
     assert_equal topics(:first), assert_no_queries { replies.first.topic }
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.all.merge!(includes: { posts: [ :special_comments , :very_special_comment ] }, order: ["authors.name", Arel.sql("comments.body"), Arel.sql("very_special_comments_posts.body")], where: "posts.id = 4").first
+    author = Author.all.merge!(includes: { posts: [ :special_comments , :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments
@@ -145,7 +145,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_of_stis_with_multiple_references
-    authors = Author.all.merge!(includes: { posts: { special_comments: { post: [ :special_comments, :very_special_comment ] } } }, order: Arel.sql("comments.body, very_special_comments_posts.body"), where: "posts.id = 4").to_a
+    authors = Author.all.merge!(includes: { posts: { special_comments: { post: [ :special_comments, :very_special_comment ] } } }, order: "comments.body, very_special_comments_posts.body", where: "posts.id = 4").to_a
     assert_equal [authors(:david)], authors
     assert_no_queries do
       authors.first.posts.first.special_comments.first.post.special_comments

@@ -587,7 +587,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_should_append_to_association_order
-    ordered_developers = projects(:active_record).developers.order(Arel.sql("projects.id"))
+    ordered_developers = projects(:active_record).developers.order("projects.id")
     assert_equal ["developers.name desc, developers.id desc", "projects.id"], ordered_developers.order_values
   end
 

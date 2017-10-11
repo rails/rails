@@ -110,7 +110,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: disallows invalid column name" do
     with_unsafe_raw_sql_disabled   do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order("foo asc").pluck(:id)
+        Post.order("len(title) asc").pluck(:id)
       end
     end
   end
@@ -126,7 +126,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   test "order: disallows invalid column with direction" do
     with_unsafe_raw_sql_disabled   do
       assert_raises(ActiveRecord::UnknownAttributeReference) do
-        Post.order(foo: :asc).pluck(:id)
+        Post.order("len(title)" => :asc).pluck(:id)
       end
     end
   end

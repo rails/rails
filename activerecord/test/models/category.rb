@@ -4,7 +4,7 @@ class Category < ActiveRecord::Base
   has_and_belongs_to_many :posts
   has_and_belongs_to_many :special_posts, class_name: "Post"
   has_and_belongs_to_many :other_posts, class_name: "Post"
-  has_and_belongs_to_many :posts_with_authors_sorted_by_author_id, -> { includes(:authors).order(Arel.sql("authors.id")) }, class_name: "Post"
+  has_and_belongs_to_many :posts_with_authors_sorted_by_author_id, -> { includes(:authors).order("authors.id") }, class_name: "Post"
 
   has_and_belongs_to_many :select_testing_posts,
                           -> { select "posts.*, 1 as correctness_marker" },

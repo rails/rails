@@ -167,12 +167,24 @@ module ActiveRecord
         end
       end
 
-      def enforce_raw_sql_whitelist(args, whitelist: attribute_names_and_aliases) # :nodoc:
+      # Regexp whitelist. Matches the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME_WHITELIST = /\A(?:\w+\.)?\w+\z/i
+
+      # Regexp whitelist. Matches the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{column_name}"
+      #   "#{column_name} #{direction}"
+      COLUMN_NAME_ORDER_WHITELIST = /\A(?:\w+\.)?\w+(?:\s+asc|\s+desc)?\z/i
+
+      def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
         unexpected = args.reject do |arg|
-          whitelist.include?(arg.to_s) ||
-            arg.kind_of?(Arel::Node) ||
+          arg.kind_of?(Arel::Node) ||
             arg.is_a?(Arel::Nodes::SqlLiteral) ||
-            arg.is_a?(Arel::Attributes::Attribute)
+            arg.is_a?(Arel::Attributes::Attribute) ||
+            arg.to_s.split(/\s*,\s*/).all? { |part| whitelist.match?(part) }
         end
 
         return if unexpected.none?
@@ -193,22 +205,6 @@ module ActiveRecord
             unexpected.map(&:inspect).join(", ")
           )
         end
-      end
-
-      # Can the given name be treated as a column name? Returns true if name
-      # is attribute or attribute alias.
-      #
-      #   class Person < ActiveRecord::Base
-      #   end
-      #
-      #   Person.respond_to_attribute?(:name)
-      #   # => true
-      #
-      #   Person.respond_to_attribute?("foo")
-      #   # => false
-      def respond_to_attribute?(name) # :nodoc:
-        name = name.to_s
-        attribute_names.include?(name) || attribute_aliases.include?(name)
       end
 
       # Returns true if the given attribute exists, otherwise false.
@@ -241,18 +237,6 @@ module ActiveRecord
         columns_hash.fetch(name) do
           ConnectionAdapters::NullColumn.new(name)
         end
-      end
-
-      # An Array of String attribute names and aliases for accessing those
-      # attributes.
-      #
-      #   class Person < ActiveRecord::Base
-      #   end
-      #
-      #   Person.attribute_names_and_aliases
-      #   # => ["id", "created_at", "updated_at", "name", "age"]
-      def attribute_names_and_aliases # :nodoc:
-        attribute_names + attribute_aliases.keys
       end
     end
 

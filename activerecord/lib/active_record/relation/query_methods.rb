@@ -299,7 +299,7 @@ module ActiveRecord
     def order!(*args) # :nodoc:
       @klass.enforce_raw_sql_whitelist(
         column_names_from_order_arguments(args),
-        whitelist: allowed_order_columns
+        whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
       )
 
       preprocess_order_args(args)
@@ -326,7 +326,7 @@ module ActiveRecord
     def reorder!(*args) # :nodoc:
       @klass.enforce_raw_sql_whitelist(
         column_names_from_order_arguments(args),
-        whitelist: allowed_order_columns
+        whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
       )
 
       preprocess_order_args(args)
@@ -928,20 +928,6 @@ module ActiveRecord
 
     private
 
-      def allowed_order_columns
-        @klass.attribute_names_and_aliases.map do |name|
-          [name, "#{table_name}.#{name}"].map do |name|
-            [
-              name,
-              "#{name} asc",
-              "#{name} ASC",
-              "#{name} desc",
-              "#{name} DESC"
-            ]
-          end
-        end.flatten
-      end
-
       # Extract column names from arguments passed to #order or #reorder.
       def column_names_from_order_arguments(args)
         args.flat_map { |arg| arg.is_a?(Hash) ? arg.keys : arg }
@@ -1097,9 +1083,6 @@ module ActiveRecord
           when Arel::Nodes::Ordering
             o.reverse
           when String
-            # ensure we're not dealing with string subclass (Eg. Arel::Nodes::SqlLiteral)
-            o = String.new(o)
-
             if does_not_support_reverse?(o)
               raise IrreversibleOrderError, "Order #{o.inspect} can not be reversed automatically"
             end

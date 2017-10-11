@@ -171,7 +171,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_with_has_many_through_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where("member_details.id" => member_details(:groucho).id).order(Arel.sql("member_details.id")),
+      Member.where("member_details.id" => member_details(:groucho).id).order("member_details.id"),
       [members(:groucho), members(:some_other_guy)], :organization_member_details
     )
 
@@ -203,7 +203,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_has_one_through_with_has_many_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Member.where("member_details.id" => member_details(:groucho).id).order(Arel.sql("member_details.id")),
+      Member.where("member_details.id" => member_details(:groucho).id).order("member_details.id"),
       [members(:groucho), members(:some_other_guy)], :organization_member_details_2
     )
 
@@ -341,7 +341,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_many_through_belongs_to_with_has_many_through_source_reflection_preload_via_joins
     assert_includes_and_joins_equal(
-      Categorization.where("taggings.id" => taggings(:welcome_general).id).order(Arel.sql("taggings.id")),
+      Categorization.where("taggings.id" => taggings(:welcome_general).id).order("taggings.id"),
       [categorizations(:david_welcome_general)], :post_taggings
     )
   end

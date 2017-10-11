@@ -81,7 +81,7 @@ class CommentThatAutomaticallyAltersPostBody < Comment
 end
 
 class CommentWithDefaultScopeReferencesAssociation < Comment
-  default_scope -> { includes(:developer).order(Arel.sql("developers.name")).references(:developer) }
+  default_scope -> { includes(:developer).order("developers.name").references(:developer) }
   belongs_to :developer
 end
 

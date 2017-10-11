@@ -1109,12 +1109,12 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_find_multiple_ordered_last
-    last = Developer.all.merge!(order: Arel.sql("developers.name, developers.salary DESC")).last
-    assert_equal last, Developer.all.merge!(order: Arel.sql("developers.name, developers.salary DESC")).to_a.last
+    last = Developer.all.merge!(order: "developers.name, developers.salary DESC").last
+    assert_equal last, Developer.all.merge!(order: "developers.name, developers.salary DESC").to_a.last
   end
 
   def test_find_keeps_multiple_order_values
-    combined = Developer.all.merge!(order: Arel.sql("developers.name, developers.salary")).to_a
+    combined = Developer.all.merge!(order: "developers.name, developers.salary").to_a
     assert_equal combined, Developer.all.merge!(order: ["developers.name", "developers.salary"]).to_a
   end
 

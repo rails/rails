@@ -85,7 +85,7 @@ class Post < ActiveRecord::Base
 
   has_one  :very_special_comment
   has_one  :very_special_comment_with_post, -> { includes(:post) }, class_name: "VerySpecialComment"
-  has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order(Arel.sql("posts.id")) }, class_name: "VerySpecialComment"
+  has_one :very_special_comment_with_post_with_joins, -> { joins(:post).order("posts.id") }, class_name: "VerySpecialComment"
   has_many :special_comments
   has_many :nonexistent_comments, -> { where "comments.id < 0" }, class_name: "Comment"
 
@@ -322,10 +322,6 @@ class FakeKlass
 
     def enforce_raw_sql_whitelist(*args)
       # noop
-    end
-
-    def attribute_names_and_aliases
-      []
     end
   end
 end
