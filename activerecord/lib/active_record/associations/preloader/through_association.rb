@@ -74,12 +74,17 @@ module ActiveRecord
 
         def through_scope
           scope = through_reflection.klass.unscoped
+          values = reflection_scope.values
 
           if options[:source_type]
             scope.where! reflection.foreign_type => options[:source_type]
           else
             unless reflection_scope.where_values.empty?
-              scope.includes_values = Array(reflection_scope.values[:includes] || options[:source])
+              if includes = values[:includes]
+                scope.includes!(source_reflection.name => includes)
+              else
+                scope.includes!(source_reflection.name)
+              end
               scope.where_values    = reflection_scope.values[:where]
               scope.bind_values     = reflection_scope.bind_values
             end
