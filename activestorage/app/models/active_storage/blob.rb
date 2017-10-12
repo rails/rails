@@ -15,6 +15,7 @@
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
   class UnpreviewableError < StandardError; end
+  class UnrepresentableError < StandardError; end
 
   self.table_name = "active_storage_blobs"
 
@@ -152,6 +153,31 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Returns true if any registered previewer accepts the blob. By default, this will return true for videos and PDF documents.
   def previewable?
     ActiveStorage.previewers.any? { |klass| klass.accept?(self) }
+  end
+
+
+  # Returns an ActiveStorage::Preview instance for a previewable blob or an ActiveStorage::Variant instance for an image blob.
+  #
+  #   blob.representation(resize: "100x100").processed.service_url
+  #
+  # Raises ActiveStorage::Blob::UnrepresentableError if the receiving blob is neither an image nor previewable. Call
+  # ActiveStorage::Blob#representable? to determine whether a blob is representable.
+  #
+  # See ActiveStorage::Blob#preview and ActiveStorage::Blob#variant for more information.
+  def representation(transformations)
+    case
+    when previewable?
+      preview transformations
+    when image?
+      variant transformations
+    else
+      raise UnrepresentableError
+    end
+  end
+
+  # Returns true if the blob is an image or is previewable.
+  def representable?
+    image? || previewable?
   end
 
 
