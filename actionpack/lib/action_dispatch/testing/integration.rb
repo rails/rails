@@ -12,38 +12,38 @@ require_relative "request_encoder"
 module ActionDispatch
   module Integration #:nodoc:
     module RequestHelpers
-      # Performs a GET request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a GET request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def get(path, **args)
         process(:get, path, **args)
       end
 
-      # Performs a POST request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a POST request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def post(path, **args)
         process(:post, path, **args)
       end
 
-      # Performs a PATCH request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a PATCH request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def patch(path, **args)
         process(:patch, path, **args)
       end
 
-      # Performs a PUT request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a PUT request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def put(path, **args)
         process(:put, path, **args)
       end
 
-      # Performs a DELETE request with the given parameters. See +#process+ for
-      # more details.
+      # Performs a DELETE request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def delete(path, **args)
         process(:delete, path, **args)
       end
 
-      # Performs a HEAD request with the given parameters. See +#process+ for more
-      # details.
+      # Performs a HEAD request with the given parameters. See ActionDispatch::Integration::Session#process
+      # for more details.
       def head(path, *args)
         process(:head, path, *args)
       end
