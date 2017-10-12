@@ -65,6 +65,10 @@ class ActiveStorage::Variant
     service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
   end
 
+  # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be duck-typed.
+  def image
+    self
+  end
 
   private
     def processed?
