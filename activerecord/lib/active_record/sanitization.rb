@@ -63,6 +63,12 @@ module ActiveRecord
         #   # => "id ASC"
         def sanitize_sql_for_order(condition) # :doc:
           if condition.is_a?(Array) && condition.first.to_s.include?("?")
+            # Ensure we aren't dealing with a subclass of String that might
+            # override methods we use (eg. Arel::Nodes::SqlLiteral).
+            if condition.first.kind_of?(String) && !condition.first.instance_of?(String)
+              condition = [String.new(condition.first), *condition[1..-1]]
+            end
+
             sanitize_sql_array(condition)
           else
             condition

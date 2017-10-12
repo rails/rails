@@ -389,13 +389,13 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_finding_with_sanitized_order
-    query = Tag.order(["field(id, ?)", [1, 3, 2]]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
 
-    query = Tag.order(["field(id, ?)", []]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), []]).to_sql
     assert_match(/field\(id, NULL\)/, query)
 
-    query = Tag.order(["field(id, ?)", nil]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), nil]).to_sql
     assert_match(/field\(id, NULL\)/, query)
   end
 
