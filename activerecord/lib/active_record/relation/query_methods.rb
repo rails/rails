@@ -930,7 +930,19 @@ module ActiveRecord
 
       # Extract column names from arguments passed to #order or #reorder.
       def column_names_from_order_arguments(args)
-        args.flat_map { |arg| arg.is_a?(Hash) ? arg.keys : arg }
+        args.flat_map do |arg|
+          case arg
+          when Hash
+            # Tag.order(id: :desc)
+            arg.keys
+          when Array
+            # Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]])
+            arg.flatten
+          else
+            # Tag.order(:id)
+            arg
+          end
+        end
       end
 
       def assert_mutability!
