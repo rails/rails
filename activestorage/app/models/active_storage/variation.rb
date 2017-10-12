@@ -13,16 +13,21 @@ class ActiveStorage::Variation
   attr_reader :transformations
 
   class << self
-    def wrap(variation_or_key)
-      case variation_or_key
+    # Returns a Variation instance based on the given variator. If the variator is a Variation, it is
+    # returned unmodified. If it is a String, it is passed to ActiveStorage::Variation.decode. Otherwise,
+    # it is assumed to be a transformations Hash and is passed directly to the constructor.
+    def wrap(variator)
+      case variator
       when self
-        variation_or_key
+        variator
+      when String
+        decode variator
       else
-        decode variation_or_key
+        new variator
       end
     end
 
-    # Returns a variation instance with the transformations that were encoded by +encode+.
+    # Returns a Variation instance with the transformations that were encoded by +encode+.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
     end

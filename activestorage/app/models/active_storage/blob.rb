@@ -124,7 +124,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
   # can then produce on-demand.
   def variant(transformations)
-    ActiveStorage::Variant.new(self, ActiveStorage::Variation.new(transformations))
+    ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
   end
 
 
@@ -144,7 +144,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
   def preview(transformations)
     if previewable?
-      ActiveStorage::Preview.new(self, ActiveStorage::Variation.new(transformations))
+      ActiveStorage::Preview.new(self, ActiveStorage::Variation.wrap(transformations))
     else
       raise UnpreviewableError
     end
