@@ -165,14 +165,11 @@ module ActiveRecord
         end
       end
 
-      TABLE_NAME = /(?:\w+.|`\w+`.|"\w+".|'\w+'.)?/
-      COLUMN_NAME = /(?:\w+|`\w+`|"\w+"|'\w+')/
-
       # Regexp whitelist. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "`#{table_name}`.`#{column_name}`"
       #   "#{column_name}"
-      COLUMN_NAME_WHITELIST = /\A#{TABLE_NAME}#{COLUMN_NAME}*\z/i
+      COLUMN_NAME_WHITELIST = /\A(?:\w+.)?\w+\z/i
 
       # Regexp whitelist. Matches the following:
       #   "#{table_name}.#{column_name}"
@@ -180,7 +177,7 @@ module ActiveRecord
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{column_name}"
       #   "#{column_name} #{direction}"
-      COLUMN_NAME_ORDER_WHITELIST = /\A#{TABLE_NAME}#{COLUMN_NAME}(?:\s+asc|\s+desc)?\z/i
+      COLUMN_NAME_ORDER_WHITELIST = /\A(?:\w+.)?\w+(?:\s+asc|\s+desc)?\z/i
 
       def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
         unexpected = args.reject do |arg|
