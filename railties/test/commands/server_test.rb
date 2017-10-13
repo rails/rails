@@ -22,6 +22,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     assert_nil options[:server]
   end
 
+  def test_server_option_with_daemon
+    args = ["-d"]
+    options = parse_arguments(args)
+    assert_equal true, options[:daemonize]
+  end
+
+  def test_server_option_without_daemon
+    args = []
+    options = parse_arguments(args)
+    assert_equal false, options[:daemonize]
+  end
+
   def test_server_option_without_environment
     args = ["thin"]
     with_rack_env nil do
