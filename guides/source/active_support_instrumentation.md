@@ -466,6 +466,45 @@ Active Job
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
+Action Cable
+------------
+
+### perform_action.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:action`        | The action                |
+| `:data`          | A hash of data            |
+
+### transmit.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:data`          | A hash of data            |
+| `:via`           | Via                       |
+
+### transmit_subscription_confirmation.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### transmit_subscription_rejection.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### broadcast.action_cable
+
+| Key             | Value                |
+| --------------- | -------------------- |
+| `:broadcasting` | A named broadcasting |
+| `:message`      | A hash of message    |
+| `:coder`        | The coder            |
+
 Active Storage
 --------------
 
