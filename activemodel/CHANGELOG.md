@@ -1,3 +1,8 @@
+*   Add a `cost` option for `ActiveModel::SecurePassword.has_secure_password`.
+    It is used as a cost of bcrypt.
+
+    *Kouhei Yanagita*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*

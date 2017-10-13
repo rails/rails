@@ -217,4 +217,21 @@ class SecurePasswordTest < ActiveModel::TestCase
     @user.password = "secret"
     assert_equal BCrypt::Engine::MIN_COST, @user.password_digest.cost
   end
+
+  class UserWithCost
+    extend ActiveModel::Callbacks
+    include ActiveModel::SecurePassword
+
+    define_model_callbacks :create
+
+    has_secure_password cost: 7
+
+    attr_accessor :password_digest
+  end
+
+  test "Password digest honors a cost parameter of has_secure_password" do
+    @user = UserWithCost.new
+    @user.password = "secret"
+    assert_equal 7, @user.password_digest.cost
+  end
 end
