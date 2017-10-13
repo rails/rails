@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require File.expand_path("../../test/dummy/config/environment.rb", __FILE__)
+require_relative "dummy/config/environment.rb"
 
 require "bundler/setup"
 require "active_support"
