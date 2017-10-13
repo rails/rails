@@ -337,6 +337,22 @@ Action Mailer
 }
 ```
 
+### process.action_mailer
+
+| Key           | Value                    |
+| ------------- | ------------------------ |
+| `:mailer`     | Name of the mailer class |
+| `:action`     | The action               |
+| `:args`       | The arguments            |
+
+```ruby
+{
+  mailer: "Notification",
+  action: "welcome_email",
+  args: []
+}
+```
+
 Active Support
 --------------
 
