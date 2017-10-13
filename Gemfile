@@ -18,7 +18,6 @@ gem "mocha", require: false
 gem "capybara", "~> 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "jquery-rails"
 gem "coffee-rails"
 gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
 gem "turbolinks", "~> 5"
