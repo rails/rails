@@ -17,6 +17,14 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
   end
 
+  test "initializing the driver with a headless chrome" do
+    driver = ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome, screen_size: [1400, 1400], options: { url: "http://example.com/wd/hub" })
+    assert_equal :selenium, driver.instance_variable_get(:@name)
+    assert_equal :headless_chrome, driver.instance_variable_get(:@browser)
+    assert_equal [1400, 1400], driver.instance_variable_get(:@screen_size)
+    assert_equal ({ url: "http://example.com/wd/hub" }), driver.instance_variable_get(:@options)
+  end
+
   test "initializing the driver with a poltergeist" do
     driver = ActionDispatch::SystemTesting::Driver.new(:poltergeist, screen_size: [1400, 1400], options: { js_errors: false })
     assert_equal :poltergeist, driver.instance_variable_get(:@name)
