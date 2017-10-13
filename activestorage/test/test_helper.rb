@@ -23,7 +23,7 @@ Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 require "yaml"
 SERVICE_CONFIGURATIONS = begin
-  erb = ERB.new(Pathname.new(File.expand_path("../service/configurations.yml", __FILE__)).read)
+  erb = ERB.new(Pathname.new(File.expand_path("service/configurations.yml", __dir__)).read)
   configuration = YAML.load(erb.result) || {}
   configuration.deep_symbolize_keys
 rescue Errno::ENOENT
@@ -38,7 +38,7 @@ ActiveStorage::Service.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
-  self.file_fixture_path = File.expand_path("../fixtures/files", __FILE__)
+  self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
   private
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
