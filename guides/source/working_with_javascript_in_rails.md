@@ -198,8 +198,9 @@ $(document).ready ->
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start.
 
-NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `e, data, status, xhr`
-have been bundled into `event.detail`.
+NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
+have been bundled into `event.detail`. For information about the previously used
+`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 #### link_to
 
@@ -376,12 +377,16 @@ document.body.addEventListener('ajax:success', function(event) {
 })
 ```
 
+NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
+have been bundled into `event.detail`. For information about the previously used
+`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
+
 ### Stoppable events
 
 If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
 handler method, the Ajax request will never take place. The `ajax:before` event
-is also useful for manipulating form data before serialization. The
-`ajax:beforeSend` event is also useful for adding custom request headers.
+can manipulate form data before serialization and the
+`ajax:beforeSend` event is useful for adding custom request headers.
 
 If you stop the `ajax:aborted:file` event, the default behavior of allowing the
 browser to submit the form via normal means (i.e. non-Ajax submission) will be
