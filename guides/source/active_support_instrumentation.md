@@ -288,6 +288,14 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
+### !connection.active_record
+
+| Key              | Value                        |
+| ---------------- | ---------------------------- |
+| `:connection_id` | `self.object_id`             |
+| `:spec_name`     | Name of environment          |
+| `:config`        | Configuration of environment |
+
 Action Mailer
 -------------
 
