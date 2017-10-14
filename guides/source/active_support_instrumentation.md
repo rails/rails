@@ -197,6 +197,12 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
+### unpermitted_parameters.action_controller
+
+| Key     | Value            |
+| ------- | ---------------- |
+| `:keys` | Unpermitted keys |
+
 Action View
 -----------
 
