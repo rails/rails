@@ -260,6 +260,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
   end
 
+  def test_distinct_count_with_group_by_and_order_and_limit
+    assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
+  end
+
   def test_should_group_by_summed_field_having_condition
     c = Account.group(:firm_id).having("sum(credit_limit) > 50").sum(:credit_limit)
     assert_nil        c[1]

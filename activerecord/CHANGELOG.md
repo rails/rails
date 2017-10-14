@@ -1,3 +1,9 @@
+*   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
+
+    Fixes #30886.
+
+    *Ryuta Kamizono*
+
 *   PostgreSQL `tsrange` now preserves subsecond precision.
 
     PostgreSQL 9.1+ introduced range types, and Rails added support for using

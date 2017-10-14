@@ -216,7 +216,7 @@ module ActiveRecord
         if operation == "count"
           column_name ||= select_for_count
           if column_name == :all
-            if distinct && !(has_limit_or_offset? && order_values.any?)
+            if distinct && (group_values.any? || !(has_limit_or_offset? && order_values.any?))
               column_name = primary_key
             end
           elsif column_name =~ /\s*DISTINCT[\s(]+/i
