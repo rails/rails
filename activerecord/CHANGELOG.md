@@ -1,3 +1,10 @@
+*   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
+
+    Fixes #30886.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.1.4 (September 07, 2017) ##
 
 *   No changes.
