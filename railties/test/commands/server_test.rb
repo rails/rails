@@ -22,13 +22,13 @@ class Rails::ServerTest < ActiveSupport::TestCase
     assert_nil options[:server]
   end
 
-  def test_server_option_with_daemon
+  def test_daemon_with_option
     args = ["-d"]
     options = parse_arguments(args)
     assert_equal true, options[:daemonize]
   end
 
-  def test_server_option_without_daemon
+  def test_daemon_without_option
     args = []
     options = parse_arguments(args)
     assert_equal false, options[:daemonize]
