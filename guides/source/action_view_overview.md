@@ -1160,7 +1160,7 @@ Returns a string of option tags for pretty much any time zone in the world.
 Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
 
 ```ruby
-time_zone_select( "user", "time_zone")
+time_zone_select("user", "time_zone")
 ```
 
 #### date_field
