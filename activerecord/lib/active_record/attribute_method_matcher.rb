@@ -45,60 +45,59 @@ module ActiveRecord
     end
 
     private
+      # We want to generate the methods via module_eval rather than
+      # define_method, because define_method is slower on dispatch.
+      # Evaluating many similar methods may use more memory as the instruction
+      # sequences are duplicated and cached (in MRI).  define_method may
+      # be slower on dispatch, but if you're careful about the closure
+      # created, then define_method will consume much less memory.
+      #
+      # But sometimes the database might return columns with
+      # characters that are not allowed in normal method names (like
+      # 'my_column(omg)'. So to work around this we first define with
+      # the __temp__ identifier, and then use alias method to rename
+      # it to what we want.
+      #
+      # We are also defining a constant to hold the frozen string of
+      # the attribute name. Using a constant means that we do not have
+      # to allocate an object on each call to the attribute method.
+      # Making it frozen means that it doesn't get duped when used to
+      # key the @attributes in read_attribute.
+      def define_method_attribute(name)
+        safe_name = name.unpack("h*".freeze).first
+        temp_method = "__temp__#{safe_name}"
 
-    # We want to generate the methods via module_eval rather than
-    # define_method, because define_method is slower on dispatch.
-    # Evaluating many similar methods may use more memory as the instruction
-    # sequences are duplicated and cached (in MRI).  define_method may
-    # be slower on dispatch, but if you're careful about the closure
-    # created, then define_method will consume much less memory.
-    #
-    # But sometimes the database might return columns with
-    # characters that are not allowed in normal method names (like
-    # 'my_column(omg)'. So to work around this we first define with
-    # the __temp__ identifier, and then use alias method to rename
-    # it to what we want.
-    #
-    # We are also defining a constant to hold the frozen string of
-    # the attribute name. Using a constant means that we do not have
-    # to allocate an object on each call to the attribute method.
-    # Making it frozen means that it doesn't get duped when used to
-    # key the @attributes in read_attribute.
-    def define_method_attribute(name)
-      safe_name = name.unpack("h*".freeze).first
-      temp_method = "__temp__#{safe_name}"
+        ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-      ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+        module_eval <<-STR, __FILE__, __LINE__ + 1
+          def #{temp_method}
+            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+            sync_with_transaction_state if name == self.class.primary_key
+            _read_attribute(name) { |n| missing_attribute(n, caller) }
+          end
+        STR
 
-      module_eval <<-STR, __FILE__, __LINE__ + 1
-        def #{temp_method}
-          name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-          sync_with_transaction_state if name == self.class.primary_key
-          _read_attribute(name) { |n| missing_attribute(n, caller) }
-        end
-      STR
+        alias_method name, temp_method
+        undef_method temp_method
+      end
 
-      alias_method name, temp_method
-      undef_method temp_method
-    end
+      def define_method_attribute=(name)
+        safe_name = name.unpack("h*".freeze).first
+        ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
-    def define_method_attribute=(name)
-      safe_name = name.unpack("h*".freeze).first
-      ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+        module_eval <<-STR, __FILE__, __LINE__ + 1
+          def __temp__#{safe_name}=(value)
+            name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
+            sync_with_transaction_state if name == self.class.primary_key
+            _write_attribute(name, value)
+          end
+          alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
+          undef_method :__temp__#{safe_name}=
+        STR
+      end
 
-      module_eval <<-STR, __FILE__, __LINE__ + 1
-        def __temp__#{safe_name}=(value)
-          name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
-          sync_with_transaction_state if name == self.class.primary_key
-          _write_attribute(name, value)
-        end
-        alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
-        undef_method :__temp__#{safe_name}=
-      STR
-    end
-
-    def instance_method_already_implemented?(method_name)
-      @model_class && @model_class.instance_method_already_implemented?(method_name)
-    end
+      def instance_method_already_implemented?(method_name)
+        @model_class && @model_class.instance_method_already_implemented?(method_name)
+      end
   end
 end
