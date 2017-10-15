@@ -93,6 +93,7 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+# Active Storage
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.3", require: false
