@@ -15,7 +15,7 @@ module ActiveModel
       @regex = /^(?:#{Regexp.escape(@prefix)})(.*)(?:#{Regexp.escape(@suffix)})$/
       @method_missing_target = "#{@prefix}attribute#{@suffix}"
       @method_name = "#{prefix}%s#{suffix}"
-      @method_names = []
+      @method_names = Set.new
       define_method_missing
     end
 
@@ -33,13 +33,13 @@ module ActiveModel
 
     def define_attribute_method(attr_name)
       name = method_name(attr_name)
+      method_names << name.to_sym
       unless instance_method_already_implemented?(name)
         generate_method = "define_method_#{method_missing_target}"
 
         if respond_to?(generate_method, true)
           send(generate_method, attr_name.to_s)
         else
-          method_names << name.to_sym
           define_proxy_call true, name, method_missing_target, attr_name.to_s
         end
       end
