@@ -188,7 +188,7 @@ users.project(users[:age].average.as("mean_age"))
 # => SELECT AVG(users.age) AS mean_age FROM users
 ```
 
-### The Crazy Features
+### The Advanced Features
 
 The examples above are fairly simple and other libraries match or come close to matching the expressiveness of Arel (e.g. `Sequel` in Ruby).
 
@@ -215,6 +215,7 @@ products.
 
 #### Complex Joins
 
+##### Alias
 Where Arel really shines is in its ability to handle complex joins and aggregations. As a first example, let's consider an "adjacency list", a tree represented in a table. Suppose we have a table `comments`, representing a threaded discussion:
 
 ```ruby
@@ -240,6 +241,7 @@ comments_with_replies = \
 
 This will return the reply for the first comment.
 
+##### CTE
 [Common Table Expressions (CTE)](https://en.wikipedia.org/wiki/Common_table_expressions#Common_table_expression) support via:
 
 Create a `CTE`
@@ -262,6 +264,7 @@ users.
 #    FROM users INNER JOIN cte_table ON users.id = cte_table.user_id
 ```
 
+#### Write SQL strings
 When your query is too complex for `Arel`, you can use `Arel::SqlLiteral`:
 
 ```ruby
