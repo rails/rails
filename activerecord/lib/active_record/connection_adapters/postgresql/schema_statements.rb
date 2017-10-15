@@ -159,7 +159,8 @@ module ActiveRecord
             table_name,
             default_function,
             collation,
-            comment: comment.presence
+            comment: comment.presence,
+            max_identifier_length: max_identifier_length
           )
         end
 
