@@ -1,3 +1,9 @@
+*   MySQL: Don't lose `auto_increment: true` in the `db/schema.rb`.
+
+    Fixes #30894.
+
+    *Ryuta Kamizono*
+
 *   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
 
     Fixes #30886.
