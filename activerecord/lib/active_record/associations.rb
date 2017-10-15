@@ -850,7 +850,7 @@ module ActiveRecord
       #   project.milestones             # fetches milestones from the database
       #   project.milestones.size        # uses the milestone cache
       #   project.milestones.empty?      # uses the milestone cache
-      #   project.milestones(true).size  # fetches milestones from the database
+      #   project.milestones.reload.size # fetches milestones from the database
       #   project.milestones             # uses the milestone cache
       #
       # == Eager loading of associations
