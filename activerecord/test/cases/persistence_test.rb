@@ -94,27 +94,31 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_joins_and_where_part_is_hash
-    where_args = { toys: { name: "Bone" } }
-    count = Pet.joins(:toys).where(where_args).count
+    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
-    assert_equal count, 1
-    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
-  end
-
-  def test_delete_all_with_left_joins
-    where_args = { toys: { name: "Bone" } }
-    count = Pet.left_joins(:toys).where(where_args).count
-
-    assert_equal count, 1
-    assert_equal count, Pet.left_joins(:toys).where(where_args).delete_all
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.delete_all
   end
 
   def test_delete_all_with_joins_and_where_part_is_not_hash
-    where_args = ["toys.name = ?", "Bone"]
-    count = Pet.joins(:toys).where(where_args).count
+    pets = Pet.joins(:toys).where("toys.name = ?", "Bone")
 
-    assert_equal count, 1
-    assert_equal count, Pet.joins(:toys).where(where_args).delete_all
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.delete_all
+  end
+
+  def test_delete_all_with_left_joins
+    pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.delete_all
+  end
+
+  def test_delete_all_with_includes
+    pets = Pet.includes(:toys).where(toys: { name: "Bone" })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.delete_all
   end
 
   def test_increment_attribute
@@ -496,17 +500,24 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_all_with_joins
-    where_args = { toys: { name: "Bone" } }
-    count = Pet.left_joins(:toys).where(where_args).count
+    pets = Pet.joins(:toys).where(toys: { name: "Bone" })
 
-    assert_equal count, Pet.joins(:toys).where(where_args).update_all(name: "Bob")
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: "Bob")
   end
 
   def test_update_all_with_left_joins
-    where_args = { toys: { name: "Bone" } }
-    count = Pet.left_joins(:toys).where(where_args).count
+    pets = Pet.left_joins(:toys).where(toys: { name: "Bone" })
 
-    assert_equal count, Pet.left_joins(:toys).where(where_args).update_all(name: "Bob")
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: "Bob")
+  end
+
+  def test_update_all_with_includes
+    pets = Pet.includes(:toys).where(toys: { name: "Bone" })
+
+    assert_equal true, pets.exists?
+    assert_equal pets.count, pets.update_all(name: "Bob")
   end
 
   def test_update_all_with_non_standard_table_name
