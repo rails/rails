@@ -1,3 +1,9 @@
+*   Fix longer sequence name detection for serial columns.
+
+    Fixes #28332.
+
+    *Ryuta Kamizono*
+
 *   Use `max_identifier_length` for `index_name_length` in PostgreSQL adapter.
 
     *Ryuta Kamizono*

@@ -358,10 +358,11 @@ module ActiveRecord
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
-      def table_alias_length
+      def max_identifier_length
         @max_identifier_length ||= query('SHOW max_identifier_length', 'SCHEMA')[0][0].to_i
       end
-      alias index_name_length table_alias_length
+      alias table_alias_length max_identifier_length
+      alias index_name_length max_identifier_length
 
       # Set the authorized user for this session
       def session_auth=(user)
