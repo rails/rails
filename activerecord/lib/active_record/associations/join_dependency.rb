@@ -253,6 +253,12 @@ module ActiveRecord
             model = seen[ar_parent.object_id][node.base_klass][id]
 
             if model
+              is_collection = node.reflection.collection?
+              unless is_collection && other.target.include?(model)
+                other = ar_parent.association(node.reflection.name)
+                update_association(model, other, is_collection)
+              end
+
               construct(model, node, row, rs, seen, model_cache, aliases)
             else
               model = construct_model(ar_parent, node, row, model_cache, id, aliases)
@@ -275,14 +281,17 @@ module ActiveRecord
             node.instantiate(row, aliases.column_aliases(node)) do |m|
               other.set_inverse_instance(m)
             end
-
-          if node.reflection.collection?
-            other.target.push(model)
-          else
-            other.target = model
-          end
+          update_association(model, other, node.reflection.collection?)
 
           model
+        end
+
+        def update_association(object, association, is_collection)
+          if is_collection
+            association.target.push(object)
+          else
+            association.target = object
+          end
         end
     end
   end

@@ -1501,6 +1501,21 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome), post
   end
 
+  test "eager-loading belongs_to and has_many association with object included in both" do
+    post = Post.create!(title: "foo", body: "I like cars!")
+    base_comment = Comment.create!(body: "Me too!", post_id: post.id)
+
+    parent_and_child_comment = base_comment.children.create!(body: "+1", post_id: post.id)
+    child_comment = base_comment.children.create!(body: "Not me...", post_id: post.id)
+    base_comment.update(parent: parent_and_child_comment)
+
+    comment = Comment.eager_load(:parent, :children).find(base_comment.id)
+    assert_equal parent_and_child_comment, comment.parent
+    [parent_and_child_comment, child_comment].each do |child|
+      assert_includes comment.children, child
+    end
+  end
+
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
   test "preloading has_many_through association avoids calling association.reader" do
     ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
