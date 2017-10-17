@@ -69,9 +69,6 @@ module ActiveRecord
 
         assert_not connection.index_exists?(:more_testings, :foo_id)
         assert_not connection.index_exists?(:more_testings, :bar_id)
-
-        legacy_ref = connection.columns(:more_testings).find { |c| c.name == "foo_id" }
-        assert_not legacy_ref.bigint?
       ensure
         connection.drop_table :more_testings rescue nil
       end
@@ -116,10 +113,8 @@ module ActiveRecord
   end
 end
 
-class LegacyPrimaryKeyTest < ActiveRecord::TestCase
+module LegacyPrimaryKeyTestCases
   include SchemaDumpingHelper
-
-  self.use_transactional_tests = false
 
   class LegacyPrimaryKey < ActiveRecord::Base
   end
@@ -138,7 +133,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_legacy_primary_key_should_be_auto_incremented
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_table :legacy_primary_keys do |t|
           t.references :legacy_ref
@@ -168,7 +163,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   def test_legacy_integer_primary_key_should_not_be_auto_incremented
     skip if current_adapter?(:SQLite3Adapter)
 
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_table :legacy_primary_keys, id: :integer do |t|
         end
@@ -186,7 +181,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_legacy_join_table_foreign_keys_should_be_integer
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_join_table :apples, :bananas do |t|
         end
@@ -201,7 +196,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_legacy_join_table_column_options_should_be_overwritten
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_join_table :apples, :bananas, column_options: { type: :bigint } do |t|
         end
@@ -217,7 +212,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
 
   if current_adapter?(:Mysql2Adapter)
     def test_legacy_bigint_primary_key_should_be_auto_incremented
-      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      @migration = Class.new(migration_class) {
         def change
           create_table :legacy_primary_keys, id: :bigint
         end
@@ -234,7 +229,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     end
   else
     def test_legacy_bigint_primary_key_should_not_be_auto_incremented
-      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      @migration = Class.new(migration_class) {
         def change
           create_table :legacy_primary_keys, id: :bigint do |t|
           end
@@ -250,5 +245,29 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
       schema = dump_table_schema "legacy_primary_keys"
       assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
     end
+  end
+end
+
+module LegacyPrimaryKeyTest
+  class V5_0 < ActiveRecord::TestCase
+    include LegacyPrimaryKeyTestCases
+
+    self.use_transactional_tests = false
+
+    private
+      def migration_class
+        ActiveRecord::Migration[5.0]
+      end
+  end
+
+  class V4_2 < ActiveRecord::TestCase
+    include LegacyPrimaryKeyTestCases
+
+    self.use_transactional_tests = false
+
+    private
+      def migration_class
+        ActiveRecord::Migration[4.2]
+      end
   end
 end
