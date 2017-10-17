@@ -4,6 +4,7 @@ require "helper"
 require "active_job/arguments"
 require "models/person"
 require "active_support/core_ext/hash/indifferent_access"
+require "active_support/duration"
 require "jobs/kwargs_job"
 
 class ArgumentSerializationTest < ActiveSupport::TestCase
@@ -12,7 +13,8 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    "a", true, false, BigDecimal(5),
+    "a", true, false, BigDecimal.new(5),
+    :a, self, 1.day,
     [ 1, "a" ],
     { "a" => 1 }
   ].each do |arg|
@@ -21,7 +23,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  [ :a, Object.new, self, Person.find("5").to_gid ].each do |arg|
+  [ Object.new, Person.find("5").to_gid ].each do |arg|
     test "does not serialize #{arg.class}" do
       assert_raises ActiveJob::SerializationError do
         ActiveJob::Arguments.serialize [ arg ]
@@ -31,6 +33,10 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
         ActiveJob::Arguments.deserialize [ arg ]
       end
     end
+  end
+
+  test "serializes Struct" do
+    assert_arguments_unchanged Struct.new("Rectangle", :width, :height).new(10, 15)
   end
 
   test "should convert records to Global IDs" do

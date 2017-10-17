@@ -52,8 +52,21 @@ MyJob.set(wait: 1.week).perform_later(record) # Enqueue a job to be performed 1 
 
 That's it!
 
+## Supported types for arguments
 
-## GlobalID support
+ActiveJob supports the following types of arguments by default:
+
+  - Standard types (`NilClass`, `String`, `Integer`, `Fixnum`, `Bignum`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
+  - `Symbol` (`:foo`, `:bar`, ...)
+  - `ActiveSupport::Duration` (`1.day`, `2.weeks`, ...)
+  - Classes constants (`ActiveRecord::Base`, `MySpecialService`, ...)
+  - Struct instances (`Struct.new('Rectangle', :width, :height).new(12, 20)`, ...)
+  - `Hash`. Keys should be of `String` or `Symbol` type
+  - `ActiveSupport::HashWithIndifferentAccess`
+  - `Array`
+
+
+### GlobalID support
 
 Active Job supports [GlobalID serialization](https://github.com/rails/globalid/) for parameters. This makes it possible
 to pass live Active Record objects to your job instead of class/id pairs, which
@@ -81,6 +94,53 @@ end
 This works with any class that mixes in GlobalID::Identification, which
 by default has been mixed into Active Record classes.
 
+### Serializers
+
+You can extend list of supported types for arguments. You just need to define your own serializer.
+
+```ruby
+class MySpecialSerializer
+  class << self
+    # Check if this object should be serialized using this serializer
+    def serialize?(argument)
+      object.is_a? MySpecialValueObject
+    end
+
+    # Convert an object to a simpler representative using supported object types.
+    # The recommended representative is a Hash with a specific key. Keys can be of basic types only
+    def serialize(object)
+      {
+        key => ActiveJob::Serializers.serialize(object.value)
+        'another_attribute' => ActiveJob::Serializers.serialize(object.another_attribute)
+      }
+    end
+
+    # Check if this serialized value be deserialized using this serializer
+    def deserialize?(argument)
+      object.is_a?(Hash) && object.keys == [key, 'another_attribute']
+    end
+
+    # Convert serialized value into a proper object
+    def deserialize(object)
+      value = ActiveJob::Serializers.deserialize(object[key])
+      another_attribute = ActiveJob::Serializers.deserialize(object['another_attribute'])
+      MySpecialValueObject.new value, another_attribute
+    end
+
+    # Define this method if you are using a hash as a representative.
+    # This key will be added to a list of restricted keys for hashes. Use basic types only
+    def key
+      "_aj_custom_dummy_value_object"
+    end
+  end
+end
+```
+
+And now you just need to add this serializer to a list:
+
+```ruby
+ActiveJob::Base.add_serializers(MySpecialSerializer)
+```
 
 ## Supported queueing systems
 
