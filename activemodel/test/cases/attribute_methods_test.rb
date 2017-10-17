@@ -117,15 +117,22 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "#define_attribute_method does not generate attribute method if already defined in attribute module" do
-    klass = Class.new(ModelWithAttributes)
-    klass.send(:generated_attribute_methods).module_eval do
-      def foo
-        "<3"
+    begin
+      klass = Class.new(ModelWithAttributes)
+      matcher = klass.ancestors.find { |mod|
+        mod.is_a?(ActiveModel::AttributeMethodMatcher)
+      }
+      matcher.module_eval do
+        def foo
+          "<3"
+        end
       end
-    end
-    klass.define_attribute_method(:foo)
+      klass.define_attribute_method(:foo)
 
-    assert_equal "<3", klass.new.foo
+      assert_equal "<3", klass.new.foo
+    ensure
+      klass.undefine_attribute_methods
+    end
   end
 
   test "#define_attribute_method generates a method that is already defined on the host" do

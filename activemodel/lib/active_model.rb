@@ -32,6 +32,7 @@ module ActiveModel
 
   autoload :AttributeAssignment
   autoload :AttributeMethods
+  autoload :AttributeMethodMatcher
   autoload :BlockValidator, "active_model/validator"
   autoload :Callbacks
   autoload :Conversion
