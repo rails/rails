@@ -589,10 +589,16 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
-            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
+          @_method_downcase_cache ||= {}
+          downcased_method = @_method_downcase_cache[method] ||= method.to_s.downcase
+          if downcased_method && downcased_method != "get" && html_options["rel"] !~ /nofollow/
+            if html_options["rel"].present?
+              html_options["rel"] = "#{html_options["rel"]} nofollow"
+            else
+              html_options["rel"] = "nofollow"
+            end
           end
-          html_options["data-method".freeze] = method
+          html_options["data-method"] = downcased_method
         end
 
         def token_tag(token = nil, form_options: {})

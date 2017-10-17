@@ -132,7 +132,8 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
     #   Time.zone.now.zone # => "EST"
     def zone
-      period.zone_identifier.to_s
+      TimeWithZone.zone_identifier_cache[period.zone_identifier] ||=
+        period.zone_identifier.to_s
     end
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
@@ -217,7 +218,7 @@ module ActiveSupport
     # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      format = TimeWithZone.strftime_format_cache[format] ||= format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
       getlocal(utc_offset).strftime(format)
     end
 
@@ -514,38 +515,49 @@ module ActiveSupport
     end
 
     private
-      def get_period_and_ensure_valid_local_time(period)
-        # we don't want a Time.local instance enforcing its own DST rules as well,
-        # so transfer time values to a utc constructor if necessary
-        @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
-        begin
-          period || @time_zone.period_for_local(@time)
-        rescue ::TZInfo::PeriodNotFound
-          # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
-          @time += 1.hour
-          retry
-        end
+
+    class << self
+      def zone_identifier_cache
+        @_zone_identifier_cache ||= {}
       end
 
-      def transfer_time_values_to_utc_constructor(time)
-        # avoid creating another Time object if possible
-        return time if time.instance_of?(::Time) && time.utc?
-        ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
+      def strftime_format_cache
+        @_strftime_format_cache ||= {}
       end
+    end
 
-      def duration_of_variable_length?(obj)
-        ActiveSupport::Duration === obj && obj.parts.any? { |p| [:years, :months, :weeks, :days].include?(p[0]) }
+    def get_period_and_ensure_valid_local_time(period)
+      # we don't want a Time.local instance enforcing its own DST rules as well,
+      # so transfer time values to a utc constructor if necessary
+      @time = transfer_time_values_to_utc_constructor(@time) unless @time.utc?
+      begin
+        period || @time_zone.period_for_local(@time)
+      rescue ::TZInfo::PeriodNotFound
+        # time is in the "spring forward" hour gap, so we're moving the time forward one hour and trying again
+        @time += 1.hour
+        retry
       end
+    end
 
-      def wrap_with_time_zone(time)
-        if time.acts_like?(:time)
-          periods = time_zone.periods_for_local(time)
-          self.class.new(nil, time_zone, time, periods.include?(period) ? period : nil)
-        elsif time.is_a?(Range)
-          wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
-        else
-          time
-        end
+    def transfer_time_values_to_utc_constructor(time)
+      # avoid creating another Time object if possible
+      return time if time.instance_of?(::Time) && time.utc?
+      ::Time.utc(time.year, time.month, time.day, time.hour, time.min, time.sec + time.subsec)
+    end
+
+    def duration_of_variable_length?(obj)
+      ActiveSupport::Duration === obj && obj.parts.any? { |p| [:years, :months, :weeks, :days].include?(p[0]) }
+    end
+
+    def wrap_with_time_zone(time)
+      if time.acts_like?(:time)
+        periods = time_zone.periods_for_local(time)
+        self.class.new(nil, time_zone, time, periods.include?(period) ? period : nil)
+      elsif time.is_a?(Range)
+        wrap_with_time_zone(time.begin)..wrap_with_time_zone(time.end)
+      else
+        time
       end
+    end
   end
 end
