@@ -171,7 +171,7 @@ module ActiveRecord
             class << t
               prepend TableDefinition
             end
-            t
+            super
           end
 
           def index_name_for_remove(table_name, options = {})

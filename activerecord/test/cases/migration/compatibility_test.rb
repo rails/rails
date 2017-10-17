@@ -71,6 +71,9 @@ module ActiveRecord
 
         assert_not connection.index_exists?(:more_testings, :foo_id)
         assert_not connection.index_exists?(:more_testings, :bar_id)
+
+        legacy_ref = connection.columns(:more_testings).find { |c| c.name == "foo_id" }
+        assert_not legacy_ref.bigint?
       ensure
         connection.drop_table :more_testings rescue nil
       end
