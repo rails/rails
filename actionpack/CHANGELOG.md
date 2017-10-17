@@ -1,3 +1,7 @@
+*   Add headless chrome support to System Tests.
+
+    *Yuji Yaginuma*
+
 *   Add ability to enable Early Hints for HTTP/2
 
     If supported by the server, and enabled in Puma this allows H2 Early Hints to be used.
