@@ -71,6 +71,5 @@ module ActiveRecord
         end
       end
     end
-
   end
 end
