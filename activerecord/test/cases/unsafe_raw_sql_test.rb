@@ -138,6 +138,42 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_depr, ids_disabled
   end
 
+  test "order: allows Arel.sql with binds" do
+    ids_expected = Post.order(Arel.sql('INSTR(title, "comments"), id')).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order([Arel.sql("INSTR(title, ?), id"), "comments"]).pluck(:id) }
+    ids_disabled =  with_unsafe_raw_sql_disabled  { Post.order([Arel.sql("INSTR(title, ?), id"), "comments"]).pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
+  test "order: disallows invalid bind statement" do
+    with_unsafe_raw_sql_disabled   do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.order(["INSTR(title, ?), id", "comments"]).pluck(:id)
+      end
+    end
+  end
+
+  test "order: disallows invalid Array arguments" do
+    with_unsafe_raw_sql_disabled   do
+      assert_raises(ActiveRecord::UnknownAttributeReference) do
+        Post.order(["author_id", "length(title)"]).pluck(:id)
+      end
+    end
+  end
+
+  test "order: allows valid Array arguments" do
+    ids_expected = Post.order(Arel.sql("author_id, length(title)")).pluck(:id)
+
+    ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
+
+    assert_equal ids_expected, ids_depr
+    assert_equal ids_expected, ids_disabled
+  end
+
   test "order: logs deprecation warning for unrecognized column" do
     with_unsafe_raw_sql_deprecated do
       ActiveSupport::Deprecation.expects(:warn).with do |msg|

@@ -297,11 +297,6 @@ module ActiveRecord
 
     # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
-      @klass.enforce_raw_sql_whitelist(
-        column_names_from_order_arguments(args),
-        whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
-      )
-
       preprocess_order_args(args)
 
       self.order_values += args
@@ -324,11 +319,6 @@ module ActiveRecord
 
     # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
-      @klass.enforce_raw_sql_whitelist(
-        column_names_from_order_arguments(args),
-        whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
-      )
-
       preprocess_order_args(args)
 
       self.reordering_value = true
@@ -928,23 +918,6 @@ module ActiveRecord
 
     private
 
-      # Extract column names from arguments passed to #order or #reorder.
-      def column_names_from_order_arguments(args)
-        args.flat_map do |arg|
-          case arg
-          when Hash
-            # Tag.order(id: :desc)
-            arg.keys
-          when Array
-            # Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]])
-            arg.flatten
-          else
-            # Tag.order(:id)
-            arg
-          end
-        end
-      end
-
       def assert_mutability!
         raise ImmutableRelation if @loaded
         raise ImmutableRelation if defined?(@arel) && @arel
@@ -1146,6 +1119,12 @@ module ActiveRecord
           klass.send(:sanitize_sql_for_order, arg)
         end
         order_args.flatten!
+
+        @klass.enforce_raw_sql_whitelist(
+          order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
+          whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+        )
+
         validate_order_args(order_args)
 
         references = order_args.grep(String)
