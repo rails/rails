@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "test_helper"
+require "database/setup"
+
 require "active_storage/previewer/pdf_previewer"
 
 class ActiveStorage::Previewer::PDFPreviewerTest < ActiveSupport::TestCase

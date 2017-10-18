@@ -1,10 +1,14 @@
 # frozen_string_literal: true
 
+require "active_storage/downloading"
+
 module ActiveStorage
   # This is an abstract base class for previewers, which generate images from blobs. See
   # ActiveStorage::Previewer::PDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for examples of
   # concrete subclasses.
   class Previewer
+    include Downloading
+
     attr_reader :blob
 
     # Implement this method in a concrete subclass. Have it return true when given a blob from which
@@ -24,37 +28,20 @@ module ActiveStorage
     end
 
     private
-      # Downloads the blob to a new tempfile. Yields the tempfile.
-      #
-      # Use this method to get a tempfile that you can provide to a drawing command.
-      def open # :doc:
-        Tempfile.open("input") do |file|
-          download_blob_to file
-          yield file
-        end
-      end
-
-      def download_blob_to(file)
-        file.binmode
-        blob.download { |chunk| file.write(chunk) }
-        file.rewind
-      end
-
-
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
-      # Use this method to shell out to system libraries (e.g. mupdf or ffmpeg) for preview image
+      # Use this method to shell out to a system library (e.g. mupdf or ffmpeg) for preview image
       # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
       #
       #   def preview
-      #     open do |input|
+      #     download_blob_to_tempfile do |input|
       #       draw "my-drawing-command", input.path, "--format", "png", "-" do |output|
       #         yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
       #       end
       #     end
       #   end
       def draw(*argv) # :doc:
-        Tempfile.open("output") do |file|
+        Tempfile.open("ActiveStorage") do |file|
           capture(*argv, to: file)
           yield file
         end

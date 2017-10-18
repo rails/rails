@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "test_helper"
+require "database/setup"
+
 require "active_storage/previewer/video_previewer"
 
 class ActiveStorage::Previewer::VideoPreviewerTest < ActiveSupport::TestCase

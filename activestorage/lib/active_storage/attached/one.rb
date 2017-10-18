@@ -59,10 +59,14 @@ module ActiveStorage
       def replace(attachable)
         blob.tap do
           transaction do
-            destroy
+            destroy_attachment
             write_attachment create_attachment_from(attachable)
           end
         end.purge_later
+      end
+
+      def destroy_attachment
+        attachment.destroy
       end
 
       def create_attachment_from(attachable)

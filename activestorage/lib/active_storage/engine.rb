@@ -6,12 +6,16 @@ require "active_storage"
 require "active_storage/previewer/pdf_previewer"
 require "active_storage/previewer/video_previewer"
 
+require "active_storage/analyzer/image_analyzer"
+require "active_storage/analyzer/video_analyzer"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.analyzers  = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -67,6 +71,12 @@ module ActiveStorage
     initializer "active_storage.previewers" do
       config.after_initialize do |app|
         ActiveStorage.previewers = app.config.active_storage.previewers || []
+      end
+    end
+
+    initializer "active_storage.analyzers" do
+      config.after_initialize do |app|
+        ActiveStorage.analyzers = app.config.active_storage.analyzers || []
       end
     end
   end
