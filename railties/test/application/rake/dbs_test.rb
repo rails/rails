@@ -189,6 +189,14 @@ module ApplicationTests
         db_structure_dump_and_load database_url_db_name
       end
 
+      test "db:structure:dump and db:structure:load set ar_internal_metadata" do
+        require "#{app_path}/config/environment"
+        db_structure_dump_and_load ActiveRecord::Base.configurations[Rails.env]["database"]
+
+        assert_equal "test", rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip
+        assert_equal "development", rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip
+      end
+
       test "db:structure:dump does not dump schema information when no migrations are used" do
         # create table without migrations
         rails "runner", "ActiveRecord::Base.connection.create_table(:posts) {|t| t.string :title }"
@@ -297,6 +305,45 @@ module ApplicationTests
           ENV["RAILS_ENV"] = @old_rails_env
           ENV["RACK_ENV"] = @old_rack_env
         end
+      end
+
+      test "db:setup sets ar_internal_metadata" do
+        app_file "db/schema.rb", ""
+        rails "db:setup"
+
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+        development_environment = lambda { rails("runner", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
+
+        app_file "db/structure.sql", ""
+        app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
+          Rails.application.config.active_record.schema_format = :sql
+        RUBY
+
+        rails "db:setup"
+
+        assert_equal "test", test_environment.call
+        assert_equal "development", development_environment.call
+      end
+
+      test "db:test:prepare sets test ar_internal_metadata" do
+        app_file "db/schema.rb", ""
+        rails "db:test:prepare"
+
+        test_environment = lambda { rails("runner", "-e", "test", "puts ActiveRecord::InternalMetadata[:environment]").strip }
+
+        assert_equal "test", test_environment.call
+
+        app_file "db/structure.sql", ""
+        app_file "config/initializers/enable_sql_schema_format.rb", <<-RUBY
+          Rails.application.config.active_record.schema_format = :sql
+        RUBY
+
+        rails "db:test:prepare"
+
+        assert_equal "test", test_environment.call
       end
     end
   end
