@@ -1,3 +1,26 @@
+*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
+    ar_internal_metadata's data for a test database.
+
+    Before:
+    ```
+    $ RAILS_ENV=test rails dbconsole
+    > SELECT * FROM ar_internal_metadata;
+    key|value|created_at|updated_at
+    environment|development|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
+    ```
+
+    After:
+    ```
+    $ RAILS_ENV=test rails dbconsole
+    > SELECT * FROM ar_internal_metadata;
+    key|value|created_at|updated_at
+    environment|test|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
+    ```
+
+    Fixes #26731.
+
+    *bogdanvlviv*
+
 *   Fix longer sequence name detection for serial columns.
 
     Fixes #28332.
