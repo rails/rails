@@ -13,6 +13,7 @@ require "models/bulb"
 require "models/engine"
 require "models/wheel"
 require "models/treasure"
+require "models/frog"
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -507,6 +508,16 @@ unless in_memory_db?
             person.lock!
           end
           assert_equal old, person.first_name
+        end
+      end
+    end
+
+    def test_locking_in_after_save_callback
+      assert_nothing_raised do
+        frog = ::Frog.create(name: "Old Frog")
+        frog.name = "New Frog"
+        assert_not_deprecated do
+          frog.save!
         end
       end
     end
