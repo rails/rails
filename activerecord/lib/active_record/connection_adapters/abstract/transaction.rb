@@ -60,9 +60,6 @@ module ActiveRecord
       end
 
       def commit!
-        if uncommittable?
-          raise ActiveRecord::TransactionIsolationError, "cannot set state committed when already #{state.to_s}"
-        end
         @state = :committed
       end
 
