@@ -127,26 +127,28 @@ module ActiveModel
     private
 
       def _define_before_model_callback(klass, callback)
-        klass.define_singleton_method("before_#{callback}") do |*args, &block|
-          set_callback(:"#{callback}", :before, *args, &block)
+        klass.define_singleton_method("before_#{callback}") do |*args, **options, &block|
+          options.assert_valid_keys :if, :unless, :prepend
+          set_callback(:"#{callback}", :before, *args, **options, &block)
         end
       end
 
       def _define_around_model_callback(klass, callback)
-        klass.define_singleton_method("around_#{callback}") do |*args, &block|
-          set_callback(:"#{callback}", :around, *args, &block)
+        klass.define_singleton_method("around_#{callback}") do |*args, **options, &block|
+          options.assert_valid_keys :if, :unless, :prepend
+          set_callback(:"#{callback}", :around, *args, **options, &block)
         end
       end
 
       def _define_after_model_callback(klass, callback)
-        klass.define_singleton_method("after_#{callback}") do |*args, &block|
-          options = args.extract_options!
+        klass.define_singleton_method("after_#{callback}") do |*args, **options, &block|
+          options.assert_valid_keys :if, :unless, :prepend
           options[:prepend] = true
           conditional = ActiveSupport::Callbacks::Conditionals::Value.new { |v|
             v != false
           }
           options[:if] = Array(options[:if]) << conditional
-          set_callback(:"#{callback}", :after, *(args << options), &block)
+          set_callback(:"#{callback}", :after, *args, **options, &block)
         end
       end
   end
