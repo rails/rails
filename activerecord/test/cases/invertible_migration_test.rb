@@ -295,6 +295,8 @@ module ActiveRecord
 
         migration2.migrate(:down)
         assert_equal false, Horse.connection.extension_enabled?("hstore")
+      ensure
+        enable_extension!("hstore", ActiveRecord::Base.connection)
       end
     end
 
