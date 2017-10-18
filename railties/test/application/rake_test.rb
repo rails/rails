@@ -166,7 +166,7 @@ module ApplicationTests
         end
       RUBY
 
-      output = rails("routes", "-g", "show", allow_failure: true)
+      output = rails("routes", "-g", "show")
       assert_equal <<-MESSAGE.strip_heredoc, output
                          Prefix Verb URI Pattern     Controller#Action
                            cart GET  /cart(.:format) cart#show
