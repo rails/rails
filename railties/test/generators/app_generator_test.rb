@@ -412,6 +412,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_no_directory("test")
@@ -422,6 +423,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_directory("test")
