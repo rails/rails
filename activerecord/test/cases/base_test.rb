@@ -1444,17 +1444,24 @@ class BasicsTest < ActiveRecord::TestCase
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
+    assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do
     refute Developer.new.respond_to?(:first_name)
     refute Developer.new.respond_to?(:first_name=)
     refute Developer.new.respond_to?(:first_name?)
+    refute SubDeveloper.new.respond_to?(:first_name)
+    refute SubDeveloper.new.respond_to?(:first_name=)
+    refute SubDeveloper.new.respond_to?(:first_name?)
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
     assert Developer.new.respond_to?(:last_name)
     assert Developer.new.respond_to?(:last_name=)
     assert Developer.new.respond_to?(:last_name?)
+    assert SubDeveloper.new.respond_to?(:last_name)
+    assert SubDeveloper.new.respond_to?(:last_name=)
+    assert SubDeveloper.new.respond_to?(:last_name?)
   end
 end

@@ -87,6 +87,9 @@ class Developer < ActiveRecord::Base
   private :track_instance_count
 end
 
+class SubDeveloper < Developer
+end
+
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, validate: true
   belongs_to :unvalidated_developer, class_name: "Developer"
