@@ -14,6 +14,7 @@ services:
 
 addons:
   postgresql: "9.6"
+  chrome: stable
   apt:
     sources:
       - sourceline: "ppa:mc3man/trusty-media"
@@ -34,7 +35,6 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
-  - "[[ $GEM != 'av:ujs' ]] || [[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.

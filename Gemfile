@@ -102,6 +102,11 @@ group :storage do
   gem "mini_magick"
 end
 
+group :ujs do
+  gem "qunit-selenium"
+  gem "chromedriver-helper"
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile

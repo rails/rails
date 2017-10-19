@@ -45,7 +45,7 @@ namespace :test do
         end
       end
 
-      system("npm run lint && phantomjs ../ci/phantomjs.js http://localhost:4567/")
+      system("npm run lint && bundle exec ruby ../ci/qunit-selenium-runner.rb http://localhost:4567/")
       status = $?.to_i
     ensure
       Process.kill("KILL", pid) if pid
