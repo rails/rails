@@ -83,13 +83,13 @@ module ActionController
     #   def cleanup_view_runtime
     #     super - time_taken_in_something_expensive
     #   end
-    def cleanup_view_runtime
+    def cleanup_view_runtime # :doc:
       yield
     end
 
     # Every time after an action is processed, this method is invoked
     # with the payload, so you can add more information.
-    def append_info_to_payload(payload)
+    def append_info_to_payload(payload) # :doc:
       payload[:view_runtime] = view_runtime
     end
 
