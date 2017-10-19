@@ -9,5 +9,5 @@ driver = ::Selenium::WebDriver.for(:chrome, options: driver_options)
 result = QUnit::Selenium::TestRunner.new(driver).open(ARGV[0], timeout: 60)
 driver.quit
 
-puts "Time: #{result.duration} seconds, Total: #{result.tests[:total]}, Passed: #{result.tests[:passed]}, Failed: #{result.tests[:failed]}"
+puts "Time: #{result.duration} seconds, Total: #{result.assertions[:total]}, Passed: #{result.assertions[:passed]}, Failed: #{result.assertions[:failed]}"
 exit(result.tests[:failed] > 0 ? 1 : 0)
