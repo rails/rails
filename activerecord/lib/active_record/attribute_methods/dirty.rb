@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attribute_accessors"
-require "active_record/attribute_mutation_tracker"
 
 module ActiveRecord
   module AttributeMethods
@@ -33,63 +32,11 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
+          @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_before_last_save = nil
+          @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_from_database = nil
-          @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
         end
-      end
-
-      def initialize_dup(other) # :nodoc:
-        super
-        @attributes = self.class._default_attributes.map do |attr|
-          attr.with_value_from_user(@attributes.fetch_value(attr.name))
-        end
-        @mutations_from_database = nil
-      end
-
-      def changes_applied # :nodoc:
-        @mutations_before_last_save = mutations_from_database
-        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-        forget_attribute_assignments
-        @mutations_from_database = nil
-      end
-
-      def clear_changes_information # :nodoc:
-        @mutations_before_last_save = nil
-        @changed_attributes = ActiveSupport::HashWithIndifferentAccess.new
-        forget_attribute_assignments
-        @mutations_from_database = nil
-      end
-
-      def clear_attribute_changes(attr_names) # :nodoc:
-        super
-        attr_names.each do |attr_name|
-          clear_attribute_change(attr_name)
-        end
-      end
-
-      def changed_attributes # :nodoc:
-        # This should only be set by methods which will call changed_attributes
-        # multiple times when it is known that the computed value cannot change.
-        if defined?(@cached_changed_attributes)
-          @cached_changed_attributes
-        else
-          super.reverse_merge(mutations_from_database.changed_values).freeze
-        end
-      end
-
-      def changes # :nodoc:
-        cache_changed_attributes do
-          super
-        end
-      end
-
-      def previous_changes # :nodoc:
-        mutations_before_last_save.changes
-      end
-
-      def attribute_changed_in_place?(attr_name) # :nodoc:
-        mutations_from_database.changed_in_place?(attr_name)
       end
 
       # Did this attribute change when we last saved? This method can be invoked
@@ -182,26 +129,6 @@ module ActiveRecord
           result
         end
 
-        def mutations_from_database
-          unless defined?(@mutations_from_database)
-            @mutations_from_database = nil
-          end
-          @mutations_from_database ||= AttributeMutationTracker.new(@attributes)
-        end
-
-        def changes_include?(attr_name)
-          super || mutations_from_database.changed?(attr_name)
-        end
-
-        def clear_attribute_change(attr_name)
-          mutations_from_database.forget_change(attr_name)
-        end
-
-        def attribute_will_change!(attr_name)
-          super
-          mutations_from_database.force_change(attr_name)
-        end
-
         def _update_record(*)
           partial_writes? ? super(keys_for_partial_write) : super
         end
@@ -212,25 +139,6 @@ module ActiveRecord
 
         def keys_for_partial_write
           changed_attribute_names_to_save & self.class.column_names
-        end
-
-        def forget_attribute_assignments
-          @attributes = @attributes.map(&:forgetting_assignment)
-        end
-
-        def mutations_before_last_save
-          @mutations_before_last_save ||= NullMutationTracker.instance
-        end
-
-        def cache_changed_attributes
-          @cached_changed_attributes = changed_attributes
-          yield
-        ensure
-          clear_changed_attributes_cache
-        end
-
-        def clear_changed_attributes_cache
-          remove_instance_variable(:@cached_changed_attributes) if defined?(@cached_changed_attributes)
         end
     end
   end

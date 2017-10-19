@@ -2,8 +2,8 @@
 
 require "cases/helper"
 
-module ActiveRecord
-  class AttributeSetTest < ActiveRecord::TestCase
+module ActiveModel
+  class AttributeSetTest < ActiveModel::TestCase
     test "building a new set from raw attributes" do
       builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
       attributes = builder.build_from_database(foo: "1.1", bar: "2.2")

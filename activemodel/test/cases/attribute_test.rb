@@ -2,8 +2,8 @@
 
 require "cases/helper"
 
-module ActiveRecord
-  class AttributeTest < ActiveRecord::TestCase
+module ActiveModel
+  class AttributeTest < ActiveModel::TestCase
     setup do
       @type = Minitest::Mock.new
     end
