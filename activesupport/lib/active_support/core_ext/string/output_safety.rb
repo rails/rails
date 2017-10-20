@@ -15,9 +15,6 @@ class ERB
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
     #
-    # In your ERB templates, use this method to escape any unsafe content. For example:
-    #   <%= h @person.name %>
-    #
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?
     def html_escape(s)
