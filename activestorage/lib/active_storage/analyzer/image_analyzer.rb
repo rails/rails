@@ -20,6 +20,9 @@ module ActiveStorage
       read_image do |image|
         { width: image.width, height: image.height }
       end
+    rescue LoadError
+      logger.info "Skipping image analysis because the mini_magick gem isn't installed"
+      {}
     end
 
     private
