@@ -1,3 +1,7 @@
+*   Deprecate support of `script/rails` to load application.
+
+    *Yuji Yaginuma*
+
 *   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
 
     *Jeremy Daer*
