@@ -71,6 +71,9 @@ module ActiveStorage
         IO.popen([ "ffprobe", "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
           JSON.parse(output.read)
         end
+      rescue Errno::ENOENT
+        logger.info "Skipping video analysis because ffmpeg isn't installed"
+        {}
       end
   end
 end

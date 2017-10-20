@@ -24,5 +24,10 @@ module ActiveStorage
     def metadata
       raise NotImplementedError
     end
+
+    private
+      def logger
+        ActiveStorage.logger
+      end
   end
 end

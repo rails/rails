@@ -36,6 +36,7 @@ module ActiveStorage
   autoload :Previewer
   autoload :Analyzer
 
+  mattr_accessor :logger
   mattr_accessor :verifier
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []

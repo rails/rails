@@ -41,8 +41,6 @@ module ActiveStorage
     extend ActiveSupport::Autoload
     autoload :Configurator
 
-    class_attribute :logger
-
     class_attribute :url_expires_in, default: 5.minutes
 
     class << self

@@ -20,10 +20,8 @@ module ActiveStorage
     config.eager_load_namespaces << ActiveStorage
 
     initializer "active_storage.logger" do
-      require "active_storage/service"
-
       config.after_initialize do |app|
-        ActiveStorage::Service.logger = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.logger = app.config.active_storage.logger || Rails.logger
       end
     end
 
