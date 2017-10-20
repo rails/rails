@@ -133,6 +133,17 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    activerecord-jdbc-adapter (1.3.24)
+      activerecord (>= 2.2, < 5.0)
+    activerecord-jdbcmysql-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-mysql (>= 5.1.22)
+    activerecord-jdbcpostgresql-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-postgres (~> 9.1, <= 9.4.1206)
+    activerecord-jdbcsqlite3-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-sqlite3 (>= 3.7.2, < 3.9)
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     amq-protocol (2.2.0)
@@ -165,6 +176,7 @@ GEM
       concurrent-ruby (~> 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.11)
+    bcrypt (3.1.11-java)
     bcrypt (3.1.11-x64-mingw32)
     bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
@@ -187,6 +199,8 @@ GEM
       faraday
       selenium-webdriver
     bootsnap (1.1.2)
+      msgpack (~> 1.0)
+    bootsnap (1.1.2-java)
       msgpack (~> 1.0)
     builder (3.2.3)
     bunny (2.6.6)
@@ -212,6 +226,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
+    concurrent-ruby (1.0.5-java)
     connection_pool (2.2.1)
     cookiejar (0.3.3)
     curses (1.0.2)
@@ -243,6 +258,7 @@ GEM
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
+    eventmachine (1.2.5-java)
     eventmachine (1.2.5-x64-mingw32)
     eventmachine (1.2.5-x86-mingw32)
     execjs (2.7.0)
@@ -262,6 +278,7 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.18)
+    ffi (1.9.18-java)
     ffi (1.9.18-x64-mingw32)
     ffi (1.9.18-x86-mingw32)
     globalid (0.4.0)
@@ -291,12 +308,17 @@ GEM
       os (~> 0.9)
       signet (~> 0.7)
     hiredis (0.6.1)
+    hiredis (0.6.1-java)
     http_parser.rb (0.6.0)
     httpclient (2.8.3)
     i18n (0.8.6)
     io-like (0.3.0)
+    jdbc-mysql (5.1.44)
+    jdbc-postgres (9.4.1206)
+    jdbc-sqlite3 (3.8.11.2)
     jmespath (1.3.1)
     json (2.1.0)
+    json (2.1.0-java)
     jwt (1.5.6)
     kindlerb (1.2.0)
       mustache
@@ -333,6 +355,7 @@ GEM
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.1.0)
+    msgpack (1.1.0-java)
     msgpack (1.1.0-x64-mingw32)
     msgpack (1.1.0-x86-mingw32)
     multi_json (1.12.1)
@@ -345,6 +368,7 @@ GEM
     nio4r (2.1.0)
     nokogiri (1.8.0)
       mini_portile2 (~> 2.2.0)
+    nokogiri (1.8.0-java)
     nokogiri (1.8.0-x64-mingw32)
       mini_portile2 (~> 2.2.0)
     nokogiri (1.8.0-x86-mingw32)
@@ -361,6 +385,7 @@ GEM
     psych (2.2.4)
     public_suffix (2.0.5)
     puma (3.9.1)
+    puma (3.9.1-java)
     que (0.14.0)
     qunit-selenium (0.0.4)
       selenium-webdriver
@@ -461,6 +486,7 @@ GEM
     thor (0.20.0)
     thread (0.1.7)
     thread_safe (0.3.6)
+    thread_safe (0.3.6-java)
     tilt (2.0.8)
     turbolinks (5.0.1)
       turbolinks-source (~> 5)
@@ -488,6 +514,7 @@ GEM
       nokogiri (~> 1.3)
 
 PLATFORMS
+  java
   ruby
   x64-mingw32
   x86-mingw32
