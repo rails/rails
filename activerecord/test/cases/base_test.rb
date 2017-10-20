@@ -1513,6 +1513,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
     assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
+    assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do
@@ -1522,6 +1523,9 @@ class BasicsTest < ActiveRecord::TestCase
     refute SubDeveloper.new.respond_to?(:first_name)
     refute SubDeveloper.new.respond_to?(:first_name=)
     refute SubDeveloper.new.respond_to?(:first_name?)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name=)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name?)
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
@@ -1531,5 +1535,13 @@ class BasicsTest < ActiveRecord::TestCase
     assert SubDeveloper.new.respond_to?(:last_name)
     assert SubDeveloper.new.respond_to?(:last_name=)
     assert SubDeveloper.new.respond_to?(:last_name?)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name=)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name?)
+  end
+
+  test "ignored columns are stored as an array of string" do
+    assert_equal(%w(first_name last_name), Developer.ignored_columns)
+    assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
   end
 end
