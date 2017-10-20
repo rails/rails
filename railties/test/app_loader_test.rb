@@ -53,7 +53,11 @@ class AppLoaderTest < ActiveSupport::TestCase
       test "is in a Rails application if #{exe} exists and contains #{keyword}" do
         write exe, keyword
 
-        loader.exec_app
+        if exe == "script/rails"
+          assert_deprecated(/script\/rails/) { loader.exec_app }
+        else
+          loader.exec_app
+        end
 
         expects_exec exe
       end
@@ -70,7 +74,11 @@ class AppLoaderTest < ActiveSupport::TestCase
 
         Dir.chdir("foo/bar")
 
-        loader.exec_app
+        if exe == "script/rails"
+          assert_deprecated(/script\/rails/) { loader.exec_app }
+        else
+          loader.exec_app
+        end
 
         expects_exec exe
 
