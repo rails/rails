@@ -46,7 +46,7 @@ namespace :test do
       end
 
       system("npm run lint && bundle exec ruby ../ci/qunit-selenium-runner.rb http://localhost:4567/")
-      status = $?.to_i
+      status = $?.exitstatus
     ensure
       Process.kill("KILL", pid) if pid
       FileUtils.rm_rf("log")
