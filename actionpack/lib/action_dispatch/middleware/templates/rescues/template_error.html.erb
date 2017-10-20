@@ -1,6 +1,6 @@
 <header>
   <h1>
-    <%= @exception.original_exception.class.to_s %> in
+    <%= @exception.cause.class.to_s %> in
     <%= @request.parameters["controller"].camelize if @request.parameters["controller"] %>#<%= @request.parameters["action"] %>
   </h1>
 </header>

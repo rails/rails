@@ -8,12 +8,12 @@ classes. Active Model allows for Action Pack helpers to interact with
 plain Ruby objects. Active Model also helps build custom ORMs for use
 outside of the Rails framework.
 
-After reading this guide, you will be able to add to plain Ruby objects:
+After reading this guide, you will know:
 
-* The ability to behave like an Active Record model.
-* Callbacks and validations like Active Record.
-* Serializers.
-* Integration with the Rails internationalization (i18n) framework.
+* How an Active Record model behaves.
+* How Callbacks and validations work.
+* How serializers work.
+* How Active Model integrates with the Rails internationalization (i18n) framework.
 
 --------------------------------------------------------------------------------
 
@@ -87,7 +87,7 @@ end
 ### Conversion
 
 If a class defines `persisted?` and `id` methods, then you can include the
-`ActiveModel::Conversion` module in that class and call the Rails conversion
+`ActiveModel::Conversion` module in that class, and call the Rails conversion
 methods on objects of that class.
 
 ```ruby
@@ -156,16 +156,17 @@ person.changed? # => false
 person.first_name = "First Name"
 person.first_name # => "First Name"
 
-# returns if any attribute has changed.
+# returns true if any of the attributes have unsaved changes.
 person.changed? # => true
 
 # returns a list of attributes that have changed before saving.
 person.changed # => ["first_name"]
 
-# returns a hash of the attributes that have changed with their original values.
+# returns a Hash of the attributes that have changed with their original values.
 person.changed_attributes # => {"first_name"=>nil}
 
-# returns a hash of changes, with the attribute names as the keys, and the values will be an array of the old and new value for that field.
+# returns a Hash of changes, with the attribute names as the keys, and the
+# values as an array of the old and new values for that field.
 person.changes # => {"first_name"=>[nil, "First Name"]}
 ```
 
@@ -179,7 +180,7 @@ person.first_name # => "First Name"
 person.first_name_changed? # => true
 ```
 
-Track what was the previous value of the attribute.
+Track the previous value of the attribute.
 
 ```ruby
 # attr_name_was accessor
@@ -187,7 +188,7 @@ person.first_name_was # => nil
 ```
 
 Track both previous and current value of the changed attribute. Returns an array
-if changed, else returns nil.
+if changed, otherwise returns nil.
 
 ```ruby
 # attr_name_change
@@ -197,7 +198,7 @@ person.last_name_change # => nil
 
 ### Validations
 
-`ActiveModel::Validations` module adds the ability to validate class objects
+The `ActiveModel::Validations` module adds the ability to validate objects
 like in Active Record.
 
 ```ruby
@@ -225,7 +226,7 @@ person.valid?                        # => raises ActiveModel::StrictValidationFa
 
 ### Naming
 
-`ActiveModel::Naming` adds a number of class methods which make the naming and routing
+`ActiveModel::Naming` adds a number of class methods which make naming and routing
 easier to manage. The module defines the `model_name` class method which
 will define a number of accessors using some `ActiveSupport::Inflector` methods.
 
@@ -248,7 +249,7 @@ Person.model_name.singular_route_key  # => "person"
 
 ### Model
 
-`ActiveModel::Model` adds the ability to a class to work with Action Pack and
+`ActiveModel::Model` adds the ability for a class to work with Action Pack and
 Action View right out of the box.
 
 ```ruby
@@ -292,8 +293,8 @@ objects.
 
 ### Serialization
 
-`ActiveModel::Serialization` provides a basic serialization for your object.
-You need to declare an attributes hash which contains the attributes you want to
+`ActiveModel::Serialization` provides basic serialization for your object.
+You need to declare an attributes Hash which contains the attributes you want to
 serialize. Attributes must be strings, not symbols.
 
 ```ruby
@@ -308,7 +309,7 @@ class Person
 end
 ```
 
-Now you can access a serialized hash of your object using the `serializable_hash`.
+Now you can access a serialized Hash of your object using the `serializable_hash` method.
 
 ```ruby
 person = Person.new
@@ -319,14 +320,14 @@ person.serializable_hash   # => {"name"=>"Bob"}
 
 #### ActiveModel::Serializers
 
-Rails provides two serializers `ActiveModel::Serializers::JSON` and
-`ActiveModel::Serializers::Xml`. Both of these modules automatically include
-the `ActiveModel::Serialization`.
+Active Model also provides the `ActiveModel::Serializers::JSON` module
+for JSON serializing / deserializing. This module automatically includes the
+previously discussed `ActiveModel::Serialization` module.
 
 ##### ActiveModel::Serializers::JSON
 
-To use the `ActiveModel::Serializers::JSON` you only need to change from
-`ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
+To use `ActiveModel::Serializers::JSON` you only need to change the
+module you are including from `ActiveModel::Serialization` to `ActiveModel::Serializers::JSON`.
 
 ```ruby
 class Person
@@ -340,7 +341,8 @@ class Person
 end
 ```
 
-With the `as_json` you have a hash representing the model.
+The `as_json` method, similar to `serializable_hash`, provides a Hash representing
+the model.
 
 ```ruby
 person = Person.new
@@ -349,8 +351,8 @@ person.name = "Bob"
 person.as_json # => {"name"=>"Bob"}
 ```
 
-From a JSON string you define the attributes of the model.
-You need to have the `attributes=` method defined on your class:
+You can also define the attributes for a model from a JSON string.
+However, you need to define the `attributes=` method on your class:
 
 ```ruby
 class Person
@@ -370,69 +372,13 @@ class Person
 end
 ```
 
-Now it is possible to create an instance of person and set the attributes using `from_json`.
+Now it is possible to create an instance of `Person` and set attributes using `from_json`.
 
 ```ruby
 json = { name: 'Bob' }.to_json
 person = Person.new
 person.from_json(json) # => #<Person:0x00000100c773f0 @name="Bob">
 person.name            # => "Bob"
-```
-
-##### ActiveModel::Serializers::Xml
-
-To use the `ActiveModel::Serializers::Xml` you only need to change from
-`ActiveModel::Serialization` to `ActiveModel::Serializers::Xml`.
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-With the `to_xml` you have an XML representing the model.
-
-```ruby
-person = Person.new
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name nil=\"true\"/>\n</person>\n"
-person.name = "Bob"
-person.to_xml # => "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<person>\n  <name>Bob</name>\n</person>\n"
-```
-
-From an XML string you define the attributes of the model.
-You need to have the `attributes=` method defined on your class:
-
-```ruby
-class Person
-  include ActiveModel::Serializers::Xml
-
-  attr_accessor :name
-
-  def attributes=(hash)
-    hash.each do |key, value|
-      send("#{key}=", value)
-    end
-  end
-
-  def attributes
-    {'name' => nil}
-  end
-end
-```
-
-Now it is possible to create an instance of person and set the attributes using `from_xml`.
-
-```ruby
-xml = { name: 'Bob' }.to_xml
-person = Person.new
-person.from_xml(xml) # => #<Person:0x00000100c773f0 @name="Bob">
-person.name          # => "Bob"
 ```
 
 ### Translation
@@ -446,8 +392,8 @@ class Person
 end
 ```
 
-With the `human_attribute_name` you can transform attribute names into a more
-human format. The human format is defined in your locale file.
+With the `human_attribute_name` method, you can transform attribute names into a
+more human-readable format. The human-readable format is defined in your locale file(s).
 
 * config/locales/app.pt-BR.yml
 
@@ -465,19 +411,18 @@ Person.human_attribute_name('name') # => "Nome"
 
 ### Lint Tests
 
-`ActiveModel::Lint::Tests` allow you to test whether an object is compliant with
+`ActiveModel::Lint::Tests` allows you to test whether an object is compliant with
 the Active Model API.
 
-* app/models/person.rb
+* `app/models/person.rb`
 
     ```ruby
     class Person
       include ActiveModel::Model
-
     end
     ```
 
-* test/models/person_test.rb
+* `test/models/person_test.rb`
 
     ```ruby
     require 'test_helper'
@@ -485,14 +430,14 @@ the Active Model API.
     class PersonTest < ActiveSupport::TestCase
       include ActiveModel::Lint::Tests
 
-      def setup
+      setup do
         @model = Person.new
       end
     end
     ```
 
 ```bash
-$ rake test
+$ rails test
 
 Run options: --seed 14596
 
@@ -512,20 +457,20 @@ features out of the box.
 ### SecurePassword
 
 `ActiveModel::SecurePassword` provides a way to securely store any
-password in an encrypted form. On including this module, a
+password in an encrypted form. When you include this module, a
 `has_secure_password` class method is provided which defines
-an accessor named `password` with certain validations on it.
+a `password` accessor with certain validations on it.
 
 #### Requirements
 
-`ActiveModel::SecurePassword` depends on the [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
-so include this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
+`ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
+so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword` correctly.
 In order to make this work, the model must have an accessor named `password_digest`.
 The `has_secure_password` will add the following validations on the `password` accessor:
 
 1. Password should be present.
-2. Password should be equal to its confirmation.
-3. This maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
+2. Password should be equal to its confirmation (provided `password_confirmation` is passed along).
+3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
 
@@ -546,9 +491,13 @@ person.password = 'aditya'
 person.password_confirmation = 'nomatch'
 person.valid? # => false
 
-# When the length of password, exceeds 72.
+# When the length of password exceeds 72.
 person.password = person.password_confirmation = 'a' * 100
 person.valid? # => false
+
+# When only password is supplied with no password_confirmation.
+person.password = 'aditya'
+person.valid? # => true
 
 # When all validations are passed.
 person.password = person.password_confirmation = 'aditya'

@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module ActiveJob
   module QueueName
     extend ActiveSupport::Concern
 
     # Includes the ability to override the default queue name and prefix.
     module ClassMethods
-      mattr_accessor(:queue_name_prefix)
-      mattr_accessor(:default_queue_name) { "default" }
+      mattr_accessor :queue_name_prefix
+      mattr_accessor :default_queue_name, default: "default"
 
       # Specifies the name of the queue to process the job on.
       #
@@ -16,7 +18,7 @@ module ActiveJob
       #       post.to_feed!
       #     end
       #   end
-      def queue_as(part_name=nil, &block)
+      def queue_as(part_name = nil, &block)
         if block_given?
           self.queue_name = block
         else
@@ -32,20 +34,16 @@ module ActiveJob
     end
 
     included do
-      class_attribute :queue_name, instance_accessor: false
-      class_attribute :queue_name_delimiter, instance_accessor: false
-
-      self.queue_name = default_queue_name
-      self.queue_name_delimiter = '_' # set default delimiter to '_'
+      class_attribute :queue_name, instance_accessor: false, default: default_queue_name
+      class_attribute :queue_name_delimiter, instance_accessor: false, default: "_"
     end
 
-    # Returns the name of the queue the job will be run on
+    # Returns the name of the queue the job will be run on.
     def queue_name
       if @queue_name.is_a?(Proc)
         @queue_name = self.class.queue_name_from_part(instance_exec(&@queue_name))
       end
       @queue_name
     end
-
   end
 end

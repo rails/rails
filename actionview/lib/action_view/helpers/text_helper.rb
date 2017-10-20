@@ -1,5 +1,7 @@
-require 'active_support/core_ext/string/filters'
-require 'active_support/core_ext/array/extract_options'
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/filters"
+require "active_support/core_ext/array/extract_options"
 
 module ActionView
   # = Action View Text Helpers
@@ -135,7 +137,7 @@ module ActionView
         else
           match = Array(phrases).map do |p|
             Regexp === p ? p.to_s : Regexp.escape(p)
-          end.join('|')
+          end.join("|")
 
           if block_given?
             text.gsub(/(#{match})(?![^<]*?>)/i) { |found| yield found }
@@ -151,7 +153,7 @@ module ActionView
       # defined in <tt>:radius</tt> (which defaults to 100). If the excerpt radius overflows the beginning or end of the +text+,
       # then the <tt>:omission</tt> option (which defaults to "...") will be prepended/appended accordingly. Use the
       # <tt>:separator</tt> option to choose the delimitation. The resulting string will be stripped in any case. If the +phrase+
-      # isn't found, nil is returned.
+      # isn't found, +nil+ is returned.
       #
       #   excerpt('This is an example', 'an', radius: 5)
       #   # => ...s is an exam...
@@ -187,7 +189,7 @@ module ActionView
         unless separator.empty?
           text.split(separator).each do |value|
             if value.match(regex)
-              regex = phrase = value
+              phrase = value
               break
             end
           end
@@ -204,7 +206,12 @@ module ActionView
 
       # Attempts to pluralize the +singular+ word unless +count+ is 1. If
       # +plural+ is supplied, it will use that when count is > 1, otherwise
-      # it will use the Inflector to determine the plural form.
+      # it will use the Inflector to determine the plural form for the given locale,
+      # which defaults to I18n.locale
+      #
+      # The word will be pluralized using rules defined for the locale
+      # (you must define your own inflection rules for languages other than English).
+      # See ActiveSupport::Inflector.pluralize
       #
       #   pluralize(1, 'person')
       #   # => 1 person
@@ -212,16 +219,19 @@ module ActionView
       #   pluralize(2, 'person')
       #   # => 2 people
       #
-      #   pluralize(3, 'person', 'users')
+      #   pluralize(3, 'person', plural: 'users')
       #   # => 3 users
       #
       #   pluralize(0, 'person')
       #   # => 0 people
-      def pluralize(count, singular, plural = nil)
+      #
+      #   pluralize(2, 'Person', locale: :de)
+      #   # => 2 Personen
+      def pluralize(count, singular, plural_arg = nil, plural: plural_arg, locale: I18n.locale)
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
-          plural || singular.pluralize
+          plural || singular.pluralize(locale)
         end
 
         "#{count || 0} #{word}"
@@ -242,19 +252,23 @@ module ActionView
       #
       #   word_wrap('Once upon a time', line_width: 1)
       #   # => Once\nupon\na\ntime
-      def word_wrap(text, options = {})
-        line_width = options.fetch(:line_width, 80)
-
+      #
+      #   You can also specify a custom +break_sequence+ ("\n" by default)
+      #
+      #   word_wrap('Once upon a time', line_width: 1, break_sequence: "\r\n")
+      #   # => Once\r\nupon\r\na\r\ntime
+      def word_wrap(text, line_width: 80, break_sequence: "\n")
         text.split("\n").collect! do |line|
-          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1\n").strip : line
-        end * "\n"
+          line.length > line_width ? line.gsub(/(.{1,#{line_width}})(\s+|$)/, "\\1#{break_sequence}").strip : line
+        end * break_sequence
       end
 
       # Returns +text+ transformed into HTML using simple formatting rules.
-      # Two or more consecutive newlines(<tt>\n\n</tt>) are considered as a
-      # paragraph and wrapped in <tt><p></tt> tags. One newline (<tt>\n</tt>) is
-      # considered as a linebreak and a <tt><br /></tt> tag is appended. This
-      # method does not remove the newlines from the +text+.
+      # Two or more consecutive newlines(<tt>\n\n</tt> or <tt>\r\n\r\n</tt>) are
+      # considered a paragraph and wrapped in <tt><p></tt> tags. One newline
+      # (<tt>\n</tt> or <tt>\r\n</tt>) is considered a linebreak and a
+      # <tt><br /></tt> tag is appended. This method does not remove the
+      # newlines from the +text+.
       #
       # You can pass any HTML attributes into <tt>html_options</tt>. These
       # will be added to all created paragraphs.
@@ -339,7 +353,7 @@ module ActionView
       #  <% end %>
       def cycle(first_value, *values)
         options = values.extract_options!
-        name = options.fetch(:name, 'default')
+        name = options.fetch(:name, "default")
 
         values.unshift(*first_value)
 
@@ -413,17 +427,17 @@ module ActionView
 
         private
 
-        def next_index
-          step_index(1)
-        end
+          def next_index
+            step_index(1)
+          end
 
-        def previous_index
-          step_index(-1)
-        end
+          def previous_index
+            step_index(-1)
+          end
 
-        def step_index(n)
-          (@index + n) % @values.size
-        end
+          def step_index(n)
+            (@index + n) % @values.size
+          end
       end
 
       private

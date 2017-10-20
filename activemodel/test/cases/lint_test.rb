@@ -1,4 +1,6 @@
-require 'cases/helper'
+# frozen_string_literal: true
+
+require "cases/helper"
 
 class LintTest < ActiveModel::TestCase
   include ActiveModel::Lint::Tests

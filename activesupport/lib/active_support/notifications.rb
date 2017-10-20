@@ -1,6 +1,8 @@
-require 'active_support/notifications/instrumenter'
-require 'active_support/notifications/fanout'
-require 'active_support/per_thread_registry'
+# frozen_string_literal: true
+
+require_relative "notifications/instrumenter"
+require_relative "notifications/fanout"
+require_relative "per_thread_registry"
 
 module ActiveSupport
   # = Notifications
@@ -13,7 +15,7 @@ module ActiveSupport
   # To instrument an event you just need to do:
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   # That first executes the block and then notifies all subscribers once done.
@@ -48,7 +50,7 @@ module ActiveSupport
   # The block is saved and will be called whenever someone instruments "render":
   #
   #   ActiveSupport::Notifications.instrument('render', extra: :information) do
-  #     render text: 'Foo'
+  #     render plain: 'Foo'
   #   end
   #
   #   event = events.first
@@ -64,13 +66,15 @@ module ActiveSupport
   # If an exception happens during that particular instrumentation the payload will
   # have a key <tt>:exception</tt> with an array of two elements as value: a string with
   # the name of the exception class, and the exception message.
+  # The <tt>:exception_object</tt> key of the payload will have the exception
+  # itself as the value.
   #
   # As the previous example depicts, the class <tt>ActiveSupport::Notifications::Event</tt>
   # is able to take the arguments as they come and provide an object-oriented
   # interface to that data.
   #
-  # It is also possible to pass an object as the second parameter passed to the
-  # <tt>subscribe</tt> method instead of a block:
+  # It is also possible to pass an object which responds to <tt>call</tt> method
+  # as the second parameter to the <tt>subscribe</tt> method instead of a block:
   #
   #   module ActionController
   #     class PageRequest

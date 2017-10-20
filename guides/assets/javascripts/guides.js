@@ -51,9 +51,3 @@ var guidesIndex = {
     window.location = url;
   }
 };
-
-// Disable autolink inside example code blocks of guides.
-$(document).ready(function() {
-  SyntaxHighlighter.defaults['auto-links'] = false;
-  SyntaxHighlighter.all();
-});

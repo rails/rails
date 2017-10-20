@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Journey # :nodoc:
     # The Routing table. Contains all routes for a system. Routes can be
@@ -5,15 +7,18 @@ module ActionDispatch
     class Routes # :nodoc:
       include Enumerable
 
-      attr_reader :routes, :named_routes, :custom_routes, :anchored_routes
+      attr_reader :routes, :custom_routes, :anchored_routes
 
       def initialize
         @routes             = []
-        @named_routes       = {}
         @ast                = nil
         @anchored_routes    = []
         @custom_routes      = []
         @simulator          = nil
+      end
+
+      def empty?
+        routes.empty?
       end
 
       def length
@@ -33,7 +38,6 @@ module ActionDispatch
         routes.clear
         anchored_routes.clear
         custom_routes.clear
-        named_routes.clear
       end
 
       def partition_route(route)
@@ -58,13 +62,9 @@ module ActionDispatch
         end
       end
 
-      # Add a route to the routing table.
-      def add_route(app, path, conditions, defaults, name = nil)
-        route = Route.new(name, app, path, conditions, defaults)
-
-        route.precedence = routes.length
+      def add_route(name, mapping)
+        route = mapping.make_route name, routes.length
         routes << route
-        named_routes[name] = route if name && !named_routes[name]
         partition_route(route)
         clear_cache!
         route

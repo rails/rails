@@ -1,4 +1,4 @@
-require 'shellwords'
+# frozen_string_literal: true
 
 module Rails
   module Generators
@@ -23,7 +23,7 @@ module Rails
         #     end
         #   end
         def assert_file(relative, *contents)
-          absolute = File.expand_path(relative, destination_root).shellescape
+          absolute = File.expand_path(relative, destination_root)
           assert File.exist?(absolute), "Expected file #{relative.inspect} to exist, but does not"
 
           read = File.read(absolute) if block_given? || !contents.empty?
@@ -31,10 +31,10 @@ module Rails
 
           contents.each do |content|
             case content
-              when String
-                assert_equal content, read
-              when Regexp
-                assert_match content, read
+            when String
+              assert_equal content, read
+            when Regexp
+              assert_match content, read
             end
           end
         end
@@ -115,7 +115,11 @@ module Rails
         #
         #   assert_field_default_value :string, "MyString"
         def assert_field_default_value(attribute_type, value)
-          assert_equal(value, create_generated_attribute(attribute_type).default)
+          if value.nil?
+            assert_nil(create_generated_attribute(attribute_type).default)
+          else
+            assert_equal(value, create_generated_attribute(attribute_type).default)
+          end
         end
       end
     end

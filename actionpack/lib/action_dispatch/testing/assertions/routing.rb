@@ -1,7 +1,9 @@
-require 'uri'
-require 'active_support/core_ext/hash/indifferent_access'
-require 'active_support/core_ext/string/access'
-require 'action_controller/metal/exceptions'
+# frozen_string_literal: true
+
+require "uri"
+require "active_support/core_ext/hash/indifferent_access"
+require "active_support/core_ext/string/access"
+require "action_controller/metal/exceptions"
 
 module ActionDispatch
   module Assertions
@@ -14,14 +16,14 @@ module ActionDispatch
       # requiring a specific HTTP method. The hash should contain a :path with the incoming request path
       # and a :method containing the required HTTP verb.
       #
-      #   # assert that POSTing to /items will call the create action on ItemsController
+      #   # Asserts that POSTing to /items will call the create action on ItemsController
       #   assert_recognizes({controller: 'items', action: 'create'}, {path: 'items', method: :post})
       #
       # You can also pass in +extras+ with a hash containing URL parameters that would normally be in the query string. This can be used
-      # to assert that values in the query string string will end up in the params hash correctly. To test query strings you must use the
-      # extras argument, appending the query string on the path directly will not work. For example:
+      # to assert that values in the query string will end up in the params hash correctly. To test query strings you must use the extras
+      # argument because appending the query string on the path directly will not work. For example:
       #
-      #   # assert that a path of '/items/list/1?view=print' returns the correct options
+      #   # Asserts that a path of '/items/list/1?view=print' returns the correct options
       #   assert_recognizes({controller: 'items', action: 'list', id: '1', view: 'print'}, 'items/list/1', { view: "print" })
       #
       # The +message+ parameter allows you to pass in an error message that is displayed upon failure.
@@ -37,7 +39,7 @@ module ActionDispatch
       #
       #   # Test a custom route
       #   assert_recognizes({controller: 'items', action: 'show', id: '1'}, 'view/item1')
-      def assert_recognizes(expected_options, path, extras={}, msg=nil)
+      def assert_recognizes(expected_options, path, extras = {}, msg = nil)
         if path.is_a?(Hash) && path[:method].to_s == "all"
           [:get, :post, :put, :delete].each do |method|
             assert_recognizes(expected_options, path.merge(method: method), extras, msg)
@@ -75,19 +77,20 @@ module ActionDispatch
       #
       #   # Asserts that the generated route gives us our custom route
       #   assert_generates "changesets/12", { controller: 'scm', action: 'show_diff', revision: "12" }
-      def assert_generates(expected_path, options, defaults={}, extras={}, message=nil)
+      def assert_generates(expected_path, options, defaults = {}, extras = {}, message = nil)
         if expected_path =~ %r{://}
           fail_on(URI::InvalidURIError, message) do
             uri = URI.parse(expected_path)
             expected_path = uri.path.to_s.empty? ? "/" : uri.path
           end
         else
-          expected_path = "/#{expected_path}" unless expected_path.first == '/'
+          expected_path = "/#{expected_path}" unless expected_path.first == "/"
         end
         # Load routes.rb if it hasn't been loaded.
 
-        generated_path, extra_keys = @routes.generate_extras(options, defaults)
-        found_extras = options.reject { |k, _| ! extra_keys.include? k }
+        options = options.clone
+        generated_path, query_string_keys = @routes.generate_extras(options, defaults)
+        found_extras = options.reject { |k, _| ! query_string_keys.include? k }
 
         msg = message || sprintf("found extras <%s>, not <%s>", found_extras, extras)
         assert_equal(extras, found_extras, msg)
@@ -104,21 +107,21 @@ module ActionDispatch
       # The +extras+ hash allows you to specify options that would normally be provided as a query string to the action. The
       # +message+ parameter allows you to specify a custom error message to display upon failure.
       #
-      #  # Assert a basic route: a controller with the default action (index)
+      #  # Asserts a basic route: a controller with the default action (index)
       #  assert_routing '/home', controller: 'home', action: 'index'
       #
       #  # Test a route generated with a specific controller, action, and parameter (id)
       #  assert_routing '/entries/show/23', controller: 'entries', action: 'show', id: 23
       #
-      #  # Assert a basic route (controller + default action), with an error message if it fails
+      #  # Asserts a basic route (controller + default action), with an error message if it fails
       #  assert_routing '/store', { controller: 'store', action: 'index' }, {}, {}, 'Route for store index not generated properly'
       #
       #  # Tests a route, providing a defaults hash
       #  assert_routing 'controller/action/9', {id: "9", item: "square"}, {controller: "controller", action: "action"}, {}, {item: "square"}
       #
-      #  # Tests a route with a HTTP method
+      #  # Tests a route with an HTTP method
       #  assert_routing({ method: 'put', path: '/product/321' }, { controller: "product", action: "update", id: "321" })
-      def assert_routing(path, options, defaults={}, extras={}, message=nil)
+      def assert_routing(path, options, defaults = {}, extras = {}, message = nil)
         assert_recognizes(options, path, extras, message)
 
         controller, default_controller = options[:controller], defaults[:controller]
@@ -126,13 +129,12 @@ module ActionDispatch
           options[:controller] = "/#{controller}"
         end
 
-        generate_options = options.dup.delete_if{ |k, _| defaults.key?(k) }
+        generate_options = options.dup.delete_if { |k, _| defaults.key?(k) }
         assert_generates(path.is_a?(Hash) ? path[:path] : path, generate_options, defaults, extras, message)
       end
 
       # A helper to make it easier to test different route configurations.
-      # This method temporarily replaces @routes
-      # with a new RouteSet instance.
+      # This method temporarily replaces @routes with a new RouteSet instance.
       #
       # The new instance is yielded to the passed block. Typically the block
       # will create some routes using <tt>set.draw { match ... }</tt>:
@@ -151,8 +153,11 @@ module ActionDispatch
           _routes = @routes
 
           @controller.singleton_class.include(_routes.url_helpers)
-          @controller.view_context_class = Class.new(@controller.view_context_class) do
-            include _routes.url_helpers
+
+          if @controller.respond_to? :view_context_class
+            @controller.view_context_class = Class.new(@controller.view_context_class) do
+              include _routes.url_helpers
+            end
           end
         end
         yield @routes
@@ -165,7 +170,7 @@ module ActionDispatch
 
       # ROUTES TODO: These assertions should really work in an integration context
       def method_missing(selector, *args, &block)
-        if defined?(@controller) && @controller && @routes && @routes.named_routes.route_defined?(selector)
+        if defined?(@controller) && @controller && defined?(@routes) && @routes && @routes.named_routes.route_defined?(selector)
           @controller.send(selector, *args, &block)
         else
           super
@@ -182,8 +187,7 @@ module ActionDispatch
             method = :get
           end
 
-          # Assume given controller
-          request = ActionController::TestRequest.new
+          request = ActionController::TestRequest.create @controller.class
 
           if path =~ %r{://}
             fail_on(URI::InvalidURIError, msg) do
@@ -201,7 +205,7 @@ module ActionDispatch
           request.request_method = method if method
 
           params = fail_on(ActionController::RoutingError, msg) do
-            @routes.recognize_path(path, { :method => method, :extras => extras })
+            @routes.recognize_path(path, method: method, extras: extras)
           end
           request.path_parameters = params.with_indifferent_access
 

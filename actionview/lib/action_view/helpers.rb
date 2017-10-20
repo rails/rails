@@ -1,4 +1,6 @@
-require 'active_support/benchmarkable'
+# frozen_string_literal: true
+
+require "active_support/benchmarkable"
 
 module ActionView #:nodoc:
   module Helpers #:nodoc:

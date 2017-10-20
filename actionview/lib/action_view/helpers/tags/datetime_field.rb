@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
       class DatetimeField < TextField # :nodoc:
         def render
           options = @options.stringify_keys
-          options["value"] ||= format_date(value(object))
+          options["value"] ||= format_date(value)
           options["min"] = format_date(datetime_value(options["min"]))
           options["max"] = format_date(datetime_value(options["max"]))
           @options = options
@@ -14,7 +16,7 @@ module ActionView
         private
 
           def format_date(value)
-            value.try(:strftime, "%Y-%m-%dT%T.%L%z")
+            raise NotImplementedError
           end
 
           def datetime_value(value)

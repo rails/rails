@@ -1,10 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module OID # :nodoc:
         class Money < Type::Decimal # :nodoc:
-          class_attribute :precision
-
           def type
             :money
           end
@@ -24,12 +24,12 @@ module ActiveRecord
             #  (3) -$2.55
             #  (4) ($2.55)
 
-            value.sub!(/^\((.+)\)$/, '-\1') # (4)
+            value = value.sub(/^\((.+)\)$/, '-\1') # (4)
             case value
             when /^-?\D+[\d,]+\.\d{2}$/  # (1)
-              value.gsub!(/[^-\d.]/, '')
+              value.gsub!(/[^-\d.]/, "")
             when /^-?\D+[\d.]+,\d{2}$/  # (2)
-              value.gsub!(/[^-\d,]/, '').sub!(/,/, '.')
+              value.gsub!(/[^-\d,]/, "").sub!(/,/, ".")
             end
 
             super(value)

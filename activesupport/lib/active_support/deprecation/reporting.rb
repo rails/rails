@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "rbconfig"
+
 module ActiveSupport
   class Deprecation
     module Reporting
@@ -14,9 +18,9 @@ module ActiveSupport
       def warn(message = nil, callstack = nil)
         return if silenced
 
-        callstack ||= caller(2)
+        callstack ||= caller_locations(2)
         deprecation_message(callstack, message).tap do |m|
-          behavior.each { |b| b.call(m, callstack) }
+          behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
         end
       end
 
@@ -37,7 +41,7 @@ module ActiveSupport
       end
 
       def deprecation_warning(deprecated_method_name, message = nil, caller_backtrace = nil)
-        caller_backtrace ||= caller(2)
+        caller_backtrace ||= caller_locations(2)
         deprecated_method_warning(deprecated_method_name, message).tap do |msg|
           warn(msg, caller_backtrace)
         end
@@ -46,24 +50,23 @@ module ActiveSupport
       private
         # Outputs a deprecation warning message
         #
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name)
+        #   deprecated_method_warning(:method_name)
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, :another_method)
+        #   deprecated_method_warning(:method_name, :another_method)
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (use another_method instead)"
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, "Optional message")
+        #   deprecated_method_warning(:method_name, "Optional message")
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (Optional message)"
         def deprecated_method_warning(method_name, message = nil)
           warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
           case message
-            when Symbol then "#{warning} (use #{message} instead)"
-            when String then "#{warning} (#{message})"
+          when Symbol then "#{warning} (use #{message} instead)"
+          when String then "#{warning} (#{message})"
             else warning
           end
         end
 
         def deprecation_message(callstack, message = nil)
           message ||= "You are using deprecated behavior which will be removed from the next major or minor release."
-          message += '.' unless message =~ /\.$/
           "DEPRECATION WARNING: #{message} #{deprecation_caller_message(callstack)}"
         end
 
@@ -79,8 +82,19 @@ module ActiveSupport
         end
 
         def extract_callstack(callstack)
-          rails_gem_root = File.expand_path("../../../../..", __FILE__) + "/"
-          offending_line = callstack.find { |line| !line.start_with?(rails_gem_root) } || callstack.first
+          return _extract_callstack(callstack) if callstack.first.is_a? String
+
+          offending_line = callstack.find { |frame|
+            frame.absolute_path && !ignored_callstack(frame.absolute_path)
+          } || callstack.first
+
+          [offending_line.path, offending_line.lineno, offending_line.label]
+        end
+
+        def _extract_callstack(callstack)
+          warn "Please pass `caller_locations` to the deprecation API" if $VERBOSE
+          offending_line = callstack.find { |line| !ignored_callstack(line) } || callstack.first
+
           if offending_line
             if md = offending_line.match(/^(.+?):(\d+)(?::in `(.*?)')?/)
               md.captures
@@ -88,6 +102,12 @@ module ActiveSupport
               offending_line
             end
           end
+        end
+
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__)
+
+        def ignored_callstack(path)
+          path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])
         end
     end
   end

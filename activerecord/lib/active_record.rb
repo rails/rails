@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2015 David Heinemeier Hansson
+# Copyright (c) 2004-2017 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,13 +23,13 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 
-require 'active_support'
-require 'active_support/rails'
-require 'active_model'
-require 'arel'
+require "active_support"
+require "active_support/rails"
+require "active_model"
+require "arel"
 
-require 'active_record/version'
-require 'active_record/attribute_set'
+require_relative "active_record/version"
+require_relative "active_record/attribute_set"
 
 module ActiveRecord
   extend ActiveSupport::Autoload
@@ -40,18 +42,22 @@ module ActiveRecord
   autoload :CounterCache
   autoload :DynamicMatchers
   autoload :Enum
+  autoload :InternalMetadata
   autoload :Explain
   autoload :Inheritance
   autoload :Integration
   autoload :Migration
-  autoload :Migrator, 'active_record/migration'
+  autoload :Migrator, "active_record/migration"
   autoload :ModelSchema
   autoload :NestedAttributes
   autoload :NoTouching
+  autoload :TouchLater
   autoload :Persistence
   autoload :QueryCache
   autoload :Querying
+  autoload :CollectionCacheKey
   autoload :ReadonlyAttributes
+  autoload :RecordInvalid, "active_record/validations"
   autoload :Reflection
   autoload :RuntimeRegistry
   autoload :Sanitization
@@ -63,7 +69,6 @@ module ActiveRecord
   autoload :StatementCache
   autoload :Store
   autoload :Suppressor
-  autoload :TableMetadata
   autoload :Timestamp
   autoload :Transactions
   autoload :Translation
@@ -71,9 +76,9 @@ module ActiveRecord
   autoload :SecureToken
 
   eager_autoload do
-    autoload :ActiveRecordError, 'active_record/errors'
-    autoload :ConnectionNotEstablished, 'active_record/errors'
-    autoload :ConnectionAdapters, 'active_record/connection_adapters/abstract_adapter'
+    autoload :ActiveRecordError, "active_record/errors"
+    autoload :ConnectionNotEstablished, "active_record/errors"
+    autoload :ConnectionAdapters, "active_record/connection_adapters/abstract_adapter"
 
     autoload :Aggregations
     autoload :Associations
@@ -81,11 +86,13 @@ module ActiveRecord
     autoload :AttributeMethods
     autoload :AutosaveAssociation
 
+    autoload :LegacyYamlAdapter
+
     autoload :Relation
     autoload :AssociationRelation
     autoload :NullRelation
 
-    autoload_under 'relation' do
+    autoload_under "relation" do
       autoload :QueryMethods
       autoload :FinderMethods
       autoload :Calculations
@@ -96,11 +103,12 @@ module ActiveRecord
     end
 
     autoload :Result
+    autoload :TableMetadata
   end
 
   module Coders
-    autoload :YAMLColumn, 'active_record/coders/yaml_column'
-    autoload :JSON, 'active_record/coders/json'
+    autoload :YAMLColumn, "active_record/coders/yaml_column"
+    autoload :JSON, "active_record/coders/json"
   end
 
   module AttributeMethods
@@ -132,7 +140,6 @@ module ActiveRecord
 
     eager_autoload do
       autoload :AbstractAdapter
-      autoload :ConnectionManagement, "active_record/connection_adapters/abstract/connection_pool"
     end
   end
 
@@ -149,13 +156,13 @@ module ActiveRecord
     extend ActiveSupport::Autoload
 
     autoload :DatabaseTasks
-    autoload :SQLiteDatabaseTasks, 'active_record/tasks/sqlite_database_tasks'
-    autoload :MySQLDatabaseTasks,  'active_record/tasks/mysql_database_tasks'
+    autoload :SQLiteDatabaseTasks, "active_record/tasks/sqlite_database_tasks"
+    autoload :MySQLDatabaseTasks,  "active_record/tasks/mysql_database_tasks"
     autoload :PostgreSQLDatabaseTasks,
-      'active_record/tasks/postgresql_database_tasks'
+      "active_record/tasks/postgresql_database_tasks"
   end
 
-  autoload :TestFixtures, 'active_record/fixtures'
+  autoload :TestFixtures, "active_record/fixtures"
 
   def self.eager_load!
     super
@@ -172,5 +179,5 @@ ActiveSupport.on_load(:active_record) do
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + '/active_record/locale/en.yml'
+  I18n.load_path << File.expand_path("active_record/locale/en.yml", __dir__)
 end

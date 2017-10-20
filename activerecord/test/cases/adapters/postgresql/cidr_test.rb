@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "ipaddr"
 
 module ActiveRecord
   module ConnectionAdapters
-    class PostgreSQLAdapter
-      class CidrTest < ActiveRecord::TestCase
+    class PostgreSQLAdapter < AbstractAdapter
+      class CidrTest < ActiveRecord::PostgreSQLTestCase
         test "type casting IPAddr for database" do
           type = OID::Cidr.new
           ip = IPAddr.new("255.0.0.0/8")

@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
-class PostgresqlNumberTest < ActiveRecord::TestCase
+class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
   class PostgresqlNumber < ActiveRecord::Base; end
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('postgresql_numbers', force: true) do |t|
-      t.column 'single', 'REAL'
-      t.column 'double', 'DOUBLE PRECISION'
+    @connection.create_table("postgresql_numbers", force: true) do |t|
+      t.column "single", "REAL"
+      t.column "double", "DOUBLE PRECISION"
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_numbers', if_exists: true
+    @connection.drop_table "postgresql_numbers", if_exists: true
   end
 
   def test_data_type
@@ -31,7 +33,7 @@ class PostgresqlNumberTest < ActiveRecord::TestCase
     assert_equal 123456.789, first.double
     assert_equal(-::Float::INFINITY, second.single)
     assert_equal ::Float::INFINITY, second.double
-    assert_same ::Float::NAN, third.double
+    assert third.double.nan?, "Expected #{third.double} to be NaN"
   end
 
   def test_update

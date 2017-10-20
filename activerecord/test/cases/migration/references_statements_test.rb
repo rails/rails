@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -5,7 +7,7 @@ module ActiveRecord
     class ReferencesStatementsTest < ActiveRecord::TestCase
       include ActiveRecord::Migration::TestHelper
 
-      self.use_transactional_fixtures = false
+      self.use_transactional_tests = false
 
       def setup
         super
@@ -30,14 +32,14 @@ module ActiveRecord
         assert column_exists?(table_name, :taggable_type, :string)
       end
 
-      def test_creates_reference_id_index
-        add_reference table_name, :user, index: true
-        assert index_exists?(table_name, :user_id)
+      def test_does_not_create_reference_id_index_if_index_is_false
+        add_reference table_name, :user, index: false
+        assert_not index_exists?(table_name, :user_id)
       end
 
-      def test_does_not_create_reference_id_index
+      def test_create_reference_id_index_even_if_index_option_is_not_passed
         add_reference table_name, :user
-        assert_not index_exists?(table_name, :user_id)
+        assert index_exists?(table_name, :user_id)
       end
 
       def test_creates_polymorphic_index
@@ -46,13 +48,33 @@ module ActiveRecord
       end
 
       def test_creates_reference_type_column_with_default
-        add_reference table_name, :taggable, polymorphic: { default: 'Photo' }, index: true
-        assert column_exists?(table_name, :taggable_type, :string, default: 'Photo')
+        add_reference table_name, :taggable, polymorphic: { default: "Photo" }, index: true
+        assert column_exists?(table_name, :taggable_type, :string, default: "Photo")
+      end
+
+      def test_creates_reference_type_column_with_not_null
+        connection.create_table table_name, force: true do |t|
+          t.references :taggable, null: false, polymorphic: true
+        end
+        assert column_exists?(table_name, :taggable_id, :integer, null: false)
+        assert column_exists?(table_name, :taggable_type, :string, null: false)
+      end
+
+      def test_does_not_share_options_with_reference_type_column
+        add_reference table_name, :taggable, type: :integer, limit: 2, polymorphic: true
+        assert column_exists?(table_name, :taggable_id, :integer, limit: 2)
+        assert column_exists?(table_name, :taggable_type, :string)
+        assert_not column_exists?(table_name, :taggable_type, :string, limit: 2)
       end
 
       def test_creates_named_index
-        add_reference table_name, :tag, index: { name: 'index_taggings_on_tag_id' }
-        assert index_exists?(table_name, :tag_id, name: 'index_taggings_on_tag_id')
+        add_reference table_name, :tag, index: { name: "index_taggings_on_tag_id" }
+        assert index_exists?(table_name, :tag_id, name: "index_taggings_on_tag_id")
+      end
+
+      def test_creates_named_unique_index
+        add_reference table_name, :tag, index: { name: "index_taggings_on_tag_id", unique: true }
+        assert index_exists?(table_name, :tag_id, name: "index_taggings_on_tag_id", unique: true)
       end
 
       def test_creates_reference_id_with_specified_type
@@ -105,12 +127,12 @@ module ActiveRecord
 
       private
 
-      def with_polymorphic_column
-        add_column table_name, :supplier_type, :string
-        add_index table_name, [:supplier_id, :supplier_type]
+        def with_polymorphic_column
+          add_column table_name, :supplier_type, :string
+          add_index table_name, [:supplier_id, :supplier_type]
 
-        yield
-      end
+          yield
+        end
     end
   end
 end

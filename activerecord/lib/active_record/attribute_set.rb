@@ -1,7 +1,12 @@
-require 'active_record/attribute_set/builder'
+# frozen_string_literal: true
+
+require_relative "attribute_set/builder"
+require_relative "attribute_set/yaml_encoder"
 
 module ActiveRecord
   class AttributeSet # :nodoc:
+    delegate :each_value, :fetch, to: :attributes
+
     def initialize(attributes)
       @attributes = attributes
     end
@@ -60,8 +65,14 @@ module ActiveRecord
       super
     end
 
+    def deep_dup
+      self.class.allocate.tap do |copy|
+        copy.instance_variable_set(:@attributes, attributes.deep_dup)
+      end
+    end
+
     def initialize_dup(_)
-      @attributes = attributes.deep_dup
+      @attributes = attributes.dup
       super
     end
 
@@ -80,14 +91,23 @@ module ActiveRecord
       attributes.select { |_, attr| attr.has_been_read? }.keys
     end
 
+    def map(&block)
+      new_attributes = attributes.transform_values(&block)
+      AttributeSet.new(new_attributes)
+    end
+
+    def ==(other)
+      attributes == other.attributes
+    end
+
     protected
 
-    attr_reader :attributes
+      attr_reader :attributes
 
     private
 
-    def initialized_attributes
-      attributes.select { |_, attr| attr.initialized? }
-    end
+      def initialized_attributes
+        attributes.select { |_, attr| attr.initialized? }
+      end
   end
 end

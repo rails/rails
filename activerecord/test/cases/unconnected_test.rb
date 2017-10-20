@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class TestRecord < ActiveRecord::Base
 end
 
 class TestUnconnectedAdapter < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @underlying = ActiveRecord::Base.connection

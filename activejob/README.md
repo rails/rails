@@ -20,12 +20,7 @@ switch between them without having to rewrite your jobs.
 
 ## Usage
 
-Set the queue adapter for Active Job:
-
-``` ruby
-ActiveJob::Base.queue_adapter = :inline # default queue adapter
-```
-Note: To learn how to use your preferred queueing backend see its adapter
+To learn how to use your preferred queueing backend see its adapter
 documentation at
 [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
@@ -44,7 +39,7 @@ end
 Enqueue a job like so:
 
 ```ruby
-MyJob.perform_later record  # Enqueue a job to be performed as soon the queueing system is free.
+MyJob.perform_later record  # Enqueue a job to be performed as soon as the queueing system is free.
 ```
 
 ```ruby
@@ -102,7 +97,7 @@ see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.
 The latest version of Active Job can be installed with RubyGems:
 
 ```
-  % [sudo] gem install activejob
+  $ gem install activejob
 ```
 
 Source code can be downloaded as part of the Rails project on GitHub
@@ -113,7 +108,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 Active Job is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 ## Support

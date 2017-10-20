@@ -1,54 +1,60 @@
+# frozen_string_literal: true
+
 ActiveRecord::Schema.define do
 
-  %w(postgresql_times postgresql_oids defaults postgresql_timestamp_with_zones
-      postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
-    drop_table table_name, if_exists: true
+  enable_extension!("uuid-ossp", ActiveRecord::Base.connection)
+  enable_extension!("pgcrypto",  ActiveRecord::Base.connection) if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
+
+  uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
+
+  create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
+    t.string :name
   end
 
-  execute 'DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE'
-  execute 'CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id'
-  execute "ALTER TABLE companies ALTER COLUMN id SET DEFAULT nextval('companies_nonstd_seq')"
-  execute 'DROP SEQUENCE IF EXISTS companies_id_seq'
+  create_table :uuid_children, id: :uuid, force: true, **uuid_default do |t|
+    t.string :name
+    t.uuid :uuid_parent_id
+  end
 
-  execute 'DROP FUNCTION IF EXISTS partitioned_insert_trigger()'
+  create_table :defaults, force: true do |t|
+    t.date :modified_date, default: -> { "CURRENT_DATE" }
+    t.date :modified_date_function, default: -> { "now()" }
+    t.date :fixed_date, default: "2004-01-01"
+    t.datetime :modified_time, default: -> { "CURRENT_TIMESTAMP" }
+    t.datetime :modified_time_function, default: -> { "now()" }
+    t.datetime :fixed_time, default: "2004-01-01 00:00:00.000000-00"
+    t.column :char1, "char(1)", default: "Y"
+    t.string :char2, limit: 50, default: "a varchar field"
+    t.text :char3, default: "a text field"
+    t.bigint :bigint_default, default: -> { "0::bigint" }
+    t.text :multiline_default, default: "--- []
+
+"
+  end
+
+  create_table :postgresql_times, force: true do |t|
+    t.interval :time_interval
+    t.interval :scaled_time_interval, precision: 6
+  end
+
+  create_table :postgresql_oids, force: true do |t|
+    t.oid :obj_id
+  end
+
+  drop_table "postgresql_timestamp_with_zones", if_exists: true
+  drop_table "postgresql_partitioned_table", if_exists: true
+  drop_table "postgresql_partitioned_table_parent", if_exists: true
+
+  execute "DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE"
+  execute "CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id"
+  execute "ALTER TABLE companies ALTER COLUMN id SET DEFAULT nextval('companies_nonstd_seq')"
+  execute "DROP SEQUENCE IF EXISTS companies_id_seq"
+
+  execute "DROP FUNCTION IF EXISTS partitioned_insert_trigger()"
 
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
-
-  execute <<_SQL
-    CREATE TABLE defaults (
-    id serial primary key,
-    modified_date date default CURRENT_DATE,
-    modified_date_function date default now(),
-    fixed_date date default '2004-01-01',
-    modified_time timestamp default CURRENT_TIMESTAMP,
-    modified_time_function timestamp default now(),
-    fixed_time timestamp default '2004-01-01 00:00:00.000000-00',
-    char1 char(1) default 'Y',
-    char2 character varying(50) default 'a varchar field',
-    char3 text default 'a text field',
-    bigint_default bigint default 0::bigint,
-    multiline_default text DEFAULT '--- []
-
-'::text
-);
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_times (
-    id SERIAL PRIMARY KEY,
-    time_interval INTERVAL,
-    scaled_time_interval INTERVAL(6)
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_oids (
-    id SERIAL PRIMARY KEY,
-    obj_id OID
-  );
-_SQL
 
   execute <<_SQL
   CREATE TABLE postgresql_timestamp_with_zones (
@@ -80,7 +86,7 @@ _SQL
       FOR EACH ROW EXECUTE PROCEDURE partitioned_insert_trigger();
 _SQL
   rescue ActiveRecord::StatementInvalid => e
-    if e.message =~ /language "plpgsql" does not exist/
+    if e.message.include?('language "plpgsql" does not exist')
       execute "CREATE LANGUAGE 'plpgsql';"
       retry
     else
@@ -92,5 +98,15 @@ _SQL
   create_table :limitless_fields, force: true do |t|
     t.binary :binary, limit: 100_000
     t.text :text, limit: 100_000
+  end
+
+  create_table :bigint_array, force: true do |t|
+    t.integer :big_int_data_points, limit: 8, array: true
+    t.decimal :decimal_array_default, array: true, default: [1.23, 3.45]
+  end
+
+  create_table :uuid_items, force: true, id: false do |t|
+    t.uuid :uuid, primary_key: true, **uuid_default
+    t.string :title
   end
 end

@@ -1,0 +1,8 @@
+<% @source_extracts.first(3).each do |source_extract| %>
+<% if source_extract[:code] %>
+Extracted source (around line #<%= source_extract[:line_number] %>):
+
+<% source_extract[:code].each do |line, source| -%>
+<%= line == source_extract[:line_number] ? "*#{line}" : "##{line}" -%> <%= source -%><% end -%>
+<% end %>
+<% end %>

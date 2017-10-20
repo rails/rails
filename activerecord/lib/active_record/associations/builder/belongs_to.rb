@@ -1,11 +1,13 @@
-module ActiveRecord::Associations::Builder
+# frozen_string_literal: true
+
+module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation #:nodoc:
     def self.macro
       :belongs_to
     end
 
     def self.valid_options(options)
-      super + [:foreign_type, :polymorphic, :touch, :counter_cache, :optional]
+      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
@@ -16,6 +18,7 @@ module ActiveRecord::Associations::Builder
       super
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      add_default_callbacks(model, reflection)       if reflection.options[:default]
     end
 
     def self.define_accessors(mixin, reflection)
@@ -31,18 +34,26 @@ module ActiveRecord::Associations::Builder
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif attribute_changed?(foreign_key) && !new_record? && reflection.constructable?
-            model           = reflection.klass
-            foreign_key_was = attribute_was foreign_key
-            foreign_key     = attribute foreign_key
+          if (@_after_replace_counter_called ||= false)
+            @_after_replace_counter_called = false
+          elsif saved_change_to_attribute?(foreign_key) && !new_record?
+            if reflection.polymorphic?
+              model     = attribute_in_database(reflection.foreign_type).try(:constantize)
+              model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
+            else
+              model     = reflection.klass
+              model_was = reflection.klass
+            end
+
+            foreign_key_was = attribute_before_last_save foreign_key
+            foreign_key     = attribute_in_database foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
               model.increment_counter(cache_column, foreign_key)
             end
-            if foreign_key_was && model.respond_to?(:decrement_counter)
-              model.decrement_counter(cache_column, foreign_key_was)
+
+            if foreign_key_was && model_was.respond_to?(:decrement_counter)
+              model_was.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
@@ -60,14 +71,16 @@ module ActiveRecord::Associations::Builder
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def self.touch_record(o, foreign_key, name, touch) # :nodoc:
-      old_foreign_id = o.changed_attributes[foreign_key]
+    def self.touch_record(o, changes, foreign_key, name, touch, touch_method) # :nodoc:
+      old_foreign_id = changes[foreign_key] && changes[foreign_key].first
 
       if old_foreign_id
         association = o.association(name)
         reflection = association.reflection
         if reflection.polymorphic?
-          klass = o.public_send("#{reflection.foreign_type}_was").constantize
+          foreign_type = reflection.foreign_type
+          klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
+          klass = klass.constantize
         else
           klass = association.klass
         end
@@ -75,9 +88,9 @@ module ActiveRecord::Associations::Builder
 
         if old_record
           if touch != true
-            old_record.touch touch
+            old_record.send(touch_method, touch)
           else
-            old_record.touch
+            old_record.send(touch_method)
           end
         end
       end
@@ -85,9 +98,9 @@ module ActiveRecord::Associations::Builder
       record = o.send name
       if record && record.persisted?
         if touch != true
-          record.touch touch
+          record.send(touch_method, touch)
         else
-          record.touch
+          record.send(touch_method)
         end
       end
     end
@@ -97,18 +110,23 @@ module ActiveRecord::Associations::Builder
       n           = reflection.name
       touch       = reflection.options[:touch]
 
-      callback = lambda { |record|
-        BelongsTo.touch_record(record, foreign_key, n, touch)
-      }
+      callback = lambda { |changes_method| lambda { |record|
+        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
+      }}
 
-      model.after_save    callback, if: :changed?
-      model.after_touch   callback
-      model.after_destroy callback
+      model.after_save    callback.(:saved_changes), if: :saved_changes?
+      model.after_touch   callback.(:changes_to_save)
+      model.after_destroy callback.(:changes_to_save)
+    end
+
+    def self.add_default_callbacks(model, reflection)
+      model.before_validation lambda { |o|
+        o.association(reflection.name).default(&reflection.options[:default])
+      }
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      name = reflection.name
-      model.after_destroy lambda { |o| o.association(name).handle_dependency }
+      model.after_destroy lambda { |o| o.association(reflection.name).handle_dependency }
     end
 
     def self.define_validations(model, reflection)

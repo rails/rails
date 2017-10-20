@@ -1,5 +1,6 @@
-require 'active_support/core_ext/hash/keys'
-require "set"
+# frozen_string_literal: true
+
+require "active_support/core_ext/hash/keys"
 
 module ActiveRecord
   class Relation
@@ -51,7 +52,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
+                      [:includes, :preload, :joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -76,6 +77,7 @@ module ActiveRecord
         merge_multi_values
         merge_single_values
         merge_clauses
+        merge_preloads
         merge_joins
 
         relation
@@ -83,57 +85,84 @@ module ActiveRecord
 
       private
 
-      def merge_joins
-        return if other.joins_values.blank?
+        def merge_preloads
+          return if other.preload_values.empty? && other.includes_values.empty?
 
-        if other.klass == relation.klass
-          relation.joins!(*other.joins_values)
-        else
-          joins_dependency, rest = other.joins_values.partition do |join|
-            case join
-            when Hash, Symbol, Array
-              true
-            else
-              false
+          if other.klass == relation.klass
+            relation.preload!(*other.preload_values) unless other.preload_values.empty?
+            relation.includes!(other.includes_values) unless other.includes_values.empty?
+          else
+            reflection = relation.klass.reflect_on_all_associations.find do |r|
+              r.class_name == other.klass.name
+            end || return
+
+            unless other.preload_values.empty?
+              relation.preload! reflection.name => other.preload_values
+            end
+
+            unless other.includes_values.empty?
+              relation.includes! reflection.name => other.includes_values
             end
           end
-
-          join_dependency = ActiveRecord::Associations::JoinDependency.new(other.klass,
-                                                                           joins_dependency,
-                                                                           [])
-          relation.joins! rest
-
-          @relation = relation.joins join_dependency
-        end
-      end
-
-      def merge_multi_values
-        if other.reordering_value
-          # override any order specified in the original relation
-          relation.reorder! other.order_values
-        elsif other.order_values
-          # merge in order_values from relation
-          relation.order! other.order_values
         end
 
-        relation.extend(*other.extending_values) unless other.extending_values.blank?
-      end
+        def merge_joins
+          return if other.joins_values.blank?
 
-      def merge_single_values
-        relation.lock_value ||= other.lock_value
+          if other.klass == relation.klass
+            relation.joins!(*other.joins_values)
+          else
+            joins_dependency, rest = other.joins_values.partition do |join|
+              case join
+              when Hash, Symbol, Array
+                true
+              else
+                false
+              end
+            end
 
-        unless other.create_with_value.blank?
-          relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
+            join_dependency = ActiveRecord::Associations::JoinDependency.new(
+              other.klass, other.table, joins_dependency, other.alias_tracker
+            )
+
+            relation.joins! rest
+
+            @relation = relation.joins join_dependency
+          end
         end
-      end
 
-      def merge_clauses
-        CLAUSE_METHODS.each do |name|
-          clause = relation.send("#{name}_clause")
-          other_clause = other.send("#{name}_clause")
-          relation.send("#{name}_clause=", clause.merge(other_clause))
+        def merge_multi_values
+          if other.reordering_value
+            # override any order specified in the original relation
+            relation.reorder! other.order_values
+          elsif other.order_values.any?
+            # merge in order_values from relation
+            relation.order! other.order_values
+          end
+
+          extensions = other.extensions - relation.extensions
+          relation.extending!(*extensions) if extensions.any?
         end
-      end
+
+        def merge_single_values
+          relation.lock_value ||= other.lock_value if other.lock_value
+
+          unless other.create_with_value.blank?
+            relation.create_with_value = (relation.create_with_value || {}).merge(other.create_with_value)
+          end
+        end
+
+        def merge_clauses
+          if relation.from_clause.empty? && !other.from_clause.empty?
+            relation.from_clause = other.from_clause
+          end
+
+          where_clause = relation.where_clause.merge(other.where_clause)
+          relation.where_clause = where_clause unless where_clause.empty?
+
+          having_clause = relation.having_clause.merge(other.having_clause)
+          relation.having_clause = having_clause unless having_clause.empty?
+        end
     end
   end
 end

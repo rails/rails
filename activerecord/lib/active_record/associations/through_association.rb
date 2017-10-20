@@ -1,11 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Through Association
   module Associations
+    # = Active Record Through Association
     module ThroughAssociation #:nodoc:
+      delegate :source_reflection, :through_reflection, to: :reflection
 
-      delegate :source_reflection, :through_reflection, :to => :reflection
-
-      protected
+      private
 
         # We merge in these scopes for two reasons:
         #
@@ -14,21 +15,13 @@ module ActiveRecord
         def target_scope
           scope = super
           reflection.chain.drop(1).each do |reflection|
-            relation = reflection.klass.all
-
-            reflection_scope = reflection.scope
-            if reflection_scope && reflection_scope.arity.zero?
-              relation = relation.merge(reflection_scope)
-            end
-
+            relation = reflection.klass.scope_for_association
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )
           end
           scope
         end
-
-      private
 
         # Construct attributes for :through pointing to owner and associate. This is used by the
         # methods which create and delete records on the association.
@@ -82,13 +75,21 @@ module ActiveRecord
 
         def ensure_mutable
           unless source_reflection.belongs_to?
-            raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            else
+              raise HasManyThroughCantAssociateThroughHasOneOrManyReflection.new(owner, reflection)
+            end
           end
         end
 
         def ensure_not_nested
           if reflection.nested?
-            raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            if reflection.has_one?
+              raise HasOneThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            else
+              raise HasManyThroughNestedAssociationsAreReadonly.new(owner, reflection)
+            end
           end
         end
 

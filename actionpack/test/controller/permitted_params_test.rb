@@ -1,12 +1,14 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class PeopleController < ActionController::Base
   def create
-    render text: params[:person].permitted? ? "permitted" : "forbidden"
+    render plain: params[:person].permitted? ? "permitted" : "forbidden"
   end
 
   def create_with_permit
-    render text: params[:person].permit(:name).permitted? ? "permitted" : "forbidden"
+    render plain: params[:person].permit(:name).permitted? ? "permitted" : "forbidden"
   end
 end
 

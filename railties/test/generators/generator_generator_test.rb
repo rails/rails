@@ -1,5 +1,7 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/generator/generator_generator'
+# frozen_string_literal: true
+
+require "generators/generators_test_helper"
+require "rails/generators/rails/generator/generator_generator"
 
 class GeneratorGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -12,7 +14,7 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
       lib/generators/awesome
       lib/generators/awesome/USAGE
       lib/generators/awesome/templates
-    ).each{ |path| assert_file path }
+    ).each { |path| assert_file path }
 
     assert_file "lib/generators/awesome/awesome_generator.rb",
                 /class AwesomeGenerator < Rails::Generators::NamedBase/
@@ -28,7 +30,7 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
       lib/generators/rails/awesome
       lib/generators/rails/awesome/USAGE
       lib/generators/rails/awesome/templates
-    ).each{ |path| assert_file path }
+    ).each { |path| assert_file path }
 
     assert_file "lib/generators/rails/awesome/awesome_generator.rb",
                 /class Rails::AwesomeGenerator < Rails::Generators::NamedBase/
@@ -44,7 +46,7 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
       lib/generators/
       lib/generators/USAGE
       lib/generators/templates
-    ).each{ |path| assert_file path }
+    ).each { |path| assert_file path }
 
     assert_file "lib/generators/awesome_generator.rb",
                 /class AwesomeGenerator < Rails::Generators::NamedBase/
@@ -60,7 +62,7 @@ class GeneratorGeneratorTest < Rails::Generators::TestCase
       lib/generators/rails
       lib/generators/rails/USAGE
       lib/generators/rails/templates
-    ).each{ |path| assert_file path }
+    ).each { |path| assert_file path }
 
     assert_file "lib/generators/rails/awesome_generator.rb",
                 /class Rails::AwesomeGenerator < Rails::Generators::NamedBase/

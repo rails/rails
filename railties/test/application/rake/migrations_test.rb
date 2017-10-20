@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -5,7 +7,6 @@ module ApplicationTests
     class RakeMigrationsTest < ActiveSupport::TestCase
       def setup
         build_app
-        boot_rails
         FileUtils.rm_rf("#{app_path}/config/environments")
       end
 
@@ -13,187 +14,269 @@ module ApplicationTests
         teardown_app
       end
 
-      test 'running migrations with given scope' do
-        Dir.chdir(app_path) do
-          `rails generate model user username:string password:string`
+      test "running migrations with given scope" do
+        rails "generate", "model", "user", "username:string", "password:string"
 
-          app_file "db/migrate/01_a_migration.bukkits.rb", <<-MIGRATION
-            class AMigration < ActiveRecord::Migration
-            end
-          MIGRATION
+        app_file "db/migrate/01_a_migration.bukkits.rb", <<-MIGRATION
+          class AMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
 
-          output = `rake db:migrate SCOPE=bukkits`
-          assert_no_match(/create_table\(:users\)/, output)
-          assert_no_match(/CreateUsers/, output)
-          assert_no_match(/add_column\(:users, :email, :string\)/, output)
+        output = rails("db:migrate", "SCOPE=bukkits")
+        assert_no_match(/create_table\(:users\)/, output)
+        assert_no_match(/CreateUsers/, output)
+        assert_no_match(/add_column\(:users, :email, :string\)/, output)
 
-          assert_match(/AMigration: migrated/, output)
+        assert_match(/AMigration: migrated/, output)
 
-          output = `rake db:migrate SCOPE=bukkits VERSION=0`
-          assert_no_match(/drop_table\(:users\)/, output)
-          assert_no_match(/CreateUsers/, output)
-          assert_no_match(/remove_column\(:users, :email\)/, output)
+        output = rails("db:migrate", "SCOPE=bukkits", "VERSION=0")
+        assert_no_match(/drop_table\(:users\)/, output)
+        assert_no_match(/CreateUsers/, output)
+        assert_no_match(/remove_column\(:users, :email\)/, output)
 
-          assert_match(/AMigration: reverted/, output)
-        end
+        assert_match(/AMigration: reverted/, output)
       end
 
-      test 'model and migration generator with change syntax' do
-        Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string`
+      test "migration with empty version" do
+        output = rails("db:migrate", "VERSION=", allow_failure: true)
+        assert_match(/Empty VERSION provided/, output)
 
-           output = `rake db:migrate`
-           assert_match(/create_table\(:users\)/, output)
-           assert_match(/CreateUsers: migrated/, output)
-           assert_match(/add_column\(:users, :email, :string\)/, output)
-           assert_match(/AddEmailToUsers: migrated/, output)
+        output = rails("db:migrate:redo", "VERSION=", allow_failure: true)
+        assert_match(/Empty VERSION provided/, output)
 
-           output = `rake db:rollback STEP=2`
-           assert_match(/drop_table\(:users\)/, output)
-           assert_match(/CreateUsers: reverted/, output)
-           assert_match(/remove_column\(:users, :email, :string\)/, output)
-           assert_match(/AddEmailToUsers: reverted/, output)
-        end
+        output = rails("db:migrate:up", "VERSION=", allow_failure: true)
+        assert_match(/VERSION is required/, output)
+
+        output = rails("db:migrate:up", allow_failure: true)
+        assert_match(/VERSION is required/, output)
+
+        output = rails("db:migrate:down", "VERSION=", allow_failure: true)
+        assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
+
+        output = rails("db:migrate:down", allow_failure: true)
+        assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
       end
 
-      test 'migration status when schema migrations table is not present' do
-        output = Dir.chdir(app_path){ `rake db:migrate:status 2>&1` }
+      test "model and migration generator with change syntax" do
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+
+        output = rails("db:migrate")
+        assert_match(/create_table\(:users\)/, output)
+        assert_match(/CreateUsers: migrated/, output)
+        assert_match(/add_column\(:users, :email, :string\)/, output)
+        assert_match(/AddEmailToUsers: migrated/, output)
+
+        output = rails("db:rollback", "STEP=2")
+        assert_match(/drop_table\(:users\)/, output)
+        assert_match(/CreateUsers: reverted/, output)
+        assert_match(/remove_column\(:users, :email, :string\)/, output)
+        assert_match(/AddEmailToUsers: reverted/, output)
+      end
+
+      test "migration status when schema migrations table is not present" do
+        output = rails("db:migrate:status", allow_failure: true)
         assert_equal "Schema migrations table does not exist yet.\n", output
       end
 
-      test 'test migration status' do
+      test "migration status" do
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+        rails "db:rollback", "STEP=1"
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/down\s+\d{14}\s+Add email to users/, output)
+      end
+
+      test "migration status without timestamps" do
+        add_to_config("config.active_record.timestamped_migrations = false")
+
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+
+        rails "db:rollback", "STEP=1"
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+      end
+
+      test "migration status after rollback and redo" do
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+        rails "db:rollback", "STEP=2"
+        output = rails("db:migrate:status")
+
+        assert_match(/down\s+\d{14}\s+Create users/, output)
+        assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+        rails "db:migrate:redo"
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/up\s+\d{14}\s+Add email to users/, output)
+      end
+
+      test "migration status after rollback and forward" do
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/up\s+\d{14}\s+Add email to users/, output)
+
+        rails "db:rollback", "STEP=2"
+        output = rails("db:migrate:status")
+
+        assert_match(/down\s+\d{14}\s+Create users/, output)
+        assert_match(/down\s+\d{14}\s+Add email to users/, output)
+
+        rails "db:forward", "STEP=2"
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{14}\s+Create users/, output)
+        assert_match(/up\s+\d{14}\s+Add email to users/, output)
+      end
+
+      test "raise error on any move when current migration does not exist" do
         Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string;
-           rake db:migrate`
+          rails "generate", "model", "user", "username:string", "password:string"
+          rails "generate", "migration", "add_email_to_users", "email:string"
+          rails "db:migrate"
+          `rm db/migrate/*email*.rb`
 
-          output = `rake db:migrate:status`
-
+          output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
-          assert_match(/up\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
 
-          `rake db:rollback STEP=1`
-          output = `rake db:migrate:status`
+          output = rails("db:rollback", allow_failure: true)
+          assert_match(/rails aborted!/, output)
+          assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
+          assert_match(/No migration with version number\s\d{14}\./, output)
 
+          output = rails("db:migrate:status")
           assert_match(/up\s+\d{14}\s+Create users/, output)
-          assert_match(/down\s+\d{14}\s+Add email to users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
+
+          output = rails("db:forward", allow_failure: true)
+          assert_match(/rails aborted!/, output)
+          assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
+          assert_match(/No migration with version number\s\d{14}\./, output)
+
+          output = rails("db:migrate:status")
+          assert_match(/up\s+\d{14}\s+Create users/, output)
+          assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
       end
 
-      test 'migration status without timestamps' do
-        add_to_config('config.active_record.timestamped_migrations = false')
+      test "migration status after rollback and redo without timestamps" do
+        add_to_config("config.active_record.timestamped_migrations = false")
 
-        Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string;
-           rake db:migrate`
+        rails "generate", "model", "user", "username:string", "password:string"
+        rails "generate", "migration", "add_email_to_users", "email:string"
+        rails "db:migrate"
 
-          output = `rake db:migrate:status`
+        output = rails("db:migrate:status")
 
-          assert_match(/up\s+\d{3,}\s+Create users/, output)
-          assert_match(/up\s+\d{3,}\s+Add email to users/, output)
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
 
-          `rake db:rollback STEP=1`
-          output = `rake db:migrate:status`
+        rails "db:rollback", "STEP=2"
+        output = rails("db:migrate:status")
 
-          assert_match(/up\s+\d{3,}\s+Create users/, output)
-          assert_match(/down\s+\d{3,}\s+Add email to users/, output)
-        end
+        assert_match(/down\s+\d{3,}\s+Create users/, output)
+        assert_match(/down\s+\d{3,}\s+Add email to users/, output)
+
+        rails "db:migrate:redo"
+        output = rails("db:migrate:status")
+
+        assert_match(/up\s+\d{3,}\s+Create users/, output)
+        assert_match(/up\s+\d{3,}\s+Add email to users/, output)
       end
 
-      test 'test migration status after rollback and redo' do
-        Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string;
-           rake db:migrate`
+      test "running migrations with not timestamp head migration files" do
+        app_file "db/migrate/1_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
 
-           output = `rake db:migrate:status`
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
 
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
+        rails "db:migrate"
 
-           `rake db:rollback STEP=2`
-           output = `rake db:migrate:status`
+        output = rails("db:migrate:status")
 
-           assert_match(/down\s+\d{14}\s+Create users/, output)
-           assert_match(/down\s+\d{14}\s+Add email to users/, output)
-
-           `rake db:migrate:redo`
-           output = `rake db:migrate:status`
-
-           assert_match(/up\s+\d{14}\s+Create users/, output)
-           assert_match(/up\s+\d{14}\s+Add email to users/, output)
-        end
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
       end
 
-      test 'migration status after rollback and redo without timestamps' do
-        add_to_config('config.active_record.timestamped_migrations = false')
+      test "schema generation when dump_schema_after_migration is set" do
+        add_to_config("config.active_record.dump_schema_after_migration = false")
 
         Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string;
-           rake db:migrate`
+          rails "generate", "model", "book", "title:string"
+          output = rails("generate", "model", "author", "name:string")
+          version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
 
-           output = `rake db:migrate:status`
-
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
-
-           `rake db:rollback STEP=2`
-           output = `rake db:migrate:status`
-
-           assert_match(/down\s+\d{3,}\s+Create users/, output)
-           assert_match(/down\s+\d{3,}\s+Add email to users/, output)
-
-           `rake db:migrate:redo`
-           output = `rake db:migrate:status`
-
-           assert_match(/up\s+\d{3,}\s+Create users/, output)
-           assert_match(/up\s+\d{3,}\s+Add email to users/, output)
-        end
-      end
-
-      test 'schema generation when dump_schema_after_migration is set' do
-        add_to_config('config.active_record.dump_schema_after_migration = false')
-
-        Dir.chdir(app_path) do
-          `rails generate model book title:string;
-           bundle exec rake db:migrate`
-
-          assert !File.exist?("db/schema.rb")
+          rails "db:migrate", "db:rollback", "db:forward", "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
+          assert !File.exist?("db/schema.rb"), "should not dump schema when configured not to"
         end
 
-        add_to_config('config.active_record.dump_schema_after_migration = true')
+        add_to_config("config.active_record.dump_schema_after_migration = true")
 
         Dir.chdir(app_path) do
-          `rails generate model author name:string;
-           bundle exec rake db:migrate`
+          rails "generate", "model", "reviews", "book_id:integer"
+          rails "db:migrate"
 
           structure_dump = File.read("db/schema.rb")
-          assert_match(/create_table "authors"/, structure_dump)
+          assert_match(/create_table "reviews"/, structure_dump)
         end
       end
 
-      test 'default schema generation after migration' do
+      test "default schema generation after migration" do
         Dir.chdir(app_path) do
-          `rails generate model book title:string;
-           bundle exec rake db:migrate`
+          rails "generate", "model", "book", "title:string"
+          rails "db:migrate"
 
           structure_dump = File.read("db/schema.rb")
           assert_match(/create_table "books"/, structure_dump)
         end
       end
 
-      test 'test migration status migrated file is deleted' do
+      test "migration status migrated file is deleted" do
         Dir.chdir(app_path) do
-          `rails generate model user username:string password:string;
-           rails generate migration add_email_to_users email:string;
-           rake db:migrate
-           rm db/migrate/*email*.rb`
+          rails "generate", "model", "user", "username:string", "password:string"
+          rails "generate", "migration", "add_email_to_users", "email:string"
+          rails "db:migrate"
+          `rm db/migrate/*email*.rb`
 
-          output = `rake db:migrate:status`
-          File.write('test.txt', output)
+          output = rails("db:migrate:status")
 
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)

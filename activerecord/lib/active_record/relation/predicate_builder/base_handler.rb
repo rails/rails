@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder
     class BaseHandler # :nodoc:
@@ -11,7 +13,7 @@ module ActiveRecord
 
       protected
 
-      attr_reader :predicate_builder
+        attr_reader :predicate_builder
     end
   end
 end

@@ -1,4 +1,6 @@
-require 'active_support/option_merger'
+# frozen_string_literal: true
+
+require_relative "../../option_merger"
 
 class Object
   # An elegant way to factor duplication out of options passed to a series of
@@ -7,7 +9,7 @@ class Object
   # provided. Each method called on the block variable must take an options
   # hash as its final argument.
   #
-  # Without <tt>with_options></tt>, this code contains duplication:
+  # Without <tt>with_options</tt>, this code contains duplication:
   #
   #   class Account < ActiveRecord::Base
   #     has_many :customers, dependent: :destroy
@@ -61,6 +63,17 @@ class Object
   #   validates :content, length: { minimum: 50 }, if: -> { content.present? }
   #
   # Hence the inherited default for `if` key is ignored.
+  #
+  # NOTE: You cannot call class methods implicitly inside of with_options.
+  # You can access these methods using the class name instead:
+  #
+  #   class Phone < ActiveRecord::Base
+  #     enum phone_number_type: [home: 0, office: 1, mobile: 2]
+  #
+  #     with_options presence: true do
+  #       validates :phone_number_type, inclusion: { in: Phone.phone_number_types.keys }
+  #     end
+  #   end
   #
   def with_options(options, &block)
     option_merger = ActiveSupport::OptionMerger.new(self, options)

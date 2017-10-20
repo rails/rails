@@ -1,7 +1,9 @@
-require "cases/helper"
-require 'support/connection_helper'
+# frozen_string_literal: true
 
-class PostgresqlEnumTest < ActiveRecord::TestCase
+require "cases/helper"
+require "support/connection_helper"
+
+class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
   include ConnectionHelper
 
   class PostgresqlEnum < ActiveRecord::Base
@@ -14,15 +16,15 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
       @connection.execute <<-SQL
         CREATE TYPE mood AS ENUM ('sad', 'ok', 'happy');
       SQL
-      @connection.create_table('postgresql_enums') do |t|
+      @connection.create_table("postgresql_enums") do |t|
         t.column :current_mood, :mood
       end
     end
   end
 
   teardown do
-    @connection.drop_table 'postgresql_enums', if_exists: true
-    @connection.execute 'DROP TYPE IF EXISTS mood'
+    @connection.drop_table "postgresql_enums", if_exists: true
+    @connection.execute "DROP TYPE IF EXISTS mood"
     reset_connection
   end
 
@@ -37,10 +39,10 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
   end
 
   def test_enum_defaults
-    @connection.add_column 'postgresql_enums', 'good_mood', :mood, default: 'happy'
+    @connection.add_column "postgresql_enums", "good_mood", :mood, default: "happy"
     PostgresqlEnum.reset_column_information
 
-    assert_equal "happy", PostgresqlEnum.column_defaults['good_mood']
+    assert_equal "happy", PostgresqlEnum.column_defaults["good_mood"]
     assert_equal "happy", PostgresqlEnum.new.good_mood
   ensure
     PostgresqlEnum.reset_column_information
@@ -79,5 +81,13 @@ class PostgresqlEnumTest < ActiveRecord::TestCase
     enum.current_mood = :happy
 
     assert_equal "happy", enum.current_mood
+  end
+
+  def test_assigning_enum_to_nil
+    model = PostgresqlEnum.new(current_mood: nil)
+
+    assert_nil model.current_mood
+    assert model.save
+    assert_nil model.reload.current_mood
   end
 end

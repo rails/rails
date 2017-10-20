@@ -1,8 +1,8 @@
-require 'active_record/type/string'
+# frozen_string_literal: true
 
 module ActiveRecord
   module Type
-    class Text < String # :nodoc:
+    class Text < ActiveModel::Type::String # :nodoc:
       def type
         :text
       end

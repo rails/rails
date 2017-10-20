@@ -1,28 +1,11 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
-  Reloader = ActionDispatch::Reloader
-
   teardown do
-    Reloader.reset_callbacks :prepare
-    Reloader.reset_callbacks :cleanup
-  end
-
-  def test_prepare_callbacks
-    a = b = c = nil
-    Reloader.to_prepare { |*args| a = b = c = 1 }
-    Reloader.to_prepare { |*args| b = c = 2 }
-    Reloader.to_prepare { |*args| c = 3 }
-
-    # Ensure to_prepare callbacks are not run when defined
-    assert_nil a || b || c
-
-    # Run callbacks
-    call_and_return_body
-
-    assert_equal 1, a
-    assert_equal 2, b
-    assert_equal 3, c
+    ActiveSupport::Reloader.reset_callbacks :prepare
+    ActiveSupport::Reloader.reset_callbacks :complete
   end
 
   class MyBody < Array
@@ -43,6 +26,23 @@ class ReloaderTest < ActiveSupport::TestCase
     end
   end
 
+  def test_prepare_callbacks
+    a = b = c = nil
+    reloader.to_prepare { |*args| a = b = c = 1 }
+    reloader.to_prepare { |*args| b = c = 2 }
+    reloader.to_prepare { |*args| c = 3 }
+
+    # Ensure to_prepare callbacks are not run when defined
+    assert_nil a || b || c
+
+    # Run callbacks
+    call_and_return_body
+
+    assert_equal 1, a
+    assert_equal 2, b
+    assert_equal 3, c
+  end
+
   def test_returned_body_object_always_responds_to_close
     body = call_and_return_body
     assert_respond_to body, :close
@@ -60,9 +60,12 @@ class ReloaderTest < ActiveSupport::TestCase
 
   def test_condition_specifies_when_to_reload
     i, j = 0, 0, 0, 0
-    Reloader.to_prepare { |*args| i += 1 }
-    Reloader.to_cleanup { |*args| j += 1 }
-    app = Reloader.new(lambda { |env| [200, {}, []] }, lambda { i < 3 })
+
+    reloader = reloader(lambda { i < 3 })
+    reloader.to_prepare { |*args| i += 1 }
+    reloader.to_complete { |*args| j += 1 }
+
+    app = middleware(lambda { |env| [200, {}, []] }, reloader)
     5.times do
       resp = app.call({})
       resp[2].close
@@ -107,20 +110,20 @@ class ReloaderTest < ActiveSupport::TestCase
     assert_respond_to body, :bar
   end
 
-  def test_cleanup_callbacks_are_called_when_body_is_closed
-    cleaned = false
-    Reloader.to_cleanup { cleaned = true }
+  def test_complete_callbacks_are_called_when_body_is_closed
+    completed = false
+    reloader.to_complete { completed = true }
 
     body = call_and_return_body
-    assert !cleaned
+    assert !completed
 
     body.close
-    assert cleaned
+    assert completed
   end
 
   def test_prepare_callbacks_arent_called_when_body_is_closed
     prepared = false
-    Reloader.to_prepare { prepared = true }
+    reloader.to_prepare { prepared = true }
 
     body = call_and_return_body
     prepared = false
@@ -129,33 +132,9 @@ class ReloaderTest < ActiveSupport::TestCase
     assert !prepared
   end
 
-  def test_manual_reloading
-    prepared = cleaned = false
-    Reloader.to_prepare { prepared = true }
-    Reloader.to_cleanup { cleaned  = true }
-
-    Reloader.prepare!
-    assert prepared
-    assert !cleaned
-
-    prepared = cleaned = false
-    Reloader.cleanup!
-    assert !prepared
-    assert cleaned
-  end
-
-  def test_prepend_prepare_callback
-    i = 10
-    Reloader.to_prepare { i += 1 }
-    Reloader.to_prepare(:prepend => true) { i = 0 }
-
-    Reloader.prepare!
-    assert_equal 1, i
-  end
-
-  def test_cleanup_callbacks_are_called_on_exceptions
-    cleaned = false
-    Reloader.to_cleanup { cleaned  = true }
+  def test_complete_callbacks_are_called_on_exceptions
+    completed = false
+    reloader.to_complete { completed = true }
 
     begin
       call_and_return_body do
@@ -164,13 +143,25 @@ class ReloaderTest < ActiveSupport::TestCase
     rescue
     end
 
-    assert cleaned
+    assert completed
   end
 
   private
     def call_and_return_body(&block)
-      @response ||= 'response'
-      @reloader ||= Reloader.new(block || proc {[200, {}, @response]})
-      @reloader.call({'rack.input' => StringIO.new('')})[2]
+      app = middleware(block || proc { [200, {}, "response"] })
+      _, _, body = app.call("rack.input" => StringIO.new(""))
+      body
+    end
+
+    def middleware(inner_app, reloader = reloader())
+      ActionDispatch::Reloader.new(inner_app, reloader)
+    end
+
+    def reloader(check = lambda { true })
+      @reloader ||= begin
+                      reloader = Class.new(ActiveSupport::Reloader)
+                      reloader.check = check
+                      reloader
+                    end
     end
 end

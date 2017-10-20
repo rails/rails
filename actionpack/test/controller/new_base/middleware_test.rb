@@ -1,4 +1,6 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 module MiddlewareTest
   class MyMiddleware
@@ -21,7 +23,7 @@ module MiddlewareTest
 
     def call(env)
       result = @app.call(env)
-      result[1]["Middleware-Order"] << "!"
+      result[1]["Middleware-Order"] += "!"
       result
     end
   end
@@ -56,8 +58,8 @@ module MiddlewareTest
   end
 
   class ActionsController < ActionController::Metal
-    use MyMiddleware, :only => :show
-    middleware.insert_before MyMiddleware, ExclaimerMiddleware, :except => :index
+    use MyMiddleware, only: :show
+    middleware.insert_before MyMiddleware, ExclaimerMiddleware, except: :index
 
     def index
       self.response_body = "index"
@@ -75,7 +77,7 @@ module MiddlewareTest
 
     test "middleware that is 'use'd is called as part of the Rack application" do
       result = @app.call(env_for("/"))
-      assert_equal ["Hello World"], result[2]
+      assert_equal ["Hello World"], [].tap { |a| result[2].each { |x| a << x } }
       assert_equal "Success", result[1]["Middleware-Test"]
     end
 

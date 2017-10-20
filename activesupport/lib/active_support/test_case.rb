@@ -1,15 +1,17 @@
-gem 'minitest' # make sure we get the gem, not stdlib
-require 'minitest'
-require 'active_support/testing/tagged_logging'
-require 'active_support/testing/setup_and_teardown'
-require 'active_support/testing/assertions'
-require 'active_support/testing/deprecation'
-require 'active_support/testing/declarative'
-require 'active_support/testing/isolation'
-require 'active_support/testing/constant_lookup'
-require 'active_support/testing/time_helpers'
-require 'active_support/testing/file_fixtures'
-require 'active_support/core_ext/kernel/reporting'
+# frozen_string_literal: true
+
+gem "minitest" # make sure we get the gem, not stdlib
+require "minitest"
+require_relative "testing/tagged_logging"
+require_relative "testing/setup_and_teardown"
+require_relative "testing/assertions"
+require_relative "testing/deprecation"
+require_relative "testing/declarative"
+require_relative "testing/isolation"
+require_relative "testing/constant_lookup"
+require_relative "testing/time_helpers"
+require_relative "testing/file_fixtures"
+require_relative "core_ext/kernel/reporting"
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
@@ -36,17 +38,8 @@ module ActiveSupport
       # Possible values are +:random+, +:parallel+, +:alpha+, +:sorted+.
       # Defaults to +:random+.
       def test_order
-        test_order = ActiveSupport.test_order
-
-        if test_order.nil?
-          test_order = :random
-          self.test_order = test_order
-        end
-
-        test_order
+        ActiveSupport.test_order ||= :random
       end
-
-      alias :my_tests_are_order_dependent! :i_suck_and_my_tests_are_order_dependent!
     end
 
     alias_method :method_name, :name
@@ -75,13 +68,6 @@ module ActiveSupport
     alias :assert_not_respond_to :refute_respond_to
     alias :assert_not_same :refute_same
 
-    # Fails if the block raises an exception.
-    #
-    #   assert_nothing_raised do
-    #     ...
-    #   end
-    def assert_nothing_raised(*args)
-      yield
-    end
+    ActiveSupport.run_load_hooks(:active_support_test_case, self)
   end
 end

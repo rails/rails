@@ -1,5 +1,7 @@
-require 'isolation/abstract_unit'
-require 'rack/test'
+# frozen_string_literal: true
+
+require "isolation/abstract_unit"
+require "rack/test"
 
 module ApplicationTests
   class RoutingTest < ActiveSupport::TestCase
@@ -8,7 +10,6 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
     end
 
     def teardown
@@ -16,13 +17,13 @@ module ApplicationTests
     end
 
     test "Unknown format falls back to HTML template" do
-      app_file 'config/routes.rb', <<-RUBY
+      app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get 'pages/:id', to: 'pages#show'
         end
       RUBY
 
-      app_file 'app/controllers/pages_controller.rb', <<-RUBY
+      app_file "app/controllers/pages_controller.rb", <<-RUBY
         class PagesController < ApplicationController
           layout false
 
@@ -31,14 +32,14 @@ module ApplicationTests
         end
       RUBY
 
-      app_file 'app/views/pages/show.html.erb', <<-RUBY
+      app_file "app/views/pages/show.html.erb", <<-RUBY
         <%= params[:id] %>
       RUBY
 
-      get '/pages/foo'
+      get "/pages/foo"
       assert_equal 200, last_response.status
 
-      get '/pages/foo.bar'
+      get "/pages/foo.bar"
       assert_equal 200, last_response.status
     end
   end

@@ -30,7 +30,7 @@ TIP: Note that Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. 
 
 ### What to update in your apps
 
-* Update your Gemfile to depend on
+* Update your `Gemfile` to depend on
     * `rails = 3.2.0`
     * `sass-rails ~> 3.2.3`
     * `coffee-rails ~> 3.2.1`
@@ -81,7 +81,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: [Bundler homepage](http://gembundler.com)
+More information: [Bundler homepage](https://bundler.io/)
 
 ### Living on the Edge
 
@@ -154,7 +154,7 @@ Railties
     rails g scaffold Post title:string:index author:uniq price:decimal{7,2}
     ```
 
-    will create indexes for `title` and `author` with the latter being an unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
+    will create indexes for `title` and `author` with the latter being a unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
 
 * Turn gem has been removed from default Gemfile.
 
@@ -295,7 +295,7 @@ Action Pack
     ```ruby
     @items.each do |item|
       content_tag_for(:li, item) do
-         Title: <%= item.title %>
+        Title: <%= item.title %>
       end
     end
     ```
@@ -327,7 +327,7 @@ Active Record
 
 * Implemented `ActiveRecord::Relation#explain`.
 
-* Implements `AR::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
+* Implements `ActiveRecord::Base.silence_auto_explain` which allows the user to selectively disable automatic EXPLAINs within a block.
 
 * Implements automatic EXPLAIN logging for slow queries. A new configuration parameter `config.active_record.auto_explain_threshold_in_seconds` determines what's to be considered a slow query. Setting that to nil disables this feature. Defaults are 0.5 in development mode, and nil in test and production modes. Rails 3.2 supports this feature in SQLite, MySQL (mysql2 adapter), and PostgreSQL.
 

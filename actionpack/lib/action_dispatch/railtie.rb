@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
+require "active_support/messages/rotation_configuration"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
@@ -8,21 +11,25 @@ module ActionDispatch
     config.action_dispatch.show_exceptions = true
     config.action_dispatch.tld_length = 1
     config.action_dispatch.ignore_accept_header = false
-    config.action_dispatch.rescue_templates = { }
-    config.action_dispatch.rescue_responses = { }
+    config.action_dispatch.rescue_templates = {}
+    config.action_dispatch.rescue_responses = {}
     config.action_dispatch.default_charset = nil
     config.action_dispatch.rack_cache = false
-    config.action_dispatch.http_auth_salt = 'http authentication'
-    config.action_dispatch.signed_cookie_salt = 'signed cookie'
-    config.action_dispatch.encrypted_cookie_salt = 'encrypted cookie'
-    config.action_dispatch.encrypted_signed_cookie_salt = 'signed encrypted cookie'
+    config.action_dispatch.http_auth_salt = "http authentication"
+    config.action_dispatch.signed_cookie_salt = "signed cookie"
+    config.action_dispatch.encrypted_cookie_salt = "encrypted cookie"
+    config.action_dispatch.encrypted_signed_cookie_salt = "signed encrypted cookie"
+    config.action_dispatch.authenticated_encrypted_cookie_salt = "authenticated encrypted cookie"
+    config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.perform_deep_munge = true
 
     config.action_dispatch.default_headers = {
-      'X-Frame-Options' => 'SAMEORIGIN',
-      'X-XSS-Protection' => '1; mode=block',
-      'X-Content-Type-Options' => 'nosniff'
+      "X-Frame-Options" => "SAMEORIGIN",
+      "X-XSS-Protection" => "1; mode=block",
+      "X-Content-Type-Options" => "nosniff"
     }
+
+    config.action_dispatch.cookies_rotations = ActiveSupport::Messages::RotationConfiguration.new
 
     config.eager_load_namespaces << ActionDispatch
 

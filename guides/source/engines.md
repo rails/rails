@@ -11,9 +11,10 @@ After reading this guide, you will know:
 
 * What makes an engine.
 * How to generate an engine.
-* Building features for the engine.
-* Hooking the engine into an application.
-* Overriding engine functionality in the application.
+* How to build features for the engine.
+* How to hook the engine into an application.
+* How to override engine functionality in the application.
+* Avoid loading Rails frameworks with Load and Configuration Hooks
 
 --------------------------------------------------------------------------------
 
@@ -25,7 +26,7 @@ their host applications. A Rails application is actually just a "supercharged"
 engine, with the `Rails::Application` class inheriting a lot of its behavior
 from `Rails::Engine`.
 
-Therefore, engines and applications can be thought of almost the same thing,
+Therefore, engines and applications can be thought of as almost the same thing,
 just with subtle differences, as you'll see throughout this guide. Engines and
 applications also share a common structure.
 
@@ -46,7 +47,7 @@ see how to hook it into an application.
 
 Engines can also be isolated from their host applications. This means that an
 application is able to have a path provided by a routing helper such as
-`articles_path` and use an engine also that provides a path also called
+`articles_path` and use an engine that also provides a path also called
 `articles_path`, and the two would not clash. Along with this, controllers, models
 and table names are also namespaced. You'll see how to do this later in this
 guide.
@@ -59,10 +60,10 @@ only be enhancing it, rather than changing it drastically.
 To see demonstrations of other engines, check out
 [Devise](https://github.com/plataformatec/devise), an engine that provides
 authentication for its parent applications, or
-[Forem](https://github.com/radar/forem), an engine that provides forum
+[Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
-[RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
+[Refinery CMS](https://github.com/refinery/refinerycms), a CMS engine.
 
 Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
@@ -150,7 +151,7 @@ When you include the engine into an application later on, you will do so with
 this line in the Rails application's `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "vendor/engines/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Don't forget to run `bundle install` as usual. By specifying it as a gem within
@@ -184,7 +185,7 @@ end
 By inheriting from the `Rails::Engine` class, this gem notifies Rails that
 there's an engine at the specified path, and will correctly mount the engine
 inside the application, performing tasks such as adding the `app` directory of
-the engine to the load path for models, mailers, controllers and views.
+the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
 responsible for isolating the controllers, models, routes and other things into
@@ -238,6 +239,27 @@ application.
 NOTE: The `ApplicationController` class inside an engine is named just like a
 Rails application in order to make it easier for you to convert your
 applications into engines.
+
+NOTE: Because of the way that Ruby does constant lookup you may run into a situation
+where your engine controller is inheriting from the main application controller and
+not your engine's application controller. Ruby is able to resolve the `ApplicationController` constant, and therefore the autoloading mechanism is not triggered. See the section [When Constants Aren't Missed](autoloading_and_reloading_constants.html#when-constants-aren-t-missed) of the [Autoloading and Reloading Constants](autoloading_and_reloading_constants.html) guide for further details. The best way to prevent this from
+happening is to use `require_dependency` to ensure that the engine's application
+controller is loaded. For example:
+
+``` ruby
+# app/controllers/blorgh/articles_controller.rb:
+require_dependency "blorgh/application_controller"
+
+module Blorgh
+  class ArticlesController < ApplicationController
+    ...
+  end
+end
+```
+
+WARNING: Don't use `require` because it will break the automatic reloading of classes
+in the development environment - using `require_dependency` ensures that classes are
+loaded and unloaded in the correct manner.
 
 Lastly, the `app/views` directory contains a `layouts` folder, which contains a
 file at `blorgh/application.html.erb`. This file allows you to specify a layout
@@ -324,6 +346,9 @@ invoke    test_unit
 create      test/controllers/blorgh/articles_controller_test.rb
 invoke    helper
 create      app/helpers/blorgh/articles_helper.rb
+invoke  test_unit
+create    test/application_system_test_case.rb
+create    test/system/articles_test.rb
 invoke  assets
 invoke    js
 create      app/assets/javascripts/blorgh/articles.js
@@ -368,7 +393,7 @@ called `Blorgh::ArticlesController` (at
 `app/controllers/blorgh/articles_controller.rb`) and its related views at
 `app/views/blorgh/articles`. This generator also generates a test for the
 controller (`test/controllers/blorgh/articles_controller_test.rb`) and a helper
-(`app/helpers/blorgh/articles_controller.rb`).
+(`app/helpers/blorgh/articles_helper.rb`).
 
 Everything this generator has created is neatly namespaced. The controller's
 class is defined within the `Blorgh` module:
@@ -381,8 +406,8 @@ module Blorgh
 end
 ```
 
-NOTE: The `ApplicationController` class being inherited from here is the
-`Blorgh::ApplicationController`, not an application's `ApplicationController`.
+NOTE: The `ArticlesController` class inherits from
+`Blorgh::ApplicationController`, not the application's `ApplicationController`.
 
 The helper inside `app/helpers/blorgh/articles_helper.rb` is also namespaced:
 
@@ -402,16 +427,7 @@ Finally, the assets for this resource are generated in two files:
 `app/assets/stylesheets/blorgh/articles.css`. You'll see how to use these a little
 later.
 
-By default, the scaffold styling is not applied to the engine because the
-engine's layout file, `app/views/layouts/blorgh/application.html.erb`, doesn't
-load it. To make the scaffold styling apply, insert this line into the `<head>`
-tag of this layout:
-
-```erb
-<%= stylesheet_link_tag "scaffold" %>
-```
-
-You can see what the engine has so far by running `rake db:migrate` at the root
+You can see what the engine has so far by running `bin/rails db:migrate` at the root
 of our engine to run the migration generated by the scaffold generator, and then
 running `rails server` in `test/dummy`. When you open
 `http://localhost:3000/blorgh/articles` you will see the default scaffold that has
@@ -449,7 +465,7 @@ model, a comment controller and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the application root, run the model generator. Tell it to generate a
-`Comment` model, with the related table having two columns: a `article_id` integer
+`Comment` model, with the related table having two columns: an `article_id` integer
 and `text` text column.
 
 ```bash
@@ -473,7 +489,7 @@ called `Blorgh::Comment`. Now run the migration to create our blorgh_comments
 table:
 
 ```bash
-$ rake db:migrate
+$ bin/rails db:migrate
 ```
 
 To show the comments on an article, edit `app/views/blorgh/articles/show.html.erb` and
@@ -496,7 +512,7 @@ Turning the model into this:
 
 ```ruby
 module Blorgh
-  class Article < ActiveRecord::Base
+  class Article < ApplicationRecord
     has_many :comments
   end
 end
@@ -521,12 +537,12 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_for [@article, @article.comments.build] do |f| %>
+<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
-  <%= f.submit %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -591,7 +607,7 @@ the comments, however, is not quite right yet. If you were to create a comment
 right now, you would see this error:
 
 ```
-Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder],
+Missing partial blorgh/comments/_comment with {:handlers=>[:erb, :builder],
 :formats=>[:html], :locale=>[:en, :en]}. Searched in:   *
 "/Users/ryan/Sites/side_projects/blorgh/test/dummy/app/views"   *
 "/Users/ryan/Sites/side_projects/blorgh/app/views"
@@ -600,7 +616,7 @@ Missing partial blorgh/comments/comment with {:handlers=>[:erb, :builder],
 The engine is unable to find the partial required for rendering the comments.
 Rails looks first in the application's (`test/dummy`) `app/views` directory and
 then in the engine's `app/views` directory. When it can't find it, it will throw
-this error. The engine knows to look for `blorgh/comments/comment` because the
+this error. The engine knows to look for `blorgh/comments/_comment` because the
 model object it is receiving is from the `Blorgh::Comment` class.
 
 This partial will be responsible for rendering just the comment text, for now.
@@ -637,7 +653,7 @@ there isn't an application handy to test this out in, generate one using the
 $ rails new unicorn
 ```
 
-Usually, specifying the engine inside the Gemfile would be done by specifying it
+Usually, specifying the engine inside the `Gemfile` would be done by specifying it
 as a normal, everyday gem.
 
 ```ruby
@@ -648,7 +664,7 @@ However, because you are developing the `blorgh` engine on your local machine,
 you will need to specify the `:path` option in your `Gemfile`:
 
 ```ruby
-gem 'blorgh', path: "/path/to/blorgh"
+gem 'blorgh', path: 'engines/blorgh'
 ```
 
 Then run `bundle` to install the gem.
@@ -679,17 +695,17 @@ pre-defined path which may be customizable.
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
 engine's models can query them correctly. To copy these migrations into the
-application use this command:
+application run the following command from the `test/dummy` directory of your Rails engine:
 
 ```bash
-$ rake blorgh:install:migrations
+$ bin/rails blorgh:install:migrations
 ```
 
 If you have multiple engines that need migrations copied over, use
 `railties:install:migrations` instead:
 
 ```bash
-$ rake railties:install:migrations
+$ bin/rails railties:install:migrations
 ```
 
 This command, when run for the first time, will copy over all the migrations
@@ -698,8 +714,8 @@ haven't been copied over already. The first run for this command will output
 something such as this:
 
 ```bash
-Copied migration [timestamp_1]_create_blorgh_articles.rb from blorgh
-Copied migration [timestamp_2]_create_blorgh_comments.rb from blorgh
+Copied migration [timestamp_1]_create_blorgh_articles.blorgh.rb from blorgh
+Copied migration [timestamp_2]_create_blorgh_comments.blorgh.rb from blorgh
 ```
 
 The first timestamp (`[timestamp_1]`) will be the current time, and the second
@@ -707,7 +723,7 @@ timestamp (`[timestamp_2]`) will be the current time plus a second. The reason
 for this is so that the migrations for the engine are run after any existing
 migrations in the application.
 
-To run these migrations within the context of the application, simply run `rake
+To run these migrations within the context of the application, simply run `bin/rails
 db:migrate`. When accessing the engine through `http://localhost:3000/blog`, the
 articles will be empty. This is because the table created inside the application is
 different from the one created within the engine. Go ahead, play around with the
@@ -718,14 +734,14 @@ If you would like to run migrations only from one engine, you can do it by
 specifying `SCOPE`:
 
 ```bash
-rake db:migrate SCOPE=blorgh
+bin/rails db:migrate SCOPE=blorgh
 ```
 
 This may be useful if you want to revert engine's migrations before removing it.
 To revert all migrations from blorgh engine you can run code such as:
 
 ```bash
-rake db:migrate SCOPE=blorgh VERSION=0
+bin/rails db:migrate SCOPE=blorgh VERSION=0
 ```
 
 ### Using a Class Provided by the Application
@@ -752,7 +768,7 @@ application:
 rails g model user name:string
 ```
 
-The `rake db:migrate` command needs to be run here to ensure that our
+The `bin/rails db:migrate` command needs to be run here to ensure that our
 application has the `users` table for future use.
 
 Also, to keep it simple, the articles form will have a new text field called
@@ -767,8 +783,8 @@ added above the `title` field with this code:
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br>
-  <%= f.text_field :author_name %>
+  <%= form.label :author_name %><br>
+  <%= form.text_field :author_name %>
 </div>
 ```
 
@@ -787,7 +803,7 @@ before the article is saved. It will also need to have an `attr_accessor` set up
 for this field, so that the setter and getter methods are defined for it.
 
 To do all this, you'll need to add the `attr_accessor` for `author_name`, the
-association for the author and the `before_save` call into
+association for the author and the `before_validation` call into
 `app/models/blorgh/article.rb`. The `author` association will be hard-coded to the
 `User` class for the time being.
 
@@ -795,7 +811,7 @@ association for the author and the `before_save` call into
 attr_accessor :author_name
 belongs_to :author, class_name: "User"
 
-before_save :set_author
+before_validation :set_author
 
 private
   def set_author
@@ -824,24 +840,22 @@ This migration will need to be run on the application. To do that, it must first
 be copied using this command:
 
 ```bash
-$ rake blorgh:install:migrations
+$ bin/rails blorgh:install:migrations
 ```
 
 Notice that only _one_ migration was copied over here. This is because the first
 two migrations were copied over the first time this command was run.
 
 ```
-NOTE Migration [timestamp]_create_blorgh_articles.rb from blorgh has been
-skipped. Migration with the same name already exists. NOTE Migration
-[timestamp]_create_blorgh_comments.rb from blorgh has been skipped. Migration
-with the same name already exists. Copied migration
-[timestamp]_add_author_id_to_blorgh_articles.rb from blorgh
+NOTE Migration [timestamp]_create_blorgh_articles.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+NOTE Migration [timestamp]_create_blorgh_comments.blorgh.rb from blorgh has been skipped. Migration with the same name already exists.
+Copied migration [timestamp]_add_author_id_to_blorgh_articles.blorgh.rb from blorgh
 ```
 
 Run the migration using:
 
 ```bash
-$ rake db:migrate
+$ bin/rails db:migrate
 ```
 
 Now with all the pieces in place, an action will take place that will associate
@@ -854,27 +868,9 @@ above the "Title" output inside `app/views/blorgh/articles/show.html.erb`:
 ```html+erb
 <p>
   <b>Author:</b>
-  <%= @article.author %>
+  <%= @article.author.name %>
 </p>
 ```
-
-By outputting `@article.author` using the `<%=` tag, the `to_s` method will be
-called on the object. By default, this will look quite ugly:
-
-```
-#<User:0x00000100ccb3b0>
-```
-
-This is undesirable. It would be much better to have the user's name there. To
-do this, add a `to_s` method to the `User` class within the application:
-
-```ruby
-def to_s
-  name
-end
-```
-
-Now instead of the ugly Ruby object output, the author's name will be displayed.
 
 #### Using a Controller Provided by the Application
 
@@ -1041,9 +1037,11 @@ typical `GET` to a controller in a controller's functional test like this:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionController::TestCase
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     def test_index
-      get :index
+      get foos_url
       ...
     end
   end
@@ -1057,13 +1055,15 @@ in your setup code:
 
 ```ruby
 module Blorgh
-  class FooControllerTest < ActionController::TestCase
+  class FooControllerTest < ActionDispatch::IntegrationTest
+    include Engine.routes.url_helpers
+
     setup do
       @routes = Engine.routes
     end
 
     def test_index
-      get :index
+      get foos_url
       ...
     end
   end
@@ -1137,7 +1137,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
 end
 ```
@@ -1158,7 +1158,7 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   has_many :comments
   def summary
     "#{title}"
@@ -1179,7 +1179,7 @@ classes at run time allowing you to significantly modularize your code.
 ```ruby
 # MyApp/app/models/blorgh/article.rb
 
-class Blorgh::Article < ActiveRecord::Base
+class Blorgh::Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 
   def time_since_created
@@ -1195,13 +1195,13 @@ end
 ```ruby
 # Blorgh/app/models/article.rb
 
-class Article < ActiveRecord::Base
+class Article < ApplicationRecord
   include Blorgh::Concerns::Models::Article
 end
 ```
 
 ```ruby
-# Blorgh/lib/concerns/models/article
+# Blorgh/lib/concerns/models/article.rb
 
 module Blorgh::Concerns::Models::Article
   extend ActiveSupport::Concern
@@ -1213,7 +1213,7 @@ module Blorgh::Concerns::Models::Article
     attr_accessor :author_name
     belongs_to :author, class_name: "User"
 
-    before_save :set_author
+    before_validation :set_author
 
     private
       def set_author
@@ -1322,7 +1322,7 @@ engine.
 
 Assets within an engine work in an identical way to a full application. Because
 the engine class inherits from `Rails::Engine`, the application will know to
-look up assets in the engine's 'app/assets' and 'lib/assets' directories.
+look up assets in the engine's `app/assets` and `lib/assets` directories.
 
 Like all of the other components of an engine, the assets should be namespaced.
 This means that if you have an asset called `style.css`, it should be placed at
@@ -1361,14 +1361,14 @@ that only exists for your engine. In this case, the host application doesn't
 need to require `admin.css` or `admin.js`. Only the gem's admin layout needs
 these assets. It doesn't make sense for the host app to include
 `"blorgh/admin.css"` in its stylesheets. In this situation, you should
-explicitly define these assets for precompilation.  This tells sprockets to add
-your engine assets when `rake assets:precompile` is triggered.
+explicitly define these assets for precompilation.  This tells Sprockets to add
+your engine assets when `bin/rails assets:precompile` is triggered.
 
 You can define assets for precompilation in `engine.rb`:
 
 ```ruby
 initializer "blorgh.assets.precompile" do |app|
-  app.config.assets.precompile += %w(admin.css admin.js)
+  app.config.assets.precompile += %w( admin.js admin.css )
 end
 ```
 
@@ -1414,3 +1414,114 @@ module MyEngine
   end
 end
 ```
+
+Active Support On Load Hooks
+----------------------------
+
+Active Support is the Ruby on Rails component responsible for providing Ruby language extensions, utilities, and other transversal utilities.
+
+Rails code can often be referenced on load of an application. Rails is responsible for the load order of these frameworks, so when you load frameworks, such as `ActiveRecord::Base`, prematurely you are violating an implicit contract your application has with Rails. Moreover, by loading code such as `ActiveRecord::Base` on boot of your application you are loading entire frameworks which may slow down your boot time and could cause conflicts with load order and boot of your application.
+
+On Load hooks are the API that allow you to hook into this initialization process without violating the load contract with Rails. This will also mitigate boot performance degradation and avoid conflicts.
+
+## What are `on_load` hooks?
+
+Since Ruby is a dynamic language, some code will cause different Rails frameworks to load. Take this snippet for instance:
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+This snippet means that when this file is loaded, it will encounter `ActiveRecord::Base`. This encounter causes Ruby to look for the definition of that constant and will require it. This causes the entire Active Record framework to be loaded on boot.
+
+`ActiveSupport.on_load` is a mechanism that can be used to defer the loading of code until it is actually needed. The snippet above can be changed to:
+
+```ruby
+ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper }
+```
+
+This new snippet will only include `MyActiveRecordHelper` when `ActiveRecord::Base` is loaded.
+
+## How does it work?
+
+In the Rails framework these hooks are called when a specific library is loaded. For example, when `ActionController::Base` is loaded, the `:action_controller_base` hook is called. This means that all `ActiveSupport.on_load` calls with `:action_controller_base` hooks will be called in the context of `ActionController::Base` (that means `self` will be an `ActionController::Base`).
+
+## Modifying code to use `on_load` hooks
+
+Modifying code is generally straightforward. If you have a line of code that refers to a Rails framework such as `ActiveRecord::Base` you can wrap that code in an `on_load` hook.
+
+### Example 1
+
+```ruby
+ActiveRecord::Base.include(MyActiveRecordHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) { include MyActiveRecordHelper } # self refers to ActiveRecord::Base here, so we can simply #include
+```
+
+### Example 2
+
+```ruby
+ActionController::Base.prepend(MyActionControllerHelper)
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:action_controller_base) { prepend MyActionControllerHelper } # self refers to ActionController::Base here, so we can simply #prepend
+```
+
+### Example 3
+
+```ruby
+ActiveRecord::Base.include_root_in_json = true
+```
+
+becomes
+
+```ruby
+ActiveSupport.on_load(:active_record) { self.include_root_in_json = true } # self refers to ActiveRecord::Base here
+```
+
+## Available Hooks
+
+These are the hooks you can use in your own code.
+
+To hook into the initialization process of one of the following classes use the available hook.
+
+| Class                             | Available Hooks                      |
+| --------------------------------- | ------------------------------------ |
+| `ActionCable`                     | `action_cable`                       |
+| `ActionController::API`           | `action_controller_api`              |
+| `ActionController::API`           | `action_controller`                  |
+| `ActionController::Base`          | `action_controller_base`             |
+| `ActionController::Base`          | `action_controller`                  |
+| `ActionController::TestCase`      | `action_controller_test_case`        |
+| `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
+| `ActionMailer::Base`              | `action_mailer`                      |
+| `ActionMailer::TestCase`          | `action_mailer_test_case`            |
+| `ActionView::Base`                | `action_view`                        |
+| `ActionView::TestCase`            | `action_view_test_case`              |
+| `ActiveJob::Base`                 | `active_job`                         |
+| `ActiveJob::TestCase`             | `active_job_test_case`               |
+| `ActiveRecord::Base`              | `active_record`                      |
+| `ActiveSupport::TestCase`         | `active_support_test_case`           |
+| `i18n`                            | `i18n`                               |
+
+## Configuration hooks
+
+These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
+
+| Hook                   | Use Case                                                                              |
+| ---------------------- | ------------------------------------------------------------------------------------- |
+| `before_configuration` | First configurable block to run. Called before any initializers are run.              |
+| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.                |
+| `before_eager_load`    | Third configurable block to run. Does not run if `config.cache_classes` set to false. |
+| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                   |
+
+### Example
+
+`config.before_configuration { puts 'I am called before any initializers' }`

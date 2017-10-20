@@ -1,17 +1,10 @@
+# frozen_string_literal: true
+
 module ActionController
-  class RedirectBackError < AbstractController::Error #:nodoc:
-    DEFAULT_MESSAGE = 'No HTTP_REFERER was set in the request to this action, so redirect_to :back could not be called successfully. If this is a test, make sure to specify request.env["HTTP_REFERER"].'
-
-    def initialize(message = nil)
-      super(message || DEFAULT_MESSAGE)
-    end
-  end
-
   module Redirecting
     extend ActiveSupport::Concern
 
     include AbstractController::Logger
-    include ActionController::RackDelegation
     include ActionController::UrlFor
 
     # Redirects the browser to the target specified in +options+. This parameter can be any one of:
@@ -21,34 +14,31 @@ module ActionController
     # * <tt>String</tt> starting with <tt>protocol://</tt> (like <tt>http://</tt>) or a protocol relative reference (like <tt>//</tt>) - Is passed straight through as the target for redirection.
     # * <tt>String</tt> not containing a protocol - The current protocol and host is prepended to the string.
     # * <tt>Proc</tt> - A block that will be executed in the controller's context. Should return any option accepted by +redirect_to+.
-    # * <tt>:back</tt> - Back to the page that issued the request. Useful for forms that are triggered from multiple places.
-    #   Short-hand for <tt>redirect_to(request.env["HTTP_REFERER"])</tt>
     #
     # === Examples:
     #
     #   redirect_to action: "show", id: 5
-    #   redirect_to post
+    #   redirect_to @post
     #   redirect_to "http://www.rubyonrails.org"
     #   redirect_to "/images/screenshot.jpg"
-    #   redirect_to articles_url
-    #   redirect_to :back
+    #   redirect_to posts_url
     #   redirect_to proc { edit_post_url(@post) }
     #
-    # The redirection happens as a "302 Found" header unless otherwise specified using the <tt>:status</tt> option:
+    # The redirection happens as a <tt>302 Found</tt> header unless otherwise specified using the <tt>:status</tt> option:
     #
     #   redirect_to post_url(@post), status: :found
     #   redirect_to action: 'atom', status: :moved_permanently
     #   redirect_to post_url(@post), status: 301
     #   redirect_to action: 'atom', status: 302
     #
-    # The status code can either be a standard {HTTP Status code}[http://www.iana.org/assignments/http-status-codes] as an
+    # The status code can either be a standard {HTTP Status code}[https://www.iana.org/assignments/http-status-codes] as an
     # integer, or a symbol representing the downcased, underscored and symbolized description.
     # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
     # If you are using XHR requests other than GET or POST and redirecting after the
     # request then some browsers will follow the redirect using the original request
     # method. This may lead to undesirable behavior such as a double DELETE. To work
-    # around this  you can return a <tt>303 See Other</tt> status code which will be
+    # around this you can return a <tt>303 See Other</tt> status code which will be
     # followed using a GET request.
     #
     #   redirect_to posts_url, status: :see_other
@@ -62,18 +52,45 @@ module ActionController
     #   redirect_to post_url(@post), status: 301, flash: { updated_post_id: @post.id }
     #   redirect_to({ action: 'atom' }, alert: "Something serious happened")
     #
-    # When using <tt>redirect_to :back</tt>, if there is no referrer,
-    # <tt>ActionController::RedirectBackError</tt> will be raised. You
-    # may specify some fallback behavior for this case by rescuing
-    # <tt>ActionController::RedirectBackError</tt>.
-    def redirect_to(options = {}, response_status = {}) #:doc:
+    # Statements after +redirect_to+ in our controller get executed, so +redirect_to+ doesn't stop the execution of the function.
+    # To terminate the execution of the function immediately after the +redirect_to+, use return.
+    #   redirect_to post_url(@post) and return
+    def redirect_to(options = {}, response_status = {})
       raise ActionControllerError.new("Cannot redirect to nil!") unless options
-      raise ActionControllerError.new("Cannot redirect to a parameter hash!") if options.is_a?(ActionController::Parameters)
       raise AbstractController::DoubleRenderError if response_body
 
       self.status        = _extract_redirect_to_status(options, response_status)
       self.location      = _compute_redirect_to_location(request, options)
-      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(location)}\">redirected</a>.</body></html>"
+      self.response_body = "<html><body>You are being <a href=\"#{ERB::Util.unwrapped_html_escape(response.location)}\">redirected</a>.</body></html>"
+    end
+
+    # Redirects the browser to the page that issued the request (the referrer)
+    # if possible, otherwise redirects to the provided default fallback
+    # location.
+    #
+    # The referrer information is pulled from the HTTP `Referer` (sic) header on
+    # the request. This is an optional header and its presence on the request is
+    # subject to browser security settings and user preferences. If the request
+    # is missing this header, the <tt>fallback_location</tt> will be used.
+    #
+    #   redirect_back fallback_location: { action: "show", id: 5 }
+    #   redirect_back fallback_location: @post
+    #   redirect_back fallback_location: "http://www.rubyonrails.org"
+    #   redirect_back fallback_location: "/images/screenshot.jpg"
+    #   redirect_back fallback_location: posts_url
+    #   redirect_back fallback_location: proc { edit_post_url(@post) }
+    #   redirect_back fallback_location: '/', allow_other_host: false
+    #
+    # ==== Options
+    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing `Referer` header.
+    # * <tt>:allow_other_host</tt> - Allows or disallow redirection to the host that is different to the current host
+    #
+    # All other options that can be passed to <tt>redirect_to</tt> are accepted as
+    # options and the behavior is identical.
+    def redirect_back(fallback_location:, allow_other_host: true, **args)
+      referer = request.headers["Referer"]
+      redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
+      redirect_to redirect_to_referer ? referer : fallback_location, **args
     end
 
     def _compute_redirect_to_location(request, options) #:nodoc:
@@ -81,14 +98,12 @@ module ActionController
       # The scheme name consist of a letter followed by any combination of
       # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
       # characters; and is terminated by a colon (":").
-      # See http://tools.ietf.org/html/rfc3986#section-3.1
+      # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
       when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
         options
       when String
         request.protocol + request.host_with_port + options
-      when :back
-        request.headers["Referer"] or raise RedirectBackError
       when Proc
         _compute_redirect_to_location request, options.call
       else
@@ -107,6 +122,12 @@ module ActionController
         else
           302
         end
+      end
+
+      def _url_host_allowed?(url)
+        URI(url.to_s).host == request.host
+      rescue ArgumentError, URI::Error
+        false
       end
   end
 end

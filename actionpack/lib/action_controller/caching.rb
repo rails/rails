@@ -1,6 +1,4 @@
-require 'fileutils'
-require 'uri'
-require 'set'
+# frozen_string_literal: true
 
 module ActionController
   # \Caching is a cheap way of speeding up slow applications by keeping the result of
@@ -8,7 +6,7 @@ module ActionController
   #
   # You can read more about each approach by clicking the modules below.
   #
-  # Note: To turn off all caching, set
+  # Note: To turn off all caching provided by Action Controller, set
   #   config.action_controller.perform_caching = false
   #
   # == \Caching stores
@@ -24,66 +22,25 @@ module ActionController
   #   config.action_controller.cache_store = :mem_cache_store, Memcached::Rails.new('localhost:11211')
   #   config.action_controller.cache_store = MyOwnStore.new('parameter')
   module Caching
-    extend ActiveSupport::Concern
     extend ActiveSupport::Autoload
-
-    eager_autoload do
-      autoload :Fragments
-    end
-
-    module ConfigMethods
-      def cache_store
-        config.cache_store
-      end
-
-      def cache_store=(store)
-        config.cache_store = ActiveSupport::Cache.lookup_store(store)
-      end
-
-      private
-        def cache_configured?
-          perform_caching && cache_store
-        end
-    end
-
-    include RackDelegation
-    include AbstractController::Callbacks
-
-    include ConfigMethods
-    include Fragments
+    extend ActiveSupport::Concern
 
     included do
-      extend ConfigMethods
-
-      config_accessor :default_static_extension
-      self.default_static_extension ||= '.html'
-
-      config_accessor :perform_caching
-      self.perform_caching = true if perform_caching.nil?
-
-      class_attribute :_view_cache_dependencies
-      self._view_cache_dependencies = []
-      helper_method :view_cache_dependencies if respond_to?(:helper_method)
+      include AbstractController::Caching
     end
 
-    module ClassMethods
-      def view_cache_dependency(&dependency)
-        self._view_cache_dependencies += [dependency]
+    private
+
+      def instrument_payload(key)
+        {
+          controller: controller_name,
+          action: action_name,
+          key: key
+        }
       end
-    end
 
-    def view_cache_dependencies
-      self.class._view_cache_dependencies.map { |dep| instance_exec(&dep) }.compact
-    end
-
-    protected
-      # Convenience accessor.
-      def cache(key, options = {}, &block)
-        if cache_configured?
-          cache_store.fetch(ActiveSupport::Cache.expand_cache_key(key, :controller), options, &block)
-        else
-          yield
-        end
+      def instrument_name
+        "action_controller".freeze
       end
   end
 end

@@ -1,5 +1,7 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/migration/migration_generator'
+# frozen_string_literal: true
+
+require "generators/generators_test_helper"
+require "rails/generators/rails/migration/migration_generator"
 
 class CreateMigrationTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -19,12 +21,12 @@ class CreateMigrationTest < Rails::Generators::TestCase
   end
 
   def create_migration(destination_path = default_destination_path, config = {}, generator_options = {}, &block)
-    migration_name = File.basename(destination_path, '.rb')
+    migration_name = File.basename(destination_path, ".rb")
     generator([migration_name], generator_options)
     generator.set_migration_assigns!(destination_path)
 
     dir, base = File.split(destination_path)
-    timestamped_destination_path = File.join(dir, ["%migration_number%", base].join('_'))
+    timestamped_destination_path = File.join(dir, ["%migration_number%", base].join("_"))
 
     @migration = Rails::Generators::Actions::CreateMigration.new(generator, timestamped_destination_path, block || "contents", config)
   end
@@ -46,7 +48,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
   def test_invoke
     create_migration
 
-    assert_match(/create  db\/migrate\/1_create_articles.rb\n/, invoke!)
+    assert_match(/create  db\/migrate\/1_create_articles\.rb\n/, invoke!)
     assert_file @migration.destination
   end
 
@@ -67,7 +69,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration
 
-    assert_match(/identical  db\/migrate\/1_create_articles.rb\n/, invoke!)
+    assert_match(/identical  db\/migrate\/1_create_articles\.rb\n/, invoke!)
     assert @migration.identical?
   end
 
@@ -84,8 +86,8 @@ class CreateMigrationTest < Rails::Generators::TestCase
     create_migration(dest, force: true) { "different content" }
 
     stdout = invoke!
-    assert_match(/remove  db\/migrate\/1_migration.rb\n/, stdout)
-    assert_match(/create  db\/migrate\/2_migration.rb\n/, stdout)
+    assert_match(/remove  db\/migrate\/1_migration\.rb\n/, stdout)
+    assert_match(/create  db\/migrate\/2_migration\.rb\n/, stdout)
     assert_file @migration.destination
     assert_no_file @existing_migration.destination
   end
@@ -97,8 +99,8 @@ class CreateMigrationTest < Rails::Generators::TestCase
     end
 
     stdout = invoke!
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, stdout)
-    assert_match(/create  db\/migrate\/2_create_articles.rb\n/, stdout)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, stdout)
+    assert_match(/create  db\/migrate\/2_create_articles\.rb\n/, stdout)
     assert_no_file @migration.destination
   end
 
@@ -106,7 +108,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration(default_destination_path, {}, { skip: true }) { "different content" }
 
-    assert_match(/skip  db\/migrate\/2_create_articles.rb\n/, invoke!)
+    assert_match(/skip  db\/migrate\/2_create_articles\.rb\n/, invoke!)
     assert_no_file @migration.destination
   end
 
@@ -114,7 +116,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
     assert_no_file @existing_migration.destination
   end
 
@@ -122,13 +124,13 @@ class CreateMigrationTest < Rails::Generators::TestCase
     migration_exists!
     create_migration(default_destination_path, {}, { pretend: true })
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
     assert_file @existing_migration.destination
   end
 
   def test_revoke_when_no_exists
     create_migration
 
-    assert_match(/remove  db\/migrate\/1_create_articles.rb\n/, revoke!)
+    assert_match(/remove  db\/migrate\/1_create_articles\.rb\n/, revoke!)
   end
 end

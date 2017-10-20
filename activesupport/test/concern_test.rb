@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/concern'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/concern"
 
 class ConcernTest < ActiveSupport::TestCase
   module Baz
@@ -54,6 +56,11 @@ class ConcernTest < ActiveSupport::TestCase
     include Bar, Baz
   end
 
+  module Qux
+    module ClassMethods
+    end
+  end
+
   def setup
     @klass = Class.new
   end
@@ -61,13 +68,33 @@ class ConcernTest < ActiveSupport::TestCase
   def test_module_is_included_normally
     @klass.include(Baz)
     assert_equal "baz", @klass.new.baz
-    assert @klass.included_modules.include?(ConcernTest::Baz)
+    assert_includes @klass.included_modules, ConcernTest::Baz
   end
 
   def test_class_methods_are_extended
     @klass.include(Baz)
     assert_equal "baz", @klass.baz
-    assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; self.included_modules; end)[0]
+    assert_equal ConcernTest::Baz::ClassMethods, (class << @klass; included_modules; end)[0]
+  end
+
+  def test_class_methods_are_extended_only_on_expected_objects
+    ::Object.include(Qux)
+    Object.extend(Qux::ClassMethods)
+    # module needs to be created after Qux is included in Object or bug won't
+    # be triggered
+    test_module = Module.new do
+      extend ActiveSupport::Concern
+
+      class_methods do
+        def test
+        end
+      end
+    end
+    @klass.include test_module
+    assert_equal false, Object.respond_to?(:test)
+    Qux.class_eval do
+      remove_const :ClassMethods
+    end
   end
 
   def test_included_block_is_ran
@@ -80,7 +107,7 @@ class ConcernTest < ActiveSupport::TestCase
     assert_equal "bar", @klass.new.bar
     assert_equal "bar+baz", @klass.new.baz
     assert_equal "bar's baz + baz", @klass.baz
-    assert @klass.included_modules.include?(ConcernTest::Bar)
+    assert_includes @klass.included_modules, ConcernTest::Bar
   end
 
   def test_dependencies_with_multiple_modules

@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/core_ext/numeric/bytes"
 
-class PostgresqlIntegerTest < ActiveRecord::TestCase
+class PostgresqlIntegerTest < ActiveRecord::PostgreSQLTestCase
   class PgInteger < ActiveRecord::Base
   end
 

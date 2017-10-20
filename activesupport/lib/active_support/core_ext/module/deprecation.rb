@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Module
   #   deprecate :foo
   #   deprecate bar: 'message'
@@ -13,8 +15,8 @@ class Module
   #
   #   class MyLib::Deprecator
   #     def deprecation_warning(deprecated_method_name, message, caller_backtrace = nil)
-  #        message = "#{deprecated_method_name} is deprecated and will be removed from MyLibrary | #{message}"
-  #        Kernel.warn message
+  #       message = "#{deprecated_method_name} is deprecated and will be removed from MyLibrary | #{message}"
+  #       Kernel.warn message
   #     end
   #   end
   def deprecate(*method_names)

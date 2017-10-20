@@ -1,30 +1,32 @@
-unless File.exist?('Gemfile')
-  File.write('Gemfile', <<-GEMFILE)
-    source 'https://rubygems.org'
-    gem 'rails', github: 'rails/rails'
-    gem 'arel', github: 'rails/arel'
-  GEMFILE
+# frozen_string_literal: true
 
-  system 'bundle'
+begin
+  require "bundler/inline"
+rescue LoadError => e
+  $stderr.puts "Bundler version 1.10 or later is required. Please update your Bundler"
+  raise e
 end
 
-require 'bundler'
-Bundler.setup(:default)
+gemfile(true) do
+  source "https://rubygems.org"
 
-require 'rails'
-require 'action_controller/railtie'
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
+  gem "rails", github: "rails/rails"
+  gem "arel", github: "rails/arel"
+end
+
+require "action_controller/railtie"
 
 class TestApp < Rails::Application
-  config.root = File.dirname(__FILE__)
-  config.session_store :cookie_store, key: 'cookie_store_key'
-  secrets.secret_token    = 'secret_token'
-  secrets.secret_key_base = 'secret_key_base'
+  config.root = __dir__
+  secrets.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)
   Rails.logger  = config.logger
 
   routes.draw do
-    get '/' => 'test#index'
+    get "/" => "test#index"
   end
 end
 
@@ -32,18 +34,18 @@ class TestController < ActionController::Base
   include Rails.application.routes.url_helpers
 
   def index
-    render text: 'Home'
+    render plain: "Home"
   end
 end
 
-require 'minitest/autorun'
-require 'rack/test'
+require "minitest/autorun"
+require "rack/test"
 
 class BugTest < Minitest::Test
   include Rack::Test::Methods
 
   def test_returns_success
-    get '/'
+    get "/"
     assert last_response.ok?
   end
 

@@ -1,36 +1,33 @@
-require 'active_support/per_thread_registry'
+# frozen_string_literal: true
+
+require_relative "per_thread_registry"
+require_relative "notifications"
 
 module ActiveSupport
   # ActiveSupport::Subscriber is an object set to consume
   # ActiveSupport::Notifications. The subscriber dispatches notifications to
   # a registered object based on its given namespace.
   #
-  # An example would be Active Record subscriber responsible for collecting
+  # An example would be an Active Record subscriber responsible for collecting
   # statistics about queries:
   #
   #   module ActiveRecord
   #     class StatsSubscriber < ActiveSupport::Subscriber
+  #       attach_to :active_record
+  #
   #       def sql(event)
   #         Statsd.timing("sql.#{event.payload[:name]}", event.duration)
   #       end
   #     end
   #   end
   #
-  # And it's finally registered as:
-  #
-  #   ActiveRecord::StatsSubscriber.attach_to :active_record
-  #
-  # Since we need to know all instance methods before attaching the log
-  # subscriber, the line above should be called after your subscriber definition.
-  #
   # After configured, whenever a "sql.active_record" notification is published,
   # it will properly dispatch the event (ActiveSupport::Notifications::Event) to
   # the +sql+ method.
   class Subscriber
     class << self
-
       # Attach the subscriber to a namespace.
-      def attach_to(namespace, subscriber=new, notifier=ActiveSupport::Notifications)
+      def attach_to(namespace, subscriber = new, notifier = ActiveSupport::Notifications)
         @namespace  = namespace
         @subscriber = subscriber
         @notifier   = notifier
@@ -57,16 +54,20 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
+      # TODO Change this to private once we've dropped Ruby 2.2 support.
+      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
       attr_reader :subscriber, :notifier, :namespace
 
-      def add_event_subscriber(event)
+      private
+
+      def add_event_subscriber(event) # :doc:
         return if %w{ start finish }.include?(event.to_s)
 
         pattern = "#{event}.#{namespace}"
 
-        # don't add multiple subscribers (eg. if methods are redefined)
+        # Don't add multiple subscribers (eg. if methods are redefined).
         return if subscriber.patterns.include?(pattern)
 
         subscriber.patterns << pattern
@@ -96,7 +97,7 @@ module ActiveSupport
       event.end = finished
       event.payload.merge!(payload)
 
-      method = name.split('.'.freeze).first
+      method = name.split(".".freeze).first
       send(method, event)
     end
 

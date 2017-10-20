@@ -1,5 +1,7 @@
-require 'abstract_unit'
-require 'active_support/json/decoding'
+# frozen_string_literal: true
+
+require "abstract_unit"
+require "active_support/json/decoding"
 
 module ActionDispatch
   module Journey
@@ -14,12 +16,12 @@ module ActionDispatch
           }
 
           json = ActiveSupport::JSON.decode table.to_json
-          assert json['regexp_states']
-          assert json['string_states']
-          assert json['accepting']
+          assert json["regexp_states"]
+          assert json["string_states"]
+          assert json["accepting"]
         end
 
-        if system("dot -V 2>/dev/null")
+        if system("dot -V", 2 => File::NULL)
           def test_to_svg
             table = tt %w{
               /articles(.:format)
@@ -34,26 +36,26 @@ module ActionDispatch
         end
 
         def test_simulate_gt
-          sim = simulator_for ['/foo', '/bar']
-          assert_match sim, '/foo'
+          sim = simulator_for ["/foo", "/bar"]
+          assert_match_route sim, "/foo"
         end
 
         def test_simulate_gt_regexp
-          sim = simulator_for [':foo']
-          assert_match sim, 'foo'
+          sim = simulator_for [":foo"]
+          assert_match_route sim, "foo"
         end
 
         def test_simulate_gt_regexp_mix
-          sim = simulator_for ['/get', '/:method/foo']
-          assert_match sim, '/get'
-          assert_match sim, '/get/foo'
+          sim = simulator_for ["/get", "/:method/foo"]
+          assert_match_route sim, "/get"
+          assert_match_route sim, "/get/foo"
         end
 
         def test_simulate_optional
-          sim = simulator_for ['/foo(/bar)']
-          assert_match sim, '/foo'
-          assert_match sim, '/foo/bar'
-          assert_no_match sim, '/foo/'
+          sim = simulator_for ["/foo(/bar)"]
+          assert_match_route sim, "/foo"
+          assert_match_route sim, "/foo/bar"
+          assert_no_match_route sim, "/foo/"
         end
 
         def test_match_data
@@ -65,11 +67,11 @@ module ActionDispatch
 
           sim = GTG::Simulator.new tt
 
-          match = sim.match '/get'
-          assert_equal [paths.first], match.memos
+          memos = sim.memos "/get"
+          assert_equal [paths.first], memos
 
-          match = sim.match '/get/foo'
-          assert_equal [paths.last], match.memos
+          memos = sim.memos "/get/foo"
+          assert_equal [paths.last], memos
         end
 
         def test_match_data_ambiguous
@@ -86,29 +88,37 @@ module ActionDispatch
           builder = GTG::Builder.new ast
           sim     = GTG::Simulator.new builder.transition_table
 
-          match = sim.match '/articles/new'
-          assert_equal [paths[1], paths[3]], match.memos
+          memos = sim.memos "/articles/new"
+          assert_equal [paths[1], paths[3]], memos
         end
 
         private
-        def asts paths
-          parser  = Journey::Parser.new
-          paths.map { |x|
-            ast = parser.parse x
-            ast.each { |n| n.memo = ast}
-            ast
-          }
-        end
+          def asts(paths)
+            parser = Journey::Parser.new
+            paths.map { |x|
+              ast = parser.parse x
+              ast.each { |n| n.memo = ast }
+              ast
+            }
+          end
 
-        def tt paths
-          x = asts paths
-          builder = GTG::Builder.new Nodes::Or.new x
-          builder.transition_table
-        end
+          def tt(paths)
+            x = asts paths
+            builder = GTG::Builder.new Nodes::Or.new x
+            builder.transition_table
+          end
 
-        def simulator_for paths
-          GTG::Simulator.new tt(paths)
-        end
+          def simulator_for(paths)
+            GTG::Simulator.new tt(paths)
+          end
+
+          def assert_match_route(simulator, path)
+            assert simulator.memos(path), "Simulator should match #{path}."
+          end
+
+          def assert_no_match_route(simulator, path)
+            assert_not simulator.memos(path) { nil }, "Simulator should not match #{path}."
+          end
       end
     end
   end

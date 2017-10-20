@@ -1,4 +1,6 @@
-require 'isolation/abstract_unit'
+# frozen_string_literal: true
+
+require "isolation/abstract_unit"
 
 module ApplicationTests
   class SendfileTest < ActiveSupport::TestCase
@@ -6,16 +8,11 @@ module ApplicationTests
 
     def setup
       build_app
-      boot_rails
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
     def teardown
       teardown_app
-    end
-
-    def app
-      @app ||= Rails.application
     end
 
     define_method :simple_controller do
@@ -49,7 +46,7 @@ module ApplicationTests
 
     test "config.action_dispatch.x_sendfile_header is sent to Rack::Sendfile" do
       make_basic_app do |app|
-        app.config.action_dispatch.x_sendfile_header = 'X-Lighttpd-Send-File'
+        app.config.action_dispatch.x_sendfile_header = "X-Lighttpd-Send-File"
       end
 
       simple_controller
@@ -60,8 +57,8 @@ module ApplicationTests
 
     test "files handled by ActionDispatch::Static are handled by Rack::Sendfile" do
       make_basic_app do |app|
-        app.config.action_dispatch.x_sendfile_header = 'X-Sendfile'
-        app.config.serve_static_files = true
+        app.config.action_dispatch.x_sendfile_header = "X-Sendfile"
+        app.config.public_file_server.enabled = true
         app.paths["public"] = File.join(rails_root, "public")
       end
 

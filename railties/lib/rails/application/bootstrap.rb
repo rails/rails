@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
+require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
 require "active_support/descendants_tracker"
+require_relative "../secrets"
 
 module Rails
   class Application
@@ -35,7 +39,7 @@ INFO
             FileUtils.mkdir_p File.dirname path
           end
 
-          f = File.open path, 'a'
+          f = File.open path, "a"
           f.binmode
           f.sync = config.autoflush_log # if true make sure every write flushes
 
@@ -47,8 +51,8 @@ INFO
           logger = ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDERR))
           logger.level = ActiveSupport::Logger::WARN
           logger.warn(
-            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " +
-            "(ie, make it writable for user and group: chmod 0664 #{path}). " +
+            "Rails Error: Unable to access log file. Please ensure that #{path} exists and is writable " \
+            "(ie, make it writable for user and group: chmod 0664 #{path}). " \
             "The log level has been raised to WARN and the output directed to STDERR until the problem is fixed."
           )
           logger
@@ -63,7 +67,7 @@ INFO
           Rails.cache = ActiveSupport::Cache.lookup_store(config.cache_store)
 
           if Rails.cache.respond_to?(:middleware)
-            config.middleware.insert_before("Rack::Runtime", Rails.cache.middleware)
+            config.middleware.insert_before(::Rack::Runtime, Rails.cache.middleware)
           end
         end
       end
@@ -75,6 +79,10 @@ INFO
 
       initializer :bootstrap_hook, group: :all do |app|
         ActiveSupport.run_load_hooks(:before_initialize, app)
+      end
+
+      initializer :set_secrets_root, group: :all do
+        Rails::Secrets.root = root
       end
     end
   end

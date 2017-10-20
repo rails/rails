@@ -1,9 +1,16 @@
+# frozen_string_literal: true
+
+require "concurrent/map"
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module QueryCache
       class << self
         def included(base) #:nodoc:
           dirties_query_cache base, :insert, :update, :delete, :rollback_to_savepoint, :rollback_db_transaction
+
+          base.set_callback :checkout, :after, :configure_query_cache!
+          base.set_callback :checkin, :after, :disable_query_cache!
         end
 
         def dirties_query_cache(base, *method_names)
@@ -18,11 +25,32 @@ module ActiveRecord
         end
       end
 
+      module ConnectionPoolConfiguration
+        def initialize(*)
+          super
+          @query_cache_enabled = Concurrent::Map.new { false }
+        end
+
+        def enable_query_cache!
+          @query_cache_enabled[connection_cache_key(Thread.current)] = true
+          connection.enable_query_cache! if active_connection?
+        end
+
+        def disable_query_cache!
+          @query_cache_enabled.delete connection_cache_key(Thread.current)
+          connection.disable_query_cache! if active_connection?
+        end
+
+        def query_cache_enabled
+          @query_cache_enabled[connection_cache_key(Thread.current)]
+        end
+      end
+
       attr_reader :query_cache, :query_cache_enabled
 
       def initialize(*)
         super
-        @query_cache         = Hash.new { |h,sql| h[sql] = {} }
+        @query_cache         = Hash.new { |h, sql| h[sql] = {} }
         @query_cache_enabled = false
       end
 
@@ -41,6 +69,7 @@ module ActiveRecord
 
       def disable_query_cache!
         @query_cache_enabled = false
+        clear_query_cache
       end
 
       # Disable the query cache within the block.
@@ -58,14 +87,16 @@ module ActiveRecord
       # the same SQL query and repeatedly return the same result each time, silently
       # undermining the randomness you were expecting.
       def clear_query_cache
-        @query_cache.clear
+        @lock.synchronize do
+          @query_cache.clear
+        end
       end
 
-      def select_all(arel, name = nil, binds = [])
+      def select_all(arel, name = nil, binds = [], preparable: nil)
         if @query_cache_enabled && !locked?(arel)
-          arel, binds = binds_from_relation arel, binds
-          sql = to_sql(arel, binds)
-          cache_sql(sql, binds) { super(sql, name, binds) }
+          arel = arel_from_relation(arel)
+          sql, binds = to_sql_and_binds(arel, binds)
+          cache_sql(sql, name, binds) { super(sql, name, binds, preparable: preparable) }
         else
           super
         end
@@ -73,23 +104,37 @@ module ActiveRecord
 
       private
 
-      def cache_sql(sql, binds)
-        result =
-          if @query_cache[sql].key?(binds)
-            ActiveSupport::Notifications.instrument("sql.active_record",
-              :sql => sql, :binds => binds, :name => "CACHE", :connection_id => object_id)
-            @query_cache[sql][binds]
-          else
-            @query_cache[sql][binds] = yield
+        def cache_sql(sql, name, binds)
+          @lock.synchronize do
+            result =
+              if @query_cache[sql].key?(binds)
+                ActiveSupport::Notifications.instrument(
+                  "sql.active_record",
+                  sql: sql,
+                  binds: binds,
+                  type_casted_binds: -> { type_casted_binds(binds) },
+                  name: name,
+                  connection_id: object_id,
+                  cached: true,
+                )
+                @query_cache[sql][binds]
+              else
+                @query_cache[sql][binds] = yield
+              end
+            result.dup
           end
-        result.dup
-      end
+        end
 
-      # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
-      # queries should not be cached.
-      def locked?(arel)
-        arel.respond_to?(:locked) && arel.locked
-      end
+        # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such
+        # queries should not be cached.
+        def locked?(arel)
+          arel = arel.arel if arel.is_a?(Relation)
+          arel.respond_to?(:locked) && arel.locked
+        end
+
+        def configure_query_cache!
+          enable_query_cache! if pool.query_cache_enabled
+        end
     end
   end
 end

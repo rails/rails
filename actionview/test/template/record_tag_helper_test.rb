@@ -1,8 +1,10 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class RecordTagPost
   extend ActiveModel::Naming
-  include ActiveModel::Conversion
+
   attr_accessor :id, :body
 
   def initialize
@@ -14,8 +16,6 @@ class RecordTagPost
 end
 
 class RecordTagHelperTest < ActionView::TestCase
-  include RenderERBUtils
-
   tests ActionView::Helpers::RecordTagHelper
 
   def setup

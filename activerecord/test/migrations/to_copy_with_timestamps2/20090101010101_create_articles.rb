@@ -1,4 +1,6 @@
-class CreateArticles < ActiveRecord::Migration
+# frozen_string_literal: true
+
+class CreateArticles < ActiveRecord::Migration::Current
   def self.up
   end
 

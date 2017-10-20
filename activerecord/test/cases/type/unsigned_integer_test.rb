@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -8,7 +10,7 @@ module ActiveRecord
       end
 
       test "minus value is out of range" do
-        assert_raises(::RangeError) do
+        assert_raises(ActiveModel::RangeError) do
           UnsignedInteger.new.serialize(-1)
         end
       end

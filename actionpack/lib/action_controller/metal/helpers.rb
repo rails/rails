@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
@@ -5,10 +7,10 @@ module ActionController
   #
   # In addition to using the standard template helpers provided, creating custom helpers to
   # extract complicated logic or reusable functionality is strongly encouraged. By default, each controller
-  # will include all helpers. These helpers are only accessible on the controller through <tt>.helpers</tt>
+  # will include all helpers. These helpers are only accessible on the controller through <tt>#helpers</tt>
   #
-  # In previous versions of \Rails the controller will include a helper whose
-  # name matches that of the controller, e.g., <tt>MyController</tt> will automatically
+  # In previous versions of \Rails the controller will include a helper which
+  # matches the name of the controller, e.g., <tt>MyController</tt> will automatically
   # include <tt>MyHelper</tt>. To return old behavior set +config.action_controller.include_all_helpers+ to +false+.
   #
   # Additional helpers can be specified using the +helper+ class method in ActionController::Base or any
@@ -44,7 +46,7 @@ module ActionController
   # the output might look like this:
   #
   #   23 Aug 11:30 | Carolina Railhawks Soccer Match
-  #   N/A | Carolina Railhaws Training Workshop
+  #   N/A | Carolina Railhawks Training Workshop
   #
   module Helpers
     extend ActiveSupport::Concern
@@ -53,9 +55,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      class_attribute :helpers_path, :include_all_helpers
-      self.helpers_path ||= []
-      self.include_all_helpers = true
+      class_attribute :helpers_path, default: []
+      class_attribute :include_all_helpers, default: true
     end
 
     module ClassMethods
@@ -71,9 +72,9 @@ module ActionController
         attrs.flatten.each { |attr| helper_method(attr, "#{attr}=") }
       end
 
-      # Provides a proxy to access helpers methods from outside the view.
+      # Provides a proxy to access helper methods from outside the view.
       def helpers
-        @helper_proxy ||= begin 
+        @helper_proxy ||= begin
           proxy = ActionView::Base.new
           proxy.config = config.inheritable_copy
           proxy.extend(_helpers)
@@ -100,7 +101,7 @@ module ActionController
       def all_helpers_from_path(path)
         helpers = Array(path).flat_map do |_path|
           extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1') }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1'.freeze) }
           names.sort!
         end
         helpers.uniq!
@@ -108,10 +109,15 @@ module ActionController
       end
 
       private
-      # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
-      def all_application_helpers
-        all_helpers_from_path(helpers_path)
-      end
+        # Extract helper names from files in <tt>app/helpers/**/*_helper.rb</tt>
+        def all_application_helpers
+          all_helpers_from_path(helpers_path)
+        end
+    end
+
+    # Provides a proxy to access helper methods from outside the view.
+    def helpers
+      @_helper_proxy ||= view_context
     end
   end
 end

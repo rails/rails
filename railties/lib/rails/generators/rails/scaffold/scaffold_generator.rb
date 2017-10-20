@@ -1,4 +1,6 @@
-require 'rails/generators/rails/resource/resource_generator'
+# frozen_string_literal: true
+
+require_relative "../resource/resource_generator"
 
 module Rails
   module Generators
@@ -6,14 +8,16 @@ module Rails
       remove_hook_for :resource_controller
       remove_class_option :actions
 
+      class_option :api, type: :boolean
       class_option :stylesheets, type: :boolean, desc: "Generate Stylesheets"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
       class_option :assets, type: :boolean
       class_option :resource_route, type: :boolean
+      class_option :scaffold_stylesheet, type: :boolean
 
       def handle_skip
         @options = @options.merge(stylesheets: false) unless options[:assets]
-        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets]
+        @options = @options.merge(stylesheet_engine: false) unless options[:stylesheets] && options[:scaffold_stylesheet]
       end
 
       hook_for :scaffold_controller, required: true

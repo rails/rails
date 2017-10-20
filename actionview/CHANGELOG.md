@@ -1,93 +1,35 @@
-*   `number_to_percentage` does not crash with `Float::NAN` or `Float::INFINITY`
-    as input when `precision: 0` is used.
+*   Remove default `alt` text generation.
 
-    Fixes #19227.
+    Fixes #30096
 
-    *Yves Senn*
+    *Cameron Cundiff*
 
-*   Fixed the translation helper method to accept different default values types
-    besides String.
+*   Add `srcset` option to `image_tag` helper.
 
-    *Ulisses Almeida*
+    *Roberto Miranda*
 
-*   Collection rendering automatically caches and fetches multiple partials.
+*   Fix issues with scopes and engine on `current_page?` method.
 
-    Collections rendered as:
+    Fixes #29401.
 
-    ```ruby
-    <%= render @notifications %>
-    <%= render partial: 'notifications/notification', collection: @notifications, as: :notification %>
-    ```
+    *Nikita Savrov*
 
-    will now read several partials from cache at once, if the template starts with a cache call:
+*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
 
-    ```ruby
-    # notifications/_notification.html.erb
-    <% cache notification do %>
-      <%# ... %>
-    <% end %>
-    ```
+    This makes sure that the labels are linked up with the fields.
 
-    *Kasper Timm Hansen*
+    Fixes #29014.
 
-*   Fixed a dependency tracker bug that caused template dependencies not
-    count layouts as dependencies for partials.
+    *Yuji Yaginuma*
 
-    *Juho Leinonen*
+*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
 
-*   Extracted `ActionView::Helpers::RecordTagHelper` to external gem
-    (`record_tag_helper`) and added removal notices.
+    *Mike Gunderloy*
 
-    *Todd Bealmear*
+*   Update `distance_of_time_in_words` helper to display better error messages
+    for bad input.
 
-*   Allow to pass a string value to `size` option in `image_tag` and `video_tag`.
+    *Jay Hayes*
 
-    This makes the behavior more consistent with `width` or `height` options.
 
-    *Mehdi Lahmam*
-
-*   Partial template name does no more have to be a valid Ruby identifier.
-
-    There used to be a naming rule that the partial name should start with
-    underscore, and should be followed by any combination of letters, numbers
-    and underscores.
-    But now we can give our partials any name starting with underscore, such as
-    _🍔.html.erb.
-
-    *Akira Matsuda*
-
-*   Change the default template handler from `ERB` to `Raw`.
-
-    Files without a template handler in their extension will be rendered using the raw
-    handler instead of ERB.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `AbstractController::Base::parent_prefixes`.
-
-    *Rafael Mendonça França*
-
-*   Default translations that have a lower precedence than a html safe default,
-    but are not themselves safe, should not be marked as html_safe.
-
-    *Justin Coyne*
-
-*   Make possible to use blocks with short version of `render "partial"` helper.
-
-    *Nikolay Shebanov*
-
-*   Add a `hidden_field` on the `file_field` to avoid raise a error when the only
-    input on the form is the `file_field`.
-
-    *Mauro George*
-
-*   Add an explicit error message, in `ActionView::PartialRenderer` for partial
-    `rendering`, when the value of option `as` has invalid characters.
-
-    *Angelo Capilleri*
-
-*   Allow entries without a link tag in AtomFeedHelper.
-
-    *Daniel Gomez de Souza*
-
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionview/CHANGELOG.md) for previous changes.

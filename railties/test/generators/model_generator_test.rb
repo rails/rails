@@ -1,6 +1,8 @@
-require 'generators/generators_test_helper'
-require 'rails/generators/rails/model/model_generator'
-require 'active_support/core_ext/string/strip'
+# frozen_string_literal: true
+
+require "generators/generators_test_helper"
+require "rails/generators/rails/model/model_generator"
+require "active_support/core_ext/string/strip"
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -26,7 +28,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_invokes_default_orm
     run_generator
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
   end
 
   def test_model_with_parent_option
@@ -37,7 +39,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_plural_names_are_singularized
     content = run_generator ["accounts".freeze]
-    assert_file "app/models/account.rb", /class Account < ActiveRecord::Base/
+    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
     assert_file "test/models/account_test.rb", /class AccountTest/
     assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)
   end
@@ -52,17 +54,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/admin.rb", /module Admin/
     assert_file "app/models/admin.rb", /def self\.table_name_prefix/
     assert_file "app/models/admin.rb", /'admin_'/
-    assert_file "app/models/admin/account.rb", /class Admin::Account < ActiveRecord::Base/
+    assert_file "app/models/admin/account.rb", /class Admin::Account < ApplicationRecord/
   end
 
   def test_migration
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
   end
 
   def test_migration_with_namespace
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_images", /class CreateGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_images"
   end
 
@@ -70,7 +72,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["Admin::Gallery::Image"]
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_images", /class CreateAdminGalleryImages < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_images", /create_table :admin_gallery_images/
   end
 
@@ -80,7 +82,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_migration "db/migrate/create_images"
     assert_no_migration "db/migrate/create_gallery_images"
     assert_no_migration "db/migrate/create_admin_gallery_images"
-    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_admin_gallery_image", /class CreateAdminGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_migration "db/migrate/create_admin_gallery_image", /create_table :admin_gallery_image/
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -89,7 +91,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_with_namespaces_in_model_name_without_plurization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator ["Gallery::Image"]
-    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_gallery_image", /class CreateGalleryImage < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_gallery_images"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -98,7 +100,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_pluralization
     ActiveRecord::Base.pluralize_table_names = false
     run_generator
-    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration/
+    assert_migration "db/migrate/create_account", /class CreateAccount < ActiveRecord::Migration\[[0-9.]+\]/
     assert_no_migration "db/migrate/create_accounts"
   ensure
     ActiveRecord::Base.pluralize_table_names = true
@@ -193,12 +195,23 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_without_timestamps
     ActiveRecord::Base.timestamped_migrations = false
     run_generator ["account"]
-    assert_file  "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration/
+    assert_file "db/migrate/001_create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
 
     run_generator ["project"]
-    assert_file  "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration/
+    assert_file "db/migrate/002_create_projects.rb", /class CreateProjects < ActiveRecord::Migration\[[0-9.]+\]/
   ensure
     ActiveRecord::Base.timestamped_migrations = true
+  end
+
+  def test_migration_with_configured_path
+    old_paths = Rails.application.config.paths["db/migrate"]
+    Rails.application.config.paths.add "db/migrate", with: "db2/migrate"
+
+    run_generator
+
+    assert_migration "db2/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
   end
 
   def test_model_with_references_attribute_generates_belongs_to_associations
@@ -223,7 +236,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+    assert_migration "db/migrate/create_accounts.rb", /t\.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -231,7 +244,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/t.timestamps/, up)
+        assert_no_match(/t\.timestamps/, up)
       end
     end
   end
@@ -239,24 +252,24 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_is_skipped_with_skip_option
     run_generator
     output = run_generator ["Account", "--skip"]
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_ignored_as_identical_with_skip_option
     run_generator ["Account"]
     output = run_generator ["Account", "--skip"]
-    assert_match %r{identical\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{identical\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
     output = run_generator ["Account"], behavior: :skip
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
     run_generator
-    error = capture(:stderr){ run_generator ["Account"], behavior: :revoke }
+    error = capture(:stderr) { run_generator ["Account"], behavior: :revoke }
     assert_no_match(/Another migration is already named create_accounts/, error)
   end
 
@@ -281,31 +294,31 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/fixtures/accounts.yml", /name: MyString/, /age: 1/
     assert_generated_fixture("test/fixtures/accounts.yml",
-                             {"one"=>{"name"=>"MyString", "age"=>1}, "two"=>{"name"=>"MyString", "age"=>1}})
+                             "one" => { "name" => "MyString", "age" => 1 }, "two" => { "name" => "MyString", "age" => 1 })
   end
 
   def test_fixtures_use_the_references_ids
     run_generator ["LineItem", "product:references", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "cart"=>nil}, "two"=>{"product"=>nil, "cart"=>nil}})
+                             "one" => { "product" => "one", "cart" => "one" }, "two" => { "product" => "two", "cart" => "two" })
   end
 
   def test_fixtures_use_the_references_ids_and_type
     run_generator ["LineItem", "product:references{polymorphic}", "cart:belongs_to"]
 
-    assert_file "test/fixtures/line_items.yml", /product: \n  product_type: Product\n  cart: /
+    assert_file "test/fixtures/line_items.yml", /product: one\n  product_type: Product\n  cart: one/
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil},
-                              "two"=>{"product"=>nil, "product_type"=>"Product", "cart"=>nil}})
+                             "one" => { "product" => "one", "product_type" => "Product", "cart" => "one" },
+                              "two" => { "product" => "two", "product_type" => "Product", "cart" => "two" })
   end
 
   def test_fixtures_respect_reserved_yml_keywords
     run_generator ["LineItem", "no:integer", "Off:boolean", "ON:boolean"]
 
     assert_generated_fixture("test/fixtures/line_items.yml",
-                             {"one"=>{"no"=>1, "Off"=>false, "ON"=>false}, "two"=>{"no"=>1, "Off"=>false, "ON"=>false}})
+                             "one" => { "no" => 1, "Off" => false, "ON" => false }, "two" => { "no" => 1, "Off" => false, "ON" => false })
   end
 
   def test_fixture_is_skipped
@@ -319,29 +332,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/fixtures/accounts.yml"
   end
 
+  def test_fixture_without_pluralization
+    original_pluralize_table_name = ActiveRecord::Base.pluralize_table_names
+    ActiveRecord::Base.pluralize_table_names = false
+    run_generator
+    assert_generated_fixture("test/fixtures/account.yml",
+                             "one" => { "name" => "MyString", "age" => 1 }, "two" => { "name" => "MyString", "age" => 1 })
+  ensure
+    ActiveRecord::Base.pluralize_table_names = original_pluralize_table_name
+  end
+
   def test_check_class_collision
-    content = capture(:stderr){ run_generator ["object"] }
+    content = capture(:stderr) { run_generator ["object"] }
     assert_match(/The name 'Object' is either already used in your application or reserved/, content)
-  end
-
-  def test_index_is_added_for_belongs_to_association
-    run_generator ["account", "supplier:belongs_to"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
-  end
-
-  def test_index_is_added_for_references_association
-    run_generator ["account", "supplier:references"]
-
-    assert_migration "db/migrate/create_accounts.rb" do |m|
-      assert_method :change, m do |up|
-        assert_match(/index: true/, up)
-      end
-    end
   end
 
   def test_index_is_skipped_for_belongs_to_association
@@ -364,11 +367,20 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_add_uuid_to_create_table_migration
+    run_generator ["account", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/create_accounts.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :accounts, id: :uuid/, change)
+      end
+    end
+  end
+
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, required: true
     end
     FILE
@@ -379,7 +391,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
     FILE
@@ -390,7 +402,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "supplier:references{polymorphic.required}"]
 
     expected_file = <<-FILE.strip_heredoc
-    class Account < ActiveRecord::Base
+    class Account < ApplicationRecord
       belongs_to :supplier, polymorphic: true, required: true
     end
     FILE
@@ -441,7 +453,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_token_option_adds_has_secure_token
     run_generator ["user", "token:token", "auth_token:token"]
     expected_file = <<-FILE.strip_heredoc
-    class User < ActiveRecord::Base
+    class User < ApplicationRecord
       has_secure_token
       has_secure_token :auth_token
     end

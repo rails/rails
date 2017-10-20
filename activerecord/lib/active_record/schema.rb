@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Schema
+  # = Active Record \Schema
   #
   # Allows programmers to programmatically define a schema in a portable
   # DSL. This means you can define tables, indexes, etc. without using SQL
@@ -27,38 +29,42 @@ module ActiveRecord
   #
   # ActiveRecord::Schema is only supported by database adapters that also
   # support migrations, the two features being very similar.
-  class Schema < Migration
-
-    # Returns the migrations paths.
+  class Schema < Migration::Current
+    # Eval the given block. All methods available to the current connection
+    # adapter are available within the block, so you can easily use the
+    # database definition DSL to build up your schema (
+    # {create_table}[rdoc-ref:ConnectionAdapters::SchemaStatements#create_table],
+    # {add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index], etc.).
     #
-    #   ActiveRecord::Schema.new.migrations_paths
-    #   # => ["db/migrate"] # Rails migration path by default.
-    def migrations_paths
-      ActiveRecord::Migrator.migrations_paths
+    # The +info+ hash is optional, and if given is used to define metadata
+    # about the current schema (currently, only the schema's version):
+    #
+    #   ActiveRecord::Schema.define(version: 2038_01_19_000001) do
+    #     ...
+    #   end
+    def self.define(info = {}, &block)
+      new.define(info, &block)
     end
 
     def define(info, &block) # :nodoc:
       instance_eval(&block)
 
-      unless info[:version].blank?
-        initialize_schema_migrations_table
+      if info[:version].present?
+        ActiveRecord::SchemaMigration.create_table
         connection.assume_migrated_upto_version(info[:version], migrations_paths)
       end
+
+      ActiveRecord::InternalMetadata.create_table
+      ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
     end
 
-    # Eval the given block. All methods available to the current connection
-    # adapter are available within the block, so you can easily use the
-    # database definition DSL to build up your schema (+create_table+,
-    # +add_index+, etc.).
-    #
-    # The +info+ hash is optional, and if given is used to define metadata
-    # about the current schema (currently, only the schema's version):
-    #
-    #   ActiveRecord::Schema.define(version: 20380119000001) do
-    #     ...
-    #   end
-    def self.define(info={}, &block)
-      new.define(info, &block)
-    end
+    private
+      # Returns the migrations paths.
+      #
+      #   ActiveRecord::Schema.new.migrations_paths
+      #   # => ["db/migrate"] # Rails migration path by default.
+      def migrations_paths
+        ActiveRecord::Migrator.migrations_paths
+      end
   end
 end

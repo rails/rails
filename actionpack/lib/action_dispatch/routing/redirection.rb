@@ -1,9 +1,11 @@
-require 'action_dispatch/http/request'
-require 'active_support/core_ext/uri'
-require 'active_support/core_ext/array/extract_options'
-require 'rack/utils'
-require 'action_controller/metal/exceptions'
-require 'action_dispatch/routing/endpoint'
+# frozen_string_literal: true
+
+require_relative "../http/request"
+require "active_support/core_ext/uri"
+require "active_support/core_ext/array/extract_options"
+require "rack/utils"
+require "action_controller/metal/exceptions"
+require_relative "endpoint"
 
 module ActionDispatch
   module Routing
@@ -22,9 +24,8 @@ module ActionDispatch
       end
 
       def serve(req)
-        req.check_path_parameters!
         uri = URI.parse(path(req.path_parameters, req))
-        
+
         unless uri.host
           if relative_path?(uri.path)
             uri.path = "#{req.script_name}/#{uri.path}"
@@ -32,17 +33,19 @@ module ActionDispatch
             uri.path = req.script_name.empty? ? "/" : req.script_name
           end
         end
-          
+
         uri.scheme ||= req.scheme
         uri.host   ||= req.host
         uri.port   ||= req.port unless req.standard_port?
 
+        req.commit_flash
+
         body = %(<html><body>You are being <a href="#{ERB::Util.unwrapped_html_escape(uri.to_s)}">redirected</a>.</body></html>)
 
         headers = {
-          'Location' => uri.to_s,
-          'Content-Type' => 'text/html',
-          'Content-Length' => body.length.to_s
+          "Location" => uri.to_s,
+          "Content-Type" => "text/html",
+          "Content-Length" => body.length.to_s
         }
 
         [ status, headers, [body] ]
@@ -58,19 +61,19 @@ module ActionDispatch
 
       private
         def relative_path?(path)
-          path && !path.empty? && path[0] != '/'
+          path && !path.empty? && path[0] != "/"
         end
 
         def escape(params)
-          Hash[params.map{ |k,v| [k, Rack::Utils.escape(v)] }]
+          Hash[params.map { |k, v| [k, Rack::Utils.escape(v)] }]
         end
 
         def escape_fragment(params)
-          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_fragment(v)] }]
+          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_fragment(v)] }]
         end
 
         def escape_path(params)
-          Hash[params.map{ |k,v| [k, Journey::Router::Utils.escape_path(v)] }]
+          Hash[params.map { |k, v| [k, Journey::Router::Utils.escape_path(v)] }]
         end
     end
 
@@ -104,11 +107,11 @@ module ActionDispatch
 
       def path(params, request)
         url_options = {
-          :protocol => request.protocol,
-          :host     => request.host,
-          :port     => request.optional_port,
-          :path     => request.path,
-          :params   => request.query_parameters
+          protocol: request.protocol,
+          host: request.host,
+          port: request.optional_port,
+          path: request.path,
+          params: request.query_parameters
         }.merge! options
 
         if !params.empty? && url_options[:path].match(/%\{\w*\}/)
@@ -124,26 +127,28 @@ module ActionDispatch
             url_options[:script_name] = request.script_name
           end
         end
-        
+
         ActionDispatch::Http::URL.url_for url_options
       end
 
       def inspect
-        "redirect(#{status}, #{options.map{ |k,v| "#{k}: #{v}" }.join(', ')})"
+        "redirect(#{status}, #{options.map { |k, v| "#{k}: #{v}" }.join(', ')})"
       end
     end
 
     module Redirection
-
       # Redirect any path to another path:
       #
       #   get "/stories" => redirect("/posts")
+      #
+      # This will redirect the user, while ignoring certain parts of the request, including query string, etc.
+      # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, etc all redirect to <tt>/posts</tt>.
       #
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
       #
-      # Note that if you return a path without a leading slash then the url is prefixed with the
+      # Note that if you return a path without a leading slash then the URL is prefixed with the
       # current SCRIPT_NAME environment variable. This is typically '/' but may be different in
       # a mounted engine or where the application is deployed to a subdirectory of a website.
       #
@@ -162,11 +167,16 @@ module ActionDispatch
       # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
       # the block to +get+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
-      # The options version of redirect allows you to supply only the parts of the url which need
+      # The options version of redirect allows you to supply only the parts of the URL which need
       # to change, it also supports interpolation of the path similar to the first example.
       #
       #   get 'stores/:name',       to: redirect(subdomain: 'stores', path: '/%{name}')
       #   get 'stores/:name(*all)', to: redirect(subdomain: 'stores', path: '/%{name}%{all}')
+      #   get '/stories', to: redirect(path: '/posts')
+      #
+      # This will redirect the user, while changing only the specified parts of the request,
+      # for example the +path+ option in the last example.
+      # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, redirect to <tt>/posts</tt> and <tt>/posts?foo=bar</tt> respectively.
       #
       # Finally, an object which responds to call can be supplied to redirect, allowing you to reuse
       # common redirect routes. The call method must accept two arguments, params and request, and return

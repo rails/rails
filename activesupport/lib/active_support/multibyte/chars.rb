@@ -1,8 +1,10 @@
-# encoding: utf-8
-require 'active_support/json'
-require 'active_support/core_ext/string/access'
-require 'active_support/core_ext/string/behavior'
-require 'active_support/core_ext/module/delegation'
+# frozen_string_literal: true
+
+require_relative "../json"
+require_relative "../core_ext/string/access"
+require_relative "../core_ext/string/behavior"
+require_relative "../core_ext/module/delegation"
+require_relative "../core_ext/regexp"
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -16,7 +18,8 @@ module ActiveSupport #:nodoc:
     # through the +mb_chars+ method. Methods which would normally return a
     # String object now return a Chars object so methods can be chained.
     #
-    #   'The Perfect String  '.mb_chars.downcase.strip.normalize # => "the perfect string"
+    #   'The Perfect String  '.mb_chars.downcase.strip.normalize
+    #   # => #<ActiveSupport::Multibyte::Chars:0x007fdc434ccc10 @wrapped_string="the perfect string">
     #
     # Chars objects are perfectly interchangeable with String objects as long as
     # no explicit class checks are made. If certain methods do explicitly check
@@ -46,7 +49,7 @@ module ActiveSupport #:nodoc:
       alias to_s wrapped_string
       alias to_str wrapped_string
 
-      delegate :<=>, :=~, :acts_like_string?, :to => :wrapped_string
+      delegate :<=>, :=~, :acts_like_string?, to: :wrapped_string
 
       # Creates a new Chars instance by wrapping _string_.
       def initialize(string)
@@ -57,7 +60,7 @@ module ActiveSupport #:nodoc:
       # Forward all undefined methods to the wrapped string.
       def method_missing(method, *args, &block)
         result = @wrapped_string.__send__(method, *args, &block)
-        if method.to_s =~ /!$/
+        if /!$/.match?(method)
           self if result
         else
           result.kind_of?(String) ? chars(result) : result
@@ -86,17 +89,27 @@ module ActiveSupport #:nodoc:
         @wrapped_string.split(*args).map { |i| self.class.new(i) }
       end
 
-      # Works like like <tt>String#slice!</tt>, but returns an instance of
-      # Chars, or nil if the string was not modified.
+      # Works like <tt>String#slice!</tt>, but returns an instance of
+      # Chars, or +nil+ if the string was not modified. The string will not be
+      # modified if the range given is out of bounds
+      #
+      #   string = 'Welcome'
+      #   string.mb_chars.slice!(3)    # => #<ActiveSupport::Multibyte::Chars:0x000000038109b8 @wrapped_string="c">
+      #   string # => 'Welome'
+      #   string.mb_chars.slice!(0..3) # => #<ActiveSupport::Multibyte::Chars:0x00000002eb80a0 @wrapped_string="Welo">
+      #   string # => 'me'
       def slice!(*args)
-        chars(@wrapped_string.slice!(*args))
+        string_sliced = @wrapped_string.slice!(*args)
+        if string_sliced
+          chars(string_sliced)
+        end
       end
 
       # Reverses all characters in the string.
       #
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack('U*'))
+        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack("U*"))
       end
 
       # Limits the byte size of the string to a number of bytes without breaking
@@ -124,7 +137,7 @@ module ActiveSupport #:nodoc:
 
       # Converts characters in the string to the opposite case.
       #
-      #    'El Cañón".mb_chars.swapcase.to_s # => "eL cAÑÓN"
+      #    'El Cañón'.mb_chars.swapcase.to_s # => "eL cAÑÓN"
       def swapcase
         chars Unicode.swapcase(@wrapped_string)
       end
@@ -133,15 +146,15 @@ module ActiveSupport #:nodoc:
       #
       #  'über'.mb_chars.capitalize.to_s # => "Über"
       def capitalize
-        (slice(0) || chars('')).upcase + (slice(1..-1) || chars('')).downcase
+        (slice(0) || chars("")).upcase + (slice(1..-1) || chars("")).downcase
       end
 
       # Capitalizes the first letter of every word, when possible.
       #
-      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
-      #   "日本語".mb_chars.titleize                 # => "日本語"
+      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize.to_s    # => "Él Que Se Enteró"
+      #   "日本語".mb_chars.titleize.to_s               # => "日本語"
       def titleize
-        chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1)})
+        chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1) })
       end
       alias_method :titlecase, :titleize
 
@@ -161,7 +174,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                         # => 2
       #   'é'.mb_chars.decompose.to_s.length # => 3
       def decompose
-        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack('U*'))
+        chars(Unicode.decompose(:canonical, @wrapped_string.codepoints.to_a).pack("U*"))
       end
 
       # Performs composition on all the characters.
@@ -169,7 +182,7 @@ module ActiveSupport #:nodoc:
       #   'é'.length                       # => 3
       #   'é'.mb_chars.compose.to_s.length # => 2
       def compose
-        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack('U*'))
+        chars(Unicode.compose(@wrapped_string.codepoints.to_a).pack("U*"))
       end
 
       # Returns the number of grapheme clusters in the string.
@@ -200,21 +213,21 @@ module ActiveSupport #:nodoc:
         end
       end
 
-      protected
+      private
 
-        def translate_offset(byte_offset) #:nodoc:
+        def translate_offset(byte_offset)
           return nil if byte_offset.nil?
-          return 0   if @wrapped_string == ''
+          return 0   if @wrapped_string == ""
 
           begin
-            @wrapped_string.byteslice(0...byte_offset).unpack('U*').length
+            @wrapped_string.byteslice(0...byte_offset).unpack("U*").length
           rescue ArgumentError
             byte_offset -= 1
             retry
           end
         end
 
-        def chars(string) #:nodoc:
+        def chars(string)
           self.class.new(string)
         end
     end

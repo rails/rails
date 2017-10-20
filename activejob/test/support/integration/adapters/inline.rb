@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module InlineJobsManager
   def setup
     ActiveJob::Base.queue_adapter = :inline
@@ -12,4 +14,3 @@ module InlineJobsManager
   def stop_workers
   end
 end
-

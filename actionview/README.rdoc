@@ -9,7 +9,7 @@ used to inline short Ruby snippets inside HTML), and XML Builder.
 
 The latest version of Action View can be installed with RubyGems:
 
-  % [sudo] gem install actionview
+  $ gem install actionview
 
 Source code can be downloaded as part of the Rails project on GitHub
 
@@ -20,7 +20,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 Action View is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 == Support
@@ -36,4 +36,3 @@ Bug reports can be filed for the Ruby on Rails project here:
 Feature requests should be discussed on the rails-core mailing list here:
 
 * https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
-

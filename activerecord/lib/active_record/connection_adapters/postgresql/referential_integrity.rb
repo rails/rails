@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -14,7 +16,7 @@ module ActiveRecord
               transaction(requires_new: true) do
                 execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} DISABLE TRIGGER ALL" }.join(";"))
               end
-            rescue => e
+            rescue ActiveRecord::ActiveRecordError => e
               original_exception = e
             end
 
@@ -34,10 +36,10 @@ Rails needs superuser privileges to disable referential integrity.
             end
 
             begin
-              transaction(require_new: true) do
+              transaction(requires_new: true) do
                 execute(tables.collect { |name| "ALTER TABLE #{quote_table_name(name)} ENABLE TRIGGER ALL" }.join(";"))
               end
-            rescue
+            rescue ActiveRecord::ActiveRecordError
             end
           else
             yield

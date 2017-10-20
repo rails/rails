@@ -1,1 +1,3 @@
-require_dependency 'requires_nonexistent0'
+# frozen_string_literal: true
+
+require_dependency "requires_nonexistent0"

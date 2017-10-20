@@ -1,43 +1,63 @@
-require "active_support/notifications"
+# frozen_string_literal: true
+
+require_relative "../notifications"
 
 module ActiveSupport
+  # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
+  # You would set <tt>:raise</tt>, as a behavior to raise errors and proactively report exceptions from deprecations.
   class DeprecationException < StandardError
   end
 
   class Deprecation
     # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      raise: ->(message, callstack) {
+      raise: ->(message, callstack, deprecation_horizon, gem_name) {
         e = DeprecationException.new(message)
-        e.set_backtrace(callstack)
+        e.set_backtrace(callstack.map(&:to_s))
         raise e
       },
 
-      stderr: ->(message, callstack) {
+      stderr: ->(message, callstack, deprecation_horizon, gem_name) {
         $stderr.puts(message)
         $stderr.puts callstack.join("\n  ") if debug
       },
 
-      log: ->(message, callstack) {
+      log: ->(message, callstack, deprecation_horizon, gem_name) {
         logger =
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require 'active_support/logger'
+              require_relative "../logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message
         logger.debug callstack.join("\n  ") if debug
       },
 
-      notify: ->(message, callstack) {
-        ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                :message => message, :callstack => callstack)
+      notify: ->(message, callstack, deprecation_horizon, gem_name) {
+        notification_name = "deprecation.#{gem_name.underscore.tr('/', '_')}"
+        ActiveSupport::Notifications.instrument(notification_name,
+                                                message: message,
+                                                callstack: callstack,
+                                                gem_name: gem_name,
+                                                deprecation_horizon: deprecation_horizon)
       },
 
-      silence: ->(message, callstack) {},
+      silence: ->(message, callstack, deprecation_horizon, gem_name) {},
     }
 
+    # Behavior module allows to determine how to display deprecation messages.
+    # You can create a custom behavior or set any from the +DEFAULT_BEHAVIORS+
+    # constant. Available behaviors are:
+    #
+    # [+raise+]   Raise <tt>ActiveSupport::DeprecationException</tt>.
+    # [+stderr+]  Log all deprecation warnings to +$stderr+.
+    # [+log+]     Log all deprecation warnings to +Rails.logger+.
+    # [+notify+]  Use +ActiveSupport::Notifications+ to notify +deprecation.rails+.
+    # [+silence+] Do nothing.
+    #
+    # Setting behaviors only affects deprecations that happen after boot time.
+    # For more information you can read the documentation of the +behavior=+ method.
     module Behavior
       # Whether to print a backtrace along with the warning.
       attr_accessor :debug
@@ -69,8 +89,17 @@ module ActiveSupport
       #     # custom stuff
       #   }
       def behavior=(behavior)
-        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
+        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
       end
+
+      private
+        def arity_coerce(behavior)
+          if behavior.arity == 4 || behavior.arity == -1
+            behavior
+          else
+            -> message, callstack, _, _ { behavior.call(message, callstack) }
+          end
+        end
     end
   end
 end

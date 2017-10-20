@@ -1,4 +1,6 @@
-require 'active_support/core_ext/hash/deep_merge'
+# frozen_string_literal: true
+
+require_relative "core_ext/hash/deep_merge"
 
 module ActiveSupport
   class OptionMerger #:nodoc:

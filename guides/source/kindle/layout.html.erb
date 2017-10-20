@@ -14,12 +14,12 @@
 
   <% if content_for? :header_section %>
     <%= yield :header_section %>
-    <div class="pagebreak">
+    <div class="pagebreak"></div>
   <% end %>
 
   <% if content_for? :index_section %>
     <%= yield :index_section %>
-    <div class="pagebreak">
+    <div class="pagebreak"></div>
   <% end %>
 
   <%= yield.html_safe %>

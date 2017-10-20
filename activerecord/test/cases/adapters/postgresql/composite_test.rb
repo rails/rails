@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require 'support/connection_helper'
+require "support/connection_helper"
 
 module PostgresqlCompositeBehavior
   include ConnectionHelper
@@ -20,7 +22,7 @@ module PostgresqlCompositeBehavior
              street VARCHAR(90)
          );
         SQL
-      @connection.create_table('postgresql_composites') do |t|
+      @connection.create_table("postgresql_composites") do |t|
         t.column :address, :full_address
       end
     end
@@ -29,8 +31,8 @@ module PostgresqlCompositeBehavior
   def teardown
     super
 
-    @connection.drop_table 'postgresql_composites', if_exists: true
-    @connection.execute 'DROP TYPE IF EXISTS full_address'
+    @connection.drop_table "postgresql_composites", if_exists: true
+    @connection.execute "DROP TYPE IF EXISTS full_address"
     reset_connection
     PostgresqlComposite.reset_column_information
   end
@@ -40,7 +42,7 @@ end
 #   "unknown OID 5653508: failed to recognize type of 'address'. It will be treated as String."
 # To take full advantage of composite types, we suggest you register your own +OID::Type+.
 # See PostgresqlCompositeWithCustomOIDTest
-class PostgresqlCompositeTest < ActiveRecord::TestCase
+class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlCompositeBehavior
 
   def test_column
@@ -69,15 +71,15 @@ class PostgresqlCompositeTest < ActiveRecord::TestCase
   end
 
   private
-  def ensure_warning_is_issued
-    warning = capture(:stderr) do
-      PostgresqlComposite.columns_hash
+    def ensure_warning_is_issued
+      warning = capture(:stderr) do
+        PostgresqlComposite.columns_hash
+      end
+      assert_match(/unknown OID \d+: failed to recognize type of 'address'\. It will be treated as String\./, warning)
     end
-    assert_match(/unknown OID \d+: failed to recognize type of 'address'\. It will be treated as String\./, warning)
-  end
 end
 
-class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
+class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   include PostgresqlCompositeBehavior
 
   class FullAddressType < ActiveRecord::Type::Value
@@ -104,7 +106,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
   def setup
     super
 
-    @connection.type_map.register_type "full_address", FullAddressType.new
+    @connection.send(:type_map).register_type "full_address", FullAddressType.new
   end
 
   def test_column
@@ -126,7 +128,7 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::TestCase
     composite.address = FullAddress.new("Paris", "Rue Basse")
     composite.save!
 
-    assert_equal 'Paris', composite.reload.address.city
-    assert_equal 'Rue Basse', composite.reload.address.street
+    assert_equal "Paris", composite.reload.address.city
+    assert_equal "Rue Basse", composite.reload.address.street
   end
 end

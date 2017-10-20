@@ -3,9 +3,31 @@ awdr:
   id: 1
   name: "Agile Web Development with Rails"
   format: "paperback"
+  status: :published
+  read_status: :read
+  language: :english
+  author_visibility: :visible
+  illustrator_visibility: :visible
+  font_size: :medium
+  difficulty: :medium
 
 rfr:
   author_id: 1
   id: 2
   name: "Ruby for Rails"
   format: "ebook"
+  status: "proposed"
+  read_status: "reading"
+
+ddd:
+  author_id: 1
+  id: 3
+  name: "Domain-Driven Design"
+  format: "hardcover"
+  status: 2
+  read_status: "forgotten"
+
+tlg:
+  author_id: 1
+  id: 4
+  name: "Thoughtleadering"

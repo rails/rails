@@ -1,0 +1,14 @@
+engines:
+  rubocop:
+    enabled: true
+    channel: rubocop-0-50
+
+ratings:
+  paths:
+  - "**.rb"
+
+exclude_paths:
+  - ci/
+  - guides/
+  - tasks/
+  - tools/

@@ -1,40 +1,38 @@
-require 'abstract_unit'
-require 'active_support/core_ext/object/with_options'
-require 'active_support/core_ext/object/json'
-require 'rails'
-require 'rails/application'
+# frozen_string_literal: true
 
-ROUTING = ActionDispatch::Routing
+require "abstract_unit"
+require "active_support/core_ext/object/with_options"
+require "active_support/core_ext/object/json"
 
 class PathGenerationTest < ActiveSupport::TestCase
   attr_reader :app
 
-  class TestSet < ROUTING::RouteSet
+  class TestSet < ActionDispatch::Routing::RouteSet
     def initialize(block)
       @block = block
       super()
     end
 
-    class Dispatcher < ROUTING::RouteSet::Dispatcher
-      def initialize(defaults, set, block)
-        super(defaults)
+    class Request < DelegateClass(ActionDispatch::Request)
+      def initialize(target, url_helpers, block)
+        super(target)
+        @url_helpers = url_helpers
         @block = block
-        @set = set
       end
 
-      def controller_reference(controller_param)
+      def controller_class
+        url_helpers = @url_helpers
         block = @block
-        set = @set
         Class.new(ActionController::Base) {
-          include set.url_helpers
+          include url_helpers
           define_method(:process) { |name| block.call(self) }
           def to_a; [200, {}, []]; end
         }
       end
     end
 
-    def dispatcher defaults
-      TestSet::Dispatcher.new defaults, self, @block
+    def make_request(env)
+      Request.new(super, url_helpers, @block)
     end
   end
 
@@ -42,11 +40,11 @@ class PathGenerationTest < ActiveSupport::TestCase
     host = uri_or_host.host unless path
     path ||= uri_or_host.path
 
-    params = {'PATH_INFO'      => path,
-              'REQUEST_METHOD' => method,
-              'HTTP_HOST'      => host }
+    params = { "PATH_INFO" => path,
+              "REQUEST_METHOD" => method,
+              "HTTP_HOST"      => host }
 
-    params['SCRIPT_NAME'] = script_name if script_name
+    params["SCRIPT_NAME"] = script_name if script_name
 
     status, headers, body = app.call(params)
     new_body = []
@@ -60,12 +58,14 @@ class PathGenerationTest < ActiveSupport::TestCase
     Rails.logger    = Logger.new nil
 
     app = Class.new(Rails::Application) {
+      def self.name; "ScriptNameTestApp"; end
+
       attr_accessor :controller
+
       def initialize
         super
         app = self
         @routes = TestSet.new ->(c) { app.controller = c }
-        secrets.secret_key_base = "foo"
         secrets.secret_token = "foo"
       end
       def app; routes; end
@@ -76,11 +76,11 @@ class PathGenerationTest < ActiveSupport::TestCase
 
     url = URI("http://example.org/blogs")
 
-    send_request(url, 'GET', nil, '/FOO')
-    assert_equal '/FOO/blogs', app.instance.controller.blogs_path
+    send_request(url, "GET", nil, "/FOO")
+    assert_equal "/FOO/blogs", app.instance.controller.blogs_path
 
-    send_request(url, 'GET', nil)
-    assert_equal '/blogs', app.instance.controller.blogs_path
+    send_request(url, "GET", nil)
+    assert_equal "/blogs", app.instance.controller.blogs_path
   ensure
     Rails.logger = original_logger
   end

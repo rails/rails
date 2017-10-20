@@ -32,12 +32,12 @@
       </navPoint>
       <navPoint class="article" id="credits" playOrder="3">
         <navLabel><text>Credits</text></navLabel>
-        <content src="credits.html">
+        <content src="credits.html"/>
       </navPoint>
       <navPoint class="article" id="copyright" playOrder="4">
         <navLabel><text>Copyright &amp; License</text></navLabel>
-        <content src="copyright.html">
-      </navPoint> 
+        <content src="copyright.html"/>
+      </navPoint>
     </navPoint>
 
     <% play_order = 4 %>
@@ -47,7 +47,7 @@
           <text><%= section['name'] %></text>
         </navLabel>
         <content src="<%=section['documents'].first['url'] %>"/>
-        
+
         <% section['documents'].each_with_index do |document, document_no| %>
           <navPoint class="article" id="_<%=section_no+1%>.<%=document_no+1%>" playOrder="<%=play_order +=1 %>">
             <navLabel>

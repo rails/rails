@@ -1,1 +1,3 @@
-require 'active_support/core_ext/object/to_query'
+# frozen_string_literal: true
+
+require_relative "to_query"

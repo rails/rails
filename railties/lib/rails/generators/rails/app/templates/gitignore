@@ -15,5 +15,21 @@
 <% end -%>
 # Ignore all logfiles and tempfiles.
 /log/*
+/tmp/*
+<% if keeps? -%>
 !/log/.keep
-/tmp
+!/tmp/.keep
+<% end -%>
+
+# Ignore uploaded files in development
+/storage/*
+
+<% unless options.skip_yarn? -%>
+/node_modules
+/yarn-error.log
+<% end -%>
+
+<% unless options.api? -%>
+/public/assets
+<% end -%>
+.byebug_history

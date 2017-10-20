@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require 'active_support/concurrency/latch'
+require "concurrent/atomic/count_down_latch"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -100,7 +102,7 @@ module ActiveRecord
         t = Thread.new { @pool.checkout }
 
         # make sure our thread is in the timeout section
-        Thread.pass until t.status == "sleep"
+        Thread.pass until @pool.num_waiting_in_queue == 1
 
         connection = cs.first
         connection.close
@@ -112,7 +114,7 @@ module ActiveRecord
         t = Thread.new { @pool.checkout }
 
         # make sure our thread is in the timeout section
-        Thread.pass until t.status == "sleep"
+        Thread.pass until @pool.num_waiting_in_queue == 1
 
         connection = cs.first
         @pool.remove connection
@@ -133,15 +135,15 @@ module ActiveRecord
       end
 
       def test_reap_inactive
-        ready = ActiveSupport::Concurrency::Latch.new
+        ready = Concurrent::CountDownLatch.new
         @pool.checkout
         child = Thread.new do
           @pool.checkout
           @pool.checkout
-          ready.release
+          ready.count_down
           Thread.stop
         end
-        ready.await
+        ready.wait
 
         assert_equal 3, active_connections(@pool).size
 
@@ -151,7 +153,7 @@ module ActiveRecord
 
         assert_equal 1, active_connections(@pool).size
       ensure
-        @pool.connections.each(&:close)
+        @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
       def test_remove_connection
@@ -184,14 +186,14 @@ module ActiveRecord
 
       def test_checkout_behaviour
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-        connection = pool.connection
-        assert_not_nil connection
+        main_connection = pool.connection
+        assert_not_nil main_connection
         threads = []
         4.times do |i|
           threads << Thread.new(i) do
-            connection = pool.connection
-            assert_not_nil connection
-            connection.close
+            thread_connection = pool.connection
+            assert_not_nil thread_connection
+            thread_connection.close
           end
         end
 
@@ -204,13 +206,13 @@ module ActiveRecord
       end
 
       # The connection pool is "fair" if threads waiting for
-      # connections receive them the order in which they began
+      # connections receive them in the order in which they began
       # waiting.  This ensures that we don't timeout one HTTP request
       # even while well under capacity in a multi-threaded environment
       # such as a Java servlet container.
       #
       # We don't need strict fairness: if two connections become
-      # available at the same time, it's fine of two threads that were
+      # available at the same time, it's fine if two threads that were
       # waiting acquire the connections out of order.
       #
       # Thus this test prepares waiting threads and then trickles in
@@ -234,7 +236,7 @@ module ActiveRecord
               mutex.synchronize { errors << e }
             end
           }
-          Thread.pass until t.status == "sleep"
+          Thread.pass until @pool.num_waiting_in_queue == i
           t
         end
 
@@ -271,7 +273,7 @@ module ActiveRecord
               mutex.synchronize { errors << e }
             end
           }
-          Thread.pass until t.status == "sleep"
+          Thread.pass until @pool.num_waiting_in_queue == i
           t
         end
 
@@ -307,14 +309,17 @@ module ActiveRecord
         end
       end
 
-      def test_automatic_reconnect=
+      def test_automatic_reconnect_restores_after_disconnect
         pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         assert pool.automatic_reconnect
         assert pool.connection
 
         pool.disconnect!
         assert pool.connection
+      end
 
+      def test_automatic_reconnect_can_be_disabled
+        pool = ConnectionPool.new ActiveRecord::Base.connection_pool.spec
         pool.disconnect!
         pool.automatic_reconnect = false
 
@@ -335,12 +340,230 @@ module ActiveRecord
       # is called with an anonymous class
       def test_anonymous_class_exception
         anonymous = Class.new(ActiveRecord::Base)
-        handler = ActiveRecord::Base.connection_handler
 
-        assert_raises(RuntimeError) {
-          handler.establish_connection anonymous, nil
-        }
+        assert_raises(RuntimeError) do
+          anonymous.establish_connection
+        end
       end
+
+      class ConnectionTestModel < ActiveRecord::Base
+      end
+
+      def test_connection_notification_is_called
+        payloads = []
+        subscription = ActiveSupport::Notifications.subscribe("!connection.active_record") do |name, started, finished, unique_id, payload|
+          payloads << payload
+        end
+        ConnectionTestModel.establish_connection :arunit
+
+        assert_equal [:config, :connection_id, :spec_name], payloads[0].keys.sort
+        assert_equal "ActiveRecord::ConnectionAdapters::ConnectionPoolTest::ConnectionTestModel", payloads[0][:spec_name]
+      ensure
+        ActiveSupport::Notifications.unsubscribe(subscription) if subscription
+      end
+
+      def test_pool_sets_connection_schema_cache
+        connection = pool.checkout
+        schema_cache = SchemaCache.new connection
+        schema_cache.add(:posts)
+        pool.schema_cache = schema_cache
+
+        pool.with_connection do |conn|
+          assert_not_same pool.schema_cache, conn.schema_cache
+          assert_equal pool.schema_cache.size, conn.schema_cache.size
+          assert_same pool.schema_cache.columns(:posts), conn.schema_cache.columns(:posts)
+        end
+
+        pool.checkin connection
+      end
+
+      def test_concurrent_connection_establishment
+        assert_operator @pool.connections.size, :<=, 1
+
+        all_threads_in_new_connection = Concurrent::CountDownLatch.new(@pool.size - @pool.connections.size)
+        all_go                        = Concurrent::CountDownLatch.new
+
+        @pool.singleton_class.class_eval do
+          define_method(:new_connection) do
+            all_threads_in_new_connection.count_down
+            all_go.wait
+            super()
+          end
+        end
+
+        connecting_threads = []
+        @pool.size.times do
+          connecting_threads << Thread.new { @pool.checkout }
+        end
+
+        begin
+          Timeout.timeout(5) do
+            # the kernel of the whole test is here, everything else is just scaffolding,
+            # this latch will not be released unless conn. pool allows for concurrent
+            # connection creation
+            all_threads_in_new_connection.wait
+          end
+        rescue Timeout::Error
+          flunk "pool unable to establish connections concurrently or implementation has " \
+                "changed, this test then needs to patch a different :new_connection method"
+        ensure
+          # clean up the threads
+          all_go.count_down
+          connecting_threads.map(&:join)
+        end
+      end
+
+      def test_non_bang_disconnect_and_clear_reloadable_connections_throw_exception_if_threads_dont_return_their_conns
+        @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
+        [:disconnect, :clear_reloadable_connections].each do |group_action_method|
+          @pool.with_connection do |connection|
+            assert_raises(ExclusiveConnectionTimeoutError) do
+              Thread.new { @pool.send(group_action_method) }.join
+            end
+          end
+        end
+      end
+
+      def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns
+        [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
+          begin
+            thread = timed_join_result = nil
+            @pool.with_connection do |connection|
+              thread = Thread.new { @pool.send(group_action_method) }
+
+              # give the other `thread` some time to get stuck in `group_action_method`
+              timed_join_result = thread.join(0.3)
+              # thread.join # => `nil` means the other thread hasn't finished running and is still waiting for us to
+              # release our connection
+              assert_nil timed_join_result
+
+              # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
+              assert @pool.active_connection?
+            end
+          ensure
+            thread.join if thread && !timed_join_result # clean up the other thread
+          end
+        end
+      end
+
+      def test_bang_versions_of_disconnect_and_clear_reloadable_connections_if_unable_to_acquire_all_connections_proceed_anyway
+        @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
+        [:disconnect!, :clear_reloadable_connections!].each do |group_action_method|
+          @pool.with_connection do |connection|
+            Thread.new { @pool.send(group_action_method) }.join
+            # assert connection has been forcefully taken away from us
+            assert_not @pool.active_connection?
+
+            # make a new connection for with_connection to clean up
+            @pool.connection
+          end
+        end
+      end
+
+      def test_disconnect_and_clear_reloadable_connections_are_able_to_preempt_other_waiting_threads
+        with_single_connection_pool do |pool|
+          [:disconnect, :disconnect!, :clear_reloadable_connections, :clear_reloadable_connections!].each do |group_action_method|
+            conn               = pool.connection # drain the only available connection
+            second_thread_done = Concurrent::Event.new
+
+            begin
+              # create a first_thread and let it get into the FIFO queue first
+              first_thread = Thread.new do
+                pool.with_connection { second_thread_done.wait }
+              end
+
+              # wait for first_thread to get in queue
+              Thread.pass until pool.num_waiting_in_queue == 1
+
+              # create a different, later thread, that will attempt to do a "group action",
+              # but because of the group action semantics it should be able to preempt the
+              # first_thread when a connection is made available
+              second_thread = Thread.new do
+                pool.send(group_action_method)
+                second_thread_done.set
+              end
+
+              # wait for second_thread to get in queue
+              Thread.pass until pool.num_waiting_in_queue == 2
+
+              # return the only available connection
+              pool.checkin(conn)
+
+              # if the second_thread is not able to preempt the first_thread,
+              # they will temporarily (until either of them timeouts with ConnectionTimeoutError)
+              # deadlock and a join(2) timeout will be reached
+              assert second_thread.join(2), "#{group_action_method} is not able to preempt other waiting threads"
+
+            ensure
+              # post test clean up
+              failed = !second_thread_done.set?
+
+              if failed
+                second_thread_done.set
+
+                first_thread.join(2)
+                second_thread.join(2)
+              end
+
+              first_thread.join(10) || raise("first_thread got stuck")
+              second_thread.join(10) || raise("second_thread got stuck")
+            end
+          end
+        end
+      end
+
+      def test_clear_reloadable_connections_creates_new_connections_for_waiting_threads_if_necessary
+        with_single_connection_pool do |pool|
+          conn = pool.connection # drain the only available connection
+          def conn.requires_reloading? # make sure it gets removed from the pool by clear_reloadable_connections
+            true
+          end
+
+          stuck_thread = Thread.new do
+            pool.with_connection {}
+          end
+
+          # wait for stuck_thread to get in queue
+          Thread.pass until pool.num_waiting_in_queue == 1
+
+          pool.clear_reloadable_connections
+
+          unless stuck_thread.join(2)
+            flunk "clear_reloadable_connections must not let other connection waiting threads get stuck in queue"
+          end
+
+          assert_equal 0, pool.num_waiting_in_queue
+        end
+      end
+
+      def test_connection_pool_stat
+        with_single_connection_pool do |pool|
+          pool.with_connection do |connection|
+            stats = pool.stat
+            assert_equal({ size: 1, connections: 1, busy: 1, dead: 0, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+          end
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 0, idle: 1, waiting: 0, checkout_timeout: 5 }, stats)
+
+          Thread.new do
+            pool.checkout
+            Thread.current.kill
+          end.join
+
+          stats = pool.stat
+          assert_equal({ size: 1, connections: 1, busy: 0, dead: 1, idle: 0, waiting: 0, checkout_timeout: 5 }, stats)
+        end
+      end
+
+      private
+        def with_single_connection_pool
+          one_conn_spec = ActiveRecord::Base.connection_pool.spec.dup
+          one_conn_spec.config[:pool] = 1 # this is safe to do, because .dupped ConnectionSpecification also auto-dups its config
+          yield(pool = ConnectionPool.new(one_conn_spec))
+        ensure
+          pool.disconnect! if pool
+        end
     end
   end
 end

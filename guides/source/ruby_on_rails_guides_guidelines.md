@@ -50,6 +50,48 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
+Linking to the API
+------------------
+
+Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
+
+Links that include a release tag are left untouched. For example
+
+```
+http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+```
+
+is not modified.
+
+Please use these in release notes, since they should point to the corresponding version no matter the target being generated.
+
+If the link does not include a release tag and edge guides are being generated, the domain is replaced by `edgeapi.rubyonrails.org`. For example,
+
+```
+http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+becomes
+
+```
+http://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link
+
+```
+http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+becomes
+
+```
+http://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+```
+
+Please don't link to `edgeapi.rubyonrails.org` manually.
+
+
 API Documentation Guidelines
 ----------------------------
 
@@ -64,7 +106,9 @@ The guides and the API should be coherent and consistent where appropriate. In p
 HTML Guides
 -----------
 
-Before generating the guides, make sure that you have the latest version of Bundler installed on your system. As of this writing, you must install Bundler 1.3.5 on your device.
+Before generating the guides, make sure that you have the latest version of
+Bundler installed on your system. As of this writing, you must install Bundler
+1.3.5 or later on your device.
 
 To install the latest version of Bundler, run `gem install bundler`.
 
@@ -82,6 +126,8 @@ or
 bundle exec rake guides:generate:html
 ```
 
+Resulting HTML files can be found in the `./output` directory.
+
 To process `my_guide.md` and nothing else use the `ONLY` environment variable:
 
 ```
@@ -92,8 +138,6 @@ bundle exec rake guides:generate ONLY=my_guide
 By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
 
 To force processing all the guides, pass `ALL=1`.
-
-It is also recommended that you work with `WARNINGS=1`. This detects duplicate IDs and warns about broken internal links.
 
 If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 

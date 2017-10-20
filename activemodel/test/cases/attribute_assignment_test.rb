@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "cases/helper"
+require "active_support/core_ext/hash/indifferent_access"
 require "active_support/hash_with_indifferent_access"
 
 class AttributeAssignmentTest < ActiveModel::TestCase
@@ -15,21 +18,42 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       raise ErrorFromAttributeWriter
     end
 
+    # TODO Change this to private once we've dropped Ruby 2.2 support.
+    # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-    attr_writer :metadata
+      attr_writer :metadata
   end
 
   class ErrorFromAttributeWriter < StandardError
   end
 
-  class ProtectedParams < ActiveSupport::HashWithIndifferentAccess
-    def permit!
-      @permitted = true
+  class ProtectedParams
+    attr_accessor :permitted
+    alias :permitted? :permitted
+
+    delegate :keys, :key?, :has_key?, :empty?, to: :@parameters
+
+    def initialize(attributes)
+      @parameters = attributes.with_indifferent_access
+      @permitted = false
     end
 
-    def permitted?
-      @permitted ||= false
+    def permit!
+      @permitted = true
+      self
+    end
+
+    def [](key)
+      @parameters[key]
+    end
+
+    def to_h
+      @parameters
+    end
+
+    def stringify_keys
+      dup
     end
 
     def dup
@@ -58,8 +82,6 @@ class AttributeAssignmentTest < ActiveModel::TestCase
   end
 
   test "assign private attribute" do
-    rubinius_skip "https://github.com/rubinius/rubinius/issues/3328"
-
     model = Model.new
     assert_raises(ActiveModel::UnknownAttributeError) do
       model.assign_attributes(metadata: { a: 1 })
@@ -72,7 +94,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     end
   end
 
-  test "an ArgumentError is raised if a non-hash-like obejct is passed" do
+  test "an ArgumentError is raised if a non-hash-like object is passed" do
     assert_raises(ArgumentError) do
       Model.new(1)
     end

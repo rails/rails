@@ -1,220 +1,240 @@
-*   Take DST into account when locating TimeZone from Numeric.
+*   Deprecate `secrets.secret_token`.
 
-    When given a specific offset, use the first result found where the
-    total current offset (including any periodic deviations such as DST)
-    from UTC is equal.
+    The architecture for secrets had a big upgrade between Rails 3 and Rails 4,
+    when the default changed from using `secret_token` to `secret_key_base`.
 
-    Fixes #15209.
+    `secret_token` has been soft deprecated in documentation for four years
+    but is still in place to support apps created before Rails 4.
+    Deprecation warnings have been added to help developers upgrade their
+    applications to `secret_key_base`.
 
-    *Yasyf Mohamedali*
+    *claudiob*, *Kasper Timm Hansen*
 
-*   Added `#without` on `Enumerable` and `Array` to return a copy of an
-    enumerable without the specified elements.
+*   Return an instance of `HashWithIndifferentAccess` from `HashWithIndifferentAccess#transform_keys`.
 
-    *Todd Bealmear*
+    *Yuji Yaginuma*
 
-*   Fixed a problem where String#truncate_words would get stuck with a complex
-    string.
+*   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
 
-    *Henrik Nygren*
+    This change introduces a `rotate` method to both the `MessageEncryptor` and
+    `MessageVerifier` classes. This method accepts the same arguments and
+    options as the given classes' constructor. The `encrypt_and_verify` method
+    for `MessageEncryptor` and the `verified` method for `MessageVerifier` also
+    accept an optional keyword argument `:on_rotation` block which is called
+    when a rotated instance is used to decrypt or verify the message.
 
-*   Fixed a roundtrip problem with AS::SafeBuffer where primitive-like strings
-    will be dumped as primitives:
+    *Michael J Coyne*
 
-    Before:
+*   Deprecate `Module#reachable?` method.
 
-        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => true
-        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => false
-        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => 1
-        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => 1.1
+    *bogdanvlviv*
 
-    After:
+*   Add `config/credentials.yml.enc` to store production app secrets.
 
-        YAML.load ActiveSupport::SafeBuffer.new("Hello").to_yaml  # => "Hello"
-        YAML.load ActiveSupport::SafeBuffer.new("true").to_yaml   # => "true"
-        YAML.load ActiveSupport::SafeBuffer.new("false").to_yaml  # => "false"
-        YAML.load ActiveSupport::SafeBuffer.new("1").to_yaml      # => "1"
-        YAML.load ActiveSupport::SafeBuffer.new("1.1").to_yaml    # => "1.1"
+    Allows saving any authentication credentials for third party services
+    directly in repo encrypted with `config/master.key` or `ENV["RAILS_MASTER_KEY"]`.
 
-    *Godfrey Chan*
+    This will eventually replace `Rails.application.secrets` and the encrypted
+    secrets introduced in Rails 5.1.
 
-*   Enable `number_to_percentage` to keep the number's precision by allowing
-    `:precision` to be `nil`.
+    *DHH*, *Kasper Timm Hansen*
 
-    *Jack Xu*
+*   Add `ActiveSupport::EncryptedFile` and `ActiveSupport::EncryptedConfiguration`.
 
-*   `config_accessor` became a private method, as with Ruby's `attr_accessor`.
+    Allows for stashing encrypted files or configuration directly in repo by
+    encrypting it with a key.
 
-    *Akira Matsuda*
+    Backs the new credentials setup above, but can also be used independently.
 
-*   `AS::Testing::TimeHelpers#travel_to` now changes `DateTime.now` as well as
-    `Time.now` and `Date.today`.
+    *DHH*, *Kasper Timm Hansen*
 
-    *Yuki Nishijima*
+*   `Module#delegate_missing_to` now raises `DelegationError` if target is nil,
+    similar to `Module#delegate`.
 
-*   Add `file_fixture` to `ActiveSupport::TestCase`.
-    It provides a simple mechanism to access sample files in your test cases.
+    *Anton Khamets*
 
-    By default file fixtures are stored in `test/fixtures/files`. This can be
-    configured per test-case using the `file_fixture_path` class attribute.
+*   Update `String#camelize` to provide feedback when wrong option is passed
 
-    *Yves Senn*
+    `String#camelize` was returning nil without any feedback when an
+    invalid option was passed as a parameter.
 
-*   Return value of yielded block in `File.atomic_write`.
+    Previously:
 
-    *Ian Ker-Seymer*
+        'one_two'.camelize(true)
+        # => nil
 
-*   Duplicate frozen array when assigning it to a HashWithIndifferentAccess so
-    that it doesn't raise a `RuntimeError` when calling `map!` on it in `convert_value`.
+    Now:
 
-    Fixes #18550.
+        'one_two'.camelize(true)
+        # => ArgumentError: Invalid option, use either :upper or :lower.
 
-    *Aditya Kapoor*
+    *Ricardo Díaz*
 
-*   Add missing time zone definitions for Russian Federation and sync them
-    with `zone.tab` file from tzdata version 2014j (latest).
+*   Fix modulo operations involving durations
 
-    *Andrey Novikov*
+    Rails 5.1 introduced `ActiveSupport::Duration::Scalar` as a wrapper
+    around numeric values as a way of ensuring a duration was the outcome of
+    an expression. However, the implementation was missing support for modulo
+    operations. This support has now been added and should result in a duration
+    being returned from expressions involving modulo operations.
 
-*   Add `SecureRandom.base58` for generation of random base58 strings.
+    Prior to Rails 5.1:
 
-    *Matthew Draper*, *Guillermo Iguaran*
+        5.minutes % 2.minutes
+        # => 60
 
-*   Add `#prev_day` and `#next_day` counterparts to `#yesterday` and
-    `#tomorrow` for `Date`, `Time`, and `DateTime`.
+    Now:
 
-    *George Claghorn*
+        5.minutes % 2.minutes
+        # => 1 minute
 
-*   Add `same_time` option to `#next_week` and `#prev_week` for `Date`, `Time`,
-    and `DateTime`.
+    Fixes #29603 and #29743.
 
-    *George Claghorn*
+    *Sayan Chakraborty*, *Andrew White*
 
-*   Add `#on_weekend?`, `#next_weekday`, `#prev_weekday` methods to `Date`,
-    `Time`, and `DateTime`.
+*   Fix division where a duration is the denominator
 
-    `#on_weekend?` returns true if the receiving date/time falls on a Saturday
-    or Sunday.
+    PR #29163 introduced a change in behavior when a duration was the denominator
+    in a calculation - this was incorrect as dividing by a duration should always
+    return a `Numeric`. The behavior of previous versions of Rails has been restored.
 
-    `#next_weekday` returns a new date/time representing the next day that does
-    not fall on a Saturday or Sunday.
+    Fixes #29592.
 
-    `#prev_weekday` returns a new date/time representing the previous day that
-    does not fall on a Saturday or Sunday.
+    *Andrew White*
 
-    *George Claghorn*
+*   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
+   `ActiveSupport::MessageEncryptor`.
 
-*   Change the default test order from `:sorted` to `:random`.
+    For instance, to ensure a message is only usable for one intended purpose:
 
-    *Rafael Mendonça França*
+        token = @verifier.generate("x", purpose: :shipping)
 
-*   Remove deprecated `ActiveSupport::JSON::Encoding::CircularReferenceError`.
+        @verifier.verified(token, purpose: :shipping) # => "x"
+        @verifier.verified(token)                     # => nil
 
-    *Rafael Mendonça França*
+    Or make it expire after a set time:
 
-*   Remove deprecated methods `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string=`
-    and `ActiveSupport::JSON::Encoding.encode_big_decimal_as_string`.
+        @verifier.generate("x", expires_in: 1.month)
+        @verifier.generate("y", expires_at: Time.now.end_of_year)
 
-    *Rafael Mendonça França*
+    Showcased with `ActiveSupport::MessageVerifier`, but works the same for
+    `ActiveSupport::MessageEncryptor`'s `encrypt_and_sign` and `decrypt_and_verify`.
 
-*   Remove deprecated `ActiveSupport::SafeBuffer#prepend`.
+    Pull requests: #29599, #29854
 
-    *Rafael Mendonça França*
+    *Assain Jaleel*
 
-*   Remove deprecated methods at `Kernel`.
+*   Make the order of `Hash#reverse_merge!` consistent with `HashWithIndifferentAccess`.
 
-    `silence_stderr`, `silence_stream`, `capture` and `quietly`.
+    *Erol Fornoles*
 
-    *Rafael Mendonça França*
+*   Add `freeze_time` helper which freezes time to `Time.now` in tests.
 
-*   Remove deprecated `active_support/core_ext/big_decimal/yaml_conversions`
-    file.
+    *Prathamesh Sonpatki*
 
-    *Rafael Mendonça França*
+*   Default `ActiveSupport::MessageEncryptor` to use AES 256 GCM encryption.
 
-*   Remove deprecated methods `ActiveSupport::Cache::Store.instrument` and
-    `ActiveSupport::Cache::Store.instrument=`.
+    On for new Rails 5.2 apps. Upgrading apps can find the config as a new
+    framework default.
 
-    *Rafael Mendonça França*
+    *Assain Jaleel*
 
-*   Change the way in which callback chains can be halted.
+*   Cache: `write_multi`
 
-    The preferred method to halt a callback chain from now on is to explicitly
-    `throw(:abort)`.
-    In the past, returning `false` in an ActiveSupport callback had the side
-    effect of halting the callback chain. This is not recommended anymore and,
-    depending on the value of
-    `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`, will
-    either not work at all or display a deprecation warning.
+        Rails.cache.write_multi foo: 'bar', baz: 'qux'
 
-*   Add Callbacks::CallbackChain.halt_and_display_warning_on_return_false
+    Plus faster fetch_multi with stores that implement `write_multi_entries`.
+    Keys that aren't found may be written to the cache store in one shot
+    instead of separate writes.
 
-    Setting `Callbacks::CallbackChain.halt_and_display_warning_on_return_false`
-    to true will let an app support the deprecated way of halting callback
-    chains by returning `false`.
+    The default implementation simply calls `write_entry` for each entry.
+    Stores may override if they're capable of one-shot bulk writes, like
+    Redis `MSET`.
 
-    Setting the value to false will tell the app to ignore any `false` value
-    returned by callbacks, and only halt the chain upon `throw(:abort)`.
+    *Jeremy Daer*
 
-    The value can also be set with the Rails configuration option
-    `config.active_support.halt_callback_chains_on_return_false`.
+*   Add default option to module and class attribute accessors.
 
-    When the configuration option is missing, its value is `true`, so older apps
-    ported to Rails 5.0 will not break (but display a deprecation warning).
-    For new Rails 5.0 apps, its value is set to `false` in an initializer, so
-    these apps will support the new behavior by default.
+        mattr_accessor :settings, default: {}
 
-    *claudiob*
-
-*   Changes arguments and default value of CallbackChain's :terminator option
-
-    Chains of callbacks defined without an explicit `:terminator` option will
-    now be halted as soon as a `before_` callback throws `:abort`.
-
-    Chains of callbacks defined with a `:terminator` option will maintain their
-    existing behavior of halting as soon as a `before_` callback matches the
-    terminator's expectation.
-
-    *claudiob*
-
-*   Deprecate `MissingSourceFile` in favor of `LoadError`.
-
-    `MissingSourceFile` was just an alias to `LoadError` and was not being
-    raised inside the framework.
-
-    *Rafael Mendonça França*
-
-*   Add support for error dispatcher classes in `ActiveSupport::Rescuable`.
-    Now it acts closer to Ruby's rescue.
-
-    Example:
-
-        class BaseController < ApplicationController
-          module ErrorDispatcher
-            def self.===(other)
-              Exception === other && other.respond_to?(:status)
-            end
-          end
-
-          rescue_from ErrorDispatcher do |error|
-            render status: error.status, json: { error: error.to_s }
-          end
-        end
+    Works for `mattr_reader`, `mattr_writer`, `cattr_accessor`, `cattr_reader`,
+    and `cattr_writer` as well.
 
     *Genadi Samokovarov*
 
-*   Add `#verified` and `#valid_message?` methods to `ActiveSupport::MessageVerifier`
+*   Add `Date#prev_occurring` and `Date#next_occurring` to return specified next/previous occurring day of week.
 
-    Previously, the only way to decode a message with `ActiveSupport::MessageVerifier`
-    was to use `#verify`, which would raise an exception on invalid messages. Now
-    `#verified` can also be used, which returns `nil` on messages that cannot be
-    decoded.
+    *Shota Iguchi*
 
-    Previously, there was no way to check if a message's format was valid without
-    attempting to decode it. `#valid_message?` is a boolean convenience method that
-    checks whether the message is valid without actually decoding it.
+*   Add default option to `class_attribute`.
 
-    *Logan Leger*
+    Before:
 
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activesupport/CHANGELOG.md) for previous changes.
+        class_attribute :settings
+        self.settings = {}
+
+    Now:
+
+        class_attribute :settings, default: {}
+
+    *DHH*
+
+*   `#singularize` and `#pluralize` now respect uncountables for the specified locale.
+
+    *Eilis Hamilton*
+
+*   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated attributes singleton.
+    Primary use case is keeping all the per-request attributes easily available to the whole system.
+
+    *DHH*
+
+*   Fix implicit coercion calculations with scalars and durations
+
+    Previously, calculations where the scalar is first would be converted to a duration
+    of seconds, but this causes issues with dates being converted to times, e.g:
+
+        Time.zone = "Beijing"           # => Asia/Shanghai
+        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
+        2 * 1.day                       # => 172800 seconds
+        date + 2 * 1.day                # => Mon, 22 May 2017 00:00:00 CST +08:00
+
+    Now, the `ActiveSupport::Duration::Scalar` calculation methods will try to maintain
+    the part structure of the duration where possible, e.g:
+
+        Time.zone = "Beijing"           # => Asia/Shanghai
+        date = Date.civil(2017, 5, 20)  # => Mon, 20 May 2017
+        2 * 1.day                       # => 2 days
+        date + 2 * 1.day                # => Mon, 22 May 2017
+
+    Fixes #29160, #28970.
+
+    *Andrew White*
+
+*   Add support for versioned cache entries. This enables the cache stores to recycle cache keys, greatly saving
+    on storage in cases with frequent churn. Works together with the separation of `#cache_key` and `#cache_version`
+    in Active Record and its use in Action Pack's fragment caching.
+
+    *DHH*
+
+*   Pass gem name and deprecation horizon to deprecation notifications.
+
+    *Willem van Bergen*
+
+*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
+
+    *Andrew White*
+
+*   Add support for `:offset` to `Time#change`
+
+    Fixes #28723.
+
+    *Andrew White*
+
+*   Add `fetch_values` for `HashWithIndifferentAccess`
+
+    The method was originally added to `Hash` in Ruby 2.3.0.
+
+    *Josh Pencheon*
+
+
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activesupport/CHANGELOG.md) for previous changes.

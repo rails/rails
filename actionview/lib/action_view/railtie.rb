@@ -1,11 +1,14 @@
+# frozen_string_literal: true
+
 require "action_view"
 require "rails"
 
 module ActionView
   # = Action View Railtie
-  class Railtie < Rails::Railtie # :nodoc:
+  class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
-    config.action_view.embed_authenticity_token_in_remote_forms = false
+    config.action_view.embed_authenticity_token_in_remote_forms = nil
+    config.action_view.debug_missing_translation = true
 
     config.eager_load_namespaces << ActionView
 
@@ -16,13 +19,22 @@ module ActionView
       end
     end
 
+    initializer "action_view.form_with_generates_remote_forms" do |app|
+      ActiveSupport.on_load(:action_view) do
+        form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
+        unless form_with_generates_remote_forms.nil?
+          ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
+        end
+      end
+    end
+
     initializer "action_view.logger" do
       ActiveSupport.on_load(:action_view) { self.logger ||= Rails.logger }
     end
 
     initializer "action_view.set_configs" do |app|
       ActiveSupport.on_load(:action_view) do
-        app.config.action_view.each do |k,v|
+        app.config.action_view.each do |k, v|
           send "#{k}=", v
         end
       end
@@ -36,9 +48,11 @@ module ActionView
       end
     end
 
-    initializer "action_view.collection_caching" do |app|
-      ActiveSupport.on_load(:action_controller) do
-        PartialRenderer.collection_cache = app.config.action_controller.cache_store
+    initializer "action_view.per_request_digest_cache" do |app|
+      ActiveSupport.on_load(:action_view) do
+        unless ActionView::Resolver.caching?
+          app.executor.to_run ActionView::Digestor::PerExecutionDigestCacheExpiry
+        end
       end
     end
 
@@ -48,8 +62,14 @@ module ActionView
       end
     end
 
-    rake_tasks do
-      load "action_view/tasks/dependencies.rake"
+    initializer "action_view.collection_caching", after: "action_controller.set_configs" do |app|
+      PartialRenderer.collection_cache = app.config.action_controller.cache_store
+    end
+
+    rake_tasks do |app|
+      unless app.config.api_only
+        load "action_view/tasks/cache_digests.rake"
+      end
     end
   end
 end

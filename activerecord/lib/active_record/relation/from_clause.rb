@@ -1,19 +1,13 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Relation
-    class FromClause
+    class FromClause # :nodoc:
       attr_reader :value, :name
 
       def initialize(value, name)
         @value = value
         @name = name
-      end
-
-      def binds
-        if value.is_a?(Relation)
-          value.bound_attributes
-        else
-          []
-        end
       end
 
       def merge(other)
@@ -25,7 +19,7 @@ module ActiveRecord
       end
 
       def self.empty
-        new(nil, nil)
+        @empty ||= new(nil, nil)
       end
     end
   end

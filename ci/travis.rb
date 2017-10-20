@@ -1,8 +1,14 @@
 #!/usr/bin/env ruby
-require 'fileutils'
+# frozen_string_literal: true
+
+require "fileutils"
 include FileUtils
 
 commands = [
+  'mysql -e "create user rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest.* to rails@localhost;"',
+  'mysql -e "grant all privileges on activerecord_unittest2.* to rails@localhost;"',
+  'mysql -e "grant all privileges on inexistent_activerecord_unittest.* to rails@localhost;"',
   'mysql -e "create database activerecord_unittest;"',
   'mysql -e "create database activerecord_unittest2;"',
   'psql  -c "create database activerecord_unittest;" -U postgres',
@@ -10,19 +16,22 @@ commands = [
 ]
 
 commands.each do |command|
-  system("#{command} > /dev/null 2>&1")
+  system(command, [1, 2] => File::NULL)
 end
 
 class Build
   MAP = {
-    'railties' => 'railties',
-    'ap'   => 'actionpack',
-    'am'   => 'actionmailer',
-    'amo'  => 'activemodel',
-    'as'   => 'activesupport',
-    'ar'   => 'activerecord',
-    'av'   => 'actionview',
-    'aj'   => 'activejob'
+    "railties" => "railties",
+    "ap"       => "actionpack",
+    "am"       => "actionmailer",
+    "amo"      => "activemodel",
+    "as"       => "activesupport",
+    "ar"       => "activerecord",
+    "av"       => "actionview",
+    "aj"       => "activejob",
+    "ac"       => "actioncable",
+    "ast"      => "activestorage",
+    "guides"   => "guides"
   }
 
   attr_reader :component, :options
@@ -34,9 +43,15 @@ class Build
 
   def run!(options = {})
     self.options.update(options)
+
     Dir.chdir(dir) do
       announce(heading)
-      rake(*tasks)
+
+      if guides?
+        run_bug_report_templates
+      else
+        rake(*tasks)
+      end
     end
   end
 
@@ -49,26 +64,45 @@ class Build
     heading << "with #{adapter}" if activerecord?
     heading << "in isolation" if isolated?
     heading << "integration" if integration?
-    heading.join(' ')
+    heading.join(" ")
   end
 
   def tasks
     if activerecord?
-      ['db:mysql:rebuild', "#{adapter}:#{'isolated_' if isolated?}test"]
+      tasks = ["#{adapter}:#{'isolated_' if isolated?}test"]
+      case adapter
+      when "mysql2"
+        tasks.unshift "db:mysql:rebuild"
+      when "postgresql"
+        tasks.unshift "db:postgresql:rebuild"
+      end
+      tasks
     else
-      ["test", ('isolated' if isolated?), ('integration' if integration?)].compact.join(":")
+      ["test", ("isolated" if isolated?), ("integration" if integration?), ("ujs" if ujs?)].compact.join(":")
     end
   end
 
   def key
     key = [gem]
     key << adapter if activerecord?
-    key << 'isolated' if isolated?
-    key.join(':')
+    key << "isolated" if isolated?
+    key.join(":")
+  end
+
+  def activesupport?
+    gem == "activesupport"
   end
 
   def activerecord?
-    gem == 'activerecord'
+    gem == "activerecord"
+  end
+
+  def guides?
+    gem == "guides"
+  end
+
+  def ujs?
+    component.split(":").last == "ujs"
   end
 
   def isolated?
@@ -76,60 +110,68 @@ class Build
   end
 
   def integration?
-    component.split(':').last == 'integration'
+    component.split(":").last == "integration"
   end
 
   def gem
-    MAP[component.split(':').first]
+    MAP[component.split(":").first]
   end
   alias :dir :gem
 
   def adapter
-    component.split(':').last
+    component.split(":").last
   end
 
   def rake(*tasks)
     tasks.each do |task|
       cmd = "bundle exec rake #{task}"
       puts "Running command: #{cmd}"
-      return false unless system(cmd)
+      return false unless system(env, cmd)
     end
     true
   end
+
+  def env
+    if activesupport? && !isolated?
+      # There is a known issue with the listen tests that causes files to be
+      # incorrectly GC'ed even when they are still in-use. The current solution
+      # is to only run them in isolation to avoid randomly failing our test suite.
+      { "LISTEN" => "0" }
+    else
+      {}
+    end
+  end
+
+  def run_bug_report_templates
+    Dir.glob("bug_report_templates/*.rb").all? do |file|
+      system(Gem.ruby, "-w", file)
+    end
+  end
 end
 
-if ENV['GEM']=='aj:integration'
-   ENV['QC_DATABASE_URL']  = 'postgres://postgres@localhost/active_jobs_qc_int_test'
-   ENV['QUE_DATABASE_URL'] = 'postgres://postgres@localhost/active_jobs_que_int_test'
+if ENV["GEM"] == "aj:integration"
+  ENV["QC_DATABASE_URL"]  = "postgres://postgres@localhost/active_jobs_qc_int_test"
+  ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
 
 results = {}
 
-ENV['GEM'].split(',').each do |gem|
+ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
-    next if ENV['TRAVIS_PULL_REQUEST'] && ENV['TRAVIS_PULL_REQUEST'] != 'false' && isolated
-    next if gem == 'railties' && isolated
-    next if gem == 'aj:integration' && isolated
+    next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
+    next if RUBY_VERSION < "2.4" && isolated
+    next if gem == "railties" && isolated
+    next if gem == "ac" && isolated
+    next if gem == "ac:integration" && isolated
+    next if gem == "aj:integration" && isolated
+    next if gem == "guides" && isolated
+    next if gem == "av:ujs" && isolated
+    next if gem == "ast" && isolated
 
-    build = Build.new(gem, :isolated => isolated)
+    build = Build.new(gem, isolated: isolated)
     results[build.key] = build.run!
-
   end
 end
-
-# puts
-# puts "Build environment:"
-# puts "  #{`cat /etc/issue`}"
-# puts "  #{`uname -a`}"
-# puts "  #{`ruby -v`}"
-# puts "  #{`mysql --version`}"
-# puts "  #{`pg_config --version`}"
-# puts "  SQLite3: #{`sqlite3 -version`}"
-# `gem env`.each_line {|line| print "   #{line}"}
-# puts "   Bundled gems:"
-# `bundle show`.each_line {|line| print "     #{line}"}
-# puts "   Local gems:"
-# `gem list`.each_line {|line| print "     #{line}"}
 
 failures = results.select { |key, value| !value  }
 

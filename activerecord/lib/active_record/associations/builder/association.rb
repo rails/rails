@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
@@ -9,14 +11,14 @@
 #    - CollectionAssociation
 #      - HasManyAssociation
 
-module ActiveRecord::Associations::Builder
+module ActiveRecord::Associations::Builder # :nodoc:
   class Association #:nodoc:
     class << self
       attr_accessor :extensions
     end
     self.extensions = []
 
-    VALID_OPTIONS = [:class_name, :class, :foreign_key, :validate] # :nodoc:
+    VALID_OPTIONS = [:class_name, :anonymous_class, :foreign_key, :validate] # :nodoc:
 
     def self.build(model, name, scope, options, &block)
       if model.dangerous_attribute_method?(name)
@@ -35,11 +37,6 @@ module ActiveRecord::Associations::Builder
 
     def self.create_reflection(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
-
-      if scope.is_a?(Hash)
-        options = scope
-        scope   = nil
-      end
 
       validate_options(options)
 

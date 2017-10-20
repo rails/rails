@@ -1,4 +1,6 @@
-require 'active_support/core_ext/string/strip'
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/strip"
 
 module ActiveRecord
   module ConnectionAdapters
@@ -14,41 +16,58 @@ module ActiveRecord
           send m, o
         end
 
-        def visit_AddColumn(o)
-          "ADD #{accept(o)}"
-        end
-
-        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql, to: :@conn
-        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql
+        delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options, to: :@conn
+        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options
 
         private
 
           def visit_AlterTable(o)
-            sql = "ALTER TABLE #{quote_table_name(o.name)} "
-            sql << o.adds.map { |col| visit_AddColumn col }.join(' ')
-            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(' ')
-            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(' ')
+            sql = "ALTER TABLE #{quote_table_name(o.name)} ".dup
+            sql << o.adds.map { |col| accept col }.join(" ")
+            sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
+            sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
           end
 
           def visit_ColumnDefinition(o)
-            o.sql_type ||= type_to_sql(o.type, o.limit, o.precision, o.scale)
-            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            o.sql_type = type_to_sql(o.type, o.options)
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}".dup
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
+          def visit_AddColumnDefinition(o)
+            "ADD #{accept(o.column)}".dup
+          end
+
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE "
-            create_sql << "#{quote_table_name(o.name)} "
-            create_sql << "(#{o.columns.map { |c| accept c }.join(', ')}) " unless o.as
-            create_sql << "#{o.options}"
-            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} ".dup
+
+            statements = o.columns.map { |c| accept c }
+            statements << accept(o.primary_keys) if o.primary_keys
+
+            if supports_indexes_in_create?
+              statements.concat(o.indexes.map { |column_name, options| index_in_create(o.name, column_name, options) })
+            end
+
+            if supports_foreign_keys_in_create?
+              statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
+            end
+
+            create_sql << "(#{statements.join(', ')})" if statements.present?
+            add_table_options!(create_sql, table_options(o))
+            create_sql << " AS #{to_sql(o.as)}" if o.as
             create_sql
           end
 
-          def visit_AddForeignKey(o)
+          def visit_PrimaryKeyDefinition(o)
+            "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
+          end
+
+          def visit_ForeignKeyDefinition(o)
             sql = <<-SQL.strip_heredoc
-              ADD CONSTRAINT #{quote_column_name(o.name)}
+              CONSTRAINT #{quote_column_name(o.name)}
               FOREIGN KEY (#{quote_column_name(o.column)})
                 REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
             SQL
@@ -57,20 +76,29 @@ module ActiveRecord
             sql
           end
 
+          def visit_AddForeignKey(o)
+            "ADD #{accept(o)}"
+          end
+
           def visit_DropForeignKey(name)
             "DROP CONSTRAINT #{quote_column_name(name)}"
           end
 
+          def table_options(o)
+            table_options = {}
+            table_options[:comment] = o.comment
+            table_options[:options] = o.options
+            table_options
+          end
+
+          def add_table_options!(create_sql, options)
+            if options_sql = options[:options]
+              create_sql << " #{options_sql}"
+            end
+          end
+
           def column_options(o)
-            column_options = {}
-            column_options[:null] = o.null unless o.null.nil?
-            column_options[:default] = o.default unless o.default.nil?
-            column_options[:column] = o
-            column_options[:first] = o.first
-            column_options[:after] = o.after
-            column_options[:auto_increment] = o.auto_increment
-            column_options[:primary_key] = o.primary_key
-            column_options
+            o.options.merge(column: o)
           end
 
           def add_column_options!(sql, options)
@@ -88,8 +116,14 @@ module ActiveRecord
             sql
           end
 
-          def options_include_default?(options)
-            options.include?(:default) && !(options[:null] == false && options[:default].nil?)
+          def to_sql(sql)
+            sql = sql.to_sql if sql.respond_to?(:to_sql)
+            sql
+          end
+
+          def foreign_key_in_create(from_table, to_table, options)
+            options = foreign_key_options(from_table, to_table, options)
+            accept ForeignKeyDefinition.new(from_table, to_table, options)
           end
 
           def action_sql(action, dependency)
@@ -106,5 +140,6 @@ module ActiveRecord
           end
       end
     end
+    SchemaCreation = AbstractAdapter::SchemaCreation # :nodoc:
   end
 end

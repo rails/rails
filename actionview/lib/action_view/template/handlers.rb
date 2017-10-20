@@ -1,14 +1,18 @@
+# frozen_string_literal: true
+
 module ActionView #:nodoc:
   # = Action View Template Handlers
-  class Template
+  class Template #:nodoc:
     module Handlers #:nodoc:
-      autoload :ERB, 'action_view/template/handlers/erb'
-      autoload :Builder, 'action_view/template/handlers/builder'
-      autoload :Raw, 'action_view/template/handlers/raw'
+      autoload :Raw, "action_view/template/handlers/raw"
+      autoload :ERB, "action_view/template/handlers/erb"
+      autoload :Html, "action_view/template/handlers/html"
+      autoload :Builder, "action_view/template/handlers/builder"
 
       def self.extended(base)
         base.register_default_template_handler :raw, Raw.new
         base.register_template_handler :erb, ERB.new
+        base.register_template_handler :html, Html.new
         base.register_template_handler :builder, Builder.new
         base.register_template_handler :ruby, :source.to_proc
       end

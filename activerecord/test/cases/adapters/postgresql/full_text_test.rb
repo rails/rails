@@ -1,19 +1,21 @@
-require "cases/helper"
-require 'support/schema_dumping_helper'
+# frozen_string_literal: true
 
-class PostgresqlFullTextTest < ActiveRecord::TestCase
+require "cases/helper"
+require "support/schema_dumping_helper"
+
+class PostgresqlFullTextTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
   class Tsvector < ActiveRecord::Base; end
 
   setup do
     @connection = ActiveRecord::Base.connection
-    @connection.create_table('tsvectors') do |t|
-      t.tsvector 'text_vector'
+    @connection.create_table("tsvectors") do |t|
+      t.tsvector "text_vector"
     end
   end
 
   teardown do
-    @connection.drop_table 'tsvectors', if_exists: true
+    @connection.drop_table "tsvectors", if_exists: true
   end
 
   def test_tsvector_column

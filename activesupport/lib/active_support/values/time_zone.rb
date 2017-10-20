@@ -1,13 +1,14 @@
-require 'tzinfo'
-require 'thread_safe'
-require 'active_support/core_ext/object/blank'
-require 'active_support/core_ext/object/try'
+# frozen_string_literal: true
+
+require "tzinfo"
+require "concurrent/map"
+require_relative "../core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
   # It allows us to do the following:
   #
-  # * Limit the set of zones provided by TZInfo to a meaningful subset of 146
+  # * Limit the set of zones provided by TZInfo to a meaningful subset of 134
   #   zones.
   # * Retrieve and display zones with a friendlier name
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
@@ -23,15 +24,9 @@ module ActiveSupport
   #     config.time_zone = 'Eastern Time (US & Canada)'
   #   end
   #
-  #   Time.zone      # => #<TimeZone:0x514834...>
+  #   Time.zone      # => #<ActiveSupport::TimeZone:0x514834...>
   #   Time.zone.name # => "Eastern Time (US & Canada)"
   #   Time.zone.now  # => Sun, 18 May 2008 14:30:44 EDT -04:00
-  #
-  # The version of TZInfo bundled with Active Support only includes the
-  # definitions necessary to support the zones defined by the TimeZone class.
-  # If you need to use zones that aren't defined by TimeZone, you'll need to
-  # install the TZInfo gem (if a recent version of the gem is installed locally,
-  # this will be used instead of the bundled version.)
   class TimeZone
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
@@ -66,6 +61,7 @@ module ActiveSupport
       "Buenos Aires"                 => "America/Argentina/Buenos_Aires",
       "Montevideo"                   => "America/Montevideo",
       "Georgetown"                   => "America/Guyana",
+      "Puerto Rico"                  => "America/Puerto_Rico",
       "Greenland"                    => "America/Godthab",
       "Mid-Atlantic"                 => "Atlantic/South_Georgia",
       "Azores"                       => "Atlantic/Azores",
@@ -92,7 +88,8 @@ module ActiveSupport
       "Paris"                        => "Europe/Paris",
       "Amsterdam"                    => "Europe/Amsterdam",
       "Berlin"                       => "Europe/Berlin",
-      "Bern"                         => "Europe/Berlin",
+      "Bern"                         => "Europe/Zurich",
+      "Zurich"                       => "Europe/Zurich",
       "Rome"                         => "Europe/Rome",
       "Stockholm"                    => "Europe/Stockholm",
       "Vienna"                       => "Europe/Vienna",
@@ -186,19 +183,20 @@ module ActiveSupport
       "Samoa"                        => "Pacific/Apia"
     }
 
-    UTC_OFFSET_WITH_COLON = '%s%02d:%02d'
-    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(':', '')
+    UTC_OFFSET_WITH_COLON = "%s%02d:%02d"
+    UTC_OFFSET_WITHOUT_COLON = UTC_OFFSET_WITH_COLON.tr(":", "")
 
-    @lazy_zones_map = ThreadSafe::Cache.new
+    @lazy_zones_map = Concurrent::Map.new
+    @country_zones  = Concurrent::Map.new
 
     class << self
       # Assumes self represents an offset from UTC in seconds (as returned from
       # Time#utc_offset) and turns this into an +HH:MM formatted string.
       #
-      #   TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
+      #   ActiveSupport::TimeZone.seconds_to_utc_offset(-21_600) # => "-06:00"
       def seconds_to_utc_offset(seconds, colon = true)
         format = colon ? UTC_OFFSET_WITH_COLON : UTC_OFFSET_WITHOUT_COLON
-        sign = (seconds < 0 ? '-' : '+')
+        sign = (seconds < 0 ? "-" : "+")
         hours = seconds.abs / 3600
         minutes = (seconds.abs % 3600) / 60
         format % [sign, hours, minutes]
@@ -231,30 +229,48 @@ module ActiveSupport
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
         case arg
-          when String
+        when String
           begin
             @lazy_zones_map[arg] ||= create(arg)
           rescue TZInfo::InvalidTimezoneIdentifier
             nil
           end
-          when Numeric, ActiveSupport::Duration
-            arg *= 3600 if arg.abs <= 13
-            all.find { |z| z.utc_total_offset == arg.to_i }
+        when Numeric, ActiveSupport::Duration
+          arg *= 3600 if arg.abs <= 13
+          all.find { |z| z.utc_offset == arg.to_i }
           else
-            raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
+          raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
       end
 
       # A convenience method for returning a collection of TimeZone objects
       # for time zones in the USA.
       def us_zones
-        @us_zones ||= all.find_all { |z| z.name =~ /US|Arizona|Indiana|Hawaii|Alaska/ }
+        country_zones(:us)
+      end
+
+      # A convenience method for returning a collection of TimeZone objects
+      # for time zones in the country specified by its ISO 3166-1 Alpha2 code.
+      def country_zones(country_code)
+        code = country_code.to_s.upcase
+        @country_zones[code] ||= load_country_zones(code)
       end
 
       private
+        def load_country_zones(code)
+          country = TZInfo::Country.get(code)
+          country.zone_identifiers.map do |tz_id|
+            if MAPPING.value?(tz_id)
+              self[MAPPING.key(tz_id)]
+            else
+              create(tz_id, nil, TZInfo::Timezone.new(tz_id))
+            end
+          end.sort!
+        end
+
         def zones_map
           @zones_map ||= begin
-            MAPPING.each_key {|place| self[place]} # load all the zones
+            MAPPING.each_key { |place| self[place] } # load all the zones
             @lazy_zones_map
           end
         end
@@ -272,7 +288,6 @@ module ActiveSupport
       @name = name
       @utc_offset = utc_offset
       @tzinfo = tzinfo || TimeZone.find_tzinfo(name)
-      @current_period = nil
     end
 
     # Returns the offset of this time zone from UTC in seconds.
@@ -280,20 +295,17 @@ module ActiveSupport
       if @utc_offset
         @utc_offset
       else
-        @current_period ||= tzinfo.current_period if tzinfo
-        @current_period.utc_offset if @current_period
+        tzinfo.current_period.utc_offset if tzinfo && tzinfo.current_period
       end
     end
 
-    # Returns the offset of this time zone from UTC in seconds,
-    # taking DST into account.
-    def utc_total_offset
-      tzinfo.current_period.utc_total_offset if tzinfo
-    end
-
-    # Returns the offset of this time zone as a formatted string, of the
-    # format "+HH:MM".
-    def formatted_offset(colon=true, alternate_utc_string = nil)
+    # Returns a formatted string of the offset from UTC, or an alternative
+    # string if the time zone is already UTC.
+    #
+    #   zone = ActiveSupport::TimeZone['Central Time (US & Canada)']
+    #   zone.formatted_offset        # => "-06:00"
+    #   zone.formatted_offset(false) # => "-0600"
+    def formatted_offset(colon = true, alternate_utc_string = nil)
       utc_offset == 0 && alternate_utc_string || self.class.seconds_to_utc_offset(utc_offset, colon)
     end
 
@@ -338,6 +350,41 @@ module ActiveSupport
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from an ISO 8601 string.
+    #
+    #   Time.zone = 'Hawaii'                     # => "Hawaii"
+    #   Time.zone.iso8601('1999-12-31T14:00:00') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If the time components are missing then they will be set to zero.
+    #
+    #   Time.zone = 'Hawaii'            # => "Hawaii"
+    #   Time.zone.iso8601('1999-12-31') # => Fri, 31 Dec 1999 00:00:00 HST -10:00
+    #
+    # If the string is invalid then an +ArgumentError+ will be raised unlike +parse+
+    # which usually returns +nil+ when given an invalid date string.
+    def iso8601(str)
+      parts = Date._iso8601(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      time = Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour, 0),
+        parts.fetch(:min, 0),
+        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset, 0)
+      )
+
+      if parts[:offset]
+        TimeWithZone.new(time.utc, self)
+      else
+        TimeWithZone.new(nil, self, time)
+      end
+    end
+
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
     # of +self+ from parsed string.
     #
     #   Time.zone = 'Hawaii'                   # => "Hawaii"
@@ -353,25 +400,64 @@ module ActiveSupport
     # components are supplied, then the day of the month defaults to 1:
     #
     #   Time.zone.parse('Mar 2000') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
-    def parse(str, now=now())
-      parts = Date._parse(str, false)
-      return if parts.empty?
+    #
+    # If the string is invalid then an +ArgumentError+ could be raised.
+    def parse(str, now = now())
+      parts_to_time(Date._parse(str, false), now)
+    end
+
+    # Method for creating new ActiveSupport::TimeWithZone instance in time zone
+    # of +self+ from an RFC 3339 string.
+    #
+    #   Time.zone = 'Hawaii'                     # => "Hawaii"
+    #   Time.zone.rfc3339('2000-01-01T00:00:00Z') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If the time or zone components are missing then an +ArgumentError+ will
+    # be raised. This is much stricter than either +parse+ or +iso8601+ which
+    # allow for missing components.
+    #
+    #   Time.zone = 'Hawaii'            # => "Hawaii"
+    #   Time.zone.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    def rfc3339(str)
+      parts = Date._rfc3339(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
 
       time = Time.new(
-        parts.fetch(:year, now.year),
-        parts.fetch(:mon, now.month),
-        parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
-        parts.fetch(:hour, 0),
-        parts.fetch(:min, 0),
-        parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
-        parts.fetch(:offset, 0)
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour),
+        parts.fetch(:min),
+        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset)
       )
 
-      if parts[:offset]
-        TimeWithZone.new(time.utc, self)
-      else
-        TimeWithZone.new(nil, self, time)
-      end
+      TimeWithZone.new(time.utc, self)
+    end
+
+    # Parses +str+ according to +format+ and returns an ActiveSupport::TimeWithZone.
+    #
+    # Assumes that +str+ is a time in the time zone +self+,
+    # unless +format+ includes an explicit time zone.
+    # (This is the same behavior as +parse+.)
+    # In either case, the returned TimeWithZone has the timezone of +self+.
+    #
+    #   Time.zone = 'Hawaii'                   # => "Hawaii"
+    #   Time.zone.strptime('1999-12-31 14:00:00', '%Y-%m-%d %H:%M:%S') # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #
+    # If upper components are missing from the string, they are supplied from
+    # TimeZone#now:
+    #
+    #   Time.zone.now                              # => Fri, 31 Dec 1999 14:00:00 HST -10:00
+    #   Time.zone.strptime('22:30:00', '%H:%M:%S') # => Fri, 31 Dec 1999 22:30:00 HST -10:00
+    #
+    # However, if the date component is not provided, but any other upper
+    # components are supplied, then the day of the month defaults to 1:
+    #
+    #   Time.zone.strptime('Mar 2000', '%b %Y') # => Wed, 01 Mar 2000 00:00:00 HST -10:00
+    def strptime(str, format, now = now())
+      parts_to_time(DateTime._strptime(str, format), now)
     end
 
     # Returns an ActiveSupport::TimeWithZone instance representing the current
@@ -383,7 +469,7 @@ module ActiveSupport
       time_now.utc.in_time_zone(self)
     end
 
-    # Return the current date in this time zone.
+    # Returns the current date in this time zone.
     def today
       tzinfo.now.to_date
     end
@@ -407,7 +493,7 @@ module ActiveSupport
 
     # Adjust the given time to the simultaneous time in UTC. Returns a
     # Time.utc() instance.
-    def local_to_utc(time, dst=true)
+    def local_to_utc(time, dst = true)
       tzinfo.local_to_utc(time, dst)
     end
 
@@ -419,7 +505,7 @@ module ActiveSupport
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
-    def period_for_local(time, dst=true)
+    def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst)
     end
 
@@ -427,7 +513,41 @@ module ActiveSupport
       tzinfo.periods_for_local(time)
     end
 
+    def init_with(coder) #:nodoc:
+      initialize(coder["name"])
+    end
+
+    def encode_with(coder) #:nodoc:
+      coder.tag = "!ruby/object:#{self.class}"
+      coder.map = { "name" => tzinfo.name }
+    end
+
     private
+      def parts_to_time(parts, now)
+        raise ArgumentError, "invalid date" if parts.nil?
+        return if parts.empty?
+
+        if parts[:seconds]
+          time = Time.at(parts[:seconds])
+        else
+          time = Time.new(
+            parts.fetch(:year, now.year),
+            parts.fetch(:mon, now.month),
+            parts.fetch(:mday, parts[:year] || parts[:mon] ? 1 : now.day),
+            parts.fetch(:hour, 0),
+            parts.fetch(:min, 0),
+            parts.fetch(:sec, 0) + parts.fetch(:sec_fraction, 0),
+            parts.fetch(:offset, 0)
+          )
+        end
+
+        if parts[:offset] || parts[:seconds]
+          TimeWithZone.new(time.utc, self)
+        else
+          TimeWithZone.new(nil, self, time)
+        end
+      end
+
       def time_now
         Time.now
       end

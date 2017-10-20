@@ -1,13 +1,19 @@
-require 'active_record/connection_adapters/abstract_adapter'
-require 'active_record/connection_adapters/statement_pool'
-require 'arel/visitors/bind_visitor'
+# frozen_string_literal: true
 
-gem 'sqlite3', '~> 1.3.6'
-require 'sqlite3'
+require_relative "abstract_adapter"
+require_relative "statement_pool"
+require_relative "sqlite3/explain_pretty_printer"
+require_relative "sqlite3/quoting"
+require_relative "sqlite3/schema_creation"
+require_relative "sqlite3/schema_definitions"
+require_relative "sqlite3/schema_dumper"
+require_relative "sqlite3/schema_statements"
+
+gem "sqlite3", "~> 1.3.6"
+require "sqlite3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
-    # sqlite3 adapter reuses sqlite_connection.
     def sqlite3_connection(config)
       # Require database.
       unless config[:database]
@@ -17,7 +23,7 @@ module ActiveRecord
       # Allow database path relative to Rails.root, but only if the database
       # path is not the special path that tells sqlite to build a database only
       # in memory.
-      if ':memory:' != config[:database]
+      if ":memory:" != config[:database]
         config[:database] = File.expand_path(config[:database], Rails.root) if defined?(Rails.root)
         dirname = File.dirname(config[:database])
         Dir.mkdir(dirname) unless File.directory?(dirname)
@@ -25,7 +31,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        :results_as_hash => true
+        results_as_hash: true
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -33,7 +39,7 @@ module ActiveRecord
       ConnectionAdapters::SQLite3Adapter.new(db, logger, nil, config)
     rescue Errno::ENOENT => error
       if error.message.include?("No such file or directory")
-        raise ActiveRecord::NoDatabaseError.new(error.message, error)
+        raise ActiveRecord::NoDatabaseError
       else
         raise
       end
@@ -48,11 +54,13 @@ module ActiveRecord
     #
     # * <tt>:database</tt> - Path to the database file.
     class SQLite3Adapter < AbstractAdapter
-      ADAPTER_NAME = 'SQLite'.freeze
-      include Savepoints
+      ADAPTER_NAME = "SQLite".freeze
+
+      include SQLite3::Quoting
+      include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  'INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL',
+        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -65,69 +73,38 @@ module ActiveRecord
         boolean:      { name: "boolean" }
       }
 
-      class Version
-        include Comparable
-
-        def initialize(version_string)
-          @version = version_string.split('.').map(&:to_i)
-        end
-
-        def <=>(version_string)
-          @version <=> version_string.split('.').map(&:to_i)
-        end
-      end
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your <tt>application.rb</tt> file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
 
       class StatementPool < ConnectionAdapters::StatementPool
-        def initialize(connection, max)
-          super
-          @cache = Hash.new { |h,pid| h[pid] = {} }
-        end
-
-        def each(&block); cache.each(&block); end
-        def key?(key);    cache.key?(key); end
-        def [](key);      cache[key]; end
-        def length;       cache.length; end
-
-        def []=(sql, key)
-          while @max <= cache.size
-            dealloc(cache.shift.last[:stmt])
-          end
-          cache[sql] = key
-        end
-
-        def clear
-          cache.each_value do |hash|
-            dealloc hash[:stmt]
-          end
-          cache.clear
-        end
-
         private
-        def cache
-          @cache[$$]
-        end
 
-        def dealloc(stmt)
-          stmt.close unless stmt.closed?
-        end
+          def dealloc(stmt)
+            stmt[:stmt].close unless stmt[:stmt].closed?
+          end
       end
 
       def initialize(connection, logger, connection_options, config)
-        super(connection, logger)
+        super(connection, logger, config)
 
         @active     = nil
-        @statements = StatementPool.new(@connection,
-                                        self.class.type_cast_config_to_integer(config.fetch(:statement_limit) { 1000 }))
-        @config = config
+        @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        @visitor = Arel::Visitors::SQLite.new self
-        @quoted_column_names = {}
-
-        if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
-          @prepared_statements = true
-        else
-          @prepared_statements = false
-        end
+        configure_connection
       end
 
       def supports_ddl_transactions?
@@ -139,30 +116,27 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= '3.8.0'
-      end
-
-      # Returns true, since this connection adapter supports prepared statement
-      # caching.
-      def supports_statement_cache?
-        true
-      end
-
-      # Returns true, since this connection adapter supports migrations.
-      def supports_migrations? #:nodoc:
-        true
-      end
-
-      def supports_primary_key? #:nodoc:
-        true
+        sqlite_version >= "3.8.0"
       end
 
       def requires_reloading?
         true
       end
 
+      def supports_foreign_keys_in_create?
+        sqlite_version >= "3.6.19"
+      end
+
       def supports_views?
         true
+      end
+
+      def supports_datetime_with_precision?
+        true
+      end
+
+      def supports_multi_insert?
+        sqlite_version >= "3.7.11"
       end
 
       def active?
@@ -187,7 +161,7 @@ module ActiveRecord
       end
 
       # Returns 62. SQLite supports index names up to 64
-      # characters. The rest is used by rails internally to perform
+      # characters. The rest is used by Rails internally to perform
       # temporary rename operations
       def allowed_index_name_length
         index_name_length - 2
@@ -206,42 +180,17 @@ module ActiveRecord
         true
       end
 
-      # QUOTING ==================================================
+      # REFERENTIAL INTEGRITY ====================================
 
-      def _quote(value) # :nodoc:
-        case value
-        when Type::Binary::Data
-          "x'#{value.hex}'"
-        else
-          super
+      def disable_referential_integrity # :nodoc:
+        old = query_value("PRAGMA foreign_keys")
+
+        begin
+          execute("PRAGMA foreign_keys = OFF")
+          yield
+        ensure
+          execute("PRAGMA foreign_keys = #{old}")
         end
-      end
-
-      def _type_cast(value) # :nodoc:
-        case value
-        when BigDecimal
-          value.to_f
-        when String
-          if value.encoding == Encoding::ASCII_8BIT
-            super(value.encode(Encoding::UTF_8))
-          else
-            super
-          end
-        else
-          super
-        end
-      end
-
-      def quote_string(s) #:nodoc:
-        @connection.class.quote(s)
-      end
-
-      def quote_table_name_for_assignment(table, attr)
-        quote_column_name(attr)
-      end
-
-      def quote_column_name(name) #:nodoc:
-        @quoted_column_names[name] ||= %Q("#{name.to_s.gsub('"', '""')}")
       end
 
       #--
@@ -250,52 +199,43 @@ module ActiveRecord
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
-        ExplainPrettyPrinter.new.pp(exec_query(sql, 'EXPLAIN', []))
+        SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
 
-      class ExplainPrettyPrinter
-        # Pretty prints the result of a EXPLAIN QUERY PLAN in a way that resembles
-        # the output of the SQLite shell:
-        #
-        #   0|0|0|SEARCH TABLE users USING INTEGER PRIMARY KEY (rowid=?) (~1 rows)
-        #   0|1|1|SCAN TABLE posts (~100000 rows)
-        #
-        def pp(result) # :nodoc:
-          result.rows.map do |row|
-            row.join('|')
-          end.join("\n") + "\n"
-        end
-      end
+      def exec_query(sql, name = nil, binds = [], prepare: false)
+        type_casted_binds = type_casted_binds(binds)
 
-      def exec_query(sql, name = nil, binds = [])
-        type_casted_binds = binds.map { |attr| type_cast(attr.value_for_database) }
-
-        log(sql, name, binds) do
-          # Don't cache statements if they are not prepared
-          if without_prepared_statement?(binds)
-            stmt    = @connection.prepare(sql)
-            begin
-              cols    = stmt.columns
+        log(sql, name, binds, type_casted_binds) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            # Don't cache statements if they are not prepared
+            unless prepare
+              stmt = @connection.prepare(sql)
+              begin
+                cols = stmt.columns
+                unless without_prepared_statement?(binds)
+                  stmt.bind_params(type_casted_binds)
+                end
+                records = stmt.to_a
+              ensure
+                stmt.close
+              end
+            else
+              cache = @statements[sql] ||= {
+                stmt: @connection.prepare(sql)
+              }
+              stmt = cache[:stmt]
+              cols = cache[:cols] ||= stmt.columns
+              stmt.reset!
+              stmt.bind_params(type_casted_binds)
               records = stmt.to_a
-            ensure
-              stmt.close
             end
-            stmt = records
-          else
-            cache = @statements[sql] ||= {
-              :stmt => @connection.prepare(sql)
-            }
-            stmt = cache[:stmt]
-            cols = cache[:cols] ||= stmt.columns
-            stmt.reset!
-            stmt.bind_params type_casted_binds
-          end
 
-          ActiveRecord::Result.new(cols, stmt.to_a)
+            ActiveRecord::Result.new(cols, records)
+          end
         end
       end
 
-      def exec_delete(sql, name = 'SQL', binds = [])
+      def exec_delete(sql, name = "SQL", binds = [])
         exec_query(sql, name, binds)
         @connection.changes
       end
@@ -306,110 +246,34 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
-        log(sql, name) { @connection.execute(sql) }
-      end
-
-      def update_sql(sql, name = nil) #:nodoc:
-        super
-        @connection.changes
-      end
-
-      def delete_sql(sql, name = nil) #:nodoc:
-        sql += " WHERE 1=1" unless sql =~ /WHERE/i
-        super sql, name
-      end
-
-      def insert_sql(sql, name = nil, pk = nil, id_value = nil, sequence_name = nil) #:nodoc:
-        super
-        id_value || @connection.last_insert_row_id
-      end
-      alias :create :insert_sql
-
-      def select_rows(sql, name = nil, binds = [])
-        exec_query(sql, name, binds).rows
+        log(sql, name) do
+          ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+            @connection.execute(sql)
+          end
+        end
       end
 
       def begin_db_transaction #:nodoc:
-        log('begin transaction',nil) { @connection.transaction }
+        log("begin transaction", nil) { @connection.transaction }
       end
 
       def commit_db_transaction #:nodoc:
-        log('commit transaction',nil) { @connection.commit }
+        log("commit transaction", nil) { @connection.commit }
       end
 
       def exec_rollback_db_transaction #:nodoc:
-        log('rollback transaction',nil) { @connection.rollback }
+        log("rollback transaction", nil) { @connection.rollback }
       end
 
       # SCHEMA STATEMENTS ========================================
 
-      def tables(name = nil, table_name = nil) #:nodoc:
-        sql = <<-SQL
-          SELECT name
-          FROM sqlite_master
-          WHERE (type = 'table' OR type = 'view') AND NOT name = 'sqlite_sequence'
-        SQL
-        sql << " AND name = #{quote_table_name(table_name)}" if table_name
-
-        exec_query(sql, 'SCHEMA').map do |row|
-          row['name']
-        end
+      def primary_keys(table_name) # :nodoc:
+        pks = table_structure(table_name).select { |f| f["pk"] > 0 }
+        pks.sort_by { |f| f["pk"] }.map { |f| f["name"] }
       end
 
-      def table_exists?(table_name)
-        table_name && tables(nil, table_name).any?
-      end
-
-      # Returns an array of +Column+ objects for the table specified by +table_name+.
-      def columns(table_name) #:nodoc:
-        table_structure(table_name).map do |field|
-          case field["dflt_value"]
-          when /^null$/i
-            field["dflt_value"] = nil
-          when /^'(.*)'$/m
-            field["dflt_value"] = $1.gsub("''", "'")
-          when /^"(.*)"$/m
-            field["dflt_value"] = $1.gsub('""', '"')
-          end
-
-          sql_type = field['type']
-          type_metadata = fetch_type_metadata(sql_type)
-          new_column(field['name'], field['dflt_value'], type_metadata, field['notnull'].to_i == 0)
-        end
-      end
-
-      # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil) #:nodoc:
-        exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", 'SCHEMA').map do |row|
-          sql = <<-SQL
-            SELECT sql
-            FROM sqlite_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-            UNION ALL
-            SELECT sql
-            FROM sqlite_temp_master
-            WHERE name=#{quote(row['name'])} AND type='index'
-          SQL
-          index_sql = exec_query(sql).first['sql']
-          match = /\sWHERE\s+(.+)$/i.match(index_sql)
-          where = match[1] if match
-          IndexDefinition.new(
-            table_name,
-            row['name'],
-            row['unique'] != 0,
-            exec_query("PRAGMA index_info('#{row['name']}')", "SCHEMA").map { |col|
-              col['name']
-            }, nil, nil, where)
-        end
-      end
-
-      def primary_key(table_name) #:nodoc:
-        pks = table_structure(table_name).select { |f| f['pk'] > 0 }
-        return nil unless pks.count == 1
-        pks[0]['name']
-      end
-
-      def remove_index!(table_name, index_name) #:nodoc:
+      def remove_index(table_name, options = {}) #:nodoc:
+        index_name = index_name_for_remove(table_name, options)
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
@@ -422,7 +286,7 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
+      # See: https://www.sqlite.org/lang_altertable.html
       # SQLite has an additional restriction on the ALTER TABLE statement
       def valid_alter_table_type?(type)
         type.to_sym != :primary_key
@@ -444,13 +308,15 @@ module ActiveRecord
         end
       end
 
-      def change_column_default(table_name, column_name, default) #:nodoc:
+      def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
+        default = extract_new_default_value(default_or_changes)
+
         alter_table(table_name) do |definition|
           definition[column_name].default = default
         end
       end
 
-      def change_column_null(table_name, column_name, null, default = nil)
+      def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
         unless null || default.nil?
           exec_query("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
@@ -461,49 +327,74 @@ module ActiveRecord
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
         alter_table(table_name) do |definition|
-          include_default = options_include_default?(options)
           definition[column_name].instance_eval do
             self.type    = type
             self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if include_default
+            self.default = options[:default] if options.include?(:default)
             self.null    = options[:null] if options.include?(:null)
             self.precision = options[:precision] if options.include?(:precision)
-            self.scale   = options[:scale] if options.include?(:scale)
+            self.scale = options[:scale] if options.include?(:scale)
+            self.collation = options[:collation] if options.include?(:collation)
           end
         end
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
         column = column_for(table_name, column_name)
-        alter_table(table_name, rename: {column.name => new_column_name.to_s})
+        alter_table(table_name, rename: { column.name => new_column_name.to_s })
         rename_column_indexes(table_name, column.name, new_column_name)
       end
 
-      protected
+      def add_reference(table_name, ref_name, **options) # :nodoc:
+        super(table_name, ref_name, type: :integer, **options)
+      end
+      alias :add_belongs_to :add_reference
+
+      def foreign_keys(table_name)
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info.map do |row|
+          options = {
+            column: row["from"],
+            primary_key: row["to"],
+            on_delete: extract_foreign_key_action(row["on_delete"]),
+            on_update: extract_foreign_key_action(row["on_update"])
+          }
+          ForeignKeyDefinition.new(table_name, row["table"], options)
+        end
+      end
+
+      def insert_fixtures(rows, table_name)
+        rows.each do |row|
+          insert_fixture(row, table_name)
+        end
+      end
+
+      private
 
         def table_structure(table_name)
-          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", 'SCHEMA').to_hash
+          structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
           raise(ActiveRecord::StatementInvalid, "Could not find table '#{table_name}'") if structure.empty?
-          structure
+          table_structure_with_collation(table_name, structure)
         end
+        alias column_definitions table_structure
 
-        def alter_table(table_name, options = {}) #:nodoc:
+        def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
-          caller = lambda {|definition| yield definition if block_given?}
+          caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
             move_table(table_name, altered_table_name,
-              options.merge(:temporary => true))
+              options.merge(temporary: true))
             move_table(altered_table_name, table_name, &caller)
           end
         end
 
-        def move_table(from, to, options = {}, &block) #:nodoc:
+        def move_table(from, to, options = {}, &block)
           copy_table(from, to, options, &block)
           drop_table(from)
         end
 
-        def copy_table(from, to, options = {}) #:nodoc:
+        def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
           options[:id] = false
           create_table(to, options) do |definition|
@@ -517,9 +408,9 @@ module ActiveRecord
               next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
-                :limit => column.limit, :default => column.default,
-                :precision => column.precision, :scale => column.scale,
-                :null => column.null)
+                limit: column.limit, default: column.default,
+                precision: column.precision, scale: column.scale,
+                null: column.null, collation: column.collation)
             end
             yield @definition if block_given?
           end
@@ -529,7 +420,7 @@ module ActiveRecord
             options[:rename] || {})
         end
 
-        def copy_table_indexes(from, to, rename = {}) #:nodoc:
+        def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
             if to == "a#{from}"
@@ -539,7 +430,7 @@ module ActiveRecord
             end
 
             to_column_names = columns(to).map(&:name)
-            columns = index.columns.map {|c| rename[c] || c }.select do |column|
+            columns = index.columns.map { |c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end
 
@@ -552,21 +443,21 @@ module ActiveRecord
           end
         end
 
-        def copy_table_contents(from, to, columns, rename = {}) #:nodoc:
-          column_mappings = Hash[columns.map {|name| [name, name]}]
+        def copy_table_contents(from, to, columns, rename = {})
+          column_mappings = Hash[columns.map { |name| [name, name] }]
           rename.each { |a| column_mappings[a.last] = a.first }
           from_columns = columns(from).collect(&:name)
-          columns = columns.find_all{|col| from_columns.include?(column_mappings[col])}
+          columns = columns.find_all { |col| from_columns.include?(column_mappings[col]) }
           from_columns_to_copy = columns.map { |col| column_mappings[col] }
-          quoted_columns = columns.map { |col| quote_column_name(col) } * ','
-          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ','
+          quoted_columns = columns.map { |col| quote_column_name(col) } * ","
+          quoted_from_columns = from_columns_to_copy.map { |col| quote_column_name(col) } * ","
 
           exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value('select sqlite_version(*)'))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -576,11 +467,65 @@ module ActiveRecord
           # Older versions of SQLite return:
           #   column *column_name* is not unique
           when /column(s)? .* (is|are) not unique/, /UNIQUE constraint failed: .*/
-            RecordNotUnique.new(message, exception)
+            RecordNotUnique.new(message)
+          when /.* may not be NULL/, /NOT NULL constraint failed: .*/
+            NotNullViolation.new(message)
+          when /FOREIGN KEY constraint failed/i
+            InvalidForeignKey.new(message)
           else
             super
           end
         end
+
+        COLLATE_REGEX = /.*\"(\w+)\".*collate\s+\"(\w+)\".*/i.freeze
+
+        def table_structure_with_collation(table_name, basic_structure)
+          collation_hash = {}
+          sql = <<-SQL
+            SELECT sql FROM
+              (SELECT * FROM sqlite_master UNION ALL
+               SELECT * FROM sqlite_temp_master)
+            WHERE type = 'table' AND name = #{quote(table_name)}
+          SQL
+
+          # Result will have following sample string
+          # CREATE TABLE "users" ("id" INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+          #                       "password_digest" varchar COLLATE "NOCASE");
+          result = exec_query(sql, "SCHEMA").first
+
+          if result
+            # Splitting with left parentheses and picking up last will return all
+            # columns separated with comma(,).
+            columns_string = result["sql"].split("(").last
+
+            columns_string.split(",").each do |column_string|
+              # This regex will match the column name and collation type and will save
+              # the value in $1 and $2 respectively.
+              collation_hash[$1] = $2 if COLLATE_REGEX =~ column_string
+            end
+
+            basic_structure.map! do |column|
+              column_name = column["name"]
+
+              if collation_hash.has_key? column_name
+                column["collation"] = collation_hash[column_name]
+              end
+
+              column
+            end
+          else
+            basic_structure.to_hash
+          end
+        end
+
+        def arel_visitor
+          Arel::Visitors::SQLite.new(self)
+        end
+
+        def configure_connection
+          execute("PRAGMA foreign_keys = ON", "SCHEMA")
+        end
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

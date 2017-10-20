@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -11,7 +13,7 @@ module ActionView
 
         def render
           select_content_tag(
-            time_zone_options_for_select(value(@object) || @options[:default], @priority_zones, @options[:model] || ActiveSupport::TimeZone), @options, @html_options
+            time_zone_options_for_select(value || @options[:default], @priority_zones, @options[:model] || ActiveSupport::TimeZone), @options, @html_options
           )
         end
       end

@@ -1,11 +1,12 @@
 # Don't put *.swp, *.bak, etc here; those belong in a global ~/.gitignore.
 # Check out https://help.github.com/articles/ignoring-files for how to set that up.
 
-debug.log
 .Gemfile
-/.bundle
-/.ruby-version
+.ruby-version
+.byebug_history
+debug.log
 pkg
+/.bundle
 /dist
 /doc/rdoc
 /*/doc
@@ -13,9 +14,12 @@ pkg
 /activerecord/sqlnet.log
 /activemodel/test/fixtures/fixture_database.sqlite3
 /activesupport/test/fixtures/isolation_test
+/activestorage/test/service/configurations.yml
 /railties/test/500.html
 /railties/test/fixtures/tmp
 /railties/test/initializer/root/log
 /railties/doc
 /railties/tmp
 /guides/output
+node_modules/
+/actionview/log

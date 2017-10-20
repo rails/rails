@@ -1,8 +1,10 @@
-require 'rails/generators'
-require 'rails/generators/testing/behaviour'
-require 'rails/generators/testing/setup_and_teardown'
-require 'rails/generators/testing/assertions'
-require 'fileutils'
+# frozen_string_literal: true
+
+require_relative "../generators"
+require_relative "testing/behaviour"
+require_relative "testing/setup_and_teardown"
+require_relative "testing/assertions"
+require "fileutils"
 
 module Rails
   module Generators
@@ -14,7 +16,7 @@ module Rails
     #
     #   class AppGeneratorTest < Rails::Generators::TestCase
     #     tests AppGenerator
-    #     destination File.expand_path("../tmp", File.dirname(__FILE__))
+    #     destination File.expand_path("../tmp", __dir__)
     #   end
     #
     # If you want to ensure your destination root is clean before running each test,
@@ -22,7 +24,7 @@ module Rails
     #
     #   class AppGeneratorTest < Rails::Generators::TestCase
     #     tests AppGenerator
-    #     destination File.expand_path("../tmp", File.dirname(__FILE__))
+    #     destination File.expand_path("../tmp", __dir__)
     #     setup :prepare_destination
     #   end
     class TestCase < ActiveSupport::TestCase
@@ -30,7 +32,6 @@ module Rails
       include Rails::Generators::Testing::SetupAndTeardown
       include Rails::Generators::Testing::Assertions
       include FileUtils
-
     end
   end
 end

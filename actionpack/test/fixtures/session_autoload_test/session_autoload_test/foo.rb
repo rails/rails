@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module SessionAutoloadTest
   class Foo
-    def initialize(bar='baz')
+    def initialize(bar = "baz")
       @bar = bar
     end
     def inspect

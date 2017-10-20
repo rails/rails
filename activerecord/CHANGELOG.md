@@ -1,668 +1,321 @@
-*   Correctly dump `serial` and `bigserial`.
+*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
+    ar_internal_metadata's data for a test database.
+
+    Before:
+    ```
+    $ RAILS_ENV=test rails dbconsole
+    > SELECT * FROM ar_internal_metadata;
+    key|value|created_at|updated_at
+    environment|development|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
+    ```
+
+    After:
+    ```
+    $ RAILS_ENV=test rails dbconsole
+    > SELECT * FROM ar_internal_metadata;
+    key|value|created_at|updated_at
+    environment|test|2017-09-11 23:14:10.815679|2017-09-11 23:14:10.815679
+    ```
+
+    Fixes #26731.
+
+    *bogdanvlviv*
+
+*   Fix longer sequence name detection for serial columns.
+
+    Fixes #28332.
 
     *Ryuta Kamizono*
 
-*   Fix default `format` value in `ActiveRecord::Tasks::DatabaseTasks#schema_file`.
+*   MySQL: Don't lose `auto_increment: true` in the `db/schema.rb`.
 
-    *James Cox*
-
-*   Dont enroll records in the transaction if they dont have commit callbacks.
-    That was causing a memory grow problem when creating a lot of records inside a transaction.
-
-    Fixes #15549.
-
-    *Will Bryant*, *Aaron Patterson*
-
-*   Correctly create through records when created on a has many through
-    association when using `where`.
-
-    Fixes #19073.
-
-    *Sean Griffin*
-
-*   Add `SchemaMigration.create_table` support any unicode charsets for MySQL.
+    Fixes #30894.
 
     *Ryuta Kamizono*
 
-*   PostgreSQL, no longer disables user triggers if system triggers can't be
-    disabled. Disabling user triggers does not fulfill what the method promises.
-    Rails currently requires superuser privileges for this method.
+*   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
 
-    If you absolutely rely on this behavior, consider patching
-    `disable_referential_integrity`.
-
-    *Yves Senn*
-
-*   Restore aborted transaction state when `disable_referential_integrity` fails
-    due to missing permissions.
-
-    *Toby Ovod-Everett*, *Yves Senn*
-
-*   PostgreSQL, print warning message if `disable_referential_integrity` fails
-    due to missing permissions.
-
-    *Andrey Nering*, *Yves Senn*
-
-*   Allow `:limit` option for MySQL bigint primary key support.
-
-    Example:
-
-        create_table :foos, id: :primary_key, limit: 8 do |t|
-        end
-
-        # or
-
-        create_table :foos, id: false do |t|
-          t.primary_key :id, limit: 8
-        end
+    Fixes #30886.
 
     *Ryuta Kamizono*
 
-*   `belongs_to` will now trigger a validation error by default if the association is not present.
-    You can turn this off on a per-association basis with `optional: true`.
-    (Note this new default only applies to new Rails apps that will be generated with
-    `config.active_record.belongs_to_required_by_default = true` in initializer.)
+*   PostgreSQL `tsrange` now preserves subsecond precision.
 
-    *Josef Šimánek*
+    PostgreSQL 9.1+ introduced range types, and Rails added support for using
+    this datatype in Active Record. However, the serialization of
+    `PostgreSQL::OID::Range` was incomplete, because it did not properly
+    cast the bounds that make up the range. This led to subseconds being
+    dropped in SQL commands:
 
-*   Fixed ActiveRecord::Relation#becomes! and changed_attributes issues for type
-    column.
+    Before:
 
-    Fixes #17139.
+        connection.type_cast(tsrange.serialize(range_value))
+        # => "[2010-01-01 13:30:00 UTC,2011-02-02 19:30:00 UTC)"
 
-    *Miklos Fazekas*
+    Now:
 
-*   Format the time string according to the precision of the time column.
+        connection.type_cast(tsrange.serialize(range_value))
+        # => "[2010-01-01 13:30:00.670277,2011-02-02 19:30:00.745125)"
+
+    *Thomas Cannon*
+
+*   Passing a `Set` to `Relation#where` now behaves the same as passing an
+    array.
+
+    *Sean Griffin*
+
+*   Use given algorithm while removing index from database.
+
+    Fixes #24190.
+
+    *Mehmet Emin İNAÇ*
+
+*   Update payload names for `sql.active_record` instrumentation to be
+    more descriptive.
+
+    Fixes #30586.
+
+    *Jeremy Green*
+
+*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
+    when lock wait time expires.
+
+    *Gabriel Courtemanche*
+
+*   Remove deprecated `#migration_keys`.
 
     *Ryuta Kamizono*
 
-*   Allow `:precision` option for time type columns.
+*   Automatically guess the inverse associations for STI.
+
+    *Yuichiro Kaneko*
+
+*   Ensure `sum` honors `distinct` on `has_many :through` associations
+
+    Fixes #16791.
+
+    *Aaron Wortham*
+
+*   Add `binary` fixture helper method.
+
+    *Atsushi Yoshida*
+
+*   When using `Relation#or`, extract the common conditions and put them before the OR condition.
+
+    *Maxime Handfield Lapointe*
+
+*   `Relation#or` now accepts two relations who have different values for
+    `references` only, as `references` can be implicitly called by `where`.
+
+    Fixes #29411.
+
+    *Sean Griffin*
+
+*   `ApplicationRecord` is no longer generated when generating models. If you
+    need to generate it, it can be created with `rails g application_record`.
+
+    *Lisa Ugray*
+
+*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT` to keep the existing select list.
 
     *Ryuta Kamizono*
 
-*   Add `ActiveRecord::Base.suppress` to prevent the receiver from being saved
-    during the given block.
+*   When a `has_one` association is destroyed by `dependent: destroy`,
+    `destroyed_by_association` will now be set to the reflection, matching the
+    behaviour of `has_many` associations.
 
-    For example, here's a pattern of creating notifications when new comments
-    are posted. (The notification may in turn trigger an email, a push
-    notification, or just appear in the UI somewhere):
+    *Lisa Ugray*
 
-        class Comment < ActiveRecord::Base
-          belongs_to :commentable, polymorphic: true
-          after_create -> { Notification.create! comment: self,
-            recipients: commentable.recipients }
-        end
+*   Fix `unscoped(where: [columns])` removing the wrong bind values
 
-    That's what you want the bulk of the time. New comment creates a new
-    Notification. But there may well be off cases, like copying a commentable
-    and its comments, where you don't want that. So you'd have a concern
-    something like this:
+    When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
+    bind values used by the `or` instead. (possibly other cases too)
 
-        module Copyable
-          def copy_to(destination)
-            Notification.suppress do
-              # Copy logic that creates new comments that we do not want triggering
-              # notifications.
-            end
-          end
-        end
+    ```
+    Post.where(id: 1).or(Post.where(id: 2)).where(foo: 3).unscope(where: :foo).to_sql
+    # Currently:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 2 OR "posts"."id" = 3)
+    # With fix:
+    #     SELECT "posts".* FROM "posts" WHERE ("posts"."id" = 1 OR "posts"."id" = 2)
+    ```
 
-    *Michael Ryan*
+    *Maxime Handfield Lapointe*
 
-*   `:time` option added for `#touch`.
-
-    Fixes #18905.
-
-    *Hyonjee Joo*
-
-*   Deprecated passing of `start` value to `find_in_batches` and `find_each`
-    in favour of `begin_at` value.
-
-    *Vipul A M*
-
-*   Add `foreign_key_exists?` method.
-
-    *Tõnis Simo*
-
-*   Use SQL COUNT and LIMIT 1 queries for `none?` and `one?` methods if no block or limit is given,
-    instead of loading the entire collection to memory.
-    This applies to relations (e.g. `User.all`) as well as associations (e.g. `account.users`)
-
-        # Before:
-
-        users.none?
-        # SELECT "users".* FROM "users"
-
-        users.one?
-        # SELECT "users".* FROM "users"
-
-        # After:
-
-        users.none?
-        # SELECT 1 AS one FROM "users" LIMIT 1
-
-        users.one?
-        # SELECT COUNT(*) FROM "users"
-
-    *Eugene Gilburg*
-
-*   Have `enum` perform type casting consistently with the rest of Active
-    Record, such as `where`.
+*   Values constructed using multi-parameter assignment will now use the
+    post-type-cast value for rendering in single-field form inputs.
 
     *Sean Griffin*
 
-*   `scoping` no longer pollutes the current scope of sibling classes when using
-    STI. e.x.
+*   `Relation#joins` is no longer affected by the target model's
+    `current_scope`, with the exception of `unscoped`.
 
-        StiOne.none.scoping do
-          StiTwo.all
-        end
-
-    Fixes #18806.
+    Fixes #29338.
 
     *Sean Griffin*
 
-*   `remove_reference` with `foreign_key: true` removes the foreign key before
-    removing the column. This fixes a bug where it was not possible to remove
-    the column on MySQL.
+*   Change sqlite3 boolean serialization to use 1 and 0
 
-    Fixes #18664.
+    SQLite natively recognizes 1 and 0 as true and false, but does not natively
+    recognize 't' and 'f' as was previously serialized.
 
-    *Yves Senn*
+    This change in serialization requires a migration of stored boolean data
+    for SQLite databases, so it's implemented behind a configuration flag
+    whose default false value is deprecated.
 
-*   `find_in_batches` now accepts an `:end_at` parameter that complements the `:start`
-     parameter to specify where to stop batch processing.
+    *Lisa Ugray*
 
-    *Vipul A M*
+*   Skip query caching when working with batches of records (`find_each`, `find_in_batches`,
+    `in_batches`).
 
-*   Fix rounding problem for PostgreSQL timestamp column.
+    Previously, records would be fetched in batches, but all records would be retained in memory
+    until the end of the request or job.
 
-    If timestamp column have the precision, it need to format according to
-    the precision of timestamp column.
+    *Eugene Kenny*
+
+*   Prevent errors raised by `sql.active_record` notification subscribers from being converted into
+    `ActiveRecord::StatementInvalid` exceptions.
+
+    *Dennis Taylor*
+
+*   Fix eager loading/preloading association with scope including joins.
+
+    Fixes #28324.
 
     *Ryuta Kamizono*
 
-*   Respect the database default charset for `schema_migrations` table.
+*   Fix transactions to apply state to child transactions
 
-    The charset of `version` column in `schema_migrations` table is depend
-    on the database default charset and collation rather than the encoding
-    of the connection.
+    Previously, if you had a nested transaction and the outer transaction was rolledback, the record from the
+    inner transaction would still be marked as persisted.
+
+    This change fixes that by applying the state of the parent transaction to the child transaction when the
+    parent transaction is rolledback. This will correctly mark records from the inner transaction as not persisted.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate `set_state` method in `TransactionState`
+
+    Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
+    state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
+    `set_state(:rolledback)`, `set_state(:committed)`, or `set_state(nil)`.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   Deprecate delegating to `arel` in `Relation`.
 
     *Ryuta Kamizono*
 
-*   Raise `ArgumentError` when passing `nil` or `false` to `Relation#merge`.
-
-    These are not valid values to merge in a relation so it should warn the users
-    early.
-
-    *Rafael Mendonça França*
-
-*   Use `SCHEMA` instead of `DB_STRUCTURE` for specifying structure file.
-
-    This makes the db:structure tasks consistent with test:load_structure.
-
-    *Dieter Komendera*
-
-*   Respect custom primary keys for associations when calling `Relation#where`
-
-    Fixes #18813.
-
-    *Sean Griffin*
-
-*   Fixed several edge cases which could result in a counter cache updating
-    twice or not updating at all for `has_many` and `has_many :through`.
-
-    Fixes #10865.
-
-    *Sean Griffin*
-
-*   Foreign keys added by migrations were given random, generated names. This
-    meant a different `structure.sql` would be generated every time a developer
-    ran migrations on their machine.
-
-    The generated part of foreign key names is now a hash of the table name and
-    column name, which is consistent every time you run the migration.
-
-    *Chris Sinjakli*
-
-*   Validation errors would be raised for parent records when an association
-    was saved when the parent had `validate: false`. It should not be the
-    responsibility of the model to validate an associated object unless the
-    object was created or modified by the parent.
-
-    This fixes the issue by skipping validations if the parent record is
-    persisted, not changed, and not marked for destruction.
-
-    Fixes #17621.
-
-    *Eileen M. Uchitelle, Aaron Patterson*
-
-*   Fix n+1 query problem when eager loading nil associations (fixes #18312)
-
-    *Sammy Larbi*
-
-*   Change the default error message from `can't be blank` to `must exist` for
-    the presence validator of the `:required` option on `belongs_to`/`has_one` associations.
-
-    *Henrik Nygren*
-
-*   Fixed ActiveRecord::Relation#group method when argument is SQL reserved key word:
-
-    Example:
-
-        SplitTest.group(:key).count
-        Property.group(:value).count
-
-    *Bogdan Gusiev*
-
-*   Added the `#or` method on ActiveRecord::Relation, allowing use of the OR
-    operator to combine WHERE or HAVING clauses.
-
-    Example:
-
-        Post.where('id = 1').or(Post.where('id = 2'))
-        # => SELECT * FROM posts WHERE (id = 1) OR (id = 2)
-
-    *Sean Griffin*, *Matthew Draper*, *Gael Muller*, *Olivier El Mekki*
-
-*   Don't define autosave association callbacks twice from
-    `accepts_nested_attributes_for`.
-
-    Fixes #18704.
-
-    *Sean Griffin*
-
-*   Integer types will no longer raise a `RangeError` when assigning an
-    attribute, but will instead raise when going to the database.
-
-    Fixes several vague issues which were never reported directly. See the
-    commit message from the commit which added this line for some examples.
-
-    *Sean Griffin*
-
-*   Values which would error while being sent to the database (such as an
-    ASCII-8BIT string with invalid UTF-8 bytes on SQLite3), no longer error on
-    assignment. They will still error when sent to the database, but you are
-    given the ability to re-assign it to a valid value.
-
-    Fixes #18580.
-
-    *Sean Griffin*
-
-*   Don't remove join dependencies in `Relation#exists?`
-
-    Fixes #18632.
-
-    *Sean Griffin*
-
-*   Invalid values assigned to a JSON column are assumed to be `nil`.
-
-    Fixes #18629.
-
-    *Sean Griffin*
-
-*   Add `ActiveRecord::Base#accessed_fields`, which can be used to quickly
-    discover which fields were read from a model when you are looking to only
-    select the data you need from the database.
-
-    *Sean Griffin*
-
-*   Introduce the `:if_exists` option for `drop_table`.
-
-    Example:
-
-        drop_table(:posts, if_exists: true)
-
-    That would execute:
-
-        DROP TABLE IF EXISTS posts
-
-    If the table doesn't exist, `if_exists: false` (the default) raises an
-    exception whereas `if_exists: true` does nothing.
-
-    *Cody Cutrer*, *Stefan Kanev*, *Ryuta Kamizono*
-
-*   Don't run SQL if attribute value is not changed for update_attribute method.
-
-    *Prathamesh Sonpatki*
-
-*   `time` columns can now get affected by `time_zone_aware_attributes`. If you have
-    set `config.time_zone` to a value other than `'UTC'`, they will be treated
-    as in that time zone by default in Rails 5.1. If this is not the desired
-    behavior, you can set
-
-        ActiveRecord::Base.time_zone_aware_types = [:datetime]
-
-    A deprecation warning will be emitted if you have a `:time` column, and have
-    not explicitly opted out.
-
-    Fixes #3145.
-
-    *Sean Griffin*
-
-*   Tests now run after_commit callbacks. You no longer have to declare
-    `uses_transaction ‘test name’` to test the results of an after_commit.
-
-    after_commit callbacks run after committing a transaction whose parent
-    is not `joinable?`: un-nested transactions, transactions within test cases,
-    and transactions in `console --sandbox`.
-
-    *arthurnn*, *Ravil Bayramgalin*, *Matthew Draper*
-
-*   `nil` as a value for a binary column in a query no longer logs as
-    "<NULL binary data>", and instead logs as just "nil".
-
-    *Sean Griffin*
-
-*   `attribute_will_change!` will no longer cause non-persistable attributes to
-    be sent to the database.
-
-    Fixes #18407.
-
-    *Sean Griffin*
-
-*   Remove support for the `protected_attributes` gem.
-
-    *Carlos Antonio da Silva*, *Roberto Miranda*
-
-*   Fix accessing of fixtures having non-string labels like Fixnum.
-
-    *Prathamesh Sonpatki*
-
-*   Remove deprecated support to preload instance-dependent associations.
-
-    *Yves Senn*
-
-*   Remove deprecated support for PostgreSQL ranges with exclusive lower bounds.
-
-    *Yves Senn*
-
-*   Remove deprecation when modifying a relation with cached arel.
-    This raises an `ImmutableRelation` error instead.
-
-    *Yves Senn*
-
-*   Added `ActiveRecord::SecureToken` in order to encapsulate generation of
-    unique tokens for attributes in a model using `SecureRandom`.
-
-    *Roberto Miranda*
-
-*   Change the behavior of boolean columns to be closer to Ruby's semantics.
-
-    Before this change we had a small set of "truthy", and all others are "falsy".
-
-    Now, we have a small set of "falsy" values and all others are "truthy" matching
-    Ruby's semantics.
-
-    *Rafael Mendonça França*
-
-*   Deprecate `ActiveRecord::Base.errors_in_transactional_callbacks=`.
-
-    *Rafael Mendonça França*
-
-*   Change transaction callbacks to not swallow errors.
-
-    Before this change any errors raised inside a transaction callback
-    were getting rescued and printed in the logs.
-
-    Now these errors are not rescued anymore and just bubble up, as the other callbacks.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `sanitize_sql_hash_for_conditions`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `Reflection#source_macro`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `symbolized_base_class` and `symbolized_sti_name`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `ActiveRecord::Base.disable_implicit_join_references=`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated access to connection specification using a string accessor.
-
-    Now all strings will be handled as a URL.
-
-    *Rafael Mendonça França*
-
-*   Change the default `null` value for `timestamps` to `false`.
-
-    *Rafael Mendonça França*
-
-*   Return an array of pools from `connection_pools`.
-
-    *Rafael Mendonça França*
-
-*   Return a null column from `column_for_attribute` when no column exists.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated `serialized_attributes`.
-
-    *Rafael Mendonça França*
-
-*   Remove deprecated automatic counter caches on `has_many :through`.
-
-    *Rafael Mendonça França*
-
-*   Change the way in which callback chains can be halted.
-
-    The preferred method to halt a callback chain from now on is to explicitly
-    `throw(:abort)`.
-    In the past, returning `false` in an ActiveRecord `before_` callback had the
-    side effect of halting the callback chain.
-    This is not recommended anymore and, depending on the value of the
-    `config.active_support.halt_callback_chains_on_return_false` option, will
-    either not work at all or display a deprecation warning.
-
-    *claudiob*
-
-*   Clear query cache on rollback.
-
-    *Florian Weingarten*
-
-*   Fixed setting of foreign_key for through associations while building of new record.
-
-    Fixes #12698.
-
-    *Ivan Antropov*
-
-*   Improve a dump of the primary key support. If it is not a default primary key,
-    correctly dump the type and options.
-
-    Fixes #14169, #16599.
+*   Fix eager loading to respect `store_full_sti_class` setting.
 
     *Ryuta Kamizono*
 
-*   Format the datetime string according to the precision of the datetime field.
+*   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
+    without being connected.
 
-    Incompatible to rounding behavior between MySQL 5.6 and earlier.
+    *Tsukasa Oishi*
 
-    In 5.5, when you insert `2014-08-17 12:30:00.999999` the fractional part
-    is ignored. In 5.6, it's rounded to `2014-08-17 12:30:01`:
+*   Previously, when building records using a `has_many :through` association,
+    if the child records were deleted before the parent was saved, they would
+    still be persisted. Now, if child records are deleted before the parent is saved
+    on a `has_many :through` association, the child records will not be persisted.
 
-    http://bugs.mysql.com/bug.php?id=68760
+    *Tobias Kraze*
 
-    *Ryuta Kamizono*
+*   Merging two relations representing nested joins no longer transforms the joins of
+    the merged relation into LEFT OUTER JOIN. Example to clarify:
 
-*   Allow precision option for MySQL datetimes.
+    ```
+    Author.joins(:posts).merge(Post.joins(:comments))
+    # Before the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... LEFT OUTER JOIN comments ON...
 
-    *Ryuta Kamizono*
+    # After the change:
+    #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
+    ```
 
-*   Fixed automatic inverse_of for models nested in module.
+    TODO: Add to the Rails 5.2 upgrade guide
 
-    *Andrew McCloud*
+    *Maxime Handfield Lapointe*
 
-*   Change `ActiveRecord::Relation#update` behavior so that it can
-    be called without passing ids of the records to be updated.
+*   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
+    `locking_column`, without default value, is null in the database.
 
-    This change allows to update multiple records returned by
-    `ActiveRecord::Relation` with callbacks and validations.
+    *bogdanvlviv*
 
-        # Before
-        # ArgumentError: wrong number of arguments (1 for 2)
-        Comment.where(group: 'expert').update(body: "Group of Rails Experts")
+*   Fix destroying existing object does not work well when optimistic locking enabled and
+    `locking_column` is null in the database.
 
-        # After
-        # Comments with group expert updated with body "Group of Rails Experts"
-        Comment.where(group: 'expert').update(body: "Group of Rails Experts")
+    *bogdanvlviv*
 
-    *Prathamesh Sonpatki*
+*   Use bulk INSERT to insert fixtures for better performance.
 
-*   Fix `reaping_frequency` option when the value is a string.
+    *Kir Shatrov*
 
-    This usually happens when it is configured using `DATABASE_URL`.
-
-    *korbin*
-
-*   Fix error message when trying to create an associated record and the foreign
-    key is missing.
-
-    Before this fix the following exception was being raised:
-
-        NoMethodError: undefined method `val' for #<Arel::Nodes::BindParam:0x007fc64d19c218>
-
-    Now the message is:
-
-        ActiveRecord::UnknownAttributeError: unknown attribute 'foreign_key' for Model.
-
-    *Rafael Mendonça França*
-
-*   When a table has a composite primary key, the `primary_key` method for
-    SQLite3 and PostgreSQL adapters was only returning the first field of the key.
-    Ensures that it will return nil instead, as Active Record doesn't support
-    composite primary keys.
-
-    Fixes #18070.
-
-    *arthurnn*
-
-*   `validates_size_of` / `validates_length_of` do not count records,
-    which are `marked_for_destruction?`.
-
-    Fixes #7247.
-
-    *Yves Senn*
-
-*   Ensure `first!` and friends work on loaded associations.
-
-    Fixes #18237.
-
-    *Sean Griffin*
-
-*   `eager_load` preserves readonly flag for associations.
-
-    Closes #15853.
-
-    *Takashi Kokubun*
-
-*   Provide `:touch` option to `save()` to accommodate saving without updating
-    timestamps.
-
-    Fixes #18202.
-
-    *Dan Olson*
-
-*   Provide a more helpful error message when an unsupported class is passed to
-    `serialize`.
-
-    Fixes #18224.
-
-    *Sean Griffin*
-
-*   Add bigint primary key support for MySQL.
-
-    Example:
-
-        create_table :foos, id: :bigint do |t|
-        end
+*   Prevent creation of bind param if casted value is nil.
 
     *Ryuta Kamizono*
 
-*   Support for any type primary key.
-
-    Fixes #14194.
+*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
 
     *Ryuta Kamizono*
 
-*   Dump the default `nil` for PostgreSQL UUID primary key.
+*   Loading model schema from database is now thread-safe.
+
+    Fixes #28589.
+
+    *Vikrant Chaudhary*, *David Abdemoulaie*
+
+*   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
+    in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
+    that does not include a timestamp any more.
+
+    NOTE: This feature is turned off by default, and `#cache_key` will still return cache keys with timestamps
+    until you set `ActiveRecord::Base.cache_versioning = true`. That's the setting for all new apps on Rails 5.2+
+
+    *DHH*
+
+*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
+
+    *Rusty Geldmacher*, *Guillermo Iguaran*
+
+*   Add type caster to `RuntimeReflection#alias_name`
+
+    Fixes #28959.
+
+    *Jon Moss*
+
+*   Deprecate `supports_statement_cache?`.
 
     *Ryuta Kamizono*
 
-*   Add a `:foreign_key` option to `references` and associated migration
-    methods. The model and migration generators now use this option, rather than
-    the `add_foreign_key` form.
+*   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
 
-    *Sean Griffin*
+    *Rune Philosof*
 
-*   Don't raise when writing an attribute with an out-of-range datetime passed
-    by the user.
+*   Raise error `UnknownMigrationVersionError` on the movement of migrations
+    when the current migration does not exist.
 
-    *Grey Baker*
+    *bogdanvlviv*
 
-*   Replace deprecated `ActiveRecord::Tasks::DatabaseTasks#load_schema` with
-    `ActiveRecord::Tasks::DatabaseTasks#load_schema_for`.
+*   Fix `bin/rails db:forward` first migration.
 
-    *Yves Senn*
+    *bogdanvlviv*
 
-*   Fixes bug with 'ActiveRecord::Type::Numeric' that causes negative values to
-    be marked as having changed when set to the same negative value.
+*   Support Descending Indexes for MySQL.
 
-    Closes #18161.
-
-    *Daniel Fox*
-
-*   Introduce `force: :cascade` option for `create_table`. Using this option
-    will recreate tables even if they have dependent objects (like foreign keys).
-    `db/schema.rb` now uses `force: :cascade`. This makes it possible to
-    reload the schema when foreign keys are in place.
-
-    *Matthew Draper*, *Yves Senn*
-
-*   `db:schema:load` and `db:structure:load` no longer purge the database
-    before loading the schema. This is left for the user to do.
-    `db:test:prepare` will still purge the database.
-
-    Closes #17945.
-
-    *Yves Senn*
-
-*   Fix undesirable RangeError by `Type::Integer`. Add `Type::UnsignedInteger`.
+    MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.
+    See https://dev.mysql.com/doc/refman/8.0/en/descending-indexes.html.
 
     *Ryuta Kamizono*
 
-*   Add `foreign_type` option to `has_one` and `has_many` association macros.
+*   Fix inconsistency with changed attributes when overriding AR attribute reader.
 
-    This option enables to define the column name of associated object's type for polymorphic associations.
+    *bogdanvlviv*
 
-    *Ulisses Almeida*, *Kassio Borges*
+*   When calling the dynamic fixture accessor method with no arguments, it now returns all fixtures of this type.
+    Previously this method always returned an empty array.
 
-*   Remove deprecated behavior allowing nested arrays to be passed as query
-    values.
+    *Kevin McPhillips*
 
-    *Melanie Gilman*
 
-*   Deprecate passing a class as a value in a query. Users should pass strings
-    instead.
-
-    *Melanie Gilman*
-
-*   `add_timestamps` and `remove_timestamps` now properly reversible with
-    options.
-
-    *Noam Gagliardi-Rabinovich*
-
-*   `ActiveRecord::ConnectionAdapters::ColumnDumper#column_spec` and
-    `ActiveRecord::ConnectionAdapters::ColumnDumper#prepare_column_options` no
-    longer have a `types` argument. They should access
-    `connection#native_database_types` directly.
-
-    *Yves Senn*
-
-Please check [4-2-stable](https://github.com/rails/rails/blob/4-2-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.

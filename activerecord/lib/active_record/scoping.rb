@@ -1,4 +1,6 @@
-require 'active_support/per_thread_registry'
+# frozen_string_literal: true
+
+require "active_support/per_thread_registry"
 
 module ActiveRecord
   module Scoping
@@ -10,24 +12,34 @@ module ActiveRecord
     end
 
     module ClassMethods
-      def current_scope #:nodoc:
-        ScopeRegistry.value_for(:current_scope, self.to_s)
+      def current_scope(skip_inherited_scope = false) # :nodoc:
+        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
       end
 
       def current_scope=(scope) #:nodoc:
-        ScopeRegistry.set_value_for(:current_scope, self.to_s, scope)
+        ScopeRegistry.set_value_for(:current_scope, self, scope)
+      end
+
+      # Collects attributes from scopes that should be applied when creating
+      # an AR instance for the particular class this is called on.
+      def scope_attributes # :nodoc:
+        all.scope_for_create
+      end
+
+      # Are there attributes associated with this scope?
+      def scope_attributes? # :nodoc:
+        current_scope
       end
     end
 
-    def populate_with_current_scope_attributes
+    def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att,value|
-        send("#{att}=", value) if respond_to?("#{att}=")
-      end
+      attributes = self.class.scope_attributes
+      _assign_attributes(attributes) if attributes.any?
     end
 
-    def initialize_internals_callback
+    def initialize_internals_callback # :nodoc:
       super
       populate_with_current_scope_attributes
     end
@@ -42,18 +54,18 @@ module ActiveRecord
     # following code:
     #
     #   registry = ActiveRecord::Scoping::ScopeRegistry
-    #   registry.set_value_for(:current_scope, "Board", some_new_scope)
+    #   registry.set_value_for(:current_scope, Board, some_new_scope)
     #
     # Now when you run:
     #
-    #   registry.value_for(:current_scope, "Board")
+    #   registry.value_for(:current_scope, Board)
     #
-    # You will obtain whatever was defined in +some_new_scope+. The +value_for+
-    # and +set_value_for+ methods are delegated to the current +ScopeRegistry+
+    # You will obtain whatever was defined in +some_new_scope+. The #value_for
+    # and #set_value_for methods are delegated to the current ScopeRegistry
     # object, so the above example code can also be called as:
     #
     #   ActiveRecord::Scoping::ScopeRegistry.set_value_for(:current_scope,
-    #       "Board", some_new_scope)
+    #       Board, some_new_scope)
     class ScopeRegistry # :nodoc:
       extend ActiveSupport::PerThreadRegistry
 
@@ -63,25 +75,32 @@ module ActiveRecord
         @registry = Hash.new { |hash, key| hash[key] = {} }
       end
 
-      # Obtains the value for a given +scope_name+ and +variable_name+.
-      def value_for(scope_type, variable_name)
+      # Obtains the value for a given +scope_type+ and +model+.
+      def value_for(scope_type, model, skip_inherited_scope = false)
         raise_invalid_scope_type!(scope_type)
-        @registry[scope_type][variable_name]
+        return @registry[scope_type][model.name] if skip_inherited_scope
+        klass = model
+        base = model.base_class
+        while klass <= base
+          value = @registry[scope_type][klass.name]
+          return value if value
+          klass = klass.superclass
+        end
       end
 
-      # Sets the +value+ for a given +scope_type+ and +variable_name+.
-      def set_value_for(scope_type, variable_name, value)
+      # Sets the +value+ for a given +scope_type+ and +model+.
+      def set_value_for(scope_type, model, value)
         raise_invalid_scope_type!(scope_type)
-        @registry[scope_type][variable_name] = value
+        @registry[scope_type][model.name] = value
       end
 
       private
 
-      def raise_invalid_scope_type!(scope_type)
-        if !VALID_SCOPE_TYPES.include?(scope_type)
-          raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
+        def raise_invalid_scope_type!(scope_type)
+          if !VALID_SCOPE_TYPES.include?(scope_type)
+            raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
+          end
         end
-      end
     end
   end
 end

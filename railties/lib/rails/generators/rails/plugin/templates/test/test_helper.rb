@@ -1,11 +1,8 @@
-# Configure Rails Environment
-ENV["RAILS_ENV"] = "test"
-
-require File.expand_path("../../<%= options[:dummy_path] -%>/config/environment.rb",  __FILE__)
+require_relative "<%= File.join('..', options[:dummy_path], 'config/environment') -%>"
 <% unless options[:skip_active_record] -%>
-ActiveRecord::Migrator.migrations_paths = [File.expand_path("../../<%= options[:dummy_path] -%>/db/migrate", __FILE__)]
+ActiveRecord::Migrator.migrations_paths = [File.expand_path("../<%= options[:dummy_path] -%>/db/migrate", __dir__)]
 <% if options[:mountable] -%>
-ActiveRecord::Migrator.migrations_paths << File.expand_path('../../db/migrate', __FILE__)
+ActiveRecord::Migrator.migrations_paths << File.expand_path('../db/migrate', __dir__)
 <% end -%>
 <% end -%>
 require "rails/test_help"
@@ -14,12 +11,17 @@ require "rails/test_help"
 # to be shown.
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
-# Load support files
-Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each { |f| require f }
+<% unless engine? -%>
+require "rails/test_unit/reporter"
+Rails::TestUnitReporter.executable = 'bin/test'
+<% end -%>
 
+<% unless options[:skip_active_record] -%>
 # Load fixtures from the engine
 if ActiveSupport::TestCase.respond_to?(:fixture_path=)
-  ActiveSupport::TestCase.fixture_path = File.expand_path("../fixtures", __FILE__)
-  ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "files"
+  ActiveSupport::TestCase.fixture_path = File.expand_path("fixtures", __dir__)
+  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  ActiveSupport::TestCase.file_fixture_path = ActiveSupport::TestCase.fixture_path + "/files"
   ActiveSupport::TestCase.fixtures :all
 end
+<% end -%>

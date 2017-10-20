@@ -1,4 +1,26 @@
+# frozen_string_literal: true
+
 module AbstractController
+  # = Abstract Controller Callbacks
+  #
+  # Abstract Controller provides hooks during the life cycle of a controller action.
+  # Callbacks allow you to trigger logic during this cycle. Available callbacks are:
+  #
+  # * <tt>after_action</tt>
+  # * <tt>append_after_action</tt>
+  # * <tt>append_around_action</tt>
+  # * <tt>append_before_action</tt>
+  # * <tt>around_action</tt>
+  # * <tt>before_action</tt>
+  # * <tt>prepend_after_action</tt>
+  # * <tt>prepend_around_action</tt>
+  # * <tt>prepend_before_action</tt>
+  # * <tt>skip_after_action</tt>
+  # * <tt>skip_around_action</tt>
+  # * <tt>skip_before_action</tt>
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  #
   module Callbacks
     extend ActiveSupport::Concern
 
@@ -9,12 +31,12 @@ module AbstractController
 
     included do
       define_callbacks :process_action,
-                       terminator: ->(controller, result_lambda) { result_lambda.call if result_lambda.is_a?(Proc); controller.response_body },
+                       terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
                        skip_after_callbacks_if_terminated: true
     end
 
-    # Override AbstractController::Base's process_action to run the
-    # process_action callbacks around the normal behavior.
+    # Override <tt>AbstractController::Base#process_action</tt> to run the
+    # <tt>process_action</tt> callbacks around the normal behavior.
     def process_action(*args)
       run_callbacks(:process_action) do
         super
@@ -39,8 +61,8 @@ module AbstractController
       #   except: :index, if: -> { true } # the :except option will be ignored.
       #
       # ==== Options
-      # * <tt>only</tt>   - The callback should be run only for this action
-      # * <tt>except</tt>  - The callback should be run for all actions except this action
+      # * <tt>only</tt>   - The callback should be run only for this action.
+      # * <tt>except</tt>  - The callback should be run for all actions except this action.
       def _normalize_callback_options(options)
         _normalize_callback_option(options, :only, :if)
         _normalize_callback_option(options, :except, :unless)
@@ -48,28 +70,10 @@ module AbstractController
 
       def _normalize_callback_option(options, from, to) # :nodoc:
         if from = options[from]
-          from = Array(from).map {|o| "action_name == '#{o}'"}.join(" || ")
+          _from = Array(from).map(&:to_s).to_set
+          from = proc { |c| _from.include? c.action_name }
           options[to] = Array(options[to]).unshift(from)
         end
-      end
-
-      # Skip before, after, and around action callbacks matching any of the names.
-      #
-      # ==== Parameters
-      # * <tt>names</tt> - A list of valid names that could be used for
-      #   callbacks. Note that skipping uses Ruby equality, so it's
-      #   impossible to skip a callback defined using an anonymous proc
-      #   using #skip_action_callback
-      def skip_action_callback(*names)
-        ActiveSupport::Deprecation.warn('`skip_action_callback` is deprecated and will be removed in the next major version of Rails. Please use skip_before_action, skip_after_action or skip_around_action instead.')
-        skip_before_action(*names)
-        skip_after_action(*names)
-        skip_around_action(*names)
-      end
-
-      def skip_filter(*names)
-        ActiveSupport::Deprecation.warn("`skip_filter` is deprecated and will be removed in Rails 5.1. Use skip_before_action, skip_after_action or skip_around_action instead.")
-        skip_action_callback(*names)
       end
 
       # Take callback names and an optional callback proc, normalize them,
@@ -82,8 +86,8 @@ module AbstractController
       # * <tt>block</tt>    - A proc that should be added to the callbacks.
       #
       # ==== Block Parameters
-      # * <tt>name</tt>     - The callback to be added
-      # * <tt>options</tt>  - A hash of options to be used when adding the callback
+      # * <tt>name</tt>     - The callback to be added.
+      # * <tt>options</tt>  - A hash of options to be used when adding the callback.
       def _insert_callbacks(callbacks, block = nil)
         options = callbacks.extract_options!
         _normalize_callback_options(options)
@@ -186,20 +190,10 @@ module AbstractController
           end
         end
 
-        define_method "#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("#{callback}_filter is deprecated and will be removed in Rails 5.1. Use #{callback}_action instead.")
-          send("#{callback}_action", *names, &blk)
-        end
-
         define_method "prepend_#{callback}_action" do |*names, &blk|
           _insert_callbacks(names, blk) do |name, options|
-            set_callback(:process_action, callback, name, options.merge(:prepend => true))
+            set_callback(:process_action, callback, name, options.merge(prepend: true))
           end
-        end
-
-        define_method "prepend_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("prepend_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use prepend_#{callback}_action instead.")
-          send("prepend_#{callback}_action", *names, &blk)
         end
 
         # Skip a before, after or around callback. See _insert_callbacks
@@ -210,18 +204,8 @@ module AbstractController
           end
         end
 
-        define_method "skip_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("skip_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use skip_#{callback}_action instead.")
-          send("skip_#{callback}_action", *names, &blk)
-        end
-
         # *_action is the same as append_*_action
         alias_method :"append_#{callback}_action", :"#{callback}_action"
-
-        define_method "append_#{callback}_filter" do |*names, &blk|
-          ActiveSupport::Deprecation.warn("append_#{callback}_filter is deprecated and will be removed in Rails 5.1. Use append_#{callback}_action instead.")
-          send("append_#{callback}_action", *names, &blk)
-        end
       end
     end
   end

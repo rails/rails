@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Coders # :nodoc:
     class JSON # :nodoc:
@@ -6,7 +8,7 @@ module ActiveRecord
       end
 
       def self.load(json)
-        ActiveSupport::JSON.decode(json) unless json.nil?
+        ActiveSupport::JSON.decode(json) unless json.blank?
       end
     end
   end

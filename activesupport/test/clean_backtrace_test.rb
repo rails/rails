@@ -1,15 +1,17 @@
-require 'abstract_unit'
+# frozen_string_literal: true
+
+require "abstract_unit"
 
 class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_filter { |line| line.gsub("/my/prefix", '') }
+    @bc.add_filter { |line| line.gsub("/my/prefix", "") }
   end
 
   test "backtrace should filter all lines in a backtrace, removing prefixes" do
     assert_equal \
-        ["/my/class.rb", "/my/module.rb"],
-        @bc.clean(["/my/prefix/my/class.rb", "/my/prefix/my/module.rb"])
+      ["/my/class.rb", "/my/module.rb"],
+      @bc.clean(["/my/prefix/my/class.rb", "/my/prefix/my/module.rb"])
   end
 
   test "backtrace cleaner should allow removing filters" do
@@ -20,13 +22,12 @@ class BacktraceCleanerFilterTest < ActiveSupport::TestCase
   test "backtrace should contain unaltered lines if they dont match a filter" do
     assert_equal "/my/other_prefix/my/class.rb", @bc.clean([ "/my/other_prefix/my/class.rb" ]).first
   end
-
 end
 
 class BacktraceCleanerSilencerTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_silencer { |line| line =~ /mongrel/ }
+    @bc.add_silencer { |line| line.include?("mongrel") }
   end
 
   test "backtrace should not contain lines that match the silencer" do
@@ -44,8 +45,8 @@ end
 class BacktraceCleanerMultipleSilencersTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
-    @bc.add_silencer { |line| line =~ /mongrel/ }
-    @bc.add_silencer { |line| line =~ /yolo/ }
+    @bc.add_silencer { |line| line.include?("mongrel") }
+    @bc.add_silencer { |line| line.include?("yolo") }
   end
 
   test "backtrace should not contain lines that match the silencers" do
@@ -66,7 +67,7 @@ class BacktraceCleanerFilterAndSilencerTest < ActiveSupport::TestCase
   def setup
     @bc = ActiveSupport::BacktraceCleaner.new
     @bc.add_filter   { |line| line.gsub("/mongrel", "") }
-    @bc.add_silencer { |line| line =~ /mongrel/ }
+    @bc.add_silencer { |line| line.include?("mongrel") }
   end
 
   test "backtrace should not silence lines that has first had their silence hook filtered out" do

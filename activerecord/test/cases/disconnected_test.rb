@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class TestRecord < ActiveRecord::Base
 end
 
 class TestDisconnectedAdapter < ActiveRecord::TestCase
-  self.use_transactional_fixtures = false
+  self.use_transactional_tests = false
 
   def setup
     @connection = ActiveRecord::Base.connection
@@ -21,7 +23,9 @@ class TestDisconnectedAdapter < ActiveRecord::TestCase
       @connection.execute "SELECT count(*) from products"
       @connection.disconnect!
       assert_raises(ActiveRecord::StatementInvalid) do
-        @connection.execute "SELECT count(*) from products"
+        silence_warnings do
+          @connection.execute "SELECT count(*) from products"
+        end
       end
     end
   end
