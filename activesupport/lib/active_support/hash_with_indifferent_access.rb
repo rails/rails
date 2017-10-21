@@ -311,6 +311,16 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_keys!(*args, &block) }
     end
 
+    def slice(*keys)
+      keys.map! { |key| convert_key(key) }
+      self.class.new(super)
+    end
+
+    def slice!(*keys)
+      keys.map! { |key| convert_key(key) }
+      super
+    end
+
     def compact
       dup.tap(&:compact!)
     end
