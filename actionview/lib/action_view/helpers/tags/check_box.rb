@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "checkable"
+require "action_view/helpers/tags/checkable"
 
 module ActionView
   module Helpers

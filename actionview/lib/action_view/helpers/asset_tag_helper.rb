@@ -2,8 +2,8 @@
 
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
-require_relative "asset_url_helper"
-require_relative "tag_helper"
+require "action_view/helpers/asset_url_helper"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers

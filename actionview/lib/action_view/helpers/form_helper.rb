@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require "cgi"
-require_relative "date_helper"
-require_relative "tag_helper"
-require_relative "form_tag_helper"
-require_relative "active_model_helper"
-require_relative "../model_naming"
-require_relative "../record_identifier"
+require "action_view/helpers/date_helper"
+require "action_view/helpers/tag_helper"
+require "action_view/helpers/form_tag_helper"
+require "action_view/helpers/active_model_helper"
+require "action_view/model_naming"
+require "action_view/record_identifier"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/string/output_safety"

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "collection_helpers"
+require "action_view/helpers/tags/collection_helpers"
 
 module ActionView
   module Helpers
