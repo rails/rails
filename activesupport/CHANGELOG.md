@@ -1,3 +1,7 @@
+*   `Hash#slice` now falls back to Ruby 2.5+'s built-in definition if defined.
+
+    *Akira Matsuda*
+
 *   Deprecate `secrets.secret_token`.
 
     The architecture for secrets had a big upgrade between Rails 3 and Rails 4,

@@ -21,7 +21,7 @@ class Hash
   #   valid_keys = [:mass, :velocity, :time]
   #   search(options.slice(*valid_keys))
   def slice(*keys)
-    keys.each_with_object(self.class.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
+    keys.each_with_object(Hash.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
   end unless method_defined?(:slice)
 
   # Replaces the hash with only the given keys.
