@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require_relative "core"
-require_relative "queue_adapter"
-require_relative "queue_name"
-require_relative "queue_priority"
-require_relative "enqueuing"
-require_relative "execution"
-require_relative "callbacks"
-require_relative "exceptions"
-require_relative "logging"
-require_relative "translation"
+require "active_job/core"
+require "active_job/queue_adapter"
+require "active_job/queue_name"
+require "active_job/queue_priority"
+require "active_job/enqueuing"
+require "active_job/execution"
+require "active_job/callbacks"
+require "active_job/exceptions"
+require "active_job/logging"
+require "active_job/translation"
 
 module ActiveJob #:nodoc:
   # = Active Job
