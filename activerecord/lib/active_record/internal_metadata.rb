@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "scoping/default"
+require "active_record/scoping/default"
 require_relative "scoping/named"
 
 module ActiveRecord

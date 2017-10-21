@@ -2,7 +2,7 @@
 
 require "date"
 require_relative "../../inflector/methods"
-require_relative "../time/conversions"
+require "active_support/core_ext/time/conversions"
 require_relative "calculations"
 require_relative "../../values/time_zone"
 

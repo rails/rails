@@ -2,7 +2,7 @@
 
 require_relative "array/wrap"
 require_relative "array/access"
-require_relative "array/conversions"
+require "active_support/core_ext/array/conversions"
 require_relative "array/extract_options"
 require_relative "array/grouping"
 require_relative "array/prepend_and_append"
