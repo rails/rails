@@ -6,7 +6,7 @@ rescue LoadError => e
   $stderr.puts "You don't have nokogiri installed in your application. Please add it to your Gemfile and run bundle install"
   raise e
 end
-require_relative "../core_ext/object/blank"
+require "active_support/core_ext/object/blank"
 require "stringio"
 
 module ActiveSupport

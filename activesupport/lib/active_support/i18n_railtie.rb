@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support"
-require_relative "file_update_checker"
-require_relative "core_ext/array/wrap"
+require "active_support/file_update_checker"
+require "active_support/core_ext/array/wrap"
 
 # :enddoc:
 

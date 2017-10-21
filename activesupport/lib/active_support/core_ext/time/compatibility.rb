@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../date_and_time/compatibility"
-require_relative "../module/redefine_method"
+require "active_support/core_ext/date_and_time/compatibility"
+require "active_support/core_ext/module/redefine_method"
 
 class Time
   include DateAndTime::Compatibility

@@ -2,9 +2,9 @@
 
 require "openssl"
 require "base64"
-require_relative "core_ext/array/extract_options"
-require_relative "message_verifier"
-require_relative "messages/metadata"
+require "active_support/core_ext/array/extract_options"
+require "active_support/message_verifier"
+require "active_support/messages/metadata"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored

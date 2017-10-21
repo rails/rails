@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../core_ext/object/json"
-require_relative "../core_ext/module/delegation"
+require "active_support/core_ext/object/json"
+require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class << self

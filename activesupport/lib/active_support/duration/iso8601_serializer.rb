@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../core_ext/object/blank"
-require_relative "../core_ext/hash/transform_values"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/hash/transform_values"
 
 module ActiveSupport
   class Duration

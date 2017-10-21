@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "anonymous"
-require_relative "../string/inflections"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/string/inflections"
 
 class Module
   def reachable? #:nodoc:

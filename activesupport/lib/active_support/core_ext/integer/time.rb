@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../duration"
-require_relative "../numeric/time"
+require "active_support/duration"
+require "active_support/core_ext/numeric/time"
 
 class Integer
   # Enables the use of time calculations and declarations, like <tt>45.minutes +

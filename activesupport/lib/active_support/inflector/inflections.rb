@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require_relative "../core_ext/array/prepend_and_append"
-require_relative "../core_ext/regexp"
-require_relative "../i18n"
+require "active_support/core_ext/array/prepend_and_append"
+require "active_support/core_ext/regexp"
+require "active_support/i18n"
 
 module ActiveSupport
   module Inflector

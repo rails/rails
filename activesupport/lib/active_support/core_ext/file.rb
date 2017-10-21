@@ -1,3 +1,3 @@
 # frozen_string_literal: true
 
-require_relative "file/atomic"
+require "active_support/core_ext/file/atomic"
