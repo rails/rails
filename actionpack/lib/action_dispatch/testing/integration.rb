@@ -7,7 +7,7 @@ require "active_support/core_ext/object/try"
 require "rack/test"
 require "minitest"
 
-require_relative "request_encoder"
+require "action_dispatch/testing/request_encoder"
 
 module ActionDispatch
   module Integration #:nodoc:

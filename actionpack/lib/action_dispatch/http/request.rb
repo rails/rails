@@ -3,15 +3,15 @@
 require "stringio"
 
 require "active_support/inflector"
-require_relative "headers"
+require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
-require_relative "cache"
-require_relative "mime_negotiation"
-require_relative "parameters"
-require_relative "filter_parameters"
-require_relative "upload"
-require_relative "url"
+require "action_dispatch/http/cache"
+require "action_dispatch/http/mime_negotiation"
+require "action_dispatch/http/parameters"
+require "action_dispatch/http/filter_parameters"
+require "action_dispatch/http/upload"
+require "action_dispatch/http/url"
 require "active_support/core_ext/array/conversions"
 
 module ActionDispatch

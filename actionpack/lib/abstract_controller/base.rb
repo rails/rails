@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "error"
+require "abstract_controller/error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/module/anonymous"

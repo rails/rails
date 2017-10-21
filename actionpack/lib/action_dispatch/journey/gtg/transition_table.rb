@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../nfa/dot"
+require "action_dispatch/journey/nfa/dot"
 
 module ActionDispatch
   module Journey # :nodoc:

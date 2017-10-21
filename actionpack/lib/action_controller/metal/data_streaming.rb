@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "exceptions"
+require "action_controller/metal/exceptions"
 
 module ActionController #:nodoc:
   # Methods for sending arbitrary data and for streaming files to the browser,

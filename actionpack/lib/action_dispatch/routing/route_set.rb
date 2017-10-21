@@ -1,14 +1,14 @@
 # frozen_string_literal: true
 
-require_relative "../journey"
+require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
-require_relative "../http/request"
-require_relative "endpoint"
+require "action_dispatch/http/request"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
