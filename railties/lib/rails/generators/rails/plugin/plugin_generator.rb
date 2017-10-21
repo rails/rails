@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/slice"
 require "rails/generators/rails/app/app_generator"
 require "date"
 
@@ -93,7 +92,7 @@ task default: :test
     ]
 
     def generate_test_dummy(force = false)
-      opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
+      opts = (options.dup || {}).keep_if {|k, | PASSTHROUGH_OPTIONS.map(&:to_s).include?(k) }
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:skip_listen] = true
