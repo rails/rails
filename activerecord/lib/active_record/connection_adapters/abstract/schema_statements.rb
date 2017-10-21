@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../migration/join_table"
+require "active_record/migration/join_table"
 require "active_support/core_ext/string/access"
 require "digest/sha2"
 

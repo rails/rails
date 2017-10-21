@@ -189,7 +189,7 @@ db_namespace = namespace :db do
   namespace :fixtures do
     desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task load: [:environment, :load_config] do
-      require_relative "../fixtures"
+      require "active_record/fixtures"
 
       base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
 
@@ -211,7 +211,7 @@ db_namespace = namespace :db do
 
     # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
     task identify: [:environment, :load_config] do
-      require_relative "../fixtures"
+      require "active_record/fixtures"
 
       label, id = ENV["LABEL"], ENV["ID"]
       raise "LABEL or ID required" if label.blank? && id.blank?
@@ -237,7 +237,7 @@ db_namespace = namespace :db do
   namespace :schema do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: [:environment, :load_config] do
-      require_relative "../schema_dumper"
+      require "active_record/schema_dumper"
       filename = ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema.rb")
       File.open(filename, "w:utf-8") do |file|
         ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)

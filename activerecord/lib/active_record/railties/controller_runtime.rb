@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/attr_internal"
-require_relative "../log_subscriber"
+require "active_record/log_subscriber"
 
 module ActiveRecord
   module Railties # :nodoc:

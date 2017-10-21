@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "attribute_set/builder"
-require_relative "attribute_set/yaml_encoder"
+require "active_record/attribute_set/builder"
+require "active_record/attribute_set/yaml_encoder"
 
 module ActiveRecord
   class AttributeSet # :nodoc:
