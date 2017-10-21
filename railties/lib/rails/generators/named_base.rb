@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/module/introspection"
-require_relative "base"
-require_relative "generated_attribute"
+require "rails/generators/base"
+require "rails/generators/generated_attribute"
 
 module Rails
   module Generators

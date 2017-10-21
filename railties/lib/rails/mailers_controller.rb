@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "application_controller"
+require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH

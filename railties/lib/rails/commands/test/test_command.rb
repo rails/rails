@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../../command"
-require_relative "../../test_unit/runner"
-require_relative "../../test_unit/reporter"
+require "rails/command"
+require "rails/test_unit/runner"
+require "rails/test_unit/reporter"
 
 module Rails
   module Command

@@ -7,8 +7,8 @@ require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
 require "active_support/deprecation"
-require_relative "engine"
-require_relative "secrets"
+require "rails/engine"
+require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -474,7 +474,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require_relative "tasks"
+      require "rails/tasks"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
 

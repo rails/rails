@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../app_base"
+require "rails/generators/app_base"
 
 module Rails
   module ActionMethods # :nodoc:
@@ -161,7 +161,7 @@ module Rails
     def master_key
       return if options[:pretend]
 
-      require_relative "../master_key/master_key_generator"
+      require "rails/generators/rails/master_key/master_key_generator"
 
       after_bundle do
         Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet]).add_master_key_file
@@ -171,7 +171,7 @@ module Rails
     def credentials
       return if options[:pretend]
 
-      require_relative "../credentials/credentials_generator"
+      require "rails/generators/rails/credentials/credentials_generator"
 
       after_bundle do
         Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
@@ -559,7 +559,7 @@ module Rails
 
         def handle_version_request!(argument)
           if ["--version", "-v"].include?(argument)
-            require_relative "../../../version"
+            require "rails/version"
             puts "Rails #{Rails::VERSION::STRING}"
             exit(0)
           end

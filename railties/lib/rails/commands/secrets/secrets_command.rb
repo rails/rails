@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support"
-require_relative "../../secrets"
+require "rails/secrets"
 
 module Rails
   module Command
@@ -56,8 +56,8 @@ module Rails
 
       private
         def generator
-          require_relative "../../generators"
-          require_relative "../../generators/rails/encrypted_secrets/encrypted_secrets_generator"
+          require "rails/generators"
+          require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
 
           Rails::Generators::EncryptedSecretsGenerator
         end

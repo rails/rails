@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/slice"
-require_relative "../app/app_generator"
+require "rails/generators/rails/app/app_generator"
 require "date"
 
 module Rails

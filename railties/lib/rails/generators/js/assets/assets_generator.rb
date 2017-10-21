@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../named_base"
+require "rails/generators/named_base"
 
 module Js # :nodoc:
   module Generators # :nodoc:

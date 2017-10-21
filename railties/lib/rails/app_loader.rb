@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "pathname"
-require_relative "version"
+require "rails/version"
 
 module Rails
   module AppLoader # :nodoc:
@@ -56,7 +56,7 @@ EOS
             $stderr.puts(BUNDLER_WARNING)
             Object.const_set(:APP_PATH, File.expand_path("config/application", Dir.pwd))
             require File.expand_path("../boot", APP_PATH)
-            require_relative "commands"
+            require "rails/commands"
             break
           end
         end

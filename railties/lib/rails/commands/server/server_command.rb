@@ -6,7 +6,7 @@ require "action_dispatch"
 require "rails"
 require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
-require_relative "../../dev_caching"
+require "rails/dev_caching"
 
 module Rails
   class Server < ::Rack::Server

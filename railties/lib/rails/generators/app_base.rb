@@ -3,10 +3,10 @@
 require "fileutils"
 require "digest/md5"
 require "active_support/core_ext/string/strip"
-require_relative "../version" unless defined?(Rails::VERSION)
+require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
-require_relative "../generators"
+require "rails/generators"
 require "active_support/core_ext/array/extract_options"
 
 module Rails

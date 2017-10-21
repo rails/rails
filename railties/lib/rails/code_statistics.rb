@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "code_statistics_calculator"
+require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
 class CodeStatistics #:nodoc:
