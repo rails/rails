@@ -72,6 +72,22 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal 2736, @user.avatar.metadata[:height]
   end
 
+  test "analyze attached blob only once" do
+    blob = create_file_blob
+
+    perform_enqueued_jobs do
+      @user.avatar.attach blob
+    end
+
+    assert blob.reload.analyzed?
+
+    @user.avatar.attachment.destroy
+
+    assert_no_enqueued_jobs do
+      @user.reload.avatar.attach blob
+    end
+  end
+
   test "purge attached blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     avatar_key = @user.avatar.key
@@ -156,6 +172,25 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     assert_equal 640, @user.highlights.second.metadata[:width]
     assert_equal 480, @user.highlights.second.metadata[:height]
+  end
+
+  test "analyze attached blobs only once" do
+    blobs = [
+      create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg"),
+      create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+    ]
+
+    perform_enqueued_jobs do
+      @user.highlights.attach(blobs)
+    end
+
+    assert blobs.each(&:reload).all?(&:analyzed?)
+
+    @user.highlights.attachments.destroy_all
+
+    assert_no_enqueued_jobs do
+      @user.highlights.attach(blobs)
+    end
   end
 
   test "purge attached blobs" do
