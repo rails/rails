@@ -1,3 +1,10 @@
+*   Add `:allow_other_host` option to `redirect_back` method.
+    When `allow_other_host` is set to `false`, the `redirect_back`
+    will not allow a redirecting from a different host.
+    `allow_other_host` is `true` by default.
+
+    *Tim Masliuchenko*
+
 *   Add headless chrome support to System Tests.
 
     *Yuji Yaginuma*
