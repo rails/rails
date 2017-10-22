@@ -33,8 +33,8 @@ end
 
 require "tmpdir"
 ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
-ActiveStorage::Service.logger = ActiveSupport::Logger.new(nil)
 
+ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
@@ -46,9 +46,7 @@ class ActiveSupport::TestCase
     end
 
     def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-      ActiveStorage::Blob.create_after_upload! \
-        io: file_fixture(filename).open,
-        filename: filename, content_type: content_type
+      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type
     end
 
     def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain")

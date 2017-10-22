@@ -7,7 +7,7 @@ module ActiveStorage
     end
 
     def preview
-      open do |input|
+      download_blob_to_tempfile do |input|
         draw "mutool", "draw", "-F", "png", "-o", "-", input.path, "1" do |output|
           yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
         end

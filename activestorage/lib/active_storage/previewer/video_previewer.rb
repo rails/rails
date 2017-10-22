@@ -7,11 +7,17 @@ module ActiveStorage
     end
 
     def preview
-      open do |input|
-        draw "ffmpeg", "-i", input.path, "-y", "-vcodec", "png", "-vf", "thumbnail", "-vframes", "1", "-f", "image2", "-" do |output|
+      download_blob_to_tempfile do |input|
+        draw_relevant_frame_from input do |output|
           yield io: output, filename: "#{blob.filename.base}.png", content_type: "image/png"
         end
       end
     end
+
+    private
+      def draw_relevant_frame_from(file, &block)
+        draw "ffmpeg", "-i", file.path, "-y", "-vcodec", "png",
+          "-vf", "thumbnail", "-vframes", "1", "-f", "image2", "-", &block
+      end
   end
 end
