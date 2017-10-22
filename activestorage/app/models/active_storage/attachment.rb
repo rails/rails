@@ -30,6 +30,6 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   private
     def analyze_blob_later
-      blob.analyze_later unless blob.metadata.present?
+      blob.analyze_later unless blob.analyzed?
     end
 end

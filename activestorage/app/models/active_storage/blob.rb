@@ -22,7 +22,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
-  store :metadata, coder: JSON
+  store :metadata, accessors: [ :analyzed ], coder: JSON
 
   class_attribute :service
 
@@ -249,7 +249,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # You won't ordinarily need to call this method from a Rails application. New blobs are automatically and asynchronously
   # analyzed via #analyze_later when they're attached for the first time.
   def analyze
-    update! metadata: analyzer.metadata
+    update! metadata: extract_metadata_via_analyzer, analyzed: true
   end
 
   # Enqueues an ActiveStorage::AnalyzeJob which calls #analyze.
@@ -258,6 +258,11 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # again (e.g. if you add a new analyzer or modify an existing one).
   def analyze_later
     ActiveStorage::AnalyzeJob.perform_later(self)
+  end
+
+  # Returns true if the blob has been analyzed.
+  def analyzed?
+    analyzed
   end
 
 
@@ -293,6 +298,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
       end.base64digest
     end
 
+
+    def extract_metadata_via_analyzer
+      analyzer.metadata
+    end
 
     def analyzer
       analyzer_class.new(self)
