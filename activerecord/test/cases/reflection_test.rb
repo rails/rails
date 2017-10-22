@@ -25,7 +25,6 @@ require "models/chef"
 require "models/department"
 require "models/cake_designer"
 require "models/drink_designer"
-require "models/mocktail_designer"
 require "models/recipe"
 
 class ReflectionTest < ActiveRecord::TestCase
