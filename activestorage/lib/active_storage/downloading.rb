@@ -11,7 +11,7 @@ module ActiveStorage
         end
       end
 
-      # Efficiently download blob data into the given file.
+      # Efficiently downloads blob data into the given file.
       def download_blob_to(file) # :doc:
         file.binmode
         blob.download { |chunk| file.write(chunk) }
