@@ -98,11 +98,14 @@ module ActiveRecord
               still causes `String`s to be parsed as if they were in `Time.zone`,
               and `Time`s to be converted to `Time.zone`.
 
+              To silence this deprecation warning, add one of the following to your
+              initializer:
+
               To keep the old behavior, you must add the following to your initializer:
 
                   config.active_record.time_zone_aware_types = [:datetime]
 
-              To silence this deprecation warning, add the following:
+              Or, to use the new behavior, add the following:
 
                   config.active_record.time_zone_aware_types = [:datetime, :time]
             MESSAGE
