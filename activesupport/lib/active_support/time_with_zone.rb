@@ -132,7 +132,8 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
     #   Time.zone.now.zone # => "EST"
     def zone
-      period.zone_identifier.to_s
+      TimeWithZone.zone_identifier_cache[period.zone_identifier] ||=
+        period.zone_identifier.to_s
     end
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
@@ -217,7 +218,7 @@ module ActiveSupport
     # Replaces <tt>%Z</tt> directive with +zone before passing to Time#strftime,
     # so that zone information is correct.
     def strftime(format)
-      format = format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
+      format = TimeWithZone.strftime_format_cache[format] ||= format.gsub(/((?:\A|[^%])(?:%%)*)%Z/, "\\1#{zone}")
       getlocal(utc_offset).strftime(format)
     end
 
@@ -514,6 +515,17 @@ module ActiveSupport
     end
 
     private
+
+      class << self
+        def zone_identifier_cache
+          @_zone_identifier_cache ||= {}
+        end
+
+        def strftime_format_cache
+          @_strftime_format_cache ||= {}
+        end
+      end
+
       def get_period_and_ensure_valid_local_time(period)
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary
