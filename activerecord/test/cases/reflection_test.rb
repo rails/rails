@@ -253,32 +253,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
-  def test_scope_chain
-    expected = [
-      [Tagging.reflect_on_association(:tag).scope, Post.reflect_on_association(:first_blue_tags).scope],
-      [Post.reflect_on_association(:first_taggings).scope],
-      [Author.reflect_on_association(:misc_posts).scope]
-    ]
-    actual = assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags).scope_chain
-    end
-    assert_equal expected, actual
-
-    expected = [
-      [
-        Tagging.reflect_on_association(:blue_tag).scope,
-        Post.reflect_on_association(:first_blue_tags_2).scope,
-        Author.reflect_on_association(:misc_post_first_blue_tags_2).scope
-      ],
-      [],
-      []
-    ]
-    actual = assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
-    end
-    assert_equal expected, actual
-  end
-
   def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case
     @hotel = Hotel.create!
     @department = @hotel.departments.create!
@@ -415,26 +389,15 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
   end
 
-  def test_through_reflection_scope_chain_does_not_modify_other_reflections
-    orig_conds = assert_deprecated do
-      Post.reflect_on_association(:first_blue_tags_2).scope_chain
-    end.inspect
-    assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
-    end
-    assert_equal orig_conds, assert_deprecated {
-      Post.reflect_on_association(:first_blue_tags_2).scope_chain
-    }.inspect
-  end
-
   def test_symbol_for_class_name
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
   def test_class_for_class_name
-    assert_deprecated do
-      assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm), :validate?
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm)
     end
+    assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
   end
 
   def test_join_table

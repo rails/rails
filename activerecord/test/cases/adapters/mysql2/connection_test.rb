@@ -65,18 +65,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert @connection.active?
   end
 
-  def test_verify_with_args_is_deprecated
-    assert_deprecated do
-      @connection.verify!(option: true)
-    end
-    assert_deprecated do
-      @connection.verify!([])
-    end
-    assert_deprecated do
-      @connection.verify!({})
-    end
-  end
-
   def test_execute_after_disconnect
     @connection.disconnect!
 

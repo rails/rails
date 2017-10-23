@@ -83,23 +83,6 @@ module ActiveRecord
         end
       end
 
-      class QuotedOne
-        def quoted_id
-          1
-        end
-      end
-      class SubQuotedOne < QuotedOne
-      end
-      def test_quote_with_quoted_id
-        assert_deprecated(/defined on \S+::QuotedOne at .*quoting_test\.rb:[0-9]/) do
-          assert_equal 1, @quoter.quote(QuotedOne.new)
-        end
-
-        assert_deprecated(/defined on \S+::SubQuotedOne\(\S+::QuotedOne\) at .*quoting_test\.rb:[0-9]/) do
-          assert_equal 1, @quoter.quote(SubQuotedOne.new)
-        end
-      end
-
       def test_quote_nil
         assert_equal "NULL", @quoter.quote(nil)
       end
@@ -206,26 +189,6 @@ module ActiveRecord
       def test_type_cast_unknown_should_raise_error
         obj = Class.new.new
         assert_raise(TypeError) { @conn.type_cast(obj) }
-      end
-
-      def test_type_cast_object_which_responds_to_quoted_id
-        quoted_id_obj = Class.new {
-          def quoted_id
-            "'zomg'"
-          end
-
-          def id
-            10
-          end
-        }.new
-        assert_equal 10, @conn.type_cast(quoted_id_obj)
-
-        quoted_id_obj = Class.new {
-          def quoted_id
-            "'zomg'"
-          end
-        }.new
-        assert_raise(TypeError) { @conn.type_cast(quoted_id_obj) }
       end
     end
 

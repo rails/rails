@@ -76,26 +76,6 @@ module ActiveRecord
       # scope being ignored is error-worthy, rather than a warning.
       mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
 
-      def self.error_on_ignored_order_or_limit
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The flag error_on_ignored_order_or_limit is deprecated. Limits are
-          now supported. Please use error_on_ignored_order instead.
-        MSG
-        error_on_ignored_order
-      end
-
-      def error_on_ignored_order_or_limit
-        self.class.error_on_ignored_order_or_limit
-      end
-
-      def self.error_on_ignored_order_or_limit=(value)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The flag error_on_ignored_order_or_limit is deprecated. Limits are
-          now supported. Please use error_on_ignored_order= instead.
-        MSG
-        self.error_on_ignored_order = value
-      end
-
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions

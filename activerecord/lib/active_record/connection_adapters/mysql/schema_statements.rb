@@ -5,13 +5,7 @@ module ActiveRecord
     module MySQL
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
-          if name
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing name to #indexes is deprecated without replacement.
-            MSG
-          end
-
+        def indexes(table_name)
           indexes = []
           current_index = nil
           execute_and_free("SHOW KEYS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|

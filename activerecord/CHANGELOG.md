@@ -1,3 +1,55 @@
+*   Remove deprecated method `#sanitize_conditions`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated method `#scope_chain`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated configuration `.error_on_ignored_order_or_limit`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated arguments from `#verify!`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated argument `name` from `#indexes`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated method `ActiveRecord::Migrator.schema_migrations_table_name`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated method `supports_primary_key?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated method `supports_migrations?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated methods `initialize_schema_migrations_table` and `initialize_internal_metadata_table`.
+
+    *Rafael Mendonça França*
+
+*   Raises when calling `lock!` in a dirty record.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to passing a class to `:class_name` on associations.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated argument `default` from `index_name_exists?`.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated support to `quoted_id` when typecasting an Active Record object.
+
+    *Rafael Mendonça França*
+
 *   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
     ar_internal_metadata's data for a test database.
 

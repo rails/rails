@@ -1,3 +1,7 @@
+*   Removed deprecated evented redis adapter.
+
+    *Rafael Mendonça França*
+
 *   Support redis-rb 4.0.
 
     *Jeremy Daer*

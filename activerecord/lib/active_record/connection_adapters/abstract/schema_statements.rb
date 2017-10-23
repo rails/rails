@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       # Returns an array of indexes for the given table.
-      def indexes(table_name, name = nil)
+      def indexes(table_name)
         raise NotImplementedError, "#indexes is not implemented"
       end
 
@@ -806,12 +806,7 @@ module ActiveRecord
       end
 
       # Verifies the existence of an index with a given name.
-      def index_name_exists?(table_name, index_name, default = nil)
-        unless default.nil?
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing default to #index_name_exists? is deprecated without replacement.
-          MSG
-        end
+      def index_name_exists?(table_name, index_name)
         index_name = index_name.to_s
         indexes(table_name).detect { |i| i.name == index_name }
       end
@@ -1019,16 +1014,6 @@ module ActiveRecord
         versions = ActiveRecord::SchemaMigration.all_versions
         insert_versions_sql(versions) if versions.any?
       end
-
-      def initialize_schema_migrations_table # :nodoc:
-        ActiveRecord::SchemaMigration.create_table
-      end
-      deprecate :initialize_schema_migrations_table
-
-      def initialize_internal_metadata_table # :nodoc:
-        ActiveRecord::InternalMetadata.create_table
-      end
-      deprecate :initialize_internal_metadata_table
 
       def internal_string_options_for_primary_key # :nodoc:
         { primary_key: true }

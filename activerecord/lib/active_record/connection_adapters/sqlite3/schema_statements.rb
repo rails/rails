@@ -5,13 +5,7 @@ module ActiveRecord
     module SQLite3
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
-          if name
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing name to #indexes is deprecated without replacement.
-            MSG
-          end
-
+        def indexes(table_name)
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
             index_sql = query_value(<<-SQL, "SCHEMA")
               SELECT sql

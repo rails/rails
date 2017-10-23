@@ -1026,11 +1026,6 @@ module ActiveRecord
         new(:up, migrations(migrations_paths), nil)
       end
 
-      def schema_migrations_table_name
-        SchemaMigration.table_name
-      end
-      deprecate :schema_migrations_table_name
-
       def get_all_versions(connection = Base.connection)
         if SchemaMigration.table_exists?
           SchemaMigration.all_versions.map(&:to_i)

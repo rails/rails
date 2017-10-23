@@ -1,3 +1,11 @@
+*   Remove deprecated `halt_callback_chains_on_return_false` option.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:if` and `:unless` string filter for callbacks.
+
+    *Rafael Mendonça França*
+
 *   `Hash#slice` now falls back to Ruby 2.5+'s built-in definition if defined.
 
     *Akira Matsuda*

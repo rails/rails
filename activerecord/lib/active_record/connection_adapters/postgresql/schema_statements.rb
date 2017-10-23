@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/strip"
-
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -66,12 +64,7 @@ module ActiveRecord
         end
 
         # Verifies existence of an index with a given name.
-        def index_name_exists?(table_name, index_name, default = nil)
-          unless default.nil?
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing default to #index_name_exists? is deprecated without replacement.
-            MSG
-          end
+        def index_name_exists?(table_name, index_name)
           table = quoted_scope(table_name)
           index = quoted_scope(index_name)
 
@@ -89,13 +82,7 @@ module ActiveRecord
         end
 
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil) # :nodoc:
-          if name
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing name to #indexes is deprecated without replacement.
-            MSG
-          end
-
+        def indexes(table_name) # :nodoc:
           scope = quoted_scope(table_name)
 
           result = query(<<-SQL, "SCHEMA")

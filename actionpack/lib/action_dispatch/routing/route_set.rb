@@ -584,14 +584,14 @@ module ActionDispatch
         if route.segment_keys.include?(:controller)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :controller segment in a route is deprecated and
-            will be removed in Rails 5.2.
+            will be removed in Rails 6.0.
           MSG
         end
 
         if route.segment_keys.include?(:action)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
             Using a dynamic :action segment in a route is deprecated and
-            will be removed in Rails 5.2.
+            will be removed in Rails 6.0.
           MSG
         end
 

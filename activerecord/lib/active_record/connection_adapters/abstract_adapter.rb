@@ -196,16 +196,6 @@ module ActiveRecord
         self.class::ADAPTER_NAME
       end
 
-      def supports_migrations? # :nodoc:
-        true
-      end
-      deprecate :supports_migrations?
-
-      def supports_primary_key? # :nodoc:
-        true
-      end
-      deprecate :supports_primary_key?
-
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
       def supports_ddl_transactions?
@@ -402,10 +392,7 @@ module ActiveRecord
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
-      def verify!(*ignored)
-        if ignored.size > 0
-          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no effect and has been deprecated. Please remove all arguments from the #verify method call.")
-        end
+      def verify!
         reconnect! unless active?
       end
 
