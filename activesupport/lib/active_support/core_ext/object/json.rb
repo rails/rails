@@ -135,6 +135,12 @@ module Enumerable
   end
 end
 
+class IO
+  def as_json(options = nil) #:nodoc:
+    to_s
+  end
+end
+
 class Range
   def as_json(options = nil) #:nodoc:
     to_s

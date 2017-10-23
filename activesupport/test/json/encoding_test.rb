@@ -454,6 +454,10 @@ EXPECTED
     assert_equal '{"number":null}', NaNNumber.new.to_json
   end
 
+  def test_to_json_works_on_io_objects
+    assert_equal STDOUT.to_s.to_json, STDOUT.to_json
+  end
+
   private
 
     def object_keys(json_object)

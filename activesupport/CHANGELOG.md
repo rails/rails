@@ -1,3 +1,11 @@
+*   `IO#to_json` now returns the `to_s` representation, rather than
+    attempting to convert to an array. This fixes a bug where `IO#to_json`
+    would raise an `IOError` when called on an unreadable object.
+
+    Fixes #26132.
+
+    *Paul Kuruvilla*
+
 *   Remove deprecated `halt_callback_chains_on_return_false` option.
 
     *Rafael Mendonça França*
