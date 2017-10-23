@@ -924,7 +924,7 @@ module ActiveRecord
       def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        build_joins(arel, joins_values.flatten, aliases) unless joins_values.empty?
+        aliases = build_joins(arel, joins_values.flatten, aliases) unless joins_values.empty?
         build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases) unless left_outer_joins_values.empty?
 
         arel.where(where_clause.ast) unless where_clause.empty?
@@ -1011,9 +1011,10 @@ module ActiveRecord
         string_joins              = buckets[:string_join].map(&:strip).uniq
 
         join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
+        alias_tracker = alias_tracker(join_list, aliases)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          klass, table, association_joins, alias_tracker(join_list, aliases)
+          klass, table, association_joins, alias_tracker
         )
 
         joins = join_dependency.join_constraints(stashed_association_joins, join_type)
@@ -1021,7 +1022,7 @@ module ActiveRecord
 
         manager.join_sources.concat(join_list)
 
-        manager
+        alias_tracker.aliases
       end
 
       def convert_join_strings_to_ast(table, joins)
