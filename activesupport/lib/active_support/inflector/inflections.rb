@@ -4,6 +4,7 @@ require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
 require "active_support/core_ext/regexp"
 require "active_support/i18n"
+require "active_support/deprecation"
 
 module ActiveSupport
   module Inflector
@@ -66,8 +67,9 @@ module ActiveSupport
         @__instance__[locale] ||= new
       end
 
-      attr_reader :plurals, :singulars, :uncountables, :humans,
-                  :acronyms, :acronym_regex
+      attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
+      deprecate :acronym_regex
+
       attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
 
       def initialize
