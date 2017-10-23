@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "capybara", "~> 2.13"
+
 require "capybara/dsl"
 require "capybara/minitest"
 require "action_controller"
