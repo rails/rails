@@ -102,7 +102,7 @@ module ActiveRecord
 
                   config.active_record.time_zone_aware_types = [:datetime]
 
-              To silence this deprecation warning, add the following:
+              To use the new behavior, add the following:
 
                   config.active_record.time_zone_aware_types = [:datetime, :time]
             MESSAGE
