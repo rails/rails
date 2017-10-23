@@ -27,6 +27,11 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_construct_finder_sql_does_not_table_name_collide_with_string_joins
+    sql = Person.joins(:agents).joins("JOIN people agents_people ON agents_people.primary_contact_id = people.id").to_sql
+    assert_match(/agents_people_2/i, sql)
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)

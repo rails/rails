@@ -19,14 +19,16 @@ module ActiveRecord
       end
 
       def self.initial_count_for(connection, name, table_joins)
-        # quoted_name should be downcased as some database adapters (Oracle) return quoted name in uppercase
-        quoted_name = connection.quote_table_name(name).downcase
+        quoted_name = nil
 
         counts = table_joins.map do |join|
           if join.is_a?(Arel::Nodes::StringJoin)
+            # quoted_name should be case ignored as some database adapters (Oracle) return quoted name in uppercase
+            quoted_name ||= connection.quote_table_name(name)
+
             # Table names + table aliases
-            join.left.downcase.scan(
-              /join(?:\s+\w+)?\s+(\S+\s+)?#{quoted_name}\son/
+            join.left.scan(
+              /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
             ).size
           elsif join.respond_to? :left
             join.left.table_name == name ? 1 : 0
