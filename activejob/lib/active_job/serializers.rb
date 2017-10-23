@@ -27,15 +27,11 @@ module ActiveJob
 
     autoload :ArraySerializer
     autoload :BaseSerializer
-    autoload :ClassSerializer
-    autoload :DurationSerializer
     autoload :GlobalIDSerializer
     autoload :HashWithIndifferentAccessSerializer
     autoload :HashSerializer
     autoload :ObjectSerializer
     autoload :StandardTypeSerializer
-    autoload :StructSerializer
-    autoload :SymbolSerializer
 
     included do
       class_attribute :_additional_serializers, instance_accessor: false, instance_predicate: false
@@ -46,14 +42,14 @@ module ActiveJob
     module ClassMethods
       # Returns list of known serializers
       def serializers
-        self._additional_serializers + SERIALIZERS
+        self._additional_serializers + ActiveJob::Serializers::SERIALIZERS
       end
 
       # Adds a new serializer to a list of known serializers
-      def add_serializers(*serializers)
-        check_duplicate_serializer_keys!(serializers)
+      def add_serializers(*new_serializers)
+        check_duplicate_serializer_keys!(new_serializers)
 
-        @_additional_serializers = serializers + @_additional_serializers
+        self._additional_serializers = new_serializers + self._additional_serializers
       end
 
       # Returns a list of reserved keys, which cannot be used as keys for a hash
@@ -66,7 +62,7 @@ module ActiveJob
         def check_duplicate_serializer_keys!(serializers)
           keys_to_add = serializers.select { |s| s.respond_to?(:key) }.map(&:key)
 
-          duplicate_keys = reserved_keys & keys_to_add
+          duplicate_keys = reserved_serializers_keys & keys_to_add
 
           raise ArgumentError.new("Can't add serializers because of keys duplication: #{duplicate_keys}") if duplicate_keys.any?
         end
@@ -75,21 +71,16 @@ module ActiveJob
     # :nodoc:
     SERIALIZERS = [
       ::ActiveJob::Serializers::GlobalIDSerializer,
-      ::ActiveJob::Serializers::DurationSerializer,
-      ::ActiveJob::Serializers::StructSerializer,
-      ::ActiveJob::Serializers::SymbolSerializer,
-      ::ActiveJob::Serializers::ClassSerializer,
       ::ActiveJob::Serializers::StandardTypeSerializer,
       ::ActiveJob::Serializers::HashWithIndifferentAccessSerializer,
       ::ActiveJob::Serializers::HashSerializer,
       ::ActiveJob::Serializers::ArraySerializer
     ].freeze
-    private_constant :SERIALIZERS
 
     class << self
       # Returns serialized representative of the passed object.
       # Will look up through all known serializers.
-      # Raises `SerializationError` if it can't find a proper serializer.
+      # Raises `ActiveJob::SerializationError` if it can't find a proper serializer.
       def serialize(argument)
         serializer = ::ActiveJob::Base.serializers.detect { |s| s.serialize?(argument) }
         raise SerializationError.new("Unsupported argument type: #{argument.class.name}") unless serializer

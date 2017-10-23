@@ -345,10 +345,6 @@ Supported types for arguments
 ActiveJob supports the following types of arguments by default:
 
   - Basic types (`NilClass`, `String`, `Integer`, `Fixnum`, `Bignum`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
-  - `Symbol` (`:foo`, `:bar`, ...)
-  - `ActiveSupport::Duration` (`1.day`, `2.weeks`, ...)
-  - Classes constants (`ActiveRecord::Base`, `MySpecialService`, ...)
-  - Struct instances (`Struct.new('Rectangle', :width, :height).new(12, 20)`, ...)
   - `Hash`. Keys should be of `String` or `Symbol` type
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
