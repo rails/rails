@@ -555,8 +555,7 @@ The async adapter is intended for development/testing and should not be used in 
 
 ##### Redis Adapter
 
-Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
-of the adapters require users to provide a URL pointing to the Redis server.
+The Redis adapter requires users to provide a URL pointing to the Redis server.
 Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
