@@ -7,21 +7,9 @@ require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/date/acts_like"
 
 class Numeric
-  # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.weeks.
+  # Returns a Duration instance matching the number of seconds provided.
   #
-  # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
-  # as well as adding or subtracting their results from a Time object. For example:
-  #
-  #   # equivalent to Time.current.advance(days: 1)
-  #   1.month.from_now
-  #
-  #   # equivalent to Time.current.advance(weeks: 2)
-  #   2.weeks.from_now
-  #
-  #   # equivalent to Time.current.advance(days: 4, weeks: 5)
-  #   (4.days + 5.weeks).from_now
-  #
-  # For other durations, check the extensions to Integer.
+  #   2.seconds # => 2 seconds
   def seconds
     ActiveSupport::Duration.seconds(self)
   end
@@ -68,10 +56,10 @@ class Numeric
   alias :fortnight :fortnights
 
   # Returns the number of milliseconds equivalent to the seconds provided.
-  # Used with the standard time durations, like 1.hour.in_milliseconds --
-  # so we can feed them to JavaScript functions like getTime().
+  # Used with the standard time durations.
   #
-  #   2.in_milliseconds # => 2_000
+  #   2.in_milliseconds # => 2000
+  #   1.hour.in_milliseconds # => 3600000
   def in_milliseconds
     self * 1000
   end
