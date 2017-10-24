@@ -92,7 +92,7 @@ task default: :test
     ]
 
     def generate_test_dummy(force = false)
-      opts = (options.dup || {}).keep_if {|k, | PASSTHROUGH_OPTIONS.map(&:to_s).include?(k) }
+      opts = (options.dup || {}).keep_if { |k, _| PASSTHROUGH_OPTIONS.map(&:to_s).include?(k) }
       opts[:force] = force
       opts[:skip_bundle] = true
       opts[:skip_listen] = true
