@@ -31,7 +31,7 @@ module ActiveRecord
               /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
             ).size
           elsif join.respond_to? :left
-            join.left.table_name == name ? 1 : 0
+            join.left.name == name ? 1 : 0
           elsif join.is_a?(Hash)
             join[name]
           else
