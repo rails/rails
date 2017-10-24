@@ -337,18 +337,12 @@ module ActiveRecord
       end
 
       def extension_enabled?(name)
-        if supports_extensions?
-          res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
-          res.cast_values.first
-        end
+        res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
+        res.cast_values.first
       end
 
       def extensions
-        if supports_extensions?
-          exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
-        else
-          super
-        end
+        exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
