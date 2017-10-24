@@ -186,7 +186,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
     else
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     end
   end
 

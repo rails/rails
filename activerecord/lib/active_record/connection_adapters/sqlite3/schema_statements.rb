@@ -19,8 +19,14 @@ module ActiveRecord
 
             /\sWHERE\s+(?<where>.+)$/i =~ index_sql
 
-            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
-              col["name"]
+            columns = []
+            orders = {}
+            exec_query("PRAGMA index_xinfo(#{quote(row['name'])})", "SCHEMA").each do |col|
+              # xinfo also lists non-key columns, let's filter those out
+              next if col["key"] == 0
+
+              columns << col["name"]
+              orders[col["name"]] = :desc if col["desc"] == 1
             end
 
             IndexDefinition.new(
@@ -28,6 +34,7 @@ module ActiveRecord
               row["name"],
               row["unique"] != 0,
               columns,
+              orders: orders,
               where: where
             )
           end
