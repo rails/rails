@@ -7,19 +7,21 @@ require "active_support/core_ext/date/calculations"
 require "active_support/core_ext/date/acts_like"
 
 class Numeric
-  # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
+  # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.weeks.
   #
   # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
   # as well as adding or subtracting their results from a Time object. For example:
   #
-  #   # equivalent to Time.current.advance(months: 1)
+  #   # equivalent to Time.current.advance(days: 1)
   #   1.month.from_now
   #
-  #   # equivalent to Time.current.advance(years: 2)
-  #   2.years.from_now
+  #   # equivalent to Time.current.advance(weeks: 2)
+  #   2.weeks.from_now
   #
-  #   # equivalent to Time.current.advance(months: 4, years: 5)
-  #   (4.months + 5.years).from_now
+  #   # equivalent to Time.current.advance(days: 4, weeks: 5)
+  #   (4.days + 5.weeks).from_now
+  #
+  # For other durations, check the extensions to Integer.
   def seconds
     ActiveSupport::Duration.seconds(self)
   end

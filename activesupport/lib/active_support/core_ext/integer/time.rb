@@ -19,6 +19,8 @@ class Integer
   #
   #   # equivalent to Time.now.advance(months: 4, years: 5)
   #   (4.months + 5.years).from_now
+  #
+  # For other durations, check the extensions to Numeric.
   def months
     ActiveSupport::Duration.months(self)
   end
