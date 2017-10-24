@@ -1796,7 +1796,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
 ### Time
 
-Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.years`.
+Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.weeks`.
 
 These methods use Time#advance for precise date calculations when using from_now, ago, etc.
 as well as adding or subtracting their results from a Time object. For example:
@@ -1805,12 +1805,14 @@ as well as adding or subtracting their results from a Time object. For example:
 # equivalent to Time.current.advance(months: 1)
 1.month.from_now
 
-# equivalent to Time.current.advance(years: 2)
-2.years.from_now
+# equivalent to Time.current.advance(weeks: 2)
+2.weeks.from_now
 
-# equivalent to Time.current.advance(months: 4, years: 5)
-(4.months + 5.years).from_now
+# equivalent to Time.current.advance(months: 4, weeks: 5)
+(4.months + 5.weeks).from_now
 ```
+
+WARNING. For other durations please refer to the time extensions to `Integer`.
 
 NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
@@ -1946,6 +1948,28 @@ The method `ordinalize` returns the ordinal string corresponding to the receiver
 ```
 
 NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
+
+### Time
+
+Enables the use of time calculations and declarations, like `4.months + 5.years`.
+
+These methods use Time#advance for precise date calculations when using from_now, ago, etc.
+as well as adding or subtracting their results from a Time object. For example:
+
+```ruby
+# equivalent to Time.current.advance(months: 1)
+1.month.from_now
+
+# equivalent to Time.current.advance(years: 2)
+2.years.from_now
+
+# equivalent to Time.current.advance(months: 4, years: 5)
+(4.months + 5.years).from_now
+```
+
+WARNING. For other durations please refer to the time extensions to `Numeric`.
+
+NOTE: Defined in `active_support/core_ext/integer/time.rb`.
 
 Extensions to `BigDecimal`
 --------------------------
