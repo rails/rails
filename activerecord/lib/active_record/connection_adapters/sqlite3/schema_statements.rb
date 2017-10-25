@@ -23,12 +23,22 @@ module ActiveRecord
               col["name"]
             end
 
+            # Add info on sort order for columns (only desc order is explicitly specified, asc is
+            # the default)
+            orders = {}
+            if index_sql # index_sql can be null in case of primary key indexes
+              index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                orders[order_column] = :desc
+              }
+            end
+
             IndexDefinition.new(
               table_name,
               row["name"],
               row["unique"] != 0,
               columns,
-              where: where
+              where: where,
+              orders: orders
             )
           end
         end

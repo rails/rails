@@ -1,3 +1,10 @@
+*   Fixed a bug where column orders for an index weren't written to
+    db/schema.rb when using the sqlite adapter.
+
+    Fixes #30902.
+
+    *Paul Kuruvilla*
+
 *   Remove deprecated method `#sanitize_conditions`.
 
     *Rafael Mendonça França*
