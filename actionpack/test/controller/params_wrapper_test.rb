@@ -265,7 +265,7 @@ class ParamsWrapperTest < ActionController::TestCase
       with_default_wrapper_options do
         @request.env["CONTENT_TYPE"] = "application/json"
         post :parse, params: { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } }
-        assert_parameters("username"=>"sikachu", "person_attributes"=>{"title"=>"Developer"}, "user"=>{"username"=>"sikachu", "person_attributes"=>{"title"=>"Developer"}})
+        assert_parameters("username" => "sikachu", "person_attributes" => { "title" => "Developer" }, "user" => { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } })
       end
     end
   end
