@@ -207,13 +207,7 @@ module ActiveSupport
     #
     #   dasherize('puni_puni') # => "puni-puni"
     def dasherize(underscored_word)
-      @_dasherize_cache ||= {}
-      @_dasherize_cache[underscored_word] ||=
-        if underscored_word.include?("_")
-          underscored_word.tr("_", "-")
-        else
-          underscored_word
-        end
+      underscored_word.tr("_".freeze, "-".freeze)
     end
 
     # Removes the module part from the expression in the string.
