@@ -95,7 +95,7 @@ module ActionView
 
         private
           def prefix_tag_option(prefix, key, value, escape)
-            if prefix == 'data' and key == :disable_with
+            if prefix == "data" && key == :disable_with
               key = "data-disable-with"
             else
               key = "#{prefix}-#{key.to_s.dasherize}"
