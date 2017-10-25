@@ -20,10 +20,16 @@ module ActiveStorage
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
+    #   person.avatar.attach(remote_url: "https://example.com/face.png", filename: "face.jpg", content_type: "image/jpg")
     def attach(attachable)
       if attached? && dependent == :purge_later
         replace attachable
       else
+        if attachable[:remote_url].present?
+          remote_file = download_remote_file(attachable)
+          attachable[:io] = remote_file
+          attachable.delete(:remote_url)
+        end
         write_attachment create_attachment_from(attachable)
       end
     end

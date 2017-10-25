@@ -32,6 +32,12 @@ module ActiveStorage
           nil
         end
       end
+
+      def download_remote_file(attachable)
+        # raise DownloadError unless /^https?/.match(attachable[:remote_url]).present?
+        remote_file = Net::HTTP.get_response(URI.parse(attachable[:remote_url]))
+        file = StringIO.new(remote_file.body)
+      end
   end
 end
 
