@@ -19,14 +19,17 @@ module ActiveRecord
 
             /\sWHERE\s+(?<where>.+)$/i =~ index_sql
 
-            columns = []
-            orders = {}
-            exec_query("PRAGMA index_xinfo(#{quote(row['name'])})", "SCHEMA").each do |col|
-              # xinfo also lists non-key columns, let's filter those out
-              next if col["key"] == 0
+            columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
+              col["name"]
+            end
 
-              columns << col["name"]
-              orders[col["name"]] = :desc if col["desc"] == 1
+            # Add info on sort order for columns (only desc order is explicitly specified, asc is
+            # the default)
+            orders = {}
+            if index_sql # index_sql can be null in case of primary key indexes
+              index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                orders[order_column] = :desc
+              }
             end
 
             IndexDefinition.new(
@@ -34,8 +37,8 @@ module ActiveRecord
               row["name"],
               row["unique"] != 0,
               columns,
-              orders: orders,
-              where: where
+              where: where,
+              orders: orders
             )
           end
         end
