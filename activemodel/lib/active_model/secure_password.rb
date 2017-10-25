@@ -14,6 +14,10 @@ module ActiveModel
     end
     self.min_cost = false
 
+    included do
+      class_attribute :secure_password_cost
+    end
+
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a +password_digest+ attribute.
@@ -30,6 +34,8 @@ module ActiveModel
       #
       # For further customizability, it is possible to suppress the default
       # validations by passing <tt>validations: false</tt> as an argument.
+      #
+      # You can specify a cost of bcrypt with an <tt>cost: value</tt> argument.
       #
       # Add bcrypt (~> 3.1.7) to Gemfile to use #has_secure_password:
       #
@@ -79,6 +85,10 @@ module ActiveModel
           validates_length_of :password, maximum: ActiveModel::SecurePassword::MAX_PASSWORD_LENGTH_ALLOWED
           validates_confirmation_of :password, allow_blank: true
         end
+
+        if options[:cost]
+          self.secure_password_cost = options[:cost]
+        end
       end
     end
 
@@ -116,7 +126,7 @@ module ActiveModel
           self.password_digest = nil
         elsif !unencrypted_password.empty?
           @password = unencrypted_password
-          cost = ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost
+          cost = self.class.secure_password_cost || (ActiveModel::SecurePassword.min_cost ? BCrypt::Engine::MIN_COST : BCrypt::Engine.cost)
           self.password_digest = BCrypt::Password.create(unencrypted_password, cost: cost)
         end
       end
