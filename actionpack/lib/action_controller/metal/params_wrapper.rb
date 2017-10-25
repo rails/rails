@@ -121,6 +121,13 @@ module ActionController
 
               self.include
             end
+            if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.any?
+              nested_attributes_names = self.nested_attributes_options.keys.map do |key| 
+                key.to_s.concat('_attributes').to_sym
+              end
+              self.include += nested_attributes_names
+            end
+
           end
         end
       end
