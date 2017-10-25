@@ -554,4 +554,16 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     assert_equal(["has already been taken"], item2.errors[:id])
   end
+
+  def test_validate_uniqueness_queries
+    w1 = IneptWizard.new(name: "Name", city: "City")
+    assert_queries(2) { w1.valid? }
+
+    assert w1.save, "Should save w1"
+
+    assert_no_queries { w1.valid? }
+
+    w1.name = "Name1"
+    assert_queries(1) { w1.valid? }
+  end
 end

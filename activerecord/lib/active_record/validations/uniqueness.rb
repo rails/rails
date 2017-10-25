@@ -22,6 +22,7 @@ module ActiveRecord
 
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
+          return if record.respond_to?("#{attribute}_changed?") && !record.send("#{attribute}_changed?")
           if finder_class.primary_key
             relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
           else
