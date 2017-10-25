@@ -82,16 +82,8 @@ HEADER
         stream.puts "end"
       end
 
+      # extensions are only supported by PostgreSQL
       def extensions(stream)
-        return unless @connection.supports_extensions?
-        extensions = @connection.extensions
-        if extensions.any?
-          stream.puts "  # These are extensions that must be enabled in order to support this database"
-          extensions.sort.each do |extension|
-            stream.puts "  enable_extension #{extension.inspect}"
-          end
-          stream.puts
-        end
       end
 
       def tables(stream)
