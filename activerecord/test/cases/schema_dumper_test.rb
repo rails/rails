@@ -177,7 +177,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
+    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     elsif current_adapter?(:Mysql2Adapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
@@ -186,7 +186,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
     else
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
   end
 
