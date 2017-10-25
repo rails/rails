@@ -191,9 +191,10 @@ asyncTest('submitting form with data-remote attribute should include inputs in a
     .triggerNative('submit')
 })
 
-asyncTest('submitting form with data-remote attribute submits input with matching [form] attribute', 5, function() {
+asyncTest('submitting form with data-remote attribute submits input with matching [form] attribute', 6, function() {
   $('#qunit-fixture')
     .append($('<input type="text" name="user_data" value="value1" form="my-remote-form">'))
+    .append($('<input type="text" name="user_email" value="from@example.com" disabled="disabled" form="my-remote-form">'))
 
   $('form[data-remote]')
     .bindNative('ajax:success', function(e, data, status, xhr) {
@@ -201,6 +202,7 @@ asyncTest('submitting form with data-remote attribute submits input with matchin
       App.assertRequestPath(data, '/echo')
       equal(data.params.user_name, 'john', 'ajax arguments should have key user_name with right value')
       equal(data.params.user_data, 'value1', 'ajax arguments should have key user_data with right value')
+      equal(data.params.user_email, undefined, 'ajax arguments should not have disabled field')
       App.assertPostRequest(data)
     })
     .bindNative('ajax:complete', function() { start() })
