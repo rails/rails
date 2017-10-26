@@ -165,10 +165,10 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
   end
 
   test "order: allows valid Array arguments" do
-    ids_expected = Post.order(Arel.sql('author_id, length(title)')).pluck(:id)
+    ids_expected = Post.order(Arel.sql("author_id, length(title)")).pluck(:id)
 
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
-    ids_disabled =  with_unsafe_raw_sql_disabled  { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order(["author_id", Arel.sql("length(title)")]).pluck(:id) }
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
