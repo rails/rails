@@ -121,4 +121,36 @@ module SequenceNameDetectionTestCases
       assert_match %r{t\.bigserial\s+"bar_baz_id",\s+null: false$}, output
     end
   end
+
+  class LongerSequenceNameDetectionTest < ActiveRecord::PostgreSQLTestCase
+    include SchemaDumpingHelper
+
+    def setup
+      @table_name = "long_table_name_to_test_sequence_name_detection_for_serial_cols"
+      @connection = ActiveRecord::Base.connection
+      @connection.create_table @table_name, force: true do |t|
+        t.serial :seq
+        t.bigserial :bigseq
+      end
+    end
+
+    def teardown
+      @connection.drop_table @table_name, if_exists: true
+    end
+
+    def test_serial_columns
+      columns = @connection.columns(@table_name)
+      columns.each do |column|
+        assert_equal :integer, column.type
+        assert column.serial?
+      end
+    end
+
+    def test_schema_dump_with_long_table_name
+      output = dump_table_schema @table_name
+      assert_match %r{create_table "#{@table_name}", force: :cascade}, output
+      assert_match %r{t\.serial\s+"seq",\s+null: false$}, output
+      assert_match %r{t\.bigserial\s+"bigseq",\s+null: false$}, output
+    end
+  end
 end

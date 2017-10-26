@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require "zlib"
-require_relative "core_ext/array/extract_options"
-require_relative "core_ext/array/wrap"
-require_relative "core_ext/module/attribute_accessors"
-require_relative "core_ext/numeric/bytes"
-require_relative "core_ext/numeric/time"
-require_relative "core_ext/object/to_param"
-require_relative "core_ext/string/inflections"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/array/wrap"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/numeric/bytes"
+require "active_support/core_ext/numeric/time"
+require "active_support/core_ext/object/to_param"
+require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.

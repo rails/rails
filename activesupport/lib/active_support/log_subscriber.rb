@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/module/attribute_accessors"
-require_relative "core_ext/class/attribute"
-require_relative "subscriber"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/class/attribute"
+require "active_support/subscriber"
 
 module ActiveSupport
   # ActiveSupport::LogSubscriber is an object set to consume

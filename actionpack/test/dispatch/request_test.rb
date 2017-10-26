@@ -1304,3 +1304,18 @@ class RequestFormData < BaseRequestTest
     assert !request.form_data?
   end
 end
+
+class EarlyHintsRequestTest < BaseRequestTest
+  def setup
+    super
+    @env["rack.early_hints"] = lambda { |links| links }
+    @request = stub_request
+  end
+
+  test "when early hints is set in the env link headers are sent" do
+    early_hints = @request.send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+
+    assert_equal expected_hints, early_hints
+  end
+end

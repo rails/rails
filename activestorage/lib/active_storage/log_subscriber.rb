@@ -27,7 +27,7 @@ module ActiveStorage
     end
 
     def logger
-      ActiveStorage::Service.logger
+      ActiveStorage.logger
     end
 
     private

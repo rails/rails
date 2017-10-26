@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../test_unit"
-require_relative "../../resource_helpers"
+require "rails/generators/test_unit"
+require "rails/generators/resource_helpers"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:

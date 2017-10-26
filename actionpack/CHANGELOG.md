@@ -1,3 +1,26 @@
+*   Remove deprecated `ActionController::ParamsParser::ParseError`.
+
+    *Rafael Mendonça França*
+
+*   Add `:allow_other_host` option to `redirect_back` method.
+    When `allow_other_host` is set to `false`, the `redirect_back`
+    will not allow a redirecting from a different host.
+    `allow_other_host` is `true` by default.
+
+    *Tim Masliuchenko*
+
+*   Add headless chrome support to System Tests.
+
+    *Yuji Yaginuma*
+
+*   Add ability to enable Early Hints for HTTP/2
+
+    If supported by the server, and enabled in Puma this allows H2 Early Hints to be used.
+
+    The `javascript_include_tag` and the `stylesheet_link_tag` automatically add Early Hints if requested.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Simplify cookies middleware with key rotation support
 
     Use the `rotate` method for both `MessageEncryptor` and
@@ -7,14 +30,14 @@
 
     *Michael J Coyne*
 
-*  Use Capybara registered `:puma` server config.
+*   Use Capybara registered `:puma` server config.
 
     The Capybara registered `:puma` server ensures the puma server is run in process so
     connection sharing and open request detection work correctly by default.
 
     *Thomas Walpole*
 
-*  Cookies `:expires` option supports `ActiveSupport::Duration` object.
+*   Cookies `:expires` option supports `ActiveSupport::Duration` object.
 
         cookies[:user_name] = { value: "assain", expires: 1.hour }
         cookies[:key] = { value: "a yummy cookie", expires: 6.months }
@@ -23,7 +46,7 @@
 
     *Assain Jaleel*
 
-*  Enforce signed/encrypted cookie expiry server side.
+*   Enforce signed/encrypted cookie expiry server side.
 
     Rails can thwart attacks by malicious clients that don't honor a cookie's expiry.
 
@@ -63,7 +86,7 @@
 
     *Kir Shatrov*
 
-*   `driven_by` now registers poltergeist and capybara-webkit
+*   `driven_by` now registers poltergeist and capybara-webkit.
 
     If poltergeist or capybara-webkit are set as drivers is set for System Tests,
     `driven_by` will register the driver and set additional options passed via
@@ -73,7 +96,7 @@
 
     *Mario Chavez*
 
-*   AEAD encrypted cookies and sessions with GCM
+*   AEAD encrypted cookies and sessions with GCM.
 
     Encrypted cookies now use AES-GCM which couples authentication and
     encryption in one faster step and produces shorter ciphertexts. Cookies

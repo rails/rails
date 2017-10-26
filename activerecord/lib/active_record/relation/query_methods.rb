@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "from_clause"
-require_relative "query_attribute"
-require_relative "where_clause"
-require_relative "where_clause_factory"
+require "active_record/relation/from_clause"
+require "active_record/relation/query_attribute"
+require "active_record/relation/where_clause"
+require "active_record/relation/where_clause_factory"
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
@@ -443,7 +443,7 @@ module ActiveRecord
     #   => SELECT "users".* FROM "users" LEFT OUTER JOIN "posts" ON "posts"."user_id" = "users"."id"
     #
     def left_outer_joins(*args)
-      check_if_method_has_arguments!(:left_outer_joins, args)
+      check_if_method_has_arguments!(__callee__, args)
 
       args.compact!
       args.flatten!
@@ -900,8 +900,8 @@ module ActiveRecord
     end
 
     # Returns the Arel object associated with the relation.
-    def arel # :nodoc:
-      @arel ||= build_arel
+    def arel(aliases = nil) # :nodoc:
+      @arel ||= build_arel(aliases)
     end
 
     protected
@@ -923,11 +923,11 @@ module ActiveRecord
         raise ImmutableRelation if defined?(@arel) && @arel
       end
 
-      def build_arel
+      def build_arel(aliases)
         arel = Arel::SelectManager.new(table)
 
-        build_joins(arel, joins_values.flatten) unless joins_values.empty?
-        build_left_outer_joins(arel, left_outer_joins_values.flatten) unless left_outer_joins_values.empty?
+        aliases = build_joins(arel, joins_values.flatten, aliases) unless joins_values.empty?
+        build_left_outer_joins(arel, left_outer_joins_values.flatten, aliases) unless left_outer_joins_values.empty?
 
         arel.where(where_clause.ast) unless where_clause.empty?
         arel.having(having_clause.ast) unless having_clause.empty?
@@ -972,7 +972,7 @@ module ActiveRecord
         end
       end
 
-      def build_left_outer_joins(manager, outer_joins)
+      def build_left_outer_joins(manager, outer_joins, aliases)
         buckets = outer_joins.group_by do |join|
           case join
           when Hash, Symbol, Array
@@ -982,10 +982,10 @@ module ActiveRecord
           end
         end
 
-        build_join_query(manager, buckets, Arel::Nodes::OuterJoin)
+        build_join_query(manager, buckets, Arel::Nodes::OuterJoin, aliases)
       end
 
-      def build_joins(manager, joins)
+      def build_joins(manager, joins, aliases)
         buckets = joins.group_by do |join|
           case join
           when String
@@ -1001,10 +1001,10 @@ module ActiveRecord
           end
         end
 
-        build_join_query(manager, buckets, Arel::Nodes::InnerJoin)
+        build_join_query(manager, buckets, Arel::Nodes::InnerJoin, aliases)
       end
 
-      def build_join_query(manager, buckets, join_type)
+      def build_join_query(manager, buckets, join_type, aliases)
         buckets.default = []
 
         association_joins         = buckets[:association_join]
@@ -1013,9 +1013,10 @@ module ActiveRecord
         string_joins              = buckets[:string_join].map(&:strip).uniq
 
         join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
+        alias_tracker = alias_tracker(join_list, aliases)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          klass, table, association_joins, join_list
+          klass, table, association_joins, alias_tracker
         )
 
         joins = join_dependency.join_constraints(stashed_association_joins, join_type)
@@ -1023,7 +1024,7 @@ module ActiveRecord
 
         manager.join_sources.concat(join_list)
 
-        manager
+        alias_tracker.aliases
       end
 
       def convert_join_strings_to_ast(table, joins)

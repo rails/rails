@@ -1,8 +1,5 @@
-*   Change logging instrumentation to log errors when a job raises an exception.
+*   Support redis-rb 4.0.
 
-    Fixes #26848.
-
-    *Steven Bull*
-
+    *Jeremy Daer*
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activejob/CHANGELOG.md) for previous changes.

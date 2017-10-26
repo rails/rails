@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../base"
-require_relative "../master_key/master_key_generator"
+require "rails/generators/base"
+require "rails/generators/rails/master_key/master_key_generator"
 require "active_support/encrypted_configuration"
 
 module Rails

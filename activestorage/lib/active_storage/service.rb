@@ -4,6 +4,7 @@ require "active_storage/log_subscriber"
 
 module ActiveStorage
   class IntegrityError < StandardError; end
+
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -40,7 +41,7 @@ module ActiveStorage
     extend ActiveSupport::Autoload
     autoload :Configurator
 
-    class_attribute :logger
+    class_attribute :url_expires_in, default: 5.minutes
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -112,6 +113,10 @@ module ActiveStorage
       def service_name
         # ActiveStorage::Service::DiskService => Disk
         self.class.name.split("::").third.remove("Service")
+      end
+
+      def content_disposition_with(type: "inline", filename:)
+        (type.to_s.presence_in(%w( attachment inline )) || "inline") + "; #{filename.parameters}"
       end
   end
 end

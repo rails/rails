@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "concurrent/map"
-require_relative "partial_renderer/collection_caching"
+require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
   class PartialIteration

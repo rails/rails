@@ -30,6 +30,6 @@ class PostgresqlTypeLookupTest < ActiveRecord::PostgreSQLTestCase
     big_range = 0..123456789123456789
 
     assert_raises(ActiveModel::RangeError) { int_range.serialize(big_range) }
-    assert_equal "[0,123456789123456789]", bigint_range.serialize(big_range)
+    assert_equal "[0,123456789123456789]", @connection.type_cast(bigint_range.serialize(big_range))
   end
 end

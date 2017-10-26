@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "arguments"
+require "active_job/arguments"
 
 module ActiveJob
   # Provides behavior for enqueuing jobs.

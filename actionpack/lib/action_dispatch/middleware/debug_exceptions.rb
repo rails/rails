@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../http/request"
-require_relative "exception_wrapper"
-require_relative "../routing/inspector"
+require "action_dispatch/http/request"
+require "action_dispatch/middleware/exception_wrapper"
+require "action_dispatch/routing/inspector"
 require "action_view"
 require "action_view/base"
 

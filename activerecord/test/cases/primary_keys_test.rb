@@ -156,10 +156,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 
-  def test_deprecate_supports_primary_key
-    assert_deprecated { ActiveRecord::Base.connection.supports_primary_key? }
-  end
-
   def test_primary_key_returns_value_if_it_exists
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "developers"

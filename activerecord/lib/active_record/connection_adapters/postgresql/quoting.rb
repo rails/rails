@@ -101,6 +101,8 @@ module ActiveRecord
               end
             when OID::Array::Data
               _quote(encode_array(value))
+            when Range
+              _quote(encode_range(value))
             else
               super
             end
@@ -117,6 +119,8 @@ module ActiveRecord
               value.to_s
             when OID::Array::Data
               encode_array(value)
+            when Range
+              encode_range(value)
             else
               super
             end
@@ -131,6 +135,10 @@ module ActiveRecord
               result.force_encoding(encoding)
             end
             result
+          end
+
+          def encode_range(range)
+            "[#{type_cast(range.first)},#{type_cast(range.last)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)

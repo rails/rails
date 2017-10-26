@@ -54,12 +54,4 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
   end
-
-  private
-    def new_credentials_configuration
-      ActiveSupport::EncryptedConfiguration.new \
-        config_path: @credentials_config_path,
-        key_path: @credentials_key_path,
-        env_key: "RAILS_MASTER_KEY"
-    end
 end

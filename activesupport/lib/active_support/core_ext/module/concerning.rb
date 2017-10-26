@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../concern"
+require "active_support/concern"
 
 class Module
   # = Bite-sized separation of concerns

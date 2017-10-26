@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 require "base64"
-require_relative "core_ext/object/blank"
-require_relative "security_utils"
-require_relative "messages/metadata"
-require_relative "messages/rotator"
+require "active_support/core_ext/object/blank"
+require "active_support/security_utils"
+require "active_support/messages/metadata"
+require "active_support/messages/rotator"
 
 module ActiveSupport
   # +MessageVerifier+ makes it easy to generate and verify messages which are

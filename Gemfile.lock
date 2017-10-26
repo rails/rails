@@ -7,6 +7,17 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
+  remote: https://github.com/jeremy/resque-scheduler.git
+  revision: 7cccf7d8db4dbbf54bf549a98b6cbb38106dbed2
+  branch: redis-rb-4.0
+  specs:
+    resque-scheduler (4.3.0)
+      mono_logger (~> 1.0)
+      redis (>= 3.3, < 5)
+      resque (~> 1.26)
+      rufus-scheduler (~> 3.2)
+
+GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -40,6 +51,13 @@ GIT
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
+
+GIT
+  remote: https://github.com/resque/redis-namespace.git
+  revision: 1403f511f6ae1ec9a8f330298a4cacf73fb10afc
+  specs:
+    redis-namespace (1.5.3)
+      redis (>= 3.0.4)
 
 GIT
   remote: https://github.com/robin850/sdoc.git
@@ -115,9 +133,22 @@ PATH
 GEM
   remote: https://rubygems.org/
   specs:
+    activerecord-jdbc-adapter (1.3.24)
+      activerecord (>= 2.2, < 5.0)
+    activerecord-jdbcmysql-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-mysql (>= 5.1.22)
+    activerecord-jdbcpostgresql-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-postgres (~> 9.1, <= 9.4.1206)
+    activerecord-jdbcsqlite3-adapter (1.3.24)
+      activerecord-jdbc-adapter (~> 1.3.24)
+      jdbc-sqlite3 (>= 3.7.2, < 3.9)
     addressable (2.5.1)
       public_suffix (~> 2.0, >= 2.0.2)
     amq-protocol (2.2.0)
+    archive-zip (0.7.0)
+      io-like (~> 0.3.0)
     ast (2.3.0)
     aws-partitions (1.20.0)
     aws-sdk-core (3.3.0)
@@ -145,6 +176,7 @@ GEM
       concurrent-ruby (~> 1.0.1)
       dante (> 0.1.5)
     bcrypt (3.1.11)
+    bcrypt (3.1.11-java)
     bcrypt (3.1.11-x64-mingw32)
     bcrypt (3.1.11-x86-mingw32)
     beaneater (1.0.0)
@@ -168,6 +200,8 @@ GEM
       selenium-webdriver
     bootsnap (1.1.2)
       msgpack (~> 1.0)
+    bootsnap (1.1.2-java)
+      msgpack (~> 1.0)
     builder (3.2.3)
     bunny (2.6.6)
       amq-protocol (>= 2.1.0)
@@ -181,6 +215,9 @@ GEM
       xpath (~> 2.0)
     childprocess (0.7.1)
       ffi (~> 1.0, >= 1.0.11)
+    chromedriver-helper (1.1.0)
+      archive-zip (~> 0.7.0)
+      nokogiri (~> 1.6)
     coffee-rails (4.2.2)
       coffee-script (>= 2.2.0)
       railties (>= 4.0.0)
@@ -189,6 +226,7 @@ GEM
       execjs
     coffee-script-source (1.12.2)
     concurrent-ruby (1.0.5)
+    concurrent-ruby (1.0.5-java)
     connection_pool (2.2.1)
     cookiejar (0.3.3)
     curses (1.0.2)
@@ -215,11 +253,11 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.6.1)
-    erubis (2.7.0)
     et-orbi (1.0.5)
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
+    eventmachine (1.2.5-java)
     eventmachine (1.2.5-x64-mingw32)
     eventmachine (1.2.5-x86-mingw32)
     execjs (2.7.0)
@@ -239,6 +277,7 @@ GEM
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
     ffi (1.9.18)
+    ffi (1.9.18-java)
     ffi (1.9.18-x64-mingw32)
     ffi (1.9.18-x86-mingw32)
     globalid (0.4.0)
@@ -268,15 +307,17 @@ GEM
       os (~> 0.9)
       signet (~> 0.7)
     hiredis (0.6.1)
+    hiredis (0.6.1-java)
     http_parser.rb (0.6.0)
     httpclient (2.8.3)
     i18n (0.8.6)
+    io-like (0.3.0)
+    jdbc-mysql (5.1.44)
+    jdbc-postgres (9.4.1206)
+    jdbc-sqlite3 (3.8.11.2)
     jmespath (1.3.1)
-    jquery-rails (4.3.1)
-      rails-dom-testing (>= 1, < 3)
-      railties (>= 4.2.0)
-      thor (>= 0.14, < 2.0)
     json (2.1.0)
+    json (2.1.0-java)
     jwt (1.5.6)
     kindlerb (1.2.0)
       mustache
@@ -313,6 +354,7 @@ GEM
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.1.0)
+    msgpack (1.1.0-java)
     msgpack (1.1.0-x64-mingw32)
     msgpack (1.1.0-x86-mingw32)
     multi_json (1.12.1)
@@ -325,6 +367,7 @@ GEM
     nio4r (2.1.0)
     nokogiri (1.8.0)
       mini_portile2 (~> 2.2.0)
+    nokogiri (1.8.0-java)
     nokogiri (1.8.0-x64-mingw32)
       mini_portile2 (~> 2.2.0)
     nokogiri (1.8.0-x86-mingw32)
@@ -341,7 +384,11 @@ GEM
     psych (2.2.4)
     public_suffix (2.0.5)
     puma (3.9.1)
+    puma (3.9.1-java)
     que (0.14.0)
+    qunit-selenium (0.0.4)
+      selenium-webdriver
+      thor
     racc (1.4.14)
     rack (2.0.3)
     rack-cache (1.7.0)
@@ -361,9 +408,7 @@ GEM
     rb-fsevent (0.10.2)
     rdoc (5.1.0)
     redcarpet (3.2.3)
-    redis (3.3.3)
-    redis-namespace (1.5.3)
-      redis (~> 3.0, >= 3.0.4)
+    redis (4.0.1)
     representable (3.0.4)
       declarative (< 0.1.0)
       declarative-option (< 0.2.0)
@@ -374,20 +419,15 @@ GEM
       redis-namespace (~> 1.3)
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
-    resque-scheduler (4.3.0)
-      mono_logger (~> 1.0)
-      redis (~> 3.3)
-      resque (~> 1.26)
-      rufus-scheduler (~> 3.2)
     retriable (3.1.1)
-    rubocop (0.49.1)
+    rubocop (0.50.0)
       parallel (~> 1.10)
       parser (>= 2.3.3.1, < 3.0)
       powerpack (~> 0.1)
-      rainbow (>= 1.99.1, < 3.0)
+      rainbow (>= 2.2.2, < 3.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
-    ruby-progressbar (1.8.1)
+    ruby-progressbar (1.9.0)
     ruby_dep (1.5.0)
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
@@ -403,11 +443,11 @@ GEM
     sequel (4.49.0)
     serverengine (1.5.11)
       sigdump (~> 0.2.2)
-    sidekiq (5.0.4)
+    sidekiq (5.0.5)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
       rack-protection (>= 1.5.0)
-      redis (~> 3.3, >= 3.3.3)
+      redis (>= 3.3.4, < 5)
     sigdump (0.2.4)
     signet (0.7.3)
       addressable (~> 2.3)
@@ -445,6 +485,7 @@ GEM
     thor (0.20.0)
     thread (0.1.7)
     thread_safe (0.3.6)
+    thread_safe (0.3.6-java)
     tilt (2.0.8)
     turbolinks (5.0.1)
       turbolinks-source (~> 5)
@@ -472,6 +513,7 @@ GEM
       nokogiri (~> 1.3)
 
 PLATFORMS
+  java
   ruby
   x64-mingw32
   x86-mingw32
@@ -491,15 +533,14 @@ DEPENDENCIES
   bootsnap (>= 1.1.0)
   byebug
   capybara (~> 2.15)
+  chromedriver-helper
   coffee-rails
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
   em-hiredis
-  erubis (~> 2.7.0)
   google-cloud-storage (~> 1.3)
   hiredis
-  jquery-rails
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
@@ -514,15 +555,17 @@ DEPENDENCIES
   puma
   que
   queue_classic!
+  qunit-selenium
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
   rake (>= 11.1)
   rb-inotify!
   redcarpet (~> 3.2.3)
-  redis
+  redis (~> 4.0)
+  redis-namespace!
   resque
-  resque-scheduler
+  resque-scheduler!
   rubocop (>= 0.47)
   sass-rails!
   sdoc!

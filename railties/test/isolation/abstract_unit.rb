@@ -235,7 +235,7 @@ module TestHelpers
 
     # Invoke a bin/rails command inside the app
     #
-    # allow_failures:: true to return normally if the command exits with
+    # allow_failure:: true to return normally if the command exits with
     #   a non-zero status. By default, this method will raise.
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be

@@ -63,12 +63,13 @@ module ActiveRecord
       def lock!(lock = true)
         if persisted?
           if changed?
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Locking a record with unpersisted changes is deprecated and will raise an
-              exception in Rails 5.2. Use `save` to persist the changes, or `reload` to
-              discard them explicitly.
+            raise(<<-MSG.squish)
+              Locking a record with unpersisted changes is not supported. Use
+              `save` to persist the changes, or `reload` to discard them
+              explicitly.
             MSG
           end
+
           reload(lock: lock)
         end
         self

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../base"
-require_relative "../../../secrets"
+require "rails/generators/base"
+require "rails/secrets"
 
 module Rails
   module Generators

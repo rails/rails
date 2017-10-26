@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/array/conversions"
-require_relative "core_ext/module/delegation"
-require_relative "core_ext/object/acts_like"
-require_relative "core_ext/string/filters"
-require_relative "deprecation"
+require "active_support/core_ext/array/conversions"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/string/filters"
+require "active_support/deprecation"
 
 module ActiveSupport
   # Provides accurate date and time measurements using Date#advance and

@@ -8,7 +8,7 @@ require "active_support/test_case"
 require "action_controller"
 require "action_controller/test_case"
 require "action_dispatch/testing/integration"
-require_relative "generators/test_case"
+require "rails/generators/test_case"
 
 require "active_support/testing/autorun"
 

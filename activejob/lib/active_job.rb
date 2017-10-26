@@ -25,7 +25,7 @@
 
 require "active_support"
 require "active_support/rails"
-require_relative "active_job/version"
+require "active_job/version"
 require "global_id"
 
 module ActiveJob

@@ -6,8 +6,9 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
-require_relative "engine"
-require_relative "secrets"
+require "active_support/deprecation"
+require "rails/engine"
+require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -398,6 +399,11 @@ module Rails
         # Fallback to config.secret_token if secrets.secret_token isn't set
         secrets.secret_token ||= config.secret_token
 
+        if secrets.secret_token.present?
+          ActiveSupport::Deprecation.warn \
+            "`secrets.secret_token` is deprecated in favor of `secret_key_base` and will be removed in Rails 6.0."
+        end
+
         secrets
       end
     end
@@ -468,7 +474,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require_relative "tasks"
+      require "rails/tasks"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
 

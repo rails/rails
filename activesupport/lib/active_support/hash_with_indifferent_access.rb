@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/hash/keys"
-require_relative "core_ext/hash/reverse_merge"
+require "active_support/core_ext/hash/keys"
+require "active_support/core_ext/hash/reverse_merge"
 
 module ActiveSupport
   # Implements a hash where keys <tt>:foo</tt> and <tt>"foo"</tt> are considered
@@ -304,6 +304,21 @@ module ActiveSupport
     def transform_values(*args, &block)
       return to_enum(:transform_values) unless block_given?
       dup.tap { |hash| hash.transform_values!(*args, &block) }
+    end
+
+    def transform_keys(*args, &block)
+      return to_enum(:transform_keys) unless block_given?
+      dup.tap { |hash| hash.transform_keys!(*args, &block) }
+    end
+
+    def slice(*keys)
+      keys.map! { |key| convert_key(key) }
+      self.class.new(super)
+    end
+
+    def slice!(*keys)
+      keys.map! { |key| convert_key(key) }
+      super
     end
 
     def compact

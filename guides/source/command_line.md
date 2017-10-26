@@ -659,6 +659,6 @@ development:
 ...
 ```
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
+It also generated some lines in our `database.yml` configuration corresponding to our choice of PostgreSQL for database.
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.

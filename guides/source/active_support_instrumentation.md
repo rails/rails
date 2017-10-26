@@ -197,6 +197,12 @@ INFO. Additional keys may be added by the caller.
 }
 ```
 
+### unpermitted_parameters.action_controller
+
+| Key     | Value            |
+| ------- | ---------------- |
+| `:keys` | Unpermitted keys |
+
 Action View
 -----------
 
@@ -337,6 +343,22 @@ Action Mailer
 }
 ```
 
+### process.action_mailer
+
+| Key           | Value                    |
+| ------------- | ------------------------ |
+| `:mailer`     | Name of the mailer class |
+| `:action`     | The action               |
+| `:args`       | The arguments            |
+
+```ruby
+{
+  mailer: "Notification",
+  action: "welcome_email",
+  args: []
+}
+```
+
 Active Support
 --------------
 
@@ -450,6 +472,92 @@ Active Job
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
+Action Cable
+------------
+
+### perform_action.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:action`        | The action                |
+| `:data`          | A hash of data            |
+
+### transmit.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:data`          | A hash of data            |
+| `:via`           | Via                       |
+
+### transmit_subscription_confirmation.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### transmit_subscription_rejection.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### broadcast.action_cable
+
+| Key             | Value                |
+| --------------- | -------------------- |
+| `:broadcasting` | A named broadcasting |
+| `:message`      | A hash of message    |
+| `:coder`        | The coder            |
+
+Active Storage
+--------------
+
+### service_upload.active_storage
+
+| Key          | Value                        |
+| ------------ | ---------------------------- |
+| `:key`       | Secure token                 |
+| `:service`   | Name of the service          |
+| `:checksum`  | Checksum to ensure integrity |
+
+### service_streaming_download.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_download.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_delete.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_exist.active_storage
+
+| Key          | Value                       |
+| ------------ | --------------------------- |
+| `:key`       | Secure token                |
+| `:service`   | Name of the service         |
+| `:exist`     | File or blob exists or not  |
+
+### service_url.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+| `:url`       | Generated url       |
 
 Railties
 --------
@@ -549,4 +657,4 @@ end
 ```
 
 You should follow Rails conventions when defining your own events. The format is: `event.library`.
-If you application is sending Tweets, you should create an event named `tweet.twitter`.
+If your application is sending Tweets, you should create an event named `tweet.twitter`.

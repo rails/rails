@@ -65,7 +65,7 @@ config.assets.js_compressor = :uglifier
 ```
 
 NOTE: The `sass-rails` gem is automatically used for CSS compression if included
-in the Gemfile and no `config.assets.css_compressor` option is set.
+in the `Gemfile` and no `config.assets.css_compressor` option is set.
 
 
 ### Main Features
@@ -181,7 +181,7 @@ When you generate a scaffold or a controller, Rails also generates a JavaScript
 file (or CoffeeScript file if the `coffee-rails` gem is in the `Gemfile`) and a
 Cascading Style Sheet file (or SCSS file if `sass-rails` is in the `Gemfile`)
 for that controller. Additionally, when generating a scaffold, Rails generates
-the file scaffolds.css (or scaffolds.scss if `sass-rails` is in the
+the file `scaffolds.css` (or `scaffolds.scss` if `sass-rails` is in the
 `Gemfile`.)
 
 For example, if you generate a `ProjectsController`, Rails will also add a new
@@ -202,7 +202,7 @@ will result in your assets being included more than once.
 
 WARNING: When using asset precompilation, you will need to ensure that your
 controller assets will be precompiled when loading them on a per page basis. By
-default .coffee and .scss files will not be precompiled on their own. See
+default `.coffee` and `.scss` files will not be precompiled on their own. See
 [Precompiling Assets](#precompiling-assets) for more information on how
 precompiling works.
 
@@ -726,7 +726,7 @@ include, you can add them to the `precompile` array in `config/initializers/asse
 Rails.application.config.assets.precompile += %w( admin.js admin.css )
 ```
 
-NOTE. Always specify an expected compiled filename that ends with .js or .css,
+NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
 The task also generates a `.sprockets-manifest-md5hash.json` (where `md5hash` is
@@ -1090,7 +1090,7 @@ Possible options for JavaScript compression are `:closure`, `:uglifier` and
 `:yui`. These require the use of the `closure-compiler`, `uglifier` or
 `yui-compressor` gems, respectively.
 
-The default Gemfile includes [uglifier](https://github.com/lautis/uglifier).
+The default `Gemfile` includes [uglifier](https://github.com/lautis/uglifier).
 This gem wraps [UglifyJS](https://github.com/mishoo/UglifyJS) (written for
 NodeJS) in Ruby. It compresses your code by removing white space and comments,
 shortening local variable names, and performing other micro-optimizations such
@@ -1219,7 +1219,7 @@ Sprockets uses Processors, Transformers, Compressors, and Exporters to extend
 Sprockets functionality. Have a look at
 [Extending Sprockets](https://github.com/rails/sprockets/blob/master/guides/extending_sprockets.md)
 to learn more. Here we registered a preprocessor to add a comment to the end
-of text/css (.css) files.
+of text/css (`.css`) files.
 
 ```ruby
 module AddComment

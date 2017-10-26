@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../test_unit/runner"
-require_relative "../test_unit/reporter"
+require "rails/test_unit/runner"
+require "rails/test_unit/reporter"
 
 Rails::TestUnitReporter.executable = "bin/test"
 

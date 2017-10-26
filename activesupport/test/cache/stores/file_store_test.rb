@@ -118,6 +118,7 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_not @cache.exist?("foo")
       assert @cache.exist?("baz")
       assert @cache.exist?("quux")
+      assert_equal 2, Dir.glob(File.join(cache_dir, "**")).size
     end
   end
 

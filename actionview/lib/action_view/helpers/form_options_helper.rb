@@ -2,7 +2,7 @@
 
 require "cgi"
 require "erb"
-require_relative "form_helper"
+require "action_view/helpers/form_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
@@ -279,17 +279,17 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
+      #   time_zone_select("user", "time_zone", nil, include_blank: true)
       #
-      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
+      #   time_zone_select("user", "time_zone", nil, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
+      #   time_zone_select("user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
+      #   time_zone_select("user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
-      #   time_zone_select( "user", 'time_zone', /Australia/)
+      #   time_zone_select("user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      #   time_zone_select("user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end

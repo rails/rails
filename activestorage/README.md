@@ -12,6 +12,10 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 `Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
 
+## Installation
+
+Run `rails active_storage:install` to copy over active_storage migrations.
+
 ## Examples
 
 One attachment:

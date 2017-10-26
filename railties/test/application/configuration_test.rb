@@ -487,6 +487,32 @@ module ApplicationTests
       assert_equal "some_value", Rails.application.message_verifier(:sensitive_value).verify(message)
     end
 
+    test "config.secret_token is deprecated" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+
+      app "production"
+
+      assert_deprecated(/secret_token/) do
+        app.secrets
+      end
+    end
+
+    test "secrets.secret_token is deprecated" do
+      app_file "config/secrets.yml", <<-YAML
+        production:
+          secret_token: "b3c631c314c0bbca50c1b2843150fe33"
+      YAML
+
+      app "production"
+
+      assert_deprecated(/secret_token/) do
+        app.secrets
+      end
+    end
+
+
     test "raises when secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil

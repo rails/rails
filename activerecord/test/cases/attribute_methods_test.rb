@@ -999,6 +999,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
+  test "generated attribute methods ancestors have correct class" do
+    mod = Topic.send(:generated_attribute_methods)
+    assert_match %r(GeneratedAttributeMethods), mod.inspect
+  end
+
   private
 
     def new_topic_like_ar_class(&block)
@@ -1017,14 +1022,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       yield
     ensure
       ActiveRecord::Base.time_zone_aware_types = old_types
-    end
-
-    def cached_columns
-      Topic.columns.map(&:name)
-    end
-
-    def time_related_columns_on_topic
-      Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
     end
 
     def privatize(method_signature)

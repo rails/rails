@@ -5,6 +5,18 @@ module ActiveRecord
     module PostgreSQL
       class SchemaDumper < ConnectionAdapters::SchemaDumper # :nodoc:
         private
+
+          def extensions(stream)
+            extensions = @connection.extensions
+            if extensions.any?
+              stream.puts "  # These are extensions that must be enabled in order to support this database"
+              extensions.sort.each do |extension|
+                stream.puts "  enable_extension #{extension.inspect}"
+              end
+              stream.puts
+            end
+          end
+
           def prepare_column_options(column)
             spec = super
             spec[:array] = "true" if column.array?

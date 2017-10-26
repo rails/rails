@@ -285,7 +285,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if].unshift("transaction_include_any_action?(#{fire_on})")
+            options[:if].unshift(-> { transaction_include_any_action?(fire_on) })
           end
         end
 

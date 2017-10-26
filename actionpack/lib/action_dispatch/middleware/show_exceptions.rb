@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../http/request"
-require_relative "exception_wrapper"
+require "action_dispatch/http/request"
+require "action_dispatch/middleware/exception_wrapper"
 
 module ActionDispatch
   # This middleware rescues any exception returned by the application

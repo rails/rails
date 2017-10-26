@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "javascript_helper"
+require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"

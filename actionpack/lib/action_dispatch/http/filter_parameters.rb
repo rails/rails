@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "parameter_filter"
+require "action_dispatch/http/parameter_filter"
 
 module ActionDispatch
   module Http

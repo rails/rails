@@ -18,7 +18,6 @@ gem "mocha", require: false
 gem "capybara", "~> 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "jquery-rails"
 gem "coffee-rails"
 gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
 gem "turbolinks", "~> 5"
@@ -52,16 +51,13 @@ gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 
-# Action View. For testing Erubis handler deprecation.
-gem "erubis", "~> 2.7.0", require: false
-
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
 
 # Active Job.
 group :job do
   gem "resque", require: false
-  gem "resque-scheduler", require: false
+  gem "resque-scheduler", github: "jeremy/resque-scheduler", branch: "redis-rb-4.0", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
@@ -82,7 +78,10 @@ group :cable do
 
   gem "em-hiredis", require: false
   gem "hiredis", require: false
-  gem "redis", require: false
+  gem "redis", "~> 4.0", require: false
+
+  # For Redis 4.0 support. Unreleased 9cb81bf.
+  gem "redis-namespace", github: "resque/redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
@@ -91,12 +90,18 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+# Active Storage
 group :storage do
   gem "aws-sdk-s3", require: false
   gem "google-cloud-storage", "~> 1.3", require: false
   gem "azure-storage", require: false
 
   gem "mini_magick"
+end
+
+group :ujs do
+  gem "qunit-selenium"
+  gem "chromedriver-helper"
 end
 
 # Add your own local bundler stuff.

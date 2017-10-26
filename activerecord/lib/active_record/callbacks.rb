@@ -98,9 +98,9 @@ module ActiveRecord
   # == Types of callbacks
   #
   # There are four types of callbacks accepted by the callback macros: Method references (symbol), callback objects,
-  # inline methods (using a proc), and inline eval methods (using a string). Method references and callback objects
+  # inline methods (using a proc). Method references and callback objects
   # are the recommended approaches, inline methods using a proc are sometimes appropriate (such as for
-  # creating mix-ins), and inline eval methods are deprecated.
+  # creating mix-ins).
   #
   # The method reference callbacks work by specifying a protected or private method available in the object, like this:
   #
@@ -240,7 +240,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #
@@ -265,7 +265,7 @@ module ActiveRecord
   #
   #     private
   #
-  #     def log_chidren
+  #     def log_children
   #       # Child processing
   #     end
   #

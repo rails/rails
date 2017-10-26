@@ -88,12 +88,6 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeveloperWithConstantClassName < Developer
-    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
-  end
-end
-
 class DeveloperWithExtendOption < Developer
   module NamedExtension
     def category
@@ -950,13 +944,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_with_symbol_class_name
     assert_nothing_raised do
       developer = DeveloperWithSymbolClassName.new
-      developer.projects
-    end
-  end
-
-  def test_with_constant_class_name
-    assert_nothing_raised do
-      developer = DeveloperWithConstantClassName.new
       developer.projects
     end
   end

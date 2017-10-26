@@ -1072,7 +1072,6 @@ module ActiveRecord
       end
 
       # Reloads the collection from the database. Returns +self+.
-      # Equivalent to <tt>collection(true)</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -1085,9 +1084,6 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       #
       #   person.pets.reload # fetches pets from the database
-      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
-      #
-      #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload

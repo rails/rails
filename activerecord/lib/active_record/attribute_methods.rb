@@ -33,7 +33,9 @@ module ActiveRecord
 
     BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class GeneratedAttributeMethods < Module; end # :nodoc:
+    class GeneratedAttributeMethods < Module #:nodoc:
+      include Mutex_m
+    end
 
     module ClassMethods
       def inherited(child_class) #:nodoc:
@@ -42,7 +44,7 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new { extend Mutex_m }
+        @generated_attribute_methods = GeneratedAttributeMethods.new
         @attribute_methods_generated = false
         include @generated_attribute_methods
 

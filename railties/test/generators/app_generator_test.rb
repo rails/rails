@@ -412,6 +412,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_no_directory("test")
@@ -422,6 +423,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_directory("test")
@@ -558,6 +560,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     output = run_generator [File.join(destination_root, "myapp"), "--pretend"]
     assert_no_match(/run  bundle install/, output)
     assert_no_match(/run  git init/, output)
+  end
+
+  def test_quiet_option
+    output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
+    assert_empty output
   end
 
   def test_application_name_with_spaces
@@ -737,7 +744,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
-    ensure_bundler_first = -> command do
+    ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
       @sequence_step += 1
     end

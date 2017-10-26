@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/object/blank"
+require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # Usually key value pairs are handled something like this:

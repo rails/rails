@@ -555,9 +555,8 @@ The async adapter is intended for development/testing and should not be used in 
 
 ##### Redis Adapter
 
-Action Cable contains two Redis adapters: "normal" Redis and Evented Redis. Both
-of the adapters require users to provide a URL pointing to the Redis server.
-Additionally, a channel_prefix may be provided to avoid channel name collisions
+The Redis adapter requires users to provide a URL pointing to the Redis server.
+Additionally, a `channel_prefix` may be provided to avoid channel name collisions
 when using the same Redis server for multiple applications. See the [Redis PubSub documentation](https://redis.io/topics/pubsub#database-amp-scoping) for more details.
 
 ##### PostgreSQL Adapter
@@ -669,8 +668,8 @@ authentication. You can see one way of doing that with Devise in this [article](
 ## Dependencies
 
 Action Cable provides a subscription adapter interface to process its
-pubsub internals. By default, asynchronous, inline, PostgreSQL, evented
-Redis, and non-evented Redis adapters are included. The default adapter
+pubsub internals. By default, asynchronous, inline, PostgreSQL, and Redis
+adapters are included. The default adapter
 in new Rails applications is the asynchronous (`async`) adapter.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby),

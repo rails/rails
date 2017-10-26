@@ -19,6 +19,7 @@ class AssetTagHelperTest < ActionView::TestCase
       def ssl?() false end
       def host_with_port() "localhost" end
       def base_url() "http://www.example.com" end
+      def send_early_hints(links) end
     end.new
 
     @controller.request = @request
@@ -305,6 +306,24 @@ class AssetTagHelperTest < ActionView::TestCase
     %(font_path("font.ttf?123")) => %(/fonts/font.ttf?123)
   }
 
+  FontUrlToTag = {
+    %(font_url("font.eot")) => %(http://www.example.com/fonts/font.eot),
+    %(font_url("font.eot#iefix")) => %(http://www.example.com/fonts/font.eot#iefix),
+    %(font_url("font.woff")) => %(http://www.example.com/fonts/font.woff),
+    %(font_url("font.ttf")) => %(http://www.example.com/fonts/font.ttf),
+    %(font_url("font.ttf?123")) => %(http://www.example.com/fonts/font.ttf?123),
+    %(font_url("font.ttf", host: "http://assets.example.com")) => %(http://assets.example.com/fonts/font.ttf)
+  }
+
+  UrlToFontToTag = {
+    %(url_to_font("font.eot")) => %(http://www.example.com/fonts/font.eot),
+    %(url_to_font("font.eot#iefix")) => %(http://www.example.com/fonts/font.eot#iefix),
+    %(url_to_font("font.woff")) => %(http://www.example.com/fonts/font.woff),
+    %(url_to_font("font.ttf")) => %(http://www.example.com/fonts/font.ttf),
+    %(url_to_font("font.ttf?123")) => %(http://www.example.com/fonts/font.ttf?123),
+    %(url_to_font("font.ttf", host: "http://assets.example.com")) => %(http://assets.example.com/fonts/font.ttf)
+  }
+
   def test_autodiscovery_link_tag_with_unknown_type_but_not_pass_type_option_key
     assert_raise(ArgumentError) do
       auto_discovery_link_tag(:xml)
@@ -547,6 +566,14 @@ class AssetTagHelperTest < ActionView::TestCase
     FontPathToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
+  def test_font_url
+    FontUrlToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_url_to_font_alias_for_font_url
+    UrlToFontToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
   def test_video_audio_tag_does_not_modify_options
     options = { autoplay: true }
     video_tag("video", options)
@@ -627,7 +654,9 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller = BasicController.new
     @controller.config.relative_url_root = "/collaboration/hieraki"
 
-    @request = Struct.new(:protocol, :base_url).new("gopher://", "gopher://www.example.com")
+    @request = Struct.new(:protocol, :base_url) do
+      def send_early_hints(links); end
+    end.new("gopher://", "gopher://www.example.com")
     @controller.request = @request
   end
 

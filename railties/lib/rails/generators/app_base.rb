@@ -3,10 +3,10 @@
 require "fileutils"
 require "digest/md5"
 require "active_support/core_ext/string/strip"
-require_relative "../version" unless defined?(Rails::VERSION)
+require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
-require_relative "../generators"
+require "rails/generators"
 require "active_support/core_ext/array/extract_options"
 
 module Rails
@@ -369,7 +369,7 @@ module Rails
         return [] if options[:skip_action_cable]
         comment = "Use Redis adapter to run Action Cable in production"
         gems = []
-        gems << GemfileEntry.new("redis", "~> 3.0", comment, {}, true)
+        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
         gems
       end
 

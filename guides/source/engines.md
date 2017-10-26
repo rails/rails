@@ -63,7 +63,7 @@ authentication for its parent applications, or
 [Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
-[RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
+[Refinery CMS](https://github.com/refinery/refinerycms), a CMS engine.
 
 Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
@@ -537,12 +537,12 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_for [@article, @article.comments.build] do |f| %>
+<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
-  <%= f.submit %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -653,7 +653,7 @@ there isn't an application handy to test this out in, generate one using the
 $ rails new unicorn
 ```
 
-Usually, specifying the engine inside the Gemfile would be done by specifying it
+Usually, specifying the engine inside the `Gemfile` would be done by specifying it
 as a normal, everyday gem.
 
 ```ruby
@@ -783,8 +783,8 @@ added above the `title` field with this code:
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br>
-  <%= f.text_field :author_name %>
+  <%= form.label :author_name %><br>
+  <%= form.text_field :author_name %>
 </div>
 ```
 
@@ -1361,7 +1361,7 @@ that only exists for your engine. In this case, the host application doesn't
 need to require `admin.css` or `admin.js`. Only the gem's admin layout needs
 these assets. It doesn't make sense for the host app to include
 `"blorgh/admin.css"` in its stylesheets. In this situation, you should
-explicitly define these assets for precompilation.  This tells sprockets to add
+explicitly define these assets for precompilation.  This tells Sprockets to add
 your engine assets when `bin/rails assets:precompile` is triggered.
 
 You can define assets for precompilation in `engine.rb`:

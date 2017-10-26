@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../command/environment_argument"
+require "rails/command/environment_argument"
 
 module Rails
   class DBConsole

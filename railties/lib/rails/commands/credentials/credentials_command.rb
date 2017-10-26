@@ -67,15 +67,15 @@ module Rails
 
 
         def master_key_generator
-          require_relative "../../generators"
-          require_relative "../../generators/rails/master_key/master_key_generator"
+          require "rails/generators"
+          require "rails/generators/rails/master_key/master_key_generator"
 
           Rails::Generators::MasterKeyGenerator.new
         end
 
         def credentials_generator
-          require_relative "../../generators"
-          require_relative "../../generators/rails/credentials/credentials_generator"
+          require "rails/generators"
+          require "rails/generators/rails/credentials/credentials_generator"
 
           Rails::Generators::CredentialsGenerator.new
         end

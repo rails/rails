@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../model_helpers"
+require "rails/generators/model_helpers"
 
 module Rails
   module Generators

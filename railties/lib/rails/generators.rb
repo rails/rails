@@ -4,7 +4,7 @@ activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
 require "thor/group"
-require_relative "command"
+require "rails/command"
 
 require "active_support"
 require "active_support/core_ext/object/blank"

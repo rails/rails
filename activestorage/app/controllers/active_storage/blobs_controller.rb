@@ -6,20 +6,11 @@
 # authenticated redirection controller.
 class ActiveStorage::BlobsController < ActionController::Base
   def show
-    if blob = find_signed_blob
-      expires_in 5.minutes # service_url defaults to 5 minutes
-      redirect_to blob.service_url(disposition: disposition_param)
+    if blob = ActiveStorage::Blob.find_signed(params[:signed_id])
+      expires_in ActiveStorage::Blob.service.url_expires_in
+      redirect_to blob.service_url(disposition: params[:disposition])
     else
       head :not_found
     end
   end
-
-  private
-    def find_signed_blob
-      ActiveStorage::Blob.find_signed(params[:signed_id])
-    end
-
-    def disposition_param
-      params[:disposition].presence_in(%w( inline attachment )) || "inline"
-    end
 end

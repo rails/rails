@@ -565,18 +565,18 @@ unless in_memory_db?
       end
     end
 
-    # Locking a record reloads it.
-    def test_sane_lock_method
+    def test_lock_does_not_raise_when_the_object_is_not_dirty
+      person = Person.find 1
       assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, "fooman"
-          # Locking a dirty record is deprecated
-          assert_deprecated do
-            person.lock!
-          end
-          assert_equal old, person.first_name
-        end
+        person.lock!
+      end
+    end
+
+    def test_lock_raises_when_the_record_is_dirty
+      person = Person.find 1
+      person.first_name = "fooman"
+      assert_raises(RuntimeError) do
+        person.lock!
       end
     end
 

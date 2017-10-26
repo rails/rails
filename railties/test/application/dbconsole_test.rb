@@ -19,21 +19,19 @@ module ApplicationTests
     end
 
     def test_use_value_defined_in_environment_file_in_database_yml
-      Dir.chdir(app_path) do
-        app_file "config/database.yml", <<-YAML
-          development:
-             database: <%= Rails.application.config.database %>
-             adapter: sqlite3
-             pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-             timeout: 5000
-        YAML
+      app_file "config/database.yml", <<-YAML
+        development:
+           database: <%= Rails.application.config.database %>
+           adapter: sqlite3
+           pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+           timeout: 5000
+      YAML
 
-        app_file "config/environments/development.rb", <<-RUBY
-          Rails.application.configure do
-            config.database = "db/development.sqlite3"
-          end
-        RUBY
-      end
+      app_file "config/environments/development.rb", <<-RUBY
+        Rails.application.configure do
+          config.database = "db/development.sqlite3"
+        end
+      RUBY
 
       master, slave = PTY.open
       spawn_dbconsole(slave)
@@ -43,22 +41,20 @@ module ApplicationTests
     end
 
     def test_respect_environment_option
-      Dir.chdir(app_path) do
-        app_file "config/database.yml", <<-YAML
-          default: &default
-            adapter: sqlite3
-            pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
-            timeout: 5000
+      app_file "config/database.yml", <<-YAML
+        default: &default
+          adapter: sqlite3
+          pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+          timeout: 5000
 
-          development:
-            <<: *default
-            database: db/development.sqlite3
+        development:
+          <<: *default
+          database: db/development.sqlite3
 
-          production:
-            <<: *default
-            database: db/production.sqlite3
-        YAML
-      end
+        production:
+          <<: *default
+          database: db/production.sqlite3
+      YAML
 
       master, slave = PTY.open
       spawn_dbconsole(slave, "-e production")

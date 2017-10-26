@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "application_controller"
+require "rails/application_controller"
 require "action_dispatch/routing/inspector"
 
 class Rails::InfoController < Rails::ApplicationController # :nodoc:

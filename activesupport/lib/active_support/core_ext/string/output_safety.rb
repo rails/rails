@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
 require "erb"
-require_relative "../kernel/singleton_class"
-require_relative "../module/redefine_method"
-require_relative "../../multibyte/unicode"
+require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/module/redefine_method"
+require "active_support/multibyte/unicode"
 
 class ERB
   module Util
@@ -14,9 +14,6 @@ class ERB
 
     # A utility method for escaping HTML tag characters.
     # This method is also aliased as <tt>h</tt>.
-    #
-    # In your ERB templates, use this method to escape any unsafe content. For example:
-    #   <%= h @person.name %>
     #
     #   puts html_escape('is a > 0 & a < 10?')
     #   # => is a &gt; 0 &amp; a &lt; 10?

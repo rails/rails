@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "initializable"
+require "rails/initializable"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
 require "active_support/core_ext/module/delegation"

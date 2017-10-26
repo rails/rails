@@ -1250,6 +1250,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     TenantMembership.current_member = nil
   end
 
+  def test_has_many_trough_with_scope_that_has_joined_same_table_with_parent_relation
+    assert_equal authors(:david), Author.joins(:comments_for_first_author).take
+  end
+
   def test_has_many_through_with_unscope_should_affect_to_through_scope
     assert_equal [comments(:eager_other_comment1)], authors(:mary).unordered_comments
   end

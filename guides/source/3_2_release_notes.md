@@ -30,7 +30,7 @@ TIP: Note that Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. 
 
 ### What to update in your apps
 
-* Update your Gemfile to depend on
+* Update your `Gemfile` to depend on
     * `rails = 3.2.0`
     * `sass-rails ~> 3.2.3`
     * `coffee-rails ~> 3.2.1`

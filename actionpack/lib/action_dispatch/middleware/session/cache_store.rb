@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "abstract_store"
+require "action_dispatch/middleware/session/abstract_store"
 
 module ActionDispatch
   module Session

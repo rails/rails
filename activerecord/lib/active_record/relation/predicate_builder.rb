@@ -13,6 +13,7 @@ module ActiveRecord
       register_handler(Range, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
+      register_handler(Set, ArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)
@@ -123,11 +124,11 @@ module ActiveRecord
   end
 end
 
-require_relative "predicate_builder/array_handler"
-require_relative "predicate_builder/base_handler"
-require_relative "predicate_builder/basic_object_handler"
-require_relative "predicate_builder/range_handler"
-require_relative "predicate_builder/relation_handler"
+require "active_record/relation/predicate_builder/array_handler"
+require "active_record/relation/predicate_builder/base_handler"
+require "active_record/relation/predicate_builder/basic_object_handler"
+require "active_record/relation/predicate_builder/range_handler"
+require "active_record/relation/predicate_builder/relation_handler"
 
-require_relative "predicate_builder/association_query_value"
-require_relative "predicate_builder/polymorphic_array_value"
+require "active_record/relation/predicate_builder/association_query_value"
+require "active_record/relation/predicate_builder/polymorphic_array_value"

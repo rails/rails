@@ -1,3 +1,39 @@
+*   `IO#to_json` now returns the `to_s` representation, rather than
+    attempting to convert to an array. This fixes a bug where `IO#to_json`
+    would raise an `IOError` when called on an unreadable object.
+
+    Fixes #26132.
+
+    *Paul Kuruvilla*
+
+*   Remove deprecated `halt_callback_chains_on_return_false` option.
+
+    *Rafael Mendonça França*
+
+*   Remove deprecated `:if` and `:unless` string filter for callbacks.
+
+    *Rafael Mendonça França*
+
+*   `Hash#slice` now falls back to Ruby 2.5+'s built-in definition if defined.
+
+    *Akira Matsuda*
+
+*   Deprecate `secrets.secret_token`.
+
+    The architecture for secrets had a big upgrade between Rails 3 and Rails 4,
+    when the default changed from using `secret_token` to `secret_key_base`.
+
+    `secret_token` has been soft deprecated in documentation for four years
+    but is still in place to support apps created before Rails 4.
+    Deprecation warnings have been added to help developers upgrade their
+    applications to `secret_key_base`.
+
+    *claudiob*, *Kasper Timm Hansen*
+
+*   Return an instance of `HashWithIndifferentAccess` from `HashWithIndifferentAccess#transform_keys`.
+
+    *Yuji Yaginuma*
+
 *   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
 
     This change introduces a `rotate` method to both the `MessageEncryptor` and
@@ -45,12 +81,12 @@
     Previously:
 
         'one_two'.camelize(true)
-        => nil
+        # => nil
 
     Now:
 
         'one_two'.camelize(true)
-        => ArgumentError: Invalid option, use either :upper or :lower.
+        # => ArgumentError: Invalid option, use either :upper or :lower.
 
     *Ricardo Díaz*
 
@@ -65,12 +101,12 @@
     Prior to Rails 5.1:
 
         5.minutes % 2.minutes
-        => 60
+        # => 60
 
     Now:
 
         5.minutes % 2.minutes
-        => 1 minute
+        # => 1 minute
 
     Fixes #29603 and #29743.
 

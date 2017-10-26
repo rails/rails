@@ -24,7 +24,7 @@
 #++
 
 require "abstract_controller"
-require_relative "action_mailer/version"
+require "action_mailer/version"
 
 # Common Active Support usage in Action Mailer
 require "active_support"

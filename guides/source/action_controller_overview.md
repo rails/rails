@@ -654,8 +654,8 @@ class UsersController < ApplicationController
     @users = User.all
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render xml: @users}
-      format.json { render json: @users}
+      format.xml  { render xml: @users }
+      format.json { render json: @users }
     end
   end
 end
@@ -784,9 +784,9 @@ The way this is done is to add a non-guessable token which is only known to your
 If you generate a form like this:
 
 ```erb
-<%= form_for @user do |f| %>
-  <%= f.text_field :username %>
-  <%= f.text_field :password %>
+<%= form_with model: @user, local: true do |form| %>
+  <%= form.text_field :username %>
+  <%= form.text_field :password %>
 <% end %>
 ```
 
@@ -1116,7 +1116,7 @@ Rails default exception handling displays a "500 Server Error" message for all e
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 

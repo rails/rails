@@ -1,5 +1,5 @@
-VENDOR_PATH = File.expand_path('..', __dir__)
-Dir.chdir(VENDOR_PATH) do
+APP_ROOT = File.expand_path('..', __dir__)
+Dir.chdir(APP_ROOT) do
   begin
     exec "yarnpkg #{ARGV.join(' ')}"
   rescue Errno::ENOENT

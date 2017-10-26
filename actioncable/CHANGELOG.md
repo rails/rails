@@ -1,3 +1,11 @@
+*   Removed deprecated evented redis adapter.
+
+    *Rafael Mendonça França*
+
+*   Support redis-rb 4.0.
+
+    *Jeremy Daer*
+
 *   Hash long stream identifiers when using PostgreSQL adapter.
 
     PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
@@ -15,12 +23,5 @@
     makes this set of options as sensible as using just the `url`.
 
     *Marc Rendl Ignacio*
-
-*   Action Cable socket errors are now logged to the console
-
-    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
-
-    *Edward Poot*
-
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.

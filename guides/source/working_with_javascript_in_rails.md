@@ -174,7 +174,7 @@ passing the `:local` option `form_with`.
 This will generate the following HTML:
 
 ```html
-<form action="/articles" method="post" data-remote="true">
+<form action="/articles" accept-charset="UTF-8" method="post" data-remote="true">
   ...
 </form>
 ```

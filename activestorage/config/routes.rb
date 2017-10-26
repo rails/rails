@@ -24,6 +24,19 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Variant") { |variant| route_for(:rails_variant, variant) }
 
 
+  get "/rails/active_storage/previews/:signed_blob_id/:variation_key/*filename" => "active_storage/previews#show", as: :rails_blob_preview, internal: true
+
+  direct :rails_preview do |preview|
+    signed_blob_id = preview.blob.signed_id
+    variation_key  = preview.variation.key
+    filename       = preview.blob.filename
+
+    route_for(:rails_blob_preview, signed_blob_id, variation_key, filename)
+  end
+
+  resolve("ActiveStorage::Preview") { |preview| route_for(:rails_preview, preview) }
+
+
   get  "/rails/active_storage/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service, internal: true
   put  "/rails/active_storage/disk/:encoded_token" => "active_storage/disk#update", as: :update_rails_disk_service, internal: true
   post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads, internal: true

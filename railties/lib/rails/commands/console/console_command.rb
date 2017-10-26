@@ -3,7 +3,7 @@
 require "irb"
 require "irb/completion"
 
-require_relative "../../command/environment_argument"
+require "rails/command/environment_argument"
 
 module Rails
   class Console

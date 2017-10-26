@@ -24,11 +24,11 @@
 #++
 
 require "securerandom"
-require_relative "active_support/dependencies/autoload"
-require_relative "active_support/version"
-require_relative "active_support/logger"
-require_relative "active_support/lazy_load_hooks"
-require_relative "active_support/core_ext/date_and_time/compatibility"
+require "active_support/dependencies/autoload"
+require "active_support/version"
+require "active_support/logger"
+require "active_support/lazy_load_hooks"
+require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   extend ActiveSupport::Autoload
@@ -81,18 +81,6 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
-
-  def self.halt_callback_chains_on_return_false
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
-      ActiveSupport.halt_callback_chains_on_return_false is deprecated and will be removed in Rails 5.2.
-    MSG
-  end
-
-  def self.halt_callback_chains_on_return_false=(value)
-    ActiveSupport::Deprecation.warn(<<-MSG.squish)
-      ActiveSupport.halt_callback_chains_on_return_false= is deprecated and will be removed in Rails 5.2.
-    MSG
-  end
 
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone

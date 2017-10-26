@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../source_annotation_extractor"
+require "rails/source_annotation_extractor"
 
 desc "Enumerate all annotations (use notes:optimize, :fixme, :todo for focus)"
 task :notes do

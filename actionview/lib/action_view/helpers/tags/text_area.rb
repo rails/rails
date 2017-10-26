@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "placeholderable"
+require "action_view/helpers/tags/placeholderable"
 
 module ActionView
   module Helpers

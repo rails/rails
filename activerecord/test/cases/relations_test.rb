@@ -19,12 +19,12 @@ require "models/tyre"
 require "models/minivan"
 require "models/possession"
 require "models/reader"
+require "models/category"
 require "models/categorization"
 require "models/edge"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :posts, :comments,
-    :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -843,32 +843,6 @@ class RelationTest < ActiveRecord::TestCase
       relation = Author.where(name: Author.where(id: david.id).select(:name))
       assert_equal [david], relation.to_a
     }
-  end
-
-  def test_exists
-    davids = Author.where(name: "David")
-    assert davids.exists?
-    assert davids.exists?(authors(:david).id)
-    assert ! davids.exists?(authors(:mary).id)
-    assert ! davids.exists?("42")
-    assert ! davids.exists?(42)
-    assert ! davids.exists?(davids.new.id)
-
-    fake = Author.where(name: "fake author")
-    assert ! fake.exists?
-    assert ! fake.exists?(authors(:david).id)
-  end
-
-  def test_exists_uses_existing_scope
-    post = authors(:david).posts.first
-    authors = Author.includes(:posts).where(name: "David", posts: { id: post.id })
-    assert authors.exists?(authors(:david).id)
-  end
-
-  def test_any_with_scope_on_hash_includes
-    post = authors(:david).posts.first
-    categories = Categorization.includes(author: :posts).where(posts: { id: post.id })
-    assert categories.exists?
   end
 
   def test_last
@@ -1806,6 +1780,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal post, custom_post_relation.joins(:author).where!(title: post.title).take
   end
 
+  test "arel_attribute respects a custom table" do
+    assert_equal [posts(:welcome)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
+  end
+
+  test "alias_tracker respects a custom table" do
+    assert_equal posts(:welcome), custom_post_relation("categories_posts").joins(:categories).first
+  end
+
   test "#load" do
     relation = Post.all
     assert_queries(1) do
@@ -1912,9 +1894,22 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  test "#where with set" do
+    david = authors(:david)
+    mary = authors(:mary)
+
+    authors = Author.where(name: ["David", "Mary"].to_set)
+    assert_equal [david, mary], authors
+  end
+
+  test "#where with empty set" do
+    authors = Author.where(name: Set.new)
+    assert_empty authors
+  end
+
   private
-    def custom_post_relation
-      table_alias = Post.arel_table.alias("omg_posts")
+    def custom_post_relation(alias_name = "omg_posts")
+      table_alias = Post.arel_table.alias(alias_name)
       table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
       predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 

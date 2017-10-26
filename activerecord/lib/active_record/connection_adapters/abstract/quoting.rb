@@ -11,19 +11,6 @@ module ActiveRecord
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 
-        if value.respond_to?(:quoted_id)
-          at = value.method(:quoted_id).source_location
-          at &&= " at %s:%d" % at
-
-          owner = value.method(:quoted_id).owner.to_s
-          klass = value.class.to_s
-          klass += "(#{owner})" unless owner == klass
-
-          ActiveSupport::Deprecation.warn \
-            "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
-          return value.quoted_id
-        end
-
         if value.respond_to?(:value_for_database)
           value = value.value_for_database
         end
@@ -36,10 +23,6 @@ module ActiveRecord
       # to a String.
       def type_cast(value, column = nil)
         value = id_value_for_database(value) if value.is_a?(Base)
-
-        if value.respond_to?(:quoted_id) && value.respond_to?(:id)
-          return value.id
-        end
 
         if column
           value = type_cast_from_column(column, value)

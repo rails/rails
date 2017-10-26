@@ -2,7 +2,7 @@
 
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
-require_relative "merger"
+require "active_record/relation/merger"
 
 module ActiveRecord
   module SpawnMethods

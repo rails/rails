@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "concurrent/map"
 
 module ActiveRecord
@@ -173,11 +172,6 @@ module ActiveRecord
       def scopes
         scope ? [scope] : []
       end
-
-      def scope_chain
-        chain.map(&:scopes)
-      end
-      deprecate :scope_chain
 
       def build_join_constraint(table, foreign_table)
         key         = join_keys.key
@@ -426,19 +420,12 @@ module ActiveRecord
       def initialize(name, scope, options, active_record)
         super
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
-        @foreign_type = options[:foreign_type] || "#{name}_type"
+        @foreign_type = options[:polymorphic] && (options[:foreign_type] || "#{name}_type")
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = Concurrent::Map.new
 
         if options[:class_name] && options[:class_name].class == Class
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing a class to the `class_name` is deprecated and will raise
-            an ArgumentError in Rails 5.2. It eagerloads more classes than
-            necessary and potentially creates circular dependencies.
-
-            Please pass the class name as a string:
-            `#{macro} :#{name}, class_name: '#{options[:class_name]}'`
-          MSG
+          raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
         end
       end
 

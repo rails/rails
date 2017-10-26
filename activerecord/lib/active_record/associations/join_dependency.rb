@@ -43,8 +43,6 @@ module ActiveRecord
         Column = Struct.new(:name, :alias)
       end
 
-      attr_reader :alias_tracker, :base_klass, :join_root
-
       def self.make_tree(associations)
         hash = {}
         walk_tree associations, hash
@@ -90,8 +88,8 @@ module ActiveRecord
       #    associations # => [:appointments]
       #    joins # =>  []
       #
-      def initialize(base, table, associations, joins, eager_loading: true)
-        @alias_tracker = AliasTracker.create_with_joins(base.connection, base.table_name, joins)
+      def initialize(base, table, associations, alias_tracker, eager_loading: true)
+        @alias_tracker = alias_tracker
         @eager_loading = eager_loading
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
@@ -157,6 +155,9 @@ module ActiveRecord
 
         parents.values
       end
+
+      protected
+        attr_reader :alias_tracker, :base_klass, :join_root
 
       private
 
@@ -224,7 +225,7 @@ module ActiveRecord
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
-            JoinAssociation.new reflection, build(right, reflection.klass)
+            JoinAssociation.new(reflection, build(right, reflection.klass), alias_tracker)
           end.compact
         end
 

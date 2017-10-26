@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../regexp"
+require "active_support/core_ext/regexp"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.

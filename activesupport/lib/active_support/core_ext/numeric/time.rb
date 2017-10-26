@@ -1,25 +1,15 @@
 # frozen_string_literal: true
 
-require_relative "../../duration"
-require_relative "../time/calculations"
-require_relative "../time/acts_like"
-require_relative "../date/calculations"
-require_relative "../date/acts_like"
+require "active_support/duration"
+require "active_support/core_ext/time/calculations"
+require "active_support/core_ext/time/acts_like"
+require "active_support/core_ext/date/calculations"
+require "active_support/core_ext/date/acts_like"
 
 class Numeric
-  # Enables the use of time calculations and declarations, like 45.minutes + 2.hours + 4.years.
+  # Returns a Duration instance matching the number of seconds provided.
   #
-  # These methods use Time#advance for precise date calculations when using from_now, ago, etc.
-  # as well as adding or subtracting their results from a Time object. For example:
-  #
-  #   # equivalent to Time.current.advance(months: 1)
-  #   1.month.from_now
-  #
-  #   # equivalent to Time.current.advance(years: 2)
-  #   2.years.from_now
-  #
-  #   # equivalent to Time.current.advance(months: 4, years: 5)
-  #   (4.months + 5.years).from_now
+  #   2.seconds # => 2 seconds
   def seconds
     ActiveSupport::Duration.seconds(self)
   end
@@ -66,10 +56,10 @@ class Numeric
   alias :fortnight :fortnights
 
   # Returns the number of milliseconds equivalent to the seconds provided.
-  # Used with the standard time durations, like 1.hour.in_milliseconds --
-  # so we can feed them to JavaScript functions like getTime().
+  # Used with the standard time durations.
   #
-  #   2.in_milliseconds # => 2_000
+  #   2.in_milliseconds # => 2000
+  #   1.hour.in_milliseconds # => 3600000
   def in_milliseconds
     self * 1000
   end

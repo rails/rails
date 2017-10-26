@@ -775,7 +775,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Added prepared statements support to `mysql2` adapter, for mysql2 0.4.4+,
     Previously this was only supported on the deprecated `mysql` legacy adapter.
-    To enable, set `prepared_statements: true` in config/database.yml.
+    To enable, set `prepared_statements: true` in `config/database.yml`.
     ([Pull Request](https://github.com/rails/rails/pull/23461))
 
 *   Added ability to call `ActionRecord::Relation#update` on relation objects

@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../type"
-require_relative "determine_if_preparable_visitor"
-require_relative "schema_cache"
-require_relative "sql_type_metadata"
-require_relative "abstract/schema_dumper"
-require_relative "abstract/schema_creation"
+require "active_record/type"
+require "active_record/connection_adapters/determine_if_preparable_visitor"
+require "active_record/connection_adapters/schema_cache"
+require "active_record/connection_adapters/sql_type_metadata"
+require "active_record/connection_adapters/abstract/schema_dumper"
+require "active_record/connection_adapters/abstract/schema_creation"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -195,16 +195,6 @@ module ActiveRecord
       def adapter_name
         self.class::ADAPTER_NAME
       end
-
-      def supports_migrations? # :nodoc:
-        true
-      end
-      deprecate :supports_migrations?
-
-      def supports_primary_key? # :nodoc:
-        true
-      end
-      deprecate :supports_primary_key?
 
       # Does this adapter support DDL rollbacks in transactions? That is, would
       # CREATE TABLE or ALTER TABLE get rolled back by a transaction?
@@ -402,10 +392,7 @@ module ActiveRecord
       # Checks whether the connection to the database is still active (i.e. not stale).
       # This is done under the hood by calling #active?. If the connection
       # is no longer active, then this method will reconnect to the database.
-      def verify!(*ignored)
-        if ignored.size > 0
-          ActiveSupport::Deprecation.warn("Passing arguments to #verify method of the connection has no effect and has been deprecated. Please remove all arguments from the #verify method call.")
-        end
+      def verify!
         reconnect! unless active?
       end
 
@@ -477,6 +464,8 @@ module ActiveRecord
           m.alias_type %r(numeric)i,   "decimal"
           m.alias_type %r(number)i,    "decimal"
           m.alias_type %r(double)i,    "float"
+
+          m.register_type %r(^json)i, Type::Json.new
 
           m.register_type(%r(decimal)i) do |sql_type|
             scale = extract_scale(sql_type)
