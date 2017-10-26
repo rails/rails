@@ -293,7 +293,11 @@ module ActiveRecord
       end
 
       def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "ENGINE=InnoDB", **options)
+        unless /ENGINE=/.match?(options[:options])
+          options.merge!(options: ["ENGINE=InnoDB", options[:options]].compact.join(" "))
+        end
+
+        super(table_name, **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
