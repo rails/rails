@@ -1,3 +1,7 @@
+*   Allow passing a Proc or Symbol to length validator options.
+
+    *Matt Rohrer*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*
