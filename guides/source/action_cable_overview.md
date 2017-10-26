@@ -668,8 +668,8 @@ authentication. You can see one way of doing that with Devise in this [article](
 ## Dependencies
 
 Action Cable provides a subscription adapter interface to process its
-pubsub internals. By default, asynchronous, inline, PostgreSQL, evented
-Redis, and non-evented Redis adapters are included. The default adapter
+pubsub internals. By default, asynchronous, inline, PostgreSQL, and Redis
+adapters are included. The default adapter
 in new Rails applications is the asynchronous (`async`) adapter.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby),
