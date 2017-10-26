@@ -425,6 +425,11 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert authors.empty?
   end
 
+  def test_nested_has_many_through_with_scope_on_polymorphic_reflection
+    authors = Author.joins(:ordered_posts).where("posts.id" => posts(:misc_by_bob).id)
+    assert_equal [authors(:mary), authors(:bob)], authors.distinct.sort_by(&:id)
+  end
+
   def test_has_many_through_with_foreign_key_option_on_through_reflection
     assert_equal [posts(:welcome), posts(:authorless)], people(:david).agents_posts.order("posts.id")
     assert_equal [authors(:david)], references(:david_unicyclist).agents_posts_authors

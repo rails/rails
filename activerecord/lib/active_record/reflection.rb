@@ -1002,7 +1002,7 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
-      delegate :klass, :scope, :plural_name, :type, :get_join_keys, to: :@reflection
+      delegate :klass, :scope, :plural_name, :type, :get_join_keys, :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         @reflection = reflection
