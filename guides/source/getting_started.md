@@ -567,7 +567,7 @@ To see what Rails will do with this, we look back at the output of
 
 ```bash
 $ bin/rails routes
-      Prefix Verb   URI Pattern                  Controller#Action
+       Prefix Verb   URI Pattern                  Controller#Action
 welcome_index GET    /welcome/index(.:format)     welcome#index
      articles GET    /articles(.:format)          articles#index
               POST   /articles(.:format)          articles#create
