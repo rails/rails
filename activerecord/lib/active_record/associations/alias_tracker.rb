@@ -33,7 +33,7 @@ module ActiveRecord
           elsif join.respond_to? :left
             join.left.name == name ? 1 : 0
           elsif join.is_a?(Hash)
-            join[name]
+            join.fetch(name, 0)
           else
             # this branch is reached by two tests:
             #
