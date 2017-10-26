@@ -142,7 +142,7 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     ids_expected = Post.order(Arel.sql("REPLACE(title, 'misc', 'zzzz'), id")).pluck(:id)
 
     ids_depr     = with_unsafe_raw_sql_deprecated { Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id) }
-    ids_disabled =  with_unsafe_raw_sql_disabled  { Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id) }
+    ids_disabled = with_unsafe_raw_sql_disabled   { Post.order([Arel.sql("REPLACE(title, ?, ?), id"), "misc", "zzzz"]).pluck(:id) }
 
     assert_equal ids_expected, ids_depr
     assert_equal ids_expected, ids_disabled
