@@ -154,6 +154,7 @@ module ActiveRecord
     # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
+      $stderr, original_stderr = File.open(File::NULL, "w"), $stderr
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
@@ -188,6 +189,7 @@ module ActiveRecord
     ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
+      $stderr = original_stderr
     end
 
     def test_set_session_variable_true
