@@ -31,4 +31,13 @@ describe Arel::Nodes::Count do
       assert_equal 2, array.uniq.size
     end
   end
+
+  describe 'math' do
+    it 'allows mathematical functions' do
+      table = Arel::Table.new :users
+      (table[:id].count + 1).to_sql.must_be_like %{
+        (COUNT("users"."id") + 1)
+      }
+    end
+  end
 end
