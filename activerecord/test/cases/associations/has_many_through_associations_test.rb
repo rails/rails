@@ -1258,7 +1258,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [comments(:eager_other_comment1)], authors(:mary).unordered_comments
   end
 
-  def test_has_many_trough_with_scope_should_accept_string_and_hash_join
+  def test_has_many_through_with_scope_should_accept_string_and_hash_join
     assert_equal authors(:david), Author.joins({ comments_for_first_author: :post }, "inner join posts posts_alias on authors.id = posts_alias.author_id").eager_load(:categories).take
   end
 
