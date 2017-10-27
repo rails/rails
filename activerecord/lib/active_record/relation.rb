@@ -674,7 +674,7 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          retain_positionals
+          retain_positionals if keep_preloaded_positions?
 
           preload = preload_values
           preload += includes_values unless eager_loading?
@@ -701,10 +701,16 @@ module ActiveRecord
         end
       end
 
+      def keep_preloaded_positions?
+        order_values.empty?
+      end
+
       def retain_positionals
-        unless @offsets.empty?
-          unpositioned = @records.reject { |r| @offsets.values.include?(r) }.each
-          @records = @records.size.times.map { |i| @offsets[i] || unpositioned.next }
+        if @offsets.all? { |offset, record| @records[offset] == record }
+          @offsets.each { |offset, record| @records[offset] = record }
+        else
+          @records -= @offsets.values
+          @offsets.sort.each { |offset, record| @records[offset, 0] = record }
         end
       end
 

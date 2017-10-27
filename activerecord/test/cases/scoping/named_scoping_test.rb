@@ -179,17 +179,27 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_to_a_should_retain_preloaded_positions
-    topics = Topic.order('random()')
-    second = topics.second
-    fourth = topics.fourth
-    assert_equal second, topics.to_a.second
-    assert_equal fourth, topics.to_a.fourth
-  end
+    classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+    random_param = {
+      "SQLite3Adapter"    => "random()",
+      "Mysql2Adapter"     => "rand()",
+      "PostgreSQLAdapter" => "random()",
+      "OracleAdapter"     => "random()",
+      "FbAdapter"         => "random()"
+    }.fetch(classname) {
+      raise "need a random query parameter for #{classname}"
+    }
 
-  def test_to_a_should_retain_first_position
-    topics = Topic.order('random()')
-    first = topics.first
-    assert_not_equal first, topics.to_a.last
+    topics = Topic.order(random_param)
+    topics.stub :keep_preloaded_positions?, true do
+      first = topics.first
+      second = topics.second
+      fourth = topics.fourth
+
+      assert_equal second, topics.to_a.second
+      assert_equal fourth, topics.to_a.fourth
+      assert_not_equal first, topics.to_a.last
+    end
   end
 
   def test_empty_should_not_load_results
