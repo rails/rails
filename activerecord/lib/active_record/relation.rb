@@ -668,13 +668,14 @@ module ActiveRecord
                 else
                   rows = connection.select_all(relation.arel, "SQL")
                   join_dependency.instantiate(rows, &block)
-                end.freeze
+                end
               end
             else
-              klass.find_by_sql(arel, &block).freeze
+              klass.find_by_sql(arel, &block)
             end
 
           retain_positionals if keep_preloaded_positions?
+          @records.freeze
 
           preload = preload_values
           preload += includes_values unless eager_loading?
