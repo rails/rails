@@ -483,14 +483,14 @@ module ActiveRecord
       # The tables for these classes could look something like:
       #
       #   CREATE TABLE users (
-      #     id int NOT NULL auto_increment,
-      #     account_id int default NULL,
+      #     id bigint NOT NULL auto_increment,
+      #     account_id bigint default NULL,
       #     name varchar default NULL,
       #     PRIMARY KEY  (id)
       #   )
       #
       #   CREATE TABLE accounts (
-      #     id int NOT NULL auto_increment,
+      #     id bigint NOT NULL auto_increment,
       #     name varchar default NULL,
       #     PRIMARY KEY  (id)
       #   )
