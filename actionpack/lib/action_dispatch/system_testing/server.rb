@@ -1,5 +1,3 @@
-require "rack/handler/puma"
-
 module ActionDispatch
   module SystemTesting
     class Server # :nodoc:
