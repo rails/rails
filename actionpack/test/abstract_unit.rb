@@ -44,7 +44,7 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
 
-    def root; end;
+    def root; end
   end
 end
 
