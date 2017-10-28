@@ -23,7 +23,7 @@ module ActiveRecord
             assert_equal "bar", cache["foo"]
 
             pid = fork {
-              lookup = cache["foo"];
+              lookup = cache["foo"]
               exit!(!lookup)
             }
 
