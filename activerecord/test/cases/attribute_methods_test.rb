@@ -19,14 +19,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :companies, :computers
 
   def setup
-    @old_matchers = ActiveRecord::Base.send(:attribute_method_matchers).dup
     @target = Class.new(ActiveRecord::Base)
     @target.table_name = "topics"
-  end
-
-  teardown do
-    ActiveRecord::Base.send(:attribute_method_matchers).clear
-    ActiveRecord::Base.send(:attribute_method_matchers).concat(@old_matchers)
   end
 
   test "attribute_for_inspect with a string" do
@@ -994,11 +988,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
-  test "generated attribute methods ancestors have correct class" do
-    mod = Topic.send(:generated_attribute_methods)
-    assert_match %r(GeneratedAttributeMethods), mod.inspect
-  end
-
   private
 
     def new_topic_like_ar_class(&block)
@@ -1007,7 +996,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         class_eval(&block)
       end
 
-      assert_empty klass.send(:generated_attribute_methods).instance_methods(false)
+      klass.attribute_methods_builders.each do |builder|
+        assert_empty builder.instance_methods(false) - [:respond_to?, :method_missing]
+      end
       klass
     end
 
