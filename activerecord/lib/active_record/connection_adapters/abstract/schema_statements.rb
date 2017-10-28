@@ -216,7 +216,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE suppliers (
-      #     id int auto_increment PRIMARY KEY
+      #     id bigint auto_increment PRIMARY KEY
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       # ====== Rename the primary key column
@@ -228,7 +228,7 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE objects (
-      #     guid int auto_increment PRIMARY KEY,
+      #     guid bigint auto_increment PRIMARY KEY,
       #     name varchar(80)
       #   )
       #
@@ -255,8 +255,8 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE order (
-      #       product_id integer NOT NULL,
-      #       client_id integer NOT NULL
+      #       product_id bigint NOT NULL,
+      #       client_id bigint NOT NULL
       #   );
       #
       #   ALTER TABLE ONLY "orders"
@@ -265,15 +265,15 @@ module ActiveRecord
       # ====== Do not add a primary key column
       #
       #   create_table(:categories_suppliers, id: false) do |t|
-      #     t.column :category_id, :integer
-      #     t.column :supplier_id, :integer
+      #     t.column :category_id, :bigint
+      #     t.column :supplier_id, :bigint
       #   end
       #
       # generates:
       #
       #   CREATE TABLE categories_suppliers (
-      #     category_id int,
-      #     supplier_id int
+      #     category_id bigint,
+      #     supplier_id bigint
       #   )
       #
       # ====== Create a temporary table based on a query
@@ -361,8 +361,8 @@ module ActiveRecord
       # generates:
       #
       #   CREATE TABLE assemblies_parts (
-      #     assembly_id int NOT NULL,
-      #     part_id int NOT NULL,
+      #     assembly_id bigint NOT NULL,
+      #     part_id bigint NOT NULL,
       #   ) ENGINE=InnoDB DEFAULT CHARSET=utf8
       #
       def create_join_table(table_1, table_2, column_options: {}, **options)
@@ -432,7 +432,7 @@ module ActiveRecord
       #     t.references :company
       #   end
       #
-      # Creates a <tt>company_id(integer)</tt> column.
+      # Creates a <tt>company_id(bigint)</tt> column.
       #
       # ====== Add a polymorphic foreign key column
       #
@@ -440,7 +440,7 @@ module ActiveRecord
       #    t.belongs_to :company, polymorphic: true
       #  end
       #
-      # Creates <tt>company_type(varchar)</tt> and <tt>company_id(integer)</tt> columns.
+      # Creates <tt>company_type(varchar)</tt> and <tt>company_id(bigint)</tt> columns.
       #
       # ====== Remove a column
       #
@@ -811,14 +811,14 @@ module ActiveRecord
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
-      # Adds a reference. The reference column is an integer by default,
+      # Adds a reference. The reference column is a bigint by default,
       # the <tt>:type</tt> option can be used to specify a different type.
       # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
       # #add_reference and #add_belongs_to are acceptable.
       #
       # The +options+ hash can include the following keys:
       # [<tt>:type</tt>]
-      #   The reference column type. Defaults to +:integer+.
+      #   The reference column type. Defaults to +:bigint+.
       # [<tt>:index</tt>]
       #   Add an appropriate index. Defaults to true.
       #   See #add_index for usage of this option.
@@ -829,7 +829,7 @@ module ActiveRecord
       # [<tt>:null</tt>]
       #   Whether the column allows nulls. Defaults to true.
       #
-      # ====== Create a user_id integer column
+      # ====== Create a user_id bigint column
       #
       #   add_reference(:products, :user)
       #
