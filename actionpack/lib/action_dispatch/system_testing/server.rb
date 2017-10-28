@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "rack/handler/puma"
-
 module ActionDispatch
   module SystemTesting
     class Server # :nodoc:
