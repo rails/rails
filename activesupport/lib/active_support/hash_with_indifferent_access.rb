@@ -68,6 +68,9 @@ module ActiveSupport
         super()
         update(constructor)
 
+        # TODO: we need silence option...but how to ne should set?
+        warning_duplicate_keys(constructor)
+
         hash = constructor.to_hash
         self.default = hash.default if hash.default
         self.default_proc = hash.default_proc if hash.default_proc
@@ -363,6 +366,20 @@ module ActiveSupport
           target.default_proc = default_proc.dup
         else
           target.default = default
+        end
+      end
+
+      def warning_duplicate_keys(original)
+        original.to_hash.keys.each do |k|
+          # if string key and symbol key exist, show warning
+          # (if symbol key exist, check there is string key we don't need other direction check)
+          next unless k.kind_of?(Symbol)
+
+          converted_key = convert_key(k)
+          next unless original.has_key?(converted_key)
+
+          # TODO: call more good warning method
+          puts "warning: key :#{k} and '#{converted_key}' is duplicated and overwritten"
         end
       end
   end
