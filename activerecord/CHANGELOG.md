@@ -1,3 +1,11 @@
+*   Fix a uniqueness validation case with the `:scope` option that uses a polymorphic association name.
+
+    This change addresses a particular case when a polymorphic association included into the `:scope` option
+    is assigned using foreign key and type of a new object created with
+    [ActiveRecord::Associations::Association#create](https://github.com/rails/rails/blob/925e6d561ae8847777e57f6a0bacc930d35bf05b/activerecord/lib/active_record/associations/association.rb#L181-L183) or [ActiveRecord::Associations::Association#create!](https://github.com/rails/rails/blob/925e6d561ae8847777e57f6a0bacc930d35bf05b/activerecord/lib/active_record/associations/association.rb#L185-L187).
+
+    *Sergey Alekseev*
+
 *   Fix `bin/rails db:migrate` with specified `VERSION`.
     `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
     Check a format of `VERSION`: Allow a migration version number

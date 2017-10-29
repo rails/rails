@@ -962,6 +962,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :wheels, force: true do |t|
+    t.integer :serial_number
     t.references :wheelable, polymorphic: true
   end
 

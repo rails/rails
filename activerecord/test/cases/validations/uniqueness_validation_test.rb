@@ -8,9 +8,9 @@ require "models/guid"
 require "models/event"
 require "models/dashboard"
 require "models/uuid_item"
-require "models/author"
-require "models/person"
-require "models/essay"
+require "models/aircraft"
+require "models/car"
+require "models/wheel"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -181,16 +181,23 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope
-    Essay.validates_uniqueness_of(:name, scope: :writer)
+    Wheel.validates_uniqueness_of(:serial_number, scope: :wheelable)
 
-    a = Author.create(name: "Sergey")
-    p = Person.create(first_name: "Sergey")
+    a = Aircraft.create!
+    c = Car.create!
 
-    e1 = a.essays.create(name: "Essay")
-    assert e1.valid?, "Saving e1"
+    w1 = a.wheels.create(serial_number: 1)
+    assert w1.valid?, "Saving w1"
 
-    e2 = p.essays.create(name: "Essay")
-    assert e2.valid?, "Saving e2"
+    w2 = c.wheels.create(serial_number: 1)
+    assert w2.valid?, "Saving w2"
+
+    w1.wheelable = c
+    assert_not w1.valid?, "Should be invalid"
+
+    w2.wheelable_id = a.id
+    w2.wheelable_type = "Aircraft"
+    assert_not w2.valid?, "Should be invalid"
   end
 
   def test_validate_uniqueness_with_composed_attribute_scope
