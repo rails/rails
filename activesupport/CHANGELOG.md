@@ -1,3 +1,8 @@
+*   `assert_changes` will always assert that the expression changes,
+    regardless of `from:` and `to:` argument combinations.
+
+    *Daniel Ma*
+
 *   Allow `Range#include?` on TWZ ranges
 
     In #11474 we prevented TWZ ranges being iterated over which matched
