@@ -579,6 +579,17 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !c.post_taggings.empty?
   end
 
+  def test_polymorphic_has_many_through_when_through_association_has_already_loaded
+    cake_designer = CakeDesigner.create!(chef: Chef.new)
+    drink_designer = DrinkDesigner.create!(chef: Chef.new)
+    department = Department.create!(chefs: [cake_designer.chef, drink_designer.chef])
+    Hotel.create!(departments: [department])
+    hotel = Hotel.includes(:chefs, :cake_designers, :drink_designers).take
+
+    assert_equal [cake_designer], hotel.cake_designers
+    assert_equal [drink_designer], hotel.drink_designers
+  end
+
   def test_polymorphic_has_many_through_joined_different_table_twice
     cake_designer = CakeDesigner.create!(chef: Chef.new)
     drink_designer = DrinkDesigner.create!(chef: Chef.new)

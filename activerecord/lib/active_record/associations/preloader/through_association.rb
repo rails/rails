@@ -13,18 +13,30 @@ module ActiveRecord
         end
 
         def associated_records_by_owner(preloader)
+          already_loaded = owners.first.association(through_reflection.name).loaded?
           through_scope = through_scope()
 
-          preloader.preload(owners,
-                            through_reflection.name,
-                            through_scope)
+          unless already_loaded
+            preloader.preload(owners, through_reflection.name, through_scope)
+          end
 
           through_records = owners.map do |owner|
             center = owner.association(through_reflection.name).target
             [owner, Array(center)]
           end
 
-          reset_association(owners, through_reflection.name, through_scope)
+          if already_loaded
+            if source_type = reflection.options[:source_type]
+              through_records.map! do |owner, center|
+                center = center.select do |record|
+                  record[reflection.foreign_type] == source_type
+                end
+                [owner, center]
+              end
+            end
+          else
+            reset_association(owners, through_reflection.name, through_scope)
+          end
 
           middle_records = through_records.flat_map(&:last)
 
