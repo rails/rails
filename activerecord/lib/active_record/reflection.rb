@@ -839,10 +839,6 @@ module ActiveRecord
         source_reflection.join_scopes(table, predicate_builder) + super
       end
 
-      def source_type_scope
-        through_reflection.klass.where(foreign_type => options[:source_type])
-      end
-
       def has_scope?
         scope || options[:source_type] ||
           source_reflection.has_scope? ||
@@ -1011,15 +1007,15 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << @previous_reflection.source_type_scope
+        scopes << build_scope(table, predicate_builder).instance_exec(nil, &source_type_scope)
       end
 
       def constraints
-        @reflection.constraints + [source_type_info]
+        @reflection.constraints + [source_type_scope]
       end
 
       private
-        def source_type_info
+        def source_type_scope
           type = @previous_reflection.foreign_type
           source_type = @previous_reflection.options[:source_type]
           lambda { |object| where(type => source_type) }
