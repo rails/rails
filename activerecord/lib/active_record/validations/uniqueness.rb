@@ -22,7 +22,22 @@ module ActiveRecord
 
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
-          return if record.respond_to?("#{attribute}_changed?") && !record.send("#{attribute}_changed?")
+          # the attribute may be an aliased attribute
+          if finder_class.attribute_alias?(attribute)
+            attribute = finder_class.attribute_alias(attribute)
+          end
+
+          return unless record.attribute_changed?(attribute) || Array(options[:scope]).any? do |scope_item|
+            attrs = []
+            if reflection = record.class._reflect_on_association(scope_item)
+              attrs << reflection.foreign_key
+              attrs << reflection.foreign_type if reflection.polymorphic?
+            else
+              attrs << scope_item
+            end
+            attrs.any? { |attr| record.attribute_changed?(attr) }
+          end
+
           if finder_class.primary_key
             relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
           else

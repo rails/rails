@@ -11,6 +11,9 @@ require "models/uuid_item"
 require "models/author"
 require "models/person"
 require "models/essay"
+require "models/aircraft"
+require "models/car"
+require "models/wheel"
 
 class Wizard < ActiveRecord::Base
   self.abstract_class = true
@@ -565,5 +568,84 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     w1.name = "Name1"
     assert_queries(1) { w1.valid? }
+  end
+
+  def test_validate_uniqueness_with_alias_attribute_queries
+    Topic.validates_uniqueness_of(:heading)
+
+    t1 = Topic.create(heading: "I'm unique!")
+    t2 = Topic.create(heading: "I'm unique too!")
+
+    assert t1.valid?
+    assert t2.valid?
+
+    t1.title = "I'm unique!"
+    assert t1.valid?
+    assert_no_queries { t1.valid? }
+
+    t2.heading = "I'm unique!"
+    assert_not t2.valid?, "Liar!"
+    assert_queries(1) { t2.valid? }
+  end
+
+  def test_validate_uniqueness_with_scope_queries
+    Reply.validates_uniqueness_of(:content, scope: "parent_id")
+
+    t1 = Topic.create("title" => "I'm unique!")
+    t2 = Topic.create("title" => "I'm unique too!")
+
+    r1 = t1.replies.create "title" => "r1", "content" => "hello world"
+    assert r1.valid?, "Saving r1"
+
+    r2 = t2.replies.create "title" => "r2", "content" => "hello world"
+    assert r2.valid?, "Saving r2"
+
+    assert r1.valid?, "Should be valid"
+    assert_no_queries { r1.valid? }
+
+    r1.topic = t2
+    assert_not r1.valid?, "Should be invalid"
+    assert_queries(1) { r1.valid? }
+
+    r2.parent_id = t1.id
+    assert_not r2.valid?, "Should be invalid"
+    assert_queries(1) { r2.valid? }
+  end
+
+  def test_validate_uniqueness_with_polymorphic_object_scope_queries
+    Wheel.validates_uniqueness_of(:serial_number, scope: :wheelable)
+
+    a1 = Aircraft.create!
+    a2 = Aircraft.create!
+    c1 = Car.create!
+    c2 = Car.create!
+
+    # `w1 = a1.wheels.create(serial_number: 1)` doesn't work (see https://github.com/rails/rails/pull/31010)
+    w1 = Wheel.create(serial_number: 1, wheelable_id: a1.id, wheelable_type: "Aircraft")
+    assert w1.valid?, "Should be valid"
+
+    # `w2 = c1.wheels.create(serial_number: 1)` doesn't work (see https://github.com/rails/rails/pull/31010)
+    w2 = Wheel.create(serial_number: 1, wheelable_id: c1.id, wheelable_type: "Car")
+    assert w2.valid?, "Should be valid"
+
+    assert w1.valid?, "Should be valid"
+    assert_no_queries { w1.valid? }
+
+    w1.wheelable_id = a2.id
+    assert w1.valid?, "Should be valid"
+    assert_queries(1) { w1.valid? }
+
+    w1.wheelable = c1
+    assert_not w1.valid?, "Should be invalid"
+    assert_queries(1) { w1.valid? }
+
+    w2.wheelable_id = a1.id
+    w2.wheelable_type = "Aircraft"
+    assert_not w2.valid?, "Should be invalid"
+    assert_queries(1) { w2.valid? }
+
+    w2.wheelable = c2
+    assert w2.valid?, "Should be valid"
+    assert_queries(1) { w2.valid? }
   end
 end
