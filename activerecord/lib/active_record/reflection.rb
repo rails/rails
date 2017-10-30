@@ -1009,11 +1009,6 @@ module ActiveRecord
         @previous_reflection = previous_reflection
       end
 
-      def scopes
-        scopes = @previous_reflection.scopes
-        scopes << @previous_reflection.source_type_scope
-      end
-
       def join_scopes(table, predicate_builder) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
         scopes << @previous_reflection.source_type_scope
