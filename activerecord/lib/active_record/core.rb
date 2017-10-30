@@ -110,6 +110,8 @@ module ActiveRecord
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
 
+      mattr_accessor :validate_only_if_changed_by_default, instance_accessor: false
+
       class_attribute :default_connection_handler, instance_writer: false
 
       def self.connection_handler

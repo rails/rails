@@ -559,6 +559,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
   end
 
   def test_validate_uniqueness_queries
+    Topic.validate_only_if_changed_by_default = true
     w1 = IneptWizard.new(name: "Name", city: "City")
     assert_queries(2) { w1.valid? }
 
@@ -568,9 +569,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     w1.name = "Name1"
     assert_queries(1) { w1.valid? }
+    Topic.validate_only_if_changed_by_default = false
   end
 
   def test_validate_uniqueness_with_alias_attribute_queries
+    Topic.validate_only_if_changed_by_default = true
     Topic.validates_uniqueness_of(:heading)
 
     t1 = Topic.create(heading: "I'm unique!")
@@ -586,9 +589,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2.heading = "I'm unique!"
     assert_not t2.valid?, "Liar!"
     assert_queries(1) { t2.valid? }
+    Topic.validate_only_if_changed_by_default = false
   end
 
   def test_validate_uniqueness_with_scope_queries
+    Reply.validate_only_if_changed_by_default = true
     Reply.validates_uniqueness_of(:content, scope: "parent_id")
 
     t1 = Topic.create("title" => "I'm unique!")
@@ -610,9 +615,11 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     r2.parent_id = t1.id
     assert_not r2.valid?, "Should be invalid"
     assert_queries(1) { r2.valid? }
+    Reply.validate_only_if_changed_by_default = false
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope_queries
+    Wheel.validate_only_if_changed_by_default = true
     Wheel.validates_uniqueness_of(:serial_number, scope: :wheelable)
 
     a1 = Aircraft.create!
@@ -647,5 +654,6 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     w2.wheelable = c2
     assert w2.valid?, "Should be valid"
     assert_queries(1) { w2.valid? }
+    Wheel.validate_only_if_changed_by_default = false
   end
 end
