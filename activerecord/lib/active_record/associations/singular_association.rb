@@ -3,7 +3,6 @@
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
-
       mattr_accessor :disable_lazy
 
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
