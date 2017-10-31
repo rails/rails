@@ -118,7 +118,7 @@ module ActiveSupport
             raise_parsing_error "(only last part can be fractional)"
           end
 
-          return true
+          true
         end
     end
   end

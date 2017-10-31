@@ -317,7 +317,7 @@ end
 class CacheHelperOutputBufferTest < ActionController::TestCase
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)

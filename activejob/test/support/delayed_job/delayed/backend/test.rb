@@ -77,7 +77,7 @@ module Delayed
             self.locked_by = worker
           end
 
-          return true
+          true
         end
 
         def self.db_time_now

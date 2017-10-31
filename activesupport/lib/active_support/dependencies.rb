@@ -615,7 +615,7 @@ module ActiveSupport #:nodoc:
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
-      return autoloaded_constants.include?(name)
+      autoloaded_constants.include?(name)
     end
 
     # Will the provided constant descriptor be unloaded?
