@@ -36,6 +36,15 @@ class AssociationsTest < ActiveRecord::TestCase
     assert_equal 1, liquids[0].molecules.length
   end
 
+  def test_allow_singular_lazy_loading_to_be_turned_off_globally
+    ActiveRecord::Associations::SingularAssociation.disable_lazy = true
+    post = Post.create(title: "Amazing Post", body: "Informative body")
+    assert_raises ActiveRecord::LazySingularAssociationNotAllowed do
+      post.author
+    end
+    ActiveRecord::Associations::SingularAssociation.disable_lazy = false
+  end
+
   def test_subselect
     author = authors :david
     favs = author.author_favorites

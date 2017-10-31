@@ -49,6 +49,9 @@ module ActiveRecord
   class ConnectionNotEstablished < ActiveRecordError
   end
 
+  class LazySingularAssociationNotAllowed < ActiveRecordError
+  end
+
   # Raised when Active Record cannot find a record by given id or set of ids.
   class RecordNotFound < ActiveRecordError
     attr_reader :model, :primary_key, :id
