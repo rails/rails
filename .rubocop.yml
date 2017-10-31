@@ -136,6 +136,10 @@ Lint/EndAlignment:
 Lint/RequireParentheses:
   Enabled: true
 
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: true
+
 Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
