@@ -3,13 +3,24 @@
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
+      mattr_accessor :disable_lazy
+
       # Implements the reader method, e.g. foo.bar for Foo.has_one :bar
       def reader
+        if disable_lazy && !loaded?
+          raise_lazy_disabled_exception
+        end
+
         if !loaded? || stale_target?
           reload
         end
 
         target
+      end
+
+      def raise_lazy_disabled_exception
+        raise ActiveRecord::LazySingularAssociationNotAllowed,
+          "#{owner.class} tried to lazily load #{reflection.name}"
       end
 
       # Implements the writer method, e.g. foo.bar= for Foo.belongs_to :bar
