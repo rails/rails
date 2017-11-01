@@ -330,10 +330,16 @@ its resolution next. Let's define *parent* to be that qualifying class or module
 object, that is, `Billing` in the example above. The algorithm for qualified
 constants goes like this:
 
-1. The constant is looked up in the parent and its ancestors.
+1. The constant is looked up in the parent and its ancestors. In Ruby >= 2.5,
+`Object` is skipped if present among the ancestors. `Kernel` and `BasicObject`
+are still checked though.
 
 2. If the lookup fails, `const_missing` is invoked in the parent. The default
 implementation of `const_missing` raises `NameError`, but it can be overridden.
+
+INFO. In Ruby < 2.5 `String::Hash` evaluates to `Hash` and the interpreter
+issues a warning: "toplevel constant Hash referenced by String::Hash". Starting
+with 2.5, `String::Hash` raises `NameError` because `Object` is skipped.
 
 As you see, this algorithm is simpler than the one for relative constants. In
 particular, the nesting plays no role here, and modules are not special-cased,
@@ -1177,6 +1183,8 @@ end
 ```
 
 #### Qualified References
+
+WARNING. This gotcha is only possible in Ruby < 2.5.
 
 Given
 
