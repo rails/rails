@@ -404,7 +404,7 @@ GEM
       loofah (~> 2.0)
     rainbow (2.2.2)
       rake
-    rake (12.0.0)
+    rake (12.2.1)
     rb-fsevent (0.10.2)
     rdoc (5.1.0)
     redcarpet (3.2.3)
