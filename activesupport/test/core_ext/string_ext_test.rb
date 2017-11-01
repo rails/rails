@@ -197,7 +197,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_parameterized_underscore_preserve_case
-    StringToParameterizePreserceCaseWithUnderscore.each do |normal, slugged|
+    StringToParameterizePreserveCaseWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
     end
   end
