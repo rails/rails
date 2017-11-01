@@ -191,6 +191,7 @@ ActiveRecord::Schema.define do
     t.string :resource_id
     t.string :resource_type
     t.integer :developer_id
+    t.datetime :updated_at
     t.datetime :deleted_at
     t.integer :comments
   end

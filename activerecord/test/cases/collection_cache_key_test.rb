@@ -73,6 +73,16 @@ module ActiveRecord
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
     end
 
+    test "cache_key for relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post")
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
+    end
+
+    test "cache_key for loaded relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post").load
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
+    end
+
     test "it triggers at most one query" do
       developers = Developer.where(name: "David")
 
