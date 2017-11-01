@@ -333,8 +333,8 @@ GEM
       multi_json (~> 1.10)
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
-    mail (2.6.6)
-      mime-types (>= 1.16, < 4)
+    mail (2.7.0)
+      mini_mime (>= 0.1.1)
     memoist (0.16.0)
     metaclass (0.0.4)
     method_source (0.8.2)
@@ -545,7 +545,6 @@ DEPENDENCIES
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
-  mail (>= 2.5.4, < 2.7)
   mini_magick
   minitest-bisect
   mocha

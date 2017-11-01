@@ -168,6 +168,3 @@ end
 gem "ibm_db" if ENV["IBM_DB"]
 gem "tzinfo-data", platforms: [:mingw, :mswin, :x64_mingw, :jruby]
 gem "wdm", ">= 0.1.0", platforms: [:mingw, :mswin, :x64_mingw, :mswin64]
-
-# Workaround not to install mail 2.7
-gem "mail", ">= 2.5.4", "< 2.7"
