@@ -44,7 +44,7 @@ module ActiveSupport
         end
 
         def add(words)
-          words = words.flatten.map(&:downcase)
+          words = words.flatten.map(&:downcase).reject { |word| uncountable?(word) }
           concat(words)
           @regex_array += words.map { |word| to_regex(word) }
           self

@@ -461,6 +461,15 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_add_does_not_allow_duplicated_values
+    ActiveSupport::Inflector.inflections(:en) do |inflect|
+      inflect.uncountable "equipment"
+      inflect.uncountable "equipment"
+
+      assert_equal 1, inflect.uncountables.count { |uncountable| uncountable == "equipment" }
+    end
+  end
+
   Irregularities.each do |singular, plural|
     define_method("test_irregularity_between_#{singular}_and_#{plural}") do
       ActiveSupport::Inflector.inflections do |inflect|
