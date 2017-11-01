@@ -76,12 +76,18 @@ module ActiveSupport
     # To use a custom separator, override the `separator` argument.
     #
     #  parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
-    #  parameterize("^trés|Jolie-- ", separator: '_')  # => "tres_jolie"
+    #  parameterize("^trés|Jolie__ ", separator: '_')  # => "tres_jolie"
     #
     # To preserve the case of the characters in a string, use the `preserve_case` argument.
     #
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    #
+    # It preserves dashes and underscores unless they are used as separators:
+    #
+    #  parameterize("^trés|Jolie__ ")                 # => "tres-jolie__"
+    #  parameterize("^trés|Jolie-- ", separator: "_") # => "tres_jolie--"
+    #  parameterize("^trés_Jolie-- ", separator: ".") # => "tres_jolie--"
     #
     def parameterize(string, separator: "-", preserve_case: false)
       # Replace accented chars with their ASCII equivalents.
