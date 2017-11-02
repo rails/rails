@@ -204,7 +204,7 @@ module ActionDispatch
     #
     # If the env contains +rack.early_hints+ then the server accepts HTTP2 push for Link headers.
     #
-    # The +send_early_hints+ method accepts an hash of links as follows:
+    # The +send_early_hints+ method accepts a hash of links as follows:
     #
     #   send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
     #
