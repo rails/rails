@@ -2,7 +2,8 @@
 
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
-    IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES      = ["SCHEMA", "EXPLAIN"]
+    IGNORE_PAYLOAD_NAMES_HASH = IGNORE_PAYLOAD_NAMES.each_with_object({}) { |key, hash| hash[key] = true }
 
     def self.runtime=(value)
       ActiveRecord::RuntimeRegistry.sql_runtime = value
@@ -23,7 +24,7 @@ module ActiveRecord
 
       payload = event.payload
 
-      return if IGNORE_PAYLOAD_NAMES.include?(payload[:name])
+      return if IGNORE_PAYLOAD_NAMES_HASH[payload[:name]]
 
       name  = "#{payload[:name]} (#{event.duration.round(1)}ms)"
       name  = "CACHE #{name}" if payload[:cached]
