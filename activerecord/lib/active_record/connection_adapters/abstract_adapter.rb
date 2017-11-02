@@ -6,6 +6,7 @@ require "active_record/connection_adapters/schema_cache"
 require "active_record/connection_adapters/sql_type_metadata"
 require "active_record/connection_adapters/abstract/schema_dumper"
 require "active_record/connection_adapters/abstract/schema_creation"
+require "active_support/concurrency/load_interlock_aware_monitor"
 require "arel/collectors/bind"
 require "arel/collectors/composite"
 require "arel/collectors/sql_string"
@@ -108,7 +109,7 @@ module ActiveRecord
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
-        @lock = Monitor.new
+        @lock = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
 
         if self.class.type_cast_config_to_boolean(config.fetch(:prepared_statements) { true })
           @prepared_statements = true
