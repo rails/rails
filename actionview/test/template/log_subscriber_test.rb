@@ -30,7 +30,7 @@ class AVLogSubscriberTest < ActiveSupport::TestCase
     ActiveSupport::LogSubscriber.log_subscribers.clear
 
     # We need to undef `root`, RenderTestCases don't want this to be defined
-    Rails.instance_eval { undef :root } if @defined_root
+    Rails.instance_eval { undef :root } if defined?(@defined_root)
   end
 
   def set_logger(logger)
