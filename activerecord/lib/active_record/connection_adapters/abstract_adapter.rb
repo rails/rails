@@ -440,6 +440,26 @@ module ActiveRecord
         index.using.nil?
       end
 
+      def stale?
+        in_use? && dead?
+      end
+
+      def exited?
+        in_use? && inactive?
+      end
+
+      def dead?
+        !alive?
+      end
+
+      def inactive?
+        !active?
+      end
+
+      def alive?
+        owner.alive?
+      end
+
       private
         def type_map
           @type_map ||= Type::TypeMap.new.tap do |mapping|

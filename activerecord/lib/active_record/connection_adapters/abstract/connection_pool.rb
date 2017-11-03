@@ -557,20 +557,17 @@ module ActiveRecord
       # a programmer forgets to checkin a connection at the end of a thread
       # or a thread dies unexpectedly.
       def reap
-        stale_connections = synchronize do
-          @connections.select do |conn|
-            conn.in_use? && !conn.owner.alive?
-          end.each do |conn|
-            conn.steal!
-          end
-        end
-
-        stale_connections.each do |conn|
-          if conn.active?
-            conn.reset!
-            checkin conn
+        synchronize do
+          [
+            *@connections.select(&:stale?),
+            *@connections.select(&:exited?)
+          ].each(&:steal!)
+        end.each do |connection|
+          if connection.active?
+            connection.reset!
+            checkin connection
           else
-            remove conn
+            remove connection
           end
         end
       end
