@@ -590,7 +590,7 @@ module ActionView
 
         def add_method_to_attributes!(html_options, method)
           if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
-            if html_options.("rel").blank?
+            if html_options["rel"].blank?
               html_options["rel"] = "nofollow"
             else
               html_options["rel"] = "#{html_options["rel"]} nofollow"
