@@ -140,26 +140,6 @@ module ActiveRecord
   class HasOneThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection #:nodoc:
   end
 
-  class HasManyThroughCantAssociateNewRecords < ActiveRecordError #:nodoc:
-    def initialize(owner = nil, reflection = nil)
-      if owner && reflection
-        super("Cannot associate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to create the has_many :through record associating them.")
-      else
-        super("Cannot associate new records.")
-      end
-    end
-  end
-
-  class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
-    def initialize(owner = nil, reflection = nil)
-      if owner && reflection
-        super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
-      else
-        super("Cannot dissociate new records.")
-      end
-    end
-  end
-
   class ThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
@@ -185,16 +165,6 @@ module ActiveRecord
         super("Cannot eagerly load the polymorphic association #{reflection.name.inspect}")
       else
         super("Eager load polymorphic error.")
-      end
-    end
-  end
-
-  class ReadOnlyAssociation < ActiveRecordError #:nodoc:
-    def initialize(reflection = nil)
-      if reflection
-        super("Cannot add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
-      else
-        super("Read-only reflection error.")
       end
     end
   end
