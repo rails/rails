@@ -122,6 +122,8 @@ class Delegator
   #   try!(a*, &b)
   #
   # See Object#try!
+
+  @delegator_api += ActiveSupport::Tryable.public_instance_methods
 end
 
 class NilClass

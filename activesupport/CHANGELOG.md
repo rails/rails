@@ -1,3 +1,9 @@
+*   `try` now works properly with instances of `DelegateClass(x)`
+
+    Fixes #31045
+
+    *Daniel Ma*
+
 *   `IO#to_json` now returns the `to_s` representation, rather than
     attempting to convert to an array. This fixes a bug where `IO#to_json`
     would raise an `IOError` when called on an unreadable object.
