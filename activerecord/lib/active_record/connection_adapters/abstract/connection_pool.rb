@@ -561,11 +561,11 @@ module ActiveRecord
           @connections.select(&:stale?).each(&:steal!)
         end
 
-        bad_connections = synchronize do
+        exited_connections = synchronize do
           @connections.select(&:exited?).each(&:steal!)
         end
 
-        return if bad_connections.empty? && exited_connections.empty?
+        return if stale_connections.empty? && exited_connections.empty?
 
         stale_connections.each do |connection|
           if connection.active?
@@ -576,7 +576,7 @@ module ActiveRecord
           end
         end
 
-        bad_connections.each do |connection|
+        exited_connections.each do |connection|
           checkout connection
         end
       end
