@@ -236,7 +236,7 @@ module ActiveRecord
         return has_attribute?(name)
       end
 
-      return true
+      true
     end
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.

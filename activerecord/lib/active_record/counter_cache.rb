@@ -53,7 +53,7 @@ module ActiveRecord
           unscoped.where(primary_key => object.id).update_all(updates)
         end
 
-        return true
+        true
       end
 
       # A generic "counter updater" implementation, intended primarily to be

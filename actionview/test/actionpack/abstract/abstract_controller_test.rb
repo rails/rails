@@ -236,7 +236,7 @@ module AbstractController
       end
     end
 
-    class RespondToActionController < AbstractController::Base;
+    class RespondToActionController < AbstractController::Base
       def index() self.response_body = "success" end
 
       def fail()  self.response_body = "fail"    end

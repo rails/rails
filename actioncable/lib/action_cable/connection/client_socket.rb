@@ -21,7 +21,7 @@ module ActionCable
         return true if env["HTTP_X_FORWARDED_PROTO"] == "https"
         return true if env["rack.url_scheme"] == "https"
 
-        return false
+        false
       end
 
       CONNECTING = 0

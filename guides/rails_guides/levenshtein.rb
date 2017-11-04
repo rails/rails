@@ -38,7 +38,7 @@ module RailsGuides
         d[m] = x
       end
 
-      return x
+      x
     end
   end
 end

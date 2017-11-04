@@ -276,7 +276,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
 
   module Admin
     module Users
-      class UsersController < ActionController::Base;
+      class UsersController < ActionController::Base
         class << self
           attr_accessor :last_parameters
         end

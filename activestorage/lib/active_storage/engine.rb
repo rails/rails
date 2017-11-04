@@ -19,9 +19,12 @@ module ActiveStorage
 
     config.eager_load_namespaces << ActiveStorage
 
-    initializer "active_storage.logger" do
+    initializer "active_storage.configs" do
       config.after_initialize do |app|
-        ActiveStorage.logger = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.logger     = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.queue      = app.config.active_storage.queue
+        ActiveStorage.previewers = app.config.active_storage.previewers || []
+        ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
       end
     end
 
@@ -63,18 +66,6 @@ module ActiveStorage
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
         end
-      end
-    end
-
-    initializer "active_storage.previewers" do
-      config.after_initialize do |app|
-        ActiveStorage.previewers = app.config.active_storage.previewers || []
-      end
-    end
-
-    initializer "active_storage.analyzers" do
-      config.after_initialize do |app|
-        ActiveStorage.analyzers = app.config.active_storage.analyzers || []
       end
     end
   end

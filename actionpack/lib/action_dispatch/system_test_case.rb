@@ -131,6 +131,8 @@ module ActionDispatch
     end
 
     driven_by :selenium
+
+    ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
   end
 
   SystemTestCase.start_application

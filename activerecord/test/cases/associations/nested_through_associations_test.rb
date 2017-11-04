@@ -24,6 +24,11 @@ require "models/category"
 require "models/categorization"
 require "models/membership"
 require "models/essay"
+require "models/hotel"
+require "models/department"
+require "models/chef"
+require "models/cake_designer"
+require "models/drink_designer"
 
 class NestedThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
@@ -572,6 +577,15 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !c.post_taggings.empty?
     c.save
     assert !c.post_taggings.empty?
+  end
+
+  def test_polymorphic_has_many_through_joined_different_table_twice
+    cake_designer = CakeDesigner.create!(chef: Chef.new)
+    drink_designer = DrinkDesigner.create!(chef: Chef.new)
+    department = Department.create!(chefs: [cake_designer.chef, drink_designer.chef])
+    hotel = Hotel.create!(departments: [department])
+
+    assert_equal hotel, Hotel.joins(:cake_designers, :drink_designers).take
   end
 
   private

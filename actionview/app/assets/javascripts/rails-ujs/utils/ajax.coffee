@@ -21,7 +21,7 @@ Rails.ajax = (options) ->
       options.error?(response, xhr.statusText, xhr)
     options.complete?(xhr, xhr.statusText)
 
-  unless options.beforeSend?(xhr, options)
+  if options.beforeSend? && !options.beforeSend(xhr, options)
     return false
 
   if xhr.readyState is XMLHttpRequest.OPENED

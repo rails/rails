@@ -61,7 +61,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)

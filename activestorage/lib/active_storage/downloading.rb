@@ -3,9 +3,9 @@
 module ActiveStorage
   module Downloading
     private
-      # Opens a new tempfile and copies blob data into it. Yields the tempfile.
+      # Opens a new tempfile in #tempdir and copies blob data into it. Yields the tempfile.
       def download_blob_to_tempfile # :doc:
-        Tempfile.open("ActiveStorage") do |file|
+        Tempfile.open("ActiveStorage", tempdir) do |file|
           download_blob_to file
           yield file
         end
@@ -16,6 +16,11 @@ module ActiveStorage
         file.binmode
         blob.download { |chunk| file.write(chunk) }
         file.rewind
+      end
+
+      # Returns the directory in which tempfiles should be opened. Defaults to +Dir.tmpdir+.
+      def tempdir # :doc:
+        Dir.tmpdir
       end
   end
 end
