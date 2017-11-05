@@ -40,7 +40,11 @@ module ActiveRecord
 
           middle_records = through_records.flat_map(&:last)
 
-          reflection_scope = reflection_scope() if reflection.scope
+          if preload_scope
+            reflection_scope = reflection_scope().merge(preload_scope)
+          elsif reflection.scope
+            reflection_scope = reflection_scope()
+          end
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
@@ -70,6 +74,8 @@ module ActiveRecord
                 rhs_records
               end
             end
+          end.tap do
+            reset_association(middle_records, source_reflection.name, preload_scope)
           end
         end
 
