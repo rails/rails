@@ -12,7 +12,7 @@ module ActionDispatch
         end
 
         def before_setup
-          host! DEFAULT_HOST
+          host! app_host
           super
         end
 
@@ -21,6 +21,12 @@ module ActionDispatch
           Capybara.reset_sessions!
           super
         end
+
+        private
+
+          def app_host
+            Capybara.app_host || DEFAULT_HOST
+          end
       end
     end
   end
