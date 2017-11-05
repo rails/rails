@@ -476,7 +476,7 @@ personalized message or call `presence` prior to `length`.
 
 ### `numericality`
 
-This helper validates that your attributes have only numeric values. By
+This helper validates that your attribute has only numeric values. By
 default, it will match an optional sign followed by an integral or floating
 point number. To specify that only integral numbers are allowed set
 `:only_integer` to true.
@@ -526,7 +526,7 @@ The default error message is _"is not a number"_.
 
 ### `presence`
 
-This helper validates that the specified attributes are not empty. It uses the
+This helper validates that the specified attribute is not empty. It uses the
 `blank?` method to check if the value is either `nil` or a blank string, that
 is, a string that is either empty or consists of whitespace.
 
@@ -573,7 +573,7 @@ which would result in a `NULL` value in most cases.
 
 ### `absence`
 
-This helper validates that the specified attributes are absent. It uses the
+This helper validates that the specified attribute is absent. It uses the
 `present?` method to check if the value is not either nil or a blank string, that
 is, a string that is either empty or consists of whitespace.
 
@@ -701,7 +701,7 @@ class Person < ApplicationRecord
 end
 ```
 
-Note that the validator will be initialized *only once* for the whole application
+WARNING. Note that the validator will be initialized *only once* for the whole application
 life cycle, and not on each validation run, so be careful about using instance
 variables inside it.
 
@@ -732,7 +732,7 @@ end
 
 ### `validates_each`
 
-This helper validates attributes against a block. It doesn't have a predefined
+This helper validates each attribute against a block. It doesn't have a predefined
 validation function. You should create one using a block, and every attribute
 passed to `validates_each` will be tested against it. In the following example,
 we don't want names and surnames to begin with lower case.
@@ -1264,8 +1264,8 @@ Assuming we have a model that's been saved in an instance variable named
     <h2><%= pluralize(@article.errors.count, "error") %> prohibited this article from being saved:</h2>
 
     <ul>
-    <% @article.errors.full_messages.each do |msg| %>
-      <li><%= msg %></li>
+    <% @article.errors.full_messages.each do |message| %>
+      <li><%= message %></li>
     <% end %>
     </ul>
   </div>
