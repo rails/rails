@@ -15,49 +15,40 @@ module ActiveRecord
         def associated_records_by_owner(preloader)
           through_scope = through_scope()
 
-          preloader.preload(owners,
+          through_preloaders = preloader.preload(owners,
                             through_reflection.name,
-                            through_scope)
+                            through_scope,
+                            should_skip_setting_target?(owners, through_reflection.name, through_scope))
 
-          through_records = owners.map do |owner|
-            center = owner.association(through_reflection.name).target
-            [owner, Array(center)]
-          end
-
-          reset_association(owners, through_reflection.name, through_scope)
+          through_records = through_preloaders.map { |pl| pl.loaded_associated_records_by_owner }.inject({}, :merge)
 
           middle_records = through_records.flat_map(&:last)
 
-          reflection_scope = reflection_scope() if reflection.scope
+          if reflection.scope || preload_scope
+            reflection_scope = reflection_scope()
+            reflection_scope = reflection_scope.merge(preload_scope) if preload_scope
+          end
 
           preloaders = preloader.preload(middle_records,
                                          source_reflection.name,
-                                         reflection_scope)
+                                         reflection_scope,
+                                         @skip_setting_target)
 
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
-          middle_to_pl = preloaders.each_with_object({}) do |pl, h|
-            pl.owners.each { |middle|
-              h[middle] = pl
-            }
-          end
+          reflection_records = preloaders.map { |pl| pl.loaded_associated_records_by_owner }.inject({}, :merge)
 
-          through_records.each_with_object({}) do |(lhs, center), records_by_owner|
-            pl_to_middle = center.group_by { |record| middle_to_pl[record] }
+          @loaded_associated_records_by_owner = through_records.each_with_object({}) do |(lhs, center), records_by_owner|
+            rhs_records = Array(center).flat_map do |middle|
+              reflection_records[middle]
+            end.compact
 
-            records_by_owner[lhs] = pl_to_middle.flat_map do |pl, middles|
-              rhs_records = middles.flat_map { |r|
-                r.association(source_reflection.name).target
-              }.compact
-
-              # Respect the order on `reflection_scope` if it exists, else use the natural order.
-              if reflection_scope && !reflection_scope.order_values.empty?
-                @id_map ||= id_to_index_map @preloaded_records
-                rhs_records.sort_by { |rhs| @id_map[rhs] }
-              else
-                rhs_records
-              end
+            # Respect the order on `reflection_scope` if it exists, else use the natural order.
+            if reflection_scope && !reflection_scope.order_values.empty?
+              @id_map ||= id_to_index_map @preloaded_records
+              rhs_records = rhs_records.sort_by { |rhs| @id_map[rhs] }
             end
+            records_by_owner[lhs] = rhs_records
           end
         end
 
@@ -69,13 +60,9 @@ module ActiveRecord
             id_map
           end
 
-          def reset_association(owners, association_name, should_reset)
-            # Don't cache the association - we would only be caching a subset
-            if should_reset
-              owners.each { |owner|
-                owner.association(association_name).reset
-              }
-            end
+          def should_skip_setting_target?(owners, association_name, through_scope)
+            (through_scope != through_reflection.klass.unscoped) ||
+               (options[:source_type] && through_reflection.collection?)
           end
 
           def through_scope
