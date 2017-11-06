@@ -924,13 +924,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal [author_address.id], AuthorAddress.destroyed_author_address_ids
   end
 
-  def test_belongs_to_invalid_dependent_option_raises_exception
-    error = assert_raise ArgumentError do
-      Class.new(Author).belongs_to :special_author_address, dependent: :nullify
-    end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
-  end
-
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
     new_firm = accounts(:signals37).build_firm(name: "Apple")
     assert_equal new_firm.name, "Apple"
