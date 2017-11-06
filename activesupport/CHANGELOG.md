@@ -1,3 +1,10 @@
+*   Added `Proc#as_json` to allow procs to be passed to json encoder
+
+        person = {email: 'bogdan@example.com', cms_data: -> { fetch_data_from_cms  }}
+        person.to_json # => {"email": "bogdan@example.com", "cms_data": {...}}
+
+    Supposed to be used when data is generated lazily due to heavy operations
+
 *   `IO#to_json` now returns the `to_s` representation, rather than
     attempting to convert to an array. This fixes a bug where `IO#to_json`
     would raise an `IOError` when called on an unreadable object.
