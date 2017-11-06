@@ -59,7 +59,7 @@ module ActionDispatch
 
         def register_webkit(app)
           Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
-            driver.resize_window_to(*@screen_size)
+            driver.resize_window_to(driver.current_window_handle, *@screen_size)
           end
         end
 
