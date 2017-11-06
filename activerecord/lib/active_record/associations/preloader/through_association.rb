@@ -12,7 +12,7 @@ module ActiveRecord
           reflection.source_reflection
         end
 
-        def associated_records_by_owner(preloader)
+        def run(preloader)
           already_loaded     = owners.first.association(through_reflection.name).loaded?
           through_scope      = through_scope()
           reflection_scope   = target_reflection_scope
@@ -43,7 +43,7 @@ module ActiveRecord
               result.sort_by! { |rhs| preload_index[rhs] } if reflection_scope.order_values.any?
               result.uniq! if reflection_scope.distinct_value
             end
-            yield(owner, result)
+            associate_records_to_owner(owner, result)
           end
         end
 
