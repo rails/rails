@@ -1,3 +1,84 @@
+*   Add same method signature for `Time#prev_year` and `Time#next_year`
+    in accordance with `Date#prev_year`, `Date#next_year`.
+
+    Allows pass argument for `Time#prev_year` and `Time#next_year`.
+
+    Before:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_year    # => 2016-09-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_year(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+
+    Time.new(2017, 9, 16, 17, 0).next_year    # => 2018-09-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_year(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+    ```
+
+    After:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_year    # => 2016-09-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_year(1) # => 2016-09-16 17:00:00 +0300
+
+    Time.new(2017, 9, 16, 17, 0).next_year    # => 2018-09-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_year(1) # => 2018-09-16 17:00:00 +0300
+    ```
+
+    *bogdanvlviv*
+
+*   Add same method signature for `Time#prev_month` and `Time#next_month`
+    in accordance with `Date#prev_month`, `Date#next_month`.
+
+    Allows pass argument for `Time#prev_month` and `Time#next_month`.
+
+    Before:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_month    # => 2017-08-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_month(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+
+    Time.new(2017, 9, 16, 17, 0).next_month    # => 2017-10-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_month(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+    ```
+
+    After:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_month    # => 2017-08-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_month(1) # => 2017-08-16 17:00:00 +0300
+
+    Time.new(2017, 9, 16, 17, 0).next_month    # => 2017-10-16 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_month(1) # => 2017-10-16 17:00:00 +0300
+    ```
+
+    *bogdanvlviv*
+
+*   Add same method signature for `Time#prev_day` and `Time#next_day`
+    in accordance with `Date#prev_day`, `Date#next_day`.
+
+    Allows pass argument for `Time#prev_day` and `Time#next_day`.
+
+    Before:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_day    # => 2017-09-15 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_day(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+
+    Time.new(2017, 9, 16, 17, 0).next_day    # => 2017-09-17 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_day(1)
+    # => ArgumentError: wrong number of arguments (given 1, expected 0)
+    ```
+
+    After:
+    ```
+    Time.new(2017, 9, 16, 17, 0).prev_day    # => 2017-09-15 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).prev_day(1) # => 2017-09-15 17:00:00 +0300
+
+    Time.new(2017, 9, 16, 17, 0).next_day    # => 2017-09-17 17:00:00 +0300
+    Time.new(2017, 9, 16, 17, 0).next_day(1) # => 2017-09-17 17:00:00 +0300
+    ```
+
+    *bogdanvlviv*
+
 *   `IO#to_json` now returns the `to_s` representation, rather than
     attempting to convert to an array. This fixes a bug where `IO#to_json`
     would raise an `IOError` when called on an unreadable object.

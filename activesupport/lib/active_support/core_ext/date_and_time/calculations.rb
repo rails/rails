@@ -20,9 +20,9 @@ module DateAndTime
       advance(days: -1)
     end
 
-    # Returns a new date/time representing the previous day.
-    def prev_day
-      advance(days: -1)
+    # Returns a new date/time the specified number of days ago.
+    def prev_day(days = 1)
+      advance(days: -days)
     end
 
     # Returns a new date/time representing tomorrow.
@@ -30,9 +30,9 @@ module DateAndTime
       advance(days: 1)
     end
 
-    # Returns a new date/time representing the next day.
-    def next_day
-      advance(days: 1)
+    # Returns a new date/time the specified number of days in the future.
+    def next_day(days = 1)
+      advance(days: days)
     end
 
     # Returns true if the date/time is today.
@@ -188,9 +188,9 @@ module DateAndTime
       end
     end
 
-    # Short-hand for months_since(1).
-    def next_month
-      months_since(1)
+    # Returns a new date/time the specified number of months in the future.
+    def next_month(months = 1)
+      advance(months: months)
     end
 
     # Short-hand for months_since(3)
@@ -198,9 +198,9 @@ module DateAndTime
       months_since(3)
     end
 
-    # Short-hand for years_since(1).
-    def next_year
-      years_since(1)
+    # Returns a new date/time the specified number of years in the future.
+    def next_year(years = 1)
+      advance(years: years)
     end
 
     # Returns a new date/time representing the given day in the previous week.
@@ -223,11 +223,15 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
+    # Returns a new date/time the specified number of months ago.
+    def prev_month(months = 1)
+      advance(months: -months)
+    end
+
     # Short-hand for months_ago(1).
-    def prev_month
+    def last_month
       months_ago(1)
     end
-    alias_method :last_month, :prev_month
 
     # Short-hand for months_ago(3).
     def prev_quarter
@@ -235,11 +239,15 @@ module DateAndTime
     end
     alias_method :last_quarter, :prev_quarter
 
+    # Returns a new date/time the specified number of years ago.
+    def prev_year(years = 1)
+      advance(years: -years)
+    end
+
     # Short-hand for years_ago(1).
-    def prev_year
+    def last_year
       years_ago(1)
     end
-    alias_method :last_year, :prev_year
 
     # Returns the number of days to the start of the week on the given day.
     # Week is assumed to start on +start_day+, default is
