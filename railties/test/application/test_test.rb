@@ -8,6 +8,7 @@ module ApplicationTests
 
     def setup
       build_app
+      remove_migrations
     end
 
     def teardown
@@ -320,6 +321,10 @@ Expected: ["id", "name"]
     end
 
     private
+      def remove_migrations
+        Dir.chdir(app_path) { FileUtils.rm_rf("db/migrate") }
+      end
+
       def assert_unsuccessful_run(name, message)
         result = run_test_file(name)
         assert_not_equal 0, $?.to_i

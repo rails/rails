@@ -20,9 +20,10 @@ ruby <%= "'#{RUBY_VERSION}'" -%>
 
 # Use ActiveModel has_secure_password
 # gem 'bcrypt', '~> 3.1.7'
-
+<% unless skip_active_storage? -%>
 # Use ActiveStorage variant
 # gem 'mini_magick', '~> 4.8'
+<% end -%>
 
 # Use Capistrano for deployment
 # gem 'capistrano-rails', group: :development

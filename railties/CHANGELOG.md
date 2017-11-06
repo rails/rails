@@ -1,3 +1,9 @@
+*   `rails new` and `rails plugin new` get `Active Storage` by default.
+     Add ability to skip `Active Storage` with `--skip-active-storage`
+     and do so automatically when `--skip-active-record` is used.
+
+    *bogdanvlviv*
+
 *   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
 
     *Jeremy Daer*

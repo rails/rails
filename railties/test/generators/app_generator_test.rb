@@ -68,6 +68,7 @@ DEFAULT_APP_FILES = %w(
   config/spring.rb
   config/storage.yml
   db
+  db/migrate
   db/seeds.rb
   lib
   lib/tasks
@@ -75,6 +76,7 @@ DEFAULT_APP_FILES = %w(
   log
   package.json
   public
+  storage
   test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
@@ -89,6 +91,7 @@ DEFAULT_APP_FILES = %w(
   tmp
   tmp/cache
   tmp/cache/assets
+  tmp/storage
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -296,6 +299,65 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_active_storage_mini_magick_gem
+    run_generator
+    assert_file "Gemfile", /^# gem 'mini_magick'/
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-storage"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-record"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
@@ -347,7 +409,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbcmysql_database
-    run_generator([destination_root, "-d", "jdbcmysql"])
+    run_generator([destination_root, "-d", "jdbcmysql", "--skip-active-storage"])
     assert_file "config/database.yml", /mysql/
     assert_gem "activerecord-jdbcmysql-adapter"
   end
@@ -365,7 +427,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbc_database
-    run_generator([destination_root, "-d", "jdbc"])
+    run_generator([destination_root, "-d", "jdbc", "--skip-active-storage"])
     assert_file "config/database.yml", /jdbc/
     assert_file "config/database.yml", /mssql/
     assert_gem "activerecord-jdbc-adapter"
@@ -742,7 +804,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -752,12 +814,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], template: path).stub(:open, check_open, template) do
       generator.stub(:bundle_command, ensure_bundler_first) do
         generator.stub(:run, ensure_bundler_first) do
-          quietly { generator.invoke_all }
+          generator.stub(:rails_command, ensure_bundler_first) do
+            quietly { generator.invoke_all }
+          end
         end
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
   end
 
   def test_system_tests_directory_generated

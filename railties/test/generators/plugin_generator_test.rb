@@ -230,7 +230,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_tests_work
-    run_generator
+    run_generator [destination_root, "--skip-active-storage"]
     FileUtils.cd destination_root
     quietly { system "bundle install" }
     assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bin/test 2>&1`)
@@ -240,8 +240,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--full", "--skip_active_record"]
     FileUtils.cd destination_root
     quietly { system "bundle install" }
-    # FIXME: Active Storage will provoke a test error without ActiveRecord (fix by allowing to skip active storage)
-    assert_match(/1 runs, 0 assertions, 0 failures, 1 errors/, `bundle exec rake test 2>&1`)
+    assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bundle exec rake test 2>&1`)
   end
 
   def test_ensure_that_migration_tasks_work_with_mountable_option
