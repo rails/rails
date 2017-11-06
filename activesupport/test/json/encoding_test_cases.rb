@@ -94,5 +94,6 @@ module JSONTest
     StandardTimeTests     = [[ Time.utc(2005, 2, 1, 15, 15, 10), %("2005-02-01T15:15:10.000Z") ]]
     StandardDateTimeTests = [[ DateTime.civil(2005, 2, 1, 15, 15, 10), %("2005-02-01T15:15:10.000+00:00") ]]
     StandardStringTests   = [[ "this is the <string>", %("this is the <string>")]]
+    ProcTests = [[proc { :symbol }, %("symbol")]]
   end
 end

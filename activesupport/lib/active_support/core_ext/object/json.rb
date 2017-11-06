@@ -225,3 +225,9 @@ class Exception
     to_s
   end
 end
+
+class Proc #:nodoc:
+  def as_json(options = nil)
+    call.as_json(options)
+  end
+end
