@@ -1,3 +1,7 @@
+*   Make `assert_recognizes` to traverse mounted engines
+
+    *Yuichiro Kaneko*
+
 *   Remove deprecated `ActionController::ParamsParser::ParseError`.
 
     *Rafael Mendonça França*
