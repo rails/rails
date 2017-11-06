@@ -240,7 +240,7 @@ module ActiveRecord
                 rollback_transaction if transaction
               else
                 begin
-                  commit_transaction
+                  commit_transaction if transaction
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?
                   raise
