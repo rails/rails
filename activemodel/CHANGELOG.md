@@ -1,3 +1,7 @@
+*   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
+
+    *bogdanvlviv*
+
 *   Allow passing a Proc or Symbol to length validator options.
 
     *Matt Rohrer*
