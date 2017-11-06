@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         def run(preloader)
-          associated_records_by_owner(preloader).each do |owner, records|
+          associated_records_by_owner(preloader) do |owner, records|
             associate_records_to_owner(owner, records)
           end
         end
@@ -41,7 +41,7 @@ module ActiveRecord
             end
 
             owners.each_with_object({}) do |owner, result|
-              result[owner] = records[convert_key(owner[owner_key_name])] || []
+              yield(owner, records[convert_key(owner[owner_key_name])] || [])
             end
           end
 
