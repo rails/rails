@@ -1,3 +1,14 @@
+*   Fix acronym support in `humanize`
+
+    Acronym inflections are stored with lowercase keys in the hash but
+    the match wasn't being lowercased before being looked up in the hash.
+    This shouldn't have any performance impact because before it would
+    fail to find the acronym and perform the `downcase` operation anyway.
+
+    Fixes #31052.
+
+    *Andrew White*
+
 *   Add same method signature for `Time#prev_year` and `Time#next_year`
     in accordance with `Date#prev_year`, `Date#next_year`.
 

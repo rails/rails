@@ -356,6 +356,19 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("Col rpted bugs", ActiveSupport::Inflector.humanize("COL_rpted_bugs"))
   end
 
+  def test_humanize_with_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "LAX"
+      inflect.acronym "SFO"
+    end
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("LAX ROUNDTRIP TO SFO"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("LAX ROUNDTRIP TO SFO", capitalize: false))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("lax roundtrip to sfo"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("lax roundtrip to sfo", capitalize: false))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo", capitalize: false))
+  end
+
   def test_constantize
     run_constantize_tests_on do |string|
       ActiveSupport::Inflector.constantize(string)
