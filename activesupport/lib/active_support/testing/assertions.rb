@@ -190,7 +190,12 @@ module ActiveSupport
 
         error = "#{expression.inspect} did change to #{after}"
         error = "#{message}.\n#{error}" if message
-        assert_equal before, after, error
+
+        if before.nil?
+          assert_nil after, error
+        else
+          assert_equal before, after, error
+        end
 
         retval
       end
