@@ -440,7 +440,7 @@ module ActiveRecord
           m.alias_type "char", "varchar"
           m.alias_type "name", "varchar"
           m.alias_type "bpchar", "varchar"
-          m.register_type "bool", Type::Boolean.new
+          m.register_type "boolean", Type::Boolean.new
           register_class_with_limit m, "bit", OID::Bit
           register_class_with_limit m, "varbit", OID::BitVarying
           m.alias_type "timestamptz", "timestamp"
