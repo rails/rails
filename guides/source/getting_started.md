@@ -455,8 +455,7 @@ end
 With the `new` method defined in `ArticlesController`, if you refresh
 <http://localhost:3000/articles/new> you'll see another error:
 
-![Template is missing for articles/new]
-(images/getting_started/template_is_missing_articles_new.png)
+![Template is missing for articles/new](images/getting_started/template_is_missing_articles_new.png)
 
 You're getting this error now because Rails expects plain actions like this one
 to have views associated with them to display their information. With no view
@@ -590,8 +589,7 @@ form and then click the submit button to begin the process of creating a new
 article, so go ahead and do that. When you submit the form, you should see a
 familiar error:
 
-![Unknown action create for ArticlesController]
-(images/getting_started/unknown_action_create_for_articles.png)
+![Unknown action create for ArticlesController](images/getting_started/unknown_action_create_for_articles.png)
 
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
@@ -765,8 +763,7 @@ the article was saved or not.
 If you now go to <http://localhost:3000/articles/new> you'll *almost* be able
 to create an article. Try it! You should get an error that looks like this:
 
-![Forbidden attributes for new article]
-(images/getting_started/forbidden_attributes_for_new_article.png)
+![Forbidden attributes for new article](images/getting_started/forbidden_attributes_for_new_article.png)
 
 Rails has several security features that help you write secure applications,
 and you're running into one of them now. This one is called [strong parameters](action_controller_overview.html#strong-parameters),
