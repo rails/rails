@@ -29,6 +29,14 @@ class SetDriverToSeleniumHeadlessChromeTest < DrivenBySeleniumWithHeadlessChrome
 end
 
 class SetHostTest < DrivenByRackTest
+  setup do
+    @original_host = Capybara.app_host
+  end
+
+  teardown do
+    host! @original_host
+  end
+
   test "sets default host" do
     assert_equal "http://127.0.0.1", Capybara.app_host
   end
@@ -37,6 +45,22 @@ class SetHostTest < DrivenByRackTest
     host! "http://example.com"
 
     assert_equal "http://example.com", Capybara.app_host
+  end
+end
+
+class CustomizeAppHostInBeforeSetupTest < DrivenByRackTest
+  def before_setup
+    @original_host = Capybara.app_host
+    host! "http://custom.com"
+    super
+  end
+
+  def after_teardown
+    host! @original_host
+  end
+
+  test "sets default host" do
+    assert_equal "http://custom.com", Capybara.app_host
   end
 end
 
