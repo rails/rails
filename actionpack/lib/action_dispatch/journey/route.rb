@@ -74,6 +74,10 @@ module ActionDispatch
         @path_formatter    = @path.build_formatter
         @internal          = internal
       end
+        
+      def to_controller_class
+        "#{defaults.fetch(:controller).classify.pluralize}Controller".constantize
+      end
 
       def eager_load!
         path.eager_load!
