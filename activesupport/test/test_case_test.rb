@@ -179,6 +179,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_assert_changes_works_with_any_object
+    # Silences: instance variable @new_object not initialized.
     retval = silence_warnings do
       assert_changes :@new_object, from: nil, to: 42 do
         @new_object = 42
@@ -201,7 +202,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_changes_with_to_and_case_operator
     token = nil
 
-    assert_changes -> { token },  to: /\w{32}/ do
+    assert_changes -> { token }, to: /\w{32}/ do
       token = SecureRandom.hex
     end
   end
@@ -236,7 +237,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
   end
 end
 
