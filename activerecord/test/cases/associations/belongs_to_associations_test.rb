@@ -926,9 +926,9 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
   def test_belongs_to_invalid_dependent_option_raises_exception
     error = assert_raise ArgumentError do
-      Class.new(Author).belongs_to :special_author_address, dependent: :nullify
+      Class.new(Author).belongs_to :special_author_address, dependent: :restrict_with_error
     end
-    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
+    assert_equal error.message, "The :dependent option must be one of [:destroy, :delete, :nullify], but is :restrict_with_error"
   end
 
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
