@@ -10,4 +10,7 @@
 // Read Sprockets README (https://github.com/rails/sprockets#sprockets-directives) for details
 // about supported directives.
 //
+<% unless skip_active_storage? -%>
+//= require activestorage
+<% end -%>
 //= require_tree .

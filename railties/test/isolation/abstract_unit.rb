@@ -153,6 +153,7 @@ module TestHelpers
 
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      FileUtils.rm_rf(tmp_path)
     end
 
     # Make a very basic app, without creating the whole directory structure.

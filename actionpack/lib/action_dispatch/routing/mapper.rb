@@ -475,6 +475,16 @@ module ActionDispatch
         #
         #      resources :users, param: :name
         #
+        #   The +users+ resource here will have the following routes generated for it:
+        #
+        #      GET       /users(.:format)
+        #      POST      /users(.:format)
+        #      GET       /users/new(.:format)
+        #      GET       /users/:name/edit(.:format)
+        #      GET       /users/:name(.:format)
+        #      PATCH/PUT /users/:name(.:format)
+        #      DELETE    /users/:name(.:format)
+        #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
         #
@@ -484,8 +494,8 @@ module ActionDispatch
         #        end
         #      end
         #
-        #   user = User.find_by(name: 'Phusion')
-        #   user_path(user)  # => "/users/Phusion"
+        #      user = User.find_by(name: 'Phusion')
+        #      user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
@@ -1265,7 +1275,7 @@ module ActionDispatch
         #   POST      /profile
         #
         # === Options
-        # Takes same options as +resources+.
+        # Takes same options as resources[rdoc-ref:#resources]
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1330,7 +1340,7 @@ module ActionDispatch
         #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
-        # Takes same options as <tt>Base#match</tt> as well as:
+        # Takes same options as match[rdoc-ref:Base#match] as well as:
         #
         # [:path_names]
         #   Allows you to change the segment component of the +edit+ and +new+ actions.

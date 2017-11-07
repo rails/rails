@@ -59,7 +59,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_of_with_integer_only_and_symbol_as_value
-    Topic.validates_numericality_of :approved, only_integer: :condition_is_true_but_its_not
+    Topic.validates_numericality_of :approved, only_integer: :condition_is_false
 
     invalid!(NIL + BLANK + JUNK)
     valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)

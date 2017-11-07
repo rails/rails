@@ -28,8 +28,11 @@ Rails.application.configure do
   # Disable request forgery protection in test environment.
   config.action_controller.allow_forgery_protection = false
 
+  <%- unless skip_active_storage? -%>
   # Store uploaded files on the local file system in a temporary directory
   config.active_storage.service = :test
+
+  <%- end -%>
   <%- unless options.skip_action_mailer? -%>
   config.action_mailer.perform_caching = false
 

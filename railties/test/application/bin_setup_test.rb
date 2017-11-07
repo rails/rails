@@ -16,6 +16,8 @@ module ApplicationTests
 
     def test_bin_setup
       Dir.chdir(app_path) do
+        FileUtils.rm_rf("db/migrate")
+
         app_file "db/schema.rb", <<-RUBY
           ActiveRecord::Schema.define(version: 20140423102712) do
             create_table(:articles) {}
@@ -37,6 +39,8 @@ module ApplicationTests
 
     def test_bin_setup_output
       Dir.chdir(app_path) do
+        FileUtils.rm_rf("db/migrate")
+
         app_file "db/schema.rb", ""
 
         output = `bin/setup 2>&1`

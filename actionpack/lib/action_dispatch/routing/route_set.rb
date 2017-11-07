@@ -842,6 +842,10 @@ module ActionDispatch
         end
 
         req = make_request(env)
+        recognize_path_with_request(req, path, extras)
+      end
+
+      def recognize_path_with_request(req, path, extras)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
@@ -860,6 +864,9 @@ module ActionDispatch
             end
 
             return req.path_parameters
+          elsif app.matches?(req) && app.engine?
+            path_parameters = app.rack_app.routes.recognize_path_with_request(req, path, extras)
+            return path_parameters
           end
         end
 

@@ -9,6 +9,10 @@ class Person
   def condition_is_true
     true
   end
+
+  def condition_is_false
+    false
+  end
 end
 
 class Person::Gender
