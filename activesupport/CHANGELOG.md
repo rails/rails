@@ -1,3 +1,16 @@
+*   Allow `Range#include?` on TWZ ranges
+
+    In #11474 we prevented TWZ ranges being iterated over which matched
+    Ruby's handling of Time ranges and as a consequence `include?`
+    stopped working with both Time ranges and TWZ ranges. However in
+    ruby/ruby@b061634 support was added for `include?` to use `cover?`
+    for 'linear' objects. Since we have no way of making Ruby consider
+    TWZ instances as 'linear' we have to override `Range#include?`.
+    
+    Fixes #30799.
+    
+    *Andrew White*
+
 *   Fix acronym support in `humanize`
 
     Acronym inflections are stored with lowercase keys in the hash but
