@@ -357,8 +357,15 @@ module ActiveRecord
       ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
       ActiveRecord::Tasks::DatabaseTasks.migrate
 
+      ENV["VERBOSE"] = ""
+      ENV["VERSION"] = ""
+      ActiveRecord::Migrator.expects(:migrate).with("custom/path", nil)
+      ActiveRecord::Migration.expects(:verbose=).with(true)
+      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+
       ENV["VERBOSE"] = "yes"
-      ENV["VERSION"] = "unknown"
+      ENV["VERSION"] = "0"
       ActiveRecord::Migrator.expects(:migrate).with("custom/path", 0)
       ActiveRecord::Migration.expects(:verbose=).with(true)
       ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
@@ -367,13 +374,45 @@ module ActiveRecord
       ENV["VERBOSE"], ENV["VERSION"] = verbose, version
     end
 
-    def test_migrate_raise_error_on_empty_version
+    def test_migrate_raise_error_on_invalid_version_format
       version = ENV["VERSION"]
-      ENV["VERSION"] = ""
+
+      ENV["VERSION"] = "unknown"
       e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
-      assert_equal "Empty VERSION provided", e.message
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "0.1.11"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1.1.11"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "0 "
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1."
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1_"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1_name"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_match(/Invalid format of target version/, e.message)
     ensure
       ENV["VERSION"] = version
+    end
+
+    def test_migrate_raise_error_on_failed_check_target_version
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:check_target_version).raises("foo")
+
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.migrate }
+      assert_equal "foo", e.message
     end
 
     def test_migrate_clears_schema_cache_afterward
@@ -441,6 +480,108 @@ module ActiveRecord
         eval("@#{v}").expects(:collation)
         ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => k
       end
+    end
+  end
+
+  class DatabaseTaskTargetVersionTest < ActiveRecord::TestCase
+    def test_target_version_returns_nil_if_version_does_not_exist
+      version = ENV.delete("VERSION")
+      assert_nil ActiveRecord::Tasks::DatabaseTasks.target_version
+    ensure
+      ENV["VERSION"] = version
+    end
+
+    def test_target_version_returns_nil_if_version_is_empty
+      version = ENV["VERSION"]
+
+      ENV["VERSION"] = ""
+      assert_nil ActiveRecord::Tasks::DatabaseTasks.target_version
+    ensure
+      ENV["VERSION"] = version
+    end
+
+    def test_target_version_returns_converted_to_integer_env_version_if_version_exists
+      version = ENV["VERSION"]
+
+      ENV["VERSION"] = "0"
+      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+
+      ENV["VERSION"] = "42"
+      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+
+      ENV["VERSION"] = "042"
+      assert_equal ENV["VERSION"].to_i, ActiveRecord::Tasks::DatabaseTasks.target_version
+    ensure
+      ENV["VERSION"] = version
+    end
+  end
+
+  class DatabaseTaskCheckTargetVersionTest < ActiveRecord::TestCase
+    def test_check_target_version_does_not_raise_error_on_empty_version
+      version = ENV["VERSION"]
+      ENV["VERSION"] = ""
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+    ensure
+      ENV["VERSION"] = version
+    end
+
+    def test_check_target_version_does_not_raise_error_if_version_is_not_setted
+      version = ENV.delete("VERSION")
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+    ensure
+      ENV["VERSION"] = version
+    end
+
+    def test_check_target_version_raises_error_on_invalid_version_format
+      version = ENV["VERSION"]
+
+      ENV["VERSION"] = "unknown"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "0.1.11"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1.1.11"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "0 "
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1."
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1_"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+
+      ENV["VERSION"] = "1_name"
+      e = assert_raise(RuntimeError) { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+      assert_match(/Invalid format of target version/, e.message)
+    ensure
+      ENV["VERSION"] = version
+    end
+
+    def test_check_target_version_does_not_raise_error_on_valid_version_format
+      version = ENV["VERSION"]
+
+      ENV["VERSION"] = "0"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+
+      ENV["VERSION"] = "1"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+
+      ENV["VERSION"] = "001"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+
+      ENV["VERSION"] = "001_name.rb"
+      assert_nothing_raised { ActiveRecord::Tasks::DatabaseTasks.check_target_version }
+    ensure
+      ENV["VERSION"] = version
     end
   end
 

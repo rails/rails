@@ -37,9 +37,64 @@ module ApplicationTests
         assert_match(/AMigration: reverted/, output)
       end
 
+      test "migrate with specified VERSION in different formats" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/03_three_migration.rb", <<-MIGRATION
+          class ThreeMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+        assert_match(/up\s+003\s+Three migration/, output)
+
+        rails "db:migrate", "VERSION=01_one_migration.rb"
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/down\s+002\s+Two migration/, output)
+        assert_match(/down\s+003\s+Three migration/, output)
+
+        rails "db:migrate", "VERSION=3"
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+        assert_match(/up\s+003\s+Three migration/, output)
+
+        rails "db:migrate", "VERSION=001"
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/down\s+002\s+Two migration/, output)
+        assert_match(/down\s+003\s+Three migration/, output)
+      end
+
       test "migration with empty version" do
-        output = rails("db:migrate", "VERSION=", allow_failure: true)
-        assert_match(/Empty VERSION provided/, output)
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails("db:migrate", "VERSION=")
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
 
         output = rails("db:migrate:redo", "VERSION=", allow_failure: true)
         assert_match(/Empty VERSION provided/, output)
@@ -55,6 +110,34 @@ module ApplicationTests
 
         output = rails("db:migrate:down", allow_failure: true)
         assert_match(/VERSION is required - To go down one migration, use db:rollback/, output)
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+      end
+
+      test "migration with 0 version" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+
+        rails "db:migrate", "VERSION=0"
+
+        output = rails("db:migrate:status")
+        assert_match(/down\s+001\s+One migration/, output)
+        assert_match(/down\s+002\s+Two migration/, output)
       end
 
       test "model and migration generator with change syntax" do
@@ -190,6 +273,75 @@ module ApplicationTests
           assert_match(/up\s+\d{14}\s+Create users/, output)
           assert_match(/up\s+\d{14}\s+\** NO FILE \**/, output)
         end
+      end
+
+      test "raise error on any move when target migration does not exist" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        app_file "db/migrate/02_two_migration.rb", <<-MIGRATION
+          class TwoMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+
+        output = rails("db:migrate", "VERSION=3", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/ActiveRecord::UnknownMigrationVersionError:/, output)
+        assert_match(/No migration with version number 3/, output)
+
+        output = rails("db:migrate:status")
+        assert_match(/up\s+001\s+One migration/, output)
+        assert_match(/up\s+002\s+Two migration/, output)
+      end
+
+      test "raise error on any move when VERSION has invalid format" do
+        output = rails("db:migrate", "VERSION=unknown", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION=0.1.11", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION=1.1.11", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION='0 '", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION=1.", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION=1_", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate", "VERSION=1_name", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate:redo", "VERSION=unknown", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate:up", "VERSION=unknown", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
+
+        output = rails("db:migrate:down", "VERSION=unknown", allow_failure: true)
+        assert_match(/rails aborted!/, output)
+        assert_match(/Invalid format of target version/, output)
       end
 
       test "migration status after rollback and redo without timestamps" do

@@ -1224,7 +1224,7 @@ module ActiveRecord
 
       # Return true if a valid version is not provided.
       def invalid_target?
-        !target && @target_version && @target_version > 0
+        @target_version && @target_version != 0 && !target
       end
 
       def execute_migration_in_transaction(migration, direction)
