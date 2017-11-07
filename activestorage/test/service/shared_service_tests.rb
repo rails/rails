@@ -50,6 +50,16 @@ module ActiveStorage::Service::SharedServiceTests
       assert_equal FIXTURE_DATA, @service.download(FIXTURE_KEY)
     end
 
+    test "downloading in chunks" do
+      chunks = []
+
+      @service.download(FIXTURE_KEY) do |chunk|
+        chunks << chunk
+      end
+
+      assert_equal [ FIXTURE_DATA ], chunks
+    end
+
     test "existing" do
       assert @service.exist?(FIXTURE_KEY)
       assert_not @service.exist?(FIXTURE_KEY + "nonsense")
