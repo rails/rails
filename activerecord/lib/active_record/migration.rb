@@ -732,6 +732,24 @@ module ActiveRecord
       helper = ReversibleBlockHelper.new(reverting?)
       execute_block { yield helper }
     end
+    
+    # Used to specify an operation that is only run when migrating up 
+    # (for example, populating a new column with its initial values).
+    #
+    # In the following example, the new column `published` will be given
+    # the value `true` for all existing records.
+    #
+    #    class AddPublishedToPosts < ActiveRecord::Migration[5.3]
+    #      def change
+    #        add_column :posts, :published, :boolean, default: false
+    #        populate do
+    #          Post.update_all(:published => true)
+    #        end
+    #      end
+    #    end
+    def populate
+      execute_block { yield } unless reverting?
+    end
 
     # Runs the given migration classes.
     # Last argument can specify options:
