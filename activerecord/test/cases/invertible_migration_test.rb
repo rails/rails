@@ -160,11 +160,11 @@ module ActiveRecord
         end
       end
     end
-    
+
     class PopulateMigration < SilentMigration
       def change
         add_column :horses, :oldie, :boolean, default: false
-        populate { Horse.update_all(:oldie => true) }
+        populate { Horse.update_all(oldie: true) }
       end
     end
 
@@ -385,7 +385,7 @@ module ActiveRecord
               "horses_index_named index should not exist"
       end
     end
-    
+
     def test_populate
       InvertibleMigration.new.migrate(:up)
       horse1 = Horse.create
@@ -394,10 +394,10 @@ module ActiveRecord
       Horse.reset_column_information
       horse1.reload
       horse2 = Horse.create
-      
+
       assert horse1.oldie? # created before migration
       assert !horse2.oldie? # created after migration
-      
+
       PopulateMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection
       assert !connection.column_exists?(:horses, :oldie)

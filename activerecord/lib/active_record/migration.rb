@@ -732,8 +732,8 @@ module ActiveRecord
       helper = ReversibleBlockHelper.new(reverting?)
       execute_block { yield helper }
     end
-    
-    # Used to specify an operation that is only run when migrating up 
+
+    # Used to specify an operation that is only run when migrating up
     # (for example, populating a new column with its initial values).
     #
     # In the following example, the new column `published` will be given
@@ -743,7 +743,7 @@ module ActiveRecord
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        populate do
-    #          Post.update_all(:published => true)
+    #          Post.update_all(published: true)
     #        end
     #      end
     #    end
