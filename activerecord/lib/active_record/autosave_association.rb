@@ -435,7 +435,7 @@ module ActiveRecord
 
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
-                record[reflection.foreign_key] = key
+                record[reflection.foreign_key] = key if record.persisted?
               end
 
               saved = record.save(validate: !autosave)
@@ -465,14 +465,14 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           if autosave && record.marked_for_destruction?
-            self[reflection.foreign_key] = nil
+            self[reflection.foreign_key] = nil if self.persisted?
             record.destroy
           elsif autosave != false
             saved = record.save(validate: !autosave) if record.new_record? || (autosave && record.changed_for_autosave?)
 
             if association.updated?
               association_id = record.send(reflection.options[:primary_key] || :id)
-              self[reflection.foreign_key] = association_id
+              self[reflection.foreign_key] = association_id if self.persisted?
               association.loaded!
             end
 

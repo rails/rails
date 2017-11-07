@@ -1,3 +1,8 @@
+*   Fix raising `RuntimeError: can't modify frozen Hash` when saving
+    resource which was destroyed by one of its callbacks.
+
+    *bbonislawski*
+
 *   Fix `bin/rails db:migrate` with specified `VERSION`.
     `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
     Check a format of `VERSION`: Allow a migration version number

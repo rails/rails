@@ -1736,3 +1736,31 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
     assert_equal 1, comment.post_comments_count
   end
 end
+
+class TestAutosaveAssociationOnResourceDeletedByCallbackOfAssociatedResource < ActiveRecord::TestCase
+  class Pirate < ActiveRecord::Base
+    attr_accessor :ship_to_sink
+
+    has_many :ships, autosave: true
+
+    before_save :sink_ship
+
+    def sink_ship
+      ship_to_sink.destroy if ship_to_sink && ship_to_sink.persisted?
+    end
+  end
+
+  class Ship < ActiveRecord::Base
+    belongs_to :pirate, autosave: true
+  end
+
+  test "should not raise exception when object was destroyed by callback" do
+    Ship.record_timestamps = false
+    pirate = Pirate.create!(catchphrase: "Yo-ho!")
+    ship = pirate.ships.create!(name: "Serenity")
+    ship.pirate = Pirate.new(catchphrase: "Arrrr, I Arrrr crrrrazy!")
+    ship.pirate.ship_to_sink = ship
+
+    assert_nothing_raised { ship.save! }
+  end
+end
