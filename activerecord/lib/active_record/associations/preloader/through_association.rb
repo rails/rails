@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      module ThroughAssociation #:nodoc:
+      class ThroughAssociation < Association #:nodoc:
         def through_reflection
           reflection.through_reflection
         end
