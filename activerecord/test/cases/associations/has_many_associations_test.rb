@@ -831,7 +831,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_find_scoped_grouped_having
-    assert_equal 1, authors(:david).popular_grouped_posts.length
+    assert_equal 2, authors(:david).popular_grouped_posts.length
     assert_equal 0, authors(:mary).popular_grouped_posts.length
   end
 

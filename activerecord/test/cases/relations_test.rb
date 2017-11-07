@@ -927,13 +927,13 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.count(:all)
     assert_equal 11, posts.count(:id)
 
-    assert_equal 1, posts.where("comments_count > 1").count
-    assert_equal 9, posts.where(comments_count: 0).count
+    assert_equal 3, posts.where("comments_count > 1").count
+    assert_equal 6, posts.where(comments_count: 0).count
   end
 
   def test_count_with_block
     posts = Post.all
-    assert_equal 10, posts.count { |p| p.comments_count.even? }
+    assert_equal 8, posts.count { |p| p.comments_count.even? }
   end
 
   def test_count_on_association_relation
@@ -950,10 +950,10 @@ class RelationTest < ActiveRecord::TestCase
   def test_count_with_distinct
     posts = Post.all
 
-    assert_equal 3, posts.distinct(true).count(:comments_count)
+    assert_equal 4, posts.distinct(true).count(:comments_count)
     assert_equal 11, posts.distinct(false).count(:comments_count)
 
-    assert_equal 3, posts.distinct(true).select(:comments_count).count
+    assert_equal 4, posts.distinct(true).select(:comments_count).count
     assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
@@ -992,7 +992,7 @@ class RelationTest < ActiveRecord::TestCase
 
     best_posts = posts.where(comments_count: 0)
     best_posts.load # force load
-    assert_no_queries { assert_equal 9, best_posts.size }
+    assert_no_queries { assert_equal 6, best_posts.size }
   end
 
   def test_size_with_limit
@@ -1003,7 +1003,7 @@ class RelationTest < ActiveRecord::TestCase
 
     best_posts = posts.where(comments_count: 0)
     best_posts.load # force load
-    assert_no_queries { assert_equal 9, best_posts.size }
+    assert_no_queries { assert_equal 6, best_posts.size }
   end
 
   def test_size_with_zero_limit
@@ -1026,7 +1026,7 @@ class RelationTest < ActiveRecord::TestCase
   def test_count_complex_chained_relations
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count > 0")
 
-    expected = { 1 => 2 }
+    expected = { 1 => 4, 2 => 1 }
     assert_equal expected, posts.count
   end
 
@@ -1781,7 +1781,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   test "arel_attribute respects a custom table" do
-    assert_equal [posts(:welcome)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
+    assert_equal [posts(:sti_comments)], custom_post_relation.ranked_by_comments.limit_by(1).to_a
   end
 
   test "alias_tracker respects a custom table" do
