@@ -3,6 +3,7 @@
     Fixes #31045
 
     *Daniel Ma*
+
 *   Fix acronym support in `humanize`
 
     Acronym inflections are stored with lowercase keys in the hash but
