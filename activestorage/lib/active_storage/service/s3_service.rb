@@ -85,7 +85,7 @@ module ActiveStorage
       end
 
       # Reads the object for the given key in chunks, yielding each to the block.
-      def stream(key, &block)
+      def stream(key)
         object = object_for(key)
 
         chunk_size = 5.megabytes
