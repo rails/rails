@@ -44,16 +44,8 @@ module ActiveRecord
       extend ActiveSupport::Autoload
 
       eager_autoload do
-        autoload :Association,           "active_record/associations/preloader/association"
-        autoload :SingularAssociation,   "active_record/associations/preloader/singular_association"
-        autoload :CollectionAssociation, "active_record/associations/preloader/collection_association"
-        autoload :ThroughAssociation,    "active_record/associations/preloader/through_association"
-
-        autoload :HasMany,             "active_record/associations/preloader/has_many"
-        autoload :HasManyThrough,      "active_record/associations/preloader/has_many_through"
-        autoload :HasOne,              "active_record/associations/preloader/has_one"
-        autoload :HasOneThrough,       "active_record/associations/preloader/has_one_through"
-        autoload :BelongsTo,           "active_record/associations/preloader/belongs_to"
+        autoload :Association,        "active_record/associations/preloader/association"
+        autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
       end
 
       # Eager loads the named associations for the given Active Record record(s).
@@ -182,8 +174,7 @@ module ActiveRecord
         end
 
         # Returns a class containing the logic needed to load preload the data
-        # and attach it to a relation. For example +Preloader::Association+ or
-        # +Preloader::HasManyThrough+. The class returned implements a `run` method
+        # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
         def preloader_for(reflection, owners)
           if owners.first.association(reflection.name).loaded?
@@ -191,13 +182,10 @@ module ActiveRecord
           end
           reflection.check_preloadable!
 
-          case reflection.macro
-          when :has_many
-            reflection.options[:through] ? HasManyThrough : HasMany
-          when :has_one
-            reflection.options[:through] ? HasOneThrough : HasOne
-          when :belongs_to
-            BelongsTo
+          if reflection.options[:through]
+            ThroughAssociation
+          else
+            Association
           end
         end
     end
