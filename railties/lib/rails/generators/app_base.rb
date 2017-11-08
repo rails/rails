@@ -464,7 +464,7 @@ module Rails
           if bundle_install?
             rails_command "active_storage:install", capture: options[:quiet]
           else
-            log("Active Storage installation was skipped. Please run 'bin/rails active_storage:install' to install Active Storage files.")
+            log("Active Storage installation was skipped. Please run `bin/rails active_storage:install` to install Active Storage files.")
           end
         end
       end
