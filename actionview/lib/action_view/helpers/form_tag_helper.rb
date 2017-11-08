@@ -115,7 +115,7 @@ module ActionView
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
-      #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #   # => <select id="people" name="people"><option value="" label=" "></option><option value="1">David</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
       #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
