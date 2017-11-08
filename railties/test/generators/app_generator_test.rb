@@ -68,7 +68,6 @@ DEFAULT_APP_FILES = %w(
   config/spring.rb
   config/storage.yml
   db
-  db/migrate
   db/seeds.rb
   lib
   lib/tasks
@@ -302,6 +301,21 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_active_storage_mini_magick_gem
     run_generator
     assert_file "Gemfile", /^# gem 'mini_magick'/
+  end
+
+  def test_active_storage_install
+    command_check = -> command, _ do
+      @binstub_called ||= 0
+      case command
+      when "active_storage:install"
+        @binstub_called += 1
+        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@install_called} times."
+      end
+    end
+
+    generator.stub :rails_command, command_check do
+      quietly { generator.invoke_all }
+    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given

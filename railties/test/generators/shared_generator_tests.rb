@@ -222,7 +222,6 @@ module SharedGeneratorTests
     end
 
     assert_file "#{application_path}/config/storage.yml"
-    assert_directory "#{application_path}/db/migrate"
     assert_directory "#{application_path}/storage"
     assert_directory "#{application_path}/tmp/storage"
 
