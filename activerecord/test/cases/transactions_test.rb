@@ -954,27 +954,25 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
+if ActiveRecord::Base.connection.supports_transaction_isolation?
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
-    unless in_memory_db?
-      def test_transaction_per_thread
-        threads = 3.times.map do
-          Thread.new do
-            Topic.transaction do
-              topic = Topic.find(1)
-              topic.approved = !topic.approved?
-              assert topic.save!
-              topic.approved = !topic.approved?
-              assert topic.save!
-            end
-            Topic.connection.close
+    def test_transaction_per_thread
+      threads = 3.times.map do
+        Thread.new do
+          Topic.transaction do
+            topic = Topic.find(1)
+            topic.approved = !topic.approved?
+            assert topic.save!
+            topic.approved = !topic.approved?
+            assert topic.save!
           end
+          Topic.connection.close
         end
-
-        threads.each(&:join)
       end
+
+      threads.each(&:join)
     end
 
     # Test for dirty reads among simultaneous transactions.
