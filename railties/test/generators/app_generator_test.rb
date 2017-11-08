@@ -423,7 +423,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbcmysql_database
-    run_generator([destination_root, "-d", "jdbcmysql", "--skip-active-storage"])
+    run_generator([destination_root, "-d", "jdbcmysql"])
     assert_file "config/database.yml", /mysql/
     assert_gem "activerecord-jdbcmysql-adapter"
   end
@@ -441,7 +441,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_config_jdbc_database
-    run_generator([destination_root, "-d", "jdbc", "--skip-active-storage"])
+    run_generator([destination_root, "-d", "jdbc"])
     assert_file "config/database.yml", /jdbc/
     assert_file "config/database.yml", /mssql/
     assert_gem "activerecord-jdbc-adapter"

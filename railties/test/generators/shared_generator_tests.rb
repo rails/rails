@@ -63,7 +63,7 @@ module SharedGeneratorTests
   end
 
   def test_shebang_is_added_to_rails_file
-    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full", "--skip-active-storage"]
+    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
     assert_file "bin/rails", /#!foo\/bar\/baz/
   end
 
