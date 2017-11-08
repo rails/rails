@@ -90,6 +90,8 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
+        # Install Active Storage migration file first so as not to affect test.
+        `bundle exec rake active_storage:install`
         output = `bundle exec rake bukkits:install:migrations`
 
         ["CreateUsers", "AddLastNameToUsers", "CreateSessions"].each do |migration_name|
@@ -175,6 +177,8 @@ module RailtiesTest
       boot_rails
 
       Dir.chdir(app_path) do
+        # Install Active Storage migration file first so as not to affect test.
+        `bundle exec rake active_storage:install`
         output = `bundle exec rake railties:install:migrations`.split("\n")
 
         assert_match(/Copied migration \d+_create_users\.core_engine\.rb from core_engine/, output.first)
