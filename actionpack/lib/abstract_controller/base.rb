@@ -76,9 +76,9 @@ module AbstractController
           # All public instance methods of this class, including ancestors
           methods = (public_instance_methods(true) -
             # Except for public instance methods of Base and its ancestors
-            internal_methods +
-            # Be sure to include shadowed public instance methods of this class
-            public_instance_methods(false)).uniq.map(&:to_s)
+            (internal_methods -
+              # Be sure to keep shadowed public instance methods of this class
+              public_instance_methods(false))).map(&:to_s)
 
           methods.to_set
         end

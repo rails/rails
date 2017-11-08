@@ -117,9 +117,9 @@ module ActionCable
             # All public instance methods of this class, including ancestors
             methods = (public_instance_methods(true) -
               # Except for public instance methods of Base and its ancestors
-              ActionCable::Channel::Base.public_instance_methods(true) +
-              # Be sure to include shadowed public instance methods of this class
-              public_instance_methods(false)).uniq.map(&:to_s)
+              (ActionCable::Channel::Base.public_instance_methods(true) -
+                # Be sure to keep shadowed public instance methods of this class
+                public_instance_methods(false))).map(&:to_s)
             methods.to_set
           end
         end
