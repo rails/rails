@@ -954,7 +954,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
   end
 end if Topic.connection.supports_savepoints?
 
-if current_adapter?(:PostgreSQLAdapter)
+if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
   class ConcurrentTransactionTest < TransactionTest
     # This will cause transactions to overlap and fail unless they are performed on
     # separate database connections.
