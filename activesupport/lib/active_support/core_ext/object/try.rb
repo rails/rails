@@ -123,7 +123,13 @@ class Delegator
   #
   # See Object#try!
 
-  @delegator_api += ActiveSupport::Tryable.public_instance_methods
+  class << self
+    alias original_public_api public_api
+
+    def public_api
+      original_public_api + ActiveSupport::Tryable.public_instance_methods
+    end
+  end
 end
 
 class NilClass
