@@ -75,7 +75,7 @@ if current_adapter?(:Mysql2Adapter)
       end
     end
 
-    class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
+    class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
       def setup
         @connection    = stub("Connection", create_database: true)
         @error         = Mysql2::Error.new("Invalid permissions")
@@ -86,13 +86,8 @@ if current_adapter?(:Mysql2Adapter)
           "password" => "wossname"
         }
 
-        $stdin.stubs(:gets).returns("secret\n")
-        $stdout.stubs(:print).returns(nil)
-        @error.stubs(:errno).returns(1045)
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).
-          raises(@error).
-          then.returns(true)
+        ActiveRecord::Base.stubs(:establish_connection).raises(@error)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -102,75 +97,11 @@ if current_adapter?(:Mysql2Adapter)
         $stdout, $stderr = @original_stdout, @original_stderr
       end
 
-      def test_root_password_is_requested
-        assert_permissions_granted_for("pat")
-        $stdin.expects(:gets).returns("secret\n")
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_connection_established_as_root
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Base.expects(:establish_connection).with(
-          "adapter"  => "mysql2",
-          "database" => nil,
-          "username" => "root",
-          "password" => "secret"
-        )
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_database_created_by_root
-        assert_permissions_granted_for("pat")
-        @connection.expects(:create_database).
-          with("my-app-db", {})
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_grant_privileges_for_normal_user
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_do_not_grant_privileges_for_root_user
-        @configuration["username"] = "root"
-        @configuration["password"] = ""
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_connection_established_as_normal_user
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Base.expects(:establish_connection).returns do
-          ActiveRecord::Base.expects(:establish_connection).with(
-            "adapter"  => "mysql2",
-            "database" => "my-app-db",
-            "username" => "pat",
-            "password" => "secret"
-          )
-
-          raise @error
+      def test_raises_error
+        assert_raises(Mysql2::Error) do
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration
         end
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
-
-      def test_sends_output_to_stderr_when_other_errors
-        @error.stubs(:errno).returns(42)
-
-        $stderr.expects(:puts).at_least_once.returns(nil)
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      private
-
-        def assert_permissions_granted_for(db_user)
-          db_name = @configuration["database"]
-          db_password = @configuration["password"]
-          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON `#{db_name}`.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
-        end
     end
 
     class MySQLDBDropTest < ActiveRecord::TestCase
