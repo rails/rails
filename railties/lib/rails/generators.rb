@@ -218,6 +218,7 @@ module Rails
         rails.delete("app")
         rails.delete("plugin")
         rails.delete("encrypted_secrets")
+        rails.delete("credentials")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
