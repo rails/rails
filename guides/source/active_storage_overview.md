@@ -10,6 +10,7 @@ After reading this guide, you will know:
 * How to attach a file(s) to a model.
 * How to remove the attached file.
 * How to link to the attached file.
+* How to generate a preview for files other than images
 * How to implement a download link.
 * How to approach implementing a custom service.
 
