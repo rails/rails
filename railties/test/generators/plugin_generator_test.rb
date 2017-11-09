@@ -230,7 +230,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_tests_work
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator
     FileUtils.cd destination_root
     quietly { system "bundle install" }
     assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bin/test 2>&1`)

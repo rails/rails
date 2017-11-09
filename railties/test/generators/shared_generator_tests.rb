@@ -63,7 +63,7 @@ module SharedGeneratorTests
   end
 
   def test_shebang_is_added_to_rails_file
-    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full", "--skip-active-storage"]
+    run_generator [destination_root, "--ruby", "foo/bar/baz", "--full"]
     assert_file "bin/rails", /#!foo\/bar\/baz/
   end
 
@@ -222,7 +222,6 @@ module SharedGeneratorTests
     end
 
     assert_file "#{application_path}/config/storage.yml"
-    assert_directory "#{application_path}/db/migrate"
     assert_directory "#{application_path}/storage"
     assert_directory "#{application_path}/tmp/storage"
 

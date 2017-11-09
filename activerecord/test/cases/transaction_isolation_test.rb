@@ -15,9 +15,7 @@ unless ActiveRecord::Base.connection.supports_transaction_isolation?
       end
     end
   end
-end
-
-if ActiveRecord::Base.connection.supports_transaction_isolation?
+else
   class TransactionIsolationTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
