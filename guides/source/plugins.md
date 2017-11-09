@@ -250,7 +250,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ bin/rails db:migrate
+$ bin/rake db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act
