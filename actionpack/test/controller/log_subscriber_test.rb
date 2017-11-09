@@ -98,7 +98,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @old_logger = ActionController::Base.logger
 
-    @cache_path = Tempfile.create(%w"tmp cache", Dir.tmpdir)
+    @cache_path = Dir.mktmpdir(%w"tmp cache")
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end
