@@ -13,10 +13,10 @@ Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In \Rails, database-backed model classes are derived from
 ActiveRecord::Base. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in its {README}[link:files/activerecord/README_rdoc.html].
+methods. You can read more about Active Record in its {README}[link:../activerecord/README.rdoc].
 Although most \Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the Active Model module. You can read more about Active Model in its {README}[link:files/activemodel/README_rdoc.html].
+the Active Model module. You can read more about Active Model in its {README}[link:../activemodel/README.rdoc].
 
 The <em>Controller layer</em> is responsible for handling incoming HTTP requests and
 providing a suitable response. Usually this means returning \HTML, but \Rails controllers
@@ -25,24 +25,24 @@ manipulate models, and render view templates in order to generate the appropriat
 In \Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from ActionController::Base. Action Dispatch and Action Controller
 are bundled together in Action Pack. You can read more about Action Pack in its
-{README}[link:files/actionpack/README_rdoc.html].
+{README}[link:../actionpack/README.rdoc].
 
 The <em>View layer</em> is composed of "templates" that are responsible for providing
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are \HTML with embedded
 Ruby code (ERB files). Views are typically rendered to generate a controller response,
 or to generate the body of an email. In \Rails, View generation is handled by Action View.
-You can read more about Action View in its {README}[link:files/actionview/README_rdoc.html].
+You can read more about Action View in its {README}[link:../actionview/README.rdoc].
 
 Active Record, Active Model, Action Pack, and Action View can each be used independently outside \Rails.
-In addition to that, \Rails also comes with Action Mailer ({README}[link:files/actionmailer/README_rdoc.html]), a library
-to generate and send emails; Active Job ({README}[link:files/activejob/README_md.html]), a
+In addition to that, \Rails also comes with Action Mailer ({README}[link:../actionmailer/README.rdoc]), a library
+to generate and send emails; Active Job ({README}[link:../activejob/README.md]), a
 framework for declaring jobs and making them run on a variety of queueing
-backends; Action Cable ({README}[link:files/actioncable/README_md.html]), a framework to
+backends; Action Cable ({README}[link:../actioncable/README.md]), a framework to
 integrate WebSockets with a \Rails application;
-Active Storage ({README}[link:files/activestorage/README_md.html]), a library to attach cloud
+Active Storage ({README}[link:../activestorage/README.md]), a library to attach cloud
 and local files to \Rails applications;
-and Active Support ({README}[link:files/activesupport/README_rdoc.html]), a collection
+and Active Support ({README}[link:../activesupport/README.rdoc]), a collection
 of utility classes and standard library extensions that are useful for \Rails,
 and may also be used independently outside \Rails.
 
