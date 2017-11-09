@@ -34,6 +34,7 @@ module ActiveRecord
           $stderr.puts error.inspect
           $stderr.puts "Couldn't create database for #{configuration.inspect}, #{creation_options.inspect}"
           $stderr.puts "(If you set the charset manually, make sure you have a matching collation)" if configuration["encoding"]
+          raise
         end
       end
 
