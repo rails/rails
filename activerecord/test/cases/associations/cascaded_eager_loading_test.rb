@@ -38,7 +38,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
       Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
     end
     authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
-    assert_equal 1, assert_no_queries { authors.size }
+    assert_equal 3, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
 
