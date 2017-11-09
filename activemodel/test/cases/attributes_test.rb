@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_model/attributes"
 
 module ActiveModel
   class AttributesTest < ActiveModel::TestCase
@@ -13,7 +12,7 @@ module ActiveModel
       attribute :string_field, :string
       attribute :decimal_field, :decimal
       attribute :string_with_default, :string, default: "default string"
-      attribute :date_field, :string, default: -> { Date.new(2016, 1, 1) }
+      attribute :date_field, :date, default: -> { Date.new(2016, 1, 1) }
       attribute :boolean_field, :boolean
     end
 
@@ -46,31 +45,6 @@ module ActiveModel
       assert_equal 10, data.integer_field
       assert_nil data.string_with_default
       assert_equal true, data.boolean_field
-    end
-
-    test "dirty" do
-      data = ModelForAttributesTest.new(
-        integer_field: "2.3",
-        string_field: "Rails FTW",
-        decimal_field: "12.3",
-        boolean_field: "0"
-      )
-
-      assert_equal false, data.changed?
-
-      data.integer_field = "2.1"
-
-      assert_equal false, data.changed?
-
-      data.string_with_default = "default string"
-
-      assert_equal false, data.changed?
-
-      data.integer_field = "5.1"
-
-      assert_equal true, data.changed?
-      assert_equal true, data.integer_field_changed?
-      assert_equal({ "integer_field" => [2, 5] }, data.changes)
     end
 
     test "nonexistent attribute" do

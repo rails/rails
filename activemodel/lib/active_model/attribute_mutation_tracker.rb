@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActiveRecord
+module ActiveModel
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new
 
@@ -106,6 +106,9 @@ module ActiveRecord
     end
 
     def original_value(*)
+    end
+
+    def force_change(*)
     end
   end
 end
