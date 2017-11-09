@@ -408,6 +408,8 @@ module ActiveRecord
           destroyed: @destroyed,
           frozen?: frozen?,
         )
+        @_start_transaction_state[:new_record] = @new_record
+        @_start_transaction_state[:destroyed] = @destroyed
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
       end
 
