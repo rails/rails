@@ -611,14 +611,12 @@ unless in_memory_db?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-      def test_no_locks_no_wait
-        first, second = duel { Person.find 1 }
-        assert first.end > second.end
-      end
+    def test_no_locks_no_wait
+      first, second = duel { Person.find 1 }
+      assert first.end > second.end
+    end
 
-      private
-
+    private
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
@@ -646,6 +644,5 @@ unless in_memory_db?
         assert t3 > t2
         [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
       end
-    end
   end
 end

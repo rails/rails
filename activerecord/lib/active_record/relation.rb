@@ -359,6 +359,11 @@ module ActiveRecord
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 
+      if eager_loading?
+        relation = apply_join_dependency
+        return relation.update_all(updates)
+      end
+
       stmt = Arel::UpdateManager.new
 
       stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
@@ -421,6 +426,11 @@ module ActiveRecord
       end
       if invalid_methods.any?
         raise ActiveRecordError.new("delete_all doesn't support #{invalid_methods.join(', ')}")
+      end
+
+      if eager_loading?
+        relation = apply_join_dependency
+        return relation.delete_all
       end
 
       stmt = Arel::DeleteManager.new

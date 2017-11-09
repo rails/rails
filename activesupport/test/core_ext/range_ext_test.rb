@@ -121,9 +121,12 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_include_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
-    assert_raises TypeError do
-      ((twz - 1.hour)..twz).include?(twz)
-    end
+    assert ((twz - 1.hour)..twz).include?(twz)
+  end
+
+  def test_case_equals_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz) === twz
   end
 
   def test_date_time_with_each

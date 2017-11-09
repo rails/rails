@@ -4,7 +4,6 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        attr_reader :owners, :reflection, :preload_scope, :model, :klass
         attr_reader :preloaded_records
 
         def initialize(klass, owners, reflection, preload_scope)
@@ -17,10 +16,19 @@ module ActiveRecord
         end
 
         def run(preloader)
-          associated_records_by_owner(preloader).each do |owner, records|
-            associate_records_to_owner(owner, records)
+          records = load_records do |record|
+            owner = owners_by_key[convert_key(record[association_key_name])]
+            association = owner.association(reflection.name)
+            association.set_inverse_instance(record)
+          end
+
+          owners.each do |owner|
+            associate_records_to_owner(owner, records[convert_key(owner[owner_key_name])] || [])
           end
         end
+
+        protected
+          attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
         private
           # The name of the key on the associated records
@@ -31,18 +39,6 @@ module ActiveRecord
           # The name of the key on the model which declares the association
           def owner_key_name
             reflection.join_foreign_key
-          end
-
-          def associated_records_by_owner(preloader)
-            records = load_records do |record|
-              owner = owners_by_key[convert_key(record[association_key_name])]
-              association = owner.association(reflection.name)
-              association.set_inverse_instance(record)
-            end
-
-            owners.each_with_object({}) do |owner, result|
-              result[owner] = records[convert_key(owner[owner_key_name])] || []
-            end
           end
 
           def associate_records_to_owner(owner, records)

@@ -394,7 +394,7 @@ module ActiveRecord
         )
       end
 
-      def apply_join_dependency(join_dependency)
+      def apply_join_dependency(join_dependency = construct_join_dependency)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if using_limitable_reflections?(join_dependency.reflections)

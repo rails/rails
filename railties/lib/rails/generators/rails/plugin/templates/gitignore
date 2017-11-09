@@ -11,5 +11,8 @@ pkg/
 <%= dummy_path %>/node_modules/
 <%= dummy_path %>/yarn-error.log
 <% end -%>
+<% unless skip_active_storage? -%>
+<%= dummy_path %>/storage/
+<% end -%>
 <%= dummy_path %>/tmp/
 <% end -%>

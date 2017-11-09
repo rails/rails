@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/module/introspection"
 require "rails/generators/base"
 require "rails/generators/generated_attribute"
 
@@ -158,26 +157,26 @@ module Rails
 
         def model_resource_name(prefix: "") # :doc:
           resource_name = "#{prefix}#{singular_table_name}"
-          if controller_class_path.empty?
-            resource_name
-          else
+          if options[:model_name]
             "[#{controller_class_path.map { |name| ":" + name }.join(", ")}, #{resource_name}]"
+          else
+            resource_name
           end
         end
 
         def singular_route_name # :doc:
-          if controller_class_path.empty?
-            singular_table_name
-          else
+          if options[:model_name]
             "#{controller_class_path.join('_')}_#{singular_table_name}"
+          else
+            singular_table_name
           end
         end
 
         def plural_route_name # :doc:
-          if controller_class_path.empty?
-            plural_table_name
-          else
+          if options[:model_name]
             "#{controller_class_path.join('_')}_#{plural_table_name}"
+          else
+            plural_table_name
           end
         end
 
@@ -222,7 +221,7 @@ module Rails
         #
         def self.check_class_collision(options = {}) # :doc:
           define_method :check_class_collision do
-            name = if respond_to?(:controller_class_name) # for ScaffoldBase
+            name = if respond_to?(:controller_class_name) # for ResourceHelpers
               controller_class_name
             else
               class_name

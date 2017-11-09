@@ -80,8 +80,7 @@ group :cable do
   gem "hiredis", require: false
   gem "redis", "~> 4.0", require: false
 
-  # For Redis 4.0 support. Unreleased 9cb81bf.
-  gem "redis-namespace", github: "resque/redis-namespace"
+  gem "redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 

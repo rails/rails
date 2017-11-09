@@ -164,18 +164,27 @@ module ActiveRecord
       end
 
       def migrate
-        raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
+        check_target_version
 
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
-        version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def check_target_version
+        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+          raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
+        end
+      end
+
+      def target_version
+        ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
       end
 
       def charset_current(environment = env)

@@ -97,16 +97,27 @@ db_namespace = namespace :db do
     task up: [:environment, :load_config] do
       raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
 
-      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      ActiveRecord::Migrator.run(:up, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
+      ActiveRecord::Tasks::DatabaseTasks.check_target_version
+
+      ActiveRecord::Migrator.run(
+        :up,
+        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
+        ActiveRecord::Tasks::DatabaseTasks.target_version
+      )
       db_namespace["_dump"].invoke
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: [:environment, :load_config] do
       raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
-      version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-      ActiveRecord::Migrator.run(:down, ActiveRecord::Tasks::DatabaseTasks.migrations_paths, version)
+
+      ActiveRecord::Tasks::DatabaseTasks.check_target_version
+
+      ActiveRecord::Migrator.run(
+        :down,
+        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
+        ActiveRecord::Tasks::DatabaseTasks.target_version
+      )
       db_namespace["_dump"].invoke
     end
 

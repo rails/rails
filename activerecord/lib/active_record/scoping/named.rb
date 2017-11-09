@@ -24,8 +24,14 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
+          current_scope = self.current_scope
+
           if current_scope
-            current_scope.clone
+            if self == current_scope.klass
+              current_scope.clone
+            else
+              relation.merge!(current_scope)
+            end
           else
             default_scoped
           end

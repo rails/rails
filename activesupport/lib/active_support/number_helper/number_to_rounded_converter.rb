@@ -37,14 +37,6 @@ module ActiveSupport
 
       private
 
-        def calculate_rounded_number(multiplier)
-          (number / BigDecimal.new(multiplier.to_f.to_s)).round * multiplier
-        end
-
-        def digit_count(number)
-          number.zero? ? 1 : (Math.log10(absolute_number(number)) + 1).floor
-        end
-
         def strip_insignificant_zeros
           options[:strip_insignificant_zeros]
         end

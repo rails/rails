@@ -166,8 +166,6 @@ module ActiveRecord
         end
 
         class AlreadyLoaded # :nodoc:
-          attr_reader :owners, :reflection
-
           def initialize(klass, owners, reflection, preload_scope)
             @owners = owners
             @reflection = reflection
@@ -178,6 +176,9 @@ module ActiveRecord
           def preloaded_records
             owners.flat_map { |owner| owner.association(reflection.name).target }
           end
+
+          protected
+            attr_reader :owners, :reflection
         end
 
         # Returns a class containing the logic needed to load preload the data

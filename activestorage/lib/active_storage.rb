@@ -38,6 +38,7 @@ module ActiveStorage
 
   mattr_accessor :logger
   mattr_accessor :verifier
+  mattr_accessor :queue
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
 end

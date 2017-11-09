@@ -221,6 +221,7 @@ module Rails
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
+      #   rake("gems:install", capture: true)
       def rake(command, options = {})
         execute_command :rake, command, options
       end
@@ -230,6 +231,7 @@ module Rails
       #   rails_command("db:migrate")
       #   rails_command("db:migrate", env: "production")
       #   rails_command("gems:install", sudo: true)
+      #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
         execute_command :rails, command, options
       end
@@ -292,7 +294,11 @@ module Rails
           log executor, command
           env  = options[:env] || ENV["RAILS_ENV"] || "development"
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
-          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
+          config = { verbose: false }
+
+          config.merge!(capture: options[:capture]) if options[:capture]
+
+          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end
 
         # Add an extension to the given name based on the platform.
