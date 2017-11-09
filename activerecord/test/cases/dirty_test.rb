@@ -853,6 +853,17 @@ class DirtyTest < ActiveRecord::TestCase
     refute person.changed?
   end
 
+  test "Hash is not turned into HWIA" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "people"
+
+      serialize :first_name, Array
+    end
+
+    person = klass.create!(first_name: [{ first_letter: 'S', second_letter: 'e' }])
+    assert_equal Hash, person.first_name.first.class
+  end
+
   private
     def with_partial_writes(klass, on = true)
       old = klass.partial_writes?
