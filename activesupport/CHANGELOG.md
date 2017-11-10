@@ -6,9 +6,9 @@
     ruby/ruby@b061634 support was added for `include?` to use `cover?`
     for 'linear' objects. Since we have no way of making Ruby consider
     TWZ instances as 'linear' we have to override `Range#include?`.
-    
+
     Fixes #30799.
-    
+
     *Andrew White*
 
 *   Fix acronym support in `humanize`
