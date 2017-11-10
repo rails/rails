@@ -274,6 +274,15 @@ module ActiveRecord
       assert_equal({ 2 => 1, 4 => 3, 5 => 1 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
     end
 
+    def test_relation_merging_keeps_joining_order
+      authors  = Author.where(id: 1)
+      posts    = Post.joins(:author).merge(authors)
+      comments = Comment.joins(:post).merge(posts)
+      ratings  = Rating.joins(:comment).merge(comments)
+
+      assert_equal 3, ratings.count
+    end
+
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
       def type
         :string

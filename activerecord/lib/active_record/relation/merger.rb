@@ -112,22 +112,20 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            joins_dependency, rest = other.joins_values.partition do |join|
+            alias_tracker = nil
+            joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                true
+                alias_tracker ||= other.alias_tracker
+                ActiveRecord::Associations::JoinDependency.new(
+                  other.klass, other.table, join, alias_tracker
+                )
               else
-                false
+                join
               end
             end
 
-            join_dependency = ActiveRecord::Associations::JoinDependency.new(
-              other.klass, other.table, joins_dependency, other.alias_tracker
-            )
-
-            relation.joins! rest
-
-            @relation = relation.joins join_dependency
+            relation.joins!(*joins_dependency)
           end
         end
 
