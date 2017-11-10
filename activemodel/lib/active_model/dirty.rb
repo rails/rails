@@ -257,7 +257,7 @@ module ActiveModel
         unless defined?(@mutations_from_database)
           @mutations_from_database = nil
         end
-        @mutations_from_database ||= if @attributes
+        @mutations_from_database ||= if defined?(@attributes)
           ActiveModel::AttributeMutationTracker.new(@attributes)
         else
           NullMutationTracker.instance
@@ -265,7 +265,7 @@ module ActiveModel
       end
 
       def forget_attribute_assignments
-        @attributes = @attributes.map(&:forgetting_assignment) if @attributes
+        @attributes = @attributes.map(&:forgetting_assignment) if defined?(@attributes)
       end
 
       def mutations_before_last_save
