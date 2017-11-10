@@ -963,6 +963,9 @@ module ActiveRecord
         name = from_clause.name
         case opts
         when Relation
+          if opts.eager_loading?
+            opts = opts.send(:apply_join_dependency)
+          end
           name ||= "subquery"
           opts.arel.as(name.to_s)
         else

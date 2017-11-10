@@ -195,6 +195,18 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal(relation.map(&:post_count).sort, subquery.values.sort)
   end
 
+  def test_finding_with_subquery_with_eager_loading_in_from
+    relation = Comment.includes(:post).where("posts.type": "Post")
+    assert_equal relation.to_a, Comment.select("*").from(relation).to_a
+    assert_equal relation.to_a, Comment.select("subquery.*").from(relation).to_a
+    assert_equal relation.to_a, Comment.select("a.*").from(relation, :a).to_a
+  end
+
+  def test_finding_with_subquery_with_eager_loading_in_where
+    relation = Comment.includes(:post).where("posts.type": "Post")
+    assert_equal relation.to_a, Comment.where(id: relation).to_a
+  end
+
   def test_finding_with_conditions
     assert_equal ["David"], Author.where(name: "David").map(&:name)
     assert_equal ["Mary"],  Author.where(["name = ?", "Mary"]).map(&:name)
