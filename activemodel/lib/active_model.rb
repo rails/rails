@@ -47,6 +47,7 @@ module ActiveModel
   autoload :SecurePassword
   autoload :Serialization
   autoload :Translation
+  autoload :Type
   autoload :Validations
   autoload :Validator
 

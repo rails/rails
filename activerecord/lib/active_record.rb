@@ -104,6 +104,7 @@ module ActiveRecord
 
     autoload :Result
     autoload :TableMetadata
+    autoload :Type
   end
 
   module Coders

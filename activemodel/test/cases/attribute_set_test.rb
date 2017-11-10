@@ -2,7 +2,6 @@
 
 require "cases/helper"
 require "active_model/attribute_set"
-require "active_model/type"
 
 module ActiveModel
   class AttributeSetTest < ActiveModel::TestCase
