@@ -77,7 +77,7 @@ module ActiveModel
           attr_name.to_s
         end
 
-        @attributes.write_from_user(attr_name.to_s, value)
+        @attributes.write_from_user(name, value)
         value
       end
 
