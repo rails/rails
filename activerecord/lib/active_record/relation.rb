@@ -243,9 +243,10 @@ module ActiveRecord
     end
 
     # Converts relation objects to Array.
-    def to_a
+    def to_ary
       records.dup
     end
+    alias to_a to_ary
 
     def records # :nodoc:
       load
