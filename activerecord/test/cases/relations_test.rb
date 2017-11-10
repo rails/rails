@@ -204,7 +204,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_subquery_with_eager_loading_in_where
     relation = Comment.includes(:post).where("posts.type": "Post")
-    assert_equal relation.to_a, Comment.where(id: relation).to_a
+    assert_equal relation.sort_by(&:id), Comment.where(id: relation).sort_by(&:id)
   end
 
   def test_finding_with_conditions
