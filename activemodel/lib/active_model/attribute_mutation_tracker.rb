@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/hash/indifferent_access"
+
 module ActiveModel
   class AttributeMutationTracker # :nodoc:
     OPTION_NOT_GIVEN = Object.new
