@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/duplicable"
+
 module ActiveModel
   class Attribute # :nodoc:
     class << self
