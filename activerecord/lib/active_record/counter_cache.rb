@@ -206,8 +206,8 @@ module ActiveRecord
       end
 
       def each_counter_cached_associations
-        _reflections.each do |name, reflection|
-          yield association(name.to_sym) if reflection.belongs_to? && reflection.counter_cache_column
+        _reflections.each do |_, reflection|
+          yield association(reflection) if reflection.belongs_to? && reflection.counter_cache_column
         end
       end
   end

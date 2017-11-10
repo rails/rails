@@ -234,10 +234,10 @@ module ActiveRecord
 
           parent.children.each do |node|
             if node.reflection.collection?
-              other = ar_parent.association(node.reflection.name)
+              other = ar_parent.association(node.reflection)
               other.loaded!
             elsif ar_parent.association_cached?(node.reflection.name)
-              model = ar_parent.association(node.reflection.name).target
+              model = ar_parent.association(node.reflection).target
               construct(model, node, row, rs, seen, model_cache, aliases)
               next
             end
@@ -245,7 +245,7 @@ module ActiveRecord
             key = aliases.column_alias(node, node.primary_key)
             id = row[key]
             if id.nil?
-              nil_association = ar_parent.association(node.reflection.name)
+              nil_association = ar_parent.association(node.reflection)
               nil_association.loaded!
               next
             end
@@ -269,7 +269,7 @@ module ActiveRecord
         end
 
         def construct_model(record, node, row, model_cache, id, aliases)
-          other = record.association(node.reflection.name)
+          other = record.association(node.reflection)
 
           model = model_cache[node][id] ||=
             node.instantiate(row, aliases.column_aliases(node)) do |m|

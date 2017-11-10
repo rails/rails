@@ -71,18 +71,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
       klass.attr_readonly cache_column if klass && klass.respond_to?(:attr_readonly)
     end
 
-    def self.touch_record(o, changes, foreign_key, name, touch, touch_method) # :nodoc:
+    def self.touch_record(o, changes, reflection, touch_method) # :nodoc:
+      foreign_key = reflection.foreign_key
+      touch = reflection.options[:touch]
       old_foreign_id = changes[foreign_key] && changes[foreign_key].first
 
       if old_foreign_id
-        association = o.association(name)
-        reflection = association.reflection
         if reflection.polymorphic?
           foreign_type = reflection.foreign_type
           klass = changes[foreign_type] && changes[foreign_type].first || o.public_send(foreign_type)
           klass = klass.constantize
         else
-          klass = association.klass
+          klass = reflection.klass
         end
         old_record = klass.find_by(klass.primary_key => old_foreign_id)
 
@@ -95,7 +95,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         end
       end
 
-      record = o.send name
+      record = o.send reflection.name
       if record && record.persisted?
         if touch != true
           record.send(touch_method, touch)
@@ -106,12 +106,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.add_touch_callbacks(model, reflection)
-      foreign_key = reflection.foreign_key
-      n           = reflection.name
-      touch       = reflection.options[:touch]
-
       callback = lambda { |changes_method| lambda { |record|
-        BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
+        BelongsTo.touch_record(record, record.send(changes_method), reflection, belongs_to_touch_method)
       }}
 
       model.after_save    callback.(:saved_changes), if: :saved_changes?
@@ -121,12 +117,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.add_default_callbacks(model, reflection)
       model.before_validation lambda { |o|
-        o.association(reflection.name).default(&reflection.options[:default])
+        o.association(reflection).default(&reflection.options[:default])
       }
     end
 
     def self.add_destroy_callbacks(model, reflection)
-      model.after_destroy lambda { |o| o.association(reflection.name).handle_dependency }
+      model.after_destroy lambda { |o| o.association(reflection).handle_dependency }
     end
 
     def self.define_validations(model, reflection)

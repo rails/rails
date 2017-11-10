@@ -226,8 +226,9 @@ module ActiveRecord
       Preloader.eager_load!
     end
 
-    # Returns the association instance for the given name, instantiating it if it doesn't already exist
+    # Returns the association instance for the given name or reflection, instantiating it if it doesn't already exist
     def association(name) #:nodoc:
+      name = name.name if name.is_a?(ActiveRecord::Reflection::AbstractReflection)
       association = association_instance_get(name)
 
       if association.nil?

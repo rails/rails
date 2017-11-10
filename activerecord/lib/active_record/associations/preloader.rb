@@ -166,7 +166,7 @@ module ActiveRecord
           def run(preloader); end
 
           def preloaded_records
-            owners.flat_map { |owner| owner.association(reflection.name).target }
+            owners.flat_map { |owner| owner.association(reflection).target }
           end
 
           protected
@@ -177,7 +177,7 @@ module ActiveRecord
         # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
         def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
+          if owners.first.association(reflection).loaded?
             return AlreadyLoaded
           end
           reflection.check_preloadable!
