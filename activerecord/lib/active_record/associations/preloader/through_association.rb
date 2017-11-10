@@ -5,7 +5,7 @@ module ActiveRecord
     class Preloader
       class ThroughAssociation < Association # :nodoc:
         def run(preloader)
-          already_loaded     = owners.first.association(through_reflection.name).loaded?
+          already_loaded     = owners.first.association(through_reflection).loaded?
           through_scope      = through_scope()
           reflection_scope   = target_reflection_scope
           through_preloaders = preloader.preload(owners, through_reflection.name, through_scope)
@@ -14,7 +14,7 @@ module ActiveRecord
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
           owners.each do |owner|
-            through_records = Array(owner.association(through_reflection.name).target)
+            through_records = Array(owner.association(through_reflection).target)
             if already_loaded
               if source_type = reflection.options[:source_type]
                 through_records = through_records.select do |record|
@@ -22,10 +22,10 @@ module ActiveRecord
                 end
               end
             else
-              owner.association(through_reflection.name).reset if through_scope
+              owner.association(through_reflection).reset if through_scope
             end
             result = through_records.flat_map do |record|
-              association = record.association(source_reflection.name)
+              association = record.association(source_reflection)
               target = association.target
               association.reset if preload_scope
               target

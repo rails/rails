@@ -16,7 +16,7 @@ module ActiveRecord
         def create_through_record(record)
           ensure_not_nested
 
-          through_proxy  = owner.association(through_reflection.name)
+          through_proxy  = owner.association(through_reflection)
           through_record = through_proxy.load_target
 
           if through_record && !record

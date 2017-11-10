@@ -474,7 +474,7 @@ module ActiveRecord
 
         def include_in_memory?(record)
           if reflection.is_a?(ActiveRecord::Reflection::ThroughReflection)
-            assoc = owner.association(reflection.through_reflection.name)
+            assoc = owner.association(reflection.through_reflection)
             assoc.reader.any? { |source|
               target_reflection = source.send(reflection.source_reflection.name)
               target_reflection.respond_to?(:include?) ? target_reflection.include?(record) : target_reflection == record

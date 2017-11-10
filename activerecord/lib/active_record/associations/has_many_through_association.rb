@@ -52,7 +52,7 @@ module ActiveRecord
       private
 
         def through_association
-          @through_association ||= owner.association(through_reflection.name)
+          @through_association ||= owner.association(through_reflection)
         end
 
         # The through record (built with build_record) is temporarily cached

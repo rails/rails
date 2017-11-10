@@ -99,7 +99,7 @@ module ActiveRecord
       # Set the inverse association, if possible
       def set_inverse_instance(record)
         if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
+          inverse = record.association(inverse_reflection_for(record))
           inverse.target = owner
           inverse.inversed = true
         end
@@ -109,7 +109,7 @@ module ActiveRecord
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
         if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
+          inverse = record.association(inverse_reflection_for(record))
           inverse.target = nil
           inverse.inversed = false
         end
