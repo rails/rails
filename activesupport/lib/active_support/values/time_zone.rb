@@ -506,7 +506,7 @@ module ActiveSupport
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
     def period_for_local(time, dst = true)
-      tzinfo.period_for_local(time, dst)
+      tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) #:nodoc:

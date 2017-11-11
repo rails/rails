@@ -32,6 +32,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_period_for_local_with_ambigiuous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    period = zone.period_for_local(Time.utc(2015, 1, 1))
+    assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
+  end
+
   def test_from_integer_to_map
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-28800] # PST
   end
@@ -195,6 +201,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal "EDT", twz.zone
   end
 
+  def test_local_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.local(2014, 10, 26, 1, 0, 0)
+  end
+
   def test_at
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     secs = 946684800.0
@@ -301,6 +312,11 @@ class TimeZoneTest < ActiveSupport::TestCase
       twz = zone.iso8601("2013-03-10T02:00:00")
       assert_equal Time.utc(2013, 3, 10, 3, 0, 0), twz.time
     end
+  end
+
+  def test_iso8601_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26T01:00:00")
   end
 
   def test_parse
@@ -410,6 +426,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
 
     assert_equal "argument out of range", exception.message
+  end
+
+  def test_parse_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26 01:00:00")
   end
 
   def test_rfc3339
@@ -602,6 +623,11 @@ class TimeZoneTest < ActiveSupport::TestCase
       time = zone.strptime(time_str, "%Q")
       assert_equal Time.at(1470272280), time
     end
+  end
+
+  def test_strptime_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")
   end
 
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
