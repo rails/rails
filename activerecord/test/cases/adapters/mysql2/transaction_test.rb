@@ -60,7 +60,7 @@ module ActiveRecord
       end
     end
 
-    test "raises TransactionTimeout when mysql raises ER_LOCK_WAIT_TIMEOUT" do
+    test "raises TransactionTimeout when lock wait timeout exceeded" do
       assert_raises(ActiveRecord::TransactionTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new

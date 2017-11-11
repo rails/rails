@@ -144,8 +144,8 @@
 
     *Jeremy Green*
 
-*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
-    when lock wait time expires.
+*   Add new error class `TransactionTimeout` which will be raised
+    when lock wait timeout exceeded.
 
     *Gabriel Courtemanche*
 
