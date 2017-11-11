@@ -392,6 +392,7 @@ module ActiveRecord
         SERIALIZATION_FAILURE = "40001"
         DEADLOCK_DETECTED     = "40P01"
         LOCK_NOT_AVAILABLE    = "55P03"
+        QUERY_CANCELED        = "57014"
 
         def translate_exception(exception, message)
           return exception unless exception.respond_to?(:result)
@@ -413,6 +414,8 @@ module ActiveRecord
             Deadlocked.new(message)
           when LOCK_NOT_AVAILABLE
             TransactionTimeout.new(message)
+          when QUERY_CANCELED
+            StatementTimeout.new(message)
           else
             super
           end
