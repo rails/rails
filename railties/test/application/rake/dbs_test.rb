@@ -26,12 +26,12 @@ module ApplicationTests
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
-      def db_create_and_drop(expected_database)
+      def db_create_and_drop(expected_database, environment_loaded: true)
         Dir.chdir(app_path) do
           output = rails("db:create")
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database]
+          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert !File.exist?(expected_database)
@@ -47,6 +47,22 @@ module ApplicationTests
         require "#{app_path}/config/environment"
         set_database_url
         db_create_and_drop database_url_db_name
+      end
+
+      test "db:create and db:drop respect environment setting" do
+        app_file "config/database.yml", <<-YAML
+          development:
+            database: <%= Rails.application.config.database %>
+            adapter: sqlite3
+        YAML
+
+        app_file "config/environments/development.rb", <<-RUBY
+          Rails.application.configure do
+            config.database = "db/development.sqlite3"
+          end
+        RUBY
+
+        db_create_and_drop "db/development.sqlite3", environment_loaded: false
       end
 
       def with_database_existing
