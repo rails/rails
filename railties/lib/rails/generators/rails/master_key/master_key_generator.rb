@@ -20,29 +20,31 @@ module Rails
           log "If you lose the key, no one, including you, can access anything encrypted with it."
 
           log ""
-          create_file MASTER_KEY_PATH, key
+          add_master_key_file_silently key
           log ""
+        end
+      end
 
-          ignore_master_key_file
+      def add_master_key_file_silently(key = nil)
+        create_file MASTER_KEY_PATH, key || ActiveSupport::EncryptedFile.generate_key
+      end
+
+      def ignore_master_key_file
+        if File.exist?(".gitignore")
+          unless File.read(".gitignore").include?(key_ignore)
+            log "Ignoring #{MASTER_KEY_PATH} so it won't end up in Git history:"
+            log ""
+            append_to_file ".gitignore", key_ignore
+            log ""
+          end
+        else
+          log "IMPORTANT: Don't commit #{MASTER_KEY_PATH}. Add this to your ignore file:"
+          log key_ignore, :on_green
+          log ""
         end
       end
 
       private
-        def ignore_master_key_file
-          if File.exist?(".gitignore")
-            unless File.read(".gitignore").include?(key_ignore)
-              log "Ignoring #{MASTER_KEY_PATH} so it won't end up in Git history:"
-              log ""
-              append_to_file ".gitignore", key_ignore
-              log ""
-            end
-          else
-            log "IMPORTANT: Don't commit #{MASTER_KEY_PATH}. Add this to your ignore file:"
-            log key_ignore, :on_green
-            log ""
-          end
-        end
-
         def key_ignore
           [ "", "# Ignore master key for decrypting credentials and more.", "/#{MASTER_KEY_PATH}", "" ].join("\n")
         end
