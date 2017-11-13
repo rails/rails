@@ -108,7 +108,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   def test_create_mysql_database_with_encoding
     assert_equal "CREATE DATABASE `matt` DEFAULT CHARACTER SET `utf8`", create_database(:matt)
     assert_equal "CREATE DATABASE `aimonetti` DEFAULT CHARACTER SET `latin1`", create_database(:aimonetti, charset: "latin1")
-    assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT CHARACTER SET `big5` COLLATE `big5_chinese_ci`", create_database(:matt_aimonetti, charset: :big5, collation: :big5_chinese_ci)
+    assert_equal "CREATE DATABASE `matt_aimonetti` DEFAULT COLLATE `utf8mb4_bin`", create_database(:matt_aimonetti, collation: "utf8mb4_bin")
   end
 
   def test_recreate_mysql_database_with_encoding
