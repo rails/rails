@@ -51,6 +51,14 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert_equal "things", @credentials[:new]
   end
 
+  test "raise error when writing an invalid format value" do
+    assert_raise(Psych::SyntaxError) do
+      @credentials.change do |config_file|
+        config_file.write "login: *login\n  username: dummy"
+      end
+    end
+  end
+
   test "raises key error when accessing config via bang method" do
     assert_raise(KeyError) { @credentials.something! }
   end

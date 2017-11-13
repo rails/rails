@@ -22,6 +22,12 @@ module ActiveSupport
       ""
     end
 
+    def write(contents)
+      deserialize(contents)
+
+      super
+    end
+
     def config
       @config ||= deserialize(read).deep_symbolize_keys
     end
@@ -36,7 +42,7 @@ module ActiveSupport
       end
 
       def deserialize(config)
-        config.present? ? YAML.load(config) : {}
+        config.present? ? YAML.load(config, content_path) : {}
       end
   end
 end
