@@ -9,8 +9,8 @@ module ActiveModel
         FromDatabase.new(name, value, type)
       end
 
-      def from_user(name, value, type, original_attribute = nil)
-        FromUser.new(name, value, type, original_attribute)
+      def from_user(name, value, type, original_attribute = nil, time_zone = nil)
+        FromUser.new(name, value, type, original_attribute, time_zone)
       end
 
       def with_cast_value(name, value, type)
@@ -26,15 +26,16 @@ module ActiveModel
       end
     end
 
-    attr_reader :name, :value_before_type_cast, :type
+    attr_reader :name, :value_before_type_cast, :type, :time_zone
 
     # This method should not be called directly.
     # Use #from_database or #from_user
-    def initialize(name, value_before_type_cast, type, original_attribute = nil)
+    def initialize(name, value_before_type_cast, type, original_attribute = nil, time_zone = nil)
       @name = name
       @value_before_type_cast = value_before_type_cast
       @type = type
       @original_attribute = original_attribute
+      @time_zone = time_zone
     end
 
     def value
@@ -69,7 +70,7 @@ module ActiveModel
 
     def with_value_from_user(value)
       type.assert_valid_value(value)
-      self.class.from_user(name, value, type, original_attribute || self)
+      self.class.from_user(name, value, type, original_attribute || self, Time.zone)
     end
 
     def with_value_from_database(value)
@@ -172,7 +173,7 @@ module ActiveModel
 
       class FromUser < Attribute # :nodoc:
         def type_cast(value)
-          type.cast(value)
+          Time.use_zone(time_zone) { type.cast(value) }
         end
 
         def came_from_user?

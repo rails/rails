@@ -741,6 +741,25 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "setting a time zone-aware time in one time zone and then reading in another" do
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time   = Time.utc(2017, 11, 11, 0, 0, 0)
+      zone   = ActiveSupport::TimeZone["Sydney"]
+
+      Time.use_zone(zone) { record.written_on = "2017-11-11 11:00:00" }
+
+      assert_equal time, record.written_on
+      assert_equal zone, record.written_on.time_zone
+
+      record.save
+      record.reload
+
+      assert_equal time, record.written_on
+      assert_equal Time.zone, record.written_on.time_zone
+    end
+  end
+
   test "removing time zone-aware types" do
     with_time_zone_aware_types(:datetime) do
       in_time_zone "Pacific Time (US & Canada)" do

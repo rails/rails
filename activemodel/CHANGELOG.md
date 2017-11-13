@@ -1,3 +1,15 @@
+*   Record timezone in use when writing an attribute
+
+    With the switch to casting on read rather than on write any
+    attributes that are set inside of a `Time.use_zone` block don't
+    reflect that timezone. Fix by recording the timezone in effect
+    when the attribute is set and then using that timezone when type
+    casting the attribute for reading.
+
+    Fixes #28877.
+
+    *Andrew White*
+
 *   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
 
     *bogdanvlviv*
