@@ -742,12 +742,12 @@ module ActiveRecord
     #    class AddPublishedToPosts < ActiveRecord::Migration[5.3]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
-    #        populate do
-    #          Post.update_all(published: true)
+    #        up_only do
+    #          execute "update posts set published = 'true'"
     #        end
     #      end
     #    end
-    def populate
+    def up_only
       execute_block { yield } unless reverting?
     end
 

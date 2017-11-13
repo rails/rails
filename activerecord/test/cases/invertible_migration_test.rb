@@ -161,10 +161,10 @@ module ActiveRecord
       end
     end
 
-    class PopulateMigration < SilentMigration
+    class UpOnlyMigration < SilentMigration
       def change
         add_column :horses, :oldie, :boolean, default: false
-        populate { Horse.update_all(oldie: true) }
+        up_only { execute "update horses set oldie = 'true'" }
       end
     end
 
@@ -386,11 +386,11 @@ module ActiveRecord
       end
     end
 
-    def test_populate
+    def test_up_only
       InvertibleMigration.new.migrate(:up)
       horse1 = Horse.create
       # populates existing horses with oldie=true but new ones have default false
-      PopulateMigration.new.migrate(:up)
+      UpOnlyMigration.new.migrate(:up)
       Horse.reset_column_information
       horse1.reload
       horse2 = Horse.create
@@ -398,7 +398,7 @@ module ActiveRecord
       assert horse1.oldie? # created before migration
       assert !horse2.oldie? # created after migration
 
-      PopulateMigration.new.migrate(:down) # should be no error
+      UpOnlyMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection
       assert !connection.column_exists?(:horses, :oldie)
       Horse.reset_column_information
