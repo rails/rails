@@ -250,7 +250,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function
-    topics = Topic.order("length(title)").reverse_order
+    topics = Topic.order(Arel.sql("length(title)")).reverse_order
     assert_equal topics(:second).title, topics.first.title
   end
 
@@ -260,24 +260,24 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_reverse_order_with_function_other_predicates
-    topics = Topic.order("author_name, length(title), id").reverse_order
+    topics = Topic.order(Arel.sql("author_name, length(title), id")).reverse_order
     assert_equal topics(:second).title, topics.first.title
-    topics = Topic.order("length(author_name), id, length(title)").reverse_order
+    topics = Topic.order(Arel.sql("length(author_name), id, length(title)")).reverse_order
     assert_equal topics(:fifth).title, topics.first.title
   end
 
   def test_reverse_order_with_multiargument_function
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(author_name, title)").reverse_order
+      Topic.order(Arel.sql("concat(author_name, title)")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(lower(author_name), title)").reverse_order
+      Topic.order(Arel.sql("concat(lower(author_name), title)")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(author_name, lower(title))").reverse_order
+      Topic.order(Arel.sql("concat(author_name, lower(title))")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("concat(lower(author_name), title, length(title)").reverse_order
+      Topic.order(Arel.sql("concat(lower(author_name), title, length(title)")).reverse_order
     end
   end
 
@@ -289,10 +289,10 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_reverse_order_with_nulls_first_or_last
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("title NULLS FIRST").reverse_order
+      Topic.order(Arel.sql("title NULLS FIRST")).reverse_order
     end
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("title nulls last").reverse_order
+      Topic.order(Arel.sql("title nulls last")).reverse_order
     end
   end
 
@@ -385,29 +385,29 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_finding_with_cross_table_order_and_limit
     tags = Tag.includes(:taggings).
-              order("tags.name asc", "taggings.taggable_id asc", "REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").
+              order("tags.name asc", "taggings.taggable_id asc", Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")).
               limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order_and_limit
-    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").limit(1).to_a
+    tags = Tag.includes(:taggings).references(:taggings).order(Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")).limit(1).to_a
     assert_equal 1, tags.length
   end
 
   def test_finding_with_complex_order
-    tags = Tag.includes(:taggings).references(:taggings).order("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)").to_a
+    tags = Tag.includes(:taggings).references(:taggings).order(Arel.sql("REPLACE('abc', taggings.taggable_type, taggings.taggable_type)")).to_a
     assert_equal 3, tags.length
   end
 
   def test_finding_with_sanitized_order
-    query = Tag.order(["field(id, ?)", [1, 3, 2]]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), [1, 3, 2]]).to_sql
     assert_match(/field\(id, 1,3,2\)/, query)
 
-    query = Tag.order(["field(id, ?)", []]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), []]).to_sql
     assert_match(/field\(id, NULL\)/, query)
 
-    query = Tag.order(["field(id, ?)", nil]).to_sql
+    query = Tag.order([Arel.sql("field(id, ?)"), nil]).to_sql
     assert_match(/field\(id, NULL\)/, query)
   end
 
@@ -1579,7 +1579,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body")
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    scope = Post.order(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
@@ -1596,7 +1596,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.order("comments.body asc")
     assert_equal ["comments"], scope.references_values
 
-    scope = Post.order("foo(comments.body)")
+    scope = Post.order(Arel.sql("foo(comments.body)"))
     assert_equal [], scope.references_values
   end
 
@@ -1604,7 +1604,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.reorder("comments.body")
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}")
+    scope = Post.reorder(Arel.sql("#{Comment.quoted_table_name}.#{Comment.quoted_primary_key}"))
     if current_adapter?(:OracleAdapter)
       assert_equal ["COMMENTS"], scope.references_values
     else
@@ -1621,7 +1621,7 @@ class RelationTest < ActiveRecord::TestCase
     scope = Post.reorder("comments.body asc")
     assert_equal %w(comments), scope.references_values
 
-    scope = Post.reorder("foo(comments.body)")
+    scope = Post.reorder(Arel.sql("foo(comments.body)"))
     assert_equal [], scope.references_values
   end
 

@@ -167,6 +167,46 @@ module ActiveRecord
         end
       end
 
+      # Regexp whitelist. Matches the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME_WHITELIST = /\A(?:\w+\.)?\w+\z/i
+
+      # Regexp whitelist. Matches the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{column_name}"
+      #   "#{column_name} #{direction}"
+      COLUMN_NAME_ORDER_WHITELIST = /\A(?:\w+\.)?\w+(?:\s+asc|\s+desc)?\z/i
+
+      def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
+        unexpected = args.reject do |arg|
+          arg.kind_of?(Arel::Node) ||
+            arg.is_a?(Arel::Nodes::SqlLiteral) ||
+            arg.is_a?(Arel::Attributes::Attribute) ||
+            arg.to_s.split(/\s*,\s*/).all? { |part| whitelist.match?(part) }
+        end
+
+        return if unexpected.none?
+
+        if allow_unsafe_raw_sql == :deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
+            "arguments will be disallowed in Rails 6.0. This method should " \
+            "not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
+          )
+        else
+          raise(ActiveRecord::UnknownAttributeReference,
+            "Query method called with non-attribute argument(s): " +
+            unexpected.map(&:inspect).join(", ")
+          )
+        end
+      end
+
       # Returns true if the given attribute exists, otherwise false.
       #
       #   class Person < ActiveRecord::Base
