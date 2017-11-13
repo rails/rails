@@ -66,4 +66,4 @@ test:
 production:
   url: jdbc:db://localhost/<%= app_name %>_production
   username: <%= app_name %>
-  password: <%%= ENV['<%= app_name.upcase %>_DATABASE_PASSWORD'] %>
+  password: <%%= ENV['<%= app_name.underscore.upcase %>_DATABASE_PASSWORD'] %>
