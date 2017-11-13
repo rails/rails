@@ -88,6 +88,16 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "preserve existing metadata when analyzing a newly-attached blob" do
+    blob = create_file_blob(metadata: { foo: "bar" })
+
+    perform_enqueued_jobs do
+      @user.avatar.attach blob
+    end
+
+    assert_equal "bar", blob.reload.metadata[:foo]
+  end
+
   test "purge attached blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     avatar_key = @user.avatar.key
@@ -190,6 +200,21 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     assert_no_enqueued_jobs do
       @user.highlights.attach(blobs)
+    end
+  end
+
+  test "preserve existing metadata when analyzing newly-attached blobs" do
+    blobs = [
+      create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: { foo: "bar" }),
+      create_file_blob(filename: "video.mp4", content_type: "video/mp4", metadata: { foo: "bar" })
+    ]
+
+    perform_enqueued_jobs do
+      @user.highlights.attach(blobs)
+    end
+
+    blobs.each do |blob|
+      assert_equal "bar", blob.reload.metadata[:foo]
     end
   end
 
