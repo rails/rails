@@ -288,13 +288,18 @@ module ActiveRecord
         :string
       end
 
+      def cast(value)
+        raise value unless value == "value from user"
+        "cast value"
+      end
+
       def deserialize(value)
         raise value unless value == "type cast for database"
         "type cast from database"
       end
 
       def serialize(value)
-        raise value unless value == "value from user"
+        raise value unless value == "cast value"
         "type cast for database"
       end
     end

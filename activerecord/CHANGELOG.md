@@ -1,3 +1,9 @@
+*   `update_all` will now pass its values to `Type#cast` before passing them to
+    `Type#serialize`. This means that `update_all(foo: 'true')` will properly
+    persist a boolean.
+
+    *Sean Griffin*
+
 *   Add new error class `StatementTimeout` which will be raised
     when statement timeout exceeded.
 

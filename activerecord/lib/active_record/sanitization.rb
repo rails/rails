@@ -110,7 +110,8 @@ module ActiveRecord
         def sanitize_sql_hash_for_assignment(attrs, table) # :doc:
           c = connection
           attrs.map do |attr, value|
-            value = type_for_attribute(attr.to_s).serialize(value)
+            type = type_for_attribute(attr.to_s)
+            value = type.serialize(type.cast(value))
             "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
           end.join(", ")
         end
