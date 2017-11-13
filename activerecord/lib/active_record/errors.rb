@@ -335,8 +335,11 @@ module ActiveRecord
   class IrreversibleOrderError < ActiveRecordError
   end
 
-  # TransactionTimeout will be raised when lock wait timeout expires.
-  # Wait time value is set by innodb_lock_wait_timeout.
+  # TransactionTimeout will be raised when lock wait timeout exceeded.
   class TransactionTimeout < StatementInvalid
+  end
+
+  # StatementTimeout will be raised when statement timeout exceeded.
+  class StatementTimeout < StatementInvalid
   end
 end

@@ -1,3 +1,8 @@
+*   Add new error class `StatementTimeout` which will be raised
+    when statement timeout exceeded.
+
+    *Ryuta Kamizono*
+
 *   Fix `bin/rails db:migrate` with specified `VERSION`.
     `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
     Check a format of `VERSION`: Allow a migration version number
