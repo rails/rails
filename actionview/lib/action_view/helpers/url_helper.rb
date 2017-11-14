@@ -589,7 +589,7 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get" && html_options["rel"] !~ /nofollow/
+          if method_not_get_method?(method) && html_options["rel"] !~ /nofollow/
             if html_options["rel"].blank?
               html_options["rel"] = "nofollow"
             else
@@ -597,6 +597,19 @@ module ActionView
             end
           end
           html_options["data-method"] = method
+        end
+
+        STRINGIFIED_COMMON_METHODS = {
+          get:    "get",
+          delete: "delete",
+          patch:  "patch",
+          post:   "post",
+          put:    "put",
+        }.freeze
+
+        def method_not_get_method?(method)
+          return false unless method
+          (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
         end
 
         def token_tag(token = nil, form_options: {})
