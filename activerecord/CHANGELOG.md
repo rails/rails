@@ -1,3 +1,8 @@
+*   Add `#only_up` to database migrations for code that is only relevant when
+    migrating up, e.g. populating a new column.
+
+    *Rich Daley*
+
 *   Fix `bin/rails db:migrate` with specified `VERSION`.
     `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
     Check a format of `VERSION`: Allow a migration version number
