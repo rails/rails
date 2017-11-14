@@ -36,6 +36,18 @@
 
     *Jeremy Daer*
 
+*   Cache: Enable compression by default for values > 1kB.
+
+    Compression has long been available, but opt-in and at a 16kB threshold.
+    It wasn't enabled by default due to CPU cost. Today it's cheap and typical
+    cache data is eminently compressible, such as HTML or JSON fragments.
+    Compression dramatically reduces Memcached/Redis mem usage, which means
+    the same cache servers can store more data, which means higher hit rates.
+
+    To disable compression, pass `compress: false` to the initializer.
+
+    *Jeremy Daer*
+
 *   Allow `Range#include?` on TWZ ranges
 
     In #11474 we prevented TWZ ranges being iterated over which matched

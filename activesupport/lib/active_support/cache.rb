@@ -154,12 +154,11 @@ module ActiveSupport
     #   cache.namespace = -> { @last_mod_time }  # Set the namespace to a variable
     #   @last_mod_time = Time.now  # Invalidate the entire cache by changing namespace
     #
-    # Caches can also store values in a compressed format to save space and
-    # reduce time spent sending data. Since there is overhead, values must be
-    # large enough to warrant compression. To turn on compression either pass
-    # <tt>compress: true</tt> in the initializer or as an option to +fetch+
-    # or +write+. To specify the threshold at which to compress values, set the
-    # <tt>:compress_threshold</tt> option. The default threshold is 16K.
+    # Cached data larger than 1kB are compressed by default. To turn off
+    # compression, pass <tt>compress: false</tt> to the initializer or to
+    # individual +fetch+ or +write+ method calls. The 1kB compression
+    # threshold is configurable with the <tt>:compress_threshold</tt> option,
+    # specified in bytes.
     class Store
       cattr_accessor :logger, instance_writer: true
 
@@ -218,8 +217,7 @@ module ActiveSupport
       # ask whether you should force a cache write. Otherwise, it's clearer to
       # just call <tt>Cache#write</tt>.
       #
-      # Setting <tt>:compress</tt> will store a large cache entry set by the call
-      # in a compressed format.
+      # Setting <tt>compress: false</tt> disables compression of the cache entry.
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
       # All caches support auto-expiring content after a specified number of
@@ -664,7 +662,7 @@ module ActiveSupport
     class Entry # :nodoc:
       attr_reader :version
 
-      DEFAULT_COMPRESS_LIMIT = 16.kilobytes
+      DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
       # Creates a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
@@ -739,8 +737,8 @@ module ActiveSupport
 
       private
         def should_compress?(value, options)
-          if value && options[:compress]
-            compress_threshold = options[:compress_threshold] || DEFAULT_COMPRESS_LIMIT
+          if value && options.fetch(:compress, true)
+            compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
             serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
 
             return true if serialized_value_size >= compress_threshold
