@@ -7,14 +7,11 @@ require "active_support/encrypted_configuration"
 module Rails
   module Generators
     class CredentialsGenerator < Base
-      CONFIG_PATH = "config/credentials.yml.enc"
-      KEY_PATH    = "config/master.key"
-
       def add_credentials_file
-        unless File.exist?(CONFIG_PATH)
+        unless credentials.exist?
           template = credentials_template
 
-          say "Adding #{CONFIG_PATH} to store encrypted credentials."
+          say "Adding #{credentials.content_path} to store encrypted credentials."
           say ""
           say "The following content has been encrypted with the Rails master key:"
           say ""
@@ -29,13 +26,17 @@ module Rails
       end
 
       def add_credentials_file_silently(template = nil)
-        unless File.exist?(CONFIG_PATH)
-          setup = { config_path: CONFIG_PATH, key_path: KEY_PATH, env_key: "RAILS_MASTER_KEY" }
-          ActiveSupport::EncryptedConfiguration.new(setup).write(credentials_template)
-        end
+        credentials.write(credentials_template)
       end
 
       private
+        def credentials
+          ActiveSupport::EncryptedConfiguration.new \
+            config_path: "config/credentials.yml.enc",
+            key_path: "config/master.key",
+            env_key: "RAILS_MASTER_KEY"
+        end
+
         def credentials_template
           "# aws:\n#  access_key_id: 123\n#  secret_access_key: 345\n\n" +
           "# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.\n" +

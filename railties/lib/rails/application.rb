@@ -433,10 +433,41 @@ module Rails
     # the Rails master key, which is either taken from ENV["RAILS_MASTER_KEY"] or from loading
     # `config/master.key`.
     def credentials
-      @credentials ||= ActiveSupport::EncryptedConfiguration.new \
-        config_path: Rails.root.join("config/credentials.yml.enc"),
-        key_path: Rails.root.join("config/master.key"),
-        env_key: "RAILS_MASTER_KEY"
+      @credentials ||= encrypted("config/credentials.yml.enc")
+    end
+
+    # Shorthand to decrypt any encrypted configurations or files.
+    #
+    # For any file added with `bin/rails encrypted:edit` call `read` to decrypt
+    # the file with the master key.
+    # The master key is either stored in `config/master.key` or `ENV["RAILS_MASTER_KEY"]`.
+    #
+    #   Rails.application.encrypted("config/mystery_man.key").read
+    #   # => "We've met before, haven't we?"
+    #
+    # It's also possible to interpret encrypted YAML files with `config`.
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").config
+    #   # => { next_guys_line: "I don't think so. Where was it you think we met?" }
+    #
+    # Any top-level configs are also accessible directly on the return value:
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").next_guys_line
+    #   # => "I don't think so. Where was it you think we met?"
+    #
+    # The files or configs can also be encrypted with a custom key. To decrypt with
+    # a key in the `ENV`, use:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", env_key: "SPECIAL_TOKENS")
+    #
+    # Or to decrypt with a file, that should be version control ignored, relative to `Rails.root`:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
+    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+      ActiveSupport::EncryptedConfiguration.new \
+        config_path: Rails.root.join(path),
+        key_path: Rails.root.join(key_path),
+        env_key: env_key
     end
 
     def to_app #:nodoc:

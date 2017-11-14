@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "active_support"
+require "rails/command/helpers/editor"
 
 module Rails
   module Command
     class CredentialsCommand < Rails::Command::Base # :nodoc:
+      include Helpers::Editor
+
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
@@ -16,41 +19,25 @@ module Rails
       def edit
         require_application_and_environment!
 
-        ensure_editor_available || (return)
+        ensure_editor_available(command: "bin/rails credentials:edit") || (return)
         ensure_master_key_has_been_added
         ensure_credentials_have_been_added
 
-        change_credentials_in_system_editor
+        catch_editing_exceptions do
+          change_credentials_in_system_editor
+        end
 
         say "New credentials encrypted and saved."
-      rescue Interrupt
-        say "Aborted changing credentials: nothing saved."
-      rescue ActiveSupport::EncryptedFile::MissingKeyError => error
-        say error.message
       end
 
       def show
         require_application_and_environment!
+
         say Rails.application.credentials.read.presence ||
           "No credentials have been added yet. Use bin/rails credentials:edit to change that."
       end
 
       private
-        def ensure_editor_available
-          if ENV["EDITOR"].to_s.empty?
-            say "No $EDITOR to open credentials in. Assign one like this:"
-            say ""
-            say %(EDITOR="mate --wait" bin/rails credentials:edit)
-            say ""
-            say "For editors that fork and exit immediately, it's important to pass a wait flag,"
-            say "otherwise the credentials will be saved immediately with no chance to edit."
-
-            false
-          else
-            true
-          end
-        end
-
         def ensure_master_key_has_been_added
           master_key_generator.add_master_key_file
           master_key_generator.ignore_master_key_file
