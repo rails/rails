@@ -35,12 +35,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/arel.git
-  revision: 42510bf71472e2e35d9becb546edd05562672344
-  specs:
-    arel (9.0.0.alpha)
-
-GIT
   remote: https://github.com/rails/sass-rails.git
   revision: bb5c1d34e8acad2e2960cc785184ffe17d7b3bca
   branch: 5-0-stable
@@ -94,7 +88,7 @@ PATH
     activerecord (5.2.0.alpha)
       activemodel (= 5.2.0.alpha)
       activesupport (= 5.2.0.alpha)
-      arel (= 9.0.0.alpha)
+      arel (>= 9.0)
     activestorage (5.2.0.alpha)
       actionpack (= 5.2.0.alpha)
       activerecord (= 5.2.0.alpha)
@@ -142,6 +136,7 @@ GEM
     amq-protocol (2.2.0)
     archive-zip (0.7.0)
       io-like (~> 0.3.0)
+    arel (9.0.0)
     ast (2.3.0)
     aws-partitions (1.20.0)
     aws-sdk-core (3.3.0)
@@ -358,6 +353,7 @@ GEM
     mysql2 (0.4.9-x64-mingw32)
     mysql2 (0.4.9-x86-mingw32)
     nio4r (2.1.0)
+    nio4r (2.1.0-java)
     nokogiri (1.8.0)
       mini_portile2 (~> 2.2.0)
     nokogiri (1.8.0-java)
@@ -503,6 +499,8 @@ GEM
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
+    websocket-driver (0.6.5-java)
+      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
     xpath (2.1.0)
       nokogiri (~> 1.3)
@@ -517,7 +515,6 @@ DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
   activerecord-jdbcpostgresql-adapter (>= 1.3.0)
   activerecord-jdbcsqlite3-adapter (>= 1.3.0)
-  arel!
   aws-sdk-s3
   azure-storage
   backburner
@@ -579,4 +576,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.15.4
+   1.16.0
