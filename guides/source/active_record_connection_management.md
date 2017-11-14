@@ -8,7 +8,7 @@ efficient manner. See [Configuring a Database](/configuring.html#configuring-a-d
 and [Database pooling](configuring.html#database-pooling) for information about the
 basics of optimally configuring your application to use available resources.
 
-Sometimes, you will need to manage Active Record connections and/or connecton
+Sometimes, you will need to manage Active Record connections and/or connection
 pools yourself. These situations are:
 
 * Configuring a multi-process web server
