@@ -106,17 +106,17 @@ matrix:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.1.14.0
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.1.14.0
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.13.0
+    - rvm: jruby-9.1.14.0
     - env: "GEM=ac:integration"
   fast_finish: true
 
