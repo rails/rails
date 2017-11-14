@@ -13,7 +13,6 @@ module ActiveStorage
     end
 
     # Associates one or several attachments with the current record, saving them to the database.
-    # Examples:
     #
     #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
@@ -34,6 +33,11 @@ module ActiveStorage
     #   Gallery.new.photos.attached? # => false
     def attached?
       attachments.any?
+    end
+
+    # Deletes associated attachments without purging them, leaving their respective blobs in place.
+    def detach
+      attachments.destroy_all if attached?
     end
 
     # Directly purges each associated attachment (i.e. destroys the blobs and

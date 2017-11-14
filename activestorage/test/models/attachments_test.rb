@@ -98,6 +98,17 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "bar", blob.reload.metadata[:foo]
   end
 
+  test "detach blob" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+    avatar_blob_id = @user.avatar.blob.id
+    avatar_key = @user.avatar.key
+
+    @user.avatar.detach
+    assert_not @user.avatar.attached?
+    assert ActiveStorage::Blob.exists?(avatar_blob_id)
+    assert ActiveStorage::Blob.service.exist?(avatar_key)
+  end
+
   test "purge attached blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     avatar_key = @user.avatar.key
@@ -216,6 +227,21 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     blobs.each do |blob|
       assert_equal "bar", blob.reload.metadata[:foo]
     end
+  end
+
+  test "detach blobs" do
+    @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+    highlight_blob_ids = @user.highlights.collect { |highlight| highlight.blob.id }
+    highlight_keys = @user.highlights.collect(&:key)
+
+    @user.highlights.detach
+    assert_not @user.highlights.attached?
+
+    assert ActiveStorage::Blob.exists?(highlight_blob_ids.first)
+    assert ActiveStorage::Blob.exists?(highlight_blob_ids.second)
+
+    assert ActiveStorage::Blob.service.exist?(highlight_keys.first)
+    assert ActiveStorage::Blob.service.exist?(highlight_keys.second)
   end
 
   test "purge attached blobs" do
