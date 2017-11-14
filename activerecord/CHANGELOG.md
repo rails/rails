@@ -1,3 +1,8 @@
+*   Add `#only_up` to database migrations for code that is only relevant when
+    migrating up, e.g. populating a new column.
+
+    *Rich Daley*
+
 *   Require raw SQL fragments to be explicitly marked when used in
     relation query methods.
 
