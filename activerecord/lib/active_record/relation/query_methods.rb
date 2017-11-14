@@ -295,6 +295,7 @@ module ActiveRecord
       spawn.order!(*args)
     end
 
+    # Same as #order but operates on relation in-place instead of copying.
     def order!(*args) # :nodoc:
       preprocess_order_args(args)
 
@@ -316,6 +317,7 @@ module ActiveRecord
       spawn.reorder!(*args)
     end
 
+    # Same as #reorder but operates on relation in-place instead of copying.
     def reorder!(*args) # :nodoc:
       preprocess_order_args(args)
 
@@ -1076,7 +1078,7 @@ module ActiveRecord
             end
             o.split(",").map! do |s|
               s.strip!
-              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || s.concat(" DESC")
+              s.gsub!(/\sasc\Z/i, " DESC") || s.gsub!(/\sdesc\Z/i, " ASC") || (s << " DESC")
             end
           else
             o
@@ -1085,6 +1087,10 @@ module ActiveRecord
       end
 
       def does_not_support_reverse?(order)
+        # Account for String subclasses like Arel::Nodes::SqlLiteral that
+        # override methods like #count.
+        order = String.new(order) unless order.instance_of?(String)
+
         # Uses SQL function with multiple arguments.
         (order.include?(",") && order.split(",").find { |section| section.count("(") != section.count(")") }) ||
           # Uses "nulls first" like construction.
@@ -1118,6 +1124,12 @@ module ActiveRecord
           klass.send(:sanitize_sql_for_order, arg)
         end
         order_args.flatten!
+
+        @klass.enforce_raw_sql_whitelist(
+          order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
+          whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+        )
+
         validate_order_args(order_args)
 
         references = order_args.grep(String)
