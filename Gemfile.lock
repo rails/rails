@@ -35,18 +35,6 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/sass-rails.git
-  revision: bb5c1d34e8acad2e2960cc785184ffe17d7b3bca
-  branch: 5-0-stable
-  specs:
-    sass-rails (5.0.6)
-      railties (>= 4.0.0, < 6)
-      sass (~> 3.1)
-      sprockets (>= 2.8, < 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
-      tilt (>= 1.1, < 3)
-
-GIT
   remote: https://github.com/robin850/sdoc.git
   revision: 0e340352f3ab2f196c8a8743f83c2ee286e4f71c
   branch: upgrade
@@ -423,11 +411,17 @@ GEM
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
       et-orbi (~> 1.0)
-    sass (3.5.1)
+    sass (3.5.3)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+    sass-rails (5.0.7)
+      railties (>= 4.0.0, < 6)
+      sass (~> 3.1)
+      sprockets (>= 2.8, < 4.0)
+      sprockets-rails (>= 2.0, < 4.0)
+      tilt (>= 1.1, < 3)
     selenium-webdriver (3.5.1)
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
@@ -559,7 +553,7 @@ DEPENDENCIES
   resque
   resque-scheduler!
   rubocop (>= 0.47)
-  sass-rails!
+  sass-rails
   sdoc!
   sequel
   sidekiq
