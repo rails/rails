@@ -3,15 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      module ThroughAssociation #:nodoc:
-        def through_reflection
-          reflection.through_reflection
-        end
-
-        def source_reflection
-          reflection.source_reflection
-        end
-
+      class ThroughAssociation < Association # :nodoc:
         def run(preloader)
           already_loaded     = owners.first.association(through_reflection.name).loaded?
           through_scope      = through_scope()
@@ -48,6 +40,13 @@ module ActiveRecord
         end
 
         private
+          def through_reflection
+            reflection.through_reflection
+          end
+
+          def source_reflection
+            reflection.source_reflection
+          end
 
           def preload_index
             @preload_index ||= @preloaded_records.each_with_object({}).with_index do |(id, result), index|

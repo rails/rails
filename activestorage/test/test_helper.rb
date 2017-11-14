@@ -45,8 +45,8 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
     end
 
-    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type
+    def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil)
+      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
     end
 
     def create_blob_before_direct_upload(filename: "hello.txt", byte_size:, checksum:, content_type: "text/plain")

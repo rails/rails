@@ -32,6 +32,10 @@ module ActiveModel
       def lookup(*args, **kwargs) # :nodoc:
         registry.lookup(*args, **kwargs)
       end
+
+      def default_value # :nodoc:
+        @default_value ||= Value.new
+      end
     end
 
     register(:big_integer, Type::BigInteger)

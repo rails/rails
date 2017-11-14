@@ -16,7 +16,7 @@ RDoc
 ----
 
 The [Rails API documentation](http://api.rubyonrails.org) is generated with
-[RDoc](http://docs.seattlerb.org/rdoc/). To generate it, make sure you are
+[RDoc](https://ruby.github.io/rdoc/). To generate it, make sure you are
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
@@ -26,9 +26,9 @@ in the rails root directory, run `bundle install` and execute:
 Resulting HTML files can be found in the ./doc/rdoc directory.
 
 Please consult the RDoc documentation for help with the
-[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+[markup](https://ruby.github.io/rdoc/RDoc/Markup.html),
 and also take into account these [additional
-directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
+directives](https://ruby.github.io/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------

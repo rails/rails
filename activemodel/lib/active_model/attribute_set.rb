@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require "active_record/attribute_set/builder"
-require "active_record/attribute_set/yaml_encoder"
+require "active_model/attribute_set/builder"
+require "active_model/attribute_set/yaml_encoder"
 
-module ActiveRecord
+module ActiveModel
   class AttributeSet # :nodoc:
     delegate :each_value, :fetch, to: :attributes
 

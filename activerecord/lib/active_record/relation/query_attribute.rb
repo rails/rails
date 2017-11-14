@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
-require "active_record/attribute"
+require "active_model/attribute"
 
 module ActiveRecord
   class Relation
-    class QueryAttribute < Attribute # :nodoc:
+    class QueryAttribute < ActiveModel::Attribute # :nodoc:
       def type_cast(value)
         value
       end

@@ -230,7 +230,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_ensure_that_tests_work
-    run_generator [destination_root, "--skip-active-storage"]
+    run_generator
     FileUtils.cd destination_root
     quietly { system "bundle install" }
     assert_match(/1 runs, 1 assertions, 0 failures, 0 errors/, `bin/test 2>&1`)
@@ -474,6 +474,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"
     assert_no_file "test/dummy/README.md"
+    assert_no_file "test/dummy/config/master.key"
+    assert_no_file "test/dummy/config/credentials.yml.enc"
     assert_no_directory "test/dummy/lib/tasks"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"

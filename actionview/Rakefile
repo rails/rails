@@ -32,7 +32,7 @@ namespace :test do
   task :ujs do
     begin
       Dir.mkdir("log")
-      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1")
+      pid = spawn("bundle exec rackup test/ujs/config.ru -p 4567 -s puma > log/test.log 2>&1", pgroup: true)
 
       start_time = Time.now
 
@@ -48,7 +48,7 @@ namespace :test do
       system("npm run lint && bundle exec ruby ../ci/qunit-selenium-runner.rb http://localhost:4567/")
       status = $?.exitstatus
     ensure
-      Process.kill("KILL", pid) if pid
+      Process.kill("KILL", -pid) if pid
       FileUtils.rm_rf("log")
     end
 

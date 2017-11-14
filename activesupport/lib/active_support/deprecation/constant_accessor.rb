@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/inflector/methods"
-
 module ActiveSupport
   class Deprecation
     # DeprecatedConstantAccessor transforms a constant into a deprecated one by
@@ -29,6 +27,8 @@ module ActiveSupport
     #        ["Mercury", "Venus", "Earth", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune"]
     module DeprecatedConstantAccessor
       def self.included(base)
+        require "active_support/inflector/methods"
+
         extension = Module.new do
           def const_missing(missing_const_name)
             if class_variable_defined?(:@@_deprecated_constants)

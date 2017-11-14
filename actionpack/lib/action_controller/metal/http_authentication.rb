@@ -248,7 +248,7 @@ module ActionController
       def decode_credentials(header)
         ActiveSupport::HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/, "").split(",").map do |pair|
           key, value = pair.split("=", 2)
-          [key.strip, value.to_s.gsub(/^"|"$/, "").delete('\'')]
+          [key.strip, value.to_s.gsub(/^"|"$/, "").delete("'")]
         end]
       end
 

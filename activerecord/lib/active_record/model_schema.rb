@@ -323,7 +323,7 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(attribute_types, primary_key) do |name|
+        @attributes_builder ||= ActiveModel::AttributeSet::Builder.new(attribute_types, primary_key) do |name|
           unless columns_hash.key?(name)
             _default_attributes[name].dup
           end
@@ -346,7 +346,7 @@ module ActiveRecord
       end
 
       def yaml_encoder # :nodoc:
-        @yaml_encoder ||= AttributeSet::YAMLEncoder.new(attribute_types)
+        @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
 
       # Returns the type of the attribute with the given name, after applying
@@ -376,7 +376,7 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({})
+        @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.

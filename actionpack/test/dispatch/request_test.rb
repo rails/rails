@@ -763,7 +763,7 @@ class RequestMethod < BaseRequestTest
 
   test "post uneffected by local inflections" do
     existing_acronyms = ActiveSupport::Inflector.inflections.acronyms.dup
-    existing_acronym_regex = ActiveSupport::Inflector.inflections.acronym_regex.dup
+    assert_deprecated { ActiveSupport::Inflector.inflections.acronym_regex.dup }
     begin
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.acronym "POS"
@@ -777,7 +777,7 @@ class RequestMethod < BaseRequestTest
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.send(:instance_variable_set, "@acronyms", existing_acronyms)
-        inflect.send(:instance_variable_set, "@acronym_regex", existing_acronym_regex)
+        inflect.send(:define_acronym_regex_patterns)
       end
     end
   end

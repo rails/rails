@@ -63,7 +63,17 @@ module ActiveRecord
         #   # => "id ASC"
         def sanitize_sql_for_order(condition) # :doc:
           if condition.is_a?(Array) && condition.first.to_s.include?("?")
-            sanitize_sql_array(condition)
+            enforce_raw_sql_whitelist([condition.first],
+              whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+            )
+
+            # Ensure we aren't dealing with a subclass of String that might
+            # override methods we use (eg. Arel::Nodes::SqlLiteral).
+            if condition.first.kind_of?(String) && !condition.first.instance_of?(String)
+              condition = [String.new(condition.first), *condition[1..-1]]
+            end
+
+            Arel.sql(sanitize_sql_array(condition))
           else
             condition
           end
@@ -110,7 +120,8 @@ module ActiveRecord
         def sanitize_sql_hash_for_assignment(attrs, table) # :doc:
           c = connection
           attrs.map do |attr, value|
-            value = type_for_attribute(attr.to_s).serialize(value)
+            type = type_for_attribute(attr.to_s)
+            value = type.serialize(type.cast(value))
             "#{c.quote_table_name_for_assignment(table, attr)} = #{c.quote(value)}"
           end.join(", ")
         end

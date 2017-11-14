@@ -319,5 +319,9 @@ class FakeKlass
     def arel_attribute(name, table)
       table[name]
     end
+
+    def enforce_raw_sql_whitelist(*args)
+      # noop
+    end
   end
 end

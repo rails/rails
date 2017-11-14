@@ -11,7 +11,6 @@ module ApplicationTests
     def setup
       build_app
       create_schema
-      remove_migrations
     end
 
     def teardown
@@ -726,10 +725,6 @@ module ApplicationTests
 
       def create_schema
         app_file "db/schema.rb", ""
-      end
-
-      def remove_migrations
-        Dir.chdir(app_path) { FileUtils.rm_rf("db/migrate") }
       end
 
       def create_test_file(path = :unit, name = "test", pass: true)
