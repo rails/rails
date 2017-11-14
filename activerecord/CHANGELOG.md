@@ -1,4 +1,4 @@
-*   Add `#only_up` to database migrations for code that is only relevant when
+*   Add `#up_only` to database migrations for code that is only relevant when
     migrating up, e.g. populating a new column.
 
     *Rich Daley*
