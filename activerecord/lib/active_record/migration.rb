@@ -740,7 +740,7 @@ module ActiveRecord
     # In the following example, the new column `published` will be given
     # the value `true` for all existing records.
     #
-    #    class AddPublishedToPosts < ActiveRecord::Migration[5.3]
+    #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
     #      def change
     #        add_column :posts, :published, :boolean, default: false
     #        up_only do
