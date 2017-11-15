@@ -838,6 +838,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_equal 5, @sequence_step
   end
 
+  def test_gitignore
+    run_generator
+
+    assert_file ".gitignore" do |content|
+      assert_match(/config\/master\.key/, content)
+    end
+  end
+
   def test_system_tests_directory_generated
     run_generator
 
