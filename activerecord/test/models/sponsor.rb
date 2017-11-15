@@ -7,3 +7,8 @@ class Sponsor < ActiveRecord::Base
   belongs_to :sponsorable_with_conditions, -> { where name: "Ernie" }, polymorphic: true,
              foreign_type: "sponsorable_type", foreign_key: "sponsorable_id"
 end
+
+class SponsorWithEnum < Sponsor
+  self.table_name = :sponsors
+  enum sponsorable_type: { member: "Member" }
+end
