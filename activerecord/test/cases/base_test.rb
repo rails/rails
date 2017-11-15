@@ -1489,7 +1489,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns not included in SELECT" do
-    query = Developer.all.to_sql
+    query = Developer.all.to_sql.downcase
 
     # ignored column
     refute query.include?("first_name")
