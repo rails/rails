@@ -1,3 +1,30 @@
+*   Handle `TZInfo::AmbiguousTime` errors
+
+    Make `ActiveSupport::TimeWithZone` match Ruby's handling of ambiguous
+    times by choosing the later period, e.g.
+
+    Ruby:
+    ```
+    ENV["TZ"] = "Europe/Moscow"
+    Time.local(2014, 10, 26, 1, 0, 0)   # => 2014-10-26 01:00:00 +0300
+    ```
+
+    Before:
+    ```
+    >> "2014-10-26 01:00:00".in_time_zone("Moscow")
+    TZInfo::AmbiguousTime: 26/10/2014 01:00 is an ambiguous local time.
+    ```
+
+    After:
+    ```
+    >> "2014-10-26 01:00:00".in_time_zone("Moscow")
+    => Sun, 26 Oct 2014 01:00:00 MSK +03:00
+    ```
+
+    Fixes #17395.
+
+    *Andrew White*
+
 *   Redis cache store.
 
     ```
