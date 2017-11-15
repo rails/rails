@@ -1057,7 +1057,7 @@ After loading the framework and any gems in your application, Rails turns to loa
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
-TIP: If you have any ordering dependency in your initializers, you can control the load order through naming. Initializer files are loaded in alphabetical order by their path. For example, `01_critical.rb` will be loaded before `02_normal.rb`.
+TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that need to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
 
 Initialization events
 ---------------------
