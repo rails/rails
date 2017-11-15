@@ -8,7 +8,7 @@ GIT
 
 GIT
   remote: https://github.com/jeremy/resque-scheduler.git
-  revision: 7cccf7d8db4dbbf54bf549a98b6cbb38106dbed2
+  revision: f5d56ec25ec20d939bf12d259be107f278de4044
   branch: redis-rb-4.0
   specs:
     resque-scheduler (4.3.0)
@@ -229,7 +229,7 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.6.1)
-    et-orbi (1.0.5)
+    et-orbi (1.0.8)
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
