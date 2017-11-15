@@ -34,6 +34,10 @@ module Rails
         key_file_generator.ignore_key_file(MASTER_KEY_PATH, ignore: key_ignore)
       end
 
+      def ignore_master_key_file_silently
+        key_file_generator.ignore_key_file_silently(MASTER_KEY_PATH, ignore: key_ignore)
+      end
+
       private
         def key_file_generator
           EncryptionKeyFileGenerator.new([], options)

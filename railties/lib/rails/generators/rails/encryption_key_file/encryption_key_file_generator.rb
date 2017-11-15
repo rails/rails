@@ -44,6 +44,10 @@ module Rails
         end
       end
 
+      def ignore_key_file_silently(key_path, ignore: key_ignore(key_path))
+        append_to_file ".gitignore", ignore if File.exist?(".gitignore")
+      end
+
       private
         def key_ignore(key_path)
           [ "", "/#{key_path}", "" ].join("\n")
