@@ -386,6 +386,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal Member, sponsor.association(:sponsorable).send(:klass)
   end
 
+  def test_polymorphic_association_class_with_enum
+    sponsor = SponsorWithEnum.new
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
+
+    sponsor.sponsorable_type = "" # the column doesn't have to be declared NOT NULL
+    assert_nil sponsor.association(:sponsorable).send(:klass)
+    sponsor.association(:sponsorable).reload
+    assert_nil sponsor.sponsorable
+
+    sponsor.sponsorable = Member.new name: "Bert"
+    assert_equal Member, sponsor.association(:sponsorable).send(:klass)
+  end
+
   def test_with_polymorphic_and_condition
     sponsor = Sponsor.create
     member = Member.create name: "Bert"
