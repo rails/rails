@@ -22,6 +22,7 @@ module ActionController
 
   autoload_under "metal" do
     autoload :ConditionalGet
+    autoload :ContentSecurityPolicy
     autoload :Cookies
     autoload :DataStreaming
     autoload :EtagWithTemplateDigest
