@@ -36,7 +36,7 @@ module Rails
 
       private
         def key_file_generator
-          EncryptionKeyFileGenerator.new
+          EncryptionKeyFileGenerator.new([], options)
         end
 
         def key_ignore
