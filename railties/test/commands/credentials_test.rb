@@ -13,7 +13,10 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   teardown { teardown_app }
 
   test "edit without editor gives hint" do
-    assert_match "No $EDITOR to open credentials in", run_edit_command(editor: "")
+    run_edit_command(editor: "").tap do |output|
+      assert_match "No $EDITOR to open file in", output
+      assert_match "bin/rails credentials:edit", output
+    end
   end
 
   test "edit credentials" do
