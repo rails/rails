@@ -54,6 +54,12 @@ In a default Rails application, the Executor callbacks are used to:
 * return acquired Active Record connections to the pool
 * constrain internal cache lifetimes
 
+Prior to Rails 5.0, some of these were handled by separate Rack middleware
+classes (such as `ActiveRecord::ConnectionAdapters::ConnectionManagement`), or
+directly wrapping code with methods like
+`ActiveRecord::Base.connection_pool.with_connection do`. The Executor replaces
+these with a single more abstract interface.
+
 ### Wrapping application code
 
 If you're writing a library or component that will invoke application code, you
@@ -89,7 +95,16 @@ thread, `wrap` is a no-op.
 
 If it's impractical to physically wrap the application code in a block (for
 example, the Rack API makes this problematic), you can also use the `run!` /
-`complete!` pair.
+`complete!` pair:
+
+```ruby
+Thread.new do
+  execution_context = Rails.application.executor.run!
+  # your code here
+ensure
+  execution_context.complete! if execution_context
+end
+```
 
 ### Concurrency
 
@@ -111,6 +126,12 @@ Rails.application.reloader.wrap do
   # call application code here
 end
 ```
+
+The Reloader is only suitable where a long-running framework-level process
+repeatedly calls into application code, such as for a web server or job queue.
+Rails automatically wraps web requests and Active Job workers, so you'll rarely
+need to invoke the Reloader for yourself. Always consider whether the Executor
+is a better fit for your use case.
 
 ### Callbacks
 
@@ -141,14 +162,55 @@ and `after_class_unload` callbacks.
 
 Only long-running "top level" processes should invoke the Reloader, because if
 it determines a reload is needed, it will block until all other threads have
-completed and left any Executor block.
+completed any Executor invocations.
 
 If this were to occur in a "child" thread, with a waiting parent inside the
 Executor, it would cause an unavoidable deadlock: the reload must occur before
 the child thread is executed, but it cannot be safely performed while the parent
-thread is mid-execution.
+thread is mid-execution. Child threads should use the Executor instead.
 
-Child threads should use the Executor instead.
+Framework Behavior
+------------------
+
+The Rails framework components use these tools to manage their own concurrency
+needs too.
+
+`ActionDispatch::Executor` and `ActionDispatch::Reloader` are Rack middlewares
+that wraps the request with a supplied Executor or Reloader, respectively. They
+are automatically included in the default application stack. The Reloader will
+ensure any arriving HTTP request is served with a freshly-loaded copy of the
+application if any code changes have occurred.
+
+Active Job also wraps its job executions with the Reloader, loading the latest
+code to execute each job as it comes off the queue.
+
+Action Cable uses the Executor instead: because a Cable connection is linked to
+a specific instance of a class, it's not possible to reload for every arriving
+websocket message. Only the message handler is wrapped, though; a long-running
+Cable connection does not prevent a reload that's triggered by a new incoming
+request or job. Instead, Action Cable uses the Reloader's `before_class_unload`
+callback to disconnect all its connections. When the client automatically
+reconnects, it will be speaking to the new version of the code.
+
+The above are the entry points to the framework, so they are responsible for
+ensuring their respective threads are protected, and deciding whether a reload
+is necessary. Other components only need to use the Executor when they spawn
+additional threads.
+
+### Configuration
+
+The Reloader only checks for file changes when `cache_classes` is false and
+`reload_classes_only_on_change` is true (which is the default in the
+`development` environment).
+
+When `cache_classes` is true (in `production`, by default), the Reloader is only
+a pass-through to the Executor.
+
+The Executor always has important work to do, like database connection
+management. When `cache_classes` and `eager_load` are both true (`production`),
+no autoloading or class reloading will occur, so it does not need the Load
+Interlock. If either of those are false (`development`), then the Executor will
+use the Load Interlock to ensure constants are only loaded when it is safe.
 
 Load Interlock
 --------------
