@@ -7,17 +7,6 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
-  remote: https://github.com/jeremy/resque-scheduler.git
-  revision: f5d56ec25ec20d939bf12d259be107f278de4044
-  branch: redis-rb-4.0
-  specs:
-    resque-scheduler (4.3.0)
-      mono_logger (~> 1.0)
-      redis (>= 3.3, < 5)
-      resque (~> 1.26)
-      rufus-scheduler (~> 3.2)
-
-GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -33,6 +22,16 @@ GIT
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
+
+GIT
+  remote: https://github.com/resque/resque-scheduler.git
+  revision: 284b862dd63967da1cf3a7e6abd9d2052067c8be
+  specs:
+    resque-scheduler (4.3.0)
+      mono_logger (~> 1.0)
+      redis (>= 3.3, < 5)
+      resque (~> 1.26)
+      rufus-scheduler (~> 3.2)
 
 GIT
   remote: https://github.com/robin850/sdoc.git
