@@ -442,7 +442,7 @@ module Rails
     # the file with the master key.
     # The master key is either stored in `config/master.key` or `ENV["RAILS_MASTER_KEY"]`.
     #
-    #   Rails.application.encrypted("config/mystery_man.key").read
+    #   Rails.application.encrypted("config/mystery_man.txt.enc").read
     #   # => "We've met before, haven't we?"
     #
     # It's also possible to interpret encrypted YAML files with `config`.
