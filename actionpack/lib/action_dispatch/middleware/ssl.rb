@@ -15,6 +15,10 @@ module ActionDispatch
   #
   #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   #
+  #    Custom headers can be added to the redirect responses with +headers+:
+  #
+  #      config.ssl_options = { redirect: { headers: {"Vary" => "X-Forwarded-Proto"} } }
+  #
   # 2. <b>Secure cookies</b>: Sets the +secure+ flag on cookies to tell browsers they
   #    must not be sent along with +http://+ requests. Enabled by default. Set
   #    +config.ssl_options+ with <tt>secure_cookies: false</tt> to disable this feature.
@@ -123,8 +127,8 @@ module ActionDispatch
 
       def redirect_to_https(request)
         [ @redirect.fetch(:status, redirection_status(request)),
-          { "Content-Type" => "text/html",
-            "Location" => https_location_for(request) },
+          @redirect.fetch(:headers, {}).reverse_merge("Content-Type" => "text/html",
+            "Location" => https_location_for(request)),
           @redirect.fetch(:body, []) ]
       end
 

@@ -21,7 +21,7 @@ class RedirectSSLTest < SSLTest
   end
 
   def assert_redirected(redirect: {}, from: "http://a/b?c=d", to: from.sub("http", "https"))
-    redirect = { status: 301, body: [] }.merge(redirect)
+    redirect = { status: 301, body: [], headers: {} }.merge(redirect)
 
     self.app = build_app ssl_options: { redirect: redirect }
 
@@ -29,6 +29,7 @@ class RedirectSSLTest < SSLTest
     assert_response redirect[:status] || 301
     assert_redirected_to to
     assert_equal redirect[:body].join, @response.body
+    assert_equal response.headers.slice(*redirect[:headers].keys), redirect[:headers]
   end
 
   def assert_post_redirected(redirect: {}, from: "http://a/b?c=d",
@@ -94,6 +95,10 @@ class RedirectSSLTest < SSLTest
 
   test "no redirect with redirect set to false" do
     assert_not_redirected "http://example.org", redirect: false
+  end
+
+  test "custom header on redirect" do
+    assert_redirected from: "http://example.org/", redirect: { headers: { "Vary" => "X-Forwared-Proto" } }
   end
 end
 

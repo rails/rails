@@ -1,3 +1,7 @@
+*   Add ability to configure custom headers in `ActionDispatch::SSL` redirects
+
+    *Lachlan Sylvester*
+
 *   Changed the system tests to set Puma as default server only when the
     user haven't specified manually another server.
 
@@ -38,7 +42,6 @@
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.
-
 
 ## Rails 5.2.0.beta1 (November 27, 2017) ##
 
