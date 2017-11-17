@@ -366,6 +366,19 @@ module ActiveRecord
         reset_transaction
       end
 
+      # Immediately forget this connection ever existed. Unlike disconnect!,
+      # this will not communicate with the server.
+      #
+      # After calling this method, the behavior of all other methods becomes
+      # undefined. This is called internally just before a forked process gets
+      # rid of a connection that belonged to its parent.
+      def discard!
+        # This should be overridden by concrete adapters.
+        #
+        # Prevent @connection's finalizer from touching the socket, or
+        # otherwise communicating with its server, when it is collected.
+      end
+
       # Reset the state of this connection, directing the DBMS to clear
       # transactions and other connection-related server-side state. Usually a
       # database-dependent operation.

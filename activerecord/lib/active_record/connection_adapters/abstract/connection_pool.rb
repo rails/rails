@@ -450,6 +450,21 @@ module ActiveRecord
         disconnect(false)
       end
 
+      # Discards all connections in the pool (even if they're currently
+      # leased!), along with the pool itself. Any further interaction with the
+      # pool (except #spec and #schema_cache) is undefined.
+      #
+      # See AbstractAdapter#discard!
+      def discard! # :nodoc:
+        synchronize do
+          return if @connections.nil? # already discarded
+          @connections.each do |conn|
+            conn.discard!
+          end
+          @connections = @available = @thread_cached_conns = nil
+        end
+      end
+
       # Clears the cache which maps classes and re-connects connections that
       # require reloading.
       #
@@ -866,11 +881,31 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      def self.unowned_pool_finalizer(pid_map) # :nodoc:
+        lambda do |_|
+          discard_unowned_pools(pid_map)
+        end
+      end
+
+      def self.discard_unowned_pools(pid_map) # :nodoc:
+        pid_map.each do |pid, pools|
+          pools.values.compact.each(&:discard!) unless pid == Process.pid
+        end
+      end
+
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          ConnectionHandler.discard_unowned_pools(h)
+
           h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
+
+        # Backup finalizer: if the forked child never needed a pool, the above
+        # early discard has not occurred
+        ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
       end
 
       def connection_pool_list
