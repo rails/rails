@@ -77,8 +77,9 @@ use like this:
 config.active_storage.service = :local
 ```
 
-Like other configuration options, you can set this application wide, or per
-environment.
+Like other configuration options, you can set the service application wide, or per
+environment. For example, you might want development and test to use the Disk
+service instead of a cloud service.
 
 Attach Files to a Model
 --------------------------
@@ -247,6 +248,45 @@ Implement Direct Download Link
 ------------------------------
 
 TODO
+
+Clean up Stored Files Store During System Tests
+-----------------------------------------------
+
+System tests clean up test data by rolling back a transaction. Because destroy
+is never called on an object, the attached files are never cleaned up. If you
+want to clear the files, you can do it in an `after_teardown` callback. Doing it
+here ensures that all connections to created during the test are complete and
+you won't get an error from ActiveStorage saying it can't find a file.
+
+``` ruby
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
+
+  def remove_uploaded_files
+    FileUtils.rm_rf("#{Rails.root}/storage_test")
+  end
+
+  def after_teardown
+    super
+    remove_uploaded_files
+  end
+end
+```
+
+If your system tests verify the deletion of a model with attachments and your
+using ActiveJob, set your test environment to use the inline queue adapter so
+the purge job is executed immediately rather at an unknown time in the future.
+
+You may also want to use a separate service definition for the test environment
+so your tests don't delete the files you create during development.
+
+``` ruby
+# Use inline job processing to make things happen immediately
+config.active_job.queue_adapter = :inline
+
+# Separate file storage in the test environment
+config.active_storage.service = :local_test
+```
 
 Add Support Additional Cloud Service
 ------------------------------------
