@@ -269,10 +269,7 @@ module ActiveSupport
         end
 
         def zones_map
-          @zones_map ||= begin
-            MAPPING.each_key { |place| self[place] } # load all the zones
-            @lazy_zones_map
-          end
+          @zones_map ||= Hash[MAPPING.keys.map { |place| [place, self[place]] }]
         end
     end
 

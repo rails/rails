@@ -729,6 +729,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_all_uninfluenced_by_time_zone_lookups_delegated_to_tzinfo
+    galapagos = ActiveSupport::TimeZone["Pacific/Galapagos"]
+    all_zones = ActiveSupport::TimeZone.all
+    assert_not_includes all_zones, galapagos
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
