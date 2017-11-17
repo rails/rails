@@ -9,14 +9,9 @@ class TimeZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   def setup
-    ActiveSupport::TimeZone.instance_variable_set(:@lazy_zones_map, Concurrent::Map.new)
-    ActiveSupport::TimeZone.instance_variable_set(:@country_zones, Concurrent::Map.new)
-    if ActiveSupport::TimeZone.instance_variable_defined?(:@zones_map)
-      ActiveSupport::TimeZone.remove_instance_variable(:@zones_map)
-    end
-    if ActiveSupport::TimeZone.instance_variable_defined?(:@zones)
-      ActiveSupport::TimeZone.remove_instance_variable(:@zones)
-    end
+    # Clear memoized time zone data on TimeZone class
+    ActiveSupport.send(:remove_const, :TimeZone) if ActiveSupport.const_defined?(:TimeZone)
+    load "active_support/values/time_zone.rb"
   end
 
   def test_utc_to_local
