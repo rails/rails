@@ -15,6 +15,7 @@ After reading this guide, you will know:
 * How to upload files directly to a service.
 * How to implement a download link.
 * How to add support for additional cloud services.
+* How to clean up files stored during testing.
 
 --------------------------------------------------------------------------------
 
@@ -51,8 +52,37 @@ you want to do transformations of a given `Blob`, the idea is that you'll simply
 create a new one, rather than attempt to mutate the existing one (though of
 course you can delete the previous version later if you don't need it).
 
+
+## Setup
+
+To setup an existing application after upgrading to Rails 5.2, run `rails active_storage:install`. If you're creating a new project with Rails 5.2, ActiveStorage will be installed by default. This generates the tables for the
+`Attachment` and `Blob` models.
+
+Inside a Rails application, you can set-up your services through the
+generated `config/storage.yml` file and reference one
+of the aforementioned constant under the +service+ key. For example:
+
+``` yaml
+  local:
+    service: Disk
+    root: <%= Rails.root.join("storage") %>
+```
+NOTE: Should we include the required keys for all the supported services?
+NOTE: Should we mention the mirror service and how to set it up?
+
+In your application's configuration, specify the service to
+use like this:
+
+``` ruby
+config.active_storage.service = :local
+```
+
+Like other configuration options, you can set this application wide, or per
+environment.
+
 Attach Files to a Model
 --------------------------
+One or more files can be attached to a model.
 
 One attachment:
 
@@ -115,6 +145,9 @@ end
 Remove File Attached to Model
 -------------------------------
 
+To remove an attachment from a model, call `purge` on the attachment. Removal
+can be done in the background if your application is setup to use ActiveJob.
+
 ```ruby
 # Synchronously destroy the avatar and actual resource files.
 user.avatar.purge
@@ -125,25 +158,37 @@ user.avatar.purge_later
 
 Link to Attachments
 ----------------------
+
+Generate a permanent URL for the blob that points to the application. Upon
+access, a redirect to the actual service endpoint is returned. This indirection
+decouples the public URL from the actual one, and allows for example mirroring
+attachments in different services for high-availability. The redirection has an
+HTTP expiration of 5 min.
+
 ```ruby
-# Generate a permanent URL for the blob that points to the application.
-# Upon access, a redirect to the actual service endpoint is returned.
-# This indirection decouples the public URL from the actual one, and
-# allows for example mirroring attachments in different services for
-# high-availability. The redirection has an HTTP expiration of 5 min.
 url_for(user.avatar)
 ```
 
 Create Variations of Attached Image
 -----------------------------------
 
+Sometimes your application will require images in a different format than
+what was uploaded. To create variation of the image, call `variant` on the Blob.
+You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
+supported transformation.
+
+When the browser hits the variant URL, ActiveStorage will lazy transform the
+original blob into the format you specified and redirect to its new service
+location.
+
 ```erb
-<%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
 <%= image_tag user.avatar.variant(resize: "100x100") %>
 ```
 
 Create Image Previews of Attachments
 ------------------------------------
+Previews can be generated from some non-image formats. ActiveStorage supports
+Previewers for videos and PDFs.
 
 ```erb
 <ul>
@@ -195,8 +240,26 @@ directly from the client to the cloud.
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
+NOTE: Is there more to using the direct upload than this? How does one associate
+the result with the form submission, or does that happen automatically?
+
 Implement Direct Download Link
 ------------------------------
 
+TODO
+
 Add Support Additional Cloud Service
 ------------------------------------
+
+ActiveStorage ships with support for Amazon S3, Google Cloud Storage, and Azure.
+If you need to support a cloud service other these, you will need to implement
+the Service. Each service extends
+[`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
+by implementing the methods necessary to upload and download files to the cloud.
+
+The easiest way to understand what's necessary is to examine the existing
+implementations.
+
+Some services are supported by community maintained gems:
+
+* [OpenStack](https://github.com/jeffreyguenther/activestorage-openstack)
