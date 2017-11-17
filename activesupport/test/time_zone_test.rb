@@ -8,6 +8,17 @@ require "yaml"
 class TimeZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
+  def setup
+    ActiveSupport::TimeZone.instance_variable_set(:@lazy_zones_map, Concurrent::Map.new)
+    ActiveSupport::TimeZone.instance_variable_set(:@country_zones, Concurrent::Map.new)
+    if ActiveSupport::TimeZone.instance_variable_defined?(:@zones_map)
+      ActiveSupport::TimeZone.remove_instance_variable(:@zones_map)
+    end
+    if ActiveSupport::TimeZone.instance_variable_defined?(:@zones)
+      ActiveSupport::TimeZone.remove_instance_variable(:@zones)
+    end
+  end
+
   def test_utc_to_local
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
