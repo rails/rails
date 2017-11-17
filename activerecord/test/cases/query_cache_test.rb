@@ -452,6 +452,15 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_query_cache_is_enabled_on_all_connection_pools
+    middleware {
+      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
+        assert pool.query_cache_enabled
+        assert pool.connection.query_cache_enabled
+      end
+    }.call({})
+  end
+
   private
     def middleware(&app)
       executor = Class.new(ActiveSupport::Executor)

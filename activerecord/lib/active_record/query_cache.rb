@@ -26,16 +26,19 @@ module ActiveRecord
     end
 
     def self.run
-      caching_pool = ActiveRecord::Base.connection_pool
-      caching_was_enabled = caching_pool.query_cache_enabled
+      ActiveRecord::Base.connection_handler.connection_pool_list.map do |pool|
+        caching_was_enabled = pool.query_cache_enabled
 
-      caching_pool.enable_query_cache!
+        pool.enable_query_cache!
 
-      [caching_pool, caching_was_enabled]
+        [pool, caching_was_enabled]
+      end
     end
 
-    def self.complete((caching_pool, caching_was_enabled))
-      caching_pool.disable_query_cache! unless caching_was_enabled
+    def self.complete(caching_pools)
+      caching_pools.each do |pool, caching_was_enabled|
+        pool.disable_query_cache! unless caching_was_enabled
+      end
 
       ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
         pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
