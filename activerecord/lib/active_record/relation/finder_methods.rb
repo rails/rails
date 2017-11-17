@@ -108,6 +108,20 @@ module ActiveRecord
       take || raise_record_not_found_exception!
     end
 
+    # Find a single record. If more than one record is found, raise
+    # ActiveRecord::MultipleRecords.
+    def one
+      result, extra = take(2)
+      raise MultipleRecords.new("Multiple #{@klass.name} were found with [#{arel.where_sql(@klass.arel_engine)}]") if extra
+      result
+    end
+
+    # Same as #one but raises ActiveRecord::RecordNotFound if no record
+    # is found.
+    def one!
+      one or raise RecordNotFound.new("Couldn't find #{@klass.name} with [#{arel.where_sql(@klass.arel_engine)}]")
+    end
+
     # Find the first record (or first N records if a parameter is supplied).
     # If no order is defined it will order by primary key.
     #
