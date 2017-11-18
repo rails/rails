@@ -1,3 +1,9 @@
+*   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
+
+    Fixes #31120.
+    
+    *kinnrot*
+
 ## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Add new error class `QueryCanceled` which will be raised
