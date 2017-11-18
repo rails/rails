@@ -354,7 +354,8 @@ end
 ```
 
 will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
-(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
+(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`, which will be prepended
+to the `:options` option unless it alredy contains `ENGINE=` in it).
 
 Also you can pass the `:comment` option with any description for the table
 that will be stored in database itself and can be viewed with database administration
