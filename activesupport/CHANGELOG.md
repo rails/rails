@@ -1,3 +1,10 @@
+*   Support `expires_in` in `ActiveSupport::Cache::MemCacheStore#increment` and `#decrement`
+
+    `expires_in` option of `MemCacheStore` is now correctly passed to `Dalli::Client`
+    as `ttl`.
+
+    *Takumasa Ochi*
+
 *   Handle `TZInfo::AmbiguousTime` errors
 
     Make `ActiveSupport::TimeWithZone` match Ruby's handling of ambiguous
