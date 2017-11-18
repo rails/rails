@@ -57,6 +57,22 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_increment_expires_in
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
+    cache.clear
+    assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
+      cache.increment("foo", 1, expires_in: 60)
+    end
+  end
+
+  def test_decrement_expires_in
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
+    cache.clear
+    assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
+      cache.decrement("foo", 1, expires_in: 60)
+    end
+  end
+
   def test_local_cache_raw_values_with_marshal
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear

@@ -1,3 +1,16 @@
+*   MemCacheStore: Support expiring counters.
+
+    Pass `expires_in: [seconds]` to `#increment` and `#decrement` options
+    to set the Memcached TTL (time-to-live) if the counter doesn't exist.
+    If the counter exists, Memcached doesn't extend its expiry when it's
+    incremented or decremented.
+
+    ```
+    Rails.cache.increment("my_counter", 1, expires_in: 2.minutes)
+    ```
+
+    *Takumasa Ochi*
+
 *   Handle `TZInfo::AmbiguousTime` errors
 
     Make `ActiveSupport::TimeWithZone` match Ruby's handling of ambiguous
