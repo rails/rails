@@ -303,7 +303,7 @@ module ActiveSupport
           keys_to_names = names.map { |name| [ normalize_key(name, options), name ] }.to_h
           values = redis.mget(*keys_to_names.keys)
 
-          keys_to_names.zip(values).each_with_object({}) do |((key, name), value), results|
+          keys_to_names.zip(values).each_with_object({}) do |((_, name), value), results|
             if value
               entry = deserialize_entry(value)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
