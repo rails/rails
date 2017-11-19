@@ -27,7 +27,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
   test "attach new blob from an UploadedFile" do
     file = file_fixture "racecar.jpg"
-    @user.avatar.attach Rack::Test::UploadedFile.new file
+    @user.avatar.attach Rack::Test::UploadedFile.new file.to_s
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
