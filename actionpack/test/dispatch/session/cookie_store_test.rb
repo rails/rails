@@ -283,8 +283,6 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     with_test_route_set(expire_after: 5.hours) do
       # First request accesses the session
       time = Time.local(2008, 4, 24)
-      cookie_body = nil
-
       Time.stub :now, time do
         expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
 
@@ -302,6 +300,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
       time = Time.local(2008, 4, 25)
       Time.stub :now, time do
         expected_expiry = (time + 5.hours).gmtime.strftime("%a, %d %b %Y %H:%M:%S -0000")
+
+        cookies[SessionKey] = SignedBar
 
         get "/no_session_access"
         assert_response :success
