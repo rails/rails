@@ -300,10 +300,10 @@ module ActiveSupport
           options = names.extract_options!
           options = merged_options(options)
 
-          keys_to_names = names.map { |name| [ normalize_key(name, options), name ] }.to_h
-          values = redis.mget(*keys_to_names.keys)
+          keys = names.map { |name| normalize_key(name, options) }
+          values = redis.mget(*keys)
 
-          keys_to_names.zip(values).each_with_object({}) do |((_, name), value), results|
+          names.zip(values).each_with_object({}) do |(name, value), results|
             if value
               entry = deserialize_entry(value)
               unless entry.nil? || entry.expired? || entry.mismatched?(normalize_version(name, options))
