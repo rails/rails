@@ -338,8 +338,8 @@ Clean up Stored Files Store During System Tests
 System tests clean up test data by rolling back a transaction. Because destroy
 is never called on an object, the attached files are never cleaned up. If you
 want to clear the files, you can do it in an `after_teardown` callback. Doing it
-here ensures that all connections to created during the test are complete and
-you won't get an error from ActiveStorage saying it can't find a file.
+here ensures that all connections created during the test are complete and
+you won't receive an error from ActiveStorage saying it can't find a file.
 
 ``` ruby
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
