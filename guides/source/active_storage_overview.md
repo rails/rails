@@ -3,83 +3,165 @@
 Active Storage
 ==============
 
-This guide covers how to attach files to your ActiveRecord models.
+This guide covers how to attach files to your Active Record models.
 
 After reading this guide, you will know:
 
-* How to attach a file(s) to a model.
-* How to remove the attached file.
-* How to link to the attached file.
-* How to create variations of an image.
-* How to generate a preview for files other than images.
-* How to upload files directly to a service.
-* How to implement a download link.
-* How to add support for additional cloud services.
+* How to attach one or many files to a record.
+* How to delete an attached file.
+* How to link to an attached file.
+* How to use variants to transform images.
+* How to generate an image representation of a non-image file, such as a PDF or a video.
+* How to send file uploads directly from browsers to a storage service,
+  bypassing your application servers.
+* How to implement support for additional storage services.
 * How to clean up files stored during testing.
 
 --------------------------------------------------------------------------------
 
-Active Storage makes it simple to upload and reference files in cloud services
-like Amazon S3, Google Cloud Storage, or Microsoft Azure Storage, and attach
-those files to Active Records. Supports having one main service and mirrors in
-other services for redundancy. It also provides a disk service for testing or
-local deployments, but the focus is on cloud storage.
+What is Active Storage?
+-----------------------
 
-Files can be uploaded from the server to the cloud or directly from the client
-to the cloud.
+Active Storage facilitates uploading files to a cloud storage service like
+Amazon S3, Google Cloud Storage, or Microsoft Azure Storage and attaching those
+files to Active Record objects. It comes with a local disk-based service for
+development and testing and supports mirroring files to subordinate services for
+backups and migrations.
 
-Image files can furthermore be transformed using on-demand variants for quality,
-aspect ratio, size, or any other
-[MiniMagick](https://github.com/minimagick/minimagick) supported transformation.
-
-## Compared to other storage solutions
-
-A key difference to how Active Storage works compared to other attachment
-solutions in Rails is through the use of built-in
-[Blob](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/blob.rb)
-and
-[Attachment](https://github.com/rails/rails/blob/master/activestorage/app/models/active_storage/attachment.rb)
-models (backed by Active Record). This means existing application models do not
-need to be modified with additional columns to associate with files. Active
-Storage uses polymorphic associations via the `Attachment` join model, which
-then connects to the actual `Blob`.
-
-`Blob` models store attachment metadata (filename, content-type, etc.), and
-their identifier key in the storage service. Blob models do not store the actual
-binary data. They are intended to be immutable in spirit. One file, one blob.
-You can associate the same blob with multiple application models as well. And if
-you want to do transformations of a given `Blob`, the idea is that you'll simply
-create a new one, rather than attempt to mutate the existing one (though of
-course you can delete the previous version later if you don't need it).
-
+Using Active Storage, an application can transform image uploads with
+[ImageMagick](https://www.imagemagick.org), generate image representations of
+non-image uploads like PDFs and videos, and extract metadata from arbitrary
+files.
 
 ## Setup
 
-To setup an existing application after upgrading to Rails 5.2, run `rails active_storage:install`. If you're creating a new project with Rails 5.2, ActiveStorage will be installed by default. This generates the tables for the
-`Attachment` and `Blob` models.
+To setup an existing application after upgrading to Rails 5.2, run `rails
+active_storage:install`. If you're creating a new project with Rails 5.2,
+ActiveStorage will be installed by default. Installation generates a migration
+to add the tables needed to store attachments.
 
-Inside a Rails application, you can set-up your services through the
-generated `config/storage.yml` file and reference one
-of the aforementioned constant under the +service+ key. For example:
+If you wish to transform your images, add `mini_magick` to your Gemfile:
+
+``` ruby
+gem 'mini_magick'
+```
+
+Inside a Rails application, you can set up your services through the generated
+`config/storage.yml` file and reference one of the supported service types under
+the `service` key.
+
+### Disk Service
+To use the Disk service:
 
 ``` yaml
-  local:
-    service: Disk
-    root: <%= Rails.root.join("storage") %>
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
 ```
-NOTE: Should we include the required keys for all the supported services?
-NOTE: Should we mention the mirror service and how to set it up?
 
-In your application's configuration, specify the service to
-use like this:
+### Amazon S3 Service
+
+To use Amazon S3:
+``` yaml
+local:
+  service: S3
+  access_key_id: ""
+  secret_access_key: ""
+  region: ""
+  bucket: ""
+```
+Also, add the S3 client gem to your Gemfile:
+
+``` ruby
+gem "aws-sdk-s3", require: false
+```
+### Microsoft Azure Storage Service
+
+To use Microsoft Azure Storage:
+
+``` yaml
+local:
+  service: AzureStorage
+  path: ""
+  storage_account_name: ""
+  storage_access_key: ""
+  container: ""
+```
+
+Also, add the Microsoft Azure Storage client gem to your Gemfile:
+
+``` ruby
+gem "azure-storage", require: false
+```
+
+### Google Cloud Storage Service
+
+To use Google Cloud Storage:
+
+``` yaml
+local:
+  service: GCS
+  keyfile: {
+    type: "service_account",
+    project_id: "",
+    private_key_id: "",
+    private_key: "",
+    client_email: "",
+    client_id: "",
+    auth_uri: "https://accounts.google.com/o/oauth2/auth",
+    token_uri: "https://accounts.google.com/o/oauth2/token",
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+    client_x509_cert_url: ""
+  }
+  project: ""
+  bucket: ""
+```
+
+Also, add the S3 client gem to your Gemfile:
+
+``` ruby
+gem "google-cloud-storage", "~> 1.3", require: false
+```
+
+### Mirror Service
+
+You can keep multiple services in sync by defining a mirror service. When
+a file is uploaded or deleted, it's done across all the mirrored services.
+Define each of the services you'd like to use as described above and then define
+a mirrored service which references them.
+
+``` yaml
+s3_west_coast:
+  service: S3
+  access_key_id: ""
+  secret_access_key: ""
+  region: ""
+  bucket: ""
+
+s3_east_coast:
+  service: S3
+  access_key_id: ""
+  secret_access_key: ""
+  region: ""
+  bucket: ""
+
+production:
+  service: Mirror
+  primary: s3_east_coast
+  mirrors:
+    - s3_west_coast
+```
+
+In your application's configuration, specify the service to use like this:
 
 ``` ruby
 config.active_storage.service = :local
 ```
 
-Like other configuration options, you can set the service application wide, or per
-environment. For example, you might want development and test to use the Disk
-service instead of a cloud service.
+Like other configuration options, you can set the service application wide in
+`application.rb`, or per environment in `config/environments/{environment}.rb`.
+For example, you might want development and test to use the Disk service instead
+of a cloud service.
 
 Attach Files to a Model
 --------------------------
@@ -148,6 +230,7 @@ Remove File Attached to Model
 
 To remove an attachment from a model, call `purge` on the attachment. Removal
 can be done in the background if your application is setup to use ActiveJob.
+Purging deletes the blob and the file from the storage service.
 
 ```ruby
 # Synchronously destroy the avatar and actual resource files.
