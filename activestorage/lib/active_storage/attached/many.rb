@@ -20,7 +20,11 @@ module ActiveStorage
     #   document.images.attach([ first_blob, second_blob ])
     def attach(*attachables)
       attachables.flatten.collect do |attachable|
-        attachments.create!(name: name, blob: create_blob_from(attachable))
+        if record.new_record?
+          attachments.build(record: record, blob: create_blob_from(attachable))
+        else
+          attachments.create!(record: record, blob: create_blob_from(attachable))
+        end
       end
     end
 

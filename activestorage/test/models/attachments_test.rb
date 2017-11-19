@@ -56,6 +56,26 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
   end
 
+  test "attach blob to new record" do
+    user = User.new(name: "Jason")
+
+    assert_no_changes -> { user.new_record? } do
+      assert_no_difference -> { ActiveStorage::Attachment.count } do
+        user.avatar.attach create_blob(filename: "funky.jpg")
+      end
+    end
+
+    assert user.avatar.attached?
+    assert_equal "funky.jpg", user.avatar.filename.to_s
+
+    assert_difference -> { ActiveStorage::Attachment.count }, +1 do
+      user.save!
+    end
+
+    assert user.reload.avatar.attached?
+    assert_equal "funky.jpg", user.avatar.filename.to_s
+  end
+
   test "access underlying associations of new blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal @user, @user.avatar_attachment.record
@@ -158,6 +178,30 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attach blobs to new record" do
+    user = User.new(name: "Jason")
+
+    assert_no_changes -> { user.new_record? } do
+      assert_no_difference -> { ActiveStorage::Attachment.count } do
+        user.highlights.attach(
+          { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
+          { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" })
+      end
+    end
+
+    assert user.highlights.attached?
+    assert_equal "town.jpg", user.highlights.first.filename.to_s
+    assert_equal "country.jpg", user.highlights.second.filename.to_s
+
+    assert_difference -> { ActiveStorage::Attachment.count }, +2 do
+      user.save!
+    end
+
+    assert user.reload.highlights.attached?
+    assert_equal "town.jpg", user.highlights.first.filename.to_s
+    assert_equal "country.jpg", user.highlights.second.filename.to_s
   end
 
   test "find attached blobs" do

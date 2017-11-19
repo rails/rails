@@ -23,7 +23,7 @@ module ActiveStorage
       if attached? && dependent == :purge_later
         replace attachable
       else
-        write_attachment create_attachment_from(attachable)
+        write_attachment build_attachment_from(attachable)
       end
     end
 
@@ -67,13 +67,13 @@ module ActiveStorage
         blob.tap do
           transaction do
             detach
-            write_attachment create_attachment_from(attachable)
+            write_attachment build_attachment_from(attachable)
           end
         end.purge_later
       end
 
-      def create_attachment_from(attachable)
-        ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
+      def build_attachment_from(attachable)
+        ActiveStorage::Attachment.new(record: record, name: name, blob: create_blob_from(attachable))
       end
 
       def write_attachment(attachment)
