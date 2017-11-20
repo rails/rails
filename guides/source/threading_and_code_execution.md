@@ -57,7 +57,7 @@ In a default Rails application, the Executor callbacks are used to:
 Prior to Rails 5.0, some of these were handled by separate Rack middleware
 classes (such as `ActiveRecord::ConnectionAdapters::ConnectionManagement`), or
 directly wrapping code with methods like
-`ActiveRecord::Base.connection_pool.with_connection do`. The Executor replaces
+`ActiveRecord::Base.connection_pool.with_connection`. The Executor replaces
 these with a single more abstract interface.
 
 ### Wrapping application code
@@ -93,7 +93,7 @@ with an `executor` option. Despite the name, it is unrelated.
 The Executor is safely re-entrant; if it is already active on the current
 thread, `wrap` is a no-op.
 
-If it's impractical to physically wrap the application code in a block (for
+If it's impractical to wrap the application code in a block (for
 example, the Rack API makes this problematic), you can also use the `run!` /
 `complete!` pair:
 
@@ -266,7 +266,7 @@ end
 To prevent this deadlock, the outer thread can `permit_concurrent_loads`. By
 calling this method, the thread guarantees it will not dereference any
 possibly-autoloaded constant inside the supplied block. The safest way to meet
-that promise is to put it as close as possible to the blocking call only:
+that promise is to put it as close as possible to the blocking call:
 
 ```ruby
 Rails.application.executor.wrap do
