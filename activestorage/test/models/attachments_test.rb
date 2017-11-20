@@ -76,6 +76,20 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", user.avatar.filename.to_s
   end
 
+  test "build new record with attached blob" do
+    assert_no_difference -> { ActiveStorage::Attachment.count } do
+      @user = User.new(name: "Jason", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" })
+    end
+
+    assert @user.new_record?
+    assert @user.avatar.attached?
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+
+    @user.save!
+    assert @user.reload.avatar.attached?
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+  end
+
   test "access underlying associations of new blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
     assert_equal @user, @user.avatar_attachment.record
@@ -202,6 +216,24 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert user.reload.highlights.attached?
     assert_equal "town.jpg", user.highlights.first.filename.to_s
     assert_equal "country.jpg", user.highlights.second.filename.to_s
+  end
+
+  test "build new record with attached blobs" do
+    assert_no_difference -> { ActiveStorage::Attachment.count } do
+      @user = User.new(name: "Jason", highlights: [
+        { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" },
+        { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" }])
+    end
+
+    assert @user.new_record?
+    assert @user.highlights.attached?
+    assert_equal "town.jpg", @user.highlights.first.filename.to_s
+    assert_equal "country.jpg", @user.highlights.second.filename.to_s
+
+    @user.save!
+    assert @user.reload.highlights.attached?
+    assert_equal "town.jpg", @user.highlights.first.filename.to_s
+    assert_equal "country.jpg", @user.highlights.second.filename.to_s
   end
 
   test "find attached blobs" do
