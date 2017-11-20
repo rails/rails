@@ -5,6 +5,8 @@
 # Always go through the BlobsController, or your own authenticated controller, rather than directly
 # to the service url.
 class ActiveStorage::DiskController < ActionController::Base
+  skip_forgery_protection
+
   def show
     if key = decode_verified_key
       send_data disk_service.download(key),
