@@ -8,12 +8,6 @@ require "yaml"
 class TimeZoneTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
-  def setup
-    # Clear memoized time zone data on TimeZone class
-    ActiveSupport.send(:remove_const, :TimeZone) if ActiveSupport.const_defined?(:TimeZone)
-    load "active_support/values/time_zone.rb"
-  end
-
   def test_utc_to_local
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     assert_equal Time.utc(1999, 12, 31, 19), zone.utc_to_local(Time.utc(2000, 1)) # standard offset -0500
@@ -725,6 +719,7 @@ class TimeZoneTest < ActiveSupport::TestCase
   end
 
   def test_all_uninfluenced_by_time_zone_lookups_delegated_to_tzinfo
+    ActiveSupport::TimeZone.clear
     galapagos = ActiveSupport::TimeZone["Pacific/Galapagos"]
     all_zones = ActiveSupport::TimeZone.all
     assert_not_includes all_zones, galapagos
