@@ -254,7 +254,7 @@ url_for(user.avatar)
 ```
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
-helper will allow you to set the filename and disposition.
+helper will allow you to set disposition.
 
 ```ruby
 rails_blob_path(user.avatar, disposition: "attachment")
