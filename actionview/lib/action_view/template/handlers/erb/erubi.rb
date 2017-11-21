@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "erubi"
+require "erubi/capture_end"
 
 module ActionView
   class Template
     module Handlers
       class ERB
-        class Erubi < ::Erubi::Engine
+        class Erubi < ::Erubi::CaptureEndEngine
           # :nodoc: all
           def initialize(input, properties = {})
             @newline_pending = 0
