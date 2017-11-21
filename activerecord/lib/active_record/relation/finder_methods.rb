@@ -284,7 +284,7 @@ module ActiveRecord
     # * Hash - Finds the record that matches these +find+-style conditions
     #   (such as <tt>{name: 'David'}</tt>).
     # * +false+ - Returns always +false+.
-    # * No args - Returns +false+ if the table is empty, +true+ otherwise.
+    # * No args - Returns +false+ if the relation is empty, +true+ otherwise.
     #
     # For more information about specifying conditions as a hash or array,
     # see the Conditions section in the introduction to ActiveRecord::Base.
@@ -300,6 +300,7 @@ module ActiveRecord
     #   Person.exists?(name: 'David')
     #   Person.exists?(false)
     #   Person.exists?
+    #   Person.where(name: 'Spartacus', rating: 4).exists?
     def exists?(conditions = :none)
       if Base === conditions
         raise ArgumentError, <<-MSG.squish

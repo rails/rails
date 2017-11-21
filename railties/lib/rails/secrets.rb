@@ -32,21 +32,8 @@ module Rails
         end
       end
 
-      def generate_key
-        SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
-      end
-
       def key
         ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
-      end
-
-      def template
-        <<-end_of_template.strip_heredoc
-          # See `secrets.yml` for tips on generating suitable keys.
-          # production:
-          #   external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289
-
-        end_of_template
       end
 
       def encrypt(data)
@@ -68,10 +55,6 @@ module Rails
 
       def read_for_editing(&block)
         writing(read, &block)
-      end
-
-      def read_template_for_editing(&block)
-        writing(template, &block)
       end
 
       private

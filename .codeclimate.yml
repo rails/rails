@@ -1,7 +1,7 @@
 engines:
   rubocop:
     enabled: true
-    channel: rubocop-0-50
+    channel: rubocop-0-51
 
 ratings:
   paths:

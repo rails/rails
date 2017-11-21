@@ -159,6 +159,11 @@
       url: engines.html
       description: This guide explains how to write a mountable engine.
       work_in_progress: true
+    -
+      name: Threading and Code Execution in Rails
+      url: threading_and_code_execution.html
+      description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
+      work_in_progress: true
 -
   name: Contributing to Ruby on Rails
   documents:

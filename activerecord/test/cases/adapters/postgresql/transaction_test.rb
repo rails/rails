@@ -91,6 +91,63 @@ module ActiveRecord
       end
     end
 
+    test "raises TransactionTimeout when lock wait timeout exceeded" do
+      skip unless ActiveRecord::Base.connection.postgresql_version >= 90300
+      assert_raises(ActiveRecord::TransactionTimeout) do
+        s = Sample.create!(value: 1)
+        latch1 = Concurrent::CountDownLatch.new
+        latch2 = Concurrent::CountDownLatch.new
+
+        thread = Thread.new do
+          Sample.transaction do
+            Sample.lock.find(s.id)
+            latch1.count_down
+            latch2.wait
+          end
+        end
+
+        begin
+          Sample.transaction do
+            latch1.wait
+            Sample.connection.execute("SET lock_timeout = 1")
+            Sample.lock.find(s.id)
+          end
+        ensure
+          Sample.connection.execute("SET lock_timeout = DEFAULT")
+          latch2.count_down
+          thread.join
+        end
+      end
+    end
+
+    test "raises StatementTimeout when statement timeout exceeded" do
+      assert_raises(ActiveRecord::StatementTimeout) do
+        s = Sample.create!(value: 1)
+        latch1 = Concurrent::CountDownLatch.new
+        latch2 = Concurrent::CountDownLatch.new
+
+        thread = Thread.new do
+          Sample.transaction do
+            Sample.lock.find(s.id)
+            latch1.count_down
+            latch2.wait
+          end
+        end
+
+        begin
+          Sample.transaction do
+            latch1.wait
+            Sample.connection.execute("SET statement_timeout = 1")
+            Sample.lock.find(s.id)
+          end
+        ensure
+          Sample.connection.execute("SET statement_timeout = DEFAULT")
+          latch2.count_down
+          thread.join
+        end
+      end
+    end
+
     private
 
       def with_warning_suppression

@@ -161,6 +161,15 @@ module ActiveRecord
       end
     end
 
+    class UpOnlyMigration < SilentMigration
+      def change
+        add_column :horses, :oldie, :integer, default: 0
+        up_only { execute "update horses set oldie = 1" }
+      end
+    end
+
+    self.use_transactional_tests = false
+
     setup do
       @verbose_was, ActiveRecord::Migration.verbose = ActiveRecord::Migration.verbose, false
     end
@@ -377,6 +386,24 @@ module ActiveRecord
         assert !connection.index_exists?(:horses, :content, name: "horses_index_named"),
               "horses_index_named index should not exist"
       end
+    end
+
+    def test_up_only
+      InvertibleMigration.new.migrate(:up)
+      horse1 = Horse.create
+      # populates existing horses with oldie = 1 but new ones have default 0
+      UpOnlyMigration.new.migrate(:up)
+      Horse.reset_column_information
+      horse1.reload
+      horse2 = Horse.create
+
+      assert 1, horse1.oldie # created before migration
+      assert 0, horse2.oldie # created after migration
+
+      UpOnlyMigration.new.migrate(:down) # should be no error
+      connection = ActiveRecord::Base.connection
+      assert !connection.column_exists?(:horses, :oldie)
+      Horse.reset_column_information
     end
   end
 end

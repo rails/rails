@@ -973,7 +973,7 @@ By default Rails ships with three environments: "development", "test", and "prod
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
 ### Deploy to a subdirectory (relative url root)
@@ -1057,7 +1057,7 @@ After loading the framework and any gems in your application, Rails turns to loa
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
-TIP: If you have any ordering dependency in your initializers, you can control the load order through naming. Initializer files are loaded in alphabetical order by their path. For example, `01_critical.rb` will be loaded before `02_normal.rb`.
+TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that need to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
 
 Initialization events
 ---------------------

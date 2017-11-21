@@ -1,3 +1,7 @@
+*   Deprecate `after_bundle` callback in Rails plugin templates.
+
+    *Yuji Yaginuma*
+
 *   `rails new` and `rails plugin new` get `Active Storage` by default.
      Add ability to skip `Active Storage` with `--skip-active-storage`
      and do so automatically when `--skip-active-record` is used.

@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_model/attributes"
 
 class AttributesDirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Model
     include ActiveModel::Attributes
+    include ActiveModel::Dirty
     attribute :name, :string
     attribute :color, :string
     attribute :size, :integer
@@ -69,12 +69,10 @@ class AttributesDirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam".dup)
+    @model.name = "Yam"
+    @model.save
     assert !@model.name_changed?
     @model.name.replace("Hadad")
-    assert !@model.name_changed?
-    @model.name_will_change!
-    @model.name.replace("Baal")
     assert @model.name_changed?
   end
 
@@ -189,5 +187,19 @@ class AttributesDirtyTest < ActiveModel::TestCase
     assert @model.changed?
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
+  end
+
+  test "changing the attribute reports a change only when the cast value changes" do
+    @model.size = "2.3"
+    @model.save
+    @model.size = "2.1"
+
+    assert_equal false, @model.changed?
+
+    @model.size = "5.1"
+
+    assert_equal true, @model.changed?
+    assert_equal true, @model.size_changed?
+    assert_equal({ "size" => [2, 5] }, @model.changes)
   end
 end

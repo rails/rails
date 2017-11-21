@@ -32,6 +32,10 @@ module ActiveStorage
         def #{name}
           @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
         end
+
+        def #{name}=(attachable)
+          #{name}.attach(attachable)
+        end
       CODE
 
       has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record
@@ -72,6 +76,10 @@ module ActiveStorage
       class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
           @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+        end
+
+        def #{name}=(attachables)
+          #{name}.attach(attachables)
         end
       CODE
 

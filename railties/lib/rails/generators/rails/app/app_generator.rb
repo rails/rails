@@ -159,23 +159,19 @@ module Rails
     end
 
     def master_key
-      return if options[:pretend]
+      return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/master_key/master_key_generator"
-
-      after_bundle do
-        Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet]).add_master_key_file
-      end
+      master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet])
+      master_key_generator.add_master_key_file_silently
+      master_key_generator.ignore_master_key_file_silently
     end
 
     def credentials
-      return if options[:pretend]
+      return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/credentials/credentials_generator"
-
-      after_bundle do
-        Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
-      end
+      Rails::Generators::CredentialsGenerator.new([], quiet: options[:quiet]).add_credentials_file_silently
     end
 
     def database_yml

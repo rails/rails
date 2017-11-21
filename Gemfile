@@ -6,8 +6,6 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "arel", github: "rails/arel"
-
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
@@ -19,7 +17,7 @@ gem "capybara", "~> 2.15"
 
 gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
-gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
+gem "sass-rails"
 gem "turbolinks", "~> 5"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -57,7 +55,7 @@ gem "bootsnap", ">= 1.1.0", require: false
 # Active Job.
 group :job do
   gem "resque", require: false
-  gem "resque-scheduler", github: "jeremy/resque-scheduler", branch: "redis-rb-4.0", require: false
+  gem "resque-scheduler", github: "resque/resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false

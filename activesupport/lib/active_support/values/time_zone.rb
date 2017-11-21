@@ -30,7 +30,7 @@ module ActiveSupport
   class TimeZone
     # Keys are Rails TimeZone names, values are TZInfo identifiers.
     MAPPING = {
-      "International Date Line West" => "Pacific/Midway",
+      "International Date Line West" => "Etc/GMT+12",
       "Midway Island"                => "Pacific/Midway",
       "American Samoa"               => "Pacific/Pago_Pago",
       "Hawaii"                       => "Pacific/Honolulu",
@@ -506,7 +506,7 @@ module ActiveSupport
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
     def period_for_local(time, dst = true)
-      tzinfo.period_for_local(time, dst)
+      tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
     def periods_for_local(time) #:nodoc:

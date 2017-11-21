@@ -671,6 +671,16 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
+If you want to use a headless browser, you could use Headless Chrome by adding `headless_chrome` in the `:using` argument.
+
+```ruby
+require "test_helper"
+
+class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+end
+```
+
 If your Capybara configuration requires more setup than provided by Rails, this
 additional configuration could be added into the `application_system_test_case.rb`
 file.

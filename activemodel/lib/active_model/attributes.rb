@@ -1,24 +1,29 @@
 # frozen_string_literal: true
 
-require "active_model/type"
+require "active_support/core_ext/object/deep_dup"
+require "active_model/attribute_set"
+require "active_model/attribute/user_provided_default"
 
 module ActiveModel
   module Attributes #:nodoc:
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
-    include ActiveModel::Dirty
 
     included do
       attribute_method_suffix "="
       class_attribute :attribute_types, :_default_attributes, instance_accessor: false
-      self.attribute_types = {}
-      self._default_attributes = {}
+      self.attribute_types = Hash.new(Type.default_value)
+      self._default_attributes = AttributeSet.new({})
     end
 
     module ClassMethods
-      def attribute(name, cast_type = Type::Value.new, **options)
-        self.attribute_types = attribute_types.merge(name.to_s => cast_type)
-        self._default_attributes = _default_attributes.merge(name.to_s => options[:default])
+      def attribute(name, type = Type::Value.new, **options)
+        name = name.to_s
+        if type.is_a?(Symbol)
+          type = ActiveModel::Type.lookup(type, **options.except(:default))
+        end
+        self.attribute_types = attribute_types.merge(name => type)
+        define_default_attribute(name, options.fetch(:default, NO_DEFAULT_PROVIDED), type)
         define_attribute_methods(name)
       end
 
@@ -37,11 +42,29 @@ module ActiveModel
             undef_method :__temp__#{safe_name}=
           STR
         end
+
+        NO_DEFAULT_PROVIDED = Object.new # :nodoc:
+        private_constant :NO_DEFAULT_PROVIDED
+
+        def define_default_attribute(name, value, type)
+          self._default_attributes = _default_attributes.deep_dup
+          if value == NO_DEFAULT_PROVIDED
+            default_attribute = _default_attributes[name].with_type(type)
+          else
+            default_attribute = Attribute::UserProvidedDefault.new(
+              name,
+              value,
+              type,
+              _default_attributes.fetch(name.to_s) { nil },
+            )
+          end
+          _default_attributes[name] = default_attribute
+        end
     end
 
     def initialize(*)
+      @attributes = self.class._default_attributes.deep_dup
       super
-      clear_changes_information
     end
 
     private
@@ -53,21 +76,17 @@ module ActiveModel
           attr_name.to_s
         end
 
-        cast_type = self.class.attribute_types[name]
-
-        deserialized_value = ActiveModel::Type.lookup(cast_type).cast(value)
-        attribute_will_change!(name) unless deserialized_value == attribute(name)
-        instance_variable_set("@#{name}", deserialized_value)
-        deserialized_value
+        @attributes.write_from_user(name, value)
+        value
       end
 
-      def attribute(name)
-        if instance_variable_defined?("@#{name}")
-          instance_variable_get("@#{name}")
+      def attribute(attr_name)
+        name = if self.class.attribute_alias?(attr_name)
+          self.class.attribute_alias(attr_name).to_s
         else
-          default = self.class._default_attributes[name]
-          default.respond_to?(:call) ? default.call : default
+          attr_name.to_s
         end
+        @attributes.fetch_value(name)
       end
 
       # Handle *= for method_missing.

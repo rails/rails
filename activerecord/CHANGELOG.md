@@ -1,3 +1,49 @@
+*   Add `#up_only` to database migrations for code that is only relevant when
+    migrating up, e.g. populating a new column.
+
+    *Rich Daley*
+
+*   Require raw SQL fragments to be explicitly marked when used in
+    relation query methods.
+
+    Before:
+    ```
+    Article.order("LENGTH(title)")
+    ```
+
+    After:
+    ```
+    Article.order(Arel.sql("LENGTH(title)"))
+    ```
+
+    This prevents SQL injection if applications use the [strongly
+    discouraged] form `Article.order(params[:my_order])`, under the
+    mistaken belief that only column names will be accepted.
+
+    Raw SQL strings will now cause a deprecation warning, which will
+    become an UnknownAttributeReference error in Rails 6.0. Applications
+    can opt in to the future behavior by setting `allow_unsafe_raw_sql`
+    to `:disabled`.
+
+    Common and judged-safe string values (such as simple column
+    references) are unaffected:
+    ```
+    Article.order("title DESC")
+    ```
+
+    *Ben Toews*
+
+*   `update_all` will now pass its values to `Type#cast` before passing them to
+    `Type#serialize`. This means that `update_all(foo: 'true')` will properly
+    persist a boolean.
+
+    *Sean Griffin*
+
+*   Add new error class `StatementTimeout` which will be raised
+    when statement timeout exceeded.
+
+    *Ryuta Kamizono*
+
 *   Fix `bin/rails db:migrate` with specified `VERSION`.
     `bin/rails db:migrate` with empty VERSION behaves as without `VERSION`.
     Check a format of `VERSION`: Allow a migration version number
@@ -144,8 +190,8 @@
 
     *Jeremy Green*
 
-*   Add new error class `TransactionTimeout` for MySQL adapter which will be raised
-    when lock wait time expires.
+*   Add new error class `TransactionTimeout` which will be raised
+    when lock wait timeout exceeded.
 
     *Gabriel Courtemanche*
 

@@ -1251,6 +1251,25 @@ class FormOptionsHelperTest < ActionView::TestCase
                  html
   end
 
+  def test_time_zone_select_with_priority_zones_and_errors
+    @firm = Firm.new("D")
+    @firm.extend ActiveModel::Validations
+    @firm.errors[:time_zone] << "invalid"
+    zones = [ ActiveSupport::TimeZone.new("A"), ActiveSupport::TimeZone.new("D") ]
+    html = time_zone_select("firm", "time_zone", zones)
+    assert_dom_equal "<div class=\"field_with_errors\">" \
+                 "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
+                 "<option value=\"A\">A</option>\n" \
+                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
+                 "<option value=\"B\">B</option>\n" \
+                 "<option value=\"C\">C</option>\n" \
+                 "<option value=\"E\">E</option>" \
+                 "</select>" \
+                 "</div>",
+                 html
+  end
+
   def test_time_zone_select_with_default_time_zone_and_nil_value
     @firm = Firm.new()
     @firm.time_zone = nil

@@ -205,6 +205,14 @@ module ActiveRecord
         end.join
       end
 
+      def test_checkout_order_is_lifo
+        conn1 = @pool.checkout
+        conn2 = @pool.checkout
+        @pool.checkin conn1
+        @pool.checkin conn2
+        assert_equal [conn2, conn1], 2.times.map { @pool.checkout }
+      end
+
       # The connection pool is "fair" if threads waiting for
       # connections receive them in the order in which they began
       # waiting.  This ensures that we don't timeout one HTTP request

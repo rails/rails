@@ -120,49 +120,49 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_with_where_attributes
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "David").unscope(where: :name).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     expected_2 = Developer.order("salary DESC").collect(&:name)
     received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({ where: :name }, :select).collect(&:name)
-    assert_equal expected_2, received_2
+    assert_equal expected_2.sort, received_2.sort
 
     expected_3 = Developer.order("salary DESC").collect(&:name)
     received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
-    assert_equal expected_3, received_3
+    assert_equal expected_3.sort, received_3.sort
 
     expected_4 = Developer.order("salary DESC").collect(&:name)
     received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
-    assert_equal expected_4, received_4
+    assert_equal expected_4.sort, received_4.sort
 
     expected_5 = Developer.order("salary DESC").collect(&:name)
     received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
-    assert_equal expected_5, received_5
+    assert_equal expected_5.sort, received_5.sort
 
     expected_6 = Developer.order("salary DESC").collect(&:name)
     received_6 = DeveloperOrderedBySalary.where(Developer.arel_table["name"].eq("David")).unscope(where: :name).collect(&:name)
-    assert_equal expected_6, received_6
+    assert_equal expected_6.sort, received_6.sort
 
     expected_7 = Developer.order("salary DESC").collect(&:name)
     received_7 = DeveloperOrderedBySalary.where(Developer.arel_table[:name].eq("David")).unscope(where: :name).collect(&:name)
-    assert_equal expected_7, received_7
+    assert_equal expected_7.sort, received_7.sort
   end
 
   def test_unscope_comparison_where_clauses
     # unscoped for WHERE (`developers`.`id` <= 2)
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY..2).unscope(where: :id).collect { |dev| dev.name }
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     # unscoped for WHERE (`developers`.`id` < 2)
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY...2).unscope(where: :id).collect { |dev| dev.name }
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_multiple_where_clauses
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "Jamis").where(id: 1).unscope(where: [:name, :id]).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_string_where_clauses_involved
@@ -172,23 +172,23 @@ class DefaultScopingTest < ActiveRecord::TestCase
     dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_with_grouping_attributes
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     expected_2 = Developer.order("salary DESC").collect(&:name)
     received_2 = DeveloperOrderedBySalary.group("name").unscope(:group).collect(&:name)
-    assert_equal expected_2, received_2
+    assert_equal expected_2.sort, received_2.sort
   end
 
   def test_unscope_with_limit_in_query
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.limit(1).unscope(:limit).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_order_to_unscope_reordering
@@ -472,7 +472,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   test "a scope can remove the condition from the default scope" do
     scope = DeveloperCalledJamis.david2
     assert_equal 1, scope.where_clause.ast.children.length
-    assert_equal Developer.where(name: "David"), scope
+    assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
   end
 
   def test_with_abstract_class_where_clause_should_not_be_duplicated

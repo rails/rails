@@ -7,17 +7,6 @@ GIT
       pg (>= 0.17, < 0.20)
 
 GIT
-  remote: https://github.com/jeremy/resque-scheduler.git
-  revision: 7cccf7d8db4dbbf54bf549a98b6cbb38106dbed2
-  branch: redis-rb-4.0
-  specs:
-    resque-scheduler (4.3.0)
-      mono_logger (~> 1.0)
-      redis (>= 3.3, < 5)
-      resque (~> 1.26)
-      rufus-scheduler (~> 3.2)
-
-GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -35,22 +24,14 @@ GIT
       websocket
 
 GIT
-  remote: https://github.com/rails/arel.git
-  revision: 42510bf71472e2e35d9becb546edd05562672344
+  remote: https://github.com/resque/resque-scheduler.git
+  revision: 284b862dd63967da1cf3a7e6abd9d2052067c8be
   specs:
-    arel (9.0.0.alpha)
-
-GIT
-  remote: https://github.com/rails/sass-rails.git
-  revision: bb5c1d34e8acad2e2960cc785184ffe17d7b3bca
-  branch: 5-0-stable
-  specs:
-    sass-rails (5.0.6)
-      railties (>= 4.0.0, < 6)
-      sass (~> 3.1)
-      sprockets (>= 2.8, < 4.0)
-      sprockets-rails (>= 2.0, < 4.0)
-      tilt (>= 1.1, < 3)
+    resque-scheduler (4.3.0)
+      mono_logger (~> 1.0)
+      redis (>= 3.3, < 5)
+      resque (~> 1.26)
+      rufus-scheduler (~> 3.2)
 
 GIT
   remote: https://github.com/robin850/sdoc.git
@@ -94,7 +75,7 @@ PATH
     activerecord (5.2.0.alpha)
       activemodel (= 5.2.0.alpha)
       activesupport (= 5.2.0.alpha)
-      arel (= 9.0.0.alpha)
+      arel (>= 9.0)
     activestorage (5.2.0.alpha)
       actionpack (= 5.2.0.alpha)
       activerecord (= 5.2.0.alpha)
@@ -142,6 +123,7 @@ GEM
     amq-protocol (2.2.0)
     archive-zip (0.7.0)
       io-like (~> 0.3.0)
+    arel (9.0.0)
     ast (2.3.0)
     aws-partitions (1.20.0)
     aws-sdk-core (3.3.0)
@@ -246,7 +228,7 @@ GEM
     em-socksify (0.3.1)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.6.1)
-    et-orbi (1.0.5)
+    et-orbi (1.0.8)
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
@@ -358,6 +340,7 @@ GEM
     mysql2 (0.4.9-x64-mingw32)
     mysql2 (0.4.9-x86-mingw32)
     nio4r (2.1.0)
+    nio4r (2.1.0-java)
     nokogiri (1.8.0)
       mini_portile2 (~> 2.2.0)
     nokogiri (1.8.0-java)
@@ -388,7 +371,7 @@ GEM
       rack (>= 0.4)
     rack-protection (2.0.0)
       rack
-    rack-test (0.7.0)
+    rack-test (0.7.1)
       rack (>= 1.0, < 3)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
@@ -415,7 +398,7 @@ GEM
       sinatra (>= 0.9.2)
       vegas (~> 0.1.2)
     retriable (3.1.1)
-    rubocop (0.50.0)
+    rubocop (0.51.0)
       parallel (~> 1.10)
       parser (>= 2.3.3.1, < 3.0)
       powerpack (~> 0.1)
@@ -427,11 +410,17 @@ GEM
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
       et-orbi (~> 1.0)
-    sass (3.5.1)
+    sass (3.5.3)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
       rb-fsevent (~> 0.9, >= 0.9.4)
       rb-inotify (~> 0.9, >= 0.9.7)
+    sass-rails (5.0.7)
+      railties (>= 4.0.0, < 6)
+      sass (~> 3.1)
+      sprockets (>= 2.8, < 4.0)
+      sprockets-rails (>= 2.0, < 4.0)
+      tilt (>= 1.1, < 3)
     selenium-webdriver (3.5.1)
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
@@ -503,6 +492,8 @@ GEM
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
+    websocket-driver (0.6.5-java)
+      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
     xpath (2.1.0)
       nokogiri (~> 1.3)
@@ -517,7 +508,6 @@ DEPENDENCIES
   activerecord-jdbcmysql-adapter (>= 1.3.0)
   activerecord-jdbcpostgresql-adapter (>= 1.3.0)
   activerecord-jdbcsqlite3-adapter (>= 1.3.0)
-  arel!
   aws-sdk-s3
   azure-storage
   backburner
@@ -562,7 +552,7 @@ DEPENDENCIES
   resque
   resque-scheduler!
   rubocop (>= 0.47)
-  sass-rails!
+  sass-rails
   sdoc!
   sequel
   sidekiq
@@ -579,4 +569,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.15.4
+   1.16.0

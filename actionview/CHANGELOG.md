@@ -1,3 +1,9 @@
+*   Fix issues with `field_error_proc` wrapping `optgroup` and select divider `option`.
+
+    Fixes #31088
+
+    *Matthias Neumayr*
+
 *   Remove deprecated Erubis ERB handler.
 
     *Rafael Mendonça França*

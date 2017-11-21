@@ -42,7 +42,13 @@ module ActiveRecord
           end
 
           def associate_records_to_owner(owner, records)
-            raise NotImplementedError
+            association = owner.association(reflection.name)
+            if reflection.collection?
+              association.loaded!
+              association.target.concat(records)
+            else
+              association.target = records.first
+            end
           end
 
           def owner_keys

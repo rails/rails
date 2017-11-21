@@ -474,6 +474,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"
     assert_no_file "test/dummy/README.md"
+    assert_no_file "test/dummy/config/master.key"
+    assert_no_file "test/dummy/config/credentials.yml.enc"
     assert_no_directory "test/dummy/lib/tasks"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
@@ -513,10 +515,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     gemfile_path = "#{Rails.root}/Gemfile"
     Object.const_set("APP_PATH", Rails.root)
     FileUtils.touch gemfile_path
+    File.write(gemfile_path, "#foo")
 
     run_generator
 
-    assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
+    assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
   ensure
     Object.send(:remove_const, "APP_PATH")
     FileUtils.rm gemfile_path
@@ -716,6 +719,38 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")
+  end
+
+  def test_after_bundle_callback
+    path = "http://example.org/rails_template"
+    template = %{ after_bundle { run "echo ran after_bundle" } }.dup
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    check_open = -> *args do
+      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
+      template
+    end
+
+    sequence = ["echo ran after_bundle"]
+    @sequence_step ||= 0
+    ensure_bundler_first = -> command do
+      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
+      @sequence_step += 1
+    end
+
+    content = nil
+    generator([destination_root], template: path).stub(:open, check_open, template) do
+      generator.stub(:bundle_command, ensure_bundler_first) do
+        generator.stub(:run, ensure_bundler_first) do
+          silence_stream($stdout) do
+            content = capture(:stderr) { generator.invoke_all }
+          end
+        end
+      end
+    end
+
+    assert_equal 1, @sequence_step
+    assert_match(/DEPRECATION WARNING: `after_bundle` is deprecated/, content)
   end
 
   private

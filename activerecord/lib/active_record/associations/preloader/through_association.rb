@@ -3,7 +3,7 @@
 module ActiveRecord
   module Associations
     class Preloader
-      module ThroughAssociation #:nodoc:
+      class ThroughAssociation < Association # :nodoc:
         def run(preloader)
           already_loaded     = owners.first.association(through_reflection.name).loaded?
           through_scope      = through_scope()

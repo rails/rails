@@ -82,11 +82,8 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
-      # with which it shares a Monitor.  But could be a generic Queue.
-      #
-      # The Queue in stdlib's 'thread' could replace this class except
-      # stdlib's doesn't support waiting with a timeout.
+      # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
+      # with which it shares a Monitor.
       class Queue
         def initialize(lock = Monitor.new)
           @lock = lock
@@ -175,7 +172,7 @@ module ActiveRecord
 
           # Removes and returns the head of the queue if possible, or +nil+.
           def remove
-            @queue.shift
+            @queue.pop
           end
 
           # Remove and return the head the queue if the number of

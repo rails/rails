@@ -98,6 +98,7 @@ task default: :test
       opts[:skip_listen] = true
       opts[:skip_git] = true
       opts[:skip_turbolinks] = true
+      opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -166,7 +167,7 @@ task default: :test
 
       gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
       if File.exist? gemfile_in_app_path
-        entry = "gem '#{name}', path: '#{relative_path}'"
+        entry = "\ngem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
       end
     end
@@ -262,6 +263,10 @@ task default: :test
       public_task :apply_rails_template
 
       def run_after_bundle_callbacks
+        unless @after_bundle_callbacks.empty?
+          ActiveSupport::Deprecation.warn("`after_bundle` is deprecated and will be removed in the next version of Rails. ")
+        end
+
         @after_bundle_callbacks.each do |callback|
           callback.call
         end

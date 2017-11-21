@@ -1,20 +1,13 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "rails/generators"
-require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
 require "rails/secrets"
 
 class Rails::SecretsTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
 
-  def setup
-    build_app
-  end
-
-  def teardown
-    teardown_app
-  end
+  setup :build_app
+  teardown :teardown_app
 
   test "setting read to false skips parsing" do
     run_secrets_generator do
@@ -172,9 +165,8 @@ class Rails::SecretsTest < ActiveSupport::TestCase
   private
     def run_secrets_generator
       Dir.chdir(app_path) do
-        capture(:stdout) do
-          Rails::Generators::EncryptedSecretsGenerator.start
-        end
+        File.write("config/secrets.yml.key", "f731758c639da2604dfb6bf3d1025de8")
+        File.write("config/secrets.yml.enc", "sEB0mHxDbeP1/KdnMk00wyzPFACl9K6t0cZWn5/Mfx/YbTHvnI07vrneqHg9kaH3wOS7L6pIQteu1P077OtE4BSx/ZRc/sgQPHyWu/tXsrfHqnPNpayOF/XZqizE91JacSFItNMWpuPsp9ynbzz+7cGhoB1S4aPNIU6u0doMrzdngDbijsaAFJmsHIQh6t/QHoJx--8aMoE0PvUWmw1Iqz--ldFqnM/K0g9k17M8PKoN/Q==")
 
         add_to_config <<-RUBY
           config.read_encrypted_secrets = true

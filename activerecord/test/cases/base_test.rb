@@ -1476,4 +1476,25 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal(%w(first_name last_name), Developer.ignored_columns)
     assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
   end
+
+  test "when #reload called, ignored columns' attribute methods are not defined" do
+    developer = Developer.create!(name: "Developer")
+    refute developer.respond_to?(:first_name)
+    refute developer.respond_to?(:first_name=)
+
+    developer.reload
+
+    refute developer.respond_to?(:first_name)
+    refute developer.respond_to?(:first_name=)
+  end
+
+  test "ignored columns not included in SELECT" do
+    query = Developer.all.to_sql.downcase
+
+    # ignored column
+    refute query.include?("first_name")
+
+    # regular column
+    assert query.include?("name")
+  end
 end
