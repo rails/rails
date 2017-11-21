@@ -341,9 +341,6 @@ directly from the client to the cloud.
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
 
-NOTE: Is there more to using the direct upload than this? How does one associate
-the result with the form submission, or does that happen automatically?
-
 Clean up Stored Files Store During System Tests
 -----------------------------------------------
 
