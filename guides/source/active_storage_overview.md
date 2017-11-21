@@ -233,7 +233,7 @@ Remove File Attached to Model
 -------------------------------
 
 To remove an attachment from a model, call `purge` on the attachment. Removal
-can be done in the background if your application is setup to use ActiveJob.
+can be done in the background if your application is setup to use Active Job.
 Purging deletes the blob and the file from the storage service.
 
 ```ruby
@@ -369,7 +369,7 @@ end
 ```
 
 If your system tests verify the deletion of a model with attachments and your
-using ActiveJob, set your test environment to use the inline queue adapter so
+using Active Job, set your test environment to use the inline queue adapter so
 the purge job is executed immediately rather at an unknown time in the future.
 
 You may also want to use a separate service definition for the test environment
