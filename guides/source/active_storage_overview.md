@@ -291,6 +291,12 @@ Previewers for videos and PDFs.
 </ul>
 ```
 
+WARNING: Extracting previews requires third-party applications, `ffmpeg` for
+video and `mutool` for PDFs. These libraries are not provided by Rails. You must
+install them yourself to use the built-in previewers. Before you install and use
+third-party software, make sure you understand the licensing implications of
+doing so.
+
 Upload Directly to Service
 --------------------------
 
