@@ -257,7 +257,7 @@ To create a download link, use the `rails_blob_{path|url}` helper. Using this
 helper will allow you to set the filename and disposition.
 
 ```ruby
-rails_blob_path(user.avatar, disposition: "attachment", filename: "avatar.jpg")
+rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
 Create Variations of Attached Image
@@ -333,11 +333,6 @@ directly from the client to the cloud.
 
 NOTE: Is there more to using the direct upload than this? How does one associate
 the result with the form submission, or does that happen automatically?
-
-Implement Direct Download Link
-------------------------------
-
-TODO
 
 Clean up Stored Files Store During System Tests
 -----------------------------------------------
