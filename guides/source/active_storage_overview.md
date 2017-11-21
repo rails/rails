@@ -117,7 +117,7 @@ local:
   bucket: ""
 ```
 
-Also, add the S3 client gem to your Gemfile:
+Also, add the Google Cloud Storage client gem to your Gemfile:
 
 ``` ruby
 gem "google-cloud-storage", "~> 1.3", require: false
@@ -245,12 +245,19 @@ Link to Attachments
 
 Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
-decouples the public URL from the actual one, and allows for example mirroring
+decouples the public URL from the actual one, and allows, for example, mirroring
 attachments in different services for high-availability. The redirection has an
 HTTP expiration of 5 min.
 
 ```ruby
 url_for(user.avatar)
+```
+
+To create a download link, use the `rails_blob_{path|url}` helper. Using this
+helper will allow you to set the filename and disposition.
+
+```ruby
+rails_blob_path(user.avatar, disposition: "attachment", filename: "avatar.jpg")
 ```
 
 Create Variations of Attached Image
