@@ -216,9 +216,6 @@ GEM
       activerecord (>= 3.0, < 5.2)
       delayed_job (>= 3.0, < 5)
     digest-crc (0.4.1)
-    em-hiredis (0.3.1)
-      eventmachine (~> 1.0)
-      hiredis (~> 0.6.0)
     em-http-request (1.1.5)
       addressable (>= 2.3.4)
       cookiejar (!= 0.3.1)
@@ -232,9 +229,6 @@ GEM
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
-    eventmachine (1.2.5-java)
-    eventmachine (1.2.5-x64-mingw32)
-    eventmachine (1.2.5-x86-mingw32)
     execjs (2.7.0)
     faraday (0.13.1)
       multipart-post (>= 1.2, < 3)
@@ -523,7 +517,6 @@ DEPENDENCIES
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
-  em-hiredis
   google-cloud-storage (~> 1.3)
   hiredis
   json (>= 2.0.0)
