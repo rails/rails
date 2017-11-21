@@ -214,14 +214,18 @@ class MessagesController < ApplicationController
   end
 
   def create
-    message = Message.create! params.require(:message).permit(:title, :content)
-    message.images.attach(params[:message][:images])
+    message = Message.create!(message_params)
     redirect_to message
   end
 
   def show
     @message = Message.find(params[:id])
   end
+
+  private
+    def message_params
+      params.require(:message).permit(:title, :content, images: [])
+    end
 end
 ```
 
@@ -254,7 +258,7 @@ url_for(user.avatar)
 ```
 
 To create a download link, use the `rails_blob_{path|url}` helper. Using this
-helper will allow you to set disposition.
+helper allows you to set the disposition.
 
 ```ruby
 rails_blob_path(user.avatar, disposition: "attachment")
@@ -263,7 +267,7 @@ rails_blob_path(user.avatar, disposition: "attachment")
 Create Variations of Attached Image
 -----------------------------------
 
-Sometimes your application will require images in a different format than
+Sometimes your application requires images in a different format than
 what was uploaded. To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
 supported transformation.
