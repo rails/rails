@@ -276,7 +276,9 @@ module ActiveSupport
         end
 
         def zones_map
-          @zones_map ||= Hash[MAPPING.keys.map { |place| [place, self[place]] }]
+          @zones_map ||= MAPPING.each_with_object({}) do |(name, _), zones|
+            zones[name] = self[name]
+          end
         end
     end
 
