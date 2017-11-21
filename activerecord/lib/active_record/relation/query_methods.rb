@@ -899,6 +899,11 @@ module ActiveRecord
       self
     end
 
+    def skip_preloading! # :nodoc:
+      self.skip_preloading_value = true
+      self
+    end
+
     # Returns the Arel object associated with the relation.
     def arel(aliases = nil) # :nodoc:
       @arel ||= build_arel(aliases)
