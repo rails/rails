@@ -256,6 +256,13 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
+      def clear() #:nodoc:
+        @lazy_zones_map = Concurrent::Map.new
+        @country_zones  = Concurrent::Map.new
+        @zones = nil
+        @zones_map = nil
+      end
+
       private
         def load_country_zones(code)
           country = TZInfo::Country.get(code)
@@ -269,9 +276,8 @@ module ActiveSupport
         end
 
         def zones_map
-          @zones_map ||= begin
-            MAPPING.each_key { |place| self[place] } # load all the zones
-            @lazy_zones_map
+          @zones_map ||= MAPPING.each_with_object({}) do |(name, _), zones|
+            zones[name] = self[name]
           end
         end
     end

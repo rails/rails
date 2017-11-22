@@ -1,3 +1,10 @@
+*   Make `ActiveSupport::TimeZone.all` return only time zones that are in
+    `ActiveSupport::TimeZone::MAPPING`.
+
+    Fixes #7245.
+
+    *Chris LaRose*
+
 *   MemCacheStore: Support expiring counters.
 
     Pass `expires_in: [seconds]` to `#increment` and `#decrement` options
