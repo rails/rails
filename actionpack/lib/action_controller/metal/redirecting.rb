@@ -68,7 +68,7 @@ module ActionController
     # if possible, otherwise redirects to the provided default fallback
     # location.
     #
-    # The referrer information is pulled from the HTTP `Referer` (sic) header on
+    # The referrer information is pulled from the HTTP +Referer+ (sic) header on
     # the request. This is an optional header and its presence on the request is
     # subject to browser security settings and user preferences. If the request
     # is missing this header, the <tt>fallback_location</tt> will be used.
@@ -82,7 +82,7 @@ module ActionController
     #   redirect_back fallback_location: '/', allow_other_host: false
     #
     # ==== Options
-    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing `Referer` header.
+    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
     # * <tt>:allow_other_host</tt> - Allows or disallow redirection to the host that is different to the current host
     #
     # All other options that can be passed to <tt>redirect_to</tt> are accepted as
