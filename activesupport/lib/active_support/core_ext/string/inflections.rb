@@ -174,7 +174,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   #
-  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  # To preserve the case of the characters in a string, use the +preserve_case+ argument.
   #
   #   class Person
   #     def to_param

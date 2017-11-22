@@ -33,9 +33,9 @@ module ActiveSupport
     # * Fault tolerant. If the Redis server is unavailable, no exceptions are
     #   raised. Cache fetches are all misses and writes are dropped.
     # * Local cache. Hot in-memory primary cache within block/middleware scope.
-    # * `read_/write_multi` support for Redis mget/mset. Use Redis::Distributed
+    # * +read_multi+ and +write_multi+ support for Redis mget/mset. Use Redis::Distributed
     #   4.0.1+ for distributed mget support.
-    # * `delete_matched` support for Redis KEYS globs.
+    # * +delete_matched+ support for Redis KEYS globs.
     class RedisCacheStore < Store
       # Keys are truncated with their own SHA2 digest if they exceed 1kB
       MAX_KEY_BYTESIZE = 1024
@@ -143,12 +143,12 @@ module ActiveSupport
       #   :url   Array  -> Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
       # No namespace is set by default. Provide one if the Redis cache
-      # server is shared with other apps: `namespace: 'myapp-cache'`.
+      # server is shared with other apps: <tt>namespace: 'myapp-cache'<tt>.
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing `cache: false` or change the threshold by passing
-      # `compress_threshold: 4.kilobytes`.
+      # passing <tt>cache: false</tt> or change the threshold by passing
+      # <tt>compress_threshold: 4.kilobytes</tt>.
       #
       # No expiry is set on cache entries by default. Redis is expected to
       # be configured with an eviction policy that automatically deletes

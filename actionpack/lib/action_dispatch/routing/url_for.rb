@@ -155,7 +155,7 @@ module ActionDispatch
       # Missing routes keys may be filled in from the current request's parameters
       # (e.g. +:controller+, +:action+, +:id+ and any other parameters that are
       # placed in the path). Given that the current action has been reached
-      # through `GET /users/1`:
+      # through <tt>GET /users/1</tt>:
       #
       #   url_for(only_path: true)                        # => '/users/1'
       #   url_for(only_path: true, action: 'edit')        # => '/users/1/edit'

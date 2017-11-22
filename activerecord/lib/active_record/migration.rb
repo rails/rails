@@ -737,8 +737,8 @@ module ActiveRecord
     # Used to specify an operation that is only run when migrating up
     # (for example, populating a new column with its initial values).
     #
-    # In the following example, the new column `published` will be given
-    # the value `true` for all existing records.
+    # In the following example, the new column +published+ will be given
+    # the value +true+ for all existing records.
     #
     #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
     #      def change

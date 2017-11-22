@@ -31,7 +31,7 @@ module ActiveSupport
   #
   # +MessageVerifier+ creates HMAC signatures using SHA1 hash algorithm by default.
   # If you want to use a different hash algorithm, you can change it by providing
-  # `:digest` key as an option while initializing the verifier:
+  # +:digest+ key as an option while initializing the verifier:
   #
   #   @verifier = ActiveSupport::MessageVerifier.new('s3Krit', digest: 'SHA256')
   #
@@ -78,8 +78,8 @@ module ActiveSupport
   # === Rotating keys
   #
   # MessageVerifier also supports rotating out old configurations by falling
-  # back to a stack of verifiers. Call `rotate` to build and add a verifier to
-  # so either `verified` or `verify` will also try verifying with the fallback.
+  # back to a stack of verifiers. Call +rotate+ to build and add a verifier to
+  # so either +verified+ or +verify+ will also try verifying with the fallback.
   #
   # By default any rotated verifiers use the values of the primary
   # verifier unless specified otherwise.
