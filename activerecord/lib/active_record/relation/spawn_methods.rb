@@ -6,11 +6,6 @@ require "active_record/relation/merger"
 
 module ActiveRecord
   module SpawnMethods
-    # This is overridden by Associations::CollectionProxy
-    def spawn #:nodoc:
-      clone
-    end
-
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
     #
@@ -32,7 +27,7 @@ module ActiveRecord
       if other.is_a?(Array)
         records & other
       elsif other
-        spawn.merge!(other)
+        clone.merge!(other)
       else
         raise ArgumentError, "invalid argument: #{other.inspect}."
       end
