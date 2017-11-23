@@ -56,7 +56,7 @@ module ActiveRecord
     end
 
     def or(other)
-      other.spawn
+      other.clone
     end
 
     private

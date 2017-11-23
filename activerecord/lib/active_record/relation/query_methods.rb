@@ -113,7 +113,7 @@ module ActiveRecord
     # the actual table name.
     def includes(*args)
       check_if_method_has_arguments!(:includes, args)
-      spawn.includes!(*args)
+      clone.includes!(*args)
     end
 
     def includes!(*args) # :nodoc:
@@ -132,7 +132,7 @@ module ActiveRecord
     #   # "users"."id"
     def eager_load(*args)
       check_if_method_has_arguments!(:eager_load, args)
-      spawn.eager_load!(*args)
+      clone.eager_load!(*args)
     end
 
     def eager_load!(*args) # :nodoc:
@@ -146,7 +146,7 @@ module ActiveRecord
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def preload(*args)
       check_if_method_has_arguments!(:preload, args)
-      spawn.preload!(*args)
+      clone.preload!(*args)
     end
 
     def preload!(*args) # :nodoc:
@@ -166,7 +166,7 @@ module ActiveRecord
     #   # Query now knows the string references posts, so adds a JOIN
     def references(*table_names)
       check_if_method_has_arguments!(:references, table_names)
-      spawn.references!(*table_names)
+      clone.references!(*table_names)
     end
 
     def references!(*table_names) # :nodoc:
@@ -227,7 +227,7 @@ module ActiveRecord
       end
 
       raise ArgumentError, "Call `select' with at least one field" if fields.empty?
-      spawn._select!(*fields)
+      clone._select!(*fields)
     end
 
     def _select!(*fields) # :nodoc:
@@ -261,7 +261,7 @@ module ActiveRecord
     #   # => [#<User id: 1, first_name: "Bill">, #<User id: 2, first_name: "Earl">, #<User id: 3, first_name: "Beto">]
     def group(*args)
       check_if_method_has_arguments!(:group, args)
-      spawn.group!(*args)
+      clone.group!(*args)
     end
 
     def group!(*args) # :nodoc:
@@ -292,7 +292,7 @@ module ActiveRecord
     #   # SELECT "users".* FROM "users" ORDER BY name DESC, email
     def order(*args)
       check_if_method_has_arguments!(:order, args)
-      spawn.order!(*args)
+      clone.order!(*args)
     end
 
     # Same as #order but operates on relation in-place instead of copying.
@@ -314,7 +314,7 @@ module ActiveRecord
     # generates a query with 'ORDER BY id ASC, name ASC'.
     def reorder(*args)
       check_if_method_has_arguments!(:reorder, args)
-      spawn.reorder!(*args)
+      clone.reorder!(*args)
     end
 
     # Same as #reorder but operates on relation in-place instead of copying.
@@ -365,7 +365,7 @@ module ActiveRecord
     #
     def unscope(*args)
       check_if_method_has_arguments!(:unscope, args)
-      spawn.unscope!(*args)
+      clone.unscope!(*args)
     end
 
     def unscope!(*args) # :nodoc:
@@ -427,7 +427,7 @@ module ActiveRecord
     #   # SELECT "users".* FROM "users" LEFT JOIN bookmarks ON bookmarks.bookmarkable_type = 'Post' AND bookmarks.user_id = users.id
     def joins(*args)
       check_if_method_has_arguments!(:joins, args)
-      spawn.joins!(*args)
+      clone.joins!(*args)
     end
 
     def joins!(*args) # :nodoc:
@@ -448,7 +448,7 @@ module ActiveRecord
       args.compact!
       args.flatten!
 
-      spawn.left_outer_joins!(*args)
+      clone.left_outer_joins!(*args)
     end
     alias :left_joins :left_outer_joins
 
@@ -578,11 +578,11 @@ module ActiveRecord
     # the current relation.
     def where(opts = :chain, *rest)
       if :chain == opts
-        WhereChain.new(spawn)
+        WhereChain.new(clone)
       elsif opts.blank?
         self
       else
-        spawn.where!(opts, *rest)
+        clone.where!(opts, *rest)
       end
     end
 
@@ -625,7 +625,7 @@ module ActiveRecord
         raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
       end
 
-      spawn.or!(other)
+      clone.or!(other)
     end
 
     def or!(other) # :nodoc:
@@ -647,7 +647,7 @@ module ActiveRecord
     #
     #   Order.having('SUM(price) > 30').group('user_id')
     def having(opts, *rest)
-      opts.blank? ? self : spawn.having!(opts, *rest)
+      opts.blank? ? self : clone.having!(opts, *rest)
     end
 
     def having!(opts, *rest) # :nodoc:
@@ -664,7 +664,7 @@ module ActiveRecord
     #
     #   User.limit(10).limit(20) # generated SQL has 'LIMIT 20'
     def limit(value)
-      spawn.limit!(value)
+      clone.limit!(value)
     end
 
     def limit!(value) # :nodoc:
@@ -680,7 +680,7 @@ module ActiveRecord
     #
     #   User.offset(10).order("name ASC")
     def offset(value)
-      spawn.offset!(value)
+      clone.offset!(value)
     end
 
     def offset!(value) # :nodoc:
@@ -691,7 +691,7 @@ module ActiveRecord
     # Specifies locking settings (default to +true+). For more information
     # on locking, please see ActiveRecord::Locking.
     def lock(locks = true)
-      spawn.lock!(locks)
+      clone.lock!(locks)
     end
 
     def lock!(locks = true) # :nodoc:
@@ -734,7 +734,7 @@ module ActiveRecord
     #   end
     #
     def none
-      spawn.none!
+      clone.none!
     end
 
     def none! # :nodoc:
@@ -748,7 +748,7 @@ module ActiveRecord
     #   users.first.save
     #   => ActiveRecord::ReadOnlyRecord: User is marked as readonly
     def readonly(value = true)
-      spawn.readonly!(value)
+      clone.readonly!(value)
     end
 
     def readonly!(value = true) # :nodoc:
@@ -770,7 +770,7 @@ module ActiveRecord
     #   users = users.create_with(nil)
     #   users.new.name # => 'Oscar'
     def create_with(value)
-      spawn.create_with!(value)
+      clone.create_with!(value)
     end
 
     def create_with!(value) # :nodoc:
@@ -798,7 +798,7 @@ module ActiveRecord
     #   # SELECT a.title FROM (SELECT * FROM topics WHERE approved = 't') a
     #
     def from(value, subquery_name = nil)
-      spawn.from!(value, subquery_name)
+      clone.from!(value, subquery_name)
     end
 
     def from!(value, subquery_name = nil) # :nodoc:
@@ -817,7 +817,7 @@ module ActiveRecord
     #   User.select(:name).distinct.distinct(false)
     #   # You can also remove the uniqueness
     def distinct(value = true)
-      spawn.distinct!(value)
+      clone.distinct!(value)
     end
 
     # Like #distinct, but modifies relation in place.
@@ -864,7 +864,7 @@ module ActiveRecord
     #   end
     def extending(*modules, &block)
       if modules.any? || block
-        spawn.extending!(*modules, &block)
+        clone.extending!(*modules, &block)
       else
         self
       end
@@ -884,7 +884,7 @@ module ActiveRecord
     #
     #   User.order('name ASC').reverse_order # generated SQL has 'ORDER BY name DESC'
     def reverse_order
-      spawn.reverse_order!
+      clone.reverse_order!
     end
 
     def reverse_order! # :nodoc:

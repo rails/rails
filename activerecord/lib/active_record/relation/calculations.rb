@@ -184,7 +184,7 @@ module ActiveRecord
         relation.pluck(*column_names)
       else
         enforce_raw_sql_whitelist(column_names)
-        relation = spawn
+        relation = clone
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
         }
@@ -253,7 +253,7 @@ module ActiveRecord
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
-          query_builder = build_count_subquery(spawn, column_name, distinct)
+          query_builder = build_count_subquery(clone, column_name, distinct)
         else
           # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
           relation = unscope(:order).distinct!(false)
