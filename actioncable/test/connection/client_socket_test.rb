@@ -62,11 +62,29 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
     end
   end
 
+  test "buffers received messages" do
+    run_in_eventmachine do
+      connection = Connection.new(@server, connection_env)
+
+      data = { data: "content" }.to_json
+      socket = connection.websocket.send(:websocket)
+
+      socket.send(:receive_message, data)
+      connection.expects(:on_message).with(data)
+
+      socket.send(:open)
+    end
+  end
+
   private
-    def open_connection
-      env = Rack::MockRequest.env_for "/test",
+    def connection_env
+      Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
+    end
+
+    def open_connection
+      env = connection_env
       io = \
         begin
           Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0).first

@@ -52,6 +52,8 @@ module ActionCable
         @driver.on(:error)   { |e| emit_error(e.message) }
 
         @stream = ActionCable::Connection::Stream.new(@event_loop, self)
+
+        @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
       end
 
       def start_driver
@@ -117,18 +119,24 @@ module ActionCable
         @driver.protocol
       end
 
+      def receive(data)
+        @event_target.on_message(data)
+      end
+
       private
         def open
           return unless @ready_state == CONNECTING
           @ready_state = OPEN
 
           @event_target.on_open
+          @message_buffer.process!
         end
 
         def receive_message(data)
+          @message_buffer.append data
           return unless @ready_state == OPEN
 
-          @event_target.on_message(data)
+          @message_buffer.process!
         end
 
         def emit_error(message)
