@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/encrypted_file"
 
 module Rails
