@@ -285,7 +285,7 @@ the response. Using `:plain` or `:html` might be more appropriate most of the
 time.
 
 NOTE: Unless overridden, your response returned from this render option will be
-`text/html`, as that is the default content type of Action Dispatch response.
+`text/plain`, as that is the default content type of Action Dispatch response.
 
 #### Options for `render`
 
