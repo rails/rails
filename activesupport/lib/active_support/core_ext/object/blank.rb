@@ -120,6 +120,8 @@ class String
     # strings we can speed up this method (~3.5x) with an empty? call. The
     # penalty for the rest of strings is marginal.
     empty? || BLANK_RE.match?(self)
+  rescue ArgumentError
+    dup.force_encoding(Encoding::ASCII_8BIT).strip.empty?
   end
 end
 

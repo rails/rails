@@ -24,6 +24,13 @@ class BlankTest < ActiveSupport::TestCase
     NOT.each   { |v| assert_equal false, v.blank?, "#{v.inspect} should not be blank" }
   end
 
+  def test_blank_with_invalid_encoding
+    v = "\xff".encode(Encoding::UTF_8)
+    assert_equal false, v.blank?, "#{v.inspect} should not be blank"
+    v = "\xff".dup.force_encoding(Encoding::ASCII_8BIT)
+    assert_equal false, v.blank?, "#{v.inspect} should not be blank"
+  end
+
   def test_present
     BLANK.each { |v| assert_equal false, v.present?, "#{v.inspect} should not be present" }
     NOT.each   { |v| assert_equal true, v.present?,  "#{v.inspect} should be present" }
