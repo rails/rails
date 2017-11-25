@@ -4,7 +4,7 @@ Active Job Basics
 =================
 
 This guide provides you with all you need to get started in creating,
-enqueuing and executing background jobs.
+enqueuing, and executing background jobs.
 
 After reading this guide, you will know:
 
