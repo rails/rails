@@ -14,7 +14,7 @@ module ActiveSupport
   #   (e.g., "Eastern Time (US & Canada)" instead of "America/New_York").
   # * Lazily load TZInfo::Timezone instances only when they're needed.
   # * Create ActiveSupport::TimeWithZone instances via TimeZone's +local+,
-  #   +parse+, +at+ and +now+ methods.
+  #   +parse+, +at+, and +now+ methods.
   #
   # If you set <tt>config.time_zone</tt> in the Rails Application, you can
   # access this TimeZone object via <tt>Time.zone</tt>:
@@ -511,11 +511,19 @@ module ActiveSupport
 
     # Available so that TimeZone instances respond like TZInfo::Timezone
     # instances.
+    #
+    #   Time.zone = "Hawaii"     # => "Hawaii"
+    #   Time.zone.periods_for_local("22:30:00") # => #<TZInfo::TimezonePeriod:...>
     def period_for_local(time, dst = true)
       tzinfo.period_for_local(time, dst) { |periods| periods.last }
     end
 
-    def periods_for_local(time) #:nodoc:
+    # Available so that TimeZone instances respond like TZInfo::Timezone
+    # instances that are valid for the given local time as an array.
+    #
+    #   Time.zone = "Hawaii"     # => "Hawaii"
+    #   Time.zone.periods_for_local("22:30:00") # => [#<TZInfo::TimezonePeriod:...>]
+    def periods_for_local(time)
       tzinfo.periods_for_local(time)
     end
 
