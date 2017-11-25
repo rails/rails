@@ -72,6 +72,9 @@ module Rails
 
           self.ssl_options = { hsts: { subdomains: true } }
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_ids = false
+          end
         when "5.1"
           load_defaults "5.0"
 
@@ -81,9 +84,7 @@ module Rails
 
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = true
-            action_view.form_with_generates_ids = true
           end
-
         when "5.2"
           load_defaults "5.1"
 
@@ -107,6 +108,10 @@ module Rails
             action_controller.default_protect_from_forgery = true
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_remote_forms = true
+            action_view.form_with_generates_ids = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

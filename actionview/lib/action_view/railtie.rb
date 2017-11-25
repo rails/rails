@@ -22,9 +22,7 @@ module ActionView
     initializer "action_view.form_with_generates_remote_forms" do |app|
       ActiveSupport.on_load(:action_view) do
         form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
-        unless form_with_generates_remote_forms.nil?
-          ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
-        end
+        ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
       end
     end
 
