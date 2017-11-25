@@ -107,7 +107,7 @@ module ActiveRecord
           end
         end
 
-        # Add +element+ to the queue.  Never blocks.
+        # Add +element+ to the queue. Never blocks.
         def add(element)
           synchronize do
             @queue.push element
