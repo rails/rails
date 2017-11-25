@@ -190,7 +190,7 @@
 
     *Jeremy Green*
 
-*   Add new error class `TransactionTimeout` which will be raised
+*   Add new error class `LockWaitTimeout` which will be raised
     when lock wait timeout exceeded.
 
     *Gabriel Courtemanche*
