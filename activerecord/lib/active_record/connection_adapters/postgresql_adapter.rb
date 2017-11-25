@@ -273,6 +273,11 @@ module ActiveRecord
         end
       end
 
+      def discard! # :nodoc:
+        @connection.socket_io.reopen(IO::NULL)
+        @connection = nil
+      end
+
       def native_database_types #:nodoc:
         NATIVE_DATABASE_TYPES
       end

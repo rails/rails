@@ -1,10 +1,15 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "models/person"
 
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      fixtures :people
+
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
@@ -137,6 +142,33 @@ module ActiveRecord
           Process.waitpid pid
           assert_not_equal object_id, Marshal.load(rd.read)
           rd.close
+        end
+
+        def test_forked_child_doesnt_mangle_parent_connection
+          object_id = ActiveRecord::Base.connection.object_id
+          assert ActiveRecord::Base.connection.active?
+
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          pid = fork {
+            rd.close
+            if ActiveRecord::Base.connection.active?
+              wr.write Marshal.dump ActiveRecord::Base.connection.object_id
+            end
+            wr.close
+
+            exit # allow finalizers to run
+          }
+
+          wr.close
+
+          Process.waitpid pid
+          assert_not_equal object_id, Marshal.load(rd.read)
+          rd.close
+
+          assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
