@@ -107,7 +107,7 @@ module ActiveRecord
           end
         end
 
-        # Add +element+ to the queue.  Never blocks.
+        # Add +element+ to the queue. Never blocks.
         def add(element)
           synchronize do
             @queue.push element
@@ -177,7 +177,7 @@ module ActiveRecord
 
           # Remove and return the head the queue if the number of
           # available elements is strictly greater than the number of
-          # threads currently waiting.  Otherwise, return +nil+.
+          # threads currently waiting. Otherwise, return +nil+.
           def no_wait_poll
             remove if can_remove_no_wait?
           end
