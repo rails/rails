@@ -738,6 +738,7 @@ module ActionView
       #   end
       def form_with(model: nil, scope: nil, url: nil, format: nil, **options)
         options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = !form_with_generates_ids
 
         if model
           url ||= polymorphic_path(model, format: format)
@@ -1053,6 +1054,7 @@ module ActionView
       # FormOptionsHelper#collection_select and DateHelper#datetime_select.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = !form_with_generates_ids
 
         if model
           scope ||= model_name_from_record_or_class(model).param_key
@@ -1656,7 +1658,7 @@ module ActionView
       def initialize(object_name, object, template, options)
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
-        @default_options = @options ? @options.slice(:index, :namespace, :allow_method_names_outside_object) : {}
+        @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
 
         convert_to_legacy_options(@options)
 
@@ -1965,6 +1967,7 @@ module ActionView
       # See the docs for the <tt>ActionView::FormHelper.fields</tt> helper method.
       def fields(scope = nil, model: nil, **options, &block)
         options[:allow_method_names_outside_object] = true
+        options[:skip_default_ids] = !FormHelper.form_with_generates_ids
 
         convert_to_legacy_options(options)
 
