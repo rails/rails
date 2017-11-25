@@ -120,6 +120,21 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fourth Topic of the day", records[2].title
   end
 
+  def test_find_with_ids_with_no_id_passed
+    exception = assert_raises(ActiveRecord::RecordNotFound) { Topic.find }
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
+  def test_find_with_ids_with_id_out_of_range
+    exception = assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.find("9999999999999999999999999999999")
+    end
+
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
   def test_find_passing_active_record_object_is_not_permitted
     assert_raises(ArgumentError) do
       Topic.find(Topic.last)
