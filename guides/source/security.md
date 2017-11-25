@@ -52,7 +52,7 @@ User.find(session[:user_id])
 
 NOTE: _The session ID is a 32-character random hex string._
 
-The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
+The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32 CryptoAPI) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
 
 ### Session Hijacking
 
