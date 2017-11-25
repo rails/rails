@@ -31,10 +31,11 @@ module Rails
 
       private
         def credentials
-          ActiveSupport::EncryptedConfiguration.new \
+          ActiveSupport::EncryptedConfiguration.new(
             config_path: "config/credentials.yml.enc",
             key_path: "config/master.key",
             env_key: "RAILS_MASTER_KEY"
+          )
         end
 
         def credentials_template
