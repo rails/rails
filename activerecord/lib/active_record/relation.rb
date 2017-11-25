@@ -544,6 +544,7 @@ module ActiveRecord
           end
 
           @records.each(&:readonly!) if readonly_value
+          @offsets = {} unless @offsets.empty?
 
           @loaded = true
           @records

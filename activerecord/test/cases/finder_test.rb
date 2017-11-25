@@ -676,6 +676,22 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Array, Topic.last(5)
   end
 
+  def test_first_should_respect_loaded_records
+    authors = Author.order(:name)
+
+    assert_equal authors(:bob), authors.first
+
+    aaron = authors.create!(name: "Aaron")
+
+    authors.load
+
+    assert_no_queries do
+      assert_equal aaron, authors.first
+      assert_equal authors(:bob), authors.second
+      assert_not_equal authors.first, authors.second
+    end
+  end
+
   def test_unexisting_record_exception_handling
     assert_raise(ActiveRecord::RecordNotFound) {
       Topic.find(1).parent
