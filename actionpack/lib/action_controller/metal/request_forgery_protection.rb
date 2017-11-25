@@ -369,7 +369,7 @@ module ActionController #:nodoc:
       end
 
       def compare_with_real_token(token, session) # :doc:
-        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token(session))
+        ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, real_csrf_token(session))
       end
 
       def valid_per_form_csrf_token?(token, session) # :doc:
@@ -380,7 +380,7 @@ module ActionController #:nodoc:
             request.request_method
           )
 
-          ActiveSupport::SecurityUtils.secure_compare(token, correct_token)
+          ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, correct_token)
         else
           false
         end
