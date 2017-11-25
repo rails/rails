@@ -9,11 +9,6 @@ class SecurityUtilsTest < ActiveSupport::TestCase
     assert_not ActiveSupport::SecurityUtils.secure_compare("a", "b")
   end
 
-  def test_variable_size_secure_compare_should_perform_string_comparison
-    assert ActiveSupport::SecurityUtils.variable_size_secure_compare("a", "a")
-    assert_not ActiveSupport::SecurityUtils.variable_size_secure_compare("a", "b")
-  end
-
   def test_fixed_length_secure_compare_should_perform_string_comparison
     assert ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "a")
     assert !ActiveSupport::SecurityUtils.fixed_length_secure_compare("a", "b")
