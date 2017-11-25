@@ -21,9 +21,9 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After the router has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in MVC. After the router has determined which controller to use for a request, the controller is responsible for making sense of the request, and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
-For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
+For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch, or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
 A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
 
@@ -34,7 +34,7 @@ Controller Naming Convention
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
@@ -306,7 +306,7 @@ action. This raises the problem that you can't use `require` on the
 root key because, normally, it does not exist when calling `new`:
 
 ```ruby
-# using `fetch` you can supply a default and use
+# Using `fetch` you can supply a default and use
 # the Strong Parameters API from there.
 params.fetch(:blog, {}).permit(:title, :author)
 ```
@@ -483,7 +483,7 @@ class LoginsController < ApplicationController
 end
 ```
 
-Note that it is also possible to assign a flash message as part of the redirection. You can assign `:notice`, `:alert` or the general purpose `:flash`:
+Note that it is also possible to assign a flash message as part of the redirection. You can assign `:notice`, `:alert`, or the general purpose `:flash`:
 
 ```ruby
 redirect_to root_url, notice: "You have successfully logged out."
@@ -666,7 +666,7 @@ You may notice in the above code that we're using `render xml: @users`, not `ren
 Filters
 -------
 
-Filters are methods that are run "before", "after" or "around" a controller action.
+Filters are methods that are run "before", "after", or "around" a controller action.
 
 Filters are inherited, so if you set a filter on `ApplicationController`, it will be run on every controller in your application.
 
