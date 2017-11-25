@@ -177,7 +177,16 @@ end_warning
     initializer "active_record.clear_active_connections" do
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
+          # Ideally the application doesn't connect to the database during boot,
+          # but sometimes it does. In case it did, we want to empty out the
+          # connection pools so that a non-database-using process (e.g. a master
+          # process in a forking server model) doesn't retain a needless
+          # connection. If it was needed, the incremental cost of reestablishing
+          # this connection is trivial: the rest of the pool would need to be
+          # populated anyway.
+
           clear_active_connections!
+          flush_idle_connections!
         end
       end
     end

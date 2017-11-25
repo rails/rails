@@ -18,6 +18,7 @@ module ActiveRecord
 
       class FakePool
         attr_reader :reaped
+        attr_reader :flushed
 
         def initialize
           @reaped = false
@@ -25,6 +26,10 @@ module ActiveRecord
 
         def reap
           @reaped = true
+        end
+
+        def flush
+          @flushed = true
         end
       end
 
@@ -47,6 +52,7 @@ module ActiveRecord
           Thread.pass
         end
         assert fp.reaped
+        assert fp.flushed
       end
 
       def test_pool_has_reaper
