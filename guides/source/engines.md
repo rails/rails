@@ -921,7 +921,7 @@ engine:
 mattr_accessor :author_class
 ```
 
-This method works like its brothers, `attr_accessor` and `cattr_accessor`, but
+This method works like its siblings, `attr_accessor` and `cattr_accessor`, but
 provides a setter and getter method on the module with the specified name. To
 use it, it must be referenced using `Blorgh.author_class`.
 
@@ -982,7 +982,7 @@ Blorgh.author_class = "User"
 WARNING: It's very important here to use the `String` version of the class,
 rather than the class itself. If you were to use the class, Rails would attempt
 to load that class and then reference the related table. This could lead to
-problems if the table wasn't already existing. Therefore, a `String` should be
+problems if the table didn't already exist. Therefore, a `String` should be
 used and then converted to a class using `constantize` in the engine later on.
 
 Go ahead and try to create a new article. You will see that it works exactly in the
@@ -1514,7 +1514,7 @@ To hook into the initialization process of one of the following classes use the 
 
 ## Configuration hooks
 
-These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
+These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
 
 | Hook                   | Use Case                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------- |
