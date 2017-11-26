@@ -921,7 +921,7 @@ engine:
 mattr_accessor :author_class
 ```
 
-This method works like its brothers, `attr_accessor` and `cattr_accessor`, but
+This method works like its siblings, `attr_accessor` and `cattr_accessor`, but
 provides a setter and getter method on the module with the specified name. To
 use it, it must be referenced using `Blorgh.author_class`.
 
