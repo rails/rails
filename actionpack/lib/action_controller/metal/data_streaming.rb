@@ -125,7 +125,7 @@ module ActionController #:nodoc:
           self.content_type = extension
         else
           if !type_provided && options[:filename]
-            # If type wasn't provided, try guessing from file extension.
+            # If type wasn't provided, try guessing from the file extension.
             content_type = Mime::Type.lookup_by_extension(File.extname(options[:filename]).downcase.delete(".")) || content_type
           end
           self.content_type = content_type
