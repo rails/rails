@@ -1514,7 +1514,7 @@ To hook into the initialization process of one of the following classes use the 
 
 ## Configuration hooks
 
-These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
+These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
 
 | Hook                   | Use Case                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------- |
