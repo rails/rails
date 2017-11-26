@@ -471,8 +471,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
-      assert_match(/^\W{4}<%= form\.text_field :name, id: :account_name %>/, content)
-      assert_match(/^\W{4}<%= form\.text_field :currency_id, id: :account_currency_id %>/, content)
+      assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
+      assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
     end
   end
 
@@ -495,8 +495,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/users/_form.html.erb" do |content|
-      assert_match(/<%= form\.password_field :password, id: :user_password %>/, content)
-      assert_match(/<%= form\.password_field :password_confirmation, id: :user_password_confirmation %>/, content)
+      assert_match(/<%= form\.password_field :password %>/, content)
+      assert_match(/<%= form\.password_field :password_confirmation %>/, content)
     end
 
     assert_file "app/views/users/index.html.erb" do |content|
