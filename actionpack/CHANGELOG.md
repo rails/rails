@@ -1,3 +1,63 @@
+*   Add DSL for configuring Content-Security-Policy header
+
+    The DSL allows you to configure a global Content-Security-Policy
+    header and then override within a controller. For more information
+    about the Content-Security-Policy header see MDN:
+
+    https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy
+    
+    Example global policy:
+    
+        # config/initializers/content_security_policy.rb
+        Rails.application.config.content_security_policy do
+          p.default_src :self, :https
+          p.font_src    :self, :https, :data
+          p.img_src     :self, :https, :data
+          p.object_src  :none
+          p.script_src  :self, :https
+          p.style_src   :self, :https, :unsafe_inline
+        end
+    
+    Example controller overrides:
+    
+        # Override policy inline
+        class PostsController < ApplicationController
+          content_security_policy do |p|
+            p.upgrade_insecure_requests true
+          end
+        end
+
+        # Using literal values
+        class PostsController < ApplicationController
+          content_security_policy do |p|
+            p.base_uri "https://www.example.com"
+          end
+        end
+
+        # Using mixed static and dynamic values
+        class PostsController < ApplicationController
+          content_security_policy do |p|
+            p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+          end
+        end
+        
+    Allows you to also only report content violations for migrating
+    legacy content using the `content_security_policy_report_only`
+    configuration attribute, e.g;
+    
+        # config/initializers/content_security_policy.rb
+        Rails.application.config.content_security_policy_report_only = true
+        
+        # controller override
+        class PostsController < ApplicationController
+          self.content_security_policy_report_only = true
+        end
+    
+    Note that this feature does not validate the header for performance
+    reasons since the header is calculated at runtime.
+    
+    *Andrew White*
+
 *   Make `assert_recognizes` to traverse mounted engines
 
     *Yuichiro Kaneko*
