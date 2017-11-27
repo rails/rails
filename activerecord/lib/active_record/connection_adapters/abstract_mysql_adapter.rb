@@ -635,6 +635,7 @@ module ActiveRecord
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
         ER_LOCK_WAIT_TIMEOUT    = 1205
+        ER_QUERY_INTERRUPTED    = 1317
         ER_QUERY_TIMEOUT        = 3024
 
         def translate_exception(exception, message)
@@ -663,6 +664,8 @@ module ActiveRecord
             LockWaitTimeout.new(message)
           when ER_QUERY_TIMEOUT
             StatementTimeout.new(message)
+          when ER_QUERY_INTERRUPTED
+            QueryCanceled.new(message)
           else
             super
           end

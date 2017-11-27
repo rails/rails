@@ -420,7 +420,7 @@ module ActiveRecord
           when LOCK_NOT_AVAILABLE
             LockWaitTimeout.new(message)
           when QUERY_CANCELED
-            StatementTimeout.new(message)
+            QueryCanceled.new(message)
           else
             super
           end
