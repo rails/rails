@@ -91,9 +91,9 @@ module ActiveRecord
       end
     end
 
-    test "raises TransactionTimeout when lock wait timeout exceeded" do
+    test "raises LockWaitTimeout when lock wait timeout exceeded" do
       skip unless ActiveRecord::Base.connection.postgresql_version >= 90300
-      assert_raises(ActiveRecord::TransactionTimeout) do
+      assert_raises(ActiveRecord::LockWaitTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new

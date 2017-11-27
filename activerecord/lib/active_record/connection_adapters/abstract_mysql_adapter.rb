@@ -660,7 +660,7 @@ module ActiveRecord
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           when ER_LOCK_WAIT_TIMEOUT
-            TransactionTimeout.new(message)
+            LockWaitTimeout.new(message)
           when ER_QUERY_TIMEOUT
             StatementTimeout.new(message)
           else
