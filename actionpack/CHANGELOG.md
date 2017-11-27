@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Add DSL for configuring Content-Security-Policy header
 
     The DSL allows you to configure a global Content-Security-Policy

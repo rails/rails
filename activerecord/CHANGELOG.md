@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Add new error class `QueryCanceled` which will be raised
     when canceling statement due to user request.
 

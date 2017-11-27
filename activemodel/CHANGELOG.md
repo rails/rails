@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
 
     *bogdanvlviv*
