@@ -192,7 +192,7 @@ module Rails
       def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.7", comment)
+        GemfileEntry.new("puma", "~> 3.11", comment)
       end
 
       def include_all_railties? # :doc:

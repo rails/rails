@@ -457,7 +457,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.7'"
+    assert_gem "puma", "'~> 3.11'"
   end
 
   def test_generator_if_skip_puma_is_given
