@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Support redis-rb 4.0.
 
     *Jeremy Daer*

@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Change `form_with` to generates ids by default.
 
     When `form_with` was introduced we disabled the automatic generation of ids

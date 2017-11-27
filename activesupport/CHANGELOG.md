@@ -1,3 +1,5 @@
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
 *   Changed default behaviour of `ActiveSupport::SecurityUtils.secure_compare`,
     to make it not leak length information even for variable length string.
 
