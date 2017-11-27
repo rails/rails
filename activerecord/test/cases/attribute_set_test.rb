@@ -160,7 +160,8 @@ module ActiveRecord
     end
 
     test "the primary_key is always initialized" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, :foo)
+      defaults = { foo: Attribute.from_user(:foo, nil, nil) }
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, defaults)
       attributes = builder.build_from_database
 
       assert attributes.key?(:foo)

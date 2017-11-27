@@ -2,7 +2,7 @@ require 'active_record/attribute_set/builder'
 
 module ActiveRecord
   class AttributeSet # :nodoc:
-    delegate :fetch, to: :attributes
+    delegate :fetch, :except, to: :attributes
 
     def initialize(attributes)
       @attributes = attributes
