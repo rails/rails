@@ -1,3 +1,8 @@
+*   Add new error class `QueryCanceled` which will be raised
+    when canceling statement due to user request.
+
+    *Ryuta Kamizono*
+
 *   Add `#up_only` to database migrations for code that is only relevant when
     migrating up, e.g. populating a new column.
 

@@ -343,6 +343,10 @@ module ActiveRecord
   class StatementTimeout < StatementInvalid
   end
 
+  # QueryCanceled will be raised when canceling statement due to user request.
+  class QueryCanceled < StatementInvalid
+  end
+
   # UnknownAttributeReference is raised when an unknown and potentially unsafe
   # value is passed to a query method when allow_unsafe_raw_sql is set to
   # :disabled. For example, passing a non column name value to a relation's
