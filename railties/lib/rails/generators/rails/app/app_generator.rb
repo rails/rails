@@ -128,6 +128,7 @@ module Rails
       active_storage_config_exist    = File.exist?("config/storage.yml")
       rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
+      csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
 
       config
 
@@ -154,6 +155,10 @@ module Rails
 
         unless assets_config_exist
           remove_file "config/initializers/assets.rb"
+        end
+
+        unless csp_config_exist
+          remove_file "config/initializers/content_security_policy.rb"
         end
       end
     end
@@ -432,6 +437,7 @@ module Rails
       def delete_non_api_initializers_if_api_option
         if options[:api]
           remove_file "config/initializers/cookies_serializer.rb"
+          remove_file "config/initializers/content_security_policy.rb"
         end
       end
 
