@@ -332,11 +332,11 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(attribute_types, primary_key) do |name|
-          unless columns_hash.key?(name)
-            _default_attributes[name].dup
-          end
+        unless defined?(@attributes_builder) && @attributes_builder
+          defaults = _default_attributes.except(*(column_names - [primary_key]))
+          @attributes_builder = AttributeSet::Builder.new(attribute_types, defaults)
         end
+        @attributes_builder
       end
 
       def columns_hash # :nodoc:
