@@ -256,7 +256,7 @@ module ActiveSupport
         @country_zones[code] ||= load_country_zones(code)
       end
 
-      def clear() #:nodoc:
+      def clear #:nodoc:
         @lazy_zones_map = Concurrent::Map.new
         @country_zones  = Concurrent::Map.new
         @zones = nil
