@@ -73,10 +73,6 @@ module Rails
           end
 
           self.ssl_options = { hsts: { subdomains: true } }
-
-          if respond_to?(:action_view)
-            action_view.form_with_generates_ids = false
-          end
         when "5.1"
           load_defaults "5.0"
 
