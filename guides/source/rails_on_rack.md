@@ -250,7 +250,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rails::Rack::Logger`**
 
-* Notifies the logs that the request has began. After request is complete, flushes all the logs.
+* Notifies the logs that the request has begun. After the request is complete, flushes all the logs.
 
 **`ActionDispatch::ShowExceptions`**
 
@@ -290,7 +290,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rack::ConditionalGet`**
 
-* Adds support for "Conditional `GET`" so that server responds with nothing if page wasn't changed.
+* Adds support for "Conditional `GET`" so that server responds with nothing if the page wasn't changed.
 
 **`Rack::ETag`**
 
