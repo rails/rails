@@ -9,6 +9,7 @@ Highlights in Rails 5.2:
 * Redis Cache Store
 * HTTP/2 Early hints support
 * Credentials
+* Default Content Security Policy
 
 These release notes cover only the major changes. To learn about various bug
 fixes and changes, please refer to the change logs or check out the [list of
@@ -47,6 +48,10 @@ Major Features
 
 [Pull Request](https://github.com/rails/rails/pull/30067)
 
+
+### Default Content Security Policy
+
+[Pull Request](https://github.com/rails/rails/pull/31162)
 
 Incompatibilities
 -----------------
