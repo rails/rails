@@ -143,3 +143,17 @@ Active Storage, with its included JavaScript library, supports uploading directl
 ## License
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+ ## Support
+
+API documentation is at:
+
+* http://api.rubyonrails.org
+
+Bug reports for the Ruby on Rails project can be filed here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core
