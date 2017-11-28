@@ -39,9 +39,6 @@ user.avatar.purge
 # Destroy the associated models and actual resource files async, via Active Job.
 user.avatar.purge_later
 
-# Does the user have an avatar?
-user.avatar.attached? # => false
-
 # Generate a permanent URL for the blob that points to the application.
 # Upon access, a redirect to the actual service endpoint is returned.
 # This indirection decouples the public URL from the actual one, and
