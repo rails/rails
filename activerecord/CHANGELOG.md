@@ -1,3 +1,10 @@
+*   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
+
+    Fixes #31120.
+
+    *kinnrot*
+
+
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.
