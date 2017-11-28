@@ -31,14 +31,14 @@ module ActiveJob
     # as-is. Arrays/Hashes are serialized element by element.
     # All other types are serialized using GlobalID.
     def serialize(arguments)
-      arguments.map { |argument| serialize_argument(argument) }
+      Array(arguments).map { |argument| serialize_argument(argument) }
     end
 
     # Deserializes a set of arguments. Whitelisted types are returned
     # as-is. Arrays/Hashes are deserialized element by element.
     # All other types are deserialized using GlobalID.
     def deserialize(arguments)
-      arguments.map { |argument| deserialize_argument(argument) }
+      Array(arguments).map { |argument| deserialize_argument(argument) }
     rescue
       raise DeserializationError
     end
