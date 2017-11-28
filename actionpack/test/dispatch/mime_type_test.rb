@@ -30,28 +30,28 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml]]
+    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json]]
     parsed = Mime::Type.parse(accept)
     assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
 
   test "parse application with trailing star" do
     accept = "application/*"
-    expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:json], Mime[:pdf], Mime[:zip], Mime[:gzip]]
+    expect = [Mime[:html], Mime[:js], Mime[:xml], Mime[:rss], Mime[:atom], Mime[:yaml], Mime[:url_encoded_form], Mime[:json], Mime[:pdf], Mime[:zip], Mime[:gzip], Mime[:ogx]]
     parsed = Mime::Type.parse(accept)
     assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
