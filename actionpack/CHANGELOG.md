@@ -1,3 +1,9 @@
+*   Fix optimized url helpers when using relative url root
+
+    Fixes #31220.
+
+    *Andrew White*
+
 *   Ensure dev and prod puma configs do not clobber `ActionDispatch::SystemTesting` defaults. Adds workers: 0 and daemon: false
 
     *Max Schwenk*
