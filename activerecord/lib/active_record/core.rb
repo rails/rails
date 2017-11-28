@@ -18,6 +18,14 @@ module ActiveRecord
       mattr_accessor :logger, instance_writer: false
 
       ##
+      # :singleton-method:
+      #
+      # Specifies if the methods calling database queries should be logged below
+      # their relevant queries.
+      mattr_accessor :verbose_query_logs, instance_writer: false
+      self.verbose_query_logs = false
+
+      ##
       # Contains the database configuration - as is typically stored in config/database.yml -
       # as a Hash.
       #
