@@ -91,7 +91,7 @@ module ActionView
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
 
-        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request)
+        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
 
         sources_tags
       end
@@ -140,7 +140,7 @@ module ActionView
           tag(:link, tag_options)
         }.join("\n").html_safe
 
-        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request)
+        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
 
         sources_tags
       end

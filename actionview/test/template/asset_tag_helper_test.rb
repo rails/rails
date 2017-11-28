@@ -440,6 +440,14 @@ class AssetTagHelperTest < ActionView::TestCase
     }
   end
 
+  def test_stylesheet_link_tag_without_request
+    @request = nil
+    assert_dom_equal(
+      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      stylesheet_link_tag("foo.css")
+    )
+  end
+
   def test_stylesheet_link_tag_is_html_safe
     assert stylesheet_link_tag("dir/file").html_safe?
     assert stylesheet_link_tag("dir/other/file", "dir/file2").html_safe?
@@ -462,6 +470,11 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = "assets.example.com"
     @controller.config.default_asset_host_protocol = :relative
     assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington")
+  end
+
+  def test_javascript_include_tag_without_request
+    @request = nil
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 
   def test_image_path
@@ -775,6 +788,23 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_assert_css_and_js_of_the_same_name_return_correct_extension
     assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+  end
+end
+
+class AssetTagHelperWithoutRequestTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetTagHelper
+
+  undef :request
+
+  def test_stylesheet_link_tag_without_request
+    assert_dom_equal(
+      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      stylesheet_link_tag("foo.css")
+    )
+  end
+
+  def test_javascript_include_tag_without_request
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 end
 
