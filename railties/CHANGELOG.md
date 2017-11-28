@@ -1,3 +1,15 @@
+*   Add possibility to set custom `Rails.application.credentials` object.
+    In multi environment application one can set custom file by:
+
+    ```
+    config.before_initialize do
+      self.credentials = encrypted("config/custom-credentials.yml.enc")
+    end
+    ```
+
+    *Wojciech Wnętrzak*
+
+
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.
