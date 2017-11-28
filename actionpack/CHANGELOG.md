@@ -1,3 +1,10 @@
+*   Fix optimized url helpers when using relative url root
+
+    Fixes #31220.
+
+    *Andrew White*
+
+
 ## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Add DSL for configuring Content-Security-Policy header

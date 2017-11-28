@@ -199,6 +199,16 @@ module ActionDispatch
               if args.size == arg_size && !inner_options && optimize_routes_generation?(t)
                 options = t.url_options.merge @options
                 options[:path] = optimized_helper(args)
+
+                original_script_name = options.delete(:original_script_name)
+                script_name = t._routes.find_script_name(options)
+
+                if original_script_name
+                  script_name = original_script_name + script_name
+                end
+
+                options[:script_name] = script_name
+
                 url_strategy.call options
               else
                 super
