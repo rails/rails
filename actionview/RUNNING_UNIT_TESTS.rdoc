@@ -2,7 +2,7 @@
 
 The easiest way to run the unit tests is through Rake. The default task runs
 the entire test suite for all classes. For more information, checkout the
-full array of rake tasks with +rake -T+.
+full array of rake tasks with <tt>rake -T</tt>.
 
 Rake can be found at http://docs.seattlerb.org/rake/.
 
