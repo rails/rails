@@ -17,7 +17,7 @@ Gem::Specification.new do |s|
   s.email    = "david@loudthinking.com"
   s.homepage = "http://rubyonrails.org"
 
-  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*"]
+  s.files        = Dir["CHANGELOG.md", "MIT-LICENSE", "README.md", "lib/**/*", "app/**/*", "config/**/*", "db/**/*"]
   s.require_path = "lib"
 
   s.metadata = {
