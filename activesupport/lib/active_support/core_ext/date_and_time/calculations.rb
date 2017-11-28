@@ -330,20 +330,28 @@ module DateAndTime
       beginning_of_year..end_of_year
     end
 
-    # Returns specific next occurring day of week
+    # Returns a new date/time representing the next occurrence of the specified day of week.
+    #
+    #   today = Date.today               # => Thu, 14 Dec 2017
+    #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
+    #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
     def next_occurring(day_of_week)
       current_day_number = wday != 0 ? wday - 1 : 6
       from_now = DAYS_INTO_WEEK.fetch(day_of_week) - current_day_number
       from_now += 7 unless from_now > 0
-      since(from_now.days)
+      advance(days: from_now)
     end
 
-    # Returns specific previous occurring day of week
+    # Returns a new date/time representing the previous occurrence of the specified day of week.
+    #
+    #   today = Date.today               # => Thu, 14 Dec 2017
+    #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
+    #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
     def prev_occurring(day_of_week)
       current_day_number = wday != 0 ? wday - 1 : 6
       ago = current_day_number - DAYS_INTO_WEEK.fetch(day_of_week)
       ago += 7 unless ago > 0
-      ago(ago.days)
+      advance(days: -ago)
     end
 
     private

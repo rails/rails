@@ -328,6 +328,26 @@ module DateAndTimeBehavior
     assert_equal date_time_init(2007, 12, 31, 23, 59, 59, Rational(999999999, 1000)), date_time_init(2007, 12, 31, 10, 10, 10).end_of_year
   end
 
+  def test_next_occurring
+    assert_equal date_time_init(2017, 12, 18, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:monday)
+    assert_equal date_time_init(2017, 12, 19, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:tuesday)
+    assert_equal date_time_init(2017, 12, 20, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:wednesday)
+    assert_equal date_time_init(2017, 12, 21, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:thursday)
+    assert_equal date_time_init(2017, 12, 15, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:friday)
+    assert_equal date_time_init(2017, 12, 16, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:saturday)
+    assert_equal date_time_init(2017, 12, 17, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).next_occurring(:sunday)
+  end
+
+  def test_prev_occurring
+    assert_equal date_time_init(2017, 12, 11, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:monday)
+    assert_equal date_time_init(2017, 12, 12, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:tuesday)
+    assert_equal date_time_init(2017, 12, 13, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:wednesday)
+    assert_equal date_time_init(2017, 12,  7, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:thursday)
+    assert_equal date_time_init(2017, 12,  8, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:friday)
+    assert_equal date_time_init(2017, 12,  9, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:saturday)
+    assert_equal date_time_init(2017, 12, 10, 3, 14, 15), date_time_init(2017, 12, 14, 3, 14, 15).prev_occurring(:sunday)
+  end
+
   def test_monday_with_default_beginning_of_week_set
     with_bw_default(:saturday) do
       assert_equal date_time_init(2012, 9, 17, 0, 0, 0), date_time_init(2012, 9, 18, 0, 0, 0).monday
