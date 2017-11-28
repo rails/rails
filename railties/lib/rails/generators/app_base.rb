@@ -297,7 +297,7 @@ module Rails
       def gem_for_database
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
+        when "mysql"          then ["mysql2", ["~> 0.4.4"]]
         when "postgresql"     then ["pg", ["~> 0.18"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
