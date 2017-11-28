@@ -1,3 +1,7 @@
+*   Remove the `` Kernel#` `` override that suppresses ENOENT and accidentally returns nil on Unix systems
+
+    *Akinori Musha*
+
 *   Add `ActiveSupport::HashWithIndifferentAccess#assoc`.
 
     `assoc` can now be called with either a string or a symbol.
