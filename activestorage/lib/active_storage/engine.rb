@@ -5,6 +5,7 @@ require "active_storage"
 
 require "active_storage/previewer/pdf_previewer"
 require "active_storage/previewer/video_previewer"
+require "active_storage/previewer/text_previewer"
 
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
@@ -14,7 +15,7 @@ module ActiveStorage
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
-    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer, ActiveStorage::Previewer::TextPreviewer ]
     config.active_storage.analyzers  = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
 
     config.eager_load_namespaces << ActiveStorage
