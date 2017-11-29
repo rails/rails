@@ -675,6 +675,16 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal old_inversed_man.object_id, new_inversed_man.object_id
   end
 
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed_with_validation
+    face = Face.new man: Man.new
+
+    old_inversed_man = face.man
+    face.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+  end
+
   def test_should_not_try_to_set_inverse_instances_when_the_inverse_is_a_has_many
     i = interests(:llama_wrangling)
     m = i.polymorphic_man
