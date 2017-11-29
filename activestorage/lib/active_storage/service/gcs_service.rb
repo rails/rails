@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "google-cloud-storage", "~> 1.8"
+
 require "google/cloud/storage"
 require "active_support/core_ext/object/to_query"
 
