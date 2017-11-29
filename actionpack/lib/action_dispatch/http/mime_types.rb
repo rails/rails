@@ -23,7 +23,7 @@ Mime::Type.register "video/mpeg", :mpeg, [], %w(mpg mpeg mpe)
 
 Mime::Type.register "audio/mpeg", :mp3, [], %w(mp1 mp2 mp3)
 Mime::Type.register "audio/ogg", :ogg, [], %w(oga ogg spx opus)
-Mime::Type.register "audio/aac", :m4a, %( audio/mp4 ), %w(m4a mpg4 aac)
+Mime::Type.register "audio/aac", :m4a, %w( audio/mp4 ), %w(m4a mpg4 aac)
 
 Mime::Type.register "video/webm", :webm, [], %w(webm)
 Mime::Type.register "video/mp4", :mp4, [], %w(mp4 m4v)
