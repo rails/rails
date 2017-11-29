@@ -1,3 +1,7 @@
+*   Register most popular audio/video/font mime types supported by modern browsers.
+
+    *Guillermo Iguaran*
+
 *   Fix optimized url helpers when using relative url root
 
     Fixes #31220.

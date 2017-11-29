@@ -10,6 +10,7 @@ Mime::Type.register "text/css", :css
 Mime::Type.register "text/calendar", :ics
 Mime::Type.register "text/csv", :csv
 Mime::Type.register "text/vcard", :vcf
+Mime::Type.register "text/vtt", :vtt, %w(vtt)
 
 Mime::Type.register "image/png", :png, [], %w(png)
 Mime::Type.register "image/jpeg", :jpeg, [], %w(jpg jpeg jpe pjpeg)
@@ -17,8 +18,25 @@ Mime::Type.register "image/gif", :gif, [], %w(gif)
 Mime::Type.register "image/bmp", :bmp, [], %w(bmp)
 Mime::Type.register "image/tiff", :tiff, [], %w(tif tiff)
 Mime::Type.register "image/svg+xml", :svg
+Mime::Type.register "image/webp", :webp, [], %w(webp)
 
-Mime::Type.register "video/mpeg", :mpeg, [], %w(mpg mpeg mpe)
+Mime::Type.register "audio/mpeg", :mpg, [], %w(mp1 mp2 mp3)
+Mime::Type.register "audio/webm", :weba, [], %w(weba)
+Mime::Type.register "audio/ogg", :ogg, [], %w(oga ogg spx opus)
+Mime::Type.register "audio/aac", :acc, [], %w(aac)
+Mime::Type.register "audio/mp4", :mp4, [], %w(m4a mpg4)
+Mime::Type.register "audio/flac", :flac, [], %w(flac)
+
+Mime::Type.register "video/webm", :webm, [], %w(webm)
+Mime::Type.register "video/mp4", :mp4, [], %w(mp4 m4v)
+Mime::Type.register "video/ogg", :ogv, [], %w(ogv)
+
+Mime::Type.register "application/ogx", :ogx, [], %w(ogx)
+
+Mime::Type.register "font/otf", :otf, [], %w(otf)
+Mime::Type.register "font/ttf", :ttf, [], %w(ttf)
+Mime::Type.register "font/woff", :woff, [], %w(woff)
+Mime::Type.register "font/woff2", :woff2, [], %w(woff2)
 
 Mime::Type.register "application/xml", :xml, %w( text/xml application/x-xml )
 Mime::Type.register "application/rss+xml", :rss
