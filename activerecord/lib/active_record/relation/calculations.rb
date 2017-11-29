@@ -391,6 +391,11 @@ module ActiveRecord
       end
 
       def build_count_subquery(relation, column_name, distinct)
+        # PostgreSQL doesn't like ORDER BY when there are no GROUP BY
+        if column_name == :all && relation.select_values.present?
+          relation.unscope!(:order)
+        end
+
         relation.select_values = [
           if column_name == :all
             distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)

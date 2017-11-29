@@ -260,6 +260,12 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 3, Account.joins(:firm).distinct.order(:firm_id).limit(3).offset(2).count
   end
 
+  def test_distinct_joins_count_all_with_custom_order_and_limit_and_offset
+    subquery = "(SELECT COUNT(DISTINCT a.id) FROM accounts a GROUP BY companies.id)"
+    order = Arel.sql("#{subquery} DESC")
+    assert_equal 3, Account.joins(:firm).select("*", subquery).distinct.order(order).limit(3).offset(2).count(:all)
+  end
+
   def test_distinct_count_with_group_by_and_order_and_limit
     assert_equal({ 6 => 2 }, Account.group(:firm_id).distinct.order("1 DESC").limit(1).count)
   end
