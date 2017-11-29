@@ -12,7 +12,7 @@ class String
   # class. If the proxy class doesn't respond to a certain method, it's forwarded to the encapsulated string.
   #
   #   >> "ǉ".upcase
-  #   => "ǉ"
+  #   => "Ǉ"
   #   >> "ǉ".mb_chars.upcase.to_s
   #   => "Ǉ"
   #
