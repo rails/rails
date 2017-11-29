@@ -348,6 +348,14 @@ module Rails
         build(:public_directory)
       end
 
+      def create_tmp_files
+        build(:tmp)
+      end
+
+      def create_vendor_files
+        build(:vendor)
+      end
+
       def create_test_files
         build(:test) unless options[:skip_test]
       end
@@ -358,14 +366,6 @@ module Rails
 
       def create_storage_files
         build(:storage) unless skip_active_storage?
-      end
-
-      def create_tmp_files
-        build(:tmp)
-      end
-
-      def create_vendor_files
-        build(:vendor)
       end
 
       def delete_app_assets_if_api_option
