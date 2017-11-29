@@ -316,7 +316,7 @@ module ActionDispatch
                   when Hash
                     args.pop
                   when ActionController::Parameters
-                    args.pop.to_h.symbolize_keys
+                    args.pop.to_h
                   end
                 helper.call self, args, options
               end

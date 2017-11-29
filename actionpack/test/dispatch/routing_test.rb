@@ -3641,7 +3641,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  def test_passing_action_parameters_to_url_helpers_is_allowed_if_parameters_are_permitted
+  def test_passing_action_parameters_to_url_helpers_is_allowed_for_query_if_parameters_are_permitted
     draw do
       root to: "projects#index"
       resources :items
@@ -3650,7 +3650,9 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     params.permit!
 
     assert_equal "/?id=1", root_path(params)
-    assert_equal "/items/1", item_path(params)
+    assert_raises(ActionController::UrlGenerationError) do
+      item_path(params)
+    end
   end
 
   def test_dynamic_controller_segments_are_deprecated
