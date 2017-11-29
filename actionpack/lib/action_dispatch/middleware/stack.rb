@@ -93,6 +93,22 @@ module ActionDispatch
       middlewares.delete_if { |m| m.klass == target }
     end
 
+    def move(target, source, *args, &block)
+      index = assert_index(source, :before)
+      middlewares.delete_at(index)
+
+      insert(target, source, *args, &block)
+    end
+
+    alias_method :move_before, :move
+
+    def move_after(target, source, *args, &block)
+      index = assert_index(source, :after)
+      middlewares.delete_at(index)
+
+      insert_after(target, source, *args, &block)
+    end
+
     def use(klass, *args, &block)
       middlewares.push(build_middleware(klass, args, block))
     end
