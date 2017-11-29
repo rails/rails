@@ -39,6 +39,14 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command does not overwrite by default if credentials already exists" do
+    run_edit_command(editor: "eval echo api_key: abc >")
+    assert_match(/api_key: abc/, run_show_command)
+
+    run_edit_command
+    assert_match(/api_key: abc/, run_show_command)
+  end
+
   private
     def run_edit_command(editor: "cat")
       switch_env("EDITOR", editor) do

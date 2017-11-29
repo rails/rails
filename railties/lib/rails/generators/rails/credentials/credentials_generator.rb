@@ -8,7 +8,7 @@ module Rails
   module Generators
     class CredentialsGenerator < Base
       def add_credentials_file
-        unless credentials.exist?
+        unless credentials.content_path.exist?
           template = credentials_template
 
           say "Adding #{credentials.content_path} to store encrypted credentials."
@@ -26,7 +26,9 @@ module Rails
       end
 
       def add_credentials_file_silently(template = nil)
-        credentials.write(credentials_template)
+        unless credentials.content_path.exist?
+          credentials.write(credentials_template)
+        end
       end
 
       private
