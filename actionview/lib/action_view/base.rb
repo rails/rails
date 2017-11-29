@@ -144,6 +144,10 @@ module ActionView #:nodoc:
     # Specify the proc used to decorate input tags that refer to attributes with errors.
     cattr_accessor :field_error_proc, default: Proc.new { |html_tag, instance| "<div class=\"field_with_errors\">#{html_tag}</div>".html_safe }
 
+    # Specify a hash used to merge into options of tags that refer to attributes with errors.
+    # e.g., ActionView::Base.field_error_html_options = { class: "is-invalid" }
+    cattr_accessor :field_error_html_options, default: {}
+
     # How to complete the streaming when an exception occurs.
     # This is our best guess: first try to close the attribute, then the tag.
     cattr_accessor :streaming_completion_on_exception, default: %("><script>window.location = "/500.html"</script></html>)

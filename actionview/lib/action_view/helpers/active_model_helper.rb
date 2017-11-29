@@ -17,12 +17,22 @@ module ActionView
         end
       end
 
-      def content_tag(type, options, *)
-        select_markup_helper?(type) ? super : error_wrapping(super)
+      def content_tag(type, content, options, *)
+        if select_markup_helper?(type)
+          super
+        else
+          error_field_html_options(type, options)
+          error_wrapping(super)
+        end
       end
 
       def tag(type, options, *)
-        tag_generate_errors?(options) ? error_wrapping(super) : super
+        if tag_generate_errors?(options)
+          error_field_html_options(type, options)
+          error_wrapping(super)
+        else
+          super
+        end
       end
 
       def error_wrapping(html_tag)
@@ -30,6 +40,21 @@ module ActionView
           Base.field_error_proc.call(html_tag, self)
         else
           html_tag
+        end
+      end
+
+      def error_field_html_options(type, html_options)
+        return if Base.field_error_html_options.empty?
+
+        if object_has_errors?
+          if ["date", "time", "datetime"].include?(type)
+            options = Base.field_error_html_options.deep_symbolize_keys
+          else
+            options = Base.field_error_html_options.deep_stringify_keys
+          end
+          html_options.merge!(options) do |key, old_val, new_val|
+            ([*old_val] + [*new_val]).join(" ")
+          end
         end
       end
 

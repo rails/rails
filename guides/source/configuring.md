@@ -560,6 +560,14 @@ Defaults to `'signed cookie'`.
     end
     ```
 
+* `config.action_view.field_error_html_options` specify a hash used to merge
+  into input tags that refer to attributes with errors. The default is `{}`.
+  E.g. set up custom CSS class or custom data-attributes.
+
+    ```ruby
+    { class: "is-invalid", data: { error: "invalid" } }
+    ```
+
 * `config.action_view.default_form_builder` tells Rails which form builder to
   use by default. The default is `ActionView::Helpers::FormBuilder`. If you
   want your form builder class to be loaded after initialization (so it's

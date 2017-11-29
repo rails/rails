@@ -13,6 +13,7 @@ module ActionView
         end
 
         def render
+          error_field_html_options(select_type, @html_options)
           error_wrapping(datetime_selector(@options, @html_options).send("select_#{select_type}").html_safe)
         end
 

@@ -1,3 +1,20 @@
+*   Add `config.action_view.field_error_html_options`.
+    Specify a hash used to merge into options of tags that refer to attributes with errors.
+
+    ```ruby
+    Rails.application.config.action_view.field_error_html_options = { class: "is-invalid" }
+    ```
+
+    ```erb
+    <%= f.text_field(:name, class: "my-text") %>
+    ```
+
+    ```html
+    <input type="text" class="my-text is-invalid" value="" />
+    ```
+
+    *Matthias Neumayr*
+
 *   Fix JavaScript views rendering does not work with Firefox when using
     Content Security Policy.
 
