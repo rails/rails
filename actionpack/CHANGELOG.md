@@ -1,3 +1,7 @@
+*   Accept block as fallback_location for redirect_back.
+
+    *Max Melentiev*
+
 *   Introduce a new error page to when the implict render page is accessed in the browser.
 
     Now instead of showing an error page that with exception and backtraces we now show only

@@ -71,15 +71,16 @@ module ActionController
     # The referrer information is pulled from the HTTP +Referer+ (sic) header on
     # the request. This is an optional header and its presence on the request is
     # subject to browser security settings and user preferences. If the request
-    # is missing this header, the <tt>fallback_location</tt> will be used.
+    # is missing this header, the <tt>fallback_location</tt> or value of block will be used.
     #
-    #   redirect_back fallback_location: { action: "show", id: 5 }
-    #   redirect_back fallback_location: @post
+    #   redirect_back { { action: "show", id: 5 } }
+    #   redirect_back { @post }
+    #   redirect_back { posts_url }
     #   redirect_back fallback_location: "http://www.rubyonrails.org"
     #   redirect_back fallback_location: "/images/screenshot.jpg"
-    #   redirect_back fallback_location: posts_url
-    #   redirect_back fallback_location: proc { edit_post_url(@post) }
     #   redirect_back fallback_location: '/', allow_other_host: false
+    #   redirect_back fallback_location: { action: "show", id: 5 }
+    #   redirect_back fallback_location: proc { edit_post_url(@post) }
     #
     # ==== Options
     # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
@@ -87,7 +88,9 @@ module ActionController
     #
     # All other options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
-    def redirect_back(fallback_location:, allow_other_host: true, **args)
+    def redirect_back(fallback_location: nil, allow_other_host: true, **args, &block)
+      fallback_location ||= block
+      raise ArgumentErrorm, "fallback_location or block is required" unless fallback_location
       referer = request.headers["Referer"]
       redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
       redirect_to redirect_to_referer ? referer : fallback_location, **args
