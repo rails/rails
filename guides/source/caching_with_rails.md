@@ -32,7 +32,7 @@ Basic Caching
 This is an introduction to three types of caching techniques: page, action and
 fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
-`actionpack-action_caching` to your Gemfile.
+`actionpack-action_caching` to your `Gemfile`.
 
 By default, caching is only enabled in your production environment. To play
 around with caching locally you'll want to enable caching in your local
