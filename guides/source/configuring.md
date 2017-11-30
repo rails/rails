@@ -1005,11 +1005,11 @@ Deploying your application using a reverse proxy has definite advantages over tr
 
 Many modern web servers can be used as a proxy server to balance third-party elements such as caching servers or application servers.
 
-One such application server you can use is [Unicorn](http://unicorn.bogomips.org/) to run behind a reverse proxy.
+One such application server you can use is [Unicorn](https://bogomips.org/unicorn/) to run behind a reverse proxy.
 
 In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
 
-You can find more information in the [Unicorn readme](http://unicorn.bogomips.org/README.html) and understand the [philosophy](http://unicorn.bogomips.org/PHILOSOPHY.html) behind it.
+You can find more information in the [Unicorn readme](https://bogomips.org/unicorn/README.html) and understand the [philosophy](https://bogomips.org/unicorn/PHILOSOPHY.html) behind it.
 
 Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
 
@@ -1037,7 +1037,7 @@ server {
 }
 ```
 
-Be sure to read the [NGINX documentation](http://nginx.org/en/docs/) for the most up-to-date information.
+Be sure to read the [NGINX documentation](https://nginx.org/en/docs/) for the most up-to-date information.
 
 
 Rails Environment Settings
