@@ -214,6 +214,17 @@ class AssetTagHelperTest < ActionView::TestCase
     %(favicon_link_tag 'mb-icon.png', :rel => 'apple-touch-icon', :type => 'image/png') => %(<link href="/images/mb-icon.png" rel="apple-touch-icon" type="image/png" />)
   }
 
+  PreloadLinkToTag = {
+    %(preload_link_tag '/styles/custom_theme.css') => %(<link rel="preload" href="/styles/custom_theme.css" as="style" type="text/css" />),
+    %(preload_link_tag '/videos/video.webm') => %(<link rel="preload" href="/videos/video.webm" as="video" type="video/webm" />),
+    %(preload_link_tag '/posts.json', as: 'fetch') => %(<link rel="preload" href="/posts.json" as="fetch" type="application/json" />),
+    %(preload_link_tag '/users', as: 'fetch', type: 'application/json') => %(<link rel="preload" href="/users" as="fetch" type="application/json" />),
+    %(preload_link_tag '//example.com/map?callback=initMap', as: 'fetch', type: 'application/javascript') => %(<link rel="preload" href="//example.com/map?callback=initMap" as="fetch" type="application/javascript" />),
+    %(preload_link_tag '//example.com/font.woff2') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>),
+    %(preload_link_tag '//example.com/font.woff2', crossorigin: 'use-credentials') => %(<link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />),
+    %(preload_link_tag '/media/audio.ogg', nopush: true) => %(<link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />)
+  }
+
   VideoPathToTag = {
     %(video_path("xml"))          => %(/videos/xml),
     %(video_path("xml.ogg"))      => %(/videos/xml.ogg),
@@ -440,6 +451,14 @@ class AssetTagHelperTest < ActionView::TestCase
     }
   end
 
+  def test_stylesheet_link_tag_without_request
+    @request = nil
+    assert_dom_equal(
+      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      stylesheet_link_tag("foo.css")
+    )
+  end
+
   def test_stylesheet_link_tag_is_html_safe
     assert stylesheet_link_tag("dir/file").html_safe?
     assert stylesheet_link_tag("dir/other/file", "dir/file2").html_safe?
@@ -462,6 +481,11 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = "assets.example.com"
     @controller.config.default_asset_host_protocol = :relative
     assert_dom_equal %(<link href="//assets.example.com/stylesheets/wellington.css" media="screen" rel="stylesheet" />), stylesheet_link_tag("wellington")
+  end
+
+  def test_javascript_include_tag_without_request
+    @request = nil
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 
   def test_image_path
@@ -520,6 +544,10 @@ class AssetTagHelperTest < ActionView::TestCase
 
   def test_favicon_link_tag
     FaviconLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
+  end
+
+  def test_preload_link_tag
+    PreloadLinkToTag.each { |method, tag| assert_dom_equal(tag, eval(method)) }
   end
 
   def test_video_path
@@ -775,6 +803,23 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
   def test_assert_css_and_js_of_the_same_name_return_correct_extension
     assert_dom_equal(%(/collaboration/hieraki/javascripts/foo.js), javascript_path("foo"))
     assert_dom_equal(%(/collaboration/hieraki/stylesheets/foo.css), stylesheet_path("foo"))
+  end
+end
+
+class AssetTagHelperWithoutRequestTest < ActionView::TestCase
+  tests ActionView::Helpers::AssetTagHelper
+
+  undef :request
+
+  def test_stylesheet_link_tag_without_request
+    assert_dom_equal(
+      %(<link rel="stylesheet" media="screen" href="/stylesheets/foo.css" />),
+      stylesheet_link_tag("foo.css")
+    )
+  end
+
+  def test_javascript_include_tag_without_request
+    assert_dom_equal %(<script src="/javascripts/foo.js"></script>), javascript_include_tag("foo.js")
   end
 end
 

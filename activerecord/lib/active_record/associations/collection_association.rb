@@ -79,7 +79,13 @@ module ActiveRecord
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
+          model = scope.klass
+
+          if args_flatten.blank?
+            error_message = "Couldn't find #{model.name} without an ID"
+            raise RecordNotFound.new(error_message, model.name, model.primary_key, args)
+          end
+
           result = find_by_scan(*args)
 
           result_size = Array(result).size

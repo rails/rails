@@ -171,6 +171,12 @@ module ActiveRecord
               "a class method with the same name."
           end
 
+          if method_defined_within?(name, Relation)
+            raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+              "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
+              "an instance method with the same name."
+          end
+
           valid_scope_name?(name)
           extension = Module.new(&block) if block
 

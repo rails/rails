@@ -174,8 +174,9 @@ module Rails
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
         if secret_key_base
-          ActiveSupport::CachingKeyGenerator.new \
+          ActiveSupport::CachingKeyGenerator.new(
             ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
+          )
         else
           ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
@@ -265,7 +266,9 @@ module Rails
           "action_dispatch.signed_cookie_digest" => config.action_dispatch.signed_cookie_digest,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
-          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations
+          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.content_security_policy" => config.content_security_policy,
+          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only
         )
       end
     end
@@ -400,8 +403,9 @@ module Rails
         secrets.secret_token ||= config.secret_token
 
         if secrets.secret_token.present?
-          ActiveSupport::Deprecation.warn \
+          ActiveSupport::Deprecation.warn(
             "`secrets.secret_token` is deprecated in favor of `secret_key_base` and will be removed in Rails 6.0."
+          )
         end
 
         secrets
@@ -424,8 +428,9 @@ module Rails
       if Rails.env.test? || Rails.env.development?
         Digest::MD5.hexdigest self.class.name
       else
-        validate_secret_key_base \
+        validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
+        )
       end
     end
 
@@ -464,10 +469,11 @@ module Rails
     #
     #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
     def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
-      ActiveSupport::EncryptedConfiguration.new \
+      ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
         env_key: env_key
+      )
     end
 
     def to_app #:nodoc:

@@ -1,3 +1,22 @@
+*   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
+
+    Fixes #31120.
+
+    *kinnrot*
+
+
+## Rails 5.2.0.beta2 (November 28, 2017) ##
+
+*   No changes.
+
+
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
+*   Add new error class `QueryCanceled` which will be raised
+    when canceling statement due to user request.
+
+    *Ryuta Kamizono*
+
 *   Add `#up_only` to database migrations for code that is only relevant when
     migrating up, e.g. populating a new column.
 
@@ -190,7 +209,7 @@
 
     *Jeremy Green*
 
-*   Add new error class `TransactionTimeout` which will be raised
+*   Add new error class `LockWaitTimeout` which will be raised
     when lock wait timeout exceeded.
 
     *Gabriel Courtemanche*

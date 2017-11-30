@@ -8,7 +8,7 @@ module Rails
   module Generators
     class CredentialsGenerator < Base
       def add_credentials_file
-        unless credentials.exist?
+        unless credentials.content_path.exist?
           template = credentials_template
 
           say "Adding #{credentials.content_path} to store encrypted credentials."
@@ -26,15 +26,18 @@ module Rails
       end
 
       def add_credentials_file_silently(template = nil)
-        credentials.write(credentials_template)
+        unless credentials.content_path.exist?
+          credentials.write(credentials_template)
+        end
       end
 
       private
         def credentials
-          ActiveSupport::EncryptedConfiguration.new \
+          ActiveSupport::EncryptedConfiguration.new(
             config_path: "config/credentials.yml.enc",
             key_path: "config/master.key",
             env_key: "RAILS_MASTER_KEY"
+          )
         end
 
         def credentials_template

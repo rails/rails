@@ -36,6 +36,19 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert_match "Maybe you meant 'migration'", output
   end
 
+  def test_generator_suggestions_except_en_locale
+    orig_available_locales = I18n.available_locales
+    orig_default_locale = I18n.default_locale
+    I18n.available_locales = :ja
+    I18n.default_locale = :ja
+    name = :tas
+    output = capture(:stdout) { Rails::Generators.invoke name }
+    assert_match "Maybe you meant 'task', 'job' or", output
+  ensure
+    I18n.available_locales = orig_available_locales
+    I18n.default_locale = orig_default_locale
+  end
+
   def test_generator_multiple_suggestions
     name = :tas
     output = capture(:stdout) { Rails::Generators.invoke name }

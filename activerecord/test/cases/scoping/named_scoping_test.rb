@@ -151,6 +151,22 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal "The scope body needs to be callable.", e.message
   end
 
+  def test_scopes_name_is_relation_method
+    conflicts = [
+      :records,
+      :to_ary,
+      :to_sql,
+      :explain
+    ]
+
+    conflicts.each do |name|
+      e = assert_raises ArgumentError do
+        Class.new(Post).class_eval { scope name, -> { where(approved: true) } }
+      end
+      assert_match(/You tried to define a scope named \"#{name}\" on the model/, e.message)
+    end
+  end
+
   def test_active_records_have_scope_named__all__
     assert !Topic.all.empty?
 

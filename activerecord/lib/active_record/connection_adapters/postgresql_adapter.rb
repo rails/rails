@@ -166,7 +166,7 @@ module ActiveRecord
         { concurrently: "CONCURRENTLY" }
       end
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         def initialize(connection, max)
           super(max)
           @connection = connection
@@ -182,7 +182,6 @@ module ActiveRecord
         end
 
         private
-
           def dealloc(key)
             @connection.query "DEALLOCATE #{key}" if connection_active?
           rescue PG::Error
@@ -271,6 +270,11 @@ module ActiveRecord
           super
           @connection.close rescue nil
         end
+      end
+
+      def discard! # :nodoc:
+        @connection.socket_io.reopen(IO::NULL)
+        @connection = nil
       end
 
       def native_database_types #:nodoc:
@@ -413,9 +417,9 @@ module ActiveRecord
           when DEADLOCK_DETECTED
             Deadlocked.new(message)
           when LOCK_NOT_AVAILABLE
-            TransactionTimeout.new(message)
+            LockWaitTimeout.new(message)
           when QUERY_CANCELED
-            StatementTimeout.new(message)
+            QueryCanceled.new(message)
           else
             super
           end

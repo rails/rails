@@ -90,9 +90,8 @@ module ActiveRecord
       #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       class_attribute :represent_boolean_as_integer, default: false
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
-
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end

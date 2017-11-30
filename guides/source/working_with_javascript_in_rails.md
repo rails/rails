@@ -188,14 +188,19 @@ bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
 ```coffeescript
 $(document).ready ->
-  $("#new_article").on("ajax:success", (e, data, status, xhr) ->
+  $("#new_article").on("ajax:success", (event) ->
+    [data, status, xhr] = event.detail
     $("#new_article").append xhr.responseText
-  ).on "ajax:error", (e, xhr, status, error) ->
+  ).on "ajax:error", (event) ->
     $("#new_article").append "<p>ERROR</p>"
 ```
 
 Obviously, you'll want to be a bit more sophisticated than that, but it's a
 start.
+
+NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
+have been bundled into `event.detail`. For information about the previously used
+`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
 
 #### link_to
 
@@ -225,7 +230,7 @@ and write some CoffeeScript like this:
 
 ```coffeescript
 $ ->
-  $("a[data-remote]").on "ajax:success", (e, data, status, xhr) ->
+  $("a[data-remote]").on "ajax:success", (event) ->
     alert "The article was deleted."
 ```
 
@@ -343,39 +348,6 @@ This generates a form with:
 <input data-disable-with="Saving..." type="submit">
 ```
 
-Dealing with Ajax events
-------------------------
-
-Here are the different events that are fired when you deal with elements
-that have a `data-remote` attribute:
-
-NOTE: All handlers bound to these events are always passed the event object as the
-first argument. The table below describes the extra parameters passed after the
-event argument. For example, if the extra parameters are listed as `xhr, settings`,
-then to access them, you would define your handler with `function(event, xhr, settings)`.
-
-| Event name          | Extra parameters | Fired                                                       |
-|---------------------|------------------|-------------------------------------------------------------|
-| `ajax:before`       |                  | Before the whole ajax business, aborts if stopped.          |
-| `ajax:beforeSend`   | xhr, options     | Before the request is sent, aborts if stopped.              |
-| `ajax:send`         | xhr              | When the request is sent.                                   |
-| `ajax:success`      | xhr, status, err | After completion, if the response was a success.            |
-| `ajax:error`        | xhr, status, err | After completion, if the response was an error.             |
-| `ajax:complete`     | xhr, status      | After the request has been completed, no matter the outcome.|
-| `ajax:aborted:file` | elements         | If there are non-blank file inputs, aborts if stopped.      |
-
-### Stoppable events
-
-If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
-handler method, the Ajax request will never take place. The `ajax:before` event
-is also useful for manipulating form data before serialization. The
-`ajax:beforeSend` event is also useful for adding custom request headers.
-
-If you stop the `ajax:aborted:file` event, the default behavior of allowing the
-browser to submit the form via normal means (i.e. non-Ajax submission) will be
-canceled and the form will not be submitted at all. This is useful for
-implementing your own Ajax file upload workaround.
-
 ### Rails-ujs event handlers
 
 Rails 5.1 introduced rails-ujs and dropped jQuery as a dependency.
@@ -404,6 +376,22 @@ document.body.addEventListener('ajax:success', function(event) {
   var data = detail[0], status = detail[1],  xhr = detail[2];
 })
 ```
+
+NOTE: As of Rails 5.1 and the new `rails-ujs`, the parameters `data, status, xhr`
+have been bundled into `event.detail`. For information about the previously used
+`jquery-ujs` in Rails 5 and earlier, read the [`jquery-ujs` wiki](https://github.com/rails/jquery-ujs/wiki/ajax).
+
+### Stoppable events
+
+If you stop `ajax:before` or `ajax:beforeSend` by returning false from the
+handler method, the Ajax request will never take place. The `ajax:before` event
+can manipulate form data before serialization and the
+`ajax:beforeSend` event is useful for adding custom request headers.
+
+If you stop the `ajax:aborted:file` event, the default behavior of allowing the
+browser to submit the form via normal means (i.e. non-Ajax submission) will be
+canceled and the form will not be submitted at all. This is useful for
+implementing your own Ajax file upload workaround.
 
 Server-Side Concerns
 --------------------

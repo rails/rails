@@ -58,8 +58,8 @@ module ActiveSupport
   # === Rotating keys
   #
   # MessageEncryptor also supports rotating out old configurations by falling
-  # back to a stack of encryptors. Call `rotate` to build and add an encryptor
-  # so `decrypt_and_verify` will also try the fallback.
+  # back to a stack of encryptors. Call +rotate+ to build and add an encryptor
+  # so +decrypt_and_verify+ will also try the fallback.
   #
   # By default any rotated encryptors use the values of the primary
   # encryptor unless specified otherwise.

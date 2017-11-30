@@ -1,3 +1,25 @@
+## Rails 5.2.0.beta2 (November 28, 2017) ##
+
+*   No changes.
+
+
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
+*   Changed default behaviour of `ActiveSupport::SecurityUtils.secure_compare`,
+    to make it not leak length information even for variable length string.
+
+    Renamed old `ActiveSupport::SecurityUtils.secure_compare` to `fixed_length_secure_compare`,
+    and started raising `ArgumentError` in case of length mismatch of passed strings.
+
+    *Vipul A M*
+
+*   Make `ActiveSupport::TimeZone.all` return only time zones that are in
+    `ActiveSupport::TimeZone::MAPPING`.
+
+    Fixes #7245.
+
+    *Chris LaRose*
+
 *   MemCacheStore: Support expiring counters.
 
     Pass `expires_in: [seconds]` to `#increment` and `#decrement` options

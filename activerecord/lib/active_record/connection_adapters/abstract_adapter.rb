@@ -105,6 +105,7 @@ module ActiveRecord
         @logger              = logger
         @config              = config
         @pool                = nil
+        @idle_since          = Concurrent.monotonic_time
         @schema_cache        = SchemaCache.new self
         @quoted_column_names, @quoted_table_names = {}, {}
         @visitor = arel_visitor
@@ -164,6 +165,7 @@ module ActiveRecord
               "Current thread: #{Thread.current}."
           end
 
+          @idle_since = Concurrent.monotonic_time
           @owner = nil
         else
           raise ActiveRecordError, "Cannot expire connection, it is not currently leased."
@@ -181,6 +183,12 @@ module ActiveRecord
         else
           raise ActiveRecordError, "Cannot steal connection, it is not currently leased."
         end
+      end
+
+      # Seconds since this connection was returned to the pool
+      def seconds_idle # :nodoc:
+        return 0 if in_use?
+        Concurrent.monotonic_time - @idle_since
       end
 
       def unprepared_statement
@@ -365,6 +373,19 @@ module ActiveRecord
       def disconnect!
         clear_cache!
         reset_transaction
+      end
+
+      # Immediately forget this connection ever existed. Unlike disconnect!,
+      # this will not communicate with the server.
+      #
+      # After calling this method, the behavior of all other methods becomes
+      # undefined. This is called internally just before a forked process gets
+      # rid of a connection that belonged to its parent.
+      def discard!
+        # This should be overridden by concrete adapters.
+        #
+        # Prevent @connection's finalizer from touching the socket, or
+        # otherwise communicating with its server, when it is collected.
       end
 
       # Reset the state of this connection, directing the DBMS to clear

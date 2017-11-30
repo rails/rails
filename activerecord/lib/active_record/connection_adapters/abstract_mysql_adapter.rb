@@ -44,7 +44,7 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
           stmt[:stmt].close
         end
@@ -635,6 +635,7 @@ module ActiveRecord
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
         ER_LOCK_WAIT_TIMEOUT    = 1205
+        ER_QUERY_INTERRUPTED    = 1317
         ER_QUERY_TIMEOUT        = 3024
 
         def translate_exception(exception, message)
@@ -660,9 +661,11 @@ module ActiveRecord
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
           when ER_LOCK_WAIT_TIMEOUT
-            TransactionTimeout.new(message)
+            LockWaitTimeout.new(message)
           when ER_QUERY_TIMEOUT
             StatementTimeout.new(message)
+          when ER_QUERY_INTERRUPTED
+            QueryCanceled.new(message)
           else
             super
           end

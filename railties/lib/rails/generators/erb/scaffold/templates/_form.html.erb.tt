@@ -15,15 +15,15 @@
   <div class="field">
 <% if attribute.password_digest? -%>
     <%%= form.label :password %>
-    <%%= form.password_field :password, id: :<%= field_id(:password) %> %>
+    <%%= form.password_field :password %>
   </div>
 
   <div class="field">
     <%%= form.label :password_confirmation %>
-    <%%= form.password_field :password_confirmation, id: :<%= field_id(:password_confirmation) %> %>
+    <%%= form.password_field :password_confirmation %>
 <% else -%>
     <%%= form.label :<%= attribute.column_name %> %>
-    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %>, id: :<%= field_id(attribute.column_name) %> %>
+    <%%= form.<%= attribute.field_type %> :<%= attribute.column_name %> %>
 <% end -%>
   </div>
 

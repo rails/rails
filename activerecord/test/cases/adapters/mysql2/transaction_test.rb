@@ -60,8 +60,8 @@ module ActiveRecord
       end
     end
 
-    test "raises TransactionTimeout when lock wait timeout exceeded" do
-      assert_raises(ActiveRecord::TransactionTimeout) do
+    test "raises LockWaitTimeout when lock wait timeout exceeded" do
+      assert_raises(ActiveRecord::LockWaitTimeout) do
         s = Sample.create!(value: 1)
         latch1 = Concurrent::CountDownLatch.new
         latch2 = Concurrent::CountDownLatch.new
@@ -112,6 +112,33 @@ module ActiveRecord
         ensure
           Sample.connection.execute("SET max_execution_time = DEFAULT")
           latch2.count_down
+          thread.join
+        end
+      end
+    end
+
+    test "raises QueryCanceled when canceling statement due to user request" do
+      assert_raises(ActiveRecord::QueryCanceled) do
+        s = Sample.create!(value: 1)
+        latch = Concurrent::CountDownLatch.new
+
+        thread = Thread.new do
+          Sample.transaction do
+            Sample.lock.find(s.id)
+            latch.count_down
+            sleep(0.5)
+            conn = Sample.connection
+            pid = conn.query_value("SELECT id FROM information_schema.processlist WHERE info LIKE '% FOR UPDATE'")
+            conn.execute("KILL QUERY #{pid}")
+          end
+        end
+
+        begin
+          Sample.transaction do
+            latch.wait
+            Sample.lock.find(s.id)
+          end
+        ensure
           thread.join
         end
       end

@@ -2046,7 +2046,7 @@ module ActionDispatch
       end
 
       module CustomUrls
-        # Define custom url helpers that will be added to the application's
+        # Define custom URL helpers that will be added to the application's
         # routes. This allows you to override and/or replace the default behavior
         # of routing helpers, e.g:
         #
@@ -2066,11 +2066,11 @@ module ActionDispatch
         # arguments for +url_for+ which will actually build the URL string. This can
         # be one of the following:
         #
-        #   * A string, which is treated as a generated URL
-        #   * A hash, e.g. { controller: "pages", action: "index" }
-        #   * An array, which is passed to `polymorphic_url`
-        #   * An Active Model instance
-        #   * An Active Model class
+        # * A string, which is treated as a generated URL
+        # * A hash, e.g. <tt>{ controller: "pages", action: "index" }</tt>
+        # * An array, which is passed to +polymorphic_url+
+        # * An Active Model instance
+        # * An Active Model class
         #
         # NOTE: Other URL helpers can be called in the block but be careful not to invoke
         # your custom URL helper again otherwise it will result in a stack overflow error.

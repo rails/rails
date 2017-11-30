@@ -18,9 +18,10 @@ module ActiveRecord
     #   Person.find([1])        # returns an array for the object with ID = 1
     #   Person.where("administrator = 1").order("created_on DESC").find(1)
     #
-    # NOTE: The returned records may not be in the same order as the ids you
-    # provide since database rows are unordered. You will need to provide an explicit QueryMethods#order
-    # option if you want the results to be sorted.
+    # NOTE: The returned records are in the same order as the ids you provide.
+    # If you want the results to be sorted by database, you can use ActiveRecord::QueryMethods#where
+    # method and provide an explicit ActiveRecord::QueryMethods#order option.
+    # But ActiveRecord::QueryMethods#where method doesn't raise ActiveRecord::RecordNotFound.
     #
     # ==== Find with lock
     #
@@ -88,7 +89,7 @@ module ActiveRecord
       where(arg, *args).take!
     rescue ::RangeError
       raise RecordNotFound.new("Couldn't find #{@klass.name} with an out of range value",
-                               @klass.name)
+                               @klass.name, @klass.primary_key)
     end
 
     # Gives a record (or N records if a parameter is supplied) without any implied
@@ -339,7 +340,7 @@ module ActiveRecord
       if ids.nil?
         error = "Couldn't find #{name}".dup
         error << " with#{conditions}" if conditions
-        raise RecordNotFound.new(error, name)
+        raise RecordNotFound.new(error, name, key)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
@@ -347,7 +348,7 @@ module ActiveRecord
         error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
         error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
-        raise RecordNotFound.new(error, name, primary_key, ids)
+        raise RecordNotFound.new(error, name, key, ids)
       end
     end
 
@@ -433,9 +434,12 @@ module ActiveRecord
 
         ids = ids.flatten.compact.uniq
 
+        model_name = @klass.name
+
         case ids.size
         when 0
-          raise RecordNotFound, "Couldn't find #{@klass.name} without an ID"
+          error_message = "Couldn't find #{model_name} without an ID"
+          raise RecordNotFound.new(error_message, model_name, primary_key)
         when 1
           result = find_one(ids.first)
           expects_array ? [ result ] : result
@@ -443,7 +447,8 @@ module ActiveRecord
           find_some(ids)
         end
       rescue ::RangeError
-        raise RecordNotFound, "Couldn't find #{@klass.name} with an out of range ID"
+        error_message = "Couldn't find #{model_name} with an out of range ID"
+        raise RecordNotFound.new(error_message, model_name, primary_key, ids)
       end
 
       def find_one(id)

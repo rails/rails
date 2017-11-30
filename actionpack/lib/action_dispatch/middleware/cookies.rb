@@ -161,7 +161,7 @@ module ActionDispatch
   #
   # * <tt>:tld_length</tt> - When using <tt>:domain => :all</tt>, this option can be used to explicitly
   #   set the TLD length when using a short (<= 3 character) domain that is being interpreted as part of a TLD.
-  #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 1.
+  #   For example, to share cookies between user1.lvh.me and user2.lvh.me, set <tt>:tld_length</tt> to 2.
   # * <tt>:expires</tt> - The time at which this cookie expires, as a \Time or ActiveSupport::Duration object.
   # * <tt>:secure</tt> - Whether this cookie is only transmitted to HTTPS servers.
   #   Default is +false+.

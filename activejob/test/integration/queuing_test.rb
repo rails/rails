@@ -45,6 +45,13 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "should supply a wrapped class name to DelayedJob" do
+    skip unless adapter_is?(:delayed_job)
+    ::HelloJob.perform_later
+    job = Delayed::Job.first
+    assert_match(/HelloJob \[[0-9a-f-]+\] from DelayedJob\(default\) with arguments: \[\]/, job.name)
+  end
+
   test "resque JobWrapper should have instance variable queue" do
     skip unless adapter_is?(:resque)
     job = ::HelloJob.set(wait: 5.seconds).perform_later

@@ -73,12 +73,12 @@ module ActiveSupport
     #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
     #   parameterize("^très|Jolie-- ")  # => "tres-jolie"
     #
-    # To use a custom separator, override the `separator` argument.
+    # To use a custom separator, override the +separator+ argument.
     #
     #  parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
     #  parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
     #
-    # To preserve the case of the characters in a string, use the `preserve_case` argument.
+    # To preserve the case of the characters in a string, use the +preserve_case+ argument.
     #
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
     #   parameterize("^très|Jolie-- ", preserve_case: true) # => "tres-Jolie"

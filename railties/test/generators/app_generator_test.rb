@@ -56,6 +56,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers/assets.rb
   config/initializers/backtrace_silencers.rb
   config/initializers/cookies_serializer.rb
+  config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
   config/initializers/mime_types.rb
@@ -403,7 +404,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.3.18', '< 0.5'"
+      assert_gem "mysql2", "'~> 0.4.4'"
     end
   end
 
@@ -457,7 +458,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.7'"
+    assert_gem "puma", "'~> 3.11'"
   end
 
   def test_generator_if_skip_puma_is_given

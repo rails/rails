@@ -5,7 +5,7 @@ require "active_model/attribute_set/yaml_encoder"
 
 module ActiveModel
   class AttributeSet # :nodoc:
-    delegate :each_value, :fetch, to: :attributes
+    delegate :each_value, :fetch, :except, to: :attributes
 
     def initialize(attributes)
       @attributes = attributes

@@ -335,12 +335,16 @@ module ActiveRecord
   class IrreversibleOrderError < ActiveRecordError
   end
 
-  # TransactionTimeout will be raised when lock wait timeout exceeded.
-  class TransactionTimeout < StatementInvalid
+  # LockWaitTimeout will be raised when lock wait timeout exceeded.
+  class LockWaitTimeout < StatementInvalid
   end
 
   # StatementTimeout will be raised when statement timeout exceeded.
   class StatementTimeout < StatementInvalid
+  end
+
+  # QueryCanceled will be raised when canceling statement due to user request.
+  class QueryCanceled < StatementInvalid
   end
 
   # UnknownAttributeReference is raised when an unknown and potentially unsafe

@@ -216,7 +216,7 @@ module ActionController #:nodoc:
       # The actual before_action that is used to verify the CSRF token.
       # Don't override this directly. Provide your own forgery protection
       # strategy instead. If you override, you'll disable same-origin
-      # `<script>` verification.
+      # <tt><script></tt> verification.
       #
       # Lean on the protect_from_forgery declaration to mark which actions are
       # due for same-origin request verification. If protect_from_forgery is
@@ -250,7 +250,7 @@ module ActionController #:nodoc:
       private_constant :CROSS_ORIGIN_JAVASCRIPT_WARNING
       # :startdoc:
 
-      # If `verify_authenticity_token` was run (indicating that we have
+      # If +verify_authenticity_token+ was run (indicating that we have
       # forgery protection enabled for this request) then also verify that
       # we aren't serving an unauthorized cross-origin response.
       def verify_same_origin_request # :doc:
@@ -267,7 +267,7 @@ module ActionController #:nodoc:
         @marked_for_same_origin_verification = request.get?
       end
 
-      # If the `verify_authenticity_token` before_action ran, verify that
+      # If the +verify_authenticity_token+ before_action ran, verify that
       # JavaScript responses are only served to same-origin GET requests.
       def marked_for_same_origin_verification? # :doc:
         @marked_for_same_origin_verification ||= false
@@ -369,7 +369,7 @@ module ActionController #:nodoc:
       end
 
       def compare_with_real_token(token, session) # :doc:
-        ActiveSupport::SecurityUtils.secure_compare(token, real_csrf_token(session))
+        ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, real_csrf_token(session))
       end
 
       def valid_per_form_csrf_token?(token, session) # :doc:
@@ -380,7 +380,7 @@ module ActionController #:nodoc:
             request.request_method
           )
 
-          ActiveSupport::SecurityUtils.secure_compare(token, correct_token)
+          ActiveSupport::SecurityUtils.fixed_length_secure_compare(token, correct_token)
         else
           false
         end

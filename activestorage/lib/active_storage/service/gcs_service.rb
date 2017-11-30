@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "google-cloud-storage", "~> 1.8"
+
 require "google/cloud/storage"
 require "active_support/core_ext/object/to_query"
 
@@ -7,11 +9,8 @@ module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::GCSService < Service
-    attr_reader :client, :bucket
-
-    def initialize(project:, keyfile:, bucket:, **options)
-      @client = Google::Cloud::Storage.new(project: project, keyfile: keyfile, **options)
-      @bucket = @client.bucket(bucket)
+    def initialize(**config)
+      @config = config
     end
 
     def upload(key, io, checksum: nil)
@@ -85,8 +84,18 @@ module ActiveStorage
     end
 
     private
+      attr_reader :config
+
       def file_for(key)
         bucket.file(key, skip_lookup: true)
+      end
+
+      def bucket
+        @bucket ||= client.bucket(config.fetch(:bucket))
+      end
+
+      def client
+        @client ||= Google::Cloud::Storage.new(config.except(:bucket))
       end
   end
 end

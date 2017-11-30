@@ -210,7 +210,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   People = Class.new(BasicObject) do
     include Enumerable
-    def initialize()
+    def initialize
       @people = [
         { name: "John", address: { city: "London", country: "UK" } },
         { name: "Jean", address: { city: "Paris" , country: "France" } }

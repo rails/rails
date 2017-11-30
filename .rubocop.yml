@@ -76,6 +76,9 @@ Layout/SpaceAroundOperators:
 Layout/SpaceBeforeFirstArg:
     Enabled: true
 
+Style/DefWithParentheses:
+  Enabled: true
+
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
   Enabled: true
