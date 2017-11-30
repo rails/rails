@@ -35,20 +35,58 @@ files.
 
 ## Setup
 
-To setup an existing application after upgrading to Rails 5.2, run `rails
-active_storage:install`. If you're creating a new project with Rails 5.2,
-ActiveStorage will be installed by default. Installation generates a migration
-to add the tables needed to store attachments.
+Active Storage uses two tables in your application’s database named
+`active_storage_blobs` and `active_storage_attachments`. After upgrading your
+application to Rails 5.2, run `rails active_storage:install` to generate a
+migration that creates these tables. Use `rails db:migrate` to run the
+migration.
 
-If you wish to transform your images, add `mini_magick` to your Gemfile:
+You need not run `rails active_storage:install` in a new Rails 5.2 application:
+the migration is generated automatically.
 
-``` ruby
-gem 'mini_magick'
+Declare Active Storage services in `config/storage.yml`. For each service your
+application uses, provide a name and the requisite configuration. The example
+below declares three services named `local`, `test`, and `s3`:
+
+```yaml
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+
+test:
+  service: Disk
+  root: <%= Rails.root.join("tmp/storage") %>
+
+s3:
+  service: S3
+  access_key_id: ""
+  secret_access_key: ""
 ```
 
-Inside a Rails application, you can set up your services through the generated
-`config/storage.yml` file and reference one of the supported service types under
-the `service` key.
+Tell Active Storage which service to use by setting
+`Rails.application.config.active_storage.service`. Because each environment will
+likely use a different service, it is recommended to do this on a
+per-environment basis. To use the disk service from the previous example in the
+development environment, you would add the following to
+config/environments/development.rb:
+
+In your application's configuration, specify the service to use like this:
+
+```ruby
+# Store files locally.
+config.active_storage.service = :local
+```
+
+To use the s3 service in production, you add the following to
+`config/environments/production.rb`:
+
+```ruby
+# Store files in S3.
+config.active_storage.service = :s3
+```
+
+Continue reading for more information on the built-in service adapters (e.g.
+`Disk` and `S3`) and the configuration they require.
 
 ### Disk Service
 To use the Disk service:
@@ -63,7 +101,7 @@ local:
 
 To use Amazon S3:
 ``` yaml
-local:
+s3:
   service: S3
   access_key_id: ""
   secret_access_key: ""
@@ -80,7 +118,7 @@ gem "aws-sdk-s3", require: false
 To use Microsoft Azure Storage:
 
 ``` yaml
-local:
+azure:
   service: AzureStorage
   path: ""
   storage_account_name: ""
@@ -99,7 +137,7 @@ gem "azure-storage", require: false
 To use Google Cloud Storage:
 
 ``` yaml
-local:
+google:
   service: GCS
   keyfile: {
     type: "service_account",
@@ -152,16 +190,11 @@ production:
     - s3_west_coast
 ```
 
-In your application's configuration, specify the service to use like this:
+If you wish to transform your images, add `mini_magick` to your Gemfile:
 
 ``` ruby
-config.active_storage.service = :local
+gem 'mini_magick'
 ```
-
-Like other configuration options, you can set the service application wide in
-`application.rb`, or per environment in `config/environments/{environment}.rb`.
-For example, you might want development and test to use the Disk service instead
-of a cloud service.
 
 Attach Files to a Model
 --------------------------
