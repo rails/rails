@@ -165,8 +165,8 @@ gem "google-cloud-storage", "~> 1.3", require: false
 
 You can keep multiple services in sync by defining a mirror service. When
 a file is uploaded or deleted, it's done across all the mirrored services.
-Define each of the services you'd like to use as described above and then define
-a mirrored service which references them.
+Define each of the services you'd like to use as described above and reference
+them from a mirrored service.
 
 ``` yaml
 s3_west_coast:
@@ -189,6 +189,10 @@ production:
   mirrors:
     - s3_west_coast
 ```
+
+Mirrored services can be used to facilitate a migration between services in
+production. You can start mirroring to the new service, copy existing files from
+the old service to the new, then go all-in on the new service.
 
 If you wish to transform your images, add `mini_magick` to your Gemfile:
 
@@ -373,6 +377,98 @@ directly from the client to the cloud.
 | `direct-upload:error` | `<input>` | `{id, file, error}` | An error occurred. An `alert` will display unless this event is canceled. |
 | `direct-upload:end` | `<input>` | `{id, file}` | A direct upload has ended. |
 | `direct-uploads:end` | `<form>` | None | All direct uploads have ended. |
+
+### Example
+
+You can use these events to show the progress of an upload.
+
+![direct-uploads](https://user-images.githubusercontent.com/5355/28694528-16e69d0c-72f8-11e7-91a7-c0b8cfc90391.gif)
+
+To show the uploaded files in a form:
+```js
+// direct_uploads.js
+
+addEventListener("direct-upload:initialize", event => {
+  const { target, detail } = event
+  const { id, file } = detail
+  target.insertAdjacentHTML("beforebegin", `
+    <div id="direct-upload-${id}" class="direct-upload direct-upload--pending">
+      <div id="direct-upload-progress-${id}" class="direct-upload__progress" style="width: 0%"></div>
+      <span class="direct-upload__filename">${file.name}</span>
+    </div>
+  `)
+})
+
+addEventListener("direct-upload:start", event => {
+  const { id } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  element.classList.remove("direct-upload--pending")
+})
+
+addEventListener("direct-upload:progress", event => {
+  const { id, progress } = event.detail
+  const progressElement = document.getElementById(`direct-upload-progress-${id}`)
+  progressElement.style.width = `${progress}%`
+})
+
+addEventListener("direct-upload:error", event => {
+  event.preventDefault()
+  const { id, error } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  element.classList.add("direct-upload--error")
+  element.setAttribute("title", error)
+})
+
+addEventListener("direct-upload:end", event => {
+  const { id } = event.detail
+  const element = document.getElementById(`direct-upload-${id}`)
+  element.classList.add("direct-upload--complete")
+})
+```
+
+Add styles: 
+
+```css
+/* direct_uploads.css */
+
+.direct-upload {
+  display: inline-block;
+  position: relative;
+  padding: 2px 4px;
+  margin: 0 3px 3px 0;
+  border: 1px solid rgba(0, 0, 0, 0.3);
+  border-radius: 3px;
+  font-size: 11px;
+  line-height: 13px;
+}
+
+.direct-upload--pending {
+  opacity: 0.6;
+}
+
+.direct-upload__progress {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  opacity: 0.2;
+  background: #0076ff;
+  transition: width 120ms ease-out, opacity 60ms 60ms ease-in;
+  transform: translate3d(0, 0, 0);
+}
+
+.direct-upload--complete .direct-upload__progress {
+  opacity: 0.4;
+}
+
+.direct-upload--error {
+  border-color: red;
+}
+
+input[type=file][data-direct-upload-url][disabled] {
+  display: none;
+}
+```
 
 Clean up Stored Files Store During System Tests
 -----------------------------------------------
