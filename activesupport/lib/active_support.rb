@@ -53,6 +53,7 @@ module ActiveSupport
     autoload :Callbacks
     autoload :Configurable
     autoload :Deprecation
+    autoload :Digest
     autoload :Gzip
     autoload :Inflector
     autoload :JSON

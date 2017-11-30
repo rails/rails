@@ -592,7 +592,7 @@ class EtagRenderTest < ActionController::TestCase
     end
 
     def strong_etag(record)
-      %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
+      %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
     end
 end
 
