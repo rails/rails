@@ -311,7 +311,8 @@ module ActiveSupport
             save_block_result_to_cache(name, options) { |_name| yield _name }
           end
         elsif options && options[:force]
-          raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
+          raise ArgumentError, "Missing block: Calling `Cache#fetch` with "\
+                               "`force: true` requires a block."
         else
           read(name, options)
         end
@@ -387,7 +388,10 @@ module ActiveSupport
 
         instrument :write_multi, hash, options do |payload|
           entries = hash.each_with_object({}) do |(name, value), memo|
-            memo[normalize_key(name, options)] = Entry.new(value, options.merge(version: normalize_version(name, options)))
+            version = normalize_version(name, options)
+            key     = normalize_key(name, options)
+
+            memo[key] = Entry.new(value, options.merge(version: version))
           end
 
           write_multi_entries entries, options
@@ -414,7 +418,9 @@ module ActiveSupport
       #   #      "unknown_key" => "Fallback value for key: unknown_key" }
       #
       def fetch_multi(*names)
-        raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block." unless block_given?
+        unless block_given?
+          raise ArgumentError, "Missing block: `Cache#fetch_multi` requires a block."
+        end
 
         options = names.extract_options!
         options = merged_options(options)
@@ -437,8 +443,11 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:write, name, options) do
-          entry = Entry.new(value, options.merge(version: normalize_version(name, options)))
-          write_entry(normalize_key(name, options), entry, options)
+          version = normalize_version(name, options)
+          entry   = Entry.new(value, options.merge(version: version))
+          key     = normalize_key(name, options)
+
+          write_entry(key, entry, options)
         end
       end
 
@@ -460,8 +469,10 @@ module ActiveSupport
         options = merged_options(options)
 
         instrument(:exist?, name) do
-          entry = read_entry(normalize_key(name, options), options)
-          (entry && !entry.expired? && !entry.mismatched?(normalize_version(name, options))) || false
+          entry   = read_entry(normalize_key(name, options), options)
+          version = normalize_version(name, options)
+
+          (entry && !entry.expired? && !entry.mismatched?(version)) || false
         end
       end
 
@@ -602,14 +613,19 @@ module ActiveSupport
 
         def expanded_version(key)
           case
-          when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
-          when key.respond_to?(:to_a)          then expanded_version(key.to_a)
+          when key.respond_to?(:cache_version)
+            key.cache_version.to_param
+          when key.is_a?(Array)
+            key.map { |element| expanded_version(element) }.compact.to_param
+          when key.respond_to?(:to_a)
+            expanded_version(key.to_a)
           end
         end
 
         def instrument(operation, key, options = nil)
-          log { "Cache #{operation}: #{normalize_key(key, options)}#{options.blank? ? "" : " (#{options.inspect})"}" }
+          normalized_key  = normalize_key(key, options)
+          options_text    = options.blank? ? "" : " (#{options.inspect})"
+          log { "Cache #{operation}: #{normalized_key}#{options_text}" }
 
           payload = { key: key }
           payload.merge!(options) if options.is_a?(Hash)
@@ -625,8 +641,9 @@ module ActiveSupport
           if entry && entry.expired?
             race_ttl = options[:race_condition_ttl].to_i
             if (race_ttl > 0) && (Time.now.to_f - entry.expires_at <= race_ttl)
-              # When an entry has a positive :race_condition_ttl defined, put the stale entry back into the cache
-              # for a brief period while the entry is being recalculated.
+              # When an entry has a positive :race_condition_ttl defined,
+              # put the stale entry back into the cache for a brief period while
+              # the entry is being recalculated.
               entry.expires_at = Time.now + race_ttl
               write_entry(key, entry, expires_in: race_ttl * 2)
             else
@@ -652,13 +669,15 @@ module ActiveSupport
         end
     end
 
-    # This class is used to represent cache entries. Cache entries have a value, an optional
-    # expiration time, and an optional version. The expiration time is used to support the :race_condition_ttl option
-    # on the cache. The version is used to support the :version option on the cache for rejecting
-    # mismatches.
+    # This class is used to represent cache entries. Cache entries have a value,
+    # an optional expiration time, and an optional version. The expiration time
+    # is used to support the :race_condition_ttl option on the cache. The
+    # version is used to support the :version option on the cache for
+    # rejecting mismatches.
     #
-    # Since cache entries in most instances will be serialized, the internals of this class are highly optimized
-    # using short instance variable names that are lazily defined.
+    # Since cache entries in most instances will be serialized, the internals
+    # of this class are highly optimized using short instance variable names
+    # that are lazily defined.
     class Entry # :nodoc:
       attr_reader :version
 
@@ -723,8 +742,9 @@ module ActiveSupport
         end
       end
 
-      # Duplicates the value in a class. This is used by cache implementations that don't natively
-      # serialize entries to protect against accidental cache modifications.
+      # Duplicates the value in a class. This is used by cache implementations
+      # that don't natively serialize entries to protect against accidental
+      # cache modifications.
       def dup_value!
         if @value && !compressed? && !(@value.is_a?(Numeric) || @value == true || @value == false)
           if @value.is_a?(String)
@@ -739,7 +759,8 @@ module ActiveSupport
         def should_compress?(value, options)
           if value && options.fetch(:compress, true)
             compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+            serialized_value = (value.is_a?(String) ? value : Marshal.dump(value))
+            serialized_value_size = serialized_value.bytesize
 
             return true if serialized_value_size >= compress_threshold
           end
