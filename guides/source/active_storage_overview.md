@@ -190,6 +190,8 @@ production:
     - s3_west_coast
 ```
 
+NOTE: Files are served from the primary service.
+
 Mirrored services can be used to facilitate a migration between services in
 production. You can start mirroring to the new service, copy existing files from
 the old service to the new, then go all-in on the new service.
@@ -349,14 +351,19 @@ directly from the client to the cloud.
 1. Include `activestorage.js` in your application's JavaScript bundle.
 
     Using the asset pipeline:
+
     ```js
     //= require activestorage
+
     ```
+
     Using the npm package:
+
     ```js
     import * as ActiveStorage from "activestorage"
     ActiveStorage.start()
     ```
+
 2. Annotate file inputs with the direct upload URL.
 
     ```ruby
@@ -385,6 +392,7 @@ You can use these events to show the progress of an upload.
 ![direct-uploads](https://user-images.githubusercontent.com/5355/28694528-16e69d0c-72f8-11e7-91a7-c0b8cfc90391.gif)
 
 To show the uploaded files in a form:
+
 ```js
 // direct_uploads.js
 
@@ -426,7 +434,7 @@ addEventListener("direct-upload:end", event => {
 })
 ```
 
-Add styles: 
+Add styles:
 
 ```css
 /* direct_uploads.css */
