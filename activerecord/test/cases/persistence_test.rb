@@ -473,8 +473,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
-  def test_record_not_found_exception
+  def test_find_raises_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
+  end
+
+  def test_update_raises_record_not_found_exception
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.update(99999, approved: true) }
+  end
+
+  def test_destroy_raises_record_not_found_exception
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.destroy(99999) }
   end
 
   def test_update_all
@@ -938,7 +946,9 @@ class PersistenceTest < ActiveRecord::TestCase
     should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_not_be_destroyed_reply
 
-    assert_nil Topic.where("1=0").scoping { Topic.destroy(1) }
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.destroy(1) }
+    end
 
     assert_nothing_raised { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }

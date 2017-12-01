@@ -99,7 +99,11 @@ module ActiveRecord
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
-          id.map.with_index { |one_id, idx| update(one_id, attributes[idx]) }.compact
+          id.map.with_index { |one_id, idx|
+            object = find_by(primary_key => one_id)
+            object.update(attributes[idx]) if object
+            object
+          }.compact
         elsif id == :all
           all.each { |record| record.update(attributes) }
         else
@@ -112,7 +116,6 @@ module ActiveRecord
           object.update(attributes)
           object
         end
-      rescue RecordNotFound
       end
 
       # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
@@ -136,11 +139,13 @@ module ActiveRecord
       #   Todo.destroy(todos)
       def destroy(id)
         if id.is_a?(Array)
-          id.map { |one_id| destroy(one_id) }.compact
+          id.map { |one_id|
+            object = find_by(primary_key => one_id)
+            object.destroy if object
+          }.compact
         else
           find(id).destroy
         end
-      rescue RecordNotFound
       end
 
       # Deletes the row with a primary key matching the +id+ argument, using a
