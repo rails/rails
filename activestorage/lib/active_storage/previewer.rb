@@ -54,5 +54,9 @@ module ActiveStorage
         IO.popen(argv) { |out| IO.copy_stream(out, to) }
         to.rewind
       end
+
+      def logger
+        ActiveStorage.logger
+      end
   end
 end
