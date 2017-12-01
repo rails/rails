@@ -337,6 +337,22 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_option_groups_from_collection_for_select_with_callable_group_method
+    group_proc = Proc.new { |c| c.countries }
+    assert_dom_equal(
+      "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",
+      option_groups_from_collection_for_select(dummy_continents, group_proc, "continent_name", "country_id", "country_name", "dk")
+    )
+  end
+
+  def test_option_groups_from_collection_for_select_with_callable_group_label_method
+    label_proc = Proc.new { |c| c.continent_name }
+    assert_dom_equal(
+      "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",
+      option_groups_from_collection_for_select(dummy_continents, "countries", label_proc, "country_id", "country_name", "dk")
+    )
+  end
+
   def test_option_groups_from_collection_for_select_returns_html_safe_string
     assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
   end
