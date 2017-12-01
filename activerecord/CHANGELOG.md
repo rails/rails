@@ -2,7 +2,7 @@
 
     Example:
 
-        add_index :users, :name, using: :gist, opclass: name: :gist_trgm_ops
+        add_index :users, :name, using: :gist, opclass: { name: :gist_trgm_ops }
 
     *Greg Navis*
 
@@ -80,7 +80,7 @@
     *bogdanvlviv*
 
 *   Fixed a bug where column orders for an index weren't written to
-    db/schema.rb when using the sqlite adapter.
+    `db/schema.rb` when using the sqlite adapter.
 
     Fixes #30902.
 
