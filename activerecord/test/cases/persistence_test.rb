@@ -92,7 +92,7 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, 99999 => {} }
 
     assert_raise(ActiveRecord::RecordNotFound) do
-      Topic.where("1=0").scoping { Topic.update(topic_data.keys, topic_data.values) }
+      Topic.update(topic_data.keys, topic_data.values)
     end
 
     assert_not_equal "1 updated", Topic.find(1).content
