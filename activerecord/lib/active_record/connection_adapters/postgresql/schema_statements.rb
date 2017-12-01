@@ -87,10 +87,7 @@ module ActiveRecord
 
           result = query(<<-SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment,
-            (SELECT COUNT(*) FROM pg_opclass o
-               JOIN (SELECT unnest(string_to_array(d.indclass::text, ' '))::int oid) c
-                 ON o.oid = c.oid WHERE o.opcdefault = 'f')
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -109,11 +106,10 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
             comment = row[5]
-            opclass = row[6]
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
 
-            if indkey.include?(0) || opclass > 0
+            if indkey.include?(0)
               columns = expressions
             else
               columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")].values_at(*indkey).compact
@@ -123,10 +119,21 @@ module ActiveRecord
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
 
-              # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-              orders = Hash[
-                expressions.scan(/(\w+) DESC/).flatten.map { |order_column| [order_column, :desc] }
-              ]
+              orders = {}
+              opclasses = {}
+
+              # add info on sort order (only desc order is explicitly specified, asc is the default)
+              # and non-default opclasses
+              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+                opclasses[column] = opclass if opclass
+                orders[column] = :desc if desc
+              end
+
+              # Use a string for the opclass description (instead of a hash) when all columns
+              # have the same opclass specified.
+              if columns.count == opclasses.count && opclasses.values.uniq.count == 1
+                opclasses = opclasses.values.first
+              end
             end
 
             IndexDefinition.new(
@@ -137,6 +144,7 @@ module ActiveRecord
               orders: orders,
               where: where,
               using: using.to_sym,
+              opclass: opclasses,
               comment: comment.presence
             )
           end
@@ -458,8 +466,8 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}").tap do
+          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
             execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
           end
         end

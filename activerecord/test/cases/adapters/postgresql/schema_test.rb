@@ -500,6 +500,38 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_string_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name text_pattern_ops, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: "text_pattern_ops"/, output)
+  end
+
+  def test_non_default_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: \{"description"=>"text_pattern_ops"\}/, output)
+  end
+end
+
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection
