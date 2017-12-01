@@ -100,10 +100,11 @@ module ActiveRecord
       def update(id = :all, attributes)
         if id.is_a?(Array)
           id.map.with_index { |one_id, idx|
-            object = find_by(primary_key => one_id)
-            object.update(attributes[idx]) if object
+            [ find(one_id), idx ]
+          }.map { |object, idx|
+            object.update(attributes[idx])
             object
-          }.compact
+          }
         elsif id == :all
           all.each { |record| record.update(attributes) }
         else
@@ -139,10 +140,7 @@ module ActiveRecord
       #   Todo.destroy(todos)
       def destroy(id)
         if id.is_a?(Array)
-          id.map { |one_id|
-            object = find_by(primary_key => one_id)
-            object.destroy if object
-          }.compact
+          find(id).each(&:destroy)
         else
           find(id).destroy
         end
