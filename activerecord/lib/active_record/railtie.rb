@@ -90,12 +90,15 @@ module ActiveRecord
             filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
+              current_version = ActiveRecord::Migrator.current_version
+              next if current_version.nil?
+
               cache = YAML.load(File.read(filename))
-              if cache.version == ActiveRecord::Migrator.current_version
+              if cache.version == current_version
                 connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end

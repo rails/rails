@@ -381,6 +381,21 @@ module TestHelpers
 
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
     end
+
+    def use_postgresql
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: postgresql
+          pool: 5
+          database: railties_test
+        development:
+          <<: *default
+        test:
+          <<: *default
+        YAML
+      end
+    end
   end
 end
 
