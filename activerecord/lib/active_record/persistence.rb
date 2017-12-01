@@ -99,11 +99,8 @@ module ActiveRecord
       # for updating all records in a single query.
       def update(id = :all, attributes)
         if id.is_a?(Array)
-          id.map.with_index { |one_id, idx|
-            [ find(one_id), idx ]
-          }.map { |object, idx|
+          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
-            object
           }
         elsif id == :all
           all.each { |record| record.update(attributes) }
