@@ -15,6 +15,7 @@ require "rails"
 ).each do |railtie|
   begin
     require railtie
-  rescue LoadError
+  rescue LoadError => ex
+    raise unless ex.path == railtie
   end
 end
