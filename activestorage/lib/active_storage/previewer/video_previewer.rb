@@ -2,6 +2,8 @@
 
 module ActiveStorage
   class Previewer::VideoPreviewer < Previewer
+    class_attribute :ffmpeg_path, default: "ffmpeg"
+
     def self.accept?(blob)
       blob.video?
     end
@@ -16,7 +18,7 @@ module ActiveStorage
 
     private
       def draw_relevant_frame_from(file, &block)
-        draw "ffmpeg", "-i", file.path, "-y", "-vcodec", "png",
+        draw ffmpeg_path, "-i", file.path, "-y", "-vcodec", "png",
           "-vf", "thumbnail", "-vframes", "1", "-f", "image2", "-", &block
       end
   end

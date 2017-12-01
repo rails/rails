@@ -19,6 +19,8 @@ module ActiveStorage
   # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
   # install ffmpeg yourself to use this analyzer.
   class Analyzer::VideoAnalyzer < Analyzer
+    class_attribute :ffprobe_path, default: "ffprobe"
+
     def self.accept?(blob)
       blob.video?
     end
@@ -68,7 +70,7 @@ module ActiveStorage
       end
 
       def probe_from(file)
-        IO.popen([ "ffprobe", "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
+        IO.popen([ ffprobe_path, "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
           JSON.parse(output.read)
         end
       rescue Errno::ENOENT
