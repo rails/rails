@@ -45,7 +45,7 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 ### The Update Task
 
 Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
-in the Gemfile, run this task.
+in the `Gemfile`, run this task.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
@@ -179,7 +179,7 @@ See [#19034](https://github.com/rails/rails/pull/19034) for more details.
 
 `assigns` and `assert_template` have been extracted to the `rails-controller-testing` gem. To
 continue using these methods in your controller tests, add `gem 'rails-controller-testing'` to
-your Gemfile.
+your `Gemfile`.
 
 If you are using Rspec for testing, please see the extra configuration required in the gem's
 documentation.
@@ -212,7 +212,7 @@ true.
 
 `ActiveModel::Serializers::Xml` has been extracted from Rails to the `activemodel-serializers-xml`
 gem. To continue using XML serialization in your application, add `gem 'activemodel-serializers-xml'`
-to your Gemfile.
+to your `Gemfile`.
 
 ### Removed Support for Legacy `mysql` Database Adapter
 
@@ -278,7 +278,7 @@ You can now just call the dependency once with a wildcard.
 
 ### `ActionView::Helpers::RecordTagHelper` moved to external gem (record_tag_helper)
 
-`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your Gemfile:
+`content_tag_for` and `div_for` have been removed in favor of just using `content_tag`. To continue using the older methods, add the `record_tag_helper` gem to your `Gemfile`:
 
 ```ruby
 gem 'record_tag_helper', '~> 1.0'
@@ -415,7 +415,7 @@ First, add `gem 'web-console', '~> 2.0'` to the `:development` group in your `Ge
 
 ### Responders
 
-`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your Gemfile. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
+`respond_with` and the class-level `respond_to` methods have been extracted to the `responders` gem. To use them, simply add `gem 'responders', '~> 2.0'` to your `Gemfile`. Calls to `respond_with` and `respond_to` (again, at the class level) will no longer work without having included the `responders` gem in your dependencies:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -559,7 +559,7 @@ Read the [gem's readme](https://github.com/rails/rails-html-sanitizer) for more 
 The documentation for `PermitScrubber` and `TargetScrubber` explains how you
 can gain complete control over when and how elements should be stripped.
 
-If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your Gemfile:
+If your application needs to use the old sanitizer implementation, include `rails-deprecated_sanitizer` in your `Gemfile`:
 
 ```ruby
 gem 'rails-deprecated_sanitizer'
@@ -617,7 +617,7 @@ migration DSL counterpart.
 
 The migration procedure is as follows:
 
-1. remove `gem "foreigner"` from the Gemfile.
+1. remove `gem "foreigner"` from the `Gemfile`.
 2. run `bundle install`.
 3. run `bin/rake db:schema:dump`.
 4. make sure that `db/schema.rb` contains every foreign key definition with
@@ -769,7 +769,7 @@ and has been removed from Rails.
 
 If your application currently depends on MultiJSON directly, you have a few options:
 
-1. Add 'multi_json' to your Gemfile. Note that this might cease to work in the future
+1. Add 'multi_json' to your `Gemfile`. Note that this might cease to work in the future
 
 2. Migrate away from MultiJSON by using `obj.to_json`, and `JSON.parse(str)` instead.
 
@@ -810,7 +810,7 @@ part of the rewrite, the following features have been removed from the encoder:
 
 If your application depends on one of these features, you can get them back by
 adding the [`activesupport-json_encoder`](https://github.com/rails/activesupport-json_encoder)
-gem to your Gemfile.
+gem to your `Gemfile`.
 
 #### JSON representation of Time objects
 
@@ -1135,7 +1135,7 @@ full support for the last few changes in the specification.
 
 ### Gemfile
 
-Rails 4.0 removed the `assets` group from Gemfile. You'd need to remove that
+Rails 4.0 removed the `assets` group from `Gemfile`. You'd need to remove that
 line from your `Gemfile` when upgrading. You should also update your application
 file (in `config/application.rb`):
 
@@ -1147,7 +1147,7 @@ Bundler.require(*Rails.groups)
 
 ### vendor/plugins
 
-Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
+Rails 4.0 no longer supports loading plugins from `vendor/plugins`. You must replace any plugins by extracting them to gems and adding them to your `Gemfile`. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 ### Active Record
 
@@ -1214,7 +1214,7 @@ end
 
 ### Active Resource
 
-Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your Gemfile.
+Rails 4.0 extracted Active Resource to its own gem. If you still need the feature you can add the [Active Resource gem](https://github.com/rails/activeresource) in your `Gemfile`.
 
 ### Active Model
 
@@ -1414,7 +1414,7 @@ config.active_record.mass_assignment_sanitizer = :strict
 
 ### vendor/plugins
 
-Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
+Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. While it's not strictly necessary as part of a Rails 3.2 upgrade, you can start replacing any plugins by extracting them to gems and adding them to your `Gemfile`. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 ### Active Record
 

@@ -93,7 +93,7 @@ require 'bundler/setup' # Set up gems listed in the Gemfile.
 
 In a standard Rails application, there's a `Gemfile` which declares all
 dependencies of the application. `config/boot.rb` sets
-`ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
+`ENV['BUNDLE_GEMFILE']` to the location of this file. If the `Gemfile`
 exists, then `bundler/setup` is required. The require is used by Bundler to
 configure the load path for your Gemfile's dependencies.
 

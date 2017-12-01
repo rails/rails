@@ -35,7 +35,7 @@ rails new appname --skip-sprockets
 ```
 
 Rails automatically adds the `sass-rails`, `coffee-rails` and `uglifier`
-gems to your Gemfile, which are used by Sprockets for asset compression:
+gems to your `Gemfile`, which are used by Sprockets for asset compression:
 
 ```ruby
 gem 'sass-rails'
@@ -44,8 +44,8 @@ gem 'coffee-rails'
 ```
 
 Using the `--skip-sprockets` option will prevent Rails from adding
-them to your Gemfile, so if you later want to enable
-the asset pipeline you will have to add those gems to your Gemfile. Also,
+them to your `Gemfile`, so if you later want to enable
+the asset pipeline you will have to add those gems to your `Gemfile`. Also,
 creating an application with the `--skip-sprockets` option will generate
 a slightly different `config/application.rb` file, with a require statement
 for the sprockets railtie that is commented-out. You will have to remove
@@ -850,7 +850,7 @@ This mode uses more memory, performs more poorly than the default and is not
 recommended.
 
 If you are deploying a production application to a system without any
-pre-existing JavaScript runtimes, you may want to add one to your Gemfile:
+pre-existing JavaScript runtimes, you may want to add one to your `Gemfile`:
 
 ```ruby
 group :production do
