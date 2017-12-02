@@ -275,7 +275,7 @@ module ActiveRecord
         elsif current_adapter?(:OracleAdapter)
           assert_equal "TIMESTAMP(6)", column.sql_type
         else
-          assert_equal klass.connection.type_to_sql("datetime"), column.sql_type
+          assert_equal connection.type_to_sql("datetime"), column.sql_type
         end
       end
 
