@@ -141,6 +141,8 @@ module ActiveRecord
           Testing.create!
           ActiveRecord::Migrator.new(:up, [migration]).migrate
           assert_equal ["foobar"], Testing.all.map(&:foo)
+        ensure
+          ActiveRecord::Base.clear_cache!
         end
       end
     end
