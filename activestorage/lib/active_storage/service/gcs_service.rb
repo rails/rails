@@ -14,7 +14,7 @@ module ActiveStorage
     end
 
     def upload(key, io, checksum: nil)
-      instrument :upload, key, checksum: checksum do
+      instrument :upload, key: key, checksum: checksum do
         begin
           bucket.create_file(io, key, md5: checksum)
         rescue Google::Cloud::InvalidArgumentError
@@ -25,7 +25,7 @@ module ActiveStorage
 
     # FIXME: Download in chunks when given a block.
     def download(key)
-      instrument :download, key do
+      instrument :download, key: key do
         io = file_for(key).download
         io.rewind
 
@@ -38,7 +38,7 @@ module ActiveStorage
     end
 
     def delete(key)
-      instrument :delete, key do
+      instrument :delete, key: key do
         begin
           file_for(key).delete
         rescue Google::Cloud::NotFoundError
@@ -47,8 +47,14 @@ module ActiveStorage
       end
     end
 
+    def delete_prefixed(prefix)
+      instrument :delete_prefixed, prefix: prefix do
+        bucket.files(prefix: prefix).all(&:delete)
+      end
+    end
+
     def exist?(key)
-      instrument :exist, key do |payload|
+      instrument :exist, key: key do |payload|
         answer = file_for(key).exists?
         payload[:exist] = answer
         answer
@@ -56,7 +62,7 @@ module ActiveStorage
     end
 
     def url(key, expires_in:, filename:, content_type:, disposition:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         generated_url = file_for(key).signed_url expires: expires_in, query: {
           "response-content-disposition" => content_disposition_with(type: disposition, filename: filename),
           "response-content-type" => content_type
@@ -69,7 +75,7 @@ module ActiveStorage
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         generated_url = bucket.signed_url key, method: "PUT", expires: expires_in,
           content_type: content_type, content_md5: checksum
 

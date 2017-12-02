@@ -75,5 +75,22 @@ module ActiveStorage::Service::SharedServiceTests
         @service.delete SecureRandom.base58(24)
       end
     end
+
+    test "deleting by prefix" do
+      begin
+        @service.upload("a/a/a", StringIO.new(FIXTURE_DATA))
+        @service.upload("a/a/b", StringIO.new(FIXTURE_DATA))
+        @service.upload("a/b/a", StringIO.new(FIXTURE_DATA))
+
+        @service.delete_prefixed("a/a/")
+        assert_not @service.exist?("a/a/a")
+        assert_not @service.exist?("a/a/b")
+        assert @service.exist?("a/b/a")
+      ensure
+        @service.delete("a/a/a")
+        @service.delete("a/a/b")
+        @service.delete("a/b/a")
+      end
+    end
   end
 end

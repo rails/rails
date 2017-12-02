@@ -18,6 +18,10 @@ module ActiveStorage
       info event, color("Deleted file from key: #{key_in(event)}", RED)
     end
 
+    def service_delete_prefixed(event)
+      info event, color("Deleted files by key prefix: #{event.payload[:prefix]}", RED)
+    end
+
     def service_exist(event)
       debug event, color("Checked if file exists at key: #{key_in(event)} (#{event.payload[:exist] ? "yes" : "no"})", BLUE)
     end
