@@ -593,7 +593,7 @@ environment configuration files.
 ### Other Configurations
 
 The other common option to configure is the log tags applied to the
-per-connection logger. Here's an example that uses
+per-connection logger. Here is an example that uses
 the user account id if available, else "no-account" while tagging:
 
 ```ruby
@@ -603,6 +603,13 @@ config.action_cable.log_tags = [
   -> request { request.uuid }
 ]
 ```
+
+**Content Security Policy**
+
+Rails 5.2 ships with a default Content Security Policy (CSP).
+In order to function properly the web socket connection needs to be whitelisted.
+Here is an example:
+`p.connect_src :self, :https, 'ws://localhost:5000'`
 
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
