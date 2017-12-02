@@ -459,7 +459,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
         assert_equal :btree, index_d.using
         assert_equal :gin,   index_e.using
 
-        assert_equal :desc,  index_d.orders[INDEX_D_COLUMN]
+        assert_equal :desc,  index_d.orders
       end
     end
 
@@ -520,7 +520,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
 
     output = dump_table_schema "trains"
 
-    assert_match(/opclass: "text_pattern_ops"/, output)
+    assert_match(/opclass: :text_pattern_ops/, output)
   end
 
   def test_non_default_opclass_is_dumped
@@ -528,7 +528,7 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
 
     output = dump_table_schema "trains"
 
-    assert_match(/opclass: \{"description"=>"text_pattern_ops"\}/, output)
+    assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
   end
 end
 

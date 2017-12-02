@@ -109,6 +109,9 @@ module ActiveRecord
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
 
+            orders = {}
+            opclasses = {}
+
             if indkey.include?(0)
               columns = expressions
             else
@@ -119,20 +122,11 @@ module ActiveRecord
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
 
-              orders = {}
-              opclasses = {}
-
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
               expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
-                opclasses[column] = opclass if opclass
+                opclasses[column] = opclass.to_sym if opclass
                 orders[column] = :desc if desc
-              end
-
-              # Use a string for the opclass description (instead of a hash) when all columns
-              # have the same opclass specified.
-              if columns.count == opclasses.count && opclasses.values.uniq.count == 1
-                opclasses = opclasses.values.first
               end
             end
 
@@ -142,9 +136,9 @@ module ActiveRecord
               unique,
               columns,
               orders: orders,
+              opclasses: opclasses,
               where: where,
               using: using.to_sym,
-              opclass: opclasses,
               comment: comment.presence
             )
           end

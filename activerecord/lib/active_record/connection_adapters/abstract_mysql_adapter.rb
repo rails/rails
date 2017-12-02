@@ -611,7 +611,7 @@ module ActiveRecord
             when Hash
               length = length.symbolize_keys
               quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
-            when Integer
+            else
               quoted_columns.each { |name, column| column << "(#{length})" }
             end
           end

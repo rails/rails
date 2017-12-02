@@ -1202,7 +1202,7 @@ module ActiveRecord
             when Hash
               order = order.symbolize_keys
               quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
-            when String
+            else
               quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
             end
           end
