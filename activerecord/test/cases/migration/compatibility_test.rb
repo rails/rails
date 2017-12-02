@@ -126,6 +126,23 @@ module ActiveRecord
         end
         assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        class Testing < ActiveRecord::Base
+        end
+
+        def test_legacy_change_column_with_null_executes_update
+          migration = Class.new(ActiveRecord::Migration[5.1]) {
+            def migrate(x)
+              change_column :testings, :foo, :string, null: false, default: "foobar"
+            end
+          }.new
+
+          t = Testing.create!
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          assert_equal ["foobar"], Testing.all.map(&:foo)
+        end
+      end
     end
   end
 end

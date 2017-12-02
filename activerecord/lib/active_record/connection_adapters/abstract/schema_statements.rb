@@ -600,7 +600,7 @@ module ActiveRecord
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
       def remove_column(table_name, column_name, type = nil, options = {})
-        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, options)}"
       end
 
       # Changes the column's definition according to the new options.
@@ -1338,6 +1338,20 @@ module ActiveRecord
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def add_column_for_alter(table_name, column_name, type, options = {})
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(column_name, type, options)
+          schema_creation.accept(AddColumnDefinition.new(cd))
+        end
+
+        def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+          "DROP COLUMN #{quote_column_name(column_name)}"
+        end
+
+        def remove_columns_for_alter(table_name, *column_names)
+          column_names.map { |column_name| remove_column_for_alter(table_name, column_name) }
         end
 
         def insert_versions_sql(versions)

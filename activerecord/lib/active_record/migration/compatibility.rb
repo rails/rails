@@ -16,6 +16,15 @@ module ActiveRecord
       V5_2 = Current
 
       class V5_1 < V5_2
+        if adapter_name == "PostgreSQL"
+          def change_column(table_name, column_name, type, options = {})
+            unless options[:null] || options[:default].nil?
+              column = connection.send(:column_for, table_name, column_name)
+              connection.execute("UPDATE #{connection.quote_table_name(table_name)} SET #{connection.quote_column_name(column_name)}=#{connection.quote_default_expression(options[:default], column)} WHERE #{connection.quote_column_name(column_name)} IS NULL") if column
+            end
+            connection.change_column(table_name, column_name, type, options)
+          end
+        end
       end
 
       class V5_0 < V5_1
