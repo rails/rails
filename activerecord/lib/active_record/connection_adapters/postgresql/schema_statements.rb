@@ -594,7 +594,7 @@ module ActiveRecord
         #
         # Validates the constraint named +constraint_name+ on +accounts+.
         #
-        #   validate_foreign_key :accounts, :constraint_name
+        #   validate_constraint :accounts, :constraint_name
         def validate_constraint(table_name, constraint_name)
           return unless supports_validate_constraints?
 
