@@ -310,7 +310,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       case command
       when "active_storage:install"
         @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@install_called} times."
+        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
       end
     end
 
