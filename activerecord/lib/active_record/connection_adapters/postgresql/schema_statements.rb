@@ -693,6 +693,18 @@ module ActiveRecord
             "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
+          def add_index_opclass(quoted_columns, **options)
+            opclasses = options_for_index_columns(options[:opclass])
+            quoted_columns.each do |name, column|
+              column << " #{opclasses[name]}" if opclasses[name].present?
+            end
+          end
+
+          def add_options_for_index_columns(quoted_columns, **options)
+            quoted_columns = add_index_opclass(quoted_columns, options)
+            super
+          end
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view

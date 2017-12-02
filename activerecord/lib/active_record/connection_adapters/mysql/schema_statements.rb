@@ -106,6 +106,18 @@ module ActiveRecord
             super unless specifier == "RESTRICT"
           end
 
+          def add_index_length(quoted_columns, **options)
+            lengths = options_for_index_columns(options[:length])
+            quoted_columns.each do |name, column|
+              column << "(#{lengths[name]})" if lengths[name].present?
+            end
+          end
+
+          def add_options_for_index_columns(quoted_columns, **options)
+            quoted_columns = add_index_length(quoted_columns, options)
+            super
+          end
+
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
 

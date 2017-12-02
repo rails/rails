@@ -390,24 +390,6 @@ module ActiveRecord
       end
 
       private
-
-        def add_index_opclass(column_names, options = {})
-          opclass =
-            if options[:opclass].is_a?(Hash)
-              options[:opclass].symbolize_keys
-            else
-              Hash.new { |hash, column| hash[column] = options[:opclass].to_s }
-            end
-          column_names.each do |name, column|
-            column << " #{opclass[name]}" if opclass[name].present?
-          end
-        end
-
-        def add_options_for_index_columns(quoted_columns, **options)
-          quoted_columns = add_index_opclass(quoted_columns, options)
-          super
-        end
-
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"

@@ -1197,17 +1197,18 @@ module ActiveRecord
         end
 
         def add_index_sort_order(quoted_columns, **options)
-          if order = options[:order]
-            case order
-            when Hash
-              order = order.symbolize_keys
-              quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
-            else
-              quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
-            end
+          orders = options_for_index_columns(options[:order])
+          quoted_columns.each do |name, column|
+            column << " #{orders[name].upcase}" if orders[name].present?
           end
+        end
 
-          quoted_columns
+        def options_for_index_columns(options)
+          if options.is_a?(Hash)
+            options.symbolize_keys
+          else
+            Hash.new { |hash, column| hash[column] = options }
+          end
         end
 
         # Overridden by the MySQL adapter for supporting index lengths and by

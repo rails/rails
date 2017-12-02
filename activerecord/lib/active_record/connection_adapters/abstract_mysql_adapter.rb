@@ -605,25 +605,6 @@ module ActiveRecord
           end
         end
 
-        def add_index_length(quoted_columns, **options)
-          if length = options[:length]
-            case length
-            when Hash
-              length = length.symbolize_keys
-              quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
-            else
-              quoted_columns.each { |name, column| column << "(#{length})" }
-            end
-          end
-
-          quoted_columns
-        end
-
-        def add_options_for_index_columns(quoted_columns, **options)
-          quoted_columns = add_index_length(quoted_columns, options)
-          super
-        end
-
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
