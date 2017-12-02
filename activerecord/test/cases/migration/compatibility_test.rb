@@ -138,7 +138,7 @@ module ActiveRecord
             end
           }.new
 
-          t = Testing.create!
+          Testing.create!
           ActiveRecord::Migrator.new(:up, [migration]).migrate
           assert_equal ["foobar"], Testing.all.map(&:foo)
         end
