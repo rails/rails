@@ -118,6 +118,7 @@ module Rails
     attr_accessor :assets, :sandbox
     alias_method :sandbox?, :sandbox
     attr_reader :reloaders, :reloader, :executor
+    attr_writer :credentials
 
     delegate :default_url_options, :default_url_options=, to: :routes
 
