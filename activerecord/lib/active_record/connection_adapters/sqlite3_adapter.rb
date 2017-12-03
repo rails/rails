@@ -374,6 +374,10 @@ module ActiveRecord
       end
 
       private
+        def initialize_type_map(m = type_map)
+          super
+          register_class_with_limit m, %r(int)i, SQLite3Integer
+        end
 
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
@@ -529,6 +533,17 @@ module ActiveRecord
         def configure_connection
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
+
+        class SQLite3Integer < Type::Integer # :nodoc:
+          private
+            def _limit
+              # INTEGER storage class can be stored 8 bytes value.
+              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+              limit || 8
+            end
+        end
+
+        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
     ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
