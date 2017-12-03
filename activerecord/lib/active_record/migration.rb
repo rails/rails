@@ -1045,7 +1045,7 @@ module ActiveRecord
         new(:up, migrations(migrations_paths), nil)
       end
 
-      def get_all_versions(connection = Base.connection)
+      def get_all_versions
         if SchemaMigration.table_exists?
           SchemaMigration.all_versions.map(&:to_i)
         else
@@ -1054,19 +1054,12 @@ module ActiveRecord
       end
 
       def current_version(connection = nil)
-        if connection.nil?
-          begin
-            connection = Base.connection
-          rescue ActiveRecord::NoDatabaseError
-            return nil
-          end
-        end
-
-        get_all_versions(connection).max || 0
+        get_all_versions.max || 0
+      rescue ActiveRecord::NoDatabaseError
       end
 
-      def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      def needs_migration?(connection = nil)
+        (migrations(migrations_paths).collect(&:version) - get_all_versions).size > 0
       end
 
       def any_migrations?
