@@ -1053,7 +1053,15 @@ module ActiveRecord
         end
       end
 
-      def current_version(connection = Base.connection)
+      def current_version(connection = nil)
+        if connection.nil?
+          begin
+            connection = Base.connection
+          rescue ActiveRecord::NoDatabaseError
+            return nil
+          end
+        end
+
         get_all_versions(connection).max || 0
       end
 

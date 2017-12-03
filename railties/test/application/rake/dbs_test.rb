@@ -98,6 +98,20 @@ module ApplicationTests
         end
       end
 
+      test "db:create works when schema cache exists and database does not exist" do
+        use_postgresql
+
+        begin
+          rails %w(db:create db:migrate db:schema:cache:dump)
+
+          rails "db:drop"
+          rails "db:create"
+          assert_equal 0, $?.exitstatus
+        ensure
+          rails "db:drop" rescue nil
+        end
+      end
+
       test "db:drop failure because database does not exist" do
         output = rails("db:drop:_unsafe", "--trace")
         assert_match(/does not exist/, output)
