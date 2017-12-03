@@ -519,6 +519,27 @@ module ActiveRecord
           query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
         end
 
+        def check_constraints(table_name) # :nodoc:
+          scope = quoted_scope(table_name)
+
+          check_info = exec_query(<<-SQL, "SCHEMA")
+            SELECT conname, pg_get_constraintdef(c.oid) AS constraintdef
+            FROM pg_constraint c
+            JOIN pg_class t ON c.conrelid = t.oid
+            WHERE c.contype = 'c'
+              AND t.relname = #{scope[:name]}
+          SQL
+
+          check_info.map do |row|
+            options = {
+              name: row["conname"]
+            }
+            expression = row["constraintdef"][/CHECK \({2}(.+)\){2}/, 1]
+
+            CheckConstraintDefinition.new(table_name, expression, options)
+          end
+        end
+
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \

@@ -345,6 +345,20 @@ module ActiveRecord
           assert_equal :delete_me, t.name
         end
       end
+
+      def test_check_constraint_creates_check_constraint
+        with_change_table do |t|
+          @connection.expect :add_check_constraint, nil, [:delete_me, "price > discounted_price", name: "price_check"]
+          t.check_constraint "price > discounted_price", name: "price_check"
+        end
+      end
+
+      def test_remove_check_constraint_removes_check_constraint
+        with_change_table do |t|
+          @connection.expect :remove_check_constraint, nil, [:delete_me, name: "price_check"]
+          t.remove_check_constraint name: "price_check"
+        end
+      end
     end
   end
 end

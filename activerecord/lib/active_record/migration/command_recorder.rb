@@ -8,6 +8,7 @@ module ActiveRecord
     #
     # * add_column
     # * add_foreign_key
+    # * add_check_constraint
     # * add_index
     # * add_reference
     # * add_timestamps
@@ -25,6 +26,7 @@ module ActiveRecord
     # * remove_column (must supply a type)
     # * remove_columns (must specify at least one column name or more)
     # * remove_foreign_key (must supply a second table)
+    # * remove_check_constraint
     # * remove_index
     # * remove_reference
     # * remove_timestamps
@@ -39,7 +41,8 @@ module ActiveRecord
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
         :add_foreign_key, :remove_foreign_key,
-        :change_column_comment, :change_table_comment
+        :change_column_comment, :change_table_comment,
+        :add_check_constraint, :remove_check_constraint
       ]
       include JoinTable
 
@@ -136,6 +139,7 @@ module ActiveRecord
               add_timestamps:    :remove_timestamps,
               add_reference:     :remove_reference,
               add_foreign_key:   :remove_foreign_key,
+              add_check_constraint: :remove_check_constraint,
               enable_extension:  :disable_extension
             }.each do |cmd, inv|
               [[inv, cmd], [cmd, inv]].uniq.each do |method, inverse|
@@ -263,6 +267,11 @@ module ActiveRecord
           end
 
           [:change_table_comment, [table, from: options[:to], to: options[:from]]]
+        end
+
+        def invert_remove_check_constraint(args)
+          raise ActiveRecord::IrreversibleMigration, "remove_check_constraint is only reversible if given an expression." if args.size < 2
+          super
         end
 
         def respond_to_missing?(method, _)
