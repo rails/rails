@@ -833,14 +833,15 @@ module ActiveRecord
         indexes(table_name).detect { |i| i.name == index_name }
       end
 
-      # Adds a reference. The reference column is a bigint by default,
+      # Adds a reference. The reference column is a bigint by default on most adapters,
       # the <tt>:type</tt> option can be used to specify a different type.
       # Optionally adds a +_type+ column, if <tt>:polymorphic</tt> option is provided.
       # #add_reference and #add_belongs_to are acceptable.
       #
       # The +options+ hash can include the following keys:
       # [<tt>:type</tt>]
-      #   The reference column type. Defaults to +:bigint+.
+      #   The reference column type. Defaults to +:bigint+ except for SQLite,
+      #   where it defaults to +:integer+ as big integer is not supported.
       # [<tt>:index</tt>]
       #   Add an appropriate index. Defaults to true.
       #   See #add_index for usage of this option.
