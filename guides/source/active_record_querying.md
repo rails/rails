@@ -801,7 +801,7 @@ The SQL that would be executed:
 SELECT * FROM articles WHERE id > 10 ORDER BY id DESC
 
 # Original query without `only`
-SELECT "articles".* FROM "articles" WHERE (id > 10) ORDER BY id desc LIMIT 20
+SELECT * FROM articles WHERE id > 10 ORDER BY id DESC LIMIT 20
 
 ```
 
@@ -820,14 +820,14 @@ Article.find(10).comments.reorder('name')
 The SQL that would be executed:
 
 ```sql
-SELECT * FROM articles WHERE id = 10
+SELECT * FROM articles WHERE id = 10 LIMIT 1
 SELECT * FROM comments WHERE article_id = 10 ORDER BY name
 ```
 
 In the case where the `reorder` clause is not used, the SQL executed would be:
 
 ```sql
-SELECT * FROM articles WHERE id = 10
+SELECT * FROM articles WHERE id = 10 LIMIT 1
 SELECT * FROM comments WHERE article_id = 10 ORDER BY posted_at DESC
 ```
 
@@ -1091,7 +1091,7 @@ This produces:
 
 ```sql
 SELECT articles.* FROM articles
-  INNER JOIN categories ON articles.category_id = categories.id
+  INNER JOIN categories ON categories.id = articles.category_id
   INNER JOIN comments ON comments.article_id = articles.id
 ```
 
@@ -1871,14 +1871,14 @@ All calculation methods work directly on a model:
 
 ```ruby
 Client.count
-# SELECT count(*) AS count_all FROM clients
+# SELECT COUNT(*) FROM clients
 ```
 
 Or on a relation:
 
 ```ruby
 Client.where(first_name: 'Ryan').count
-# SELECT count(*) AS count_all FROM clients WHERE (first_name = 'Ryan')
+# SELECT COUNT(*) FROM clients WHERE (first_name = 'Ryan')
 ```
 
 You can also use various finder methods on a relation for performing complex calculations:
@@ -1890,9 +1890,9 @@ Client.includes("orders").where(first_name: 'Ryan', orders: { status: 'received'
 Which will execute:
 
 ```sql
-SELECT count(DISTINCT clients.id) AS count_all FROM clients
-  LEFT OUTER JOIN orders ON orders.client_id = clients.id WHERE
-  (clients.first_name = 'Ryan' AND orders.status = 'received')
+SELECT COUNT(DISTINCT clients.id) FROM clients
+  LEFT OUTER JOIN orders ON orders.client_id = clients.id
+  WHERE (clients.first_name = 'Ryan' AND orders.status = 'received')
 ```
 
 ### Count
