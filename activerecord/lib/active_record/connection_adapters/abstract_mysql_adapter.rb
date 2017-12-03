@@ -92,6 +92,14 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        if mariadb?
+          database_version >= "10.2.1"
+        else
+          database_version >= "8.0.16"
+        end
+      end
+
       def supports_views?
         true
       end
@@ -412,6 +420,30 @@ module ActiveRecord
           options[:on_delete] = extract_foreign_key_action(row["on_delete"])
 
           ForeignKeyDefinition.new(table_name, row["to_table"], options)
+        end
+      end
+
+      def check_constraints(table_name)
+        scope = quoted_scope(table_name)
+
+        chk_info = exec_query(<<~SQL, "SCHEMA")
+          SELECT cc.constraint_name AS 'name',
+                 cc.check_clause AS 'expression'
+          FROM information_schema.check_constraints cc
+          JOIN information_schema.table_constraints tc
+          USING (constraint_schema, constraint_name)
+          WHERE tc.table_schema = #{scope[:schema]}
+            AND tc.table_name = #{scope[:name]}
+            AND cc.constraint_schema = #{scope[:schema]}
+        SQL
+
+        chk_info.map do |row|
+          options = {
+            name: row["name"]
+          }
+          expression = row["expression"]
+          expression = expression[1..-2] unless mariadb? # remove parentheses added by mysql
+          CheckConstraintDefinition.new(table_name, expression, options)
         end
       end
 

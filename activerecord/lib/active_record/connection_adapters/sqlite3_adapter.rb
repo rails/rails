@@ -136,6 +136,10 @@ module ActiveRecord
         true
       end
 
+      def supports_check_constraints?
+        true
+      end
+
       def supports_views?
         true
       end
@@ -361,7 +365,12 @@ module ActiveRecord
             options[:null] == false && options[:default].nil?
         end
 
-        def alter_table(table_name, foreign_keys = foreign_keys(table_name), **options)
+        def alter_table(
+          table_name,
+          foreign_keys = foreign_keys(table_name),
+          check_constraints = check_constraints(table_name),
+          **options
+        )
           altered_table_name = "a#{table_name}"
 
           caller = lambda do |definition|
@@ -372,6 +381,10 @@ module ActiveRecord
               end
               to_table = strip_table_name_prefix_and_suffix(fk.to_table)
               definition.foreign_key(to_table, **fk.options)
+            end
+
+            check_constraints.each do |chk|
+              definition.check_constraint(chk.expression, **chk.options)
             end
 
             yield definition if block_given?

@@ -15,7 +15,8 @@ module ActiveRecord
 
       delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
         :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys?, :foreign_key_options,
-        :quoted_columns_for_index, :supports_partial_index?, to: :@conn, private: true
+        :quoted_columns_for_index, :supports_partial_index?, :supports_check_constraints?, :check_constraint_options,
+        to: :@conn, private: true
 
       private
         def visit_AlterTable(o)
@@ -23,6 +24,8 @@ module ActiveRecord
           sql << o.adds.map { |col| accept col }.join(" ")
           sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
           sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
+          sql << o.check_constraint_adds.map { |con| visit_AddCheckConstraint con }.join(" ")
+          sql << o.check_constraint_drops.map { |con| visit_DropCheckConstraint con }.join(" ")
         end
 
         def visit_ColumnDefinition(o)
@@ -50,6 +53,10 @@ module ActiveRecord
 
           if supports_foreign_keys?
             statements.concat(o.foreign_keys.map { |to_table, options| foreign_key_in_create(o.name, to_table, options) })
+          end
+
+          if supports_check_constraints?
+            statements.concat(o.check_constraints.map { |expression, options| check_constraint_in_create(o.name, expression, options) })
           end
 
           create_sql << "(#{statements.join(', ')})" if statements.present?
@@ -96,6 +103,18 @@ module ActiveRecord
           sql << "WHERE #{index.where}" if supports_partial_index? && index.where
 
           sql.join(" ")
+        end
+
+        def visit_CheckConstraintDefinition(o)
+          "CONSTRAINT #{o.name} CHECK (#{o.expression})"
+        end
+
+        def visit_AddCheckConstraint(o)
+          "ADD #{accept(o)}"
+        end
+
+        def visit_DropCheckConstraint(name)
+          "DROP CONSTRAINT #{quote_column_name(name)}"
         end
 
         def quoted_columns(o)
@@ -146,6 +165,11 @@ module ActiveRecord
           to_table = "#{prefix}#{to_table}#{suffix}"
           options = foreign_key_options(from_table, to_table, options)
           accept ForeignKeyDefinition.new(from_table, to_table, options)
+        end
+
+        def check_constraint_in_create(table_name, expression, options)
+          options = check_constraint_options(table_name, expression, options)
+          accept CheckConstraintDefinition.new(table_name, expression, options)
         end
 
         def action_sql(action, dependency)

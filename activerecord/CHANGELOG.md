@@ -1,3 +1,14 @@
+*   Add basic support for CHECK constraints to database migrations.
+
+    Usage:
+
+    ```ruby
+    add_check_constraint :products, "price > 0", name: "price_check"
+    remove_check_constraint :products, name: "price_check"
+    ```
+
+    *fatkodima*
+
 *   Add `ActiveRecord::Base.strict_loading_by_default` and `ActiveRecord::Base.strict_loading_by_default=`
     to enable/disable strict_loading mode by default for a model. The configuration's value is
     inheritable by subclasses, but they can override that value and it will not impact parent class.

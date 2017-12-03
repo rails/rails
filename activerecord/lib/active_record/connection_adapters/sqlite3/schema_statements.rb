@@ -78,6 +78,35 @@ module ActiveRecord
           alter_table(from_table, foreign_keys)
         end
 
+        def check_constraints(table_name)
+          table_sql = query_value(<<-SQL, "SCHEMA")
+            SELECT sql
+            FROM sqlite_master
+            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+            UNION ALL
+            SELECT sql
+            FROM sqlite_temp_master
+            WHERE name = #{quote_table_name(table_name)} AND type = 'table'
+          SQL
+
+          table_sql.scan(/CONSTRAINT\s+(?<name>\w+)\s+CHECK\s+\((?<expression>(:?[^()]|\(\g<expression>\))+)\)/i).map do |name, expression|
+            CheckConstraintDefinition.new(table_name, expression, name: name)
+          end
+        end
+
+        def add_check_constraint(table_name, expression, **options)
+          alter_table(table_name) do |definition|
+            definition.check_constraint(expression, **options)
+          end
+        end
+
+        def remove_check_constraint(table_name, expression = nil, **options)
+          check_constraints = check_constraints(table_name)
+          chk_name_to_delete = check_constraint_for!(table_name, expression: expression, **options).name
+          check_constraints.delete_if { |chk| chk.name == chk_name_to_delete }
+          alter_table(table_name, foreign_keys(table_name), check_constraints)
+        end
+
         def create_schema_dumper(options)
           SQLite3::SchemaDumper.create(self, options)
         end

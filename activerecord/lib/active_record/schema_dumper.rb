@@ -23,6 +23,12 @@ module ActiveRecord
     # should not be dumped to db/schema.rb.
     cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching check constraints which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :chk_ignore_pattern, default: /^chk_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -159,6 +165,7 @@ HEADER
           end
 
           indexes_in_create(table, tbl)
+          check_constraints_in_create(table, tbl) if @connection.supports_check_constraints?
 
           tbl.puts "  end"
           tbl.puts
@@ -210,6 +217,24 @@ HEADER
         index_parts << "type: #{index.type.inspect}" if index.type
         index_parts << "comment: #{index.comment.inspect}" if index.comment
         index_parts
+      end
+
+      def check_constraints_in_create(table, stream)
+        if (check_constraints = @connection.check_constraints(table)).any?
+          add_check_constraint_statements = check_constraints.map do |check_constraint|
+            parts = [
+              "t.check_constraint #{check_constraint.expression.inspect}"
+            ]
+
+            if check_constraint.export_name_on_schema_dump?
+              parts << "name: #{check_constraint.name.inspect}"
+            end
+
+            "    #{parts.join(', ')}"
+          end
+
+          stream.puts add_check_constraint_statements.sort.join("\n")
+        end
       end
 
       def foreign_keys(table, stream)

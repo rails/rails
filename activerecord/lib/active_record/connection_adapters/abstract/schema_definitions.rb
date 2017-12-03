@@ -127,6 +127,16 @@ module ActiveRecord
         end
     end
 
+    CheckConstraintDefinition = Struct.new(:table_name, :expression, :options) do
+      def name
+        options[:name]
+      end
+
+      def export_name_on_schema_dump?
+        !ActiveRecord::SchemaDumper.chk_ignore_pattern.match?(name) if name
+      end
+    end
+
     class ReferenceDefinition # :nodoc:
       def initialize(
         name,
@@ -267,7 +277,7 @@ module ActiveRecord
     class TableDefinition
       include ColumnMethods
 
-      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys
+      attr_reader :name, :temporary, :if_not_exists, :options, :as, :comment, :indexes, :foreign_keys, :check_constraints
 
       def initialize(
         conn,
@@ -284,6 +294,7 @@ module ActiveRecord
         @indexes = []
         @foreign_keys = []
         @primary_keys = nil
+        @check_constraints = []
         @temporary = temporary
         @if_not_exists = if_not_exists
         @options = options
@@ -412,6 +423,10 @@ module ActiveRecord
         foreign_keys << [table_name, options]
       end
 
+      def check_constraint(expression, **options)
+        check_constraints << [expression, options]
+      end
+
       # Appends <tt>:datetime</tt> columns <tt>:created_at</tt> and
       # <tt>:updated_at</tt> to the table. See {connection.add_timestamps}[rdoc-ref:SchemaStatements#add_timestamps]
       #
@@ -471,14 +486,16 @@ module ActiveRecord
 
     class AlterTable # :nodoc:
       attr_reader :adds
-      attr_reader :foreign_key_adds
-      attr_reader :foreign_key_drops
+      attr_reader :foreign_key_adds, :foreign_key_drops
+      attr_reader :check_constraint_adds, :check_constraint_drops
 
       def initialize(td)
         @td   = td
         @adds = []
         @foreign_key_adds = []
         @foreign_key_drops = []
+        @check_constraint_adds = []
+        @check_constraint_drops = []
       end
 
       def name; @td.name; end
@@ -489,6 +506,14 @@ module ActiveRecord
 
       def drop_foreign_key(name)
         @foreign_key_drops << name
+      end
+
+      def add_check_constraint(expression, options)
+        @check_constraint_adds << CheckConstraintDefinition.new(name, expression, options)
+      end
+
+      def drop_check_constraint(constraint_name)
+        @check_constraint_drops << constraint_name
       end
 
       def add_column(name, type, **options)
@@ -515,6 +540,7 @@ module ActiveRecord
     #     t.rename
     #     t.references
     #     t.belongs_to
+    #     t.check_constraint
     #     t.string
     #     t.text
     #     t.integer
@@ -536,6 +562,7 @@ module ActiveRecord
     #     t.remove_references
     #     t.remove_belongs_to
     #     t.remove_index
+    #     t.remove_check_constraint
     #     t.remove_timestamps
     #   end
     #
@@ -736,6 +763,24 @@ module ActiveRecord
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
       def foreign_key_exists?(*args, **options)
         @base.foreign_key_exists?(name, *args, **options)
+      end
+
+      # Adds a check constraint.
+      #
+      #  t.check_constraint("price > 0", name: "price_check")
+      #
+      # See {connection.add_check_constraint}[rdoc-ref:SchemaStatements#add_check_constraint]
+      def check_constraint(*args)
+        @base.add_check_constraint(name, *args)
+      end
+
+      # Removes the given check constraint from the table.
+      #
+      #  t.remove_check_constraint(name: "price_check")
+      #
+      # See {connection.remove_check_constraint}[rdoc-ref:SchemaStatements#remove_check_constraint]
+      def remove_check_constraint(*args)
+        @base.remove_check_constraint(name, *args)
       end
     end
   end

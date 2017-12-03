@@ -421,6 +421,17 @@ module ActiveRecord
           end
         end
       end
+
+      def test_invert_remove_check_constraint
+        enable = @recorder.inverse_of :remove_check_constraint, [:dogs, "speed > 0", name: "speed_check"]
+        assert_equal [:add_check_constraint, [:dogs, "speed > 0", name: "speed_check"], nil], enable
+      end
+
+      def test_invert_remove_check_constraint_without_expression
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.inverse_of :remove_check_constraint, [:dogs]
+        end
+      end
     end
   end
 end
