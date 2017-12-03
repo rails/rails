@@ -52,7 +52,7 @@ module ActiveStorage
     end
 
     def delete_prefixed(prefix)
-      instrument :delete_all, prefix: prefix do
+      instrument :delete_prefixed, prefix: prefix do
         marker = nil
 
         loop do
