@@ -35,6 +35,11 @@ module ActiveStorage
       perform_across_services :delete, key
     end
 
+    # Delete files at keys starting with the +prefix+ on all services.
+    def delete_prefixed(prefix)
+      perform_across_services :delete_prefixed, prefix
+    end
+
     private
       def each_service(&block)
         [ primary, *mirrors ].each(&block)

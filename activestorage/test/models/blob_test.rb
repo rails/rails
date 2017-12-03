@@ -41,11 +41,19 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
-  test "purge removes from external service" do
+  test "purge deletes file from external service" do
     blob = create_blob
 
     blob.purge
     assert_not ActiveStorage::Blob.service.exist?(blob.key)
+  end
+
+  test "purge deletes variants from external service" do
+    blob = create_file_blob
+    variant = blob.variant(resize: "100>").processed
+
+    blob.purge
+    assert_not ActiveStorage::Blob.service.exist?(variant.key)
   end
 
   private
