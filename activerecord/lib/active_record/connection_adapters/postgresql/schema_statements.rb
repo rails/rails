@@ -393,9 +393,9 @@ module ActiveRecord
         end
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
-          quoted_table_name = quote_table_name(table_name)
+          clear_cache!
           sqls, procs = change_column_for_alter(table_name, column_name, type, options)
-          execute "ALTER TABLE #{quoted_table_name} #{sqls.join(", ")}"
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
           procs.each(&:call)
         end
 
@@ -646,8 +646,7 @@ module ActiveRecord
             end
           end
 
-          def change_column_for_alter(table_name, column_name, type, options = {})
-            clear_cache!
+          def change_column_sql(table_name, column_name, type, options = {})
             quoted_column_name = quote_column_name(column_name)
             sql_type = type_to_sql(type, options)
             sql = "ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
@@ -661,7 +660,11 @@ module ActiveRecord
               sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
             end
 
-            sqls = [sql]
+            sql
+          end
+
+          def change_column_for_alter(table_name, column_name, type, options = {})
+            sqls = [change_column_sql(table_name, column_name, type, options)]
             procs = []
             sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
             sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
@@ -673,7 +676,6 @@ module ActiveRecord
 
           # Changes the default value of a table column.
           def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
-            clear_cache!
             column = column_for(table_name, column_name)
             return unless column
 
@@ -689,7 +691,6 @@ module ActiveRecord
           end
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
-            clear_cache!
             "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 

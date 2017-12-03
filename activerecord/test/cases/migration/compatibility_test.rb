@@ -16,7 +16,7 @@ module ActiveRecord
         ActiveRecord::Migration.verbose = false
 
         connection.create_table :testings do |t|
-          t.column :foo, :string, limit: 100
+          t.column :foo, :string, limit: 5
           t.column :bar, :string, limit: 100
         end
       end
@@ -134,7 +134,7 @@ module ActiveRecord
         def test_legacy_change_column_with_null_executes_update
           migration = Class.new(ActiveRecord::Migration[5.1]) {
             def migrate(x)
-              change_column :testings, :foo, :string, null: false, default: "foobar"
+              change_column :testings, :foo, :string, limit: 10, null: false, default: "foobar"
             end
           }.new
 
