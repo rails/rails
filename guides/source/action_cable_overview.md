@@ -609,7 +609,10 @@ config.action_cable.log_tags = [
 Rails 5.2 ships with a default Content Security Policy (CSP).
 In order to function properly the web socket connection needs to be whitelisted.
 Here is an example:
-`p.connect_src :self, :https, 'ws://localhost:5000'`
+
+```ruby
+p.connect_src :self, :https, 'ws://localhost:3000'
+```
 
 For a full list of all configuration options, see the
 `ActionCable::Server::Configuration` class.
