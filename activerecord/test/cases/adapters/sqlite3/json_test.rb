@@ -9,8 +9,8 @@ class SQLite3JSONTest < ActiveRecord::SQLite3TestCase
   def setup
     super
     @connection.create_table("json_data_type") do |t|
-      t.column "payload", :json, default: {}
-      t.column "settings", :json
+      t.json "payload", default: {}
+      t.json "settings"
     end
   end
 

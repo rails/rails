@@ -220,6 +220,7 @@ module ActiveRecord
         :decimal,
         :float,
         :integer,
+        :json,
         :string,
         :text,
         :time,

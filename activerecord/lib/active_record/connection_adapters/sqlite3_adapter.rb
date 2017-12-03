@@ -70,7 +70,8 @@ module ActiveRecord
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },
-        boolean:      { name: "boolean" }
+        boolean:      { name: "boolean" },
+        json:         { name: "json" },
       }
 
       ##
@@ -131,6 +132,10 @@ module ActiveRecord
       end
 
       def supports_datetime_with_precision?
+        true
+      end
+
+      def supports_json?
         true
       end
 

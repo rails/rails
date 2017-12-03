@@ -30,7 +30,6 @@ module JSONSharedTestCases
   end
 
   def test_change_table_supports_json
-    skip unless @connection.supports_json?
     @connection.change_table("json_data_type") do |t|
       t.public_send column_type, "users"
     end
@@ -41,7 +40,6 @@ module JSONSharedTestCases
   end
 
   def test_schema_dumping
-    skip unless @connection.supports_json?
     output = dump_table_schema("json_data_type")
     assert_match(/t\.#{column_type}\s+"settings"/, output)
   end

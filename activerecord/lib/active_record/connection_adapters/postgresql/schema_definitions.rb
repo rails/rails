@@ -95,10 +95,6 @@ module ActiveRecord
           args.each { |name| column(name, :int8range, options) }
         end
 
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
-
         def jsonb(*args, **options)
           args.each { |name| column(name, :jsonb, options) }
         end
