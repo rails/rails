@@ -13,8 +13,9 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Generator = ActiveSupport::KeyGenerator.new(SessionSecret, iterations: 1000)
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
-  Encryptor = ActiveSupport::MessageEncryptor.new \
+  Encryptor = ActiveSupport::MessageEncryptor.new(
     Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: Marshal
+  )
 
   class TestController < ActionController::Base
     def no_session_access
