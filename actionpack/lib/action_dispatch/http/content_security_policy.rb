@@ -175,7 +175,13 @@ module ActionDispatch #:nodoc:
 
     private
       def copy_directives(directives)
-        directives.transform_values { |sources| sources.map(&:dup) }
+        directives.transform_values do |sources|
+          if sources.is_a?(Array)
+            sources.map(&:dup)
+          else
+            sources
+          end
+        end
       end
 
       def apply_mappings(sources)
