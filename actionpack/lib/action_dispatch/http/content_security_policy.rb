@@ -175,7 +175,7 @@ module ActionDispatch #:nodoc:
 
     private
       def copy_directives(directives)
-        directives.transform_values { |sources| sources.deep_dup }
+        directives.transform_values(&:deep_dup)
       end
 
       def apply_mappings(sources)
