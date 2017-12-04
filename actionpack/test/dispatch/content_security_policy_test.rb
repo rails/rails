@@ -14,6 +14,15 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     assert_equal "script-src 'self';", @policy.build
   end
 
+  def test_dup
+    @policy.img_src :self
+    @policy.block_all_mixed_content
+    @policy.upgrade_insecure_requests
+    @policy.sandbox
+    copied = @policy.dup
+    assert_equal copied.build, @policy.build
+  end
+
   def test_mappings
     @policy.script_src :data
     assert_equal "script-src data:;", @policy.build
