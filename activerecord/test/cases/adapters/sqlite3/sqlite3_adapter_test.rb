@@ -360,6 +360,24 @@ module ActiveRecord
         end
       end
 
+      class Barcode < ActiveRecord::Base
+      end
+
+      def test_existing_records_have_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true) do |t|
+          t.text :other_attr
+        end
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create! code: code, other_attr: "xxx"
+
+        connection.change_table "barcodes" do |t|
+          connection.remove_column("barcodes", "other_attr")
+        end
+
+        assert_equal code, Barcode.first.id
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end

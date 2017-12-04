@@ -395,10 +395,11 @@ module ActiveRecord
 
         def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
+          from_primary_key_column = columns(from).select { |column| column.name == from_primary_key }.first
           options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
-            @definition.primary_key(from_primary_key) if from_primary_key.present?
+            @definition.primary_key(from_primary_key, from_primary_key_column.type) if from_primary_key.present?
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
@@ -422,6 +423,9 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
+            # indexes sqlite creates for internal use start with `sqlite_` and
+            # don't need to be copied
+            next if name.starts_with?("sqlite_")
             if to == "a#{from}"
               name = "t#{name}"
             elsif from == "a#{to}"
