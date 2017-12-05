@@ -281,6 +281,10 @@ module ActiveRecord
         exec_query "DROP INDEX #{quote_column_name(index_name)}"
       end
 
+      def truncate(table_name, name = nil)
+        execute "DELETE FROM #{quote_table_name(table_name)}", name
+      end
+
       # Renames a table.
       #
       # Example:

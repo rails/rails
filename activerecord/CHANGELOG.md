@@ -1,3 +1,7 @@
+*   Implement `truncate` for migrations against sqlite3 adapter
+
+    *Joe Francis*
+
 *   Add support for PostgreSQL operator classes to `add_index`.
 
     Example:
