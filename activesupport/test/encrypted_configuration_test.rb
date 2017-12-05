@@ -10,8 +10,10 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     @credentials_key_path = File.join(Dir.tmpdir, "master.key")
     File.write(@credentials_key_path, ActiveSupport::EncryptedConfiguration.generate_key)
 
-    @credentials = ActiveSupport::EncryptedConfiguration.new \
-      config_path: @credentials_config_path, key_path: @credentials_key_path, env_key: "RAILS_MASTER_KEY"
+    @credentials = ActiveSupport::EncryptedConfiguration.new(
+      config_path: @credentials_config_path, key_path: @credentials_key_path,
+      env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true
+    )
   end
 
   teardown do

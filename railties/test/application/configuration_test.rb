@@ -707,6 +707,14 @@ module ApplicationTests
       assert_match(/Missing.*RAILS_MASTER_KEY/, error)
     end
 
+    test "credentials does not raise error when require_master_key is false and master key does not exist" do
+      remove_file "config/master.key"
+      add_to_config "config.require_master_key = false"
+      app "development"
+
+      assert_not app.credentials.secret_key_base
+    end
+
     test "protect from forgery is the default in a new app" do
       make_basic_app
 

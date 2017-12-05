@@ -52,6 +52,20 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     assert_match(/access_key_id: 123/, run_show_command("config/tokens.yml.enc", key: "config/tokens.key"))
   end
 
+  test "show command raise error when require_master_key is specified and key does not exist" do
+    add_to_config "config.require_master_key = true"
+
+    assert_match(/Missing encryption key to decrypt file with/,
+      run_show_command("config/tokens.yml.enc", key: "unexist.key", allow_failure: true))
+  end
+
+  test "show command does not raise error when require_master_key is false and master key does not exist" do
+    remove_file "config/master.key"
+    add_to_config "config.require_master_key = false"
+
+    assert_match(/Missing 'config\/master\.key' to decrypt data/, run_show_command("config/tokens.yml.enc"))
+  end
+
   test "won't corrupt encrypted file when passed wrong key" do
     run_edit_command("config/tokens.yml.enc", key: "config/tokens.key")
 
@@ -68,8 +82,8 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
       end
     end
 
-    def run_show_command(file, key: nil)
-      rails "encrypted:show", prepare_args(file, key)
+    def run_show_command(file, key: nil, **options)
+      rails "encrypted:show", prepare_args(file, key), **options
     end
 
     def prepare_args(file, key)
