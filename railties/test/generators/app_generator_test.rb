@@ -759,6 +759,25 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "webpacker"
   end
 
+  def test_webpack_option_with_js_framework
+    command_check = -> command, *_ do
+      case command
+      when "webpacker:install"
+        @webpacker ||= 0
+        @webpacker += 1
+        assert_equal 1, @webpacker, "webpacker:install expected to be called once, but was called #{@webpacker} times."
+      when "webpacker:install:react"
+        @react ||= 0
+        @react += 1
+        assert_equal 1, @react, "webpacker:install:react expected to be called once, but was called #{@react} times."
+      end
+    end
+
+    generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+  end
+
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks"]
 
