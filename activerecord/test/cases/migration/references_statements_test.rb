@@ -27,6 +27,12 @@ module ActiveRecord
         assert_not column_exists?(table_name, :taggable_type, :string)
       end
 
+      def test_creates_foreign_key
+        assert_difference "connection.foreign_keys(:#{table_name}).count" do
+          add_reference table_name, :taggable, foreign_key: true
+        end
+      end
+
       def test_creates_reference_type_column
         add_reference table_name, :taggable, polymorphic: true
         assert column_exists?(table_name, :taggable_type, :string)
