@@ -70,8 +70,6 @@ per-environment basis. To use the disk service from the previous example in the
 development environment, you would add the following to
 config/environments/development.rb:
 
-In your application's configuration, specify the service to use like this:
-
 ```ruby
 # Store files locally.
 config.active_storage.service = :local
@@ -88,8 +86,18 @@ config.active_storage.service = :s3
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
+Mirrored services can be used to facilitate a migration between services in
+production. You can start mirroring to the new service, copy existing files from
+the old service to the new, then go all-in on the new service.
+
+If you wish to transform your images, add `mini_magick` to your Gemfile:
+
+``` ruby
+gem 'mini_magick'
+```
+
 ### Disk Service
-To use the Disk service:
+Declare a Disk service in `config/storage.yml`:
 
 ``` yaml
 local:
@@ -98,8 +106,8 @@ local:
 ```
 
 ### Amazon S3 Service
+Declare an S3 service in `config/storage.yml`:
 
-To use Amazon S3:
 ``` yaml
 s3:
   service: S3
@@ -114,8 +122,7 @@ Also, add the S3 client gem to your Gemfile:
 gem "aws-sdk-s3", require: false
 ```
 ### Microsoft Azure Storage Service
-
-To use Microsoft Azure Storage:
+Declare an Azure Storage service in `config/storage.yml`:
 
 ``` yaml
 azure:
@@ -133,8 +140,7 @@ gem "azure-storage", require: false
 ```
 
 ### Google Cloud Storage Service
-
-To use Google Cloud Storage:
+Declare a Google Cloud Storage service in `config/storage.yml`:
 
 ``` yaml
 google:
@@ -192,42 +198,59 @@ production:
 
 NOTE: Files are served from the primary service.
 
-Mirrored services can be used to facilitate a migration between services in
-production. You can start mirroring to the new service, copy existing files from
-the old service to the new, then go all-in on the new service.
-
-If you wish to transform your images, add `mini_magick` to your Gemfile:
-
-``` ruby
-gem 'mini_magick'
-```
-
 Attach Files to a Model
 --------------------------
-One or more files can be attached to a model.
 
-One attachment:
+### `has_one_attached`
 
-```ruby
+The `has_one_attached` macro sets up a one-to-one mapping between records and
+files. Each record can have one file attached to it.
+
+For example, suppose your application has a User model. If you want each user to
+have an avatar, define the `User` model like this:
+
+``` ruby
 class User < ApplicationRecord
-  # Associates an attachment and a blob. When the user is destroyed they are
-  # purged by default (models destroyed, and resource files deleted).
   has_one_attached :avatar
-end
-
-# Attach an avatar to the user.
-user.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
-
-class AvatarsController < ApplicationController
-  def update
-    # params[:avatar] contains a ActionDispatch::Http::UploadedFile object
-    Current.user.avatar.attach(params.require(:avatar))
-    redirect_to Current.user
-  end
 end
 ```
 
-Many attachments:
+You can create a user with an avatar:
+
+``` ruby
+class SignupController < ApplicationController
+  def create
+    user = Users.create!(user_params)
+    session[:user_id] = user.id
+    redirect_to root_path
+  end
+
+  private
+    def user_params
+      params.require(:user).permit(:email_address, :password, :avatar)
+    end
+end
+```
+
+Call `avatar.attach` to attach an avatar to an existing user:
+
+```ruby
+Current.user.avatar.attach(params[:avatar])
+```
+
+Call `avatar.attached?` to determine whether a particular user has an avatar:
+
+```ruby
+Current.user.avatar.attached?
+```
+
+### `has_many_attached`
+
+The `has_many_attached` macro sets up a one-to-many relationship between records
+and files. Each record can have many files attached to it.
+
+For example, suppose your application has a `Message` model. If you want each
+message to have many images, define the Message model like this:
 
 ```ruby
 class Message < ApplicationRecord
@@ -235,30 +258,13 @@ class Message < ApplicationRecord
 end
 ```
 
-```erb
-<%= form_with model: @message, local: true do |form| %>
-  <%= form.text_field :title, placeholder: "Title" %><br>
-  <%= form.text_area :content %><br><br>
-
-  <%= form.file_field :images, multiple: true %><br>
-  <%= form.submit %>
-<% end %>
-```
+You can create a message with images:
 
 ```ruby
 class MessagesController < ApplicationController
-  def index
-    # Use the built-in with_attached_images scope to avoid N+1
-    @messages = Message.all.with_attached_images
-  end
-
   def create
     message = Message.create!(message_params)
     redirect_to message
-  end
-
-  def show
-    @message = Message.find(params[:id])
   end
 
   private
@@ -266,6 +272,18 @@ class MessagesController < ApplicationController
       params.require(:message).permit(:title, :content, images: [])
     end
 end
+```
+
+Call `images.attach` to add new images to an existing message:
+
+```ruby
+@message.images.attach(params[:images])
+```
+
+Call `images.attached?`` to determine whether a particular message has any images:
+
+```ruby
+@message.images.attached?
 ```
 
 Remove File Attached to Model
@@ -520,15 +538,7 @@ config.active_storage.service = :local_test
 Add Support Additional Cloud Service
 ------------------------------------
 
-ActiveStorage ships with support for Amazon S3, Google Cloud Storage, and Azure.
 If you need to support a cloud service other these, you will need to implement
 the Service. Each service extends
 [`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.
-
-The easiest way to understand what's necessary is to examine the existing
-implementations.
-
-Some services are supported by community maintained gems:
-
-* [OpenStack](https://github.com/jeffreyguenther/activestorage-openstack)
