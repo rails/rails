@@ -708,7 +708,7 @@ module ActiveRecord
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
-            scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
+            scope[:type] ||= "'r','v','m', 'p'" # (r)elation/table, (v)iew, (m)aterialized view
 
             sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
