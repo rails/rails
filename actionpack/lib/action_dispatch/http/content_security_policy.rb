@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/object/deep_dup"
+
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
     class Middleware
