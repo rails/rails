@@ -1,3 +1,7 @@
+*   Enhance add_reference so that sqlite3 creates foreign keys
+
+   *Joe Francis*
+
 *   Add support for PostgreSQL operator classes to `add_index`.
 
     Example:

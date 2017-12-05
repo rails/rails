@@ -52,7 +52,7 @@ module ActiveRecord
         options[:primary_key]
       end
 
-      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+      [:limit, :precision, :scale, :default, :null, :collation, :comment, :references].each do |option_name|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{option_name}
             options[:#{option_name}]
@@ -176,6 +176,9 @@ module ActiveRecord
         end
 
         def columns
+          if options[:add_reference]
+            options[:references] = "#{foreign_table_name}(id)"
+          end
           result = [[column_name, type, options]]
           if polymorphic
             result.unshift(["#{name}_type", :string, polymorphic_options])
@@ -356,7 +359,6 @@ module ActiveRecord
         name = name.to_s
         type = type.to_sym if type
         options = options.dup
-
         if @columns_hash[name] && @columns_hash[name].primary_key?
           raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
         end

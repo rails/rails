@@ -350,6 +350,9 @@ module ActiveRecord
       end
 
       def add_reference(table_name, ref_name, **options) # :nodoc:
+        if supports_foreign_keys_in_create? && options[:foreign_key]
+          options[:add_reference] = true
+        end
         super(table_name, ref_name, type: :integer, **options)
       end
       alias :add_belongs_to :add_reference
