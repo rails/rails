@@ -23,7 +23,7 @@ module JSONSharedTestCases
   def test_column
     column = klass.columns_hash["payload"]
     assert_equal column_type, column.type
-    assert_equal column_type.to_s, column.sql_type
+    assert_type_match column_type, column.sql_type
 
     type = klass.type_for_attribute("payload")
     assert_not type.binary?
@@ -36,7 +36,7 @@ module JSONSharedTestCases
     klass.reset_column_information
     column = klass.columns_hash["users"]
     assert_equal column_type, column.type
-    assert_equal column_type.to_s, column.sql_type
+    assert_type_match column_type, column.sql_type
   end
 
   def test_schema_dumping
@@ -252,5 +252,10 @@ module JSONSharedTestCases
   private
     def klass
       JsonDataType
+    end
+
+    def assert_type_match(type, sql_type)
+      native_type = ActiveRecord::Base.connection.native_database_types[type][:name]
+      assert_match %r(\A#{native_type}\b), sql_type
     end
 end
