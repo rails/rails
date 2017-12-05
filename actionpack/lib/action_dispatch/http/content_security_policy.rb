@@ -110,7 +110,7 @@ module ActionDispatch #:nodoc:
     end
 
     def initialize_copy(other)
-      @directives = copy_directives(other.directives)
+      @directives = other.directives.deep_dup
     end
 
     DIRECTIVES.each do |name, directive|
@@ -174,10 +174,6 @@ module ActionDispatch #:nodoc:
     end
 
     private
-      def copy_directives(directives)
-        directives.transform_values { |sources| sources.map(&:dup) }
-      end
-
       def apply_mappings(sources)
         sources.map do |source|
           case source
