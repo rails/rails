@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class Binary < Arel::Nodes::Node
+    class Binary < Arel::Nodes::NodeExpression
       attr_accessor :left, :right
 
       def initialize left, right

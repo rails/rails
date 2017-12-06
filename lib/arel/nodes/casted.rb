@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class Casted < Arel::Nodes::Node # :nodoc:
+    class Casted < Arel::Nodes::NodeExpression # :nodoc:
       attr_reader :val, :attribute
       def initialize val, attribute
         @val       = val

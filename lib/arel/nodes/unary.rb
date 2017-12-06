@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 module Arel
   module Nodes
-    class Unary < Arel::Nodes::Node
+    class Unary < Arel::Nodes::NodeExpression
       attr_accessor :expr
       alias :value :expr
 
