@@ -213,7 +213,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
-  def test_regexp_precidence
+  def test_regexp_precedence
     rs.draw do
       get "/whois/:domain", constraints: {
         domain: /\w+\.[\w\.]+/ },
