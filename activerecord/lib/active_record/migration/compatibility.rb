@@ -28,6 +28,13 @@ module ActiveRecord
             super
           end
         end
+
+        def add_reference(table_name, ref_name, **options)
+          if adapter_name == "SQLite"
+            options.delete(:foreign_key)
+          end
+          super
+        end
       end
 
       class V5_0 < V5_1
