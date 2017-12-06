@@ -122,6 +122,10 @@ module ActiveRecord
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
 
+      def supports_bulk_alter?
+        true
+      end
+
       def supports_index_sort_order?
         true
       end
