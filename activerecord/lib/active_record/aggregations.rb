@@ -35,7 +35,7 @@ module ActiveRecord
       # the database).
       #
       #   class Customer < ActiveRecord::Base
-      #     composed_of :balance, class_name: "Money", mapping: %w(amount currency)
+      #     composed_of :balance, class_name: "Money", mapping: [ %w(balance_amount amount), %w(balance_currency currency) ]
       #     composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
       #   end
       #
