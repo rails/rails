@@ -34,6 +34,8 @@ module ActiveRecord
         assert_difference "connection.foreign_keys(:#{table_name}).count" do
           add_reference table_name, :taggable, foreign_key: true
         end
+      ensure
+        connection.drop_table :taggables rescue nil
       end
 
       def test_creates_reference_type_column

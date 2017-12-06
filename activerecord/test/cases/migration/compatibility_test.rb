@@ -75,6 +75,24 @@ module ActiveRecord
         connection.drop_table :more_testings rescue nil
       end
 
+      if current_adapter?(:SQLite3Adapter)
+        def test_add_reference_does_not_add_foreign_key
+          migration = Class.new(ActiveRecord::Migration[5.1]) {
+            def migrate(x)
+              create_table :referenced
+              create_table :testing_references
+              add_reference :testing_references, :referenced, foreign_key: true
+            end
+
+          }.new
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          assert connection.foreign_keys(:testing_references).size.zero?
+        ensure
+          connection.drop_table :testing_references rescue nil
+          connection.drop_table :referenced rescue nil
+        end
+      end
+
       def test_timestamps_have_null_constraints_if_not_present_in_migration_of_create_table
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def migrate(x)
