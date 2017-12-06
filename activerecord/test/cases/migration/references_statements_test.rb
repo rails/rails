@@ -28,6 +28,9 @@ module ActiveRecord
       end
 
       def test_creates_foreign_key
+        connection.create_table :taggables do |t|
+          t.timestamps null: true
+        end
         assert_difference "connection.foreign_keys(:#{table_name}).count" do
           add_reference table_name, :taggable, foreign_key: true
         end
