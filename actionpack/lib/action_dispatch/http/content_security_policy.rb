@@ -125,6 +125,13 @@ module ActionDispatch #:nodoc:
       end
     end
 
+    def merge!(other)
+      other.directives.each do |directive, sources|
+        @directives[directive] =
+          directives.fetch(directive, []) + sources.deep_dup
+      end
+    end
+
     def block_all_mixed_content(enabled = true)
       if enabled
         @directives["block-all-mixed-content"] = true
