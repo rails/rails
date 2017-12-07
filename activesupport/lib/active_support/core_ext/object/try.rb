@@ -101,7 +101,7 @@ class Object
   #
   #   "a".try!(:upcase) # => "A"
   #   nil.try!(:upcase) # => nil
-  #   123.try!(:upcase) # => NoMethodError: undefined method `upcase' for 123:Integer
+  #   123.try!(:upcase) # => NoMethodError: undefined method `upcase' for 123:Fixnum
 end
 
 class Delegator

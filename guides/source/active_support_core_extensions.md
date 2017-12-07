@@ -269,7 +269,7 @@ Note that `try` will swallow no-method errors, returning nil instead. If you wan
 
 ```ruby
 @number.try(:nest)  # => nil
-@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Integer
+@number.try!(:nest) # NoMethodError: undefined method `nest' for 1:Fixnum
 ```
 
 NOTE: Defined in `active_support/core_ext/object/try.rb`.
