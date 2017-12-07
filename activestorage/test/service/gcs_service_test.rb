@@ -35,6 +35,20 @@ if SERVICE_CONFIGURATIONS[:gcs]
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
         @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
+
+    test "signed URL response headers" do
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+
+        url = @service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+        response = Net::HTTP.get_response(URI(url))
+        assert_equal "text/plain", response.header["Content-Type"]
+      ensure
+        @service.delete key
+      end
+    end
   end
 else
   puts "Skipping GCS Service tests because no GCS configuration was supplied"
