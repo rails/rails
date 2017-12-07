@@ -38,7 +38,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
   end
 
   def test_encode
-    assert_equal '=?UTF-8?Q?This_is_=E3=81=82_string?=', encode('This is あ string')
+    assert_equal "This is あ string", Mail::Encodings.q_value_decode(encode("This is あ string"))
   end
 
   def test_read_fixture

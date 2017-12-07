@@ -134,10 +134,11 @@ GEM
       nokogiri
     loofah (2.0.3)
       nokogiri (>= 1.5.9)
-    mail (2.6.6)
-      mime-types (>= 1.16, < 4)
+    mail (2.7.0)
+      mini_mime (>= 0.1.1)
     metaclass (0.0.4)
     mime-types (2.99.3)
+    mini_mime (1.0.0)
     mini_portile2 (2.2.0)
     minitest (5.3.3)
     mocha (0.14.0)
