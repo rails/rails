@@ -68,7 +68,7 @@ module ActiveRecord
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
-      combine  = left.and right
+      combine  = left.or(right)
       relation.where! combine
       assert_equal({}, relation.where_values_hash)
     end

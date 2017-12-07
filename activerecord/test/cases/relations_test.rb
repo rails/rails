@@ -1189,6 +1189,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "hen", hen.name
   end
 
+  def test_create_with_polymorphic_association
+    author = authors(:david)
+    post = posts(:welcome)
+    comment = Comment.where(post: post, author: author).create!(body: "hello")
+
+    assert_equal author, comment.author
+    assert_equal post, comment.post
+  end
+
   def test_first_or_create
     parrot = Bird.where(color: "green").first_or_create(name: "parrot")
     assert_kind_of Bird, parrot
