@@ -38,13 +38,24 @@ module ActionDispatch
             browser_options.args << "--disable-gpu"
 
             @options.merge(options: browser_options)
+          elsif @browser == :headless_firefox
+            browser_options = Selenium::WebDriver::Firefox::Options.new
+            browser_options.args << "-headless"
+
+            @options.merge(options: browser_options)
           else
             @options
           end
         end
 
         def browser
-          @browser == :headless_chrome ? :chrome : @browser
+          if @browser == :headless_chrome
+            :chrome
+          elsif @browser == :headless_firefox
+            :firefox
+          else
+            @browser
+          end
         end
 
         def register_selenium(app)

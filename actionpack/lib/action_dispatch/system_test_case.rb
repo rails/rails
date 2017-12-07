@@ -121,11 +121,15 @@ module ActionDispatch
     #
     #   driven_by :poltergeist
     #
-    #   driven_by :selenium, using: :firefox
+    #   driven_by :selenium, screen_size: [800, 800]
+    #
+    #   driven_by :selenium, using: :chrome
     #
     #   driven_by :selenium, using: :headless_chrome
     #
-    #   driven_by :selenium, screen_size: [800, 800]
+    #   driven_by :selenium, using: :firefox
+    #
+    #   driven_by :selenium, using: :headless_firefox
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
       self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
     end

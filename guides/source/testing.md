@@ -673,7 +673,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If you want to use a headless browser, you could use Headless Chrome by adding `headless_chrome` in the `:using` argument.
+If you want to use a headless browser, you could use Headless Chrome or Headless Firefox by adding
+`headless_chrome` or `headless_firefox` in the `:using` argument.
 
 ```ruby
 require "test_helper"
