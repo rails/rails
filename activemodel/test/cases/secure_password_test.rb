@@ -80,7 +80,9 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "create a new user with validation and a nil password confirmation" do
     @user.password = "password"
     @user.password_confirmation = nil
-    assert @user.valid?(:create), "user should be valid"
+    assert !@user.valid?(:create), "user should be invalid"
+    assert_equal 1, @user.errors.count
+    assert_equal ["doesn't match Password"], @user.errors[:password_confirmation]
   end
 
   test "create a new user with validation and an incorrect password confirmation" do
@@ -149,7 +151,9 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "updating an existing user with validation and a nil password confirmation" do
     @existing_user.password = "password"
     @existing_user.password_confirmation = nil
-    assert @existing_user.valid?(:update), "user should be valid"
+    assert @existing_user.invalid?(:update), "user should be invalid"
+    assert_equal 1, @existing_user.errors.count
+    assert_equal ["doesn't match Password"], @existing_user.errors[:password_confirmation]
   end
 
   test "updating an existing user with validation and an incorrect password confirmation" do

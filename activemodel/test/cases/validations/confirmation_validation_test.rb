@@ -21,7 +21,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
     t.title_confirmation = nil
     t.title = "Parallel Lives"
-    assert t.valid?
+    assert t.invalid?
 
     t.title_confirmation = "Parallel Lives"
     assert t.valid?
@@ -37,11 +37,21 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert t.valid?
   end
 
+  def test_validates_confirmation_for_nil_value
+    Topic.validates_confirmation_of(:title)
+
+    t = Topic.new(title: "title", "title_confirmation" => nil)
+    assert t.invalid?
+
+    t.title_confirmation = "title"
+    assert t.valid?
+  end
+
   def test_validates_confirmation_of_with_boolean_attribute
     Topic.validates_confirmation_of(:approved)
 
     t = Topic.new(approved: true, approved_confirmation: nil)
-    assert t.valid?
+    assert t.invalid?
 
     t.approved_confirmation = false
     assert t.invalid?

@@ -9,11 +9,10 @@ module ActiveModel
       end
 
       def validate_each(record, attribute, value)
-        unless (confirmed = record.send("#{attribute}_confirmation")).nil?
-          unless confirmation_value_equal?(record, attribute, value, confirmed)
-            human_attribute_name = record.class.human_attribute_name(attribute)
-            record.errors.add(:"#{attribute}_confirmation", :confirmation, options.except(:case_sensitive).merge!(attribute: human_attribute_name))
-          end
+        confirmed = record.send("#{attribute}_confirmation")
+        unless confirmation_value_equal?(record, attribute, value, confirmed)
+          human_attribute_name = record.class.human_attribute_name(attribute)
+          record.errors.add(:"#{attribute}_confirmation", :confirmation, options.except(:case_sensitive).merge!(attribute: human_attribute_name))
         end
       end
 
