@@ -217,6 +217,18 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  if ActiveRecord::Base.connection.supports_partial_index?
+    def test_schema_dump_expression_indices
+      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
+
+      if current_adapter?(:PostgreSQLAdapter)
+        assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
+      else
+        assert_equal 't.index "lower(name)", name: "company_expression_index"', index_definition
+      end
+    end
+  end
+
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
@@ -294,11 +306,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     def test_schema_dump_allows_array_of_decimal_defaults
       output = dump_table_schema "bigint_array"
       assert_match %r{t\.decimal\s+"decimal_array_default",\s+default: \["1.23", "3.45"\],\s+array: true}, output
-    end
-
-    def test_schema_dump_expression_indices
-      index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
     end
 
     def test_schema_dump_interval_type

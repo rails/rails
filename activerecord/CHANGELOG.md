@@ -1,3 +1,7 @@
+*   Add Expression Indexes support for SQLite.
+
+    *fatkodima*
+
 *   Fix relation merger issue with `left_outer_joins`.
 
     *Mehmet Emin İNAÇ*

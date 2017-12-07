@@ -345,6 +345,15 @@ module ActiveRecord
         end
       end
 
+      def test_expression_index
+        with_example_table do
+          @conn.add_index "ex", "id % 10, abs(number)", name: "expression", where: "id > 1000"
+          index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+          assert_equal "id % 10, abs(number)", index.columns
+          assert_equal "id > 1000", index.where
+        end
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @conn.primary_key("ex")
