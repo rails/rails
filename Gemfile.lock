@@ -295,7 +295,7 @@ DEPENDENCIES
   stackprof
   sucker_punch (< 2.0)
   turbolinks
-  uglifier (>= 1.3.0)
+  uglifier (>= 1.3.0, < 4.0.0)
   w3c_validators
 
 BUNDLED WITH
