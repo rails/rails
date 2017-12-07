@@ -1,3 +1,7 @@
+*   Add headless firefox support to System Tests.
+
+    *bogdanvlviv*
+
 *   Changed the default system test screenshot output from `inline` to `simple`.
 
     `inline` works well for iTerm2 but not everyone uses iTerm2. Some terminals like
