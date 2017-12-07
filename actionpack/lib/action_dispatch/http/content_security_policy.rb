@@ -123,6 +123,10 @@ module ActionDispatch #:nodoc:
           @directives.delete(directive)
         end
       end
+
+      define_method("#{name}_append") do |*sources|
+        public_send(name, *public_send(name), *sources)
+      end
     end
 
     def merge!(other)
