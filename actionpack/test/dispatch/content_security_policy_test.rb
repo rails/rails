@@ -254,6 +254,20 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.merge!(@other)
     assert_equal @expected.build, @policy.build
   end
+
+  def test_append_directives
+    @expected = @policy.dup
+
+    @policy.script_src 'I', 'II'
+    assert_not_equal @expected.build, @policy.build
+
+    @expected.script_src 'I', 'II', 'three', 'four'
+    @expected.style_src 'five'
+
+    @policy.script_src_append 'three', 'four'
+    @policy.style_src_append 'five'
+    assert_equal @expected.build, @policy.build
+  end
 end
 
 class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
