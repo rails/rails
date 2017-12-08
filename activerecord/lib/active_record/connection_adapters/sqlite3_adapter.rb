@@ -404,22 +404,24 @@ module ActiveRecord
 
         def copy_table(from, to, options = {})
           from_primary_key = primary_key(from)
-          from_primary_key_column = columns(from).select { |column| column.name == from_primary_key }.first
           options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
-            @definition.primary_key(from_primary_key, from_primary_key_column.type) if from_primary_key.present?
+            if from_primary_key.is_a?(Array)
+              @definition.primary_keys from_primary_key
+            end
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 limit: column.limit, default: column.default,
                 precision: column.precision, scale: column.scale,
-                null: column.null, collation: column.collation)
+                null: column.null, collation: column.collation,
+                primary_key: column_name == from_primary_key
+              )
             end
             yield @definition if block_given?
           end
