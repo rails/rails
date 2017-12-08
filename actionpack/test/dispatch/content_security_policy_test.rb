@@ -217,12 +217,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   def test_accessors
     @policy.sandbox true
     assert_equal true, @policy.sandbox
-    @policy.script_src 'I', 'II'
-    assert_equal ['I', 'II'], @policy.script_src
+    @policy.script_src "I", "II"
+    assert_equal ["I", "II"], @policy.script_src
   end
 
   def test_accessors_do_not_delete
-    @policy.script_src 'I', 'II'
+    @policy.script_src "I", "II"
     assert_equal "script-src I II;", @policy.build
     @policy.script_src
     assert_equal "script-src I II;", @policy.build
@@ -231,7 +231,7 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 
   def test_clear_directives
-    @policy.script_src 'I', 'II'
+    @policy.script_src "I", "II"
     assert_equal "script-src I II;", @policy.build
     @policy.script_src false
     assert_equal ";", @policy.build
