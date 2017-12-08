@@ -23,25 +23,23 @@ module JSONSharedTestCases
   def test_column
     column = klass.columns_hash["payload"]
     assert_equal column_type, column.type
-    assert_equal column_type.to_s, column.sql_type
+    assert_type_match column_type, column.sql_type
 
     type = klass.type_for_attribute("payload")
     assert_not type.binary?
   end
 
   def test_change_table_supports_json
-    skip unless @connection.supports_json?
     @connection.change_table("json_data_type") do |t|
       t.public_send column_type, "users"
     end
     klass.reset_column_information
     column = klass.columns_hash["users"]
     assert_equal column_type, column.type
-    assert_equal column_type.to_s, column.sql_type
+    assert_type_match column_type, column.sql_type
   end
 
   def test_schema_dumping
-    skip unless @connection.supports_json?
     output = dump_table_schema("json_data_type")
     assert_match(/t\.#{column_type}\s+"settings"/, output)
   end
@@ -68,26 +66,26 @@ module JSONSharedTestCases
   end
 
   def test_rewrite
-    @connection.execute(%q|insert into json_data_type (payload) VALUES ('{"k":"v"}')|)
+    @connection.execute(insert_statement_per_database('{"k":"v"}'))
     x = klass.first
     x.payload = { '"a\'' => "b" }
     assert x.save!
   end
 
   def test_select
-    @connection.execute(%q|insert into json_data_type (payload) VALUES ('{"k":"v"}')|)
+    @connection.execute(insert_statement_per_database('{"k":"v"}'))
     x = klass.first
     assert_equal({ "k" => "v" }, x.payload)
   end
 
   def test_select_multikey
-    @connection.execute(%q|insert into json_data_type (payload) VALUES ('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}')|)
+    @connection.execute(insert_statement_per_database('{"k1":"v1", "k2":"v2", "k3":[1,2,3]}'))
     x = klass.first
     assert_equal({ "k1" => "v1", "k2" => "v2", "k3" => [1, 2, 3] }, x.payload)
   end
 
   def test_null_json
-    @connection.execute("insert into json_data_type (payload) VALUES(null)")
+    @connection.execute(insert_statement_per_database("null"))
     x = klass.first
     assert_nil(x.payload)
   end
@@ -109,13 +107,13 @@ module JSONSharedTestCases
   end
 
   def test_select_array_json_value
-    @connection.execute(%q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|)
+    @connection.execute(insert_statement_per_database('["v0",{"k1":"v1"}]'))
     x = klass.first
     assert_equal(["v0", { "k1" => "v1" }], x.payload)
   end
 
   def test_rewrite_array_json_value
-    @connection.execute(%q|insert into json_data_type (payload) VALUES ('["v0",{"k1":"v1"}]')|)
+    @connection.execute(insert_statement_per_database('["v0",{"k1":"v1"}]'))
     x = klass.first
     x.payload = ["v1", { "k2" => "v2" }, "v3"]
     assert x.save!
@@ -254,5 +252,18 @@ module JSONSharedTestCases
   private
     def klass
       JsonDataType
+    end
+
+    def assert_type_match(type, sql_type)
+      native_type = ActiveRecord::Base.connection.native_database_types[type][:name]
+      assert_match %r(\A#{native_type}\b), sql_type
+    end
+
+    def insert_statement_per_database(values)
+      if current_adapter?(:OracleAdapter)
+        "insert into json_data_type (id, payload) VALUES (json_data_type_seq.nextval, '#{values}')"
+      else
+        "insert into json_data_type (payload) VALUES ('#{values}')"
+      end
     end
 end

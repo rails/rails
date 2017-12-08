@@ -270,7 +270,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # deleted as well or you will essentially have a dead reference. It's recommended to use the +#purge+ and +#purge_later+
   # methods in most circumstances.
   def delete
-    service.delete key
+    service.delete(key)
+    service.delete_prefixed("variants/#{key}/") if image?
   end
 
   # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted

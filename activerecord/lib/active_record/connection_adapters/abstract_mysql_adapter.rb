@@ -299,7 +299,7 @@ module ActiveRecord
       def bulk_change_table(table_name, operations) #:nodoc:
         sqls = operations.flat_map do |command, args|
           table, arguments = args.shift, args
-          method = :"#{command}_sql"
+          method = :"#{command}_for_alter"
 
           if respond_to?(method, true)
             send(method, table, *arguments)
@@ -372,11 +372,11 @@ module ActiveRecord
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_sql(table_name, column_name, type, options)}")
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, options)}")
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
@@ -605,25 +605,6 @@ module ActiveRecord
           end
         end
 
-        def add_index_length(quoted_columns, **options)
-          if length = options[:length]
-            case length
-            when Hash
-              length = length.symbolize_keys
-              quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
-            when Integer
-              quoted_columns.each { |name, column| column << "(#{length})" }
-            end
-          end
-
-          quoted_columns
-        end
-
-        def add_options_for_index_columns(quoted_columns, **options)
-          quoted_columns = add_index_length(quoted_columns, options)
-          super
-        end
-
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
@@ -671,13 +652,7 @@ module ActiveRecord
           end
         end
 
-        def add_column_sql(table_name, column_name, type, options = {})
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, options)
-          schema_creation.accept(AddColumnDefinition.new(cd))
-        end
-
-        def change_column_sql(table_name, column_name, type, options = {})
+        def change_column_for_alter(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
           type ||= column.sql_type
 
@@ -698,7 +673,7 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def rename_column_sql(table_name, column_name, new_column_name)
+        def rename_column_for_alter(table_name, column_name, new_column_name)
           column  = column_for(table_name, column_name)
           options = {
             default: column.default,
@@ -712,31 +687,23 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def remove_column_sql(table_name, column_name, type = nil, options = {})
-          "DROP #{quote_column_name(column_name)}"
-        end
-
-        def remove_columns_sql(table_name, *column_names)
-          column_names.map { |column_name| remove_column_sql(table_name, column_name) }
-        end
-
-        def add_index_sql(table_name, column_name, options = {})
+        def add_index_for_alter(table_name, column_name, options = {})
           index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end
 
-        def remove_index_sql(table_name, options = {})
+        def remove_index_for_alter(table_name, options = {})
           index_name = index_name_for_remove(table_name, options)
           "DROP INDEX #{quote_column_name(index_name)}"
         end
 
-        def add_timestamps_sql(table_name, options = {})
-          [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
+        def add_timestamps_for_alter(table_name, options = {})
+          [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
         end
 
-        def remove_timestamps_sql(table_name, options = {})
-          [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
+        def remove_timestamps_for_alter(table_name, options = {})
+          [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
         end
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have

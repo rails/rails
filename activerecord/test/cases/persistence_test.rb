@@ -70,7 +70,7 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_update_many
-    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, nil => {} }
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
     updated = Topic.update(topic_data.keys, topic_data.values)
 
     assert_equal [1, 2], updated.map(&:id)
@@ -78,10 +78,33 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "2 updated", Topic.find(2).content
   end
 
+  def test_update_many_with_duplicated_ids
+    updated = Topic.update([1, 1, 2], [
+      { "content" => "1 duplicated" }, { "content" => "1 updated" }, { "content" => "2 updated" }
+    ])
+
+    assert_equal [1, 1, 2], updated.map(&:id)
+    assert_equal "1 updated", Topic.find(1).content
+    assert_equal "2 updated", Topic.find(2).content
+  end
+
+  def test_update_many_with_invalid_id
+    topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" }, 99999 => {} }
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.update(topic_data.keys, topic_data.values)
+    end
+
+    assert_not_equal "1 updated", Topic.find(1).content
+    assert_not_equal "2 updated", Topic.find(2).content
+  end
+
   def test_class_level_update_is_affected_by_scoping
     topic_data = { 1 => { "content" => "1 updated" }, 2 => { "content" => "2 updated" } }
 
-    assert_equal [], Topic.where("1=0").scoping { Topic.update(topic_data.keys, topic_data.values) }
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.update(topic_data.keys, topic_data.values) }
+    end
 
     assert_not_equal "1 updated", Topic.find(1).content
     assert_not_equal "2 updated", Topic.find(2).content
@@ -175,13 +198,23 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_destroy_many
-    clients = Client.all.merge!(order: "id").find([2, 3])
+    clients = Client.find([2, 3])
 
     assert_difference("Client.count", -2) do
-      destroyed = Client.destroy([2, 3, nil]).sort_by(&:id)
+      destroyed = Client.destroy([2, 3])
       assert_equal clients, destroyed
       assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
     end
+  end
+
+  def test_destroy_many_with_invalid_id
+    clients = Client.find([2, 3])
+
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Client.destroy([2, 3, 99999])
+    end
+
+    assert_equal clients, Client.find([2, 3])
   end
 
   def test_becomes
@@ -473,8 +506,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
   end
 
-  def test_record_not_found_exception
+  def test_find_raises_record_not_found_exception
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(99999) }
+  end
+
+  def test_update_raises_record_not_found_exception
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.update(99999, approved: true) }
+  end
+
+  def test_destroy_raises_record_not_found_exception
+    assert_raise(ActiveRecord::RecordNotFound) { Topic.destroy(99999) }
   end
 
   def test_update_all
@@ -938,7 +979,9 @@ class PersistenceTest < ActiveRecord::TestCase
     should_not_be_destroyed_reply = Reply.create("title" => "hello", "content" => "world")
     Topic.find(1).replies << should_not_be_destroyed_reply
 
-    assert_nil Topic.where("1=0").scoping { Topic.destroy(1) }
+    assert_raise(ActiveRecord::RecordNotFound) do
+      Topic.where("1=0").scoping { Topic.destroy(1) }
+    end
 
     assert_nothing_raised { Topic.find(1) }
     assert_nothing_raised { Reply.find(should_not_be_destroyed_reply.id) }

@@ -453,3 +453,7 @@ end
 class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
 end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
+end

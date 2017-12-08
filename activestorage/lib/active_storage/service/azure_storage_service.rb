@@ -19,7 +19,7 @@ module ActiveStorage
     end
 
     def upload(key, io, checksum: nil)
-      instrument :upload, key, checksum: checksum do
+      instrument :upload, key: key, checksum: checksum do
         begin
           blobs.create_block_blob(container, key, io, content_md5: checksum)
         rescue Azure::Core::Http::HTTPError
@@ -30,11 +30,11 @@ module ActiveStorage
 
     def download(key, &block)
       if block_given?
-        instrument :streaming_download, key do
+        instrument :streaming_download, key: key do
           stream(key, &block)
         end
       else
-        instrument :download, key do
+        instrument :download, key: key do
           _, io = blobs.get_blob(container, key)
           io.force_encoding(Encoding::BINARY)
         end
@@ -42,7 +42,7 @@ module ActiveStorage
     end
 
     def delete(key)
-      instrument :delete, key do
+      instrument :delete, key: key do
         begin
           blobs.delete_blob(container, key)
         rescue Azure::Core::Http::HTTPError
@@ -51,8 +51,24 @@ module ActiveStorage
       end
     end
 
+    def delete_prefixed(prefix)
+      instrument :delete_prefixed, prefix: prefix do
+        marker = nil
+
+        loop do
+          results = blobs.list_blobs(container, prefix: prefix, marker: marker)
+
+          results.each do |blob|
+            blobs.delete_blob(container, blob.name)
+          end
+
+          break unless marker = results.continuation_token.presence
+        end
+      end
+    end
+
     def exist?(key)
-      instrument :exist, key do |payload|
+      instrument :exist, key: key do |payload|
         answer = blob_for(key).present?
         payload[:exist] = answer
         answer
@@ -60,7 +76,7 @@ module ActiveStorage
     end
 
     def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         base_url = url_for(key)
         generated_url = signer.signed_uri(
           URI(base_url), false,
@@ -77,7 +93,7 @@ module ActiveStorage
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         base_url = url_for(key)
         generated_url = signer.signed_uri(URI(base_url), false, permissions: "rw",
           expiry: format_expiry(expires_in)).to_s

@@ -310,7 +310,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       case command
       when "active_storage:install"
         @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@install_called} times."
+        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
       end
     end
 
@@ -740,6 +740,41 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "Gemfile" do |content|
       assert_no_match(/spring/, content)
+    end
+  end
+
+  def test_webpack_option
+    command_check = -> command, *_ do
+      @called ||= 0
+      if command == "webpacker:install"
+        @called += 1
+        assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+      end
+    end
+
+    generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "webpacker"
+  end
+
+  def test_webpack_option_with_js_framework
+    command_check = -> command, *_ do
+      case command
+      when "webpacker:install"
+        @webpacker ||= 0
+        @webpacker += 1
+        assert_equal 1, @webpacker, "webpacker:install expected to be called once, but was called #{@webpacker} times."
+      when "webpacker:install:react"
+        @react ||= 0
+        @react += 1
+        assert_equal 1, @react, "webpacker:install:react expected to be called once, but was called #{@react} times."
+      end
+    end
+
+    generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
     end
   end
 

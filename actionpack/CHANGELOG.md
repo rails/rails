@@ -1,3 +1,19 @@
+*   Add headless firefox support to System Tests.
+
+    *bogdanvlviv*
+
+*   Changed the default system test screenshot output from `inline` to `simple`.
+
+    `inline` works well for iTerm2 but not everyone uses iTerm2. Some terminals like
+    Terminal.app ignore the `inline` and output the path to the file since it can't
+    render the image. Other terminals, like those on Ubuntu, cannot handle the image
+    inline, but also don't handle it gracefully and instead of outputting the file
+    path, it dumps binary into the terminal.
+
+    Commit 9d6e28 fixes this by changing the default for screenshot to be `simple`.
+
+    *Eileen M. Uchitelle*
+
 *   Register most popular audio/video/font mime types supported by modern browsers.
 
     *Guillermo Iguaran*

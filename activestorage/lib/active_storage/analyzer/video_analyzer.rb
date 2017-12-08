@@ -19,6 +19,8 @@ module ActiveStorage
   # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
   # install ffmpeg yourself to use this analyzer.
   class Analyzer::VideoAnalyzer < Analyzer
+    class_attribute :ffprobe_path, default: "ffprobe"
+
     def self.accept?(blob)
       blob.video?
     end
@@ -29,10 +31,18 @@ module ActiveStorage
 
     private
       def width
-        Integer(video_stream["width"]) if video_stream["width"]
+        rotated? ? raw_height : raw_width
       end
 
       def height
+        rotated? ? raw_width : raw_height
+      end
+
+      def raw_width
+        Integer(video_stream["width"]) if video_stream["width"]
+      end
+
+      def raw_height
         Integer(video_stream["height"]) if video_stream["height"]
       end
 
@@ -48,6 +58,10 @@ module ActiveStorage
         if descriptor = video_stream["display_aspect_ratio"]
           descriptor.split(":", 2).collect(&:to_i)
         end
+      end
+
+      def rotated?
+        angle == 90 || angle == 270
       end
 
 
@@ -68,7 +82,7 @@ module ActiveStorage
       end
 
       def probe_from(file)
-        IO.popen([ "ffprobe", "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
+        IO.popen([ ffprobe_path, "-print_format", "json", "-show_streams", "-v", "error", file.path ]) do |output|
           JSON.parse(output.read)
         end
       rescue Errno::ENOENT

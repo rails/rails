@@ -16,6 +16,18 @@ module ActiveRecord
       V5_2 = Current
 
       class V5_1 < V5_2
+        def change_column(table_name, column_name, type, options = {})
+          if adapter_name == "PostgreSQL"
+            clear_cache!
+            sql = connection.send(:change_column_sql, table_name, column_name, type, options)
+            execute "ALTER TABLE #{quote_table_name(table_name)} #{sql}"
+            change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
+            change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
+          else
+            super
+          end
+        end
       end
 
       class V5_0 < V5_1

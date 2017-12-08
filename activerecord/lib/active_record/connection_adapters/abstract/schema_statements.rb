@@ -600,7 +600,7 @@ module ActiveRecord
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
       def remove_column(table_name, column_name, type = nil, options = {})
-        execute "ALTER TABLE #{quote_table_name(table_name)} DROP #{quote_column_name(column_name)}"
+        execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, options)}"
       end
 
       # Changes the column's definition according to the new options.
@@ -737,6 +737,28 @@ module ActiveRecord
       #   CREATE INDEX index_developers_on_name USING btree ON developers (name) -- MySQL
       #
       # Note: only supported by PostgreSQL and MySQL
+      #
+      # ====== Creating an index with a specific operator class
+      #
+      #   add_index(:developers, :name, using: 'gist', opclass: :gist_trgm_ops)
+      #
+      # generates:
+      #
+      #   CREATE INDEX developers_on_name ON developers USING gist (name gist_trgm_ops) -- PostgreSQL
+      #
+      #   add_index(:developers, [:name, :city], using: 'gist', opclass: { city: :gist_trgm_ops })
+      #
+      # generates:
+      #
+      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name, city gist_trgm_ops) -- PostgreSQL
+      #
+      #   add_index(:developers, [:name, :city], using: 'gist', opclass: :gist_trgm_ops)
+      #
+      # generates:
+      #
+      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name gist_trgm_ops, city gist_trgm_ops) -- PostgreSQL
+      #
+      # Note: only supported by PostgreSQL
       #
       # ====== Creating an index with a specific type
       #
@@ -942,6 +964,8 @@ module ActiveRecord
       #   Action that happens <tt>ON DELETE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
       # [<tt>:on_update</tt>]
       #   Action that happens <tt>ON UPDATE</tt>. Valid values are +:nullify+, +:cascade+ and +:restrict+
+      # [<tt>:validate</tt>]
+      #   (Postgres only) Specify whether or not the constraint should be validated. Defaults to +true+.
       def add_foreign_key(from_table, to_table, options = {})
         return unless supports_foreign_keys?
 
@@ -1120,7 +1144,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1173,20 +1197,22 @@ module ActiveRecord
         end
 
         def add_index_sort_order(quoted_columns, **options)
-          if order = options[:order]
-            case order
-            when Hash
-              order = order.symbolize_keys
-              quoted_columns.each { |name, column| column << " #{order[name].upcase}" if order[name].present? }
-            when String
-              quoted_columns.each { |name, column| column << " #{order.upcase}" if order.present? }
-            end
+          orders = options_for_index_columns(options[:order])
+          quoted_columns.each do |name, column|
+            column << " #{orders[name].upcase}" if orders[name].present?
           end
-
-          quoted_columns
         end
 
-        # Overridden by the MySQL adapter for supporting index lengths
+        def options_for_index_columns(options)
+          if options.is_a?(Hash)
+            options.symbolize_keys
+          else
+            Hash.new { |hash, column| hash[column] = options }
+          end
+        end
+
+        # Overridden by the MySQL adapter for supporting index lengths and by
+        # the PostgreSQL adapter for supporting operator classes.
         def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
             quoted_columns = add_index_sort_order(quoted_columns, options)
@@ -1338,6 +1364,20 @@ module ActiveRecord
 
         def can_remove_index_by_name?(options)
           options.is_a?(Hash) && options.key?(:name) && options.except(:name, :algorithm).empty?
+        end
+
+        def add_column_for_alter(table_name, column_name, type, options = {})
+          td = create_table_definition(table_name)
+          cd = td.new_column_definition(column_name, type, options)
+          schema_creation.accept(AddColumnDefinition.new(cd))
+        end
+
+        def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+          "DROP COLUMN #{quote_column_name(column_name)}"
+        end
+
+        def remove_columns_for_alter(table_name, *column_names)
+          column_names.map { |column_name| remove_column_for_alter(table_name, column_name) }
         end
 
         def insert_versions_sql(versions)

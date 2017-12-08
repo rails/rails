@@ -21,8 +21,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "rotated_video.mp4", content_type: "video/mp4")
     metadata = blob.tap(&:analyze).metadata
 
-    assert_equal 640, metadata[:width]
-    assert_equal 480, metadata[:height]
+    assert_equal 480, metadata[:width]
+    assert_equal 640, metadata[:height]
     assert_equal [4, 3], metadata[:aspect_ratio]
     assert_equal 5.227975, metadata[:duration]
     assert_equal 90, metadata[:angle]

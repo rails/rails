@@ -78,6 +78,11 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Delete files at keys starting with the +prefix+.
+    def delete_prefixed(prefix)
+      raise NotImplementedError
+    end
+
     # Return +true+ if a file exists at the +key+.
     def exist?(key)
       raise NotImplementedError
@@ -104,10 +109,10 @@ module ActiveStorage
     end
 
     private
-      def instrument(operation, key, payload = {}, &block)
+      def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(
           "service_#{operation}.active_storage",
-          payload.merge(key: key, service: service_name), &block)
+          payload.merge(service: service_name), &block)
       end
 
       def service_name

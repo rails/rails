@@ -1,7 +1,7 @@
 *   Add `preload_link_tag` helper
 
     This helper that allows to the browser to initiate early fetch of resources
-    (different to the specified in javascript_include_tag and stylesheet_link_tag).
+    (different to the specified in `javascript_include_tag` and `stylesheet_link_tag`).
     Additionally, this sends Early Hints if supported by browser.
 
     *Guillermo Iguaran*

@@ -87,10 +87,7 @@ module ActiveRecord
 
           result = query(<<-SQL, "SCHEMA")
             SELECT distinct i.relname, d.indisunique, d.indkey, pg_get_indexdef(d.indexrelid), t.oid,
-                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment,
-            (SELECT COUNT(*) FROM pg_opclass o
-               JOIN (SELECT unnest(string_to_array(d.indclass::text, ' '))::int oid) c
-                 ON o.oid = c.oid WHERE o.opcdefault = 'f')
+                            pg_catalog.obj_description(i.oid, 'pg_class') AS comment
             FROM pg_class t
             INNER JOIN pg_index d ON t.oid = d.indrelid
             INNER JOIN pg_class i ON d.indexrelid = i.oid
@@ -109,11 +106,13 @@ module ActiveRecord
             inddef = row[3]
             oid = row[4]
             comment = row[5]
-            opclass = row[6]
 
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
 
-            if indkey.include?(0) || opclass > 0
+            orders = {}
+            opclasses = {}
+
+            if indkey.include?(0)
               columns = expressions
             else
               columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")].values_at(*indkey).compact
@@ -123,10 +122,12 @@ module ActiveRecord
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
 
-              # add info on sort order for columns (only desc order is explicitly specified, asc is the default)
-              orders = Hash[
-                expressions.scan(/(\w+) DESC/).flatten.map { |order_column| [order_column, :desc] }
-              ]
+              # add info on sort order (only desc order is explicitly specified, asc is the default)
+              # and non-default opclasses
+              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+                opclasses[column] = opclass.to_sym if opclass
+                orders[column] = :desc if desc
+              end
             end
 
             IndexDefinition.new(
@@ -135,6 +136,7 @@ module ActiveRecord
               unique,
               columns,
               orders: orders,
+              opclasses: opclasses,
               where: where,
               using: using.to_sym,
               comment: comment.presence
@@ -392,50 +394,23 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
           clear_cache!
-          quoted_table_name = quote_table_name(table_name)
-          quoted_column_name = quote_column_name(column_name)
-          sql_type = type_to_sql(type, options)
-          sql = "ALTER TABLE #{quoted_table_name} ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
-          if options[:collation]
-            sql << " COLLATE \"#{options[:collation]}\""
-          end
-          if options[:using]
-            sql << " USING #{options[:using]}"
-          elsif options[:cast_as]
-            cast_as_type = type_to_sql(options[:cast_as], options)
-            sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
-          end
-          execute sql
-
-          change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
-          change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
-          change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
+          sqls, procs = change_column_for_alter(table_name, column_name, type, options)
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
+          procs.each(&:call)
         end
 
         # Changes the default value of a table column.
         def change_column_default(table_name, column_name, default_or_changes) # :nodoc:
-          clear_cache!
-          column = column_for(table_name, column_name)
-          return unless column
-
-          default = extract_new_default_value(default_or_changes)
-          alter_column_query = "ALTER TABLE #{quote_table_name(table_name)} ALTER COLUMN #{quote_column_name(column_name)} %s"
-          if default.nil?
-            # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will
-            # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
-            execute alter_column_query % "DROP DEFAULT"
-          else
-            execute alter_column_query % "SET DEFAULT #{quote_default_expression(default, column)}"
-          end
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_default_for_alter(table_name, column_name, default_or_changes)}"
         end
 
         def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
           clear_cache!
           unless null || default.nil?
             column = column_for(table_name, column_name)
-            execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL") if column
+            execute "UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote_default_expression(default, column)} WHERE #{quote_column_name(column_name)} IS NULL" if column
           end
-          execute("ALTER TABLE #{quote_table_name(table_name)} ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL")
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{change_column_null_for_alter(table_name, column_name, null, default)}"
         end
 
         # Adds comment for given table column or drops it if +comment+ is a +nil+
@@ -458,8 +433,8 @@ module ActiveRecord
         end
 
         def add_index(table_name, column_name, options = {}) #:nodoc:
-          index_name, index_type, index_columns, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
-          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns})#{index_options}").tap do
+          index_name, index_type, index_columns_and_opclasses, index_options, index_algorithm, index_using, comment = add_index_options(table_name, column_name, options)
+          execute("CREATE #{index_type} INDEX #{index_algorithm} #{quote_column_name(index_name)} ON #{quote_table_name(table_name)} #{index_using} (#{index_columns_and_opclasses})#{index_options}").tap do
             execute "COMMENT ON INDEX #{quote_column_name(index_name)} IS #{quote(comment)}" if comment
           end
         end
@@ -499,7 +474,7 @@ module ActiveRecord
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
           fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
-            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete
+            SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
             JOIN pg_class t2 ON c.confrelid = t2.oid
@@ -521,6 +496,7 @@ module ActiveRecord
 
             options[:on_delete] = extract_foreign_key_action(row["on_delete"])
             options[:on_update] = extract_foreign_key_action(row["on_update"])
+            options[:validate] = row["valid"]
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
           end
@@ -581,6 +557,43 @@ module ActiveRecord
           PostgreSQL::SchemaDumper.create(self, options)
         end
 
+        # Validates the given constraint.
+        #
+        # Validates the constraint named +constraint_name+ on +accounts+.
+        #
+        #   validate_constraint :accounts, :constraint_name
+        def validate_constraint(table_name, constraint_name)
+          return unless supports_validate_constraints?
+
+          at = create_alter_table table_name
+          at.validate_constraint constraint_name
+
+          execute schema_creation.accept(at)
+        end
+
+        # Validates the given foreign key.
+        #
+        # Validates the foreign key on +accounts.branch_id+.
+        #
+        #   validate_foreign_key :accounts, :branches
+        #
+        # Validates the foreign key on +accounts.owner_id+.
+        #
+        #   validate_foreign_key :accounts, column: :owner_id
+        #
+        # Validates the foreign key named +special_fk_name+ on the +accounts+ table.
+        #
+        #   validate_foreign_key :accounts, name: :special_fk_name
+        #
+        # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+        def validate_foreign_key(from_table, options_or_to_table = {})
+          return unless supports_validate_constraints?
+
+          fk_name_to_validate = foreign_key_for!(from_table, options_or_to_table).name
+
+          validate_constraint from_table, fk_name_to_validate
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
@@ -588,6 +601,10 @@ module ActiveRecord
 
           def create_table_definition(*args)
             PostgreSQL::TableDefinition.new(*args)
+          end
+
+          def create_alter_table(name)
+            PostgreSQL::AlterTable.new create_table_definition(name)
           end
 
           def new_column_from_field(table_name, field)
@@ -627,6 +644,66 @@ module ActiveRecord
             when "n"; :nullify
             when "r"; :restrict
             end
+          end
+
+          def change_column_sql(table_name, column_name, type, options = {})
+            quoted_column_name = quote_column_name(column_name)
+            sql_type = type_to_sql(type, options)
+            sql = "ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
+            if options[:collation]
+              sql << " COLLATE \"#{options[:collation]}\""
+            end
+            if options[:using]
+              sql << " USING #{options[:using]}"
+            elsif options[:cast_as]
+              cast_as_type = type_to_sql(options[:cast_as], options)
+              sql << " USING CAST(#{quoted_column_name} AS #{cast_as_type})"
+            end
+
+            sql
+          end
+
+          def change_column_for_alter(table_name, column_name, type, options = {})
+            sqls = [change_column_sql(table_name, column_name, type, options)]
+            procs = []
+            sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
+            sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            procs << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
+
+            [sqls, procs]
+          end
+
+
+          # Changes the default value of a table column.
+          def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
+            column = column_for(table_name, column_name)
+            return unless column
+
+            default = extract_new_default_value(default_or_changes)
+            alter_column_query = "ALTER COLUMN #{quote_column_name(column_name)} %s"
+            if default.nil?
+              # <tt>DEFAULT NULL</tt> results in the same behavior as <tt>DROP DEFAULT</tt>. However, PostgreSQL will
+              # cast the default to the columns type, which leaves us with a default like "default NULL::character varying".
+              alter_column_query % "DROP DEFAULT"
+            else
+              alter_column_query % "SET DEFAULT #{quote_default_expression(default, column)}"
+            end
+          end
+
+          def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
+            "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+          end
+
+          def add_index_opclass(quoted_columns, **options)
+            opclasses = options_for_index_columns(options[:opclass])
+            quoted_columns.each do |name, column|
+              column << " #{opclasses[name]}" if opclasses[name].present?
+            end
+          end
+
+          def add_options_for_index_columns(quoted_columns, **options)
+            quoted_columns = add_index_opclass(quoted_columns, options)
+            super
           end
 
           def data_source_sql(name = nil, type: nil)

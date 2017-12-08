@@ -920,7 +920,7 @@ When an association accepts nested attributes `fields_for` renders its block onc
 ```ruby
 def new
   @person = Person.new
-  2.times { @person.addresses.build}
+  2.times { @person.addresses.build }
 end
 ```
 

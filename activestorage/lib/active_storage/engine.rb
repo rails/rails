@@ -15,7 +15,8 @@ module ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
-    config.active_storage.analyzers  = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
+    config.active_storage.paths = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -65,6 +66,22 @@ module ActiveStorage
             rescue => e
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
+        end
+      end
+    end
+
+    initializer "active_storage.paths" do
+      config.after_initialize do |app|
+        if ffprobe_path = app.config.active_storage.paths.ffprobe
+          ActiveStorage::Analyzer::VideoAnalyzer.ffprobe_path = ffprobe_path
+        end
+
+        if ffmpeg_path = app.config.active_storage.paths.ffmpeg
+          ActiveStorage::Previewer::VideoPreviewer.ffmpeg_path = ffmpeg_path
+        end
+
+        if mutool_path = app.config.active_storage.paths.mutool
+          ActiveStorage::Previewer::PDFPreviewer.mutool_path = mutool_path
         end
       end
     end

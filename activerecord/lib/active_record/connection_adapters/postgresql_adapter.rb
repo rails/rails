@@ -142,6 +142,10 @@ module ActiveRecord
         true
       end
 
+      def supports_validate_constraints?
+        true
+      end
+
       def supports_views?
         true
       end
@@ -386,7 +390,6 @@ module ActiveRecord
       end
 
       private
-
         # See https://www.postgresql.org/docs/current/static/errcodes-appendix.html
         VALUE_LIMIT_VIOLATION = "22001"
         NUMERIC_VALUE_OUT_OF_RANGE = "22003"

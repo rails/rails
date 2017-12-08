@@ -272,6 +272,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support creating invalid constraints?
+      def supports_validate_constraints?
+        false
+      end
+
       # Does this adapter support creating foreign key constraints
       # in the same statement as creating the table?
       def supports_foreign_keys_in_create?

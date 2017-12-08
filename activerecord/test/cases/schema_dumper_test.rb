@@ -177,14 +177,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
-    elsif current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
       else
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
+    elsif ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
@@ -196,6 +196,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
+    end
+  end
+
+  def test_schema_dumps_index_sort_order
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
+    if ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating", order: :desc', index_definition
+    else
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating"', index_definition
+    end
+  end
+
+  def test_schema_dumps_index_length
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description", length: 10', index_definition
+    else
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description"', index_definition
     end
   end
 

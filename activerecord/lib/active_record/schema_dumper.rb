@@ -184,8 +184,9 @@ HEADER
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-        index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
-        index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
+        index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
+        index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
+        index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
@@ -229,6 +230,14 @@ HEADER
 
       def format_options(options)
         options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
+      end
+
+      def format_index_parts(options)
+        if options.is_a?(Hash)
+          "{ #{format_options(options)} }"
+        else
+          options.inspect
+        end
       end
 
       def remove_prefix_and_suffix(table)

@@ -1,3 +1,11 @@
+*   Add support for PostgreSQL operator classes to `add_index`.
+
+    Example:
+
+        add_index :users, :name, using: :gist, opclass: { name: :gist_trgm_ops }
+
+    *Greg Navis*
+
 *   Don't allow scopes to be defined which conflict with instance methods on `Relation`.
 
     Fixes #31120.
@@ -72,7 +80,7 @@
     *bogdanvlviv*
 
 *   Fixed a bug where column orders for an index weren't written to
-    db/schema.rb when using the sqlite adapter.
+    `db/schema.rb` when using the sqlite adapter.
 
     Fixes #30902.
 

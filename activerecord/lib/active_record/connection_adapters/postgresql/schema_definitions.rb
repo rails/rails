@@ -95,10 +95,6 @@ module ActiveRecord
           args.each { |name| column(name, :int8range, options) }
         end
 
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
-        end
-
         def jsonb(*args, **options)
           args.each { |name| column(name, :jsonb, options) }
         end
@@ -191,6 +187,19 @@ module ActiveRecord
 
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+      end
+
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
+        attr_reader :constraint_validations
+
+        def initialize(td)
+          super
+          @constraint_validations = []
+        end
+
+        def validate_constraint(name)
+          @constraint_validations << name
+        end
       end
     end
   end
