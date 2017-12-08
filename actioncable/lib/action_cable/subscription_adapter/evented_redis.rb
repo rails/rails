@@ -1,7 +1,7 @@
 require "thread"
 
 gem "em-hiredis", "~> 0.3.0"
-gem "redis", "~> 3.0"
+gem "redis", ">= 3", "< 5"
 require "em-hiredis"
 require "redis"
 
