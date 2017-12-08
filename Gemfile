@@ -55,7 +55,7 @@ group :job do
   gem 'sidekiq', RUBY_VERSION < '2.2' ? '< 5' : nil, require: false
   gem 'sucker_punch', '< 2.0', require: false
   gem 'delayed_job', require: false
-  gem 'queue_classic', require: false, platforms: :ruby
+  gem 'queue_classic', '> 0.3.2', require: false, platforms: :ruby
   gem 'sneakers', '< 2.0.0', require: false
   gem 'que', require: false
   gem 'backburner', require: false

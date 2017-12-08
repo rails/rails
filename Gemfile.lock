@@ -277,7 +277,7 @@ DEPENDENCIES
   qu-rails!
   qu-redis
   que
-  queue_classic
+  queue_classic (> 0.3.2)
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
