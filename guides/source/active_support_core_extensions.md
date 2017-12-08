@@ -1253,7 +1253,7 @@ NOTE: Defined in `active_support/core_ext/string/strip.rb`.
 Indents the lines in the receiver:
 
 ```ruby
-<<EOS.indent(2)
+puts <<EOS.indent(2)
 def some_method
   some_code
 end

@@ -12,7 +12,7 @@ class String
 
   # Indents the lines in the receiver:
   #
-  #   <<EOS.indent(2)
+  #   puts <<EOS.indent(2)
   #   def some_method
   #     some_code
   #   end
