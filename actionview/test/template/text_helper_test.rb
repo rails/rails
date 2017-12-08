@@ -91,6 +91,12 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello Wor...", truncate("Hello World!!", length: 12)
   end
 
+  def test_truncate_raises_error_when_non_string_is_passed
+    e = assert_raises(ArgumentError) { truncate(123456789) }
+    klass = RUBY_VERSION > "2.4" ? Integer : Fixnum
+    assert_equal "can't truncate other than String, got #{klass}", e.message
+  end
+
   def test_truncate_should_use_default_length_of_30
     str = "This is a string that will go longer then the default truncate length of 30"
     assert_equal str[0...27] + "...", truncate(str)
