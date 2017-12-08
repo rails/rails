@@ -31,10 +31,18 @@ module ActiveStorage
 
     private
       def width
-        Integer(video_stream["width"]) if video_stream["width"]
+        rotated? ? raw_height : raw_width
       end
 
       def height
+        rotated? ? raw_width : raw_height
+      end
+
+      def raw_width
+        Integer(video_stream["width"]) if video_stream["width"]
+      end
+
+      def raw_height
         Integer(video_stream["height"]) if video_stream["height"]
       end
 
@@ -50,6 +58,10 @@ module ActiveStorage
         if descriptor = video_stream["display_aspect_ratio"]
           descriptor.split(":", 2).collect(&:to_i)
         end
+      end
+
+      def rotated?
+        angle == 90 || angle == 270
       end
 
 
