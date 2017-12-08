@@ -123,6 +123,17 @@ module ActionDispatch #:nodoc:
           @directives.delete(directive)
         end
       end
+
+      define_method("#{name}_append") do |*sources|
+        public_send(name, *public_send(name), *sources)
+      end
+    end
+
+    def merge!(other)
+      other.directives.each do |directive, sources|
+        @directives[directive] =
+          directives.fetch(directive, []) + sources.deep_dup
+      end
     end
 
     def block_all_mixed_content(enabled = true)

@@ -233,6 +233,41 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     assert_match %r{\AUnexpected content security policy source:}, exception.message
   end
+
+  def test_merge!
+    @other = @policy.dup
+    @expected = @policy.dup
+
+    @policy.script_src "I", "II", "III"
+    @policy.style_src "IV"
+    @policy.connect_src "V", "VI"
+
+    @other.script_src "one", "two", "three"
+    @other.style_src "four", "five"
+
+    @expected.script_src "I", "II", "III", "one", "two", "three"
+    @expected.style_src "IV", "four", "five"
+    @expected.connect_src "V", "VI"
+
+    assert_not_equal @other.build, @policy.build
+    assert_not_equal @expected.build, @policy.build
+    @policy.merge!(@other)
+    assert_equal @expected.build, @policy.build
+  end
+
+  def test_append_directives
+    @expected = @policy.dup
+
+    @policy.script_src "I", "II"
+    assert_not_equal @expected.build, @policy.build
+
+    @expected.script_src "I", "II", "three", "four"
+    @expected.style_src "five"
+
+    @policy.script_src_append "three", "four"
+    @policy.style_src_append "five"
+    assert_equal @expected.build, @policy.build
+  end
 end
 
 class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
