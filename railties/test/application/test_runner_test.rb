@@ -570,6 +570,10 @@ module ApplicationTests
     end
 
     def test_running_with_ruby_gets_test_env_by_default
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
       file = create_test_for_env("test")
       results = Dir.chdir(app_path) {
         `ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
@@ -577,9 +581,16 @@ module ApplicationTests
       assert_equal 1, results.length
       failures = results.first["failures"]
       flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
     end
 
     def test_running_with_ruby_can_set_env_via_cmdline
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
       file = create_test_for_env("development")
       results = Dir.chdir(app_path) {
         `ruby -Ilib:test #{file} -e development`.each_line.map { |line| JSON.parse line }
@@ -587,6 +598,9 @@ module ApplicationTests
       assert_equal 1, results.length
       failures = results.first["failures"]
       flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
     end
 
     def test_rake_passes_multiple_TESTOPTS_to_minitest
@@ -777,6 +791,9 @@ module ApplicationTests
 
           class EnvironmentTest < ActiveSupport::TestCase
             def test_environment
+              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
+              db_file = ActiveRecord::Base.connection_config[:database]
+              assert_match(test_db, db_file)
               assert_equal #{env.dump}, ENV["RAILS_ENV"]
             end
           end
