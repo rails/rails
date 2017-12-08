@@ -86,16 +86,6 @@ config.active_storage.service = :s3
 Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
-Mirrored services can be used to facilitate a migration between services in
-production. You can start mirroring to the new service, copy existing files from
-the old service to the new, then go all-in on the new service.
-
-If you wish to transform your images, add `mini_magick` to your Gemfile:
-
-``` ruby
-gem 'mini_magick'
-```
-
 ### Disk Service
 Declare a Disk service in `config/storage.yml`:
 
@@ -169,10 +159,13 @@ gem "google-cloud-storage", "~> 1.3", require: false
 
 ### Mirror Service
 
-You can keep multiple services in sync by defining a mirror service. When
-a file is uploaded or deleted, it's done across all the mirrored services.
-Define each of the services you'd like to use as described above and reference
-them from a mirrored service.
+You can keep multiple services in sync by defining a mirror service. When a file
+is uploaded or deleted, it's done across all the mirrored services. Mirrored
+services can be used to facilitate a migration between services in production.
+You can start mirroring to the new service, copy existing files from the old
+service to the new, then go all-in on the new service. Define each of the
+services you'd like to use as described above and reference them from a mirrored
+service.
 
 ``` yaml
 s3_west_coast:
@@ -280,7 +273,7 @@ Call `images.attach` to add new images to an existing message:
 @message.images.attach(params[:images])
 ```
 
-Call `images.attached?`` to determine whether a particular message has any images:
+Call `images.attached?` to determine whether a particular message has any images:
 
 ```ruby
 @message.images.attached?
@@ -327,7 +320,13 @@ Create Variations of Attached Image
 Sometimes your application requires images in a different format than
 what was uploaded. To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
-supported transformation.
+supported transformation to the method.
+
+To enable variants, add `mini_magick` to your Gemfile:
+
+``` ruby
+gem 'mini_magick'
+```
 
 When the browser hits the variant URL, ActiveStorage will lazy transform the
 original blob into the format you specified and redirect to its new service
@@ -520,7 +519,7 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If your system tests verify the deletion of a model with attachments and your
+If your system tests verify the deletion of a model with attachments and you're
 using Active Job, set your test environment to use the inline queue adapter so
 the purge job is executed immediately rather at an unknown time in the future.
 
@@ -535,10 +534,10 @@ config.active_job.queue_adapter = :inline
 config.active_storage.service = :local_test
 ```
 
-Add Support Additional Cloud Service
+Add Support for Additional Cloud Services
 ------------------------------------
 
-If you need to support a cloud service other these, you will need to implement
-the Service. Each service extends
+If you need to support a cloud service other than these, you will need to
+implement the Service. Each service extends
 [`ActiveStorage::Service`](https://github.com/rails/rails/blob/master/activestorage/lib/active_storage/service.rb)
 by implementing the methods necessary to upload and download files to the cloud.
