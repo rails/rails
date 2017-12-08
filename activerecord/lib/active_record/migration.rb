@@ -552,6 +552,8 @@ module ActiveRecord
         @watcher = file_watcher.new(*watchable_args) do
           @needs_check = true
           ActiveRecord::Migration.check_pending!(connection)
+
+          # Only executed when no missing migration error
           @needs_check = false
         end
       end
