@@ -358,10 +358,12 @@ module TestHelpers
     end
 
     def app_file(path, contents, mode = "w")
-      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", mode) do |f|
+      file_name = "#{app_path}/#{path}"
+      FileUtils.mkdir_p File.dirname(file_name)
+      File.open(file_name, mode) do |f|
         f.puts contents
       end
+      file_name
     end
 
     def remove_file(path)
