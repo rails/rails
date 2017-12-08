@@ -593,7 +593,7 @@ module ApplicationTests
 
       file = create_test_for_env("development")
       results = Dir.chdir(app_path) {
-        `ruby -Ilib:test #{file} -e development`.each_line.map { |line| JSON.parse line }
+        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
       }
       assert_equal 1, results.length
       failures = results.first["failures"]

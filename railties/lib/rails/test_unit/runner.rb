@@ -12,11 +12,8 @@ module Rails
 
       class << self
         def attach_before_load_options(opts)
-          ENV["RAILS_ENV"] = "test"
           opts.on("--warnings", "-w", "Run with Ruby warnings enabled") {}
-          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") { |e|
-            ENV["RAILS_ENV"] = e
-          }
+          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") {}
         end
 
         def parse_options(argv)
