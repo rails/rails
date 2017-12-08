@@ -4,9 +4,37 @@ module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
       module DatabaseStatements
-        def explain(arel, binds = [])
-          sql = "EXPLAIN #{to_sql(arel, binds)}"
-          PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
+        EXPLAIN_OPTIONS = %i(analyze verbose costs buffers timing format)
+        EXPLAIN_FORMATS = %i(text xml json yaml)
+
+
+        # Runs EXPLAIN query for the relation, returning a String
+        # Available options are +:analyze+, +:verbose+, +:costs+, +:buffers+, +:timing+, +:format+.
+        # Valid formats are: +:text+ (by default), +:xml+, +:json+, +:yaml+.
+        #
+        # ==== Examples
+        #
+        #   User.active.explain
+        #   User.active.explain(format: :json)
+        #   User.active.explain(analyze: true, format: :xml, timing: false)
+        def explain(arel, binds = [], options = {})
+          explain_options = []
+          EXPLAIN_OPTIONS.each do |o|
+            next unless options.key?(o)
+            explain_options.push("#{o.to_s.upcase} #{options[o].to_s.upcase}")
+          end
+          sql = ["EXPLAIN"]
+          sql << ["(#{explain_options.join(", ")})"] unless explain_options.blank?
+          sql << to_sql(arel, binds)
+          sql = sql.join(" ")
+
+          result = exec_query(sql, "EXPLAIN", binds)
+
+          if options.fetch(:format, :text) == :text
+            PostgreSQL::ExplainPrettyPrinter.new.pp(result)
+          else
+            result.rows.first.first
+          end
         end
 
         # The internal PostgreSQL identifier of the money data type.

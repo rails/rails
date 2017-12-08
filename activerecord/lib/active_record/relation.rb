@@ -180,13 +180,40 @@ module ActiveRecord
     # returns the result as a string. The string is formatted imitating the
     # ones printed by the database shell.
     #
+    # ==== Parameters
+    #
+    # * +options+ - A hash of EXPLAIN paratemers depend on your database.
+    #
+    # ==== Examples
+    #   # Postgres:
+    #
+    #   Person.where(rating: 4).explain
+    #   # returns a pretty formatted result of an EXPLAIN.
+    #
+    #   Person.where(rating: 4).explain(format: :json)
+    #   # returns an array of JSON of an EXPLAIN as a string
+    #
+    #   Person.where(rating: 4).explain(analyze: :true, format: :xml)
+    #   # returns an array of XML of an EXPLAIN ANALYZE as a string
+    #
+    #   # MySQL:
+    #
+    #   Person.where(rating: 4).explain
+    #   # returns a pretty formatted result of an EXPLAIN.
+    #
+    #   Person.where(rating: 4).explain(format: :json)
+    #   # returns an array of JSON of an EXPLAIN as a string
+    #
+    #   Person.where(rating: 4).explain(extended: true)
+    #   # returns pretty formatted result of an EXPLAIN EXTENDED
+    #
     # Note that this method actually runs the queries, since the results of some
     # are needed by the next ones when eager loading is going on.
     #
     # Please see further details in the
     # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
-    def explain
-      exec_explain(collecting_queries_for_explain { exec_queries })
+    def explain(options = {})
+      exec_explain(collecting_queries_for_explain { exec_queries }, options)
     end
 
     # Converts relation objects to Array.

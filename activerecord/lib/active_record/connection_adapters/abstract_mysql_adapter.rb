@@ -44,6 +44,8 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
+      EXPLAIN_FORMATS = %i(traditional json)
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
           stmt[:stmt].close
@@ -171,13 +173,32 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      def explain(arel, binds = [])
-        sql     = "EXPLAIN #{to_sql(arel, binds)}"
+
+      # Runs EXPLAIN query for the relation, returning a String
+      # Available options are +:extended+, +:partitions+, +:format+.
+      # Valid formats are: +:json+, +:traditional+ (by default).
+      #
+      # ==== Examples
+      #
+      #   User.active.explain
+      #   User.active.explain(format: :json)
+      #   User.active.explain(extended: true, format: :json)
+      def explain(arel, binds = [], options = {})
+        explain_type = ""
+        explain_type = "EXTENDED" if options[:extended]
+        explain_type = "PARTITIONS" if options[:partitions]
+        explain_type = "FORMAT = #{options[:format]}" if EXPLAIN_FORMATS.include?(options[:format])
+
+        sql     = "EXPLAIN #{explain_type} #{to_sql(arel, binds)}"
         start   = Time.now
         result  = exec_query(sql, "EXPLAIN", binds)
         elapsed = Time.now - start
 
-        MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
+        if options[:format] == :json
+          result.rows.first.first
+        else
+          MySQL::ExplainPrettyPrinter.new.pp(result, elapsed)
+        end
       end
 
       # Executes the SQL statement in the context of this connection.

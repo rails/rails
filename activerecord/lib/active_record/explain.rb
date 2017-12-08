@@ -4,6 +4,7 @@ require "active_record/explain_registry"
 
 module ActiveRecord
   module Explain
+    CUSTOM_FORMATS = %i(xml json yaml)
     # Executes the block with the collect flag enabled. Queries are collected
     # asynchronously by the subscriber and returned.
     def collecting_queries_for_explain # :nodoc:
@@ -16,23 +17,29 @@ module ActiveRecord
 
     # Makes the adapter execute EXPLAIN for the tuples of queries and bindings.
     # Returns a formatted string ready to be logged.
-    def exec_explain(queries) # :nodoc:
-      str = queries.map do |sql, binds|
-        msg = "EXPLAIN for: #{sql}".dup
-        unless binds.empty?
-          msg << " "
-          msg << binds.map { |attr| render_bind(attr) }.inspect
+    def exec_explain(queries, options = {}) # :nodoc:
+      result = queries.map do |sql, binds|
+        if CUSTOM_FORMATS.include?(options[:format])
+          connection.explain(sql, binds, options)
+        else
+          msg = "EXPLAIN for: #{sql}".dup
+          unless binds.empty?
+            msg << " "
+            msg << binds.map { |attr| render_bind(attr) }.inspect
+          end
+          msg << "\n"
+          msg << connection.explain(sql, binds, options)
         end
-        msg << "\n"
-        msg << connection.explain(sql, binds)
-      end.join("\n")
+      end
+
+      result = result.join("\n") unless CUSTOM_FORMATS.include?(options[:format])
 
       # Overriding inspect to be more human readable, especially in the console.
-      def str.inspect
+      def result.inspect
         self
       end
 
-      str
+      result
     end
 
     private

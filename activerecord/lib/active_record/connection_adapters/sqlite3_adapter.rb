@@ -201,7 +201,7 @@ module ActiveRecord
       # DATABASE STATEMENTS ======================================
       #++
 
-      def explain(arel, binds = [])
+      def explain(arel, binds = [], _options = {})
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
         SQLite3::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", []))
       end
