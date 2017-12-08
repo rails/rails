@@ -456,16 +456,6 @@ module Rails
         end
       end
 
-      def run_active_storage
-        unless skip_active_storage?
-          if bundle_install?
-            rails_command "active_storage:install", capture: options[:quiet]
-          else
-            log("Active Storage installation was skipped. Please run `bin/rails active_storage:install` to install Active Storage files.")
-          end
-        end
-      end
-
       def empty_directory_with_keep_file(destination, config = {})
         empty_directory(destination, config)
         keep_file(destination)

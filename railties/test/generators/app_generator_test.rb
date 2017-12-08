@@ -854,7 +854,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -871,7 +871,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   def test_gitignore
