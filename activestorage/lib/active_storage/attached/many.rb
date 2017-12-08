@@ -9,6 +9,7 @@ module ActiveStorage
     #
     # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
     def attachments
+      raise_if_table_missing!
       record.public_send("#{name}_attachments")
     end
 

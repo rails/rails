@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::MissingTableTest < ActiveSupport::TestCase
+class ActiveStorage::BlobMissingTableTest < ActiveSupport::TestCase
   setup do
     ActiveRecord::Migrator.down File.expand_path("../../db/migrate", __dir__)
     ActiveRecord::Base.clear_cache!
