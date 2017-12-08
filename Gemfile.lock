@@ -284,7 +284,7 @@ DEPENDENCIES
   rake (>= 10.3)
   redcarpet (~> 3.1.2)
   resque
-  resque-scheduler
+  resque-scheduler (<= 4.3.0)
   ruby-prof (~> 0.11.2)
   sdoc (~> 0.4.0)
   sequel
