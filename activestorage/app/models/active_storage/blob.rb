@@ -18,6 +18,7 @@ require "active_storage/analyzer/null_analyzer"
 class ActiveStorage::Blob < ActiveRecord::Base
   class UnpreviewableError < StandardError; end
   class UnrepresentableError < StandardError; end
+  class MissingTableError < StandardError; end
 
   self.table_name = "active_storage_blobs"
 
@@ -55,6 +56,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # then the +io+ is uploaded, then the blob is saved. This is done this way to avoid uploading (which may take
     # time), while having an open database transaction.
     def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
+      raise_if_table_missing!
       build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
     end
 
@@ -64,8 +66,18 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # Once the form using the direct upload is submitted, the blob can be associated with the right record using
     # the signed ID.
     def create_before_direct_upload!(filename:, byte_size:, checksum:, content_type: nil, metadata: nil)
+      raise_if_table_missing!
       create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
     end
+
+    private
+
+      def raise_if_table_missing!
+        unless table_exists?
+          raise(MissingTableError, "Could not find table '#{table_name}'. " \
+            "To resolve this issue run: bin/rails active_storage:install")
+        end
+      end
   end
 
 
