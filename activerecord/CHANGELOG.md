@@ -1,3 +1,8 @@
+*   Add an `:if_not_exists` option to `create_table`. It does not
+    raise an error if the table already exists.
+
+    *fatkodima*, *Stefan Kanev*, *sebcioz*
+
 *   Defining an Enum as a Hash with blank key, or as an Array with a blank value, now raises an `ArgumentError`.
 
     *Christophe Maximin*

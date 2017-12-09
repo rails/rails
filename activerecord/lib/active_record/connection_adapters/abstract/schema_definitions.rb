@@ -257,14 +257,15 @@ module ActiveRecord
       include ColumnMethods
 
       attr_accessor :indexes
-      attr_reader :name, :temporary, :options, :as, :foreign_keys, :comment
+      attr_reader :name, :temporary, :if_not_exists, :options, :as, :foreign_keys, :comment
 
-      def initialize(name, temporary = false, options = nil, as = nil, comment: nil)
+      def initialize(name, temporary = false, if_not_exists = false, options = nil, as = nil, comment: nil)
         @columns_hash = {}
         @indexes = []
         @foreign_keys = []
         @primary_keys = nil
         @temporary = temporary
+        @if_not_exists = if_not_exists
         @options = options
         @as = as
         @name = name
