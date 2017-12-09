@@ -6,7 +6,7 @@ require "action_dispatch"
 require "rails"
 require "active_support/deprecation"
 require "active_support/core_ext/string/filters"
-require_relative "../../dev_caching"
+require "rails/dev_caching"
 
 module Rails
   class Server < ::Rack::Server
@@ -127,6 +127,7 @@ module Rails
       class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
       class_option "restart", type: :boolean, default: nil, hide: true
+      class_option "early_hints", type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
 
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
@@ -161,7 +162,8 @@ module Rails
             daemonize:             options[:daemon],
             pid:                   pid,
             caching:               options["dev-caching"],
-            restart_cmd:           restart_command
+            restart_cmd:           restart_command,
+            early_hints:           early_hints
           }
         end
       end
@@ -225,6 +227,10 @@ module Rails
 
         def restart_command
           "bin/rails server #{@server} #{@original_options.join(" ")} --restart"
+        end
+
+        def early_hints
+          options[:early_hints]
         end
 
         def pid

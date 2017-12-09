@@ -56,6 +56,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers/assets.rb
   config/initializers/backtrace_silencers.rb
   config/initializers/cookies_serializer.rb
+  config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
   config/initializers/mime_types.rb
@@ -75,6 +76,7 @@ DEFAULT_APP_FILES = %w(
   log
   package.json
   public
+  storage
   test/application_system_test_case.rb
   test/test_helper.rb
   test/fixtures
@@ -89,6 +91,7 @@ DEFAULT_APP_FILES = %w(
   tmp
   tmp/cache
   tmp/cache/assets
+  tmp/storage
 )
 
 class AppGeneratorTest < Rails::Generators::TestCase
@@ -296,6 +299,80 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_active_storage_mini_magick_gem
+    run_generator
+    assert_file "Gemfile", /^# gem 'mini_magick'/
+  end
+
+  def test_active_storage_install
+    command_check = -> command, _ do
+      @binstub_called ||= 0
+      case command
+      when "active_storage:install"
+        @binstub_called += 1
+        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
+      end
+    end
+
+    generator.stub :rails_command, command_check do
+      quietly { generator.invoke_all }
+    end
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-storage"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
+  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-record"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/environments/development.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/production.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_file "#{app_root}/config/environments/test.rb" do |content|
+      assert_no_match(/config\.active_storage/, content)
+    end
+
+    assert_no_file "#{app_root}/config/storage.yml"
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
@@ -327,7 +404,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.3.18', '< 0.5'"
+      assert_gem "mysql2", "'~> 0.4.4'"
     end
   end
 
@@ -381,7 +458,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_generator_defaults_to_puma_version
     run_generator [destination_root]
-    assert_gem "puma", "'~> 3.7'"
+    assert_gem "puma", "'~> 3.11'"
   end
 
   def test_generator_if_skip_puma_is_given
@@ -412,6 +489,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_no_directory("test")
@@ -422,6 +500,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile" do |content|
       assert_no_match(/capybara/, content)
       assert_no_match(/selenium-webdriver/, content)
+      assert_no_match(/chromedriver-helper/, content)
     end
 
     assert_directory("test")
@@ -560,6 +639,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_match(/run  git init/, output)
   end
 
+  def test_quiet_option
+    output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
+    assert_empty output
+  end
+
   def test_application_name_with_spaces
     path = File.join(destination_root, "foo bar")
 
@@ -659,6 +743,41 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_webpack_option
+    command_check = -> command, *_ do
+      @called ||= 0
+      if command == "webpacker:install"
+        @called += 1
+        assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+      end
+    end
+
+    generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+
+    assert_gem "webpacker"
+  end
+
+  def test_webpack_option_with_js_framework
+    command_check = -> command, *_ do
+      case command
+      when "webpacker:install"
+        @webpacker ||= 0
+        @webpacker += 1
+        assert_equal 1, @webpacker, "webpacker:install expected to be called once, but was called #{@webpacker} times."
+      when "webpacker:install:react"
+        @react ||= 0
+        @react += 1
+        assert_equal 1, @react, "webpacker:install:react expected to be called once, but was called #{@react} times."
+      end
+    end
+
+    generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
+      quietly { generator.invoke_all }
+    end
+  end
+
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks"]
 
@@ -735,9 +854,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
     @sequence_step ||= 0
-    ensure_bundler_first = -> command do
+    ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
       @sequence_step += 1
     end
@@ -745,12 +864,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     generator([destination_root], template: path).stub(:open, check_open, template) do
       generator.stub(:bundle_command, ensure_bundler_first) do
         generator.stub(:run, ensure_bundler_first) do
-          quietly { generator.invoke_all }
+          generator.stub(:rails_command, ensure_bundler_first) do
+            quietly { generator.invoke_all }
+          end
         end
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
+  end
+
+  def test_gitignore
+    run_generator
+
+    assert_file ".gitignore" do |content|
+      assert_match(/config\/master\.key/, content)
+    end
   end
 
   def test_system_tests_directory_generated

@@ -27,6 +27,24 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations_with_left_outer_joins
+    sql = Person.joins(agents: :agents).left_outer_joins(agents: :agents).to_sql
+    assert_match(/agents_people_4/i, sql)
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_with_string_joins
+    sql = Person.joins(:agents).joins("JOIN people agents_people ON agents_people.primary_contact_id = people.id").to_sql
+    assert_match(/agents_people_2/i, sql)
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_with_aliased_joins
+    people = Person.arel_table
+    agents = people.alias("agents_people")
+    constraint = agents[:primary_contact_id].eq(people[:id])
+    sql = Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint))).to_sql
+    assert_match(/agents_people_2/i, sql)
+  end
+
   def test_construct_finder_sql_ignores_empty_joins_hash
     sql = Author.joins({}).to_sql
     assert_no_match(/JOIN/i, sql)

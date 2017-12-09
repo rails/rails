@@ -97,17 +97,23 @@ module ActiveJob
     # ==== Examples
     #
     #    class DeliverWebhookJob < ActiveJob::Base
+    #      attr_writer :attempt_number
+    #
+    #      def attempt_number
+    #        @attempt_number ||= 0
+    #      end
+    #
     #      def serialize
-    #        super.merge('attempt_number' => (@attempt_number || 0) + 1)
+    #        super.merge('attempt_number' => attempt_number + 1)
     #      end
     #
     #      def deserialize(job_data)
     #        super
-    #        @attempt_number = job_data['attempt_number']
+    #        self.attempt_number = job_data['attempt_number']
     #      end
     #
-    #      rescue_from(TimeoutError) do |exception|
-    #        raise exception if @attempt_number > 5
+    #      rescue_from(Timeout::Error) do |exception|
+    #        raise exception if attempt_number > 5
     #        retry_job(wait: 10)
     #      end
     #    end

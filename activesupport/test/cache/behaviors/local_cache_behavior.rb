@@ -20,7 +20,11 @@ module LocalCacheBehavior
   end
 
   def test_cleanup_clears_local_cache_but_not_remote_cache
-    skip unless @cache.class.instance_methods(false).include?(:cleanup)
+    begin
+      @cache.cleanup
+    rescue NotImplementedError
+      skip
+    end
 
     @cache.with_local_cache do
       @cache.write("foo", "bar")

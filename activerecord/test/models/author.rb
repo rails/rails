@@ -22,6 +22,7 @@ class Author < ActiveRecord::Base
   has_many :comments_containing_the_letter_e, through: :posts, source: :comments
   has_many :comments_with_order_and_conditions, -> { order("comments.body").where("comments.body like 'Thank%'") }, through: :posts, source: :comments
   has_many :comments_with_include, -> { includes(:post).where(posts: { type: "Post" }) }, through: :posts, source: :comments
+  has_many :comments_for_first_author, -> { for_first_author }, through: :posts, source: :comments
 
   has_many :first_posts
   has_many :comments_on_first_posts, -> { order("posts.id desc, comments.id asc") }, through: :first_posts, source: :comments
@@ -100,10 +101,12 @@ class Author < ActiveRecord::Base
   has_many :taggings,        through: :posts, source: :taggings
   has_many :taggings_2,      through: :posts, source: :tagging
   has_many :tags,            through: :posts
+  has_many :ordered_tags,    through: :posts
   has_many :post_categories, through: :posts, source: :categories
   has_many :tagging_tags,    through: :taggings, source: :tag
 
   has_many :similar_posts, -> { distinct }, through: :tags, source: :tagged_posts
+  has_many :ordered_posts, -> { distinct }, through: :ordered_tags, source: :tagged_posts
   has_many :distinct_tags, -> { select("DISTINCT tags.*").order("tags.name") }, through: :posts, source: :tags
 
   has_many :tags_with_primary_key, through: :posts

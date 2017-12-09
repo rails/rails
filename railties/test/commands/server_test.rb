@@ -22,6 +22,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     assert_nil options[:server]
   end
 
+  def test_daemon_with_option
+    args = ["-d"]
+    options = parse_arguments(args)
+    assert_equal true, options[:daemonize]
+  end
+
+  def test_daemon_without_option
+    args = []
+    options = parse_arguments(args)
+    assert_equal false, options[:daemonize]
+  end
+
   def test_server_option_without_environment
     args = ["thin"]
     with_rack_env nil do
@@ -79,6 +91,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     args = ["--no-dev-caching"]
     options = parse_arguments(args)
     assert_equal false, options[:caching]
+  end
+
+  def test_early_hints_with_option
+    args = ["--early-hints"]
+    options = parse_arguments(args)
+    assert_equal true, options[:early_hints]
+  end
+
+  def test_early_hints_is_nil_by_default
+    args = []
+    options = parse_arguments(args)
+    assert_nil options[:early_hints]
   end
 
   def test_log_stdout

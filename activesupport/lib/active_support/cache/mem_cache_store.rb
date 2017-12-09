@@ -8,8 +8,8 @@ rescue LoadError => e
 end
 
 require "digest/md5"
-require_relative "../core_ext/marshal"
-require_relative "../core_ext/array/extract_options"
+require "active_support/core_ext/marshal"
+require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache
@@ -122,7 +122,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
-            @data.incr(normalize_key(name, options), amount)
+            @data.incr(normalize_key(name, options), amount, options[:expires_in])
           end
         end
       end
@@ -135,7 +135,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
-            @data.decr(normalize_key(name, options), amount)
+            @data.decr(normalize_key(name, options), amount, options[:expires_in])
           end
         end
       end

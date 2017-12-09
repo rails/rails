@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/concern"
-require_relative "actions/create_migration"
+require "rails/generators/actions/create_migration"
 
 module Rails
   module Generators

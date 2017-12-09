@@ -4,17 +4,17 @@ require "set"
 require "thread"
 require "concurrent/map"
 require "pathname"
-require_relative "core_ext/module/aliasing"
-require_relative "core_ext/module/attribute_accessors"
-require_relative "core_ext/module/introspection"
-require_relative "core_ext/module/anonymous"
-require_relative "core_ext/object/blank"
-require_relative "core_ext/kernel/reporting"
-require_relative "core_ext/load_error"
-require_relative "core_ext/name_error"
-require_relative "core_ext/string/starts_ends_with"
-require_relative "dependencies/interlock"
-require_relative "inflector"
+require "active_support/core_ext/module/aliasing"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/load_error"
+require "active_support/core_ext/name_error"
+require "active_support/core_ext/string/starts_ends_with"
+require "active_support/dependencies/interlock"
+require "active_support/inflector"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -615,7 +615,7 @@ module ActiveSupport #:nodoc:
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
-      return autoloaded_constants.include?(name)
+      autoloaded_constants.include?(name)
     end
 
     # Will the provided constant descriptor be unloaded?

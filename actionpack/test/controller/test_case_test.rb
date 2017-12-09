@@ -6,7 +6,7 @@ require "active_support/json/decoding"
 require "rails/engine"
 
 class TestCaseTest < ActionController::TestCase
-  def self.fixture_path; end;
+  def self.fixture_path; end
 
   class TestController < ActionController::Base
     def no_op

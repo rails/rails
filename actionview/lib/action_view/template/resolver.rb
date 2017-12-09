@@ -3,7 +3,7 @@
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
-require_relative "../template"
+require "action_view/template"
 require "thread"
 require "concurrent/map"
 

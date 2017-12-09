@@ -3,19 +3,29 @@
 require "rails"
 require "active_storage"
 
+require "active_storage/previewer/pdf_previewer"
+require "active_storage/previewer/video_previewer"
+
+require "active_storage/analyzer/image_analyzer"
+require "active_storage/analyzer/video_analyzer"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
+    config.active_storage.paths = ActiveSupport::OrderedOptions.new
 
     config.eager_load_namespaces << ActiveStorage
 
-    initializer "active_storage.logger" do
-      require "active_storage/service"
-
+    initializer "active_storage.configs" do
       config.after_initialize do |app|
-        ActiveStorage::Service.logger = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.logger     = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.queue      = app.config.active_storage.queue
+        ActiveStorage.previewers = app.config.active_storage.previewers || []
+        ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
       end
     end
 
@@ -56,6 +66,22 @@ module ActiveStorage
             rescue => e
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
+        end
+      end
+    end
+
+    initializer "active_storage.paths" do
+      config.after_initialize do |app|
+        if ffprobe_path = app.config.active_storage.paths.ffprobe
+          ActiveStorage::Analyzer::VideoAnalyzer.ffprobe_path = ffprobe_path
+        end
+
+        if ffmpeg_path = app.config.active_storage.paths.ffmpeg
+          ActiveStorage::Previewer::VideoPreviewer.ffmpeg_path = ffmpeg_path
+        end
+
+        if mutool_path = app.config.active_storage.paths.mutool
+          ActiveStorage::Previewer::PDFPreviewer.mutool_path = mutool_path
         end
       end
     end

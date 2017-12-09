@@ -177,14 +177,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
-    elsif current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
       else
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
+    elsif ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
@@ -196,6 +196,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition
+    end
+  end
+
+  def test_schema_dumps_index_sort_order
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
+    if ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating", order: :desc', index_definition
+    else
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating"', index_definition
+    end
+  end
+
+  def test_schema_dumps_index_length
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description", length: 10', index_definition
+    else
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description"', index_definition
     end
   end
 
@@ -294,34 +312,32 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.oid\s+"obj_id"$}, output
     end
 
-    if ActiveRecord::Base.connection.supports_extensions?
-      def test_schema_dump_includes_extensions
-        connection = ActiveRecord::Base.connection
+    def test_schema_dump_includes_extensions
+      connection = ActiveRecord::Base.connection
 
-        connection.stubs(:extensions).returns(["hstore"])
-        output = perform_schema_dump
-        assert_match "# These are extensions that must be enabled", output
-        assert_match %r{enable_extension "hstore"}, output
+      connection.stubs(:extensions).returns(["hstore"])
+      output = perform_schema_dump
+      assert_match "# These are extensions that must be enabled", output
+      assert_match %r{enable_extension "hstore"}, output
 
-        connection.stubs(:extensions).returns([])
-        output = perform_schema_dump
-        assert_no_match "# These are extensions that must be enabled", output
-        assert_no_match %r{enable_extension}, output
-      end
+      connection.stubs(:extensions).returns([])
+      output = perform_schema_dump
+      assert_no_match "# These are extensions that must be enabled", output
+      assert_no_match %r{enable_extension}, output
+    end
 
-      def test_schema_dump_includes_extensions_in_alphabetic_order
-        connection = ActiveRecord::Base.connection
+    def test_schema_dump_includes_extensions_in_alphabetic_order
+      connection = ActiveRecord::Base.connection
 
-        connection.stubs(:extensions).returns(["hstore", "uuid-ossp", "xml2"])
-        output = perform_schema_dump
-        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+      connection.stubs(:extensions).returns(["hstore", "uuid-ossp", "xml2"])
+      output = perform_schema_dump
+      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
 
-        connection.stubs(:extensions).returns(["uuid-ossp", "xml2", "hstore"])
-        output = perform_schema_dump
-        enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
-        assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
-      end
+      connection.stubs(:extensions).returns(["uuid-ossp", "xml2", "hstore"])
+      output = perform_schema_dump
+      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
     end
   end
 

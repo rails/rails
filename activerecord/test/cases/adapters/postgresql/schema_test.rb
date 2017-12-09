@@ -459,7 +459,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
         assert_equal :btree, index_d.using
         assert_equal :gin,   index_e.using
 
-        assert_equal :desc,  index_d.orders[INDEX_D_COLUMN]
+        assert_equal :desc,  index_d.orders
       end
     end
 
@@ -497,6 +497,38 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table "wagons", if_exists: true
     @connection.drop_table "my_schema.trains", if_exists: true
     @connection.drop_schema "my_schema", if_exists: true
+  end
+end
+
+class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_string_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name text_pattern_ops, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :text_pattern_ops/, output)
+  end
+
+  def test_non_default_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
   end
 end
 

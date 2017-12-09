@@ -130,7 +130,7 @@ module ActiveRecord
     #      end
     def calculate(operation, column_name)
       if has_include?(column_name)
-        relation = construct_relation_for_association_calculations
+        relation = apply_join_dependency
         relation.distinct! if operation.to_s.downcase == "count"
 
         relation.calculate(operation, column_name)
@@ -180,8 +180,10 @@ module ActiveRecord
       end
 
       if has_include?(column_names.first)
-        construct_relation_for_association_calculations.pluck(*column_names)
+        relation = apply_join_dependency
+        relation.pluck(*column_names)
       else
+        enforce_raw_sql_whitelist(column_names)
         relation = spawn
         relation.select_values = column_names.map { |cn|
           @klass.has_attribute?(cn) || @klass.attribute_alias?(cn) ? arel_attribute(cn) : cn
@@ -215,7 +217,7 @@ module ActiveRecord
         if operation == "count"
           column_name ||= select_for_count
           if column_name == :all
-            if distinct && !(has_limit_or_offset? && order_values.any?)
+            if distinct && (group_values.any? || !(has_limit_or_offset? && order_values.any?))
               column_name = primary_key
             end
           elsif column_name =~ /\s*DISTINCT[\s(]+/i
@@ -391,7 +393,7 @@ module ActiveRecord
       def build_count_subquery(relation, column_name, distinct)
         relation.select_values = [
           if column_name == :all
-            distinct ? table[Arel.star] : Arel.sql("1")
+            distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)
           else
             column_alias = Arel.sql("count_column")
             aggregate_column(column_name).as(column_alias)

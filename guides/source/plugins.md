@@ -237,7 +237,7 @@ Finished in 0.004812s, 831.2949 runs/s, 415.6475 assertions/s.
 
 This tells us that we don't have the necessary models (Hickwall and Wickwall) that we are trying to test.
 We can easily generate these models in our "dummy" Rails application by running the following commands from the
-test/dummy directory:
+`test/dummy` directory:
 
 ```bash
 $ cd test/dummy
@@ -359,7 +359,7 @@ When you run `bin/test`, you should see the tests all pass:
 
 ### Add an Instance Method
 
-This plugin will add a method named 'squawk' to any Active Record object that calls 'acts_as_yaffle'. The 'squawk'
+This plugin will add a method named 'squawk' to any Active Record object that calls `acts_as_yaffle`. The 'squawk'
 method will simply set the value of one of the fields in the database.
 
 To start out, write a failing test that shows the behavior you'd like:
@@ -392,7 +392,7 @@ end
 ```
 
 Run the test to make sure the last two tests fail with an error that contains "NoMethodError: undefined method `squawk'",
-then update 'acts_as_yaffle.rb' to look like this:
+then update `acts_as_yaffle.rb` to look like this:
 
 ```ruby
 # yaffle/lib/yaffle/acts_as_yaffle.rb
@@ -446,7 +446,7 @@ Publishing Your Gem
 -------------------
 
 Gem plugins currently in development can easily be shared from any Git repository. To share the Yaffle gem with others, simply
-commit the code to a Git repository (like GitHub) and add a line to the Gemfile of the application in question:
+commit the code to a Git repository (like GitHub) and add a line to the `Gemfile` of the application in question:
 
 ```ruby
 gem "yaffle", git: "https://github.com/rails/yaffle.git"

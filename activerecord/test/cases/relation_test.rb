@@ -68,7 +68,7 @@ module ActiveRecord
       relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
-      combine  = left.and right
+      combine  = left.or(right)
       relation.where! combine
       assert_equal({}, relation.where_values_hash)
     end
@@ -274,9 +274,23 @@ module ActiveRecord
       assert_equal({ 2 => 1, 4 => 3, 5 => 1 }, authors(:david).posts.merge(posts_with_special_comments_with_ratings).count)
     end
 
+    def test_relation_merging_keeps_joining_order
+      authors  = Author.where(id: 1)
+      posts    = Post.joins(:author).merge(authors)
+      comments = Comment.joins(:post).merge(posts)
+      ratings  = Rating.joins(:comment).merge(comments)
+
+      assert_equal 3, ratings.count
+    end
+
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
       def type
         :string
+      end
+
+      def cast(value)
+        raise value unless value == "value from user"
+        "cast value"
       end
 
       def deserialize(value)
@@ -285,7 +299,7 @@ module ActiveRecord
       end
 
       def serialize(value)
-        raise value unless value == "value from user"
+        raise value unless value == "cast value"
         "type cast for database"
       end
     end

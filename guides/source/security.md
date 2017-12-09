@@ -52,7 +52,7 @@ User.find(session[:user_id])
 
 NOTE: _The session ID is a 32-character random hex string._
 
-The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
+The session ID is generated using `SecureRandom.hex` which generates a random hex string using platform specific methods (such as OpenSSL, /dev/urandom or Win32 CryptoAPI) for generating cryptographically secure random numbers. Currently it is not feasible to brute-force Rails' session IDs.
 
 ### Session Hijacking
 
@@ -85,37 +85,117 @@ This will also be a good idea, if you modify the structure of an object and old 
 
 * _Critical data should not be stored in session_. If the user clears their cookies or closes the browser, they will be lost. And with a client-side session storage, the user can read the data.
 
-### Session Storage
+### Encrypted Session Storage
 
 NOTE: _Rails provides several storage mechanisms for the session hashes. The most important is `ActionDispatch::Session::CookieStore`._
 
-Rails 2 introduced a new default session storage, CookieStore. CookieStore saves the session hash directly in a cookie on the client-side. The server retrieves the session hash from the cookie and eliminates the need for a session ID. That will greatly increase the speed of the application, but it is a controversial storage option and you have to think about the security implications of it:
+The `CookieStore` saves the session hash directly in a cookie on the
+client-side. The server retrieves the session hash from the cookie and
+eliminates the need for a session ID. That will greatly increase the
+speed of the application, but it is a controversial storage option and
+you have to think about the security implications and storage
+limitations of it:
 
-* Cookies imply a strict size limit of 4kB. This is fine as you should not store large amounts of data in a session anyway, as described before. _Storing the current user's database id in a session is usually ok_.
+* Cookies imply a strict size limit of 4kB. This is fine as you should
+  not store large amounts of data in a session anyway, as described
+  before. Storing the current user's database id in a session is common
+  practice.
 
-* The client can see everything you store in a session, because it is stored in clear-text (actually Base64-encoded, so not encrypted). So, of course, _you don't want to store any secrets here_. To prevent session hash tampering, a digest is calculated from the session with a server-side secret (`secrets.secret_token`) and inserted into the end of the cookie.
+* Session cookies do not invalidate themselves and can be maliciously
+  reused. It may be a good idea to have your application invalidate old
+  session cookies using a stored timestamp.
 
-In Rails 4, encrypted cookies through AES in CBC mode with HMAC using SHA1 for
-verification was introduced. This prevents the user from accessing and tampering
-the content of the cookie. Thus the session becomes a more secure place to store
-data. The encryption is performed using a server-side `secret_key_base`.
-Two salts are used when deriving keys for encryption and verification. These
-salts are set via the `config.action_dispatch.encrypted_cookie_salt` and
-`config.action_dispatch.encrypted_signed_cookie_salt` configuration values.
+The `CookieStore` uses the
+[encrypted](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-encrypted)
+cookie jar to provide a secure, encrypted location to store session
+data. Cookie-based sessions thus provide both integrity as well as
+confidentiality to their contents. The encryption key, as well as the
+verification key used for
+[signed](http://api.rubyonrails.org/classes/ActionDispatch/Cookies/ChainedCookieJars.html#method-i-signed)
+cookies, is derived from the `secret_key_base` configuration value.
 
-Rails 5.2 uses AES-GCM for the encryption which couples authentication
-and encryption in one faster step and produces shorter ciphertexts.
+As of Rails 5.2 encrypted cookies and sessions are protected using AES
+GCM encryption. This form of encryption is a type of Authenticated
+Encryption and couples authentication and encryption in single step
+while also producing shorter ciphertexts as compared to other
+algorithms previously used. The key for cookies encrypted with AES GCM
+are derived using a salt value defined by the
+`config.action_dispatch.authenticated_encrypted_cookie_salt`
+configuration value.
 
-Encrypted cookies are automatically upgraded if the
-`config.action_dispatch.use_authenticated_cookie_encryption` is enabled.
+Prior to this version, encrypted cookies were secured using AES in CBC
+mode with HMAC using SHA1 for authentication. The keys for this type of
+encryption and for HMAC verification were derived via the salts defined
+by `config.action_dispatch.encrypted_cookie_salt` and
+`config.action_dispatch.encrypted_signed_cookie_salt` respectively.
 
-_Do not use a trivial secret, i.e. a word from a dictionary, or one which is shorter than 30 characters! Instead use `rails secret` to generate secret keys!_
+Prior to Rails version 4 in both versions 2 and 3, session cookies were
+protected using only HMAC verification. As such, these session cookies
+only provided integrity to their content because the actual session data
+was stored in plaintext encoded as base64. This is how `signed` cookies
+work in the current version of Rails. These kinds of cookies are still
+useful for protecting the integrity of certain client-stored data and
+information.
+
+__Do not use a trivial secret for the `secret_key_base`, i.e. a word
+from a dictionary, or one which is shorter than 30 characters! Instead
+use `rails secret` to generate secret keys!__
+
+It is also important to use different salt values for encrypted and
+signed cookies. Using the same value for different salt configuration
+values may lead to the same derived key being used for different
+security features which in turn may weaken the strength of the key.
 
 In test and development applications get a `secret_key_base` derived from the app name. Other environments must use a random key present in `config/credentials.yml.enc`, shown here in its decrypted state:
 
     secret_key_base: 492f...
 
 If you have received an application where the secret was exposed (e.g. an application whose source was shared), strongly consider changing the secret.
+
+### Rotating Encrypted and Signed Cookies Configurations
+
+Rotation is ideal for changing cookie configurations and ensuring old cookies
+aren't immediately invalid. Your users then have a chance to visit your site,
+get their cookie read with an old configuration and have it rewritten with the
+new change. The rotation can then be removed once you're comfortable enough
+users have had their chance to get their cookies upgraded.
+
+It's possible to rotate the ciphers and digests used for encrypted and signed cookies.
+
+For instance to change the digest used for signed cookies from SHA1 to SHA256,
+you would first assign the new configuration value:
+
+```ruby
+Rails.application.config.action_dispatch.signed_cookie_digest = "SHA256"
+```
+
+Now add a rotation for the old SHA1 digest so existing cookies are
+seamlessly upgraded to the new SHA256 digest.
+
+```ruby
+Rails.application.config.action_dispatch.cookies_rotations.tap do |cookies|
+  cookies.rotate :signed, digest: "SHA1"
+end
+```
+
+Then any written signed cookies will be digested with SHA256. Old cookies
+that were written with SHA1 can still be read, and if accessed will be written
+with the new digest so they're upgraded and won't be invalid when you remove the
+rotation.
+
+Once users with SHA1 digested signed cookies should no longer have a chance to
+have their cookies rewritten, remove the rotation.
+
+While you can setup as many rotations as you'd like it's not common to have many
+rotations going at any one time.
+
+For more details on key rotation with encrypted and signed messages as
+well as the various options the `rotate` method accepts, please refer to
+the
+[MessageEncryptor API](http://api.rubyonrails.org/classes/ActiveSupport/MessageEncryptor.html)
+and
+[MessageVerifier API](http://api.rubyonrails.org/classes/ActiveSupport/MessageVerifier.html)
+documentation.
 
 ### Replay Attacks for CookieStore Sessions
 
@@ -456,7 +536,7 @@ Depending on your web application, there may be more ways to hijack the user's a
 
 INFO: _A CAPTCHA is a challenge-response test to determine that the response is not generated by a computer. It is often used to protect registration forms from attackers and comment forms from automatic spam bots by asking the user to type the letters of a distorted image. This is the positive CAPTCHA, but there is also the negative CAPTCHA. The idea of a negative CAPTCHA is not for a user to prove that they are human, but reveal that a robot is a robot._
 
-A popular positive CAPTCHA API is [reCAPTCHA](http://recaptcha.net/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](https://github.com/ambethia/recaptcha/) is also a Rails plug-in with the same name as the API.
+A popular positive CAPTCHA API is [reCAPTCHA](https://developers.google.com/recaptcha/) which displays two distorted images of words from old books. It also adds an angled line, rather than a distorted background and high levels of warping on the text as earlier CAPTCHAs did, because the latter were broken. As a bonus, using reCAPTCHA helps to digitize old books. [ReCAPTCHA](https://github.com/ambethia/recaptcha/) is also a Rails plug-in with the same name as the API.
 
 You will get two keys from the API, a public and a private key, which you have to put into your Rails environment. After that you can use the recaptcha_tags method in the view, and the verify_recaptcha method in the controller. Verify_recaptcha will return false if the validation fails.
 The problem with CAPTCHAs is that they have a negative impact on the user experience. Additionally, some visually impaired users have found certain kinds of distorted CAPTCHAs difficult to read. Still, positive CAPTCHAs are one of the best methods to prevent all kinds of bots from submitting forms.
@@ -1029,7 +1109,7 @@ Rails generates a `config/credentials.yml.enc` to store third-party credentials
 within the repo. This is only viable because Rails encrypts the file with a master
 key that's generated into a version control ignored `config/master.key` — Rails
 will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
-the key to boot in production, so the credentials can be read.
+key to boot in production, so the credentials can be read.
 
 To edit stored credentials use `bin/rails credentials:edit`.
 
@@ -1049,7 +1129,7 @@ If you want an exception to be raised when some key is blank, use the bang
 version:
 
 ```ruby
-Rails.application.credentials.some_api_key! # => raises KeyError: key not found: :some_api_key
+Rails.application.credentials.some_api_key! # => raises KeyError: :some_api_key is blank
 ```
 
 Additional Resources

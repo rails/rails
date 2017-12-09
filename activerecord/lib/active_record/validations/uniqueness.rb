@@ -205,9 +205,7 @@ module ActiveRecord
       #                                      | # Boom! We now have a duplicate
       #                                      | # title!
       #
-      # This could even happen if you use transactions with the 'serializable'
-      # isolation level. The best way to work around this problem is to add a unique
-      # index to the database table using
+      # The best way to work around this problem is to add a unique index to the database table using
       # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.

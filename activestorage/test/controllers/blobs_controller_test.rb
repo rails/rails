@@ -5,7 +5,7 @@ require "database/setup"
 
 class ActiveStorage::BlobsControllerTest < ActionDispatch::IntegrationTest
   setup do
-    @blob = create_image_blob filename: "racecar.jpg"
+    @blob = create_file_blob filename: "racecar.jpg"
   end
 
   test "showing blob utilizes browser caching" do

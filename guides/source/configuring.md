@@ -391,7 +391,7 @@ by setting up a Rake task which runs
     ```
 
   for all models and all boolean columns, after which the flag must be set to true
-by adding the following to your application.rb file:
+by adding the following to your `application.rb` file:
 
     ```ruby
     Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
@@ -487,6 +487,15 @@ Defaults to `'signed cookie'`.
   authenticated encrypted cookie salt. Defaults to `'authenticated encrypted
   cookie'`.
 
+* `config.action_dispatch.encrypted_cookie_cipher` sets the cipher to be
+  used for encrypted cookies. This defaults to `"aes-256-gcm"`.
+
+* `config.action_dispatch.signed_cookie_digest` sets the digest to be
+  used for signed cookies. This defaults to `"SHA1"`.
+
+* `config.action_dispatch.cookies_rotations` allows rotating
+  secrets, ciphers, and digests for encrypted and signed cookies.
+
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.
@@ -563,11 +572,13 @@ Defaults to `'signed cookie'`.
   error should be raised for missing translations.
 
 * `config.action_view.automatically_disable_submit_tag` determines whether
-  submit_tag should automatically disable on click, this defaults to `true`.
+  `submit_tag` should automatically disable on click, this defaults to `true`.
 
 * `config.action_view.debug_missing_translation` determines whether to wrap the missing translations key in a `<span>` tag or not. This defaults to `true`.
 
 * `config.action_view.form_with_generates_remote_forms` determines whether `form_with` generates remote forms or not. This defaults to `true`.
+
+* `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `true`.
 
 ### Configuring Action Mailer
 
@@ -964,7 +975,7 @@ By default Rails ships with three environments: "development", "test", and "prod
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console staging`, `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
 ### Deploy to a subdirectory (relative url root)
@@ -994,11 +1005,11 @@ Deploying your application using a reverse proxy has definite advantages over tr
 
 Many modern web servers can be used as a proxy server to balance third-party elements such as caching servers or application servers.
 
-One such application server you can use is [Unicorn](http://unicorn.bogomips.org/) to run behind a reverse proxy.
+One such application server you can use is [Unicorn](https://bogomips.org/unicorn/) to run behind a reverse proxy.
 
 In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
 
-You can find more information in the [Unicorn readme](http://unicorn.bogomips.org/README.html) and understand the [philosophy](http://unicorn.bogomips.org/PHILOSOPHY.html) behind it.
+You can find more information in the [Unicorn readme](https://bogomips.org/unicorn/README.html) and understand the [philosophy](https://bogomips.org/unicorn/PHILOSOPHY.html) behind it.
 
 Once you've configured the application server, you must proxy requests to it by configuring your web server appropriately. For example your NGINX config may include:
 
@@ -1026,7 +1037,7 @@ server {
 }
 ```
 
-Be sure to read the [NGINX documentation](http://nginx.org/en/docs/) for the most up-to-date information.
+Be sure to read the [NGINX documentation](https://nginx.org/en/docs/) for the most up-to-date information.
 
 
 Rails Environment Settings
@@ -1048,7 +1059,7 @@ After loading the framework and any gems in your application, Rails turns to loa
 
 NOTE: You can use subfolders to organize your initializers if you like, because Rails will look into the whole file hierarchy from the initializers folder on down.
 
-TIP: If you have any ordering dependency in your initializers, you can control the load order through naming. Initializer files are loaded in alphabetical order by their path. For example, `01_critical.rb` will be loaded before `02_normal.rb`.
+TIP: While Rails supports numbering of initializer file names for load ordering purposes, a better technique is to place any code that need to load in a specific order within the same file. This reduces file name churn, makes dependencies more explicit, and can help surface new concepts within your application.
 
 Initialization events
 ---------------------
@@ -1308,7 +1319,7 @@ know which pages it is allowed to index.
 
 Rails creates this file for you inside the `/public` folder. By default, it allows
 search engines to index all pages of your application. If you want to block
-indexing on all pages of you application, use this:
+indexing on all pages of your application, use this:
 
 ```
 User-agent: *

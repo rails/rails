@@ -4,8 +4,8 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/regexp"
-require_relative "redirection"
-require_relative "endpoint"
+require "action_dispatch/routing/redirection"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -475,6 +475,16 @@ module ActionDispatch
         #
         #      resources :users, param: :name
         #
+        #   The +users+ resource here will have the following routes generated for it:
+        #
+        #      GET       /users(.:format)
+        #      POST      /users(.:format)
+        #      GET       /users/new(.:format)
+        #      GET       /users/:name/edit(.:format)
+        #      GET       /users/:name(.:format)
+        #      PATCH/PUT /users/:name(.:format)
+        #      DELETE    /users/:name(.:format)
+        #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
         #
@@ -484,8 +494,8 @@ module ActionDispatch
         #        end
         #      end
         #
-        #   user = User.find_by(name: 'Phusion')
-        #   user_path(user)  # => "/users/Phusion"
+        #      user = User.find_by(name: 'Phusion')
+        #      user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
@@ -1265,7 +1275,7 @@ module ActionDispatch
         #   POST      /profile
         #
         # === Options
-        # Takes same options as +resources+.
+        # Takes same options as resources[rdoc-ref:#resources]
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1330,7 +1340,7 @@ module ActionDispatch
         #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
-        # Takes same options as <tt>Base#match</tt> as well as:
+        # Takes same options as match[rdoc-ref:Base#match] as well as:
         #
         # [:path_names]
         #   Allows you to change the segment component of the +edit+ and +new+ actions.
@@ -2036,7 +2046,7 @@ module ActionDispatch
       end
 
       module CustomUrls
-        # Define custom url helpers that will be added to the application's
+        # Define custom URL helpers that will be added to the application's
         # routes. This allows you to override and/or replace the default behavior
         # of routing helpers, e.g:
         #
@@ -2056,11 +2066,11 @@ module ActionDispatch
         # arguments for +url_for+ which will actually build the URL string. This can
         # be one of the following:
         #
-        #   * A string, which is treated as a generated URL
-        #   * A hash, e.g. { controller: "pages", action: "index" }
-        #   * An array, which is passed to `polymorphic_url`
-        #   * An Active Model instance
-        #   * An Active Model class
+        # * A string, which is treated as a generated URL
+        # * A hash, e.g. <tt>{ controller: "pages", action: "index" }</tt>
+        # * An array, which is passed to +polymorphic_url+
+        # * An Active Model instance
+        # * An Active Model class
         #
         # NOTE: Other URL helpers can be called in the block but be careful not to invoke
         # your custom URL helper again otherwise it will result in a stack overflow error.

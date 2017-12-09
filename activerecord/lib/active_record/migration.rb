@@ -354,9 +354,9 @@ module ActiveRecord
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:migrate STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -581,7 +581,8 @@ module ActiveRecord
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
-          FileUtils.cd Rails.root do
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+          FileUtils.cd(root) do
             current_config = Base.connection_config
             Base.clear_all_connections!
             system("bin/rails db:test:prepare")
@@ -731,6 +732,24 @@ module ActiveRecord
     def reversible
       helper = ReversibleBlockHelper.new(reverting?)
       execute_block { yield helper }
+    end
+
+    # Used to specify an operation that is only run when migrating up
+    # (for example, populating a new column with its initial values).
+    #
+    # In the following example, the new column +published+ will be given
+    # the value +true+ for all existing records.
+    #
+    #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
+    #      def change
+    #        add_column :posts, :published, :boolean, default: false
+    #        up_only do
+    #          execute "update posts set published = 'true'"
+    #        end
+    #      end
+    #    end
+    def up_only
+      execute_block { yield } unless reverting?
     end
 
     # Runs the given migration classes.
@@ -1026,12 +1045,7 @@ module ActiveRecord
         new(:up, migrations(migrations_paths), nil)
       end
 
-      def schema_migrations_table_name
-        SchemaMigration.table_name
-      end
-      deprecate :schema_migrations_table_name
-
-      def get_all_versions(connection = Base.connection)
+      def get_all_versions
         if SchemaMigration.table_exists?
           SchemaMigration.all_versions.map(&:to_i)
         else
@@ -1039,12 +1053,13 @@ module ActiveRecord
         end
       end
 
-      def current_version(connection = Base.connection)
-        get_all_versions(connection).max || 0
+      def current_version(connection = nil)
+        get_all_versions.max || 0
+      rescue ActiveRecord::NoDatabaseError
       end
 
-      def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      def needs_migration?(connection = nil)
+        (migrations(migrations_paths).collect(&:version) - get_all_versions).size > 0
       end
 
       def any_migrations?
@@ -1229,7 +1244,7 @@ module ActiveRecord
 
       # Return true if a valid version is not provided.
       def invalid_target?
-        !target && @target_version && @target_version > 0
+        @target_version && @target_version != 0 && !target
       end
 
       def execute_migration_in_transaction(migration, direction)

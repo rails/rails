@@ -255,6 +255,20 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_equal "", @response.body
     end
   end
+
+  def test_derived_wrapped_keys_from_nested_attributes
+    def User.nested_attributes_options
+      { person: {} }
+    end
+
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } }
+        assert_parameters("username" => "sikachu", "person_attributes" => { "title" => "Developer" }, "user" => { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } })
+      end
+    end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase
@@ -262,7 +276,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
 
   module Admin
     module Users
-      class UsersController < ActionController::Base;
+      class UsersController < ActionController::Base
         class << self
           attr_accessor :last_parameters
         end

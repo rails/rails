@@ -60,6 +60,10 @@ end
 
 class SpecialComment < Comment
   default_scope { where(deleted_at: nil) }
+
+  def self.what_are_you
+    "a special comment..."
+  end
 end
 
 class SubSpecialComment < SpecialComment

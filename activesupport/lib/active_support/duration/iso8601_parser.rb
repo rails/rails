@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "strscan"
-require_relative "../core_ext/regexp"
+require "active_support/core_ext/regexp"
 
 module ActiveSupport
   class Duration
@@ -118,7 +118,7 @@ module ActiveSupport
             raise_parsing_error "(only last part can be fractional)"
           end
 
-          return true
+          true
         end
     end
   end

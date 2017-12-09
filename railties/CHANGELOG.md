@@ -1,3 +1,28 @@
+## Rails 5.2.0.beta2 (November 28, 2017) ##
+
+*   No changes.
+
+
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
+*   Deprecate `after_bundle` callback in Rails plugin templates.
+
+    *Yuji Yaginuma*
+
+*   `rails new` and `rails plugin new` get `Active Storage` by default.
+     Add ability to skip `Active Storage` with `--skip-active-storage`
+     and do so automatically when `--skip-active-record` is used.
+
+    *bogdanvlviv*
+
+*   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
+
+    *Jeremy Daer*
+
+*   Add `mini_magick` to default `Gemfile` as comment.
+
+    *Yoshiyuki Hirano*
+
 *   Derive `secret_key_base` from the app name in development and test environments.
 
     Spares away needless secret configs.

@@ -21,7 +21,7 @@ class Post < ActiveRecord::Base
 
   scope :containing_the_letter_a, -> { where("body LIKE '%a%'") }
   scope :titled_with_an_apostrophe, -> { where("title LIKE '%''%'") }
-  scope :ranked_by_comments,      -> { order("comments_count DESC") }
+  scope :ranked_by_comments, -> { order(arel_attribute(:comments_count).desc) }
 
   scope :limit_by, lambda { |l| limit(l) }
   scope :locked, -> { lock }
@@ -115,6 +115,7 @@ class Post < ActiveRecord::Base
   has_many :misc_tags, -> { where tags: { name: "Misc" } }, through: :taggings, source: :tag
   has_many :funky_tags, through: :taggings, source: :tag
   has_many :super_tags, through: :taggings
+  has_many :ordered_tags, through: :taggings
   has_many :tags_with_primary_key, through: :taggings, source: :tag_with_primary_key
   has_one :tagging, as: :taggable
 
@@ -317,6 +318,10 @@ class FakeKlass
 
     def arel_attribute(name, table)
       table[name]
+    end
+
+    def enforce_raw_sql_whitelist(*args)
+      # noop
     end
   end
 end

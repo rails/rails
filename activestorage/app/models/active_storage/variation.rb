@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/inclusion"
-
 # A set of transformations that can be applied to a blob to create a variant. This class is exposed via
 # the ActiveStorage::Blob#variant method and should rarely be used directly.
 #
@@ -15,7 +13,21 @@ class ActiveStorage::Variation
   attr_reader :transformations
 
   class << self
-    # Returns a variation instance with the transformations that were encoded by +encode+.
+    # Returns a Variation instance based on the given variator. If the variator is a Variation, it is
+    # returned unmodified. If it is a String, it is passed to ActiveStorage::Variation.decode. Otherwise,
+    # it is assumed to be a transformations Hash and is passed directly to the constructor.
+    def wrap(variator)
+      case variator
+      when self
+        variator
+      when String
+        decode variator
+      else
+        new variator
+      end
+    end
+
+    # Returns a Variation instance with the transformations that were encoded by +encode+.
     def decode(key)
       new ActiveStorage.verifier.verify(key, purpose: :variation)
     end

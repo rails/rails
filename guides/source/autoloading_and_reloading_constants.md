@@ -330,10 +330,16 @@ its resolution next. Let's define *parent* to be that qualifying class or module
 object, that is, `Billing` in the example above. The algorithm for qualified
 constants goes like this:
 
-1. The constant is looked up in the parent and its ancestors.
+1. The constant is looked up in the parent and its ancestors. In Ruby >= 2.5,
+`Object` is skipped if present among the ancestors. `Kernel` and `BasicObject`
+are still checked though.
 
 2. If the lookup fails, `const_missing` is invoked in the parent. The default
 implementation of `const_missing` raises `NameError`, but it can be overridden.
+
+INFO. In Ruby < 2.5 `String::Hash` evaluates to `Hash` and the interpreter
+issues a warning: "toplevel constant Hash referenced by String::Hash". Starting
+with 2.5, `String::Hash` raises `NameError` because `Object` is skipped.
 
 As you see, this algorithm is simpler than the one for relative constants. In
 particular, the nesting plays no role here, and modules are not special-cased,
@@ -954,7 +960,7 @@ to work on some subclass, things get interesting.
 While working with `Polygon` you do not need to be aware of all its descendants,
 because anything in the table is by definition a polygon, but when working with
 subclasses Active Record needs to be able to enumerate the types it is looking
-for. Let’s see an example.
+for. Let's see an example.
 
 `Rectangle.all` only loads rectangles by adding a type constraint to the query:
 
@@ -963,7 +969,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle")
 ```
 
-Let’s introduce now a subclass of `Rectangle`:
+Let's introduce now a subclass of `Rectangle`:
 
 ```ruby
 # app/models/square.rb
@@ -978,7 +984,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle", "Square")
 ```
 
-But there’s a caveat here: How does Active Record know that the class `Square`
+But there's a caveat here: How does Active Record know that the class `Square`
 exists at all?
 
 Even if the file `app/models/square.rb` exists and defines the `Square` class,
@@ -1049,7 +1055,7 @@ end
 
 The purpose of this setup would be that the application uses the class that
 corresponds to the environment via `AUTH_SERVICE`. In development mode
-`MockedAuthService` gets autoloaded when the initializer runs. Let’s suppose
+`MockedAuthService` gets autoloaded when the initializer runs. Let's suppose
 we do some requests, change its implementation, and hit the application again.
 To our surprise the changes are not reflected. Why?
 
@@ -1177,6 +1183,8 @@ end
 ```
 
 #### Qualified References
+
+WARNING. This gotcha is only possible in Ruby < 2.5.
 
 Given
 

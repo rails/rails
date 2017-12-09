@@ -50,6 +50,16 @@ module ActiveStorage::Service::SharedServiceTests
       assert_equal FIXTURE_DATA, @service.download(FIXTURE_KEY)
     end
 
+    test "downloading in chunks" do
+      chunks = []
+
+      @service.download(FIXTURE_KEY) do |chunk|
+        chunks << chunk
+      end
+
+      assert_equal [ FIXTURE_DATA ], chunks
+    end
+
     test "existing" do
       assert @service.exist?(FIXTURE_KEY)
       assert_not @service.exist?(FIXTURE_KEY + "nonsense")
@@ -63,6 +73,23 @@ module ActiveStorage::Service::SharedServiceTests
     test "deleting nonexistent key" do
       assert_nothing_raised do
         @service.delete SecureRandom.base58(24)
+      end
+    end
+
+    test "deleting by prefix" do
+      begin
+        @service.upload("a/a/a", StringIO.new(FIXTURE_DATA))
+        @service.upload("a/a/b", StringIO.new(FIXTURE_DATA))
+        @service.upload("a/b/a", StringIO.new(FIXTURE_DATA))
+
+        @service.delete_prefixed("a/a/")
+        assert_not @service.exist?("a/a/a")
+        assert_not @service.exist?("a/a/b")
+        assert @service.exist?("a/b/a")
+      ensure
+        @service.delete("a/a/a")
+        @service.delete("a/a/b")
+        @service.delete("a/b/a")
       end
     end
   end

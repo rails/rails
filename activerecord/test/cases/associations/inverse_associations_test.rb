@@ -484,7 +484,10 @@ class InverseHasManyTests < ActiveRecord::TestCase
   def test_raise_record_not_found_error_when_no_ids_are_passed
     man = Man.create!
 
-    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
+    exception = assert_raise(ActiveRecord::RecordNotFound) { man.interests.load.find() }
+
+    assert_equal exception.model, "Interest"
+    assert_equal exception.primary_key, "id"
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
@@ -667,6 +670,16 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
     old_inversed_man = face.man
     new_man.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+  end
+
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed_with_validation
+    face = Face.new man: Man.new
+
+    old_inversed_man = face.man
+    face.save!
     new_inversed_man = face.man
 
     assert_equal old_inversed_man.object_id, new_inversed_man.object_id

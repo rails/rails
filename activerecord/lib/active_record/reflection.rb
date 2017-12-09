@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/string/filters"
-require "active_support/deprecation"
 require "concurrent/map"
 
 module ActiveRecord
@@ -174,11 +173,6 @@ module ActiveRecord
         scope ? [scope] : []
       end
 
-      def scope_chain
-        chain.map(&:scopes)
-      end
-      deprecate :scope_chain
-
       def build_join_constraint(table, foreign_table)
         key         = join_keys.key
         foreign_key = join_keys.foreign_key
@@ -292,11 +286,15 @@ module ActiveRecord
       end
 
       def get_join_keys(association_klass)
-        JoinKeys.new(join_pk(association_klass), join_foreign_key)
+        JoinKeys.new(join_primary_key(association_klass), join_foreign_key)
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
         Relation.create(klass, table, predicate_builder)
+      end
+
+      def join_primary_key(_)
+        foreign_key
       end
 
       def join_foreign_key
@@ -311,10 +309,6 @@ module ActiveRecord
       private
         def predicate_builder(table)
           PredicateBuilder.new(TableMetadata.new(klass, table))
-        end
-
-        def join_pk(_)
-          foreign_key
         end
 
         def primary_key(klass)
@@ -425,21 +419,13 @@ module ActiveRecord
 
       def initialize(name, scope, options, active_record)
         super
-        @automatic_inverse_of = nil
         @type         = options[:as] && (options[:foreign_type] || "#{options[:as]}_type")
-        @foreign_type = options[:foreign_type] || "#{name}_type"
+        @foreign_type = options[:polymorphic] && (options[:foreign_type] || "#{name}_type")
         @constructable = calculate_constructable(macro, options)
         @association_scope_cache = Concurrent::Map.new
 
         if options[:class_name] && options[:class_name].class == Class
-          ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Passing a class to the `class_name` is deprecated and will raise
-            an ArgumentError in Rails 5.2. It eagerloads more classes than
-            necessary and potentially creates circular dependencies.
-
-            Please pass the class name as a string:
-            `#{macro} :#{name}, class_name: '#{options[:class_name]}'`
-          MSG
+          raise ArgumentError, "A class was passed to `:class_name` but we are expecting a string."
         end
       end
 
@@ -609,12 +595,14 @@ module ActiveRecord
         # If it cannot find a suitable inverse association name, it returns
         # +nil+.
         def inverse_name
-          options.fetch(:inverse_of) do
-            @automatic_inverse_of ||= automatic_inverse_of
+          unless defined?(@inverse_name)
+            @inverse_name = options.fetch(:inverse_of) { automatic_inverse_of }
           end
+
+          @inverse_name
         end
 
-        # returns either false or the inverse association name that it finds.
+        # returns either +nil+ or the inverse association name that it finds.
         def automatic_inverse_of
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
@@ -631,8 +619,6 @@ module ActiveRecord
               return inverse_name
             end
           end
-
-          false
         end
 
         # Checks if the inverse reflection that is returned from the
@@ -736,6 +722,10 @@ module ActiveRecord
         end
       end
 
+      def join_primary_key(klass)
+        polymorphic? ? association_primary_key(klass) : association_primary_key
+      end
+
       def join_foreign_key
         foreign_key
       end
@@ -744,10 +734,6 @@ module ActiveRecord
 
         def calculate_constructable(macro, options)
           !polymorphic?
-        end
-
-        def join_pk(klass)
-          polymorphic? ? association_primary_key(klass) : association_primary_key
         end
     end
 
@@ -851,10 +837,6 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         source_reflection.join_scopes(table, predicate_builder) + super
-      end
-
-      def source_type_scope
-        through_reflection.klass.where(foreign_type => options[:source_type])
       end
 
       def has_scope?
@@ -1016,29 +998,24 @@ module ActiveRecord
     end
 
     class PolymorphicReflection < AbstractReflection # :nodoc:
-      delegate :klass, :scope, :plural_name, :type, :get_join_keys, to: :@reflection
+      delegate :klass, :scope, :plural_name, :type, :get_join_keys, :scope_for, to: :@reflection
 
       def initialize(reflection, previous_reflection)
         @reflection = reflection
         @previous_reflection = previous_reflection
       end
 
-      def scopes
-        scopes = @previous_reflection.scopes
-        scopes << @previous_reflection.source_type_scope
-      end
-
       def join_scopes(table, predicate_builder) # :nodoc:
         scopes = @previous_reflection.join_scopes(table, predicate_builder) + super
-        scopes << @previous_reflection.source_type_scope
+        scopes << build_scope(table, predicate_builder).instance_exec(nil, &source_type_scope)
       end
 
       def constraints
-        @reflection.constraints + [source_type_info]
+        @reflection.constraints + [source_type_scope]
       end
 
       private
-        def source_type_info
+        def source_type_scope
           type = @previous_reflection.foreign_type
           source_type = @previous_reflection.options[:source_type]
           lambda { |object| where(type => source_type) }

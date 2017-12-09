@@ -240,6 +240,20 @@ class RelationScopingTest < ActiveRecord::TestCase
     assert_nil SpecialComment.current_scope
   end
 
+  def test_scoping_respects_current_class
+    Comment.unscoped do
+      assert_equal "a comment...", Comment.all.what_are_you
+      assert_equal "a special comment...", SpecialComment.all.what_are_you
+    end
+  end
+
+  def test_scoping_respects_sti_constraint
+    Comment.unscoped do
+      assert_equal comments(:greetings), Comment.find(1)
+      assert_raises(ActiveRecord::RecordNotFound) { SpecialComment.find(1) }
+    end
+  end
+
   def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
       Post.first(10)

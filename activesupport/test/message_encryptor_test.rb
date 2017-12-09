@@ -115,6 +115,72 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
   end
 
+  def test_rotating_secret
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    encryptor.rotate secrets[:old]
+
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_rotating_serializer
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm", serializer: JSON).
+      encrypt_and_sign(ahoy: :hoy)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm", serializer: JSON)
+    encryptor.rotate secrets[:old]
+
+    assert_equal({ "ahoy" => "hoy" }, encryptor.decrypt_and_verify(old_message))
+  end
+
+  def test_rotating_aes_cbc_secrets
+    old_encryptor = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign", cipher: "aes-256-cbc")
+    old_message = old_encryptor.encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old], "old sign", cipher: "aes-256-cbc"
+
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_multiple_rotations
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign("older")
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign").encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old], "old sign"
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_equal "new",   encryptor.decrypt_and_verify(encryptor.encrypt_and_sign("new"))
+    assert_equal "old",   encryptor.decrypt_and_verify(old_message)
+    assert_equal "older", encryptor.decrypt_and_verify(older_message)
+  end
+
+  def test_on_rotation_is_called_and_returns_modified_messages
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old]
+    encryptor.rotate secrets[:older], "older sign"
+
+    rotated = false
+    message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = true })
+
+    assert_equal({ encoded: "message" }, message)
+    assert rotated
+  end
+
+  def test_with_rotated_metadata
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").
+      encrypt_and_sign("metadata", purpose: :rotation)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    encryptor.rotate secrets[:old]
+
+    assert_equal "metadata", encryptor.decrypt_and_verify(old_message, purpose: :rotation)
+  end
+
   private
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
@@ -132,6 +198,10 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       assert_raise(ActiveSupport::MessageVerifier::InvalidSignature) do
         @encryptor.decrypt_and_verify(value)
       end
+    end
+
+    def secrets
+      @secrets ||= Hash.new { |h, k| h[k] = SecureRandom.random_bytes(32) }
     end
 
     def munge(base64_string)

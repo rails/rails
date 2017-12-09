@@ -8,6 +8,7 @@ module ActiveRecord
           def prepare_column_options(column)
             spec = super
             spec[:unsigned] = "true" if column.unsigned?
+            spec[:auto_increment] = "true" if column.auto_increment?
 
             if @connection.supports_virtual_columns? && column.virtual?
               spec[:as] = extract_expression_for_virtual_column(column)
@@ -15,6 +16,12 @@ module ActiveRecord
               spec = { type: schema_type(column).inspect }.merge!(spec)
             end
 
+            spec
+          end
+
+          def column_spec_for_primary_key(column)
+            spec = super
+            spec.delete(:auto_increment) if column.type == :integer && column.auto_increment?
             spec
           end
 

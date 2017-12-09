@@ -565,18 +565,18 @@ unless in_memory_db?
       end
     end
 
-    # Locking a record reloads it.
-    def test_sane_lock_method
+    def test_lock_does_not_raise_when_the_object_is_not_dirty
+      person = Person.find 1
       assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, "fooman"
-          # Locking a dirty record is deprecated
-          assert_deprecated do
-            person.lock!
-          end
-          assert_equal old, person.first_name
-        end
+        person.lock!
+      end
+    end
+
+    def test_lock_raises_when_the_record_is_dirty
+      person = Person.find 1
+      person.first_name = "fooman"
+      assert_raises(RuntimeError) do
+        person.lock!
       end
     end
 
@@ -611,14 +611,12 @@ unless in_memory_db?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-      def test_no_locks_no_wait
-        first, second = duel { Person.find 1 }
-        assert first.end > second.end
-      end
+    def test_no_locks_no_wait
+      first, second = duel { Person.find 1 }
+      assert first.end > second.end
+    end
 
-      private
-
+    private
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
@@ -646,6 +644,5 @@ unless in_memory_db?
         assert t3 > t2
         [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
       end
-    end
   end
 end

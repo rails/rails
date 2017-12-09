@@ -16,7 +16,7 @@ module ActiveRecord
         ActiveRecord::Migration.verbose = false
 
         connection.create_table :testings do |t|
-          t.column :foo, :string, limit: 100
+          t.column :foo, :string, limit: 5
           t.column :bar, :string, limit: 100
         end
       end
@@ -126,14 +126,31 @@ module ActiveRecord
         end
         assert_match(/LegacyMigration < ActiveRecord::Migration\[4\.2\]/, e.message)
       end
+
+      if current_adapter?(:PostgreSQLAdapter)
+        class Testing < ActiveRecord::Base
+        end
+
+        def test_legacy_change_column_with_null_executes_update
+          migration = Class.new(ActiveRecord::Migration[5.1]) {
+            def migrate(x)
+              change_column :testings, :foo, :string, limit: 10, null: false, default: "foobar"
+            end
+          }.new
+
+          Testing.create!
+          ActiveRecord::Migrator.new(:up, [migration]).migrate
+          assert_equal ["foobar"], Testing.all.map(&:foo)
+        ensure
+          ActiveRecord::Base.clear_cache!
+        end
+      end
     end
   end
 end
 
-class LegacyPrimaryKeyTest < ActiveRecord::TestCase
+module LegacyPrimaryKeyTestCases
   include SchemaDumpingHelper
-
-  self.use_transactional_tests = false
 
   class LegacyPrimaryKey < ActiveRecord::Base
   end
@@ -152,7 +169,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   end
 
   def test_legacy_primary_key_should_be_auto_incremented
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_table :legacy_primary_keys do |t|
           t.references :legacy_ref
@@ -182,7 +199,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
   def test_legacy_integer_primary_key_should_not_be_auto_incremented
     skip if current_adapter?(:SQLite3Adapter)
 
-    @migration = Class.new(ActiveRecord::Migration[5.0]) {
+    @migration = Class.new(migration_class) {
       def change
         create_table :legacy_primary_keys, id: :integer do |t|
         end
@@ -199,9 +216,90 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
   end
 
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    def test_legacy_primary_key_in_create_table_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.primary_key :id
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      schema = dump_table_schema "legacy_primary_keys"
+      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+    end
+
+    def test_legacy_primary_key_in_change_table_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.integer :dummy
+          end
+          change_table :legacy_primary_keys do |t|
+            t.primary_key :id
+          end
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      schema = dump_table_schema "legacy_primary_keys"
+      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+    end
+
+    def test_add_column_with_legacy_primary_key_should_be_integer
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.integer :dummy
+          end
+          add_column :legacy_primary_keys, :id, :primary_key
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      schema = dump_table_schema "legacy_primary_keys"
+      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+    end
+  end
+
+  def test_legacy_join_table_foreign_keys_should_be_integer
+    @migration = Class.new(migration_class) {
+      def change
+        create_join_table :apples, :bananas do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    schema = dump_table_schema "apples_bananas"
+    assert_match %r{integer "apple_id", null: false}, schema
+    assert_match %r{integer "banana_id", null: false}, schema
+  end
+
+  def test_legacy_join_table_column_options_should_be_overwritten
+    @migration = Class.new(migration_class) {
+      def change
+        create_join_table :apples, :bananas, column_options: { type: :bigint } do |t|
+        end
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    schema = dump_table_schema "apples_bananas"
+    assert_match %r{bigint "apple_id", null: false}, schema
+    assert_match %r{bigint "banana_id", null: false}, schema
+  end
+
   if current_adapter?(:Mysql2Adapter)
     def test_legacy_bigint_primary_key_should_be_auto_incremented
-      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      @migration = Class.new(migration_class) {
         def change
           create_table :legacy_primary_keys, id: :bigint
         end
@@ -218,7 +316,7 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
     end
   else
     def test_legacy_bigint_primary_key_should_not_be_auto_incremented
-      @migration = Class.new(ActiveRecord::Migration[5.0]) {
+      @migration = Class.new(migration_class) {
         def change
           create_table :legacy_primary_keys, id: :bigint do |t|
           end
@@ -234,5 +332,29 @@ class LegacyPrimaryKeyTest < ActiveRecord::TestCase
       schema = dump_table_schema "legacy_primary_keys"
       assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
     end
+  end
+end
+
+module LegacyPrimaryKeyTest
+  class V5_0 < ActiveRecord::TestCase
+    include LegacyPrimaryKeyTestCases
+
+    self.use_transactional_tests = false
+
+    private
+      def migration_class
+        ActiveRecord::Migration[5.0]
+      end
+  end
+
+  class V4_2 < ActiveRecord::TestCase
+    include LegacyPrimaryKeyTestCases
+
+    self.use_transactional_tests = false
+
+    private
+      def migration_class
+        ActiveRecord::Migration[4.2]
+      end
   end
 end

@@ -63,6 +63,18 @@ module ActiveRecord
     #   member.update params[:member]
     #   member.avatar.icon # => 'sad'
     #
+    # If you want to update the current avatar without providing the id, you must add <tt>:update_only</tt> option.
+    #
+    #   class Member < ActiveRecord::Base
+    #     has_one :avatar
+    #     accepts_nested_attributes_for :avatar, update_only: true
+    #   end
+    #
+    #   params = { member: { avatar_attributes: { icon: 'sad' } } }
+    #   member.update params[:member]
+    #   member.avatar.id # => 2
+    #   member.avatar.icon # => 'sad'
+    #
     # By default you will only be able to set and update attributes on the
     # associated model. If you want to destroy the associated model through the
     # attributes hash, you have to enable it first using the

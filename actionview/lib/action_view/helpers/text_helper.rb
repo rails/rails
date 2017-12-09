@@ -422,7 +422,7 @@ module ActionView
         def to_s
           value = @values[@index].to_s
           @index = next_index
-          return value
+          value
         end
 
         private
@@ -446,7 +446,7 @@ module ActionView
         # uses an instance variable of ActionView::Base.
         def get_cycle(name)
           @_cycles = Hash.new unless defined?(@_cycles)
-          return @_cycles[name]
+          @_cycles[name]
         end
 
         def set_cycle(name, cycle_object)

@@ -51,6 +51,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     @params.each { |key, value| assert_not(value.permitted?) if key == "person" }
   end
 
+  test "each returns key,value array for block with arity 1" do
+    @params.each do |arg|
+      assert_kind_of Array, arg
+      assert_equal "person", arg[0]
+      assert_kind_of ActionController::Parameters, arg[1]
+    end
+  end
+
   test "each_pair carries permitted status" do
     @params.permit!
     @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
@@ -58,6 +66,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair carries unpermitted status" do
     @params.each_pair { |key, value| assert_not(value.permitted?) if key == "person" }
+  end
+
+  test "each_pair returns key,value array for block with arity 1" do
+    @params.each_pair do |arg|
+      assert_kind_of Array, arg
+      assert_equal "person", arg[0]
+      assert_kind_of ActionController::Parameters, arg[1]
+    end
   end
 
   test "empty? returns true when params contains no key/value pairs" do

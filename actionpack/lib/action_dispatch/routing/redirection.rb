@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../http/request"
+require "action_dispatch/http/request"
 require "active_support/core_ext/uri"
 require "active_support/core_ext/array/extract_options"
 require "rack/utils"
 require "action_controller/metal/exceptions"
-require_relative "endpoint"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing

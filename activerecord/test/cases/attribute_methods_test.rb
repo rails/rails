@@ -200,12 +200,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   if current_adapter?(:Mysql2Adapter)
     test "read attributes_before_type_cast on a boolean" do
       bool = Boolean.create!("value" => false)
-      if RUBY_PLATFORM.include?("java")
-        # JRuby will return the value before typecast as string.
-        assert_equal "0", bool.reload.attributes_before_type_cast["value"]
-      else
-        assert_equal 0, bool.reload.attributes_before_type_cast["value"]
-      end
+      assert_equal 0, bool.reload.attributes_before_type_cast["value"]
     end
   end
 
@@ -999,6 +994,11 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal ["title"], model.accessed_fields
   end
 
+  test "generated attribute methods ancestors have correct class" do
+    mod = Topic.send(:generated_attribute_methods)
+    assert_match %r(GeneratedAttributeMethods), mod.inspect
+  end
+
   private
 
     def new_topic_like_ar_class(&block)
@@ -1017,14 +1017,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       yield
     ensure
       ActiveRecord::Base.time_zone_aware_types = old_types
-    end
-
-    def cached_columns
-      Topic.columns.map(&:name)
-    end
-
-    def time_related_columns_on_topic
-      Topic.columns.select { |c| [:time, :date, :datetime, :timestamp].include?(c.type) }
     end
 
     def privatize(method_signature)

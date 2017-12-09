@@ -16,7 +16,7 @@ module ActiveStorage
     end
 
     def upload(key, io, checksum: nil)
-      instrument :upload, key, checksum: checksum do
+      instrument :upload, key: key, checksum: checksum do
         IO.copy_stream(io, make_path_for(key))
         ensure_integrity_of(key, checksum) if checksum
       end
@@ -24,7 +24,7 @@ module ActiveStorage
 
     def download(key)
       if block_given?
-        instrument :streaming_download, key do
+        instrument :streaming_download, key: key do
           File.open(path_for(key), "rb") do |file|
             while data = file.read(64.kilobytes)
               yield data
@@ -32,14 +32,14 @@ module ActiveStorage
           end
         end
       else
-        instrument :download, key do
+        instrument :download, key: key do
           File.binread path_for(key)
         end
       end
     end
 
     def delete(key)
-      instrument :delete, key do
+      instrument :delete, key: key do
         begin
           File.delete path_for(key)
         rescue Errno::ENOENT
@@ -48,8 +48,16 @@ module ActiveStorage
       end
     end
 
+    def delete_prefixed(prefix)
+      instrument :delete_prefixed, prefix: prefix do
+        Dir.glob(path_for("#{prefix}*")).each do |path|
+          FileUtils.rm_rf(path)
+        end
+      end
+    end
+
     def exist?(key)
-      instrument :exist, key do |payload|
+      instrument :exist, key: key do |payload|
         answer = File.exist? path_for(key)
         payload[:exist] = answer
         answer
@@ -57,16 +65,17 @@ module ActiveStorage
     end
 
     def url(key, expires_in:, filename:, disposition:, content_type:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
         generated_url =
           if defined?(Rails.application)
             Rails.application.routes.url_helpers.rails_disk_service_path \
               verified_key_with_expiration,
-              filename: filename, disposition: disposition, content_type: content_type
+              filename: filename, disposition: content_disposition_with(type: disposition, filename: filename), content_type: content_type
           else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}&disposition=#{disposition}"
+            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}" \
+              "&disposition=#{content_disposition_with(type: disposition, filename: filename)}"
           end
 
         payload[:url] = generated_url
@@ -76,7 +85,7 @@ module ActiveStorage
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
-      instrument :url, key do |payload|
+      instrument :url, key: key do |payload|
         verified_token_with_expiration = ActiveStorage.verifier.generate(
           {
             key: key,

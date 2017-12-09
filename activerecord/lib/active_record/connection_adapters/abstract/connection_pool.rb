@@ -63,15 +63,13 @@ module ActiveRecord
     # There are several connection-pooling-related options that you can add to
     # your database connection configuration:
     #
-    # * +pool+: number indicating size of connection pool (default 5)
-    # * +checkout_timeout+: number of seconds to block and wait for a connection
-    #   before giving up and raising a timeout error (default 5 seconds).
-    # * +reaping_frequency+: frequency in seconds to periodically run the
-    #   Reaper, which attempts to find and recover connections from dead
-    #   threads, which can occur if a programmer forgets to close a
-    #   connection at the end of a thread or a thread dies unexpectedly.
-    #   Regardless of this setting, the Reaper will be invoked before every
-    #   blocking wait. (Default +nil+, which means don't schedule the Reaper).
+    # * +pool+: maximum number of connections the pool may manage (default 5).
+    # * +idle_timeout+: number of seconds that a connection will be kept
+    #   unused in the pool before it is automatically disconnected (default
+    #   300 seconds). Set this to zero to keep connections forever.
+    # * +checkout_timeout+: number of seconds to wait for a connection to
+    #   become available before giving up and raising a timeout error (default
+    #   5 seconds).
     #
     #--
     # Synchronization policy:
@@ -82,11 +80,8 @@ module ActiveRecord
     # * private methods that require being called in a +synchronize+ blocks
     #   are now explicitly documented
     class ConnectionPool
-      # Threadsafe, fair, FIFO queue.  Meant to be used by ConnectionPool
-      # with which it shares a Monitor.  But could be a generic Queue.
-      #
-      # The Queue in stdlib's 'thread' could replace this class except
-      # stdlib's doesn't support waiting with a timeout.
+      # Threadsafe, fair, LIFO queue.  Meant to be used by ConnectionPool
+      # with which it shares a Monitor.
       class Queue
         def initialize(lock = Monitor.new)
           @lock = lock
@@ -175,7 +170,7 @@ module ActiveRecord
 
           # Removes and returns the head of the queue if possible, or +nil+.
           def remove
-            @queue.shift
+            @queue.pop
           end
 
           # Remove and return the head the queue if the number of
@@ -283,12 +278,12 @@ module ActiveRecord
           end
       end
 
-      # Every +frequency+ seconds, the reaper will call +reap+ on +pool+.
-      # A reaper instantiated with a +nil+ frequency will never reap the
-      # connection pool.
+      # Every +frequency+ seconds, the reaper will call +reap+ and +flush+ on
+      # +pool+. A reaper instantiated with a zero frequency will never reap
+      # the connection pool.
       #
-      # Configure the frequency by setting "reaping_frequency" in your
-      # database yaml file.
+      # Configure the frequency by setting +reaping_frequency+ in your database
+      # yaml file (default 60 seconds).
       class Reaper
         attr_reader :pool, :frequency
 
@@ -298,11 +293,12 @@ module ActiveRecord
         end
 
         def run
-          return unless frequency
+          return unless frequency && frequency > 0
           Thread.new(frequency, pool) { |t, p|
             loop do
               sleep t
               p.reap
+              p.flush
             end
           }
         end
@@ -326,6 +322,10 @@ module ActiveRecord
         @spec = spec
 
         @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
+        if @idle_timeout = spec.config.fetch(:idle_timeout, 300)
+          @idle_timeout = @idle_timeout.to_f
+          @idle_timeout = nil if @idle_timeout <= 0
+        end
 
         # default max pool size to 5
         @size = (spec.config[:pool] && spec.config[:pool].to_i) || 5
@@ -356,7 +356,10 @@ module ActiveRecord
 
         @lock_thread = false
 
-        @reaper = Reaper.new(self, spec.config[:reaping_frequency] && spec.config[:reaping_frequency].to_f)
+        # +reaping_frequency+ is configurable mostly for historical reasons, but it could
+        # also be useful if someone wants a very low +idle_timeout+.
+        reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
+        @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
         @reaper.run
       end
 
@@ -448,6 +451,21 @@ module ActiveRecord
       # disconnected without any regard for other connection owning threads.
       def disconnect!
         disconnect(false)
+      end
+
+      # Discards all connections in the pool (even if they're currently
+      # leased!), along with the pool itself. Any further interaction with the
+      # pool (except #spec and #schema_cache) is undefined.
+      #
+      # See AbstractAdapter#discard!
+      def discard! # :nodoc:
+        synchronize do
+          return if @connections.nil? # already discarded
+          @connections.each do |conn|
+            conn.discard!
+          end
+          @connections = @available = @thread_cached_conns = nil
+        end
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -573,6 +591,35 @@ module ActiveRecord
             remove conn
           end
         end
+      end
+
+      # Disconnect all connections that have been idle for at least
+      # +minimum_idle+ seconds. Connections currently checked out, or that were
+      # checked in less than +minimum_idle+ seconds ago, are unaffected.
+      def flush(minimum_idle = @idle_timeout)
+        return if minimum_idle.nil?
+
+        idle_connections = synchronize do
+          @connections.select do |conn|
+            !conn.in_use? && conn.seconds_idle >= minimum_idle
+          end.each do |conn|
+            conn.lease
+
+            @available.delete conn
+            @connections.delete conn
+          end
+        end
+
+        idle_connections.each do |conn|
+          conn.disconnect!
+        end
+      end
+
+      # Disconnect all currently idle connections. Connections currently checked
+      # out are unaffected.
+      def flush!
+        reap
+        flush(-1)
       end
 
       def num_waiting_in_queue # :nodoc:
@@ -866,11 +913,31 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      def self.unowned_pool_finalizer(pid_map) # :nodoc:
+        lambda do |_|
+          discard_unowned_pools(pid_map)
+        end
+      end
+
+      def self.discard_unowned_pools(pid_map) # :nodoc:
+        pid_map.each do |pid, pools|
+          pools.values.compact.each(&:discard!) unless pid == Process.pid
+        end
+      end
+
       def initialize
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
+          # Discard the parent's connection pools immediately; we have no need
+          # of them
+          ConnectionHandler.discard_unowned_pools(h)
+
           h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
+
+        # Backup finalizer: if the forked child never needed a pool, the above
+        # early discard has not occurred
+        ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
       end
 
       def connection_pool_list
@@ -922,6 +989,13 @@ module ActiveRecord
 
       def clear_all_connections!
         connection_pool_list.each(&:disconnect!)
+      end
+
+      # Disconnects all currently idle connections.
+      #
+      # See ConnectionPool#flush! for details.
+      def flush_idle_connections!
+        connection_pool_list.each(&:flush!)
       end
 
       # Locate the connection of the nearest super class. This can be an

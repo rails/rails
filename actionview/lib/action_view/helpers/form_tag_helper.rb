@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "cgi"
-require_relative "tag_helper"
+require "action_view/helpers/tag_helper"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/module/attribute_accessors"
 
@@ -115,7 +115,7 @@ module ActionView
       #   #    <option>Write</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: true
-      #   # => <select id="people" name="people"><option value=""></option><option value="1">David</option></select>
+      #   # => <select id="people" name="people"><option value="" label=" "></option><option value="1">David</option></select>
       #
       #   select_tag "people", options_from_collection_for_select(@people, "id", "name"), include_blank: "All"
       #   # => <select id="people" name="people"><option value="">All</option><option value="1">David</option></select>
@@ -394,7 +394,7 @@ module ActionView
       #   # => <input checked="checked" id="receive_updates_no" name="receive_updates" type="radio" value="no" />
       #
       #   radio_button_tag 'time_slot', "3:00 p.m.", false, disabled: true
-      #   # => <input disabled="disabled" id="time_slot_300_pm" name="time_slot" type="radio" value="3:00 p.m." />
+      #   # => <input disabled="disabled" id="time_slot_3:00_p.m." name="time_slot" type="radio" value="3:00 p.m." />
       #
       #   radio_button_tag 'color', "green", true, class: "color_input"
       #   # => <input checked="checked" class="color_input" id="color_green" name="color" type="radio" value="green" />

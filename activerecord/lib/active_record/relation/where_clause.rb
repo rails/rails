@@ -47,7 +47,7 @@ module ActiveRecord
       end
 
       def to_h(table_name = nil)
-        equalities = predicates.grep(Arel::Nodes::Equality)
+        equalities = equalities(predicates)
         if table_name
           equalities = equalities.select do |node|
             node.left.relation.name == table_name
@@ -90,6 +90,20 @@ module ActiveRecord
         end
 
       private
+        def equalities(predicates)
+          equalities = []
+
+          predicates.each do |node|
+            case node
+            when Arel::Nodes::Equality
+              equalities << node
+            when Arel::Nodes::And
+              equalities.concat equalities(node.children)
+            end
+          end
+
+          equalities
+        end
 
         def predicates_unreferenced_by(other)
           predicates.reject do |n|
@@ -121,7 +135,7 @@ module ActiveRecord
         end
 
         def except_predicates(columns)
-          self.predicates.reject do |node|
+          predicates.reject do |node|
             case node
             when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
               subrelation = (node.left.kind_of?(Arel::Attributes::Attribute) ? node.left : node.right)

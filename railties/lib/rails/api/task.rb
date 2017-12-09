@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "rdoc/task"
-require_relative "generator"
+require "rails/api/generator"
 
 module Rails
   module API

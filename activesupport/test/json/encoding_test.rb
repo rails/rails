@@ -210,7 +210,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
 
   People = Class.new(BasicObject) do
     include Enumerable
-    def initialize()
+    def initialize
       @people = [
         { name: "John", address: { city: "London", country: "UK" } },
         { name: "Jean", address: { city: "Paris" , country: "France" } }
@@ -452,6 +452,10 @@ EXPECTED
 
   def test_to_json_works_when_as_json_returns_NaN_number
     assert_equal '{"number":null}', NaNNumber.new.to_json
+  end
+
+  def test_to_json_works_on_io_objects
+    assert_equal STDOUT.to_s.to_json, STDOUT.to_json
   end
 
   private

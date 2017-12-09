@@ -2,7 +2,7 @@
 
 gem "minitest"
 require "minitest"
-require_relative "runner"
+require "rails/test_unit/runner"
 
 task default: :test
 

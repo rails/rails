@@ -146,6 +146,16 @@ module CacheStoreBehavior
     assert_nil @cache.read("foo")
   end
 
+  def test_read_and_write_uncompressed_small_data
+    @cache.write("foo", "bar", compress: false)
+    assert_equal "bar", @cache.read("foo")
+  end
+
+  def test_read_and_write_uncompressed_nil
+    @cache.write("foo", nil, compress: false)
+    assert_nil @cache.read("foo")
+  end
+
   def test_cache_key
     obj = Object.new
     def obj.cache_key

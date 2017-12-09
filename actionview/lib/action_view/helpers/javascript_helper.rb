@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "tag_helper"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   module Helpers #:nodoc:

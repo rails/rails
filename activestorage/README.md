@@ -12,6 +12,10 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 `Blob` models store attachment metadata (filename, content-type, etc.), and their identifier key in the storage service. Blob models do not store the actual binary data. They are intended to be immutable in spirit. One file, one blob. You can associate the same blob with multiple application models as well. And if you want to do transformations of a given `Blob`, the idea is that you'll simply create a new one, rather than attempt to mutate the existing one (though of course you can delete the previous version later if you don't need it).
 
+## Installation
+
+Run `rails active_storage:install` to copy over active_storage migrations.
+
 ## Examples
 
 One attachment:
@@ -24,7 +28,7 @@ class User < ApplicationRecord
 end
 
 # Attach an avatar to the user.
-user.avatar.attach(io: File.open("~/face.jpg"), filename: "avatar.jpg", content_type: "image/jpg")
+user.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
 
 # Does the user have an avatar?
 user.avatar.attached? # => true
@@ -63,7 +67,7 @@ end
 ```
 
 ```erb
-<%= form_with model: @message do |form| %>
+<%= form_with model: @message, local: true do |form| %>
   <%= form.text_field :title, placeholder: "Title" %><br>
   <%= form.text_area :content %><br><br>
 
@@ -139,3 +143,17 @@ Active Storage, with its included JavaScript library, supports uploading directl
 ## License
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
+
+ ## Support
+
+API documentation is at:
+
+* http://api.rubyonrails.org
+
+Bug reports for the Ruby on Rails project can be filed here:
+
+* https://github.com/rails/rails/issues
+
+Feature requests should be discussed on the rails-core mailing list here:
+
+* https://groups.google.com/forum/?fromgroups#!forum/rubyonrails-core

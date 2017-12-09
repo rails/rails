@@ -1,16 +1,16 @@
 # frozen_string_literal: true
 
-require_relative "router/utils"
-require_relative "routes"
-require_relative "formatter"
+require "action_dispatch/journey/router/utils"
+require "action_dispatch/journey/routes"
+require "action_dispatch/journey/formatter"
 
 before = $-w
 $-w = false
-require_relative "parser"
+require "action_dispatch/journey/parser"
 $-w = before
 
-require_relative "route"
-require_relative "path/pattern"
+require "action_dispatch/journey/route"
+require "action_dispatch/journey/path/pattern"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -61,7 +61,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)

@@ -32,12 +32,21 @@ if SERVICE_CONFIGURATIONS[:gcs]
     end
 
     test "signed URL generation" do
-      freeze_time do
-        url = SERVICE.bucket.signed_url(FIXTURE_KEY, expires: 120) +
-          "&response-content-disposition=inline%3B+filename%3D%22test.txt%22" +
-          "&response-content-type=text%2Fplain"
+      assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
+        @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
+    end
 
-        assert_equal url, @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: "inline; filename=\"test.txt\"", filename: "test.txt", content_type: "text/plain")
+    test "signed URL response headers" do
+      begin
+        key  = SecureRandom.base58(24)
+        data = "Something else entirely!"
+        @service.upload(key, StringIO.new(data), checksum: Digest::MD5.base64digest(data))
+
+        url = @service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
+        response = Net::HTTP.get_response(URI(url))
+        assert_equal "text/plain", response.header["Content-Type"]
+      ensure
+        @service.delete key
       end
     end
   end

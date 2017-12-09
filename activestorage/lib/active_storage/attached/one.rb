@@ -14,17 +14,16 @@ module ActiveStorage
     end
 
     # Associates a given attachment with the current record, saving it to the database.
-    # Examples:
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
-    #   person.avatar.attach(io: File.open("~/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
+    #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
       if attached? && dependent == :purge_later
         replace attachable
       else
-        write_attachment create_attachment_from(attachable)
+        write_attachment build_attachment_from(attachable)
       end
     end
 
@@ -37,6 +36,14 @@ module ActiveStorage
     #   User.new.avatar.attached? # => false
     def attached?
       attachment.present?
+    end
+
+    # Deletes the attachment without purging it, leaving its blob in place.
+    def detach
+      if attached?
+        attachment.destroy
+        write_attachment nil
+      end
     end
 
     # Directly purges the attachment (i.e. destroys the blob and
@@ -59,14 +66,14 @@ module ActiveStorage
       def replace(attachable)
         blob.tap do
           transaction do
-            destroy
-            write_attachment create_attachment_from(attachable)
+            detach
+            write_attachment build_attachment_from(attachable)
           end
         end.purge_later
       end
 
-      def create_attachment_from(attachable)
-        ActiveStorage::Attachment.create!(record: record, name: name, blob: create_blob_from(attachable))
+      def build_attachment_from(attachable)
+        ActiveStorage::Attachment.new(record: record, name: name, blob: create_blob_from(attachable))
       end
 
       def write_attachment(attachment)

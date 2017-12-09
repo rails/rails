@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+gem "bundler", "< 1.16"
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -9,8 +11,10 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   gem "rails", github: "rails/rails"
-  gem "arel", github: "rails/arel"
   gem "sqlite3"
 end
 
@@ -34,7 +38,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[5.0]
+class ChangeAmountToAddScale < ActiveRecord::Migration[5.2]
   def change
     reversible do |dir|
       dir.up do

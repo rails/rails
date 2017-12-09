@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../array/extract_options"
-require_relative "../regexp"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance

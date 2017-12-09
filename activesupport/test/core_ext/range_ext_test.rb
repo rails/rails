@@ -16,6 +16,11 @@ class RangeTest < ActiveSupport::TestCase
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
   end
 
+  def test_to_s_with_alphabets
+    alphabet_range = ("a".."z")
+    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_s(:db)
+  end
+
   def test_to_s_with_numeric
     number_range = (1..100)
     assert_equal "BETWEEN '1' AND '100'", number_range.to_s(:db)
@@ -116,9 +121,12 @@ class RangeTest < ActiveSupport::TestCase
 
   def test_include_on_time_with_zone
     twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
-    assert_raises TypeError do
-      ((twz - 1.hour)..twz).include?(twz)
-    end
+    assert ((twz - 1.hour)..twz).include?(twz)
+  end
+
+  def test_case_equals_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz) === twz
   end
 
   def test_date_time_with_each

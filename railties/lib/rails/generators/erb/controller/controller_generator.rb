@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../erb"
+require "rails/generators/erb"
 
 module Erb # :nodoc:
   module Generators # :nodoc:

@@ -282,7 +282,14 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
                 /class Admin::RolesTest < ApplicationSystemTestCase/
 
     # Views
-    %w(index edit new show _form).each do |view|
+    assert_file "app/views/admin/roles/index.html.erb" do |content|
+      assert_match("'Show', admin_role", content)
+      assert_match("'Edit', edit_admin_role_path(admin_role)", content)
+      assert_match("'Destroy', admin_role", content)
+      assert_match("'New Admin Role', new_admin_role_path", content)
+    end
+
+    %w(edit new show _form).each do |view|
       assert_file "app/views/admin/roles/#{view}.html.erb"
     end
     assert_no_file "app/views/layouts/admin/roles.html.erb"
@@ -464,8 +471,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/accounts/_form.html.erb" do |content|
-      assert_match(/^\W{4}<%= form\.text_field :name, id: :account_name %>/, content)
-      assert_match(/^\W{4}<%= form\.text_field :currency_id, id: :account_currency_id %>/, content)
+      assert_match(/^\W{4}<%= form\.text_field :name %>/, content)
+      assert_match(/^\W{4}<%= form\.text_field :currency_id %>/, content)
     end
   end
 
@@ -488,8 +495,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/users/_form.html.erb" do |content|
-      assert_match(/<%= form\.password_field :password, id: :user_password %>/, content)
-      assert_match(/<%= form\.password_field :password_confirmation, id: :user_password_confirmation %>/, content)
+      assert_match(/<%= form\.password_field :password %>/, content)
+      assert_match(/<%= form\.password_field :password_confirmation %>/, content)
     end
 
     assert_file "app/views/users/index.html.erb" do |content|

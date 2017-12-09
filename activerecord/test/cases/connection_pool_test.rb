@@ -156,6 +156,53 @@ module ActiveRecord
         @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
+      def test_flush
+        idle_conn = @pool.checkout
+        recent_conn = @pool.checkout
+        active_conn = @pool.checkout
+
+        @pool.checkin idle_conn
+        @pool.checkin recent_conn
+
+        assert_equal 3, @pool.connections.length
+
+        def idle_conn.seconds_idle
+          1000
+        end
+
+        @pool.flush(30)
+
+        assert_equal 2, @pool.connections.length
+
+        assert_equal [recent_conn, active_conn].sort_by(&:__id__), @pool.connections.sort_by(&:__id__)
+      ensure
+        @pool.checkin active_conn
+      end
+
+      def test_flush_bang
+        idle_conn = @pool.checkout
+        recent_conn = @pool.checkout
+        active_conn = @pool.checkout
+        _dead_conn = Thread.new { @pool.checkout }.join
+
+        @pool.checkin idle_conn
+        @pool.checkin recent_conn
+
+        assert_equal 4, @pool.connections.length
+
+        def idle_conn.seconds_idle
+          1000
+        end
+
+        @pool.flush!
+
+        assert_equal 1, @pool.connections.length
+
+        assert_equal [active_conn].sort_by(&:__id__), @pool.connections.sort_by(&:__id__)
+      ensure
+        @pool.checkin active_conn
+      end
+
       def test_remove_connection
         conn = @pool.checkout
         assert conn.in_use?
@@ -203,6 +250,14 @@ module ActiveRecord
           assert pool.connection
           pool.connection.close
         end.join
+      end
+
+      def test_checkout_order_is_lifo
+        conn1 = @pool.checkout
+        conn2 = @pool.checkout
+        @pool.checkin conn1
+        @pool.checkin conn2
+        assert_equal [conn2, conn1], 2.times.map { @pool.checkout }
       end
 
       # The connection pool is "fair" if threads waiting for

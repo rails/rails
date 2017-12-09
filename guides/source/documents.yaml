@@ -159,6 +159,11 @@
       url: engines.html
       description: This guide explains how to write a mountable engine.
       work_in_progress: true
+    -
+      name: Threading and Code Execution in Rails
+      url: threading_and_code_execution.html
+      description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
+      work_in_progress: true
 -
   name: Contributing to Ruby on Rails
   documents:
@@ -188,6 +193,10 @@
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 5.2 Release Notes
+      url: 5_2_release_notes.html
+      description: Release notes for Rails 5.2.
     -
       name: Ruby on Rails 5.1 Release Notes
       url: 5_1_release_notes.html

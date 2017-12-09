@@ -87,6 +87,17 @@ class Developer < ActiveRecord::Base
   private :track_instance_count
 end
 
+class SubDeveloper < Developer
+end
+
+class SymbolIgnoredDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.ignored_columns = [:first_name, :last_name]
+
+  attr_accessor :last_name
+  define_attribute_method "last_name"
+end
+
 class AuditLog < ActiveRecord::Base
   belongs_to :developer, validate: true
   belongs_to :unvalidated_developer, class_name: "Developer"

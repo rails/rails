@@ -269,14 +269,6 @@ module ActiveRecord
         end
       end
 
-      def test_indexes_logs_name
-        with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
-            assert_deprecated { @conn.indexes("ex", "hello") }
-          end
-        end
-      end
-
       def test_table_exists_logs_name
         with_example_table do
           sql = <<-SQL
@@ -366,6 +358,51 @@ module ActiveRecord
         with_example_table "number integer not null" do
           assert_nil @conn.primary_key("ex")
         end
+      end
+
+      class Barcode < ActiveRecord::Base
+        self.primary_key = "code"
+      end
+
+      def test_copy_table_with_existing_records_have_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true) do |t|
+          t.text :other_attr
+        end
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(code: code, other_attr: "xxx")
+
+        connection.change_table "barcodes" do |t|
+          connection.remove_column("barcodes", "other_attr")
+        end
+
+        assert_equal code, Barcode.first.id
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_copy_table_with_composite_primary_keys
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+          t.string :region
+          t.string :code
+          t.text :other_attr
+        end
+        region = "US"
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(region: region, code: code, other_attr: "xxx")
+
+        connection.change_table "barcodes" do |t|
+          connection.remove_column("barcodes", "other_attr")
+        end
+
+        assert_equal ["region", "code"], connection.primary_keys("barcodes")
+
+        barcode = Barcode.first
+        assert_equal region, barcode.region
+        assert_equal code, barcode.code
+      ensure
+        Barcode.reset_column_information
       end
 
       def test_supports_extensions

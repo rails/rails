@@ -153,6 +153,7 @@ module TestHelpers
 
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      FileUtils.rm_rf(tmp_path)
     end
 
     # Make a very basic app, without creating the whole directory structure.
@@ -235,7 +236,7 @@ module TestHelpers
 
     # Invoke a bin/rails command inside the app
     #
-    # allow_failures:: true to return normally if the command exits with
+    # allow_failure:: true to return normally if the command exits with
     #   a non-zero status. By default, this method will raise.
     # stderr:: true to pass STDERR output straight to the "real" STDERR.
     #   By default, the STDERR and STDOUT of the process will be
@@ -357,10 +358,12 @@ module TestHelpers
     end
 
     def app_file(path, contents, mode = "w")
-      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", mode) do |f|
+      file_name = "#{app_path}/#{path}"
+      FileUtils.mkdir_p File.dirname(file_name)
+      File.open(file_name, mode) do |f|
         f.puts contents
       end
+      file_name
     end
 
     def remove_file(path)
@@ -379,6 +382,21 @@ module TestHelpers
       end
 
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
+    end
+
+    def use_postgresql
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: postgresql
+          pool: 5
+          database: railties_test
+        development:
+          <<: *default
+        test:
+          <<: *default
+        YAML
+      end
     end
   end
 end

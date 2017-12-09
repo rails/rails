@@ -270,7 +270,7 @@ module ActionView
         begin
           routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
-          # Dont call routes, if there is an error on _routes call
+          # Don't call routes, if there is an error on _routes call
         end
 
         if routes &&
@@ -286,7 +286,7 @@ module ActionView
         begin
           routes = @controller.respond_to?(:_routes) && @controller._routes
         rescue
-          # Dont call routes, if there is an error on _routes call
+          # Don't call routes, if there is an error on _routes call
         end
 
         routes &&

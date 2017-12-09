@@ -2,8 +2,6 @@
 
 require "pathname"
 require "active_support/message_encryptor"
-require "active_support/core_ext/string/strip"
-require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
   class EncryptedFile

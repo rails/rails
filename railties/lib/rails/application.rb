@@ -6,8 +6,9 @@ require "active_support/core_ext/object/blank"
 require "active_support/key_generator"
 require "active_support/message_verifier"
 require "active_support/encrypted_configuration"
-require_relative "engine"
-require_relative "secrets"
+require "active_support/deprecation"
+require "rails/engine"
+require "rails/secrets"
 
 module Rails
   # An Engine with the responsibility of coordinating the whole boot process.
@@ -173,8 +174,9 @@ module Rails
       # team. Details at https://github.com/rails/rails/pull/6952#issuecomment-7661220
       @caching_key_generator ||=
         if secret_key_base
-          ActiveSupport::CachingKeyGenerator.new \
+          ActiveSupport::CachingKeyGenerator.new(
             ActiveSupport::KeyGenerator.new(secret_key_base, iterations: 1000)
+          )
         else
           ActiveSupport::LegacyKeyGenerator.new(secrets.secret_token)
         end
@@ -259,8 +261,14 @@ module Rails
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
           "action_dispatch.encrypted_signed_cookie_salt" => config.action_dispatch.encrypted_signed_cookie_salt,
           "action_dispatch.authenticated_encrypted_cookie_salt" => config.action_dispatch.authenticated_encrypted_cookie_salt,
+          "action_dispatch.use_authenticated_cookie_encryption" => config.action_dispatch.use_authenticated_cookie_encryption,
+          "action_dispatch.encrypted_cookie_cipher" => config.action_dispatch.encrypted_cookie_cipher,
+          "action_dispatch.signed_cookie_digest" => config.action_dispatch.signed_cookie_digest,
           "action_dispatch.cookies_serializer" => config.action_dispatch.cookies_serializer,
-          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest
+          "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
+          "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
+          "action_dispatch.content_security_policy" => config.content_security_policy,
+          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only
         )
       end
     end
@@ -394,6 +402,12 @@ module Rails
         # Fallback to config.secret_token if secrets.secret_token isn't set
         secrets.secret_token ||= config.secret_token
 
+        if secrets.secret_token.present?
+          ActiveSupport::Deprecation.warn(
+            "`secrets.secret_token` is deprecated in favor of `secret_key_base` and will be removed in Rails 6.0."
+          )
+        end
+
         secrets
       end
     end
@@ -414,19 +428,52 @@ module Rails
       if Rails.env.test? || Rails.env.development?
         Digest::MD5.hexdigest self.class.name
       else
-        validate_secret_key_base \
+        validate_secret_key_base(
           ENV["SECRET_KEY_BASE"] || credentials.secret_key_base || secrets.secret_key_base
+        )
       end
     end
 
-    # Decrypts the credentials hash as kept in `config/credentials.yml.enc`. This file is encrypted with
-    # the Rails master key, which is either taken from ENV["RAILS_MASTER_KEY"] or from loading
-    # `config/master.key`.
+    # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
+    # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
+    # +config/master.key+.
     def credentials
-      @credentials ||= ActiveSupport::EncryptedConfiguration.new \
-        config_path: Rails.root.join("config/credentials.yml.enc"),
-        key_path: Rails.root.join("config/master.key"),
-        env_key: "RAILS_MASTER_KEY"
+      @credentials ||= encrypted("config/credentials.yml.enc")
+    end
+
+    # Shorthand to decrypt any encrypted configurations or files.
+    #
+    # For any file added with <tt>bin/rails encrypted:edit</tt> call +read+ to decrypt
+    # the file with the master key.
+    # The master key is either stored in +config/master.key+ or <tt>ENV["RAILS_MASTER_KEY"]</tt>.
+    #
+    #   Rails.application.encrypted("config/mystery_man.txt.enc").read
+    #   # => "We've met before, haven't we?"
+    #
+    # It's also possible to interpret encrypted YAML files with +config+.
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").config
+    #   # => { next_guys_line: "I don't think so. Where was it you think we met?" }
+    #
+    # Any top-level configs are also accessible directly on the return value:
+    #
+    #   Rails.application.encrypted("config/credentials.yml.enc").next_guys_line
+    #   # => "I don't think so. Where was it you think we met?"
+    #
+    # The files or configs can also be encrypted with a custom key. To decrypt with
+    # a key in the +ENV+, use:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", env_key: "SPECIAL_TOKENS")
+    #
+    # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
+    #
+    #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
+    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+      ActiveSupport::EncryptedConfiguration.new(
+        config_path: Rails.root.join(path),
+        key_path: Rails.root.join(key_path),
+        env_key: env_key
+      )
     end
 
     def to_app #:nodoc:
@@ -464,7 +511,7 @@ module Rails
     def run_tasks_blocks(app) #:nodoc:
       railties.each { |r| r.run_tasks_blocks(app) }
       super
-      require_relative "tasks"
+      require "rails/tasks"
       task :environment do
         ActiveSupport.on_load(:before_initialize) { config.eager_load = false }
 

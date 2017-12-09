@@ -12,11 +12,5 @@ module ActionController
         self.params = nil
       end
     end
-
-    module ClassMethods
-      def before_filters
-        _process_action_callbacks.find_all { |x| x.kind == :before }.map(&:name)
-      end
-    end
   end
 end

@@ -219,4 +219,8 @@ class DirtyTest < ActiveModel::TestCase
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
   end
+
+  test "model can be dup-ed without Attributes" do
+    assert @model.dup
+  end
 end

@@ -2,9 +2,9 @@
 
 require "openssl"
 require "base64"
-require_relative "core_ext/array/extract_options"
-require_relative "message_verifier"
-require_relative "messages/metadata"
+require "active_support/core_ext/array/extract_options"
+require "active_support/message_verifier"
+require "active_support/messages/metadata"
 
 module ActiveSupport
   # MessageEncryptor is a simple way to encrypt values which get stored
@@ -54,7 +54,33 @@ module ActiveSupport
   #
   # Then the messages can be verified and returned upto the expire time.
   # Thereafter, verifying returns +nil+.
+  #
+  # === Rotating keys
+  #
+  # MessageEncryptor also supports rotating out old configurations by falling
+  # back to a stack of encryptors. Call +rotate+ to build and add an encryptor
+  # so +decrypt_and_verify+ will also try the fallback.
+  #
+  # By default any rotated encryptors use the values of the primary
+  # encryptor unless specified otherwise.
+  #
+  # You'd give your encryptor the new defaults:
+  #
+  #   crypt = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+  #
+  # Then gradually rotate the old values out by adding them as fallbacks. Any message
+  # generated with the old values will then work until the rotation is removed.
+  #
+  #   crypt.rotate old_secret            # Fallback to an old secret instead of @secret.
+  #   crypt.rotate cipher: "aes-256-cbc" # Fallback to an old cipher instead of aes-256-gcm.
+  #
+  # Though if both the secret and the cipher was changed at the same time,
+  # the above should be combined into:
+  #
+  #   crypt.rotate old_secret, cipher: "aes-256-cbc"
   class MessageEncryptor
+    prepend Messages::Rotator::Encryptor
+
     class << self
       attr_accessor :use_authenticated_message_encryption #:nodoc:
 
@@ -126,7 +152,7 @@ module ActiveSupport
 
     # Decrypt and verify a message. We need to verify the message in order to
     # avoid padding attacks. Reference: https://www.limited-entropy.com/padding-oracle-attacks/.
-    def decrypt_and_verify(data, purpose: nil)
+    def decrypt_and_verify(data, purpose: nil, **)
       _decrypt(verifier.verify(data), purpose)
     end
 

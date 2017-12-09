@@ -389,6 +389,25 @@ class GuestsCleanupJob < ApplicationJob
 end
 ```
 
+### Retrying or Discarding failed jobs
+
+It's also possible to retry or discard a job if an exception is raised during execution.
+For example:
+
+```ruby
+class RemoteServiceJob < ApplicationJob
+  retry_on CustomAppException # defaults to 3s wait, 5 attempts
+
+  discard_on ActiveJob::DeserializationError
+
+  def perform(*args)
+    # Might raise CustomAppException or ActiveJob::DeserializationError
+  end
+end
+```
+
+To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
+
 ### Deserialization
 
 GlobalID allows serializing full Active Record objects passed to `#perform`.

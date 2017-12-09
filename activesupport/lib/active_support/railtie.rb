@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support"
-require_relative "i18n_railtie"
+require "active_support/i18n_railtie"
 
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
@@ -36,14 +36,14 @@ module ActiveSupport
       rescue TZInfo::DataSourceNotFound => e
         raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
       end
-      require_relative "core_ext/time/zones"
+      require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
     end
 
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|
-      require_relative "core_ext/date/calculations"
+      require "active_support/core_ext/date/calculations"
       beginning_of_week_default = Date.find_beginning_of_week!(app.config.beginning_of_week)
 
       Date.beginning_of_week_default = beginning_of_week_default

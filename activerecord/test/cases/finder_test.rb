@@ -9,6 +9,7 @@ require "models/company"
 require "models/tagging"
 require "models/topic"
 require "models/reply"
+require "models/rating"
 require "models/entrant"
 require "models/project"
 require "models/developer"
@@ -119,6 +120,21 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fourth Topic of the day", records[2].title
   end
 
+  def test_find_with_ids_with_no_id_passed
+    exception = assert_raises(ActiveRecord::RecordNotFound) { Topic.find }
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
+  def test_find_with_ids_with_id_out_of_range
+    exception = assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.find("9999999999999999999999999999999")
+    end
+
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
   def test_find_passing_active_record_object_is_not_permitted
     assert_raises(ArgumentError) do
       Topic.find(Topic.last)
@@ -154,6 +170,32 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1, 2]) }
+  end
+
+  def test_exists_with_scope
+    davids = Author.where(name: "David")
+    assert_equal true, davids.exists?
+    assert_equal true, davids.exists?(authors(:david).id)
+    assert_equal false, davids.exists?(authors(:mary).id)
+    assert_equal false, davids.exists?("42")
+    assert_equal false, davids.exists?(42)
+    assert_equal false, davids.exists?(davids.new.id)
+
+    fake = Author.where(name: "fake author")
+    assert_equal false, fake.exists?
+    assert_equal false, fake.exists?(authors(:david).id)
+  end
+
+  def test_exists_uses_existing_scope
+    post = authors(:david).posts.first
+    authors = Author.includes(:posts).where(name: "David", posts: { id: post.id })
+    assert_equal true, authors.exists?(authors(:david).id)
+  end
+
+  def test_any_with_scope_on_hash_includes
+    post = authors(:david).posts.first
+    categories = Categorization.includes(author: :posts).where(posts: { id: post.id })
+    assert_equal true, categories.exists?
   end
 
   def test_exists_with_polymorphic_relation
@@ -212,7 +254,7 @@ class FinderTest < ActiveRecord::TestCase
 
   # Ensure +exists?+ runs without an error by excluding order value.
   def test_exists_with_order
-    assert_equal true, Topic.order("invalid sql here").exists?
+    assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
   end
 
   def test_exists_with_joins
@@ -242,6 +284,13 @@ class FinderTest < ActiveRecord::TestCase
     author = Author.first
     assert_equal false, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(0).exists?
     assert_equal true, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(1).exists?
+  end
+
+  def test_exists_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
+    assert_nothing_raised do
+      developer = developers(:david)
+      developer.ratings.includes(comment: :post).where(posts: { id: 1 }).exists?
+    end
   end
 
   def test_exists_with_empty_table_and_no_args_given
@@ -618,7 +667,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_last_with_irreversible_order
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("coalesce(author_name, title)").last
+      Topic.order(Arel.sql("coalesce(author_name, title)")).last
     end
   end
 

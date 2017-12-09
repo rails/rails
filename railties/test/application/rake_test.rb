@@ -40,7 +40,7 @@ module ApplicationTests
       with_rails_env "test" do
         rails "generate", "model", "product", "name:string"
         rails "db:create", "db:migrate"
-        output = Dir.chdir(app_path) { rails("db:test:prepare", "test") }
+        output = rails("db:test:prepare", "test")
 
         refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
@@ -101,6 +101,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         rake_tasks do
           task do_nothing: :environment do
+            puts 'There is nothing'
           end
         end
       RUBY
@@ -113,10 +114,8 @@ module ApplicationTests
         raise 'should not be pre-required for rake even eager_load=true'
       RUBY
 
-      Dir.chdir(app_path) do
-        assert system("bin/rails do_nothing RAILS_ENV=production"),
-               "should not be pre-required for rake even eager_load=true"
-      end
+      output = rails("do_nothing", "RAILS_ENV=production")
+      assert_match "There is nothing", output
     end
 
     def test_code_statistics_sanity
@@ -133,13 +132,8 @@ module ApplicationTests
 
       output = rails("routes")
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
     end
 
@@ -172,20 +166,16 @@ module ApplicationTests
         end
       RUBY
 
-      output = rails("routes", "-g", "show", allow_failure: true)
+      output = rails("routes", "-g", "show")
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
 
       output = rails("routes", "-g", "POST")
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                    Controller#Action
-                                POST /cart(.:format)                                cart#create
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                                POST /cart(.:format) cart#create
       MESSAGE
 
       output = rails("routes", "-g", "basketballs")
@@ -242,12 +232,11 @@ module ApplicationTests
       RUBY
 
       assert_equal <<-MESSAGE.strip_heredoc, rails("routes")
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+        You don't have any routes defined!
+
+        Please add some routes in config/routes.rb.
+
+        For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html.
       MESSAGE
     end
 
@@ -261,13 +250,8 @@ module ApplicationTests
       output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
 
       assert_equal <<-MESSAGE.strip_heredoc, output
-                         Prefix Verb URI Pattern                                                                       Controller#Action
-                           cart GET  /cart(.:format)                                                                   cart#show
-             rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-           rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-             rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-      update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-           rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+                         Prefix Verb URI Pattern     Controller#Action
+                           cart GET  /cart(.:format) cart#show
       MESSAGE
     end
 
@@ -309,9 +293,8 @@ module ApplicationTests
 
     def test_scaffold_tests_pass_by_default
       rails "generate", "scaffold", "user", "username:string", "password:string"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -328,9 +311,8 @@ module ApplicationTests
       RUBY
 
       rails "generate", "scaffold", "user", "username:string", "password:string"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/5 runs, 7 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -340,9 +322,8 @@ module ApplicationTests
       rails "generate", "model", "Product"
       rails "generate", "model", "Cart"
       rails "generate", "scaffold", "LineItems", "product:references", "cart:belongs_to"
-      output = Dir.chdir(app_path) do
-        `RAILS_ENV=test bin/rails db:migrate test`
-      end
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
 
       assert_match(/7 runs, 9 assertions, 0 failures, 0 errors/, output)
       assert_no_match(/Errors running/, output)
@@ -352,9 +333,7 @@ module ApplicationTests
       add_to_config "config.active_record.schema_format = :sql"
       rails "generate", "scaffold", "user", "username:string"
       rails "db:migrate"
-      output = with_rails_env("test") do
-        rails "db:test:prepare", "--trace"
-      end
+      output = rails("db:test:prepare", "--trace")
       assert_match(/Execute db:test:load_structure/, output)
     end
 
@@ -387,14 +366,12 @@ module ApplicationTests
     end
 
     def test_copy_templates
-      Dir.chdir(app_path) do
-        rails "app:templates:copy"
-        %w(controller mailer scaffold).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
-        end
-        %w(controller helper scaffold_controller assets).each do |dir|
-          assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
-        end
+      rails "app:templates:copy"
+      %w(controller mailer scaffold).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "erb", dir))
+      end
+      %w(controller helper scaffold_controller assets).each do |dir|
+        assert File.exist?(File.join(app_path, "lib", "templates", "rails", dir))
       end
     end
 

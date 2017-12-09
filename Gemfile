@@ -6,21 +6,18 @@ git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
 gemspec
 
-gem "arel", github: "rails/arel"
-
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
 # This needs to be with require false to ensure correct loading order, as it has to
 # be loaded after loading the test library.
-gem "mocha", "~> 0.14", require: false
+gem "mocha", require: false
 
-gem "capybara", "~> 2.13"
+gem "capybara", "~> 2.15"
 
 gem "rack-cache", "~> 1.2"
-gem "jquery-rails"
 gem "coffee-rails"
-gem "sass-rails", github: "rails/sass-rails", branch: "5-0-stable"
+gem "sass-rails"
 gem "turbolinks", "~> 5"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
@@ -40,6 +37,9 @@ gem "rubocop", ">= 0.47", require: false
 # https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
+# https://github.com/puma/puma/pull/1345
+gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
+
 group :doc do
   gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
@@ -52,16 +52,13 @@ gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 
-# Action View. For testing Erubis handler deprecation.
-gem "erubis", "~> 2.7.0", require: false
-
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
 
 # Active Job.
 group :job do
   gem "resque", require: false
-  gem "resque-scheduler", require: false
+  gem "resque-scheduler", github: "resque/resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
@@ -80,9 +77,10 @@ end
 group :cable do
   gem "puma", require: false
 
-  gem "em-hiredis", require: false
   gem "hiredis", require: false
-  gem "redis", require: false
+  gem "redis", "~> 4.0", require: false
+
+  gem "redis-namespace"
 
   gem "websocket-client-simple", github: "matthewd/websocket-client-simple", branch: "close-race", require: false
 
@@ -91,12 +89,18 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+# Active Storage
 group :storage do
   gem "aws-sdk-s3", require: false
-  gem "google-cloud-storage", "~> 1.3", require: false
+  gem "google-cloud-storage", "~> 1.8", require: false
   gem "azure-storage", require: false
 
   gem "mini_magick"
+end
+
+group :ujs do
+  gem "qunit-selenium"
+  gem "chromedriver-helper"
 end
 
 # Add your own local bundler stuff.

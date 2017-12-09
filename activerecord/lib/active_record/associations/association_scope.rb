@@ -23,8 +23,7 @@ module ActiveRecord
         reflection = association.reflection
         scope = klass.unscoped
         owner = association.owner
-        alias_tracker = AliasTracker.create(klass.connection, klass.table_name)
-        chain = get_chain(reflection, association, alias_tracker)
+        chain = get_chain(reflection, association, scope.alias_tracker)
 
         scope.extending! reflection.extensions
         add_constraints(scope, owner, chain)

@@ -20,13 +20,12 @@ Rails.ajax = (options) ->
     else
       options.error?(response, xhr.statusText, xhr)
     options.complete?(xhr, xhr.statusText)
-  # Call beforeSend hook
-  options.beforeSend?(xhr, options)
-  # Send the request
+
+  if options.beforeSend? && !options.beforeSend(xhr, options)
+    return false
+
   if xhr.readyState is XMLHttpRequest.OPENED
     xhr.send(options.data)
-  else
-    fire(document, 'ajaxStop') # to be compatible with jQuery.ajax
 
 prepareOptions = (options) ->
   options.url = options.url or location.href

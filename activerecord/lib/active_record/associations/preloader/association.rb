@@ -4,7 +4,6 @@ module ActiveRecord
   module Associations
     class Preloader
       class Association #:nodoc:
-        attr_reader :owners, :reflection, :preload_scope, :model, :klass
         attr_reader :preloaded_records
 
         def initialize(klass, owners, reflection, preload_scope)
@@ -17,55 +16,50 @@ module ActiveRecord
         end
 
         def run(preloader)
-          preload(preloader)
-        end
-
-        def preload(preloader)
-          raise NotImplementedError
-        end
-
-        # The name of the key on the associated records
-        def association_key_name
-          raise NotImplementedError
-        end
-
-        # The name of the key on the model which declares the association
-        def owner_key_name
-          raise NotImplementedError
-        end
-
-        private
-          def options
-            reflection.options
+          records = load_records do |record|
+            owner = owners_by_key[convert_key(record[association_key_name])]
+            association = owner.association(reflection.name)
+            association.set_inverse_instance(record)
           end
 
-          def associated_records_by_owner(preloader)
-            records = load_records do |record|
-              owner = owners_by_key[convert_key(record[association_key_name])]
-              association = owner.association(reflection.name)
-              association.set_inverse_instance(record)
-            end
+          owners.each do |owner|
+            associate_records_to_owner(owner, records[convert_key(owner[owner_key_name])] || [])
+          end
+        end
 
-            owners.each_with_object({}) do |owner, result|
-              result[owner] = records[convert_key(owner[owner_key_name])] || []
+        protected
+          attr_reader :owners, :reflection, :preload_scope, :model, :klass
+
+        private
+          # The name of the key on the associated records
+          def association_key_name
+            reflection.join_primary_key(klass)
+          end
+
+          # The name of the key on the model which declares the association
+          def owner_key_name
+            reflection.join_foreign_key
+          end
+
+          def associate_records_to_owner(owner, records)
+            association = owner.association(reflection.name)
+            if reflection.collection?
+              association.loaded!
+              association.target.concat(records)
+            else
+              association.target = records.first
             end
           end
 
           def owner_keys
-            unless defined?(@owner_keys)
-              @owner_keys = owners.map do |owner|
-                owner[owner_key_name]
-              end
-              @owner_keys.uniq!
-              @owner_keys.compact!
-            end
-            @owner_keys
+            @owner_keys ||= owners_by_key.keys
           end
 
           def owners_by_key
             unless defined?(@owners_by_key)
               @owners_by_key = owners.each_with_object({}) do |owner, h|
-                h[convert_key(owner[owner_key_name])] = owner
+                key = convert_key(owner[owner_key_name])
+                h[key] = owner if key
               end
             end
             @owners_by_key

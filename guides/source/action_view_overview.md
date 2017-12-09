@@ -149,10 +149,10 @@ end
 
 #### Jbuilder
 [Jbuilder](https://github.com/rails/jbuilder) is a gem that's
-maintained by the Rails team and included in the default Rails Gemfile.
+maintained by the Rails team and included in the default Rails `Gemfile`.
 It's similar to Builder, but is used to generate JSON, instead of XML.
 
-If you don't have it, you can add the following to your Gemfile:
+If you don't have it, you can add the following to your `Gemfile`:
 
 ```ruby
 gem 'jbuilder'
@@ -490,7 +490,7 @@ stylesheet_link_tag "application" # => <link href="/assets/application.css" medi
 
 #### stylesheet_path
 
-Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by `stylesheet_link_tag` to build the stylesheet path.
 
 ```ruby
 stylesheet_path "application" # => /assets/application.css
@@ -1160,7 +1160,7 @@ Returns a string of option tags for pretty much any time zone in the world.
 Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
 
 ```ruby
-time_zone_select( "user", "time_zone")
+time_zone_select("user", "time_zone")
 ```
 
 #### date_field

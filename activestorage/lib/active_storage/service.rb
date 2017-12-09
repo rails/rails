@@ -4,6 +4,7 @@ require "active_storage/log_subscriber"
 
 module ActiveStorage
   class IntegrityError < StandardError; end
+
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -40,7 +41,7 @@ module ActiveStorage
     extend ActiveSupport::Autoload
     autoload :Configurator
 
-    class_attribute :logger
+    class_attribute :url_expires_in, default: 5.minutes
 
     class << self
       # Configure an Active Storage service by name from a set of configurations,
@@ -77,6 +78,11 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Delete files at keys starting with the +prefix+.
+    def delete_prefixed(prefix)
+      raise NotImplementedError
+    end
+
     # Return +true+ if a file exists at the +key+.
     def exist?(key)
       raise NotImplementedError
@@ -103,15 +109,19 @@ module ActiveStorage
     end
 
     private
-      def instrument(operation, key, payload = {}, &block)
+      def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(
           "service_#{operation}.active_storage",
-          payload.merge(key: key, service: service_name), &block)
+          payload.merge(service: service_name), &block)
       end
 
       def service_name
         # ActiveStorage::Service::DiskService => Disk
         self.class.name.split("::").third.remove("Service")
+      end
+
+      def content_disposition_with(type: "inline", filename:)
+        (type.to_s.presence_in(%w( attachment inline )) || "inline") + "; #{filename.parameters}"
       end
   end
 end

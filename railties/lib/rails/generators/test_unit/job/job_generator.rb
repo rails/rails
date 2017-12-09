@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../test_unit"
+require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -8,7 +8,7 @@ module TestUnit # :nodoc:
       check_class_collision suffix: "JobTest"
 
       def create_test_file
-        template "unit_test.rb.erb", File.join("test/jobs", class_path, "#{file_name}_job_test.rb")
+        template "unit_test.rb", File.join("test/jobs", class_path, "#{file_name}_job_test.rb")
       end
     end
   end

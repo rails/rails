@@ -63,7 +63,7 @@ authentication for its parent applications, or
 [Thredded](https://github.com/thredded/thredded), an engine that provides forum
 functionality. There's also [Spree](https://github.com/spree/spree) which
 provides an e-commerce platform, and
-[RefineryCMS](https://github.com/refinery/refinerycms), a CMS engine.
+[Refinery CMS](https://github.com/refinery/refinerycms), a CMS engine.
 
 Finally, engines would not have been possible without the work of James Adam,
 Piotr Sarnacki, the Rails Core Team, and a number of other people. If you ever
@@ -537,12 +537,12 @@ directory at `app/views/blorgh/comments` and in it a new file called
 
 ```html+erb
 <h3>New comment</h3>
-<%= form_for [@article, @article.comments.build] do |f| %>
+<%= form_with(model: [@article, @article.comments.build], local: true) do |form| %>
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
-  <%= f.submit %>
+  <%= form.submit %>
 <% end %>
 ```
 
@@ -653,7 +653,7 @@ there isn't an application handy to test this out in, generate one using the
 $ rails new unicorn
 ```
 
-Usually, specifying the engine inside the Gemfile would be done by specifying it
+Usually, specifying the engine inside the `Gemfile` would be done by specifying it
 as a normal, everyday gem.
 
 ```ruby
@@ -783,8 +783,8 @@ added above the `title` field with this code:
 
 ```html+erb
 <div class="field">
-  <%= f.label :author_name %><br>
-  <%= f.text_field :author_name %>
+  <%= form.label :author_name %><br>
+  <%= form.text_field :author_name %>
 </div>
 ```
 
@@ -921,7 +921,7 @@ engine:
 mattr_accessor :author_class
 ```
 
-This method works like its brothers, `attr_accessor` and `cattr_accessor`, but
+This method works like its siblings, `attr_accessor` and `cattr_accessor`, but
 provides a setter and getter method on the module with the specified name. To
 use it, it must be referenced using `Blorgh.author_class`.
 
@@ -982,7 +982,7 @@ Blorgh.author_class = "User"
 WARNING: It's very important here to use the `String` version of the class,
 rather than the class itself. If you were to use the class, Rails would attempt
 to load that class and then reference the related table. This could lead to
-problems if the table wasn't already existing. Therefore, a `String` should be
+problems if the table didn't already exist. Therefore, a `String` should be
 used and then converted to a class using `constantize` in the engine later on.
 
 Go ahead and try to create a new article. You will see that it works exactly in the
@@ -1322,7 +1322,7 @@ engine.
 
 Assets within an engine work in an identical way to a full application. Because
 the engine class inherits from `Rails::Engine`, the application will know to
-look up assets in the engine's 'app/assets' and 'lib/assets' directories.
+look up assets in the engine's `app/assets` and `lib/assets` directories.
 
 Like all of the other components of an engine, the assets should be namespaced.
 This means that if you have an asset called `style.css`, it should be placed at
@@ -1361,7 +1361,7 @@ that only exists for your engine. In this case, the host application doesn't
 need to require `admin.css` or `admin.js`. Only the gem's admin layout needs
 these assets. It doesn't make sense for the host app to include
 `"blorgh/admin.css"` in its stylesheets. In this situation, you should
-explicitly define these assets for precompilation.  This tells sprockets to add
+explicitly define these assets for precompilation.  This tells Sprockets to add
 your engine assets when `bin/rails assets:precompile` is triggered.
 
 You can define assets for precompilation in `engine.rb`:
@@ -1501,6 +1501,7 @@ To hook into the initialization process of one of the following classes use the 
 | `ActionController::Base`          | `action_controller`                  |
 | `ActionController::TestCase`      | `action_controller_test_case`        |
 | `ActionDispatch::IntegrationTest` | `action_dispatch_integration_test`   |
+| `ActionDispatch::SystemTestCase`  | `action_dispatch_system_test_case`   |
 | `ActionMailer::Base`              | `action_mailer`                      |
 | `ActionMailer::TestCase`          | `action_mailer_test_case`            |
 | `ActionView::Base`                | `action_view`                        |
@@ -1513,7 +1514,7 @@ To hook into the initialization process of one of the following classes use the 
 
 ## Configuration hooks
 
-These are the available configuration hooks. They do not hook into any particular framework, instead they run in context of the entire application.
+These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
 
 | Hook                   | Use Case                                                                              |
 | ---------------------- | ------------------------------------------------------------------------------------- |

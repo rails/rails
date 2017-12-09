@@ -32,7 +32,7 @@ Basic Caching
 This is an introduction to three types of caching techniques: page, action and
 fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
-`actionpack-action_caching` to your Gemfile.
+`actionpack-action_caching` to your `Gemfile`.
 
 By default, caching is only enabled in your production environment. To play
 around with caching locally you'll want to enable caching in your local
@@ -181,7 +181,7 @@ cache.
 
 ### Shared Partial Caching
 
-It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and Javascript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
+It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
 
 ```ruby
 render(partial: 'hotels/hotel', collection: @hotels, cached: true)
@@ -195,7 +195,7 @@ Another option is to include the full filename of the partial to render.
 render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
 ```
 
-Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a Javascript file.
+Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a JavaScript file.
 
 ### Managing dependencies
 
@@ -366,9 +366,9 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
-* `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
+* `:compress` - Enabled by default. Compresses cache entries so more data can be stored in the same memory footprint, leading to fewer cache evictions and higher hit rates.
 
-* `:compress_threshold` - This option is used in conjunction with the `:compress` option to indicate a threshold under which cache entries should not be compressed. This defaults to 16 kilobytes.
+* `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
 
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
 
@@ -442,6 +442,53 @@ The `write` and `fetch` methods on this cache accept two additional options that
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
+```
+
+### ActiveSupport::Cache::RedisCacheStore
+
+The Redis cache store takes advantage of Redis support for least-recently-used
+and least-frequently-used key eviction when it reaches max memory, allowing it
+to behave much like a Memcached cache server.
+
+Deployment note: Redis doesn't expire keys by default, so take care to use a
+dedicated Redis cache server. Don't fill up your persistent-Redis server with
+volatile cache data! Read the
+[Redis cache server setup guide](https://redis.io/topics/lru-cache) in detail.
+
+For an all-cache Redis server, set `maxmemory-policy` to an `allkeys` policy.
+Redis 4+ support least-frequently-used (`allkeys-lfu`) eviction, an excellent
+default choice. Redis 3 and earlier should use `allkeys-lru` for
+least-recently-used eviction.
+
+Set cache read and write timeouts relatively low. Regenerating a cached value
+is often faster than waiting more than a second to retrieve it. Both read and
+write timeouts default to 1 second, but may be set lower if your network is
+consistently low latency.
+
+Cache reads and writes never raise exceptions. They just return `nil` instead,
+behaving as if there was nothing in the cache. To gauge whether your cache is
+hitting exceptions, you may provide an `error_handler` to report to an
+exception gathering service. It must accept three keyword arguments: `method`,
+the cache store method that was originally called; `returning`, the value that
+was returned to the user, typically `nil`; and `exception`, the exception that
+was rescued.
+
+Putting it all together, a production Redis cache store may look something
+like this:
+
+```ruby
+cache_servers = %w[ "redis://cache-01:6379/0", "redis://cache-02:6379/0", … ],
+config.cache_store = :redis_cache_store, url: cache_servers,
+
+  connect_timeout: 30,  # Defaults to 20 seconds
+  read_timeout:    0.2, # Defaults to 1 second
+  write_timeout:   0.2, # Defaults to 1 second
+
+  error_handler: -> (method:, returning:, exception:) {
+    # Report errors to Sentry as warnings
+    Raven.capture_exception exception, level: 'warning",
+      tags: { method: method, returning: returning }
+  }
 ```
 
 ### ActiveSupport::Cache::NullStore

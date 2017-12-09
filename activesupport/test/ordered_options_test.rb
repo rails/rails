@@ -102,4 +102,17 @@ class OrderedOptionsTest < ActiveSupport::TestCase
     end
     assert_raises(KeyError) { a.non_existing_key! }
   end
+
+  def test_inheritable_options_with_bang
+    a = ActiveSupport::InheritableOptions.new(foo: :bar)
+
+    assert_nothing_raised { a.foo! }
+    assert_equal a.foo, a.foo!
+
+    assert_raises(KeyError) do
+      a.foo = nil
+      a.foo!
+    end
+    assert_raises(KeyError) { a.non_existing_key! }
+  end
 end

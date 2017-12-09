@@ -35,12 +35,19 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     end
   end
 
+  test "defaults to simple output for the screenshot" do
+    new_test = DrivenBySeleniumWithChrome.new("x")
+    assert_equal "simple", new_test.send(:output_type)
+  end
+
   test "display_image return artifact format when specify RAILS_SYSTEM_TESTING_SCREENSHOT environment" do
     begin
       original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
 
       new_test = DrivenBySeleniumWithChrome.new("x")
+
+      assert_equal "artifact", new_test.send(:output_type)
 
       Rails.stub :root, Pathname.getwd do
         new_test.stub :passed?, false do

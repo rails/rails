@@ -79,7 +79,13 @@ module ActiveRecord
       def find(*args)
         if options[:inverse_of] && loaded?
           args_flatten = args.flatten
-          raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
+          model = scope.klass
+
+          if args_flatten.blank?
+            error_message = "Couldn't find #{model.name} without an ID"
+            raise RecordNotFound.new(error_message, model.name, model.primary_key, args)
+          end
+
           result = find_by_scan(*args)
 
           result_size = Array(result).size
@@ -181,8 +187,6 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, options[:dependent])
       end
 
@@ -192,8 +196,6 @@ module ActiveRecord
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
       def destroy(*records)
-        return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
 
@@ -376,6 +378,8 @@ module ActiveRecord
         end
 
         def delete_or_destroy(records, method)
+          return if records.empty?
+          records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
           records = records.flatten
           records.each { |record| raise_on_type_mismatch!(record) }
           existing_records = records.reject(&:new_record?)

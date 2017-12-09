@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
-require_relative "tag_helper"
+require "action_view/helpers/tag_helper"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/hash/slice"

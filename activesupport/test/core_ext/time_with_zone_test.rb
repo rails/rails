@@ -50,6 +50,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @twz.in_time_zone(Object.new) }
   end
 
+  def test_in_time_zone_with_ambiguous_time
+    with_env_tz "Europe/Moscow" do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), Time.local(2014, 10, 26, 1, 0, 0).in_time_zone("Moscow")
+    end
+  end
+
   def test_localtime
     assert_equal @twz.localtime, @twz.utc.getlocal
     assert_instance_of Time, @twz.localtime
@@ -1300,5 +1306,11 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @s.in_time_zone(Object.new) }
     assert_raise(ArgumentError) { @u.in_time_zone(Object.new) }
     assert_raise(ArgumentError) { @z.in_time_zone(Object.new) }
+  end
+
+  def test_in_time_zone_with_ambiguous_time
+    with_tz_default "Moscow" do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), "2014-10-26 01:00:00".in_time_zone
+    end
   end
 end

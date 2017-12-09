@@ -248,12 +248,12 @@ module ActiveRecord
 
       def test_index_with_opclass
         with_example_table do
-          @connection.add_index "ex", "data varchar_pattern_ops"
-          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_varchar_pattern_ops" }
-          assert_equal "data varchar_pattern_ops", index.columns
+          @connection.add_index "ex", "data", opclass: "varchar_pattern_ops"
+          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
+          assert_equal ["data"], index.columns
 
-          @connection.remove_index "ex", "data varchar_pattern_ops"
-          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data_varchar_pattern_ops" }
+          @connection.remove_index "ex", "data"
+          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
         end
       end
 

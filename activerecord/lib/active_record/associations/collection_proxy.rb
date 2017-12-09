@@ -988,6 +988,12 @@ module ActiveRecord
         load_target == other
       end
 
+      ##
+      # :method: to_ary
+      #
+      # :call-seq:
+      #   to_ary()
+      #
       # Returns a new array of objects from the collection. If the collection
       # hasn't been loaded, it fetches the records from the database.
       #
@@ -1021,10 +1027,6 @@ module ActiveRecord
       #   #       #<Pet id: 5, name: "Brain", person_id: 1>,
       #   #       #<Pet id: 6, name: "Boss",  person_id: 1>
       #   #    ]
-      def to_ary
-        load_target.dup
-      end
-      alias_method :to_a, :to_ary
 
       def records # :nodoc:
         load_target
@@ -1072,7 +1074,6 @@ module ActiveRecord
       end
 
       # Reloads the collection from the database. Returns +self+.
-      # Equivalent to <tt>collection(true)</tt>.
       #
       #   class Person < ActiveRecord::Base
       #     has_many :pets
@@ -1085,9 +1086,6 @@ module ActiveRecord
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       #
       #   person.pets.reload # fetches pets from the database
-      #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
-      #
-      #   person.pets(true)  # fetches pets from the database
       #   # => [#<Pet id: 1, name: "Snoop", group: "dogs", person_id: 1>]
       def reload
         proxy_association.reload

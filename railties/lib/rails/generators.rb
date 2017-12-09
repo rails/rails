@@ -4,7 +4,7 @@ activesupport_path = File.expand_path("../../../activesupport/lib", __dir__)
 $:.unshift(activesupport_path) if File.directory?(activesupport_path) && !$:.include?(activesupport_path)
 
 require "thor/group"
-require_relative "command"
+require "rails/command"
 
 require "active_support"
 require "active_support/core_ext/object/blank"
@@ -218,6 +218,7 @@ module Rails
         rails.delete("app")
         rails.delete("plugin")
         rails.delete("encrypted_secrets")
+        rails.delete("credentials")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
 
@@ -273,8 +274,9 @@ module Rails
         else
           options     = sorted_groups.flat_map(&:last)
           suggestions = options.sort_by { |suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
+          suggestions.map! { |s| "'#{s}'" }
           msg =  "Could not find generator '#{namespace}'. ".dup
-          msg << "Maybe you meant #{ suggestions.map { |s| "'#{s}'" }.to_sentence(last_word_connector: " or ", locale: :en) }\n"
+          msg << "Maybe you meant #{ suggestions[0...-1].join(', ')} or #{suggestions[-1]}\n"
           msg << "Run `rails generate --help` for more options."
           puts msg
         end

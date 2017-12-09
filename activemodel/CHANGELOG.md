@@ -1,3 +1,18 @@
+## Rails 5.2.0.beta2 (November 28, 2017) ##
+
+*   No changes.
+
+
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
+*   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
+
+    *bogdanvlviv*
+
+*   Allow passing a Proc or Symbol to length validator options.
+
+    *Matt Rohrer*
+
 *   Add method `#merge!` for `ActiveModel::Errors`.
 
     *Jahfer Husain*

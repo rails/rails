@@ -308,6 +308,24 @@ class EnumTest < ActiveRecord::TestCase
     end
   end
 
+  test "reserved enum values for relation" do
+    relation_method_samples = [
+      :records,
+      :to_ary,
+      :scope_for_create
+    ]
+
+    relation_method_samples.each do |value|
+      e = assert_raises(ArgumentError, "enum value `#{value}` should not be allowed") do
+        Class.new(ActiveRecord::Base) do
+          self.table_name = "books"
+          enum category: [:other, value]
+        end
+      end
+      assert_match(/You tried to define an enum named .* on the model/, e.message)
+    end
+  end
+
   test "overriding enum method should not raise" do
     assert_nothing_raised do
       Class.new(ActiveRecord::Base) do

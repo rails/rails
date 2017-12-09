@@ -42,7 +42,7 @@ module ApplicationTests
         pid = Process.spawn("#{app_path}/bin/rails server -P tmp/dummy.pid", in: slave, out: slave, err: slave)
         assert_output("Listening", master)
 
-        Dir.chdir(app_path) { system("bin/rails restart") }
+        rails("restart")
 
         assert_output("Restarting", master)
         assert_output("Inherited", master)

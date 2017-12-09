@@ -3,15 +3,15 @@
 require "stringio"
 
 require "active_support/inflector"
-require_relative "headers"
+require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
-require_relative "cache"
-require_relative "mime_negotiation"
-require_relative "parameters"
-require_relative "filter_parameters"
-require_relative "upload"
-require_relative "url"
+require "action_dispatch/http/cache"
+require "action_dispatch/http/mime_negotiation"
+require "action_dispatch/http/parameters"
+require "action_dispatch/http/filter_parameters"
+require "action_dispatch/http/upload"
+require "action_dispatch/http/url"
 require "active_support/core_ext/array/conversions"
 
 module ActionDispatch
@@ -22,6 +22,7 @@ module ActionDispatch
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
+    include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"
@@ -197,6 +198,23 @@ module ActionDispatch
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= Http::Headers.new(self)
+    end
+
+    # Early Hints is an HTTP/2 status code that indicates hints to help a client start
+    # making preparations for processing the final response.
+    #
+    # If the env contains +rack.early_hints+ then the server accepts HTTP2 push for Link headers.
+    #
+    # The +send_early_hints+ method accepts a hash of links as follows:
+    #
+    #   send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    #
+    # If you are using +javascript_include_tag+ or +stylesheet_link_tag+ the
+    # Early Hints headers are included by default if supported.
+    def send_early_hints(links)
+      return unless env["rack.early_hints"]
+
+      env["rack.early_hints"].call(links)
     end
 
     # Returns a +String+ with the last requested path including their params.

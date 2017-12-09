@@ -322,9 +322,13 @@ module ActiveModel
     #  person.errors.added? :name, :too_long                                # => false
     #  person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
-      message = message.call if message.respond_to?(:call)
-      message = normalize_message(attribute, message, options)
-      self[attribute].include? message
+      if message.is_a? Symbol
+        self.details[attribute].map { |e| e[:error] }.include? message
+      else
+        message = message.call if message.respond_to?(:call)
+        message = normalize_message(attribute, message, options)
+        self[attribute].include? message
+      end
     end
 
     # Returns all the full error messages in an array.

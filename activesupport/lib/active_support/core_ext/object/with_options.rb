@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../../option_merger"
+require "active_support/option_merger"
 
 class Object
   # An elegant way to factor duplication out of options passed to a series of
@@ -62,7 +62,7 @@ class Object
   #
   #   validates :content, length: { minimum: 50 }, if: -> { content.present? }
   #
-  # Hence the inherited default for `if` key is ignored.
+  # Hence the inherited default for +if+ key is ignored.
   #
   # NOTE: You cannot call class methods implicitly inside of with_options.
   # You can access these methods using the class name instead:

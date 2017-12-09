@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../../inflector/methods"
-require_relative "../../inflector/transliterate"
+require "active_support/inflector/methods"
+require "active_support/inflector/transliterate"
 
 # String inflections define new methods on the String class to transform names for different purposes.
 # For instance, you can figure out the name of a table from the name of a class.
@@ -174,7 +174,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   #
-  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  # To preserve the case of the characters in a string, use the +preserve_case+ argument.
   #
   #   class Person
   #     def to_param

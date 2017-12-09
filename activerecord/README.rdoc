@@ -26,7 +26,7 @@ The Product class is automatically mapped to the table named "products",
 which might look like this:
 
    CREATE TABLE products (
-     id int NOT NULL auto_increment,
+     id bigint NOT NULL auto_increment,
      name varchar(255),
      PRIMARY KEY  (id)
    );
@@ -208,7 +208,7 @@ API documentation is at:
 
 * http://api.rubyonrails.org
 
-Bug reports can be filed for the Ruby on Rails project here:
+Bug reports for the Ruby on Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

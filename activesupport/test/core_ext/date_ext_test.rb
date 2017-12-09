@@ -120,10 +120,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(1582, 10, 4), Date.new(1583, 10, 14).prev_year
   end
 
-  def test_last_year
-    assert_equal Date.new(2004, 6, 5),  Date.new(2005, 6, 5).last_year
-  end
-
   def test_last_year_in_leap_years
     assert_equal Date.new(1999, 2, 28), Date.new(2000, 2, 29).last_year
   end
@@ -183,10 +179,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_next_week_in_calendar_reform
     assert_equal Date.new(1582, 10, 15), Date.new(1582, 9, 30).next_week(:friday)
     assert_equal Date.new(1582, 10, 18), Date.new(1582, 10, 4).next_week
-  end
-
-  def test_last_month_on_31st
-    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
   end
 
   def test_last_quarter_on_31st

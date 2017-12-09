@@ -24,8 +24,14 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
+          current_scope = self.current_scope
+
           if current_scope
-            current_scope.clone
+            if self == current_scope.klass
+              current_scope.clone
+            else
+              relation.merge!(current_scope)
+            end
           else
             default_scoped
           end
@@ -163,6 +169,12 @@ module ActiveRecord
             raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
               "on the model \"#{self.name}\", but Active Record already defined " \
               "a class method with the same name."
+          end
+
+          if method_defined_within?(name, Relation)
+            raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+              "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
+              "an instance method with the same name."
           end
 
           valid_scope_name?(name)

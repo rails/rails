@@ -115,20 +115,6 @@ module ActiveRecord
     # If true, the default table name for a Product class will be "products". If false, it would just be "product".
     # See table_name for the full rules on table/class naming. This is true, by default.
 
-    ##
-    # :singleton-method: ignored_columns
-    # :call-seq: ignored_columns
-    #
-    # The list of columns names the model should ignore. Ignored columns won't have attribute
-    # accessors defined, and won't be referenced in SQL queries.
-
-    ##
-    # :singleton-method: ignored_columns=
-    # :call-seq: ignored_columns=(columns)
-    #
-    # Sets the columns names the model should ignore. Ignored columns won't have attribute
-    # accessors defined, and won't be referenced in SQL queries.
-
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -138,9 +124,9 @@ module ActiveRecord
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
       class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
       class_attribute :pluralize_table_names, instance_writer: false, default: true
-      class_attribute :ignored_columns, instance_accessor: false, default: [].freeze
 
       self.inheritance_column = "type"
+      self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, to: :class
 
@@ -271,6 +257,22 @@ module ActiveRecord
         @explicit_inheritance_column = true
       end
 
+      # The list of columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      def ignored_columns
+        if defined?(@ignored_columns)
+          @ignored_columns
+        else
+          superclass.ignored_columns
+        end
+      end
+
+      # Sets the columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      def ignored_columns=(columns)
+        @ignored_columns = columns.map(&:to_s)
+      end
+
       def sequence_name
         if base_class == self
           @sequence_name ||= reset_sequence_name
@@ -321,11 +323,11 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(attribute_types, primary_key) do |name|
-          unless columns_hash.key?(name)
-            _default_attributes[name].dup
-          end
+        unless defined?(@attributes_builder) && @attributes_builder
+          defaults = _default_attributes.except(*(column_names - [primary_key]))
+          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
         end
+        @attributes_builder
       end
 
       def columns_hash # :nodoc:
@@ -344,7 +346,7 @@ module ActiveRecord
       end
 
       def yaml_encoder # :nodoc:
-        @yaml_encoder ||= AttributeSet::YAMLEncoder.new(attribute_types)
+        @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
 
       # Returns the type of the attribute with the given name, after applying
@@ -374,7 +376,7 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({})
+        @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.

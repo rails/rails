@@ -427,7 +427,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_association_loading_with_belongs_to_and_order_string_with_quoted_table_name
     quoted_posts_id = Comment.connection.quote_table_name("posts") + "." + Comment.connection.quote_column_name("id")
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).order(quoted_posts_id)
+      Comment.includes(:post).references(:posts).order(Arel.sql(quoted_posts_id))
     end
   end
 
@@ -874,14 +874,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: "UPPER(posts.title)", limit: 2, offset: 1
+        order: Arel.sql("UPPER(posts.title)"), limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: "UPPER(posts.title) DESC", limit: 2, offset: 1
+        order: Arel.sql("UPPER(posts.title) DESC"), limit: 2, offset: 1
       ).to_a
     )
   end
@@ -891,14 +891,14 @@ class EagerAssociationTest < ActiveRecord::TestCase
       posts(:thinking, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: ["UPPER(posts.title)", "posts.id"], limit: 2, offset: 1
+        order: [Arel.sql("UPPER(posts.title)"), "posts.id"], limit: 2, offset: 1
       ).to_a
     )
     assert_equal(
       posts(:sti_post_and_comments, :sti_comments),
       Post.all.merge!(
         includes: [:author, :comments], where: { "authors.name" => "David" },
-        order: ["UPPER(posts.title) DESC", "posts.id"], limit: 2, offset: 1
+        order: [Arel.sql("UPPER(posts.title) DESC"), "posts.id"], limit: 2, offset: 1
       ).to_a
     )
   end
@@ -1499,6 +1499,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   test "eager-loading a polymorphic association with references to the associated table" do
     post = Post.eager_load(:tags).where("tags.name = ?", "General").first
     assert_equal posts(:welcome), post
+  end
+
+  test "eager-loading with a polymorphic association and using the existential predicate" do
+    assert_equal true, authors(:david).essays.eager_load(:writer).exists?
   end
 
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.

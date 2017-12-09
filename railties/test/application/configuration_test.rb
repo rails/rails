@@ -487,6 +487,32 @@ module ApplicationTests
       assert_equal "some_value", Rails.application.message_verifier(:sensitive_value).verify(message)
     end
 
+    test "config.secret_token is deprecated" do
+      app_file "config/initializers/secret_token.rb", <<-RUBY
+        Rails.application.config.secret_token = "b3c631c314c0bbca50c1b2843150fe33"
+      RUBY
+
+      app "production"
+
+      assert_deprecated(/secret_token/) do
+        app.secrets
+      end
+    end
+
+    test "secrets.secret_token is deprecated" do
+      app_file "config/secrets.yml", <<-YAML
+        production:
+          secret_token: "b3c631c314c0bbca50c1b2843150fe33"
+      YAML
+
+      app "production"
+
+      assert_deprecated(/secret_token/) do
+        app.secrets
+      end
+    end
+
+
     test "raises when secret_key_base is blank" do
       app_file "config/initializers/secret_token.rb", <<-RUBY
         Rails.application.credentials.secret_key_base = nil
@@ -729,6 +755,68 @@ module ApplicationTests
 
       get "/posts"
       assert_match(/label/, last_response.body)
+    end
+
+    test "form_with can be configured with form_with_generates_ids" do
+      app_file "config/initializers/form_builder.rb", <<-RUBY
+      Rails.configuration.action_view.form_with_generates_ids = false
+      RUBY
+
+      app_file "app/models/post.rb", <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+
+      assert_no_match(/id=('|")post_name('|")/, last_response.body)
+    end
+
+    test "form_with outputs ids by default" do
+      app_file "app/models/post.rb", <<-RUBY
+      class Post
+        include ActiveModel::Model
+        attr_accessor :name
+      end
+      RUBY
+
+      app_file "app/controllers/posts_controller.rb", <<-RUBY
+      class PostsController < ApplicationController
+        def index
+          render inline: "<%= begin; form_with(model: Post.new) {|f| f.text_field(:name)}; rescue => e; e.to_s; end %>"
+        end
+      end
+      RUBY
+
+      add_to_config <<-RUBY
+        routes.prepend do
+          resources :posts
+        end
+      RUBY
+
+      app "development"
+
+      get "/posts"
+
+      assert_match(/id=('|")post_name('|")/, last_response.body)
     end
 
     test "form_with can be configured with form_with_generates_remote_forms" do

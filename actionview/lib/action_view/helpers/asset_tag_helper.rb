@@ -2,8 +2,10 @@
 
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
-require_relative "asset_url_helper"
-require_relative "tag_helper"
+require "active_support/core_ext/object/inclusion"
+require "active_support/core_ext/object/try"
+require "action_view/helpers/asset_url_helper"
+require "action_view/helpers/tag_helper"
 
 module ActionView
   # = Action View Asset Tag Helpers
@@ -36,6 +38,9 @@ module ActionView
       #
       # When the Asset Pipeline is enabled, you can pass the name of your manifest as
       # source, and include other JavaScript or CoffeeScript files inside the manifest.
+      #
+      # If the server supports Early Hints header links for these assets will be
+      # automatically pushed.
       #
       # ==== Options
       #
@@ -77,12 +82,20 @@ module ActionView
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
-        sources.uniq.map { |source|
+        early_hints_links = []
+
+        sources_tags = sources.uniq.map { |source|
+          href = path_to_javascript(source, path_options)
+          early_hints_links << "<#{href}>; rel=preload; as=script"
           tag_options = {
-            "src" => path_to_javascript(source, path_options)
+            "src" => href
           }.merge!(options)
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
+
+        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
+
+        sources_tags
       end
 
       # Returns a stylesheet link tag for the sources specified as arguments. If
@@ -91,6 +104,9 @@ module ActionView
       # For historical reasons, the 'media' attribute will always be present and defaults
       # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
+      #
+      # If the server supports Early Hints header links for these assets  will be
+      # automatically pushed.
       #
       #   stylesheet_link_tag "style"
       #   # => <link href="/assets/style.css" media="screen" rel="stylesheet" />
@@ -113,14 +129,22 @@ module ActionView
       def stylesheet_link_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "host", "skip_pipeline").symbolize_keys
-        sources.uniq.map { |source|
+        early_hints_links = []
+
+        sources_tags = sources.uniq.map { |source|
+          href = path_to_stylesheet(source, path_options)
+          early_hints_links << "<#{href}>; rel=preload; as=stylesheet"
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
-            "href" => path_to_stylesheet(source, path_options)
+            "href" => href
           }.merge!(options)
           tag(:link, tag_options)
         }.join("\n").html_safe
+
+        request.send_early_hints("Link" => early_hints_links.join("\n")) if respond_to?(:request) && request
+
+        sources_tags
       end
 
       # Returns a link tag that browsers and feed readers can use to auto-detect
@@ -197,6 +221,67 @@ module ActionView
           type: "image/x-icon",
           href: path_to_image(source, skip_pipeline: options.delete(:skip_pipeline))
         }.merge!(options.symbolize_keys))
+      end
+
+      # Returns a link tag that browsers can use to preload the +source+.
+      # The +source+ can be the path of an resource managed by asset pipeline,
+      # a full path or an URI.
+      #
+      # ==== Options
+      #
+      # * <tt>:type</tt>  - Override the auto-generated mime type, defaults to the mime type for +source+ extension.
+      # * <tt>:as</tt>  - Override the auto-generated value for as attribute, calculated using +source+ extension and mime type.
+      # * <tt>:crossorigin</tt>  - Specify the crossorigin attribute, required to load cross-origin resources.
+      # * <tt>:nopush</tt>  - Specify if the use of server push is not desired for the resource. Defaults to +false+.
+      #
+      # ==== Examples
+      #
+      #   preload_link_tag("custom_theme.css")
+      #   # => <link rel="preload" href="/assets/custom_theme.css" as="style" type="text/css" />
+      #
+      #   preload_link_tag("/videos/video.webm")
+      #   # => <link rel="preload" href="/videos/video.mp4" as="video" type="video/webm" />
+      #
+      #   preload_link_tag(post_path(format: :json), as: "fetch")
+      #   # => <link rel="preload" href="/posts.json" as="fetch" type="application/json" />
+      #
+      #   preload_link_tag("worker.js", as: "worker")
+      #   # => <link rel="preload" href="/assets/worker.js" as="worker" type="text/javascript" />
+      #
+      #   preload_link_tag("//example.com/font.woff2")
+      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="anonymous"/>
+      #
+      #   preload_link_tag("//example.com/font.woff2", crossorigin: "use-credentials")
+      #   # => <link rel="preload" href="//example.com/font.woff2" as="font" type="font/woff2" crossorigin="use-credentials" />
+      #
+      #   preload_link_tag("/media/audio.ogg", nopush: true)
+      #   # => <link rel="preload" href="/media/audio.ogg" as="audio" type="audio/ogg" />
+      #
+      def preload_link_tag(source, options = {})
+        href = asset_path(source, skip_pipeline: options.delete(:skip_pipeline))
+        extname = File.extname(source).downcase.delete(".")
+        mime_type = options.delete(:type) || Template::Types[extname].try(:to_s)
+        as_type = options.delete(:as) || resolve_link_as(extname, mime_type)
+        crossorigin = options.delete(:crossorigin)
+        crossorigin = "anonymous" if crossorigin == true || (crossorigin.blank? && as_type == "font")
+        nopush = options.delete(:nopush) || false
+
+        link_tag = tag.link({
+          rel: "preload",
+          href: href,
+          as: as_type,
+          type: mime_type,
+          crossorigin: crossorigin
+        }.merge!(options.symbolize_keys))
+
+        early_hints_link = "<#{href}>; rel=preload; as=#{as_type}"
+        early_hints_link += "; type=#{mime_type}" if mime_type
+        early_hints_link += "; crossorigin=#{crossorigin}" if crossorigin
+        early_hints_link += "; nopush" if nopush
+
+        request.send_early_hints("Link" => early_hints_link) if respond_to?(:request) && request
+
+        link_tag
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
@@ -393,6 +478,18 @@ module ActionView
         def check_for_image_tag_errors(options)
           if options[:size] && (options[:height] || options[:width])
             raise ArgumentError, "Cannot pass a :size option with a :height or :width option"
+          end
+        end
+
+        def resolve_link_as(extname, mime_type)
+          if extname == "js"
+            "script"
+          elsif extname == "css"
+            "style"
+          elsif extname == "vtt"
+            "track"
+          elsif (type = mime_type.to_s.split("/")[0]) && type.in?(%w(audio video font))
+            type
           end
         end
     end

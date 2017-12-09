@@ -37,26 +37,6 @@ module ActiveSupport
 
       private
 
-        def digits_and_rounded_number(precision)
-          if zero?
-            [1, 0]
-          else
-            digits = digit_count(number)
-            multiplier = 10**(digits - precision)
-            rounded_number = calculate_rounded_number(multiplier)
-            digits = digit_count(rounded_number) # After rounding, the number of digits may have changed
-            [digits, rounded_number]
-          end
-        end
-
-        def calculate_rounded_number(multiplier)
-          (number / BigDecimal.new(multiplier.to_f.to_s)).round * multiplier
-        end
-
-        def digit_count(number)
-          number.zero? ? 1 : (Math.log10(absolute_number(number)) + 1).floor
-        end
-
         def strip_insignificant_zeros
           options[:strip_insignificant_zeros]
         end

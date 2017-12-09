@@ -223,6 +223,13 @@ class ErrorsTest < ActiveModel::TestCase
     assert !person.errors.added?(:name)
   end
 
+  test "added? returns false when checking for an error by symbol and a different error with same message is present" do
+    I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
+    person = Person.new
+    person.errors.add(:name, :wrong)
+    assert !person.errors.added?(:name, :used)
+  end
+
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

@@ -1,13 +1,13 @@
 # frozen_string_literal: true
 
 require "mail"
-require_relative "collector"
+require "action_mailer/collector"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
 
-require_relative "log_subscriber"
-require_relative "rescuable"
+require "action_mailer/log_subscriber"
+require "action_mailer/rescuable"
 
 module ActionMailer
   # Action Mailer allows you to send email from your application using a mailer model and views.

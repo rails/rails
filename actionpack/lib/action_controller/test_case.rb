@@ -7,7 +7,7 @@ require "active_support/core_ext/module/anonymous"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/keys"
 require "active_support/testing/constant_lookup"
-require_relative "template_assertions"
+require "action_controller/template_assertions"
 require "rails-dom-testing"
 
 module ActionController

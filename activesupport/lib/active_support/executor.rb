@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "execution_wrapper"
+require "active_support/execution_wrapper"
 
 module ActiveSupport
   class Executor < ExecutionWrapper
