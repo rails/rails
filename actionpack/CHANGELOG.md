@@ -1,3 +1,8 @@
+*   Changed the system tests to set Puma as default server only when the
+    user haven't specified manually another server.
+
+    *Guillermo Iguaran*
+
 *   Add secure `X-Download-Options` and `X-Permitted-Cross-Domain-Policies` to
     default headers set.
 
