@@ -64,7 +64,13 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
+      include ActiveSupport::Configurable
+
       class_attribute :__callbacks, instance_writer: false, default: {}
+
+      config_accessor :skip_callback_raise_exception_if_not_defined do
+        true
+      end
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
@@ -697,7 +703,7 @@ module ActiveSupport
             filters.each do |filter|
               callback = chain.find { |c| c.matches?(type, filter) }
 
-              if !callback && options[:raise]
+              if !callback && options[:raise] && skip_callback_raise_exception_if_not_defined
                 raise ArgumentError, "#{type.to_s.capitalize} #{name} callback #{filter.inspect} has not been defined"
               end
 

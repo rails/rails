@@ -1171,6 +1171,18 @@ module CallbacksTest
       klass.new.run
       assert_equal 1, calls.length
     end
+
+    def test_skip_without_raise_globally
+      calls = []
+      klass = build_class(:bar)
+      klass.skip_callback_raise_exception_if_not_defined = false
+
+      klass.class_eval { define_method(:bar) { calls << klass } }
+      klass.skip :qux
+      klass.skip :foo
+      klass.new.run
+      assert_equal 1, calls.length
+    end
   end
 
   class NotSupportedStringConditionalTest < ActiveSupport::TestCase
