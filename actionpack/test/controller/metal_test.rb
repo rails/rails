@@ -9,7 +9,7 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
     end
   end
 
-  def test_response_has_default_headers
+  def test_response_does_not_have_default_headers
     original_default_headers = ActionDispatch::Response.default_headers
 
     ActionDispatch::Response.default_headers = {

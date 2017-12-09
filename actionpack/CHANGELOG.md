@@ -1,3 +1,8 @@
+*   Add secure `X-Download-Options` and `X-Permitted-Cross-Domain-Policies` to
+    default headers set.
+
+    *Guillermo Iguaran*
+
 *   Add headless firefox support to System Tests.
 
     *bogdanvlviv*
