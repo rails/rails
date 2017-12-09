@@ -1932,3 +1932,49 @@ class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNe
     assert_equal "Updated", valid_project.name
   end
 end
+
+class TestCyclicAutosaveAssociations < ActiveRecord::TestCase
+  self.use_transactional_tests = false unless supports_savepoints?
+
+  def setup
+    super
+
+    @ship = ShipWithAutosavedPrisoners.new
+    @ship.prisoners.build
+
+    class << @ship
+      attr_reader :times_saved, :times_validated
+
+      validate do
+        @times_validated ||= 0
+        @times_validated += 1
+      end
+
+      after_save do
+        @times_saved ||= 0
+        @times_saved += 1
+      end
+    end
+  end
+
+  test "should only validate the ship once" do
+    @ship.save
+
+    assert_equal 1, @ship.times_validated
+  end
+
+  test "should only save the ship once" do
+    @ship.name = "Ship"
+    @ship.prisoners.first.name = "Prisoner"
+
+    @ship.save
+
+    assert_equal 1, @ship.times_saved
+  end
+
+  test "should not validate self through association" do
+    @ship.save
+
+    assert_equal [:"prisoners.name", :name], @ship.errors.keys
+  end
+end

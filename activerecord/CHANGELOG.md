@@ -1,3 +1,10 @@
+*   Fix loop-backs in cyclic associations with `autosave: true`.
+
+    Added autosaving flag that is set during autosave callbacks.
+    The flag is used to avoid loop-backs in autosaved associations.
+
+    *Robertas Godelis*
+    
 *   Dump the schema or structure of a database when calling db:migrate:name
 
     In previous versions of Rails, `rails db:migrate` would dump the schema of the database. In Rails 6, that holds true (`rails db:migrate` dumps all databases' schemas), but `rails db:migrate:name` does not share that behavior.

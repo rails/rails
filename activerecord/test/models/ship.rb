@@ -31,8 +31,17 @@ class ShipWithoutNestedAttributes < ActiveRecord::Base
   validates :name, presence: true, if: -> { true }
 end
 
+class ShipWithAutosavedPrisoners < ActiveRecord::Base
+  self.table_name = "ships"
+  has_many :prisoners, inverse_of: :ship, foreign_key: :ship_id, autosave: true
+
+  validates :name, presence: true
+end
+
 class Prisoner < ActiveRecord::Base
   belongs_to :ship, autosave: true, class_name: "ShipWithoutNestedAttributes", inverse_of: :prisoners
+
+  validates :name, presence: true
 end
 
 class FamousShip < ActiveRecord::Base

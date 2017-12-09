@@ -862,6 +862,7 @@ ActiveRecord::Schema.define do
 
   create_table :prisoners, force: true do |t|
     t.belongs_to :ship
+    t.string :name
   end
 
   create_table :sinks, force: true do |t|

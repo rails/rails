@@ -155,16 +155,19 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       private
-        def define_non_cyclic_method(name, &block)
+        def define_autosave_method(name, &block)
           return if instance_methods(false).include?(name)
           define_method(name) do |*args|
-            result = true; @_already_called ||= {}
+            result = true
+            @_already_called ||= {}
             # Loop prevention for validation of associations
             unless @_already_called[name]
               begin
+                @autosaving = true
                 @_already_called[name] = true
                 result = instance_eval(&block)
               ensure
+                @autosaving = false
                 @_already_called[name] = false
               end
             end
@@ -191,12 +194,12 @@ module ActiveRecord
             before_save :before_save_collection_association
             after_save :after_save_collection_association
 
-            define_non_cyclic_method(save_method) { save_collection_association(reflection) }
+            define_autosave_method(save_method) { save_collection_association(reflection) }
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
             after_create save_method
             after_update save_method
           elsif reflection.has_one?
-            define_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
+            define_autosave_method(save_method) { save_has_one_association(reflection) } unless method_defined?(save_method)
             # Configures two callbacks instead of a single after_save so that
             # the model may rely on their execution order relative to its
             # own callbacks.
@@ -208,7 +211,7 @@ module ActiveRecord
             after_create save_method
             after_update save_method
           else
-            define_non_cyclic_method(save_method) { throw(:abort) if save_belongs_to_association(reflection) == false }
+            define_autosave_method(save_method) { throw(:abort) if save_belongs_to_association(reflection) == false }
             before_save save_method
           end
 
@@ -224,7 +227,7 @@ module ActiveRecord
               method = :validate_single_association
             end
 
-            define_non_cyclic_method(validation_method) { send(method, reflection) }
+            define_autosave_method(validation_method) { send(method, reflection) }
             validate validation_method
             after_validation :_ensure_no_duplicate_errors
           end
@@ -235,6 +238,7 @@ module ActiveRecord
     def reload(options = nil)
       @marked_for_destruction = false
       @destroyed_by_association = nil
+      @autosaving = false
       super
     end
 
@@ -270,7 +274,14 @@ module ActiveRecord
     # Returns whether or not this record has been changed in any way (including whether
     # any of its nested autosave associations are likewise changed)
     def changed_for_autosave?
-      new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?
+      !autosaving? && (new_record? || has_changes_to_save? || marked_for_destruction? || nested_records_changed_for_autosave?)
+    end
+
+    # Returns whether the record is being autosaved.
+    #
+    # Used to avoid inverse validations, which result in duplicates.
+    def autosaving?
+      @autosaving
     end
 
     private
@@ -329,7 +340,7 @@ module ActiveRecord
       # the parent, <tt>self</tt>, if it wasn't. Skips any <tt>:autosave</tt>
       # enabled records if they're marked_for_destruction? or destroyed.
       def association_valid?(reflection, record, index = nil)
-        return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
+        return true if record.destroyed? || record.autosaving? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
         context = validation_context if custom_validation_context?
 

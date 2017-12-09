@@ -594,6 +594,7 @@ module ActiveRecord
         @_start_transaction_state = nil
         @transaction_state        = nil
         @strict_loading           = false
+        @autosaving               = false
 
         self.class.define_attribute_methods
       end
