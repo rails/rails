@@ -205,6 +205,9 @@ module ActiveRecord
       #   Set to true to drop the table before creating it.
       #   Set to +:cascade+ to drop dependent objects as well.
       #   Defaults to false.
+      # [<tt>:if_not_exists</tt>]
+      #   Set to true to avoid raising an error when the table already exists.
+      #   Defaults to false.
       # [<tt>:as</tt>]
       #   SQL to use to generate the table. When this option is used, the block is
       #   ignored, as are the <tt>:id</tt> and <tt>:primary_key</tt> options.
@@ -288,7 +291,7 @@ module ActiveRecord
       #
       # See also TableDefinition#column for details on how to create columns.
       def create_table(table_name, comment: nil, **options)
-        td = create_table_definition table_name, options[:temporary], options[:options], options[:as], comment: comment
+        td = create_table_definition table_name, options[:temporary], options[:if_not_exists], options[:options], options[:as], comment: comment
 
         if options[:id] != false && !options[:as]
           pk = options.fetch(:primary_key) do
