@@ -298,6 +298,8 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_not column.null
     assert_equal :string, column.type
     assert_equal 42, column.limit
+  ensure
+    Barcode.reset_column_information
   end
 
   test "schema dump primary key includes type and options" do
