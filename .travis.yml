@@ -53,7 +53,7 @@ matrix:
       env:
         - "GEM=ar:mysql2"
       addons:
-        mariadb: 10.0
+        mariadb: 10.2
     - rvm: jruby-9.1.7.0
       jdk: oraclejdk8
       env:
