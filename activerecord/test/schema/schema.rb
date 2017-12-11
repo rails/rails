@@ -123,7 +123,7 @@ ActiveRecord::Schema.define do
   create_table :cars, force: true do |t|
     t.string  :name
     t.integer :engines_count
-    t.integer :wheels_count
+    t.integer :wheels_count, default: 0
     t.column :lock_version, :integer, null: false, default: 0
     t.timestamps null: false
   end
@@ -964,6 +964,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :wheels, force: true do |t|
+    t.integer :size
     t.references :wheelable, polymorphic: true
   end
 

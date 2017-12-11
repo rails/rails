@@ -1,3 +1,86 @@
+*   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
+
+    ```
+    # create_table :posts do |t|
+    #   t.integer :comments_count, default: 0
+    #   t.integer :lock_version
+    #   t.timestamps
+    # end
+    class Post < ApplicationRecord
+    end
+
+    # create_table :comments do |t|
+    #   t.belongs_to :post
+    # end
+    class Comment < ApplicationRecord
+      belongs_to :post, touch: true, counter_cache: true
+    end
+    ```
+
+    Before:
+    ```
+    post = Post.create!
+    # => begin transaction
+         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
+         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
+         commit transaction
+
+    comment = Comment.create!(post: post)
+    # => begin transaction
+         INSERT INTO "comments" ("post_id") VALUES (1)
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
+
+         UPDATE "posts" SET "updated_at" = '2017-12-11 21:27:11.398330',
+         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
+         rollback transaction
+    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
+
+    Comment.take.destroy!
+    # => begin transaction
+         DELETE FROM "comments" WHERE "comments"."id" = 1
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
+
+         UPDATE "posts" SET "updated_at" = '2017-12-11 21:42:47.785901',
+         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
+         rollback transaction
+    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
+    ```
+
+    After:
+    ```
+    post = Post.create!
+    # => begin transaction
+         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
+         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
+         commit transaction
+
+    comment = Comment.create!(post: post)
+    # => begin transaction
+         INSERT INTO "comments" ("post_id") VALUES (1)
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1,
+         "updated_at" = '2017-12-11 21:37:09.802642' WHERE "posts"."id" = 1
+         commit transaction
+
+    comment.destroy!
+    # => begin transaction
+         DELETE FROM "comments" WHERE "comments"."id" = 1
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1,
+         "updated_at" = '2017-12-11 21:39:02.685520' WHERE "posts"."id" = 1
+         commit transaction
+    ```
+
+    Fixes #31199.
+
+    *bogdanvlviv*
+
 *   Add support for PostgreSQL operator classes to `add_index`.
 
     Example:
