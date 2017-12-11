@@ -46,7 +46,7 @@ module ActiveStorage
         begin
           blobs.delete_blob(container, key)
         rescue Azure::Core::Http::HTTPError
-          false
+          # Ignore files already deleted
         end
       end
     end
