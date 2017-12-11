@@ -852,6 +852,49 @@ You can specify unicode character routes directly. For example:
 get 'こんにちは', to: 'welcome#index'
 ```
 
+### Direct routes
+
+You can create custom URL helpers directly. For example:
+
+```ruby
+direct :homepage do
+  "http://www.rubyonrails.org"
+end
+
+# >> homepage_url
+# => "http://www.rubyonrails.org"
+```
+
+The return value of the block must be a valid argument for the `url_for` method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.
+
+```ruby
+direct :commentable do |model|
+  [ model, anchor: model.dom_id ]
+end
+
+direct :main do
+  { controller: 'pages', action: 'index', subdomain: 'www' }
+end
+```
+
+### Using `resolve`
+
+The `resolve` method allows customizing polymorphic mapping of models. For example:
+
+``` ruby
+resource :basket
+
+resolve("Basket") { [:basket] }
+```
+
+``` erb
+<%= form_for @basket do |form| %>
+  <!-- basket form -->
+<% end %>
+```
+
+This will generate the singular URL `/basket` instead of the usual `/baskets/:id`.
+
 Customizing Resourceful Routes
 ------------------------------
 
