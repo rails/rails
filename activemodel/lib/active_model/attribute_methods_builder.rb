@@ -77,7 +77,6 @@ module ActiveModel
     # See ActiveModel::AttributeMethods#define_attribute_methods
     def define_attribute_methods(*attr_names)
       attr_names.each { |attr_name| define_attribute_method(attr_name) }
-      define_method_missing
     end
 
     # See ActiveModel::AttributeMethods#define_attribute_method
