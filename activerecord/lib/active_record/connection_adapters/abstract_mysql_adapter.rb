@@ -68,7 +68,7 @@ module ActiveRecord
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         if version < '5.0.0'
-          raise "Your version of MySQL (#{full_version.match(/^\d+\.\d+\.\d+/)[0]}) is too old. Active Record supports MySQL >= 5.0."
+          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.0."
         end
       end
 
@@ -81,7 +81,7 @@ module ActiveRecord
       end
 
       def version #:nodoc:
-        @version ||= Version.new(full_version.match(/^\d+\.\d+\.\d+/)[0])
+        @version ||= Version.new(version_string)
       end
 
       def mariadb? # :nodoc:
@@ -399,8 +399,8 @@ module ActiveRecord
         table_name = table_name.to_s
         column_definitions(table_name).map do |field|
           type_metadata = fetch_type_metadata(field[:Type], field[:Extra])
-          if type_metadata.type == :datetime && field[:Default] == "CURRENT_TIMESTAMP"
-            default, default_function = nil, field[:Default]
+          if type_metadata.type == :datetime && field[:Default] =~ /\ACURRENT_TIMESTAMP(?:\(\))?\z/i
+            default, default_function = nil, "CURRENT_TIMESTAMP"
           else
             default, default_function = field[:Default], nil
           end
@@ -938,6 +938,10 @@ module ActiveRecord
         when 0x1000000..0xffffffff; 'longblob'
         else raise(ActiveRecordError, "No binary type has byte length #{limit}")
         end
+      end
+
+      def version_string
+        full_version.match(/^(?:5\.5\.5-)?(\d+\.\d+\.\d+)/)[1]
       end
 
       class MysqlJson < Type::Internal::AbstractJson # :nodoc:
