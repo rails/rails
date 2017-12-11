@@ -1121,7 +1121,7 @@ module ActiveRecord
 
       def preprocess_order_args(order_args)
         order_args.map! do |arg|
-          klass.send(:sanitize_sql_for_order, arg)
+          klass.sanitize_sql_for_order(arg)
         end
         order_args.flatten!
 

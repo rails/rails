@@ -11,30 +11,30 @@ class SanitizeTest < ActiveRecord::TestCase
 
   def test_sanitize_sql_array_handles_string_interpolation
     quoted_bambi = ActiveRecord::Base.connection.quote_string("Bambi")
-    assert_equal "name='#{quoted_bambi}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi"])
-    assert_equal "name='#{quoted_bambi}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi".mb_chars])
+    assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi"])
+    assert_equal "name='#{quoted_bambi}'", Binary.sanitize_sql_array(["name='%s'", "Bambi".mb_chars])
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote_string("Bambi\nand\nThumper")
-    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper"])
-    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.send(:sanitize_sql_array, ["name='%s'", "Bambi\nand\nThumper".mb_chars])
+    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper"])
+    assert_equal "name='#{quoted_bambi_and_thumper}'", Binary.sanitize_sql_array(["name='%s'", "Bambi\nand\nThumper".mb_chars])
   end
 
   def test_sanitize_sql_array_handles_bind_variables
     quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
-    assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi"])
-    assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi".mb_chars])
+    assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi"])
+    assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=?", "Bambi".mb_chars])
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper"])
-    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=?", "Bambi\nand\nThumper".mb_chars])
+    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper"])
+    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=?", "Bambi\nand\nThumper".mb_chars])
   end
 
   def test_sanitize_sql_array_handles_named_bind_variables
     quoted_bambi = ActiveRecord::Base.connection.quote("Bambi")
-    assert_equal "name=#{quoted_bambi}", Binary.send(:sanitize_sql_array, ["name=:name", name: "Bambi"])
-    assert_equal "name=#{quoted_bambi} AND id=1", Binary.send(:sanitize_sql_array, ["name=:name AND id=:id", name: "Bambi", id: 1])
+    assert_equal "name=#{quoted_bambi}", Binary.sanitize_sql_array(["name=:name", name: "Bambi"])
+    assert_equal "name=#{quoted_bambi} AND id=1", Binary.sanitize_sql_array(["name=:name AND id=:id", name: "Bambi", id: 1])
 
     quoted_bambi_and_thumper = ActiveRecord::Base.connection.quote("Bambi\nand\nThumper")
-    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=:name", name: "Bambi\nand\nThumper"])
-    assert_equal "name=#{quoted_bambi_and_thumper} AND name2=#{quoted_bambi_and_thumper}", Binary.send(:sanitize_sql_array, ["name=:name AND name2=:name", name: "Bambi\nand\nThumper"])
+    assert_equal "name=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=:name", name: "Bambi\nand\nThumper"])
+    assert_equal "name=#{quoted_bambi_and_thumper} AND name2=#{quoted_bambi_and_thumper}", Binary.sanitize_sql_array(["name=:name AND name2=:name", name: "Bambi\nand\nThumper"])
   end
 
   def test_sanitize_sql_array_handles_relations
@@ -43,31 +43,31 @@ class SanitizeTest < ActiveRecord::TestCase
 
     sub_query_pattern = /\(\bselect\b.*?\bwhere\b.*?\)/i
 
-    select_author_sql = Post.send(:sanitize_sql_array, ["id in (?)", david_posts])
+    select_author_sql = Post.sanitize_sql_array(["id in (?)", david_posts])
     assert_match(sub_query_pattern, select_author_sql, "should sanitize `Relation` as subquery for bind variables")
 
-    select_author_sql = Post.send(:sanitize_sql_array, ["id in (:post_ids)", post_ids: david_posts])
+    select_author_sql = Post.sanitize_sql_array(["id in (:post_ids)", post_ids: david_posts])
     assert_match(sub_query_pattern, select_author_sql, "should sanitize `Relation` as subquery for named bind variables")
   end
 
   def test_sanitize_sql_array_handles_empty_statement
-    select_author_sql = Post.send(:sanitize_sql_array, [""])
+    select_author_sql = Post.sanitize_sql_array([""])
     assert_equal("", select_author_sql)
   end
 
   def test_sanitize_sql_like
-    assert_equal '100\%', Binary.send(:sanitize_sql_like, "100%")
-    assert_equal 'snake\_cased\_string', Binary.send(:sanitize_sql_like, "snake_cased_string")
-    assert_equal 'C:\\\\Programs\\\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint')
-    assert_equal "normal string 42", Binary.send(:sanitize_sql_like, "normal string 42")
+    assert_equal '100\%', Binary.sanitize_sql_like("100%")
+    assert_equal 'snake\_cased\_string', Binary.sanitize_sql_like("snake_cased_string")
+    assert_equal 'C:\\\\Programs\\\\MsPaint', Binary.sanitize_sql_like('C:\\Programs\\MsPaint')
+    assert_equal "normal string 42", Binary.sanitize_sql_like("normal string 42")
   end
 
   def test_sanitize_sql_like_with_custom_escape_character
-    assert_equal "100!%", Binary.send(:sanitize_sql_like, "100%", "!")
-    assert_equal "snake!_cased!_string", Binary.send(:sanitize_sql_like, "snake_cased_string", "!")
-    assert_equal "great!!", Binary.send(:sanitize_sql_like, "great!", "!")
-    assert_equal 'C:\\Programs\\MsPaint', Binary.send(:sanitize_sql_like, 'C:\\Programs\\MsPaint', "!")
-    assert_equal "normal string 42", Binary.send(:sanitize_sql_like, "normal string 42", "!")
+    assert_equal "100!%", Binary.sanitize_sql_like("100%", "!")
+    assert_equal "snake!_cased!_string", Binary.sanitize_sql_like("snake_cased_string", "!")
+    assert_equal "great!!", Binary.sanitize_sql_like("great!", "!")
+    assert_equal 'C:\\Programs\\MsPaint', Binary.sanitize_sql_like('C:\\Programs\\MsPaint', "!")
+    assert_equal "normal string 42", Binary.sanitize_sql_like("normal string 42", "!")
   end
 
   def test_sanitize_sql_like_example_use_case
