@@ -12,7 +12,7 @@ module ActiveModel
   # The builder can also be used on its own:
   #
   #   class Person
-  #     mod = ActiveModel::AttributeMethodsBuidler.new
+  #     mod = ActiveModel::AttributeMethodsBuilder.new
   #
   #     include mod
   #
