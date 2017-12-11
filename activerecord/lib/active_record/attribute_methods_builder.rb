@@ -3,7 +3,6 @@
 require "mutex_m"
 
 module ActiveRecord
-
   # == Active \Record \Attribute \Methods\ Builder
   #
   # Module builder to define ActiveRecord attribute methods. Used by
