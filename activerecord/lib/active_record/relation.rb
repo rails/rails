@@ -306,7 +306,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
 
-      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
       if has_join_values?
