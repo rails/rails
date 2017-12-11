@@ -280,6 +280,21 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_where_new_with_subclass
+    firm = Company.where(type: "Firm").new
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_with_subclass
+    firm = Company.where(type: "Firm").create(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_bang_with_subclass
+    firm = Company.where(type: "Firm").create!(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
@@ -300,6 +315,30 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_unrelated_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
+  end
+
+  def test_where_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
+  end
+
+  def test_where_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").new }
+  end
+
+  def test_where_create_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create }
+  end
+
+  def test_where_create_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create }
+  end
+
+  def test_where_create_bang_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create! }
+  end
+
+  def test_where_create_bang_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create! }
   end
 
   def test_new_with_unrelated_namespaced_type
