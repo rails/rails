@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/string/strip" # for strip_heredoc
 require "active_support/core_ext/time/calculations"
 require "concurrent/map"
@@ -43,7 +44,7 @@ module ActiveSupport
 
         def unstub_object(stub)
           singleton_class = stub.object.singleton_class
-          singleton_class.send :undef_method, stub.method_name
+          singleton_class.send :silence_redefinition_of_method, stub.method_name
           singleton_class.send :alias_method, stub.method_name, stub.original_method
           singleton_class.send :undef_method, stub.original_method
         end
