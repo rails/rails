@@ -142,7 +142,7 @@ module ActiveRecord
         #   # => "snake!_cased!_string"
         def sanitize_sql_like(string, escape_character = "\\") # :doc:
           pattern = Regexp.union(escape_character, "%", "_")
-          string.gsub(pattern) { |x| [escape_character, x].join }
+          string.to_s.gsub(pattern) { |x| [escape_character, x].join }
         end
 
         # Accepts an array of conditions. The array has each value
