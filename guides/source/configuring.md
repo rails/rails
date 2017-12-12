@@ -399,7 +399,7 @@ by adding the following to your `application.rb` file:
 
 The schema dumper adds one additional configuration option:
 
-* `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless `config.active_record.schema_format == :ruby`.
+* `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file.
 
 ### Configuring Action Controller
 
