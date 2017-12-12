@@ -79,6 +79,122 @@ class FixturesTest < ActiveRecord::TestCase
         ActiveSupport::Notifications.unsubscribe(subscription)
       end
     end
+
+    def test_bulk_insert_multiple_table_with_a_multi_statement_query
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+
+      create_fixtures("bulbs", "authors", "computers")
+
+      expected_sql = <<-EOS.strip_heredoc.chop
+        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
+        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("authors")} .*
+        INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*
+      EOS
+      assert_equal 1, subscriber.events.size
+      assert_match(/#{expected_sql}/, subscriber.events.first)
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    def test_bulk_insert_with_a_multi_statement_query_raises_an_exception_when_any_insert_fails
+      require "models/aircraft"
+
+      assert_equal false, Aircraft.columns_hash["wheels_count"].null
+      fixtures = {
+        "aircraft" => [
+          { "name" => "working_aircrafts", "wheels_count" => 2 },
+          { "name" => "broken_aircrafts", "wheels_count" => nil },
+        ]
+      }
+
+      assert_no_difference "Aircraft.count" do
+        assert_raises(ActiveRecord::NotNullViolation) do
+          ActiveRecord::Base.connection.insert_fixtures_set(fixtures)
+        end
+      end
+    end
+  end
+
+  if current_adapter?(:Mysql2Adapter)
+    def test_insert_fixtures_set_raises_an_error_when_max_allowed_packet_is_smaller_than_fixtures_set_size
+      conn = ActiveRecord::Base.connection
+      packet_size = 1024
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * packet_size] },
+        ]
+      }
+
+      conn.stubs(:max_allowed_packet).returns(packet_size)
+
+      error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
+      assert_match(/Fixtures set is too large/, error.message)
+    end
+
+    def test_insert_fixture_set_when_max_allowed_packet_is_bigger_than_fixtures_set_size
+      conn = ActiveRecord::Base.connection
+      packet_size = 1024
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * 51] },
+        ]
+      }
+
+      conn.stubs(:max_allowed_packet).returns(packet_size)
+
+      assert_difference "TrafficLight.count" do
+        conn.insert_fixtures_set(fixtures)
+      end
+    end
+
+    def test_insert_fixtures_set_split_the_total_sql_into_two_chunks_smaller_than_max_allowed_packet
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+      conn = ActiveRecord::Base.connection
+      packet_size = 1024
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * 450] },
+        ],
+        "comments" => [
+          { "post_id" => 1, "body" => "a" * 450 },
+        ]
+      }
+
+      conn.stubs(:max_allowed_packet).returns(packet_size)
+
+      conn.insert_fixtures_set(fixtures)
+      assert_equal 2, subscriber.events.size
+      assert_operator subscriber.events.first.bytesize, :<, packet_size
+      assert_operator subscriber.events.second.bytesize, :<, packet_size
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+
+    def test_insert_fixtures_set_concat_total_sql_into_a_single_packet_smaller_than_max_allowed_packet
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+      conn = ActiveRecord::Base.connection
+      packet_size = 1024
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * 200] },
+        ],
+        "comments" => [
+          { "post_id" => 1, "body" => "a" * 200 },
+        ]
+      }
+
+      conn.stubs(:max_allowed_packet).returns(packet_size)
+
+      assert_difference ["TrafficLight.count", "Comment.count"], +1 do
+        conn.insert_fixtures_set(fixtures)
+      end
+      assert_equal 1, subscriber.events.size
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
   end
 
   def test_broken_yaml_exception

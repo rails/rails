@@ -540,47 +540,38 @@ module ActiveRecord
       }
 
       unless files_to_read.empty?
-        connection.disable_referential_integrity do
-          fixtures_map = {}
+        fixtures_map = {}
 
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
+        fixture_sets = files_to_read.map do |fs_name|
+          klass = class_names[fs_name]
+          conn = klass ? klass.connection : connection
+          fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
+            conn,
+            fs_name,
+            klass,
+            ::File.join(fixtures_directory, fs_name))
+        end
 
-          update_all_loaded_fixtures fixtures_map
+        update_all_loaded_fixtures fixtures_map
+        fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
 
-          connection.transaction(requires_new: true) do
-            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
-            fixture_sets.each do |fs|
-              conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
-              table_rows = fs.table_rows
+        fixture_sets_by_connection.each do |conn, set|
+          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
 
-              table_rows.each_key do |table|
-                unless deleted_tables[conn].include? table
-                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
-                end
-                deleted_tables[conn] << table
-              end
-
-              table_rows.each do |fixture_set_name, rows|
-                conn.insert_fixtures(rows, fixture_set_name)
-              end
-
-              # Cap primary key sequences to max(pk).
-              if conn.respond_to?(:reset_pk_sequence!)
-                conn.reset_pk_sequence!(fs.table_name)
-              end
+          set.each do |fs|
+            fs.table_rows.each do |table, rows|
+              table_rows_for_connection[table].unshift(*rows)
             end
           end
+          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
-          cache_fixtures(connection, fixtures_map)
+          # Cap primary key sequences to max(pk).
+          if conn.respond_to?(:reset_pk_sequence!)
+            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+          end
         end
+
+        cache_fixtures(connection, fixtures_map)
       end
       cached_fixtures(connection, fixture_set_names)
     end
