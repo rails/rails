@@ -18,7 +18,7 @@ module ActionDispatch
     def test_filename_is_different_object
       file_str = "foo"
       uf = Http::UploadedFile.new(filename: file_str, tempfile: Object.new)
-      assert_not_equal file_str.object_id , uf.original_filename.object_id
+      assert_not_equal file_str.object_id, uf.original_filename.object_id
     end
 
     def test_filename_should_be_in_utf_8

@@ -1238,7 +1238,7 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with associations" do
     assert_equal authors(:david), Post.find_by(author: authors(:david)).author
-    assert_equal authors(:mary) , Post.find_by(author: authors(:mary)).author
+    assert_equal authors(:mary), Post.find_by(author: authors(:mary)).author
   end
 
   test "find_by doesn't have implicit ordering" do

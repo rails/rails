@@ -187,7 +187,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_array_should_pass_encoding_options_to_children_in_as_json
     people = [
       { name: "John", address: { city: "London", country: "UK" } },
-      { name: "Jean", address: { city: "Paris" , country: "France" } }
+      { name: "Jean", address: { city: "Paris", country: "France" } }
     ]
     json = people.as_json only: [:address, :city]
     expected = [
@@ -201,7 +201,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
   def test_array_should_pass_encoding_options_to_children_in_to_json
     people = [
       { name: "John", address: { city: "London", country: "UK" } },
-      { name: "Jean", address: { city: "Paris" , country: "France" } }
+      { name: "Jean", address: { city: "Paris", country: "France" } }
     ]
     json = people.to_json only: [:address, :city]
 
@@ -213,7 +213,7 @@ class TestJSONEncoding < ActiveSupport::TestCase
     def initialize
       @people = [
         { name: "John", address: { city: "London", country: "UK" } },
-        { name: "Jean", address: { city: "Paris" , country: "France" } }
+        { name: "Jean", address: { city: "Paris", country: "France" } }
       ]
     end
     def each(*, &blk)

@@ -2350,7 +2350,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   test "does not duplicate associations when used with natural primary keys" do
     speedometer = Speedometer.create!(id: "4")
-    speedometer.minivans.create!(minivan_id: "a-van-red" , name: "a van", color: "red")
+    speedometer.minivans.create!(minivan_id: "a-van-red", name: "a van", color: "red")
 
     assert_equal 1, speedometer.minivans.to_a.size, "Only one association should be present:\n#{speedometer.minivans.to_a}"
     assert_equal 1, speedometer.reload.minivans.to_a.size

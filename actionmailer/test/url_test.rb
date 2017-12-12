@@ -105,7 +105,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     assert_url_for "/dummy_model", DummyModel
 
     # array
-    assert_url_for "/dummy_model" , [DummyModel]
+    assert_url_for "/dummy_model", [DummyModel]
   end
 
   def test_signed_up_with_url

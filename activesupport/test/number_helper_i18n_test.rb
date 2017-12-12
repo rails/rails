@@ -35,7 +35,7 @@ module ActiveSupport
               thousand: "t",
               million: "m",
               billion: "b",
-              trillion: "t" ,
+              trillion: "t",
               quadrillion: "q"
             }
           }

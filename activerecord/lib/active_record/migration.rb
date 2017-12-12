@@ -1277,10 +1277,10 @@ module ActiveRecord
       end
 
       def validate(migrations)
-        name , = migrations.group_by(&:name).find { |_, v| v.length > 1 }
+        name, = migrations.group_by(&:name).find { |_, v| v.length > 1 }
         raise DuplicateMigrationNameError.new(name) if name
 
-        version , = migrations.group_by(&:version).find { |_, v| v.length > 1 }
+        version, = migrations.group_by(&:version).find { |_, v| v.length > 1 }
         raise DuplicateMigrationVersionError.new(version) if version
       end
 

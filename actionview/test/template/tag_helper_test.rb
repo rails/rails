@@ -307,8 +307,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_disable_escaping
     assert_equal '<a href="&amp;"></a>', tag.a(href: "&amp;", escape_attributes: false)
-    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;" , escape_attributes: false) { "cnt" }
-    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;" , escape_attributes: false)
+    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;", escape_attributes: false) { "cnt" }
+    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;", escape_attributes: false)
     assert_equal '<a href="&amp;">content</a>', tag.a("content", href: "&amp;", escape_attributes: false)
     assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape_attributes: false) { "content" }
   end

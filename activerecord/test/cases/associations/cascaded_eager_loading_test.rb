@@ -136,7 +136,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.all.merge!(includes: { posts: [ :special_comments , :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
+    author = Author.all.merge!(includes: { posts: [ :special_comments, :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments
