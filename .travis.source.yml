@@ -1,0 +1,122 @@
+language: ruby
+sudo: false
+
+cache:
+  bundler: true
+  directories:
+    - /tmp/cache/unicode_conformance
+    - /tmp/beanstalkd-1.10
+    - node_modules
+    - $HOME/.nvm
+
+services:
+  - memcached
+  - redis-server
+
+addons: &addons
+  postgresql: "9.6"
+
+bundler_args: --without test --jobs 3 --retry 3
+before_install:
+  - "rm ${BUNDLE_GEMFILE}.lock"
+  - "travis_retry gem update --system"
+  - "travis_retry gem install bundler -v 1.15.4"
+
+before_script:
+  # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
+  # Decodes to e.g. `export VARIABLE=VALUE`
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
+  - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
+
+script: 'ci/travis.rb'
+
+# This is not standard Travis; see `tasks/travis.rb`
+rvm_matrix:
+  - env: "GEM=railties"
+  - env: "GEM=ap,ac"
+  - env: "GEM=am,amo,as,av,aj,ast"
+    addons:
+      apt:
+        sources:
+          - sourceline: "ppa:mc3man/trusty-media"
+          - sourceline: "ppa:ubuntuhandbook1/apps"
+        packages:
+          - ffmpeg
+          - mupdf
+          - mupdf-tools
+    before_install+:
+      - "[[ -z $encrypted_8a915ebdd931_key && -z $encrypted_8a915ebdd931_iv ]] || openssl aes-256-cbc -K $encrypted_8a915ebdd931_key -iv $encrypted_8a915ebdd931_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
+  - env: "GEM=as PRESERVE_TIMEZONES=1"
+  - env: "GEM=ar:mysql2"
+  - env: "GEM=ar:sqlite3"
+  - env: "GEM=ar:postgresql"
+  - env: "GEM=guides"
+  - env: "GEM=ac:integration"
+  - env: "GEM=aj:integration"
+    services+:
+      - rabbitmq
+    before_install+:
+      - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
+      - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+
+env:
+  global:
+    - "JRUBY_OPTS='--dev -J-Xmx1024M'"
+
+rvm:
+  - 2.2.8
+  - 2.3.5
+  - 2.4.2
+  - ruby-head
+
+matrix:
+  include:
+    - rvm: 2.4.2
+      env: "GEM=av:ujs"
+      addons:
+        <<: *addons
+        chrome: stable
+      before_install+:
+        - "nvm install node"
+        - "node --version"
+        - "(cd actionview && npm install)"
+    - rvm: 2.3.5
+      env:
+        - "GEM=ar:mysql2 MYSQL=mariadb"
+      addons:
+        mariadb: 10.2
+    - rvm: 2.3.5
+      env:
+        - "GEM=ar:sqlite3_mem"
+    - rvm: 2.3.5
+      env:
+        - "GEM=ar:postgresql POSTGRES=9.2"
+      addons:
+        postgresql: "9.2"
+    - rvm: jruby-9.1.15.0
+      jdk: oraclejdk8
+      env:
+        - "GEM=ap"
+    - rvm: jruby-9.1.15.0
+      jdk: oraclejdk8
+      env:
+        - "GEM=am,amo,aj"
+  allow_failures:
+    - rvm: ruby-head
+    - rvm: jruby-9.1.15.0
+    - env: "GEM=ac:integration"
+  fast_finish: true
+
+notifications:
+  email: false
+  irc:
+    on_success: change
+    on_failure: always
+    channels:
+      # "irc.freenode.org#rails-contrib"
+      - secure: "QFKSOK7xQiWWqTzYfYm0XWoW7idzuxT57MBW9i9EASyRLEPuDwZEubKRP40Y7wPx7ylQd9lp6kJheeLnrDvvTjFbW3sWv9GDRl4WlOU8sG/Kv7MXAASXlDqzyJxxXTtzLeXz2iwY296kOBuKxKxl923eTvEGeocwH02QGo14LpQ="
+  campfire:
+    on_success: change
+    on_failure: always
+    rooms:
+      - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="

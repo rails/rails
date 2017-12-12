@@ -3,6 +3,7 @@
 require "net/http"
 
 $:.unshift __dir__
+require "tasks/travis"
 require "tasks/release"
 require "railties/lib/rails/api/task"
 

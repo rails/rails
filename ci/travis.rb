@@ -154,6 +154,12 @@ if ENV["GEM"] == "aj:integration"
   ENV["QUE_DATABASE_URL"] = "postgres://postgres@localhost/active_jobs_que_int_test"
 end
 
+unless system("bundle exec rake travis && git diff --exit-code .travis.yml")
+  puts
+  puts ".travis.yml is out of date"
+  exit(false)
+end
+
 results = {}
 
 ENV["GEM"].split(",").each do |gem|
