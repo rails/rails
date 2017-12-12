@@ -20,6 +20,10 @@ addons:
     sources:
       - sourceline: "ppa:mc3man/trusty-media"
       - sourceline: "ppa:ubuntuhandbook1/apps"
+    packages:
+      - ffmpeg
+      - mupdf
+      - mupdf-tools
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -38,7 +42,6 @@ before_script:
   # Decodes to e.g. `export VARIABLE=VALUE`
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
-  - if [[ $GEM = *ast*  ]] ; then sudo apt-get update && sudo apt-get -y install ffmpeg mupdf mupdf-tools ; fi
 
 script: 'ci/travis.rb'
 
