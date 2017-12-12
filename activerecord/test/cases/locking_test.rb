@@ -399,11 +399,43 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_counter_cache_with_touch_and_lock_version
+    car = Car.create!
+
+    assert_equal 0, car.wheels_count
+    assert_equal 0, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(1.second) do
+      Wheel.create!(wheelable: car)
+    end
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 1, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    car.wheels.first.update(size: 42)
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 2, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(1.second) do
+      car.wheels.first.destroy!
+    end
+
+    assert_equal 0, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 3, car.lock_version
+  end
+
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
 
     assert_difference "car.wheels.count"  do
-      car.wheels << Wheel.create!
+      car.wheels.create
     end
     assert_difference "car.wheels.count", -1  do
       car.reload.destroy
