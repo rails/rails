@@ -67,7 +67,7 @@
     config.cache_store = :redis_cache_store
 
     # Supports all common cache store options (:namespace, :compress,
-    # :compress_threshold, :expires_in, :race_condition_tool) and all
+    # :compress_threshold, :expires_in, :race_condition_ttl) and all
     # Redis options.
     cache_password = Rails.application.secrets.redis_cache_password
     config.cache_store = :redis_cache_store, driver: :hiredis,
