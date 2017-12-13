@@ -60,6 +60,13 @@ module ActiveSupport
               deprecator.deprecation_warning(method_name, options[method_name])
               super(*args, &block)
             end
+
+            case
+            when target_module.protected_method_defined?(method_name)
+              protected method_name
+            when target_module.private_method_defined?(method_name)
+              private method_name
+            end
           end
         end
 
