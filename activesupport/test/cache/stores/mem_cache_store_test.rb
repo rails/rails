@@ -50,13 +50,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     emulating_latency do
       begin
         mutex = Mutex.new
-        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 1, pool_timeout: 1)
+        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
         cache.clear
 
-        thread = Thread.new {
-          mutex.synchronize {
-            cache.read("latency")
-          }
+        thread1 = Thread.new {
+          mutex.try_lock
+          cache.read("latency")
+        }
+
+        thread2 = Thread.new {
+          mutex.try_lock
+          cache.read("latency")
         }
 
         # This is an alternative to Thread.pass because, according to Ruby's
@@ -74,7 +78,8 @@ class MemCacheStoreTest < ActiveSupport::TestCase
           cache.read("other")
         }
       ensure
-        thread.kill if thread
+        thread1.kill if thread1
+        thread2.kill if thread2
       end
     end
   end
