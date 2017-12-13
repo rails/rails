@@ -68,9 +68,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         #
         # This is necessary because we want the read of the previous thread to
         # happen before the below read.
-        loop do
-          break if mutex.locked?
-        end
+        Thread.pass until mutex.locked?
 
         assert_raises(Timeout::Error) {
           cache.read("other")
@@ -103,9 +101,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
         #
         # This is necessary because we want the read of the previous thread to
         # happen before the below read.
-        loop do
-          break if mutex.locked?
-        end
+        Thread.pass until mutex.locked?
 
         assert_nothing_raised {
           cache.read("other")
