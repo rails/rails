@@ -240,7 +240,7 @@ module ActiveRecord
     end
 
     def test_where_with_decimal_for_string_column
-      count = Post.where(title: BigDecimal.new(0)).count
+      count = Post.where(title: BigDecimal(0)).count
       assert_equal 0, count
     end
 

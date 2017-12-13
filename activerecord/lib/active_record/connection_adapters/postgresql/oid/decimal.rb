@@ -4,7 +4,7 @@ module ActiveRecord
       module OID # :nodoc:
         class Decimal < Type::Decimal # :nodoc:
           def infinity(options = {})
-            BigDecimal.new("Infinity") * (options[:negative] ? -1 : 1)
+            BigDecimal("Infinity") * (options[:negative] ? -1 : 1)
           end
         end
       end

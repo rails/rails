@@ -132,10 +132,10 @@ _SQL
     end
 
     def test_numrange_values
-      assert_equal BigDecimal.new("0.1")..BigDecimal.new("0.2"), @first_range.num_range
-      assert_equal BigDecimal.new("0.1")...BigDecimal.new("0.2"), @second_range.num_range
-      assert_equal BigDecimal.new("0.1")...BigDecimal.new("Infinity"), @third_range.num_range
-      assert_equal BigDecimal.new("-Infinity")...BigDecimal.new("Infinity"), @fourth_range.num_range
+      assert_equal BigDecimal("0.1")..BigDecimal("0.2"), @first_range.num_range
+      assert_equal BigDecimal("0.1")...BigDecimal("0.2"), @second_range.num_range
+      assert_equal BigDecimal("0.1")...BigDecimal("Infinity"), @third_range.num_range
+      assert_equal BigDecimal("-Infinity")...BigDecimal("Infinity"), @fourth_range.num_range
       assert_nil @empty_range.num_range
     end
 
@@ -232,14 +232,14 @@ _SQL
 
     def test_create_numrange
       assert_equal_round_trip(@new_range, :num_range,
-                              BigDecimal.new("0.5")...BigDecimal.new("1"))
+                              BigDecimal("0.5")...BigDecimal("1"))
     end
 
     def test_update_numrange
       assert_equal_round_trip(@first_range, :num_range,
-                              BigDecimal.new("0.5")...BigDecimal.new("1"))
+                              BigDecimal("0.5")...BigDecimal("1"))
       assert_nil_round_trip(@first_range, :num_range,
-                            BigDecimal.new("0.5")...BigDecimal.new("0.5"))
+                            BigDecimal("0.5")...BigDecimal("0.5"))
     end
 
     def test_create_daterange

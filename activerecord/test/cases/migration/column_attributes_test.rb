@@ -78,7 +78,7 @@ module ActiveRecord
           TestModel.delete_all
 
           # Now use the Rails insertion
-          TestModel.create wealth: BigDecimal.new("12345678901234567890.0123456789")
+          TestModel.create wealth: BigDecimal("12345678901234567890.0123456789")
 
           # SELECT
           row = TestModel.first
@@ -130,7 +130,7 @@ module ActiveRecord
 
           TestModel.create first_name: "bob", last_name: "bobsen",
             bio: "I was born ....", age: 18, height: 1.78,
-            wealth: BigDecimal.new("12345678901234567890.0123456789"),
+            wealth: BigDecimal("12345678901234567890.0123456789"),
             birthday: 18.years.ago, favorite_day: 10.days.ago,
             moment_of_truth: "1782-10-10 21:40:18", male: true
 
@@ -143,7 +143,7 @@ module ActiveRecord
           # Test for 30 significant digits (beyond the 16 of float), 10 of them
           # after the decimal place.
 
-          assert_equal BigDecimal.new("0012345678901234567890.0123456789"), bob.wealth
+          assert_equal BigDecimal("0012345678901234567890.0123456789"), bob.wealth
 
           assert_equal true, bob.male?
 

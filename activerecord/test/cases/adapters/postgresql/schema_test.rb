@@ -532,7 +532,7 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
   end
 
   def test_decimal_defaults_in_new_schema_when_overriding_domain
-    assert_equal BigDecimal.new("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
+    assert_equal BigDecimal("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
   end
 
   def test_bpchar_defaults_in_new_schema_when_overriding_domain
