@@ -328,10 +328,5 @@ module ActiveModel
           attribute_methods_builders.any? { |builder| builder.method_defined?(method_name) }
         end
     end
-
-    private
-      def _read_attribute(attr)
-        __send__(attr)
-      end
   end
 end
