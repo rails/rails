@@ -3,13 +3,7 @@
 require "mutex_m"
 
 module ActiveRecord
-  # == Active \Record \Attribute \Methods\ Builder
-  #
-  # Module builder to define ActiveRecord attribute methods. Used by
-  # <tt>ActiveRecord::AttributeMethods</tt> to add prefixes and suffixes to
-  # models, and define attribute methods.
-  #
-  class AttributeMethodsBuilder < ActiveModel::AttributeMethodsBuilder
+  class AttributeMethodsBuilder < ActiveModel::AttributeMethodsBuilder # :nodoc
     include Mutex_m
 
     attr_accessor :model_class

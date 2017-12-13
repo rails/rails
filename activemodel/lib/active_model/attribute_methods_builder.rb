@@ -3,46 +3,7 @@
 require "concurrent/map"
 
 module ActiveModel
-  # == Active \Model \Attribute \Methods\ Builder
-  #
-  # Module builder to define attribute methods on a class. Used by
-  # <tt>ActiveModel::AttributeMethods</tt> to add prefixes and suffixes to
-  # models.
-  #
-  # The builder can also be used on its own:
-  #
-  #   class Person
-  #     mod = ActiveModel::AttributeMethodsBuilder.new
-  #
-  #     include mod
-  #
-  #     mod.affix prefix: 'reset_', suffix: '_to_default!'
-  #     mod.suffix '_contrived?'
-  #     mod.prefix 'clear_'
-  #     mod.define_attribute_methods :name
-  #
-  #     attr_accessor :name
-  #
-  #     def attributes
-  #       { 'name' => @name }
-  #     end
-  #
-  #     private
-  #
-  #     def attribute_contrived?(attr)
-  #       true
-  #     end
-  #
-  #     def clear_attribute(attr)
-  #       send("#{attr}=", nil)
-  #     end
-  #
-  #     def reset_attribute_to_default!(attr)
-  #       send("#{attr}=", 'Default Name')
-  #     end
-  #   end
-  #
-  class AttributeMethodsBuilder < Module
+  class AttributeMethodsBuilder < Module # :nodoc:
     NAME_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?=]?\z/
     CALL_COMPILABLE_REGEXP = /\A[a-zA-Z_]\w*[!?]?\z/
 
@@ -67,24 +28,20 @@ module ActiveModel
       undefine_attribute_methods
     end
 
-    # See ActiveModel::AttributeMethods#suffix
     def suffix(*suffixes)
       self.matchers += suffixes.map! { |suffix| AttributeMethodMatcher.new suffix: suffix }
       undefine_attribute_methods
     end
 
-    # See ActiveModel::AttributeMethods#affix
     def affix(*affixes)
       self.matchers += affixes.map! { |affix| AttributeMethodMatcher.new prefix: affix[:prefix], suffix: affix[:suffix] }
       undefine_attribute_methods
     end
 
-    # See ActiveModel::AttributeMethods#define_attribute_methods
     def define_attribute_methods(*attr_names)
       attr_names.each { |attr_name| define_attribute_method(attr_name) }
     end
 
-    # See ActiveModel::AttributeMethods#define_attribute_method
     def define_attribute_method(attr_name)
       matchers.each do |matcher|
         method_name = matcher.method_name(attr_name)
@@ -103,14 +60,12 @@ module ActiveModel
       matchers_cache.clear
     end
 
-    # See ActiveModel::AttributeMethods#undefine_attribute_method
     def undefine_attribute_methods
       (@method_names & instance_methods(false)).each(&method(:undef_method))
       @method_names.clear
       matchers_cache.clear
     end
 
-    # See ActiveModel::AttributeMethods#alias_attribute
     def alias_attribute(new_name, old_name)
       matchers.each do |matcher|
         define_proxy_call false, matcher.method_name(new_name), matcher.method_name(old_name)
