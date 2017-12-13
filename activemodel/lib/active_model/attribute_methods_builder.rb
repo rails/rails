@@ -12,15 +12,12 @@ module ActiveModel
     def initialize
       @matchers = [AttributeMethodMatcher.new]
       @method_names = Set.new
-    end
-
-    def included(model_class)
       # Strictly-speaking this is not necessary, since AM::AttributeMethods
       # includes the module, and AR::AttributeMethods includes
       # AM::AttributeMethods. However, since this class depends on methods in
       # it, we should ensure that it is included into any module that includes
       # instances of the builder.
-      model_class.include AttributeMissingMethods
+      include AttributeMissingMethods
     end
 
     def prefix(*prefixes)
