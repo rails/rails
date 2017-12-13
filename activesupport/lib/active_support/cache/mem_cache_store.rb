@@ -69,7 +69,9 @@ module ActiveSupport
         pool_options[:size] = options[:pool_size] if options[:pool_size]
         pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
 
-        if pool_options.present?
+        if pool_options.empty?
+          Dalli::Client.new(addresses, options)
+        else
           begin
             require "connection_pool"
           rescue LoadError => e
@@ -78,8 +80,6 @@ module ActiveSupport
           end
 
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
-        else
-          Dalli::Client.new(addresses, options)
         end
       end
 
