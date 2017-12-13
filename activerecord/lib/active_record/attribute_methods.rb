@@ -40,7 +40,13 @@ module ActiveRecord
 
       def inherited(child_class) #:nodoc:
         if (self == Base || abstract_class?) && !child_class.abstract_class?
-          builder = attribute_methods_builder.dup
+          # When a non-abstract class inherits from ActiveRecord::Base or an
+          # abstract class, we duplicate its attributes methods builder and
+          # include it, in order to get any prefixes/suffixes/affixes that have
+          # been defined on it. We use _attribute_methods_builder here to avoid
+          # defining method_missing/respond_to on the inherited builder, which
+          # would be unnecessary since we define them on the duplicated module.
+          builder = _attribute_methods_builder.dup
           child_class.attribute_methods_builders = [builder]
           child_class.include builder
         end
