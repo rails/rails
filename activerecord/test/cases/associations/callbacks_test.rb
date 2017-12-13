@@ -116,7 +116,7 @@ class AssociationCallbacksTest < ActiveRecord::TestCase
         new_dev = r.new_record?
       }
     end
-    rec = klass.create!
+    rec = klass.create!(type: nil)
     alice = Developer.new(name: "alice")
     rec.developers_with_callbacks << alice
     assert_equal alice, dev

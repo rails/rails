@@ -448,7 +448,7 @@ class PersistenceTest < ActiveRecord::TestCase
         update_attribute("author_name", "David")
       end
     end
-    topic = klass.new
+    topic = klass.new(type: nil)
     topic.title = "Another New Topic"
     topic.save
 
@@ -461,7 +461,7 @@ class PersistenceTest < ActiveRecord::TestCase
     klass = Class.new(Topic) do
       def self.name; "Topic"; end
     end
-    topic = klass.create(title: "Another New Topic")
+    topic = klass.create(type: nil, title: "Another New Topic")
     assert_queries(0) do
       assert topic.update_attribute(:title, "Another New Topic")
     end
