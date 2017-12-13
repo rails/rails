@@ -5,6 +5,18 @@ require "active_support/cache"
 require_relative "../behaviors"
 require "dalli"
 
+# Emulates a latency on Dalli's back-end for the key latency to facilitate
+# connection pool testing.
+class SlowDalliClient < Dalli::Client
+  def get(key, options = {})
+    if key =~ /latency/
+      sleep
+    else
+      super
+    end
+  end
+end
+
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     ss = Dalli::Client.new("localhost:11211").stats
@@ -33,6 +45,76 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
+
+  def test_connection_pool
+    emulating_latency do
+      begin
+        mutex = Mutex.new
+        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 1, pool_timeout: 1)
+        cache.clear
+
+        thread = Thread.new {
+          mutex.synchronize {
+            cache.read("latency")
+          }
+        }
+
+        # This is an alternative to Thread.pass because, according to Ruby's
+        # documentation, it may or may not pass the execution to another thread.
+        #
+        # Since we can't predict how much time is needed to the thread start
+        # working, we simply wait for its preemption by checking if the mutex
+        # has been acquired.
+        #
+        # This is necessary because we want the read of the previous thread to
+        # happen before the below read.
+        loop do
+          break if mutex.locked?
+        end
+
+        assert_raises(Timeout::Error) {
+          cache.read("other")
+        }
+      ensure
+        thread.kill if thread
+      end
+    end
+  end
+
+  def test_no_connection_pool
+    emulating_latency do
+      begin
+        mutex = Mutex.new
+        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+        cache.clear
+
+        thread = Thread.new {
+          mutex.synchronize {
+            cache.read("latency")
+          }
+        }
+
+        # This is an alternative to Thread.pass because, according to Ruby's
+        # documentation, it may or may not pass the execution to another thread.
+        #
+        # Since we can't predict how much time is needed to the thread start
+        # working, we simply wait for its preemption by checking if the mutex
+        # has been acquired.
+        #
+        # This is necessary because we want the read of the previous thread to
+        # happen before the below read.
+        loop do
+          break if mutex.locked?
+        end
+
+        assert_nothing_raised {
+          cache.read("other")
+        }
+      ensure
+        thread.kill if thread
+      end
+    end
+  end
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
@@ -88,5 +170,17 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     assert_not_equal value.object_id, @cache.read("foo").object_id
     value << "bingo"
     assert_not_equal value, @cache.read("foo")
+  end
+
+  private
+
+  def emulating_latency
+    old_client = Dalli.send(:remove_const, :Client)
+    Dalli.const_set(:Client, SlowDalliClient)
+
+    yield
+  ensure
+    Dalli.send(:remove_const, :Client)
+    Dalli.const_set(:Client, old_client)
   end
 end
