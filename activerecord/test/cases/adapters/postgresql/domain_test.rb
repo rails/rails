@@ -44,6 +44,6 @@ class PostgresqlDomainTest < ActiveRecord::PostgreSQLTestCase
     record.price = "34.15"
     record.save!
 
-    assert_equal BigDecimal.new("34.15"), record.reload.price
+    assert_equal BigDecimal("34.15"), record.reload.price
   end
 end
