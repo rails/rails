@@ -54,6 +54,11 @@ module ActiveModel
     end
 
     def included(model_class)
+      # Strictly-speaking this is not necessary, since AM::AttributeMethods
+      # includes the module, and AR::AttributeMethods includes
+      # AM::AttributeMethods. However, since this class depends on methods in
+      # it, we should ensure that it is included into any module that includes
+      # instances of the builder.
       model_class.include AttributeMissingMethods
     end
 
@@ -255,10 +260,6 @@ module ActiveModel
 
           def missing_attribute(attr_name, stack)
             raise ActiveModel::MissingAttributeError, "missing attribute: #{attr_name}", stack
-          end
-
-          def _read_attribute(attr)
-            __send__(attr)
           end
       end
   end

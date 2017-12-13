@@ -9,7 +9,6 @@ module ActiveRecord
     include ActiveModel::AttributeMethods
 
     included do
-      @attribute_methods_builder = nil
       _attribute_methods_builder
       include Read
       include Write

@@ -66,7 +66,7 @@ module ActiveModel
     included do
       class_attribute :attribute_aliases, instance_writer: false, default: {}
       class_attribute :attribute_methods_builders, instance_writer: false, default: []
-      _attribute_methods_builder
+      include AttributeMethodsBuilder::AttributeMissingMethods
     end
 
     module ClassMethods
@@ -240,6 +240,7 @@ module ActiveModel
       #     end
       #   end
       def define_attribute_methods(*attr_names)
+        attribute_methods_builder
         attribute_methods_builders.each do |builder|
           builder.define_attribute_methods(*(attr_names.flatten))
         end
@@ -327,5 +328,10 @@ module ActiveModel
           attribute_methods_builders.any? { |builder| builder.method_defined?(method_name) }
         end
     end
+
+    private
+      def _read_attribute(attr)
+        __send__(attr)
+      end
   end
 end
