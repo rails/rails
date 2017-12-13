@@ -175,13 +175,13 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   private
 
-  def emulating_latency
-    old_client = Dalli.send(:remove_const, :Client)
-    Dalli.const_set(:Client, SlowDalliClient)
+    def emulating_latency
+      old_client = Dalli.send(:remove_const, :Client)
+      Dalli.const_set(:Client, SlowDalliClient)
 
-    yield
-  ensure
-    Dalli.send(:remove_const, :Client)
-    Dalli.const_set(:Client, old_client)
-  end
+      yield
+    ensure
+      Dalli.send(:remove_const, :Client)
+      Dalli.const_set(:Client, old_client)
+    end
 end
