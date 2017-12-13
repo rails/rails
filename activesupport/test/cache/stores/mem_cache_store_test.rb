@@ -10,7 +10,7 @@ require "dalli"
 class SlowDalliClient < Dalli::Client
   def get(key, options = {})
     if key =~ /latency/
-      sleep
+      sleep 3
     else
       super
     end
@@ -49,37 +49,24 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_connection_pool
     emulating_latency do
       begin
-        mutex = Mutex.new
         cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
         cache.clear
 
-        thread1 = Thread.new {
-          mutex.try_lock
-          cache.read("latency")
-        }
+        threads = []
 
-        thread2 = Thread.new {
-          mutex.try_lock
-          cache.read("latency")
-        }
+        assert_raises Timeout::Error do
+          # One of the three threads will fail in 1 second because our pool size
+          # is only two.
+          3.times do
+            threads << Thread.new do
+              cache.read("latency")
+            end
+          end
 
-        # This is an alternative to Thread.pass because, according to Ruby's
-        # documentation, it may or may not pass the execution to another thread.
-        #
-        # Since we can't predict how much time is needed to the thread start
-        # working, we simply wait for its preemption by checking if the mutex
-        # has been acquired.
-        #
-        # This is necessary because we want the read of the previous thread to
-        # happen before the below read.
-        Thread.pass until mutex.locked?
-
-        assert_raises(Timeout::Error) {
-          cache.read("other")
-        }
+          threads.each(&:join)
+        end
       ensure
-        thread1.kill if thread1
-        thread2.kill if thread2
+        threads.each(&:kill)
       end
     end
   end
@@ -87,32 +74,24 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_no_connection_pool
     emulating_latency do
       begin
-        mutex = Mutex.new
         cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
         cache.clear
 
-        thread = Thread.new {
-          mutex.synchronize {
-            cache.read("latency")
-          }
-        }
+        threads = []
 
-        # This is an alternative to Thread.pass because, according to Ruby's
-        # documentation, it may or may not pass the execution to another thread.
-        #
-        # Since we can't predict how much time is needed to the thread start
-        # working, we simply wait for its preemption by checking if the mutex
-        # has been acquired.
-        #
-        # This is necessary because we want the read of the previous thread to
-        # happen before the below read.
-        Thread.pass until mutex.locked?
+        assert_nothing_raised do
+          # Default connection pool size is 5, assuming 10 will make sure that
+          # the connection pool isn't used at all.
+          10.times do
+            threads << Thread.new do
+              cache.read("latency")
+            end
+          end
 
-        assert_nothing_raised {
-          cache.read("other")
-        }
+          threads.each(&:join)
+        end
       ensure
-        thread.kill if thread
+        threads.each(&:kill)
       end
     end
   end
