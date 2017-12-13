@@ -1503,4 +1503,16 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_match(/SELECT #{quoted_id}.* FROM `developers`/, query)
   end
+
+  test "protected environments by default is an array with production" do
+    assert_equal ["production"], ActiveRecord::Base.protected_environments
+  end
+
+  def test_protected_environments_are_stored_as_an_array_of_string
+    previous_protected_environments = ActiveRecord::Base.protected_environments
+    ActiveRecord::Base.protected_environments = [:staging, "production"]
+    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+  ensure
+    ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
 end
