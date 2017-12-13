@@ -39,7 +39,7 @@ module ActiveRecord
     end
 
     def apply(klass)
-      super unless klass == Base
+      super unless klass == Base || klass.abstract_class?
     end
 
     private

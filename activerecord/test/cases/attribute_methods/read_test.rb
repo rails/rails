@@ -14,6 +14,7 @@ module ActiveRecord
           def self.superclass; Base; end
           def self.base_class; self; end
           def self.decorate_matching_attribute_types(*); end
+          def self.abstract_class?; false; end
 
           include ActiveRecord::DefineCallbacks
           include ActiveRecord::AttributeMethods
