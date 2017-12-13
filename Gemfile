@@ -58,7 +58,7 @@ gem "bootsnap", ">= 1.1.0", require: false
 # Active Job.
 group :job do
   gem "resque", require: false
-  gem "resque-scheduler", github: "resque/resque-scheduler", require: false
+  gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
