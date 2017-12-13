@@ -116,7 +116,7 @@ module ActiveModel
         return true if super(method_name, include_private_methods)
 
         if builder.match(method_name.to_s).find { |m| attribute_method?(m.attr_name) }
-          !respond_to_without_attributes?(method_name, true)
+          include_private_methods || !respond_to_without_attributes?(method_name, true)
         else
           false
         end
