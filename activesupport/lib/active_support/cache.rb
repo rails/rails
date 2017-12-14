@@ -680,6 +680,20 @@ module ActiveSupport
           write(name, result, options)
           result
         end
+
+        def pool_options(options)
+          {}.tap do |pool_options|
+            pool_options[:size] = options[:pool_size] if options[:pool_size]
+            pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+          end
+        end
+
+        def ensure_connection_pool_added!
+          require "connection_pool"
+        rescue LoadError => e
+          $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
+          raise e
+        end
     end
 
     # This class is used to represent cache entries. Cache entries have a value, an optional
