@@ -1,3 +1,10 @@
+*   Introduced `ActiveSupport::Digest` that allows to specify hash function implementation
+    and defaults to `Digest::MD5`.
+
+    Replaced calls to `::Digest::MD5.hexdigest` with calls to `ActiveSupport::Digest.hexdigest`.
+
+    *Dmitri Dolguikh*
+ 
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.

@@ -3,7 +3,7 @@
 module ActiveRecord
   module CollectionCacheKey
     def collection_cache_key(collection = all, timestamp_column = :updated_at) # :nodoc:
-      query_signature = Digest::MD5.hexdigest(collection.to_sql)
+      query_signature = ActiveSupport::Digest.hexdigest(collection.to_sql)
       key = "#{collection.model_name.cache_key}/query-#{query_signature}"
 
       if collection.loaded?
