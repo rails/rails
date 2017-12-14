@@ -8,6 +8,18 @@ require_relative "../behaviors"
 module ActiveSupport::Cache::RedisCacheStoreTests
   DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
 
+  # Emulates a latency on Redis's back-end for the key latency to facilitate
+  # connection pool testing.
+  class SlowRedis < Redis
+    def get(key, options = {})
+      if key =~ /latency/
+        sleep 3
+      else
+        super
+      end
+    end
+  end
+
   class LookupTest < ActiveSupport::TestCase
     test "may be looked up as :redis_cache_store" do
       assert_kind_of ActiveSupport::Cache::RedisCacheStore,
@@ -108,6 +120,26 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
     include AutoloadingCacheBehavior
+  end
+
+  class RedisCacheStoreConnectionPoolBehaviourTest < StoreTest
+    include ConnectionPoolBehavior
+
+    private
+
+      def store
+        :redis_cache_store
+      end
+
+      def emulating_latency
+        old_redis = Object.send(:remove_const, :Redis)
+        Object.const_set(:Redis, SlowRedis)
+
+        yield
+      ensure
+        Object.send(:remove_const, :Redis)
+        Object.const_set(:Redis, old_redis)
+      end
   end
 
   # Separate test class so we can omit the namespace which causes expected,

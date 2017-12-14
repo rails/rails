@@ -1,3 +1,7 @@
+*   Add support for connection pooling on RedisCacheStore.
+
+    *fatkodima*
+
 *   Support hash as first argument in `assert_difference`. This allows to specify multiple
     numeric differences in the same assertion.
 
