@@ -4,7 +4,7 @@ module ActiveSupport
   class Digest #:nodoc:
     class <<self
       def hash_digest_class
-        @hash_digest_class || ::Digest::MD5
+        @hash_digest_class ||= ::Digest::MD5
       end
 
       def hash_digest_class=(klass)
