@@ -169,7 +169,7 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
   end
 
   def test_parse_attribute_with_every_extra_option
-    att = Rails::Generators::GeneratedAttribute.parse("count:integer{1, default=0, null=false}:index")
+    att = Rails::Generators::GeneratedAttribute.parse("count:integer{1,default=0,null=false}:index")
 
     assert_equal "count", att.name
     assert_equal :integer, att.type

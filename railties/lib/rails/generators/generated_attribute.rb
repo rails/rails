@@ -21,11 +21,12 @@ module Rails
           # could set it to :string
           has_index, type = type, nil if INDEX_OPTIONS.include?(type)
 
-          type, attr_options = *parse_type_and_options(type)
-          type = type.to_sym if type
+          attr_options = type ? parse_options(type) : {}
 
-          if type && reference?(type)
-            if UNIQ_INDEX_OPTIONS.include?(has_index)
+          if type
+            type = type.gsub(/\{.*}/, "").to_sym
+
+            if reference?(type) && UNIQ_INDEX_OPTIONS.include?(has_index)
               attr_options[:index] = { unique: true }
             end
           end
@@ -41,16 +42,10 @@ module Rails
 
         # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
         # when declaring options curly brackets should be used
-        def parse_type_and_options(type_with_options)
-          return unless type_with_options
-
+        def parse_options(type_with_options)
           options = parse_null_options(type_with_options)
           options = options.merge parse_default_options(type_with_options)
-          options = options.merge type_options(type_with_options)
-
-          type = type_with_options.gsub(/\{.*}/, "")
-
-          return type, options
+          options.merge type_options(type_with_options)
         end
 
         def parse_null_options(type)
