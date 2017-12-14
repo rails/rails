@@ -451,7 +451,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.local(2013, 10, 3, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, days: 5)
     assert_equal Time.local(2013, 10, 17, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, weeks: 2, days: 5)
     assert_equal Time.local(2001, 12, 27, 15, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(years: -3, months: -2, days: -1)
-    assert_equal Time.local(2005, 2, 28, 15, 15, 10), Time.local(2004, 2, 29, 15, 15, 10).advance(years: 1) #leap day plus one year
+    assert_equal Time.local(2005, 2, 28, 15, 15, 10), Time.local(2004, 2, 29, 15, 15, 10).advance(years: 1) # leap day plus one year
     assert_equal Time.local(2005, 2, 28, 20, 15, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(hours: 5)
     assert_equal Time.local(2005, 2, 28, 15, 22, 10), Time.local(2005, 2, 28, 15, 15, 10).advance(minutes: 7)
     assert_equal Time.local(2005, 2, 28, 15, 15, 19), Time.local(2005, 2, 28, 15, 15, 10).advance(seconds: 9)
@@ -473,7 +473,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.utc(2013, 10, 3, 15, 15, 10), Time.utc(2005, 2, 22, 15, 15, 10).advance(years: 7, months: 19, days: 11)
     assert_equal Time.utc(2013, 10, 17, 15, 15, 10), Time.utc(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, weeks: 2, days: 5)
     assert_equal Time.utc(2001, 12, 27, 15, 15, 10), Time.utc(2005, 2, 28, 15, 15, 10).advance(years: -3, months: -2, days: -1)
-    assert_equal Time.utc(2005, 2, 28, 15, 15, 10), Time.utc(2004, 2, 29, 15, 15, 10).advance(years: 1) #leap day plus one year
+    assert_equal Time.utc(2005, 2, 28, 15, 15, 10), Time.utc(2004, 2, 29, 15, 15, 10).advance(years: 1) # leap day plus one year
     assert_equal Time.utc(2005, 2, 28, 20, 15, 10), Time.utc(2005, 2, 28, 15, 15, 10).advance(hours: 5)
     assert_equal Time.utc(2005, 2, 28, 15, 22, 10), Time.utc(2005, 2, 28, 15, 15, 10).advance(minutes: 7)
     assert_equal Time.utc(2005, 2, 28, 15, 15, 19), Time.utc(2005, 2, 28, 15, 15, 10).advance(seconds: 9)
@@ -495,7 +495,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Time.new(2013, 10, 3, 15, 15, 10, "-08:00"), Time.new(2005, 2, 22, 15, 15, 10, "-08:00").advance(years: 7, months: 19, days: 11)
     assert_equal Time.new(2013, 10, 17, 15, 15, 10, "-08:00"), Time.new(2005, 2, 28, 15, 15, 10, "-08:00").advance(years: 7, months: 19, weeks: 2, days: 5)
     assert_equal Time.new(2001, 12, 27, 15, 15, 10, "-08:00"), Time.new(2005, 2, 28, 15, 15, 10, "-08:00").advance(years: -3, months: -2, days: -1)
-    assert_equal Time.new(2005, 2, 28, 15, 15, 10, "-08:00"), Time.new(2004, 2, 29, 15, 15, 10, "-08:00").advance(years: 1) #leap day plus one year
+    assert_equal Time.new(2005, 2, 28, 15, 15, 10, "-08:00"), Time.new(2004, 2, 29, 15, 15, 10, "-08:00").advance(years: 1) # leap day plus one year
     assert_equal Time.new(2005, 2, 28, 20, 15, 10, "-08:00"), Time.new(2005, 2, 28, 15, 15, 10, "-08:00").advance(hours: 5)
     assert_equal Time.new(2005, 2, 28, 15, 22, 10, "-08:00"), Time.new(2005, 2, 28, 15, 15, 10, "-08:00").advance(minutes: 7)
     assert_equal Time.new(2005, 2, 28, 15, 15, 19, "-08:00"), Time.new(2005, 2, 28, 15, 15, 10, "-08:00").advance(seconds: 9)

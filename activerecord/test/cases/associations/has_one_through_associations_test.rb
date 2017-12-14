@@ -100,7 +100,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
-    members = assert_queries(3) do #base table, through table, clubs table
+    members = assert_queries(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -108,7 +108,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
-    members = assert_queries(3) do #base table, through table, clubs table
+    members = assert_queries(3) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
@@ -139,7 +139,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eagerloading
     members = assert_queries(1) do
-      Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
+      Member.all.merge!(includes: :club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].club }
@@ -147,7 +147,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic
     members = assert_queries(1) do
-      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a #force fallback
+      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }
@@ -156,7 +156,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_has_one_through_nonpreload_eager_loading_through_polymorphic_with_more_than_one_through_record
     Sponsor.new(sponsor_club: clubs(:crazy_club), sponsorable: members(:groucho)).save!
     members = assert_queries(1) do
-      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a #force fallback
+      Member.all.merge!(includes: :sponsor_club, where: ["members.name = ?", "Groucho Marx"], order: "clubs.name DESC").to_a # force fallback
     end
     assert_equal 1, members.size
     assert_not_nil assert_no_queries { members[0].sponsor_club }

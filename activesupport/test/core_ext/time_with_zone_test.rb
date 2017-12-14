@@ -84,7 +84,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_formatted_offset
     assert_equal "-05:00", @twz.formatted_offset
-    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset #dst
+    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset # dst
   end
 
   def test_dst?
@@ -94,7 +94,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_zone
     assert_equal "EST", @twz.zone
-    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
+    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone # dst
   end
 
   def test_nsec

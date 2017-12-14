@@ -4225,7 +4225,7 @@ class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  #include Routes.url_helpers
+  # include Routes.url_helpers
   APP = build_app Routes
   def app; APP end
 

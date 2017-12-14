@@ -565,7 +565,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(4).second_to_last
     assert_nil Topic.offset(5).second_to_last
 
-    #test with limit
+    # test with limit
     assert_nil Topic.limit(1).second
     assert_nil Topic.limit(1).second_to_last
   end

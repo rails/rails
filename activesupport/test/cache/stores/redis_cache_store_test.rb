@@ -88,7 +88,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @namespace = "namespace"
 
       @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60)
-      #@cache.logger = Logger.new($stdout)  # For test debugging
+      # @cache.logger = Logger.new($stdout)  # For test debugging
 
       # For LocalCacheBehavior tests
       @peek = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace)

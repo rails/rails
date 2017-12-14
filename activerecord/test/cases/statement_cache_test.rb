@@ -12,7 +12,6 @@ module ActiveRecord
       @connection = ActiveRecord::Base.connection
     end
 
-    #Cache v 1.1 tests
     def test_statement_cache
       Book.create(name: "my book")
       Book.create(name: "my other book")
@@ -50,8 +49,6 @@ module ActiveRecord
       assert_equal("my book", a.name)
       assert_equal("my other book", b.name)
     end
-
-    #End
 
     def test_statement_cache_with_simple_statement
       cache = ActiveRecord::StatementCache.create(Book.connection) do |params|
