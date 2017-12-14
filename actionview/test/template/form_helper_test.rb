@@ -747,19 +747,19 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_big_decimal
-    @post.secret = BigDecimal.new(0)
+    @post.secret = BigDecimal(0)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
-    @post.secret = BigDecimal.new(1)
+    @post.secret = BigDecimal(1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
-    @post.secret = BigDecimal.new(2.2, 1)
+    @post.secret = BigDecimal(2.2, 1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
