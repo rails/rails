@@ -735,12 +735,9 @@ a.first_name = 'David'
 a.first_name == b.author.first_name # => true
 ```
 
-Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain any of the following options:
+Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain a scope or any of the following options:
 
-* `:conditions`
 * `:through`
-* `:polymorphic`
-* `:class_name`
 * `:foreign_key`
 
 For example, consider the following model declarations:
@@ -786,12 +783,6 @@ a.first_name == b.writer.first_name # => true
 a.first_name = 'David'
 a.first_name == b.writer.first_name # => true
 ```
-
-There are a few limitations to `:inverse_of` support:
-
-* They do not work with `:through` associations.
-* They do not work with `:polymorphic` associations.
-* They do not work with `:as` associations.
 
 Detailed Association Reference
 ------------------------------
@@ -1012,7 +1003,7 @@ When we execute `@user.todos.create` then the `@todo` record will have its
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association. Does not work in combination with the `:polymorphic` options.
+The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1066,7 +1057,8 @@ There may be times when you wish to customize the query used by `belongs_to`. Su
 ```ruby
 class Book < ApplicationRecord
   belongs_to :author, -> { where active: true },
-                        dependent: :destroy
+                        dependent: :destroy,
+                        inverse_of: :books
 end
 ```
 
@@ -1082,8 +1074,8 @@ You can use any of the standard [querying methods](active_record_querying.html) 
 The `where` method lets you specify the conditions that the associated object must meet.
 
 ```ruby
-class book < ApplicationRecord
-  belongs_to :author, -> { where active: true }
+class Book < ApplicationRecord
+  belongs_to :author, -> { where active: true }, inverse_of: :books
 end
 ```
 
@@ -1299,7 +1291,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association. Does not work in combination with the `:through` or `:as` options.
+The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -1337,7 +1329,7 @@ There may be times when you wish to customize the query used by `has_one`. Such 
 
 ```ruby
 class Supplier < ApplicationRecord
-  has_one :account, -> { where active: true }
+  has_one :account, -> { where active: true }, inverse_of: :supplier
 end
 ```
 
@@ -1694,7 +1686,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association. Does not work in combination with the `:through` or `:as` options.
+The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
 
 ```ruby
 class Author < ApplicationRecord
