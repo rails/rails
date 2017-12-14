@@ -1,7 +1,5 @@
 gem "bundler", "< 1.16"
 
-gem "bundler", "< 1.16"
-
 begin
   require "bundler/inline"
 rescue LoadError => e
