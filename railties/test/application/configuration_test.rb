@@ -1317,7 +1317,7 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is :log by default on development" do
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default in development" do
       app "development"
 
       force_lazy_load_hooks { ActionController::Base }
@@ -1326,7 +1326,7 @@ module ApplicationTests
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is :log by default on test" do
+    test "config.action_controller.action_on_unpermitted_parameters is :log by default in test" do
       app "test"
 
       force_lazy_load_hooks { ActionController::Base }
@@ -1335,7 +1335,7 @@ module ApplicationTests
       assert_equal :log, ActionController::Parameters.action_on_unpermitted_parameters
     end
 
-    test "config.action_controller.action_on_unpermitted_parameters is false by default on production" do
+    test "config.action_controller.action_on_unpermitted_parameters is false by default in production" do
       app "production"
 
       force_lazy_load_hooks { ActionController::Base }
@@ -1482,10 +1482,16 @@ module ApplicationTests
       assert_not ActiveRecord::Base.dump_schema_after_migration
     end
 
-    test "config.active_record.dump_schema_after_migration is true by default on development" do
+    test "config.active_record.dump_schema_after_migration is true by default in development" do
       app "development"
 
       assert ActiveRecord::Base.dump_schema_after_migration
+    end
+
+    test "config.active_record.verbose_query_logs is false by default in development" do
+      app "development"
+
+      assert_not ActiveRecord::Base.verbose_query_logs
     end
 
     test "config.annotations wrapping SourceAnnotationExtractor::Annotation class" do

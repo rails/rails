@@ -1,3 +1,15 @@
+*   Log database query callers
+
+    Add `verbose_query_logs` configuration option to display the caller
+    of database queries in the log to facilitate N+1 query resolution
+    and other debugging. Excludes Ruby and Rails callers but not gems.
+
+    Enabled in development only for new and upgraded applications. Not
+    recommended for use in the production environment since it relies
+    on Ruby's `Kernel#caller` which is fairly slow.
+
+    *Olivier Lacan*
+
 *   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
 
     ```
@@ -535,6 +547,5 @@
     Previously this method always returned an empty array.
 
     *Kevin McPhillips*
-
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.
