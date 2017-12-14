@@ -69,6 +69,9 @@ module ActionDispatch
   # size of the browser screen. These two options are not applicable for
   # headless drivers and will be silently ignored if passed.
   #
+  # Headless browsers such as headless Chrome and headless Firefox are also supported.
+  # You can use these browsers by setting the +:using+ argument to +:headless_chrome+ or +:headless_firefox+.
+  #
   # To use a headless driver, like Poltergeist, update your Gemfile to use
   # Poltergeist instead of Selenium and then declare the driver name in the
   # +application_system_test_case.rb+ file. In this case, you would leave out
