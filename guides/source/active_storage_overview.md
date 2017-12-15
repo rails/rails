@@ -68,7 +68,7 @@ Tell Active Storage which service to use by setting
 likely use a different service, it is recommended to do this on a
 per-environment basis. To use the disk service from the previous example in the
 development environment, you would add the following to
-config/environments/development.rb:
+`config/environments/development.rb`:
 
 ```ruby
 # Store files locally.
@@ -108,7 +108,7 @@ s3:
   region: ""
   bucket: ""
 ```
-Also, add the S3 client gem to your Gemfile:
+Also, add the S3 client gem to your `Gemfile`:
 
 ``` ruby
 gem "aws-sdk-s3", require: false
@@ -127,7 +127,7 @@ azure:
   container: ""
 ```
 
-Also, add the Microsoft Azure Storage client gem to your Gemfile:
+Also, add the Microsoft Azure Storage client gem to your `Gemfile`:
 
 ``` ruby
 gem "azure-storage", require: false
@@ -156,7 +156,7 @@ google:
   bucket: ""
 ```
 
-Also, add the Google Cloud Storage client gem to your Gemfile:
+Also, add the Google Cloud Storage client gem to your `Gemfile`:
 
 ``` ruby
 gem "google-cloud-storage", "~> 1.3", require: false
@@ -326,7 +326,7 @@ To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
 supported transformation to the method.
 
-To enable variants, add `mini_magick` to your Gemfile:
+To enable variants, add `mini_magick` to your `Gemfile`:
 
 ``` ruby
 gem 'mini_magick'
