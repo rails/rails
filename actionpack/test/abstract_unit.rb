@@ -442,7 +442,7 @@ class ForkingExecutor
   def initialize size
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname('rails-tests', 'fd')
+    file   = File.join Dir.tmpdir, tmpname
     @url   = "drbunix://#{file}"
     @pool  = nil
     DRb.start_service @url, @queue
@@ -472,18 +472,23 @@ class ForkingExecutor
   end
 
   private
-  def translate_exceptions(result)
-    result.failures.map! { |e|
-      begin
-        Marshal.dump e
-        e
-      rescue TypeError
-        ex = Exception.new e.message
-        ex.set_backtrace e.backtrace
-        Minitest::UnexpectedError.new ex
-      end
-    }
-  end
+    def translate_exceptions(result)
+      result.failures.map! { |e|
+        begin
+          Marshal.dump e
+          e
+        rescue TypeError
+          ex = Exception.new e.message
+          ex.set_backtrace e.backtrace
+          Minitest::UnexpectedError.new ex
+        end
+      }
+    end
+
+    def tmpname
+      t = Time.now.strftime("%Y%m%d")
+      "rails-tests-#{t}-#{$$}-#{rand(0x100000000).to_s(36)}-fd"
+    end
 end
 
 if RUBY_ENGINE == "ruby" && PROCESS_COUNT > 0
