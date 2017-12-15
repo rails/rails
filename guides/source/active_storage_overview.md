@@ -113,6 +113,7 @@ Also, add the S3 client gem to your Gemfile:
 ``` ruby
 gem "aws-sdk-s3", require: false
 ```
+
 ### Microsoft Azure Storage Service
 
 Declare an Azure Storage service in `config/storage.yml`:
