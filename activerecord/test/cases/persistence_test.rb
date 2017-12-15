@@ -353,12 +353,13 @@ class PersistenceTest < ActiveRecord::TestCase
 
   def test_create_columns_not_equal_attributes
     topic = Topic.instantiate(
-      "attributes" => {
-        "title"          => "Another New Topic",
-        "does_not_exist" => "test"
-      }
+      "title"          => "Another New Topic",
+      "does_not_exist" => "test"
     )
+    topic = topic.dup # reset @new_record
     assert_nothing_raised { topic.save }
+    assert topic.persisted?
+    assert_equal "Another New Topic", topic.reload.title
   end
 
   def test_create_through_factory_with_block
@@ -405,6 +406,8 @@ class PersistenceTest < ActiveRecord::TestCase
     topic_reloaded = Topic.instantiate(topic.attributes.merge("does_not_exist" => "test"))
     topic_reloaded.title = "A New Topic"
     assert_nothing_raised { topic_reloaded.save }
+    assert topic_reloaded.persisted?
+    assert_equal "A New Topic", topic_reloaded.reload.title
   end
 
   def test_update_for_record_with_only_primary_key
