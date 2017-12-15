@@ -1,3 +1,12 @@
+*   Provide access to MemCacheStore's internal client. Now additional directly
+    unsupported methods can be accessed through it.
+
+    ```
+    Rails.cache.mem_cache.reset_stats
+    ```
+
+    *fatkodima*
+
 *   Support hash as first argument in `assert_difference`. This allows to specify multiple
     numeric differences in the same assertion.
 

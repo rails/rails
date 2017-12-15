@@ -33,7 +33,6 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
     @cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, expires_in: 60)
     @peek = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-    @data = @cache.instance_variable_get(:@data)
     @cache.clear
     @cache.silence!
     @cache.logger = ActiveSupport::Logger.new(File::NULL)
@@ -122,7 +121,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_increment_expires_in
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
-    assert_called_with cache.instance_variable_get(:@data), :incr, [ "foo", 1, 60 ] do
+    assert_called_with cache.mem_cache, :incr, [ "foo", 1, 60 ] do
       cache.increment("foo", 1, expires_in: 60)
     end
   end
@@ -130,7 +129,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   def test_decrement_expires_in
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
     cache.clear
-    assert_called_with cache.instance_variable_get(:@data), :decr, [ "foo", 1, 60 ] do
+    assert_called_with cache.mem_cache, :decr, [ "foo", 1, 60 ] do
       cache.decrement("foo", 1, expires_in: 60)
     end
   end
