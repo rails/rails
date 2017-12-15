@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-Active Storage
-==============
+Active Storage Overview
+=======================
 
 This guide covers how to attach files to your Active Record models.
 

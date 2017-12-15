@@ -84,7 +84,7 @@
       url: active_job_basics.html
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
     -
-      name: Active Storage
+      name: Active Storage Overview
       url: active_storage_overview.html
       description: This guide covers how to attach files to your Active Record models.
     -
