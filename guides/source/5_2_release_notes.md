@@ -151,15 +151,6 @@ ToDo
 
 ToDo
 
-Active Storage
---------------
-
-Please refer to the [Changelog][active-support] for detailed changes.
-
-### Notable changes
-
-ToDo
-
 Active Support
 --------------
 
@@ -205,6 +196,5 @@ framework it is. Kudos to all of them.
 [action-cable]:   https://github.com/rails/rails/blob/5-2-stable/actioncable/CHANGELOG.md
 [active-record]:  https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md
 [active-model]:   https://github.com/rails/rails/blob/5-2-stable/activemodel/CHANGELOG.md
-[active-storage]: https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md
 [active-support]: https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md
 [active-job]:     https://github.com/rails/rails/blob/5-2-stable/activejob/CHANGELOG.md
