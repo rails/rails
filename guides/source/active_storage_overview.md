@@ -14,8 +14,8 @@ After reading this guide, you will know:
 * How to generate an image representation of a non-image file, such as a PDF or a video.
 * How to send file uploads directly from browsers to a storage service,
   bypassing your application servers.
-* How to implement support for additional storage services.
 * How to clean up files stored during testing.
+* How to implement support for additional storage services.
 
 --------------------------------------------------------------------------------
 
@@ -87,6 +87,7 @@ Continue reading for more information on the built-in service adapters (e.g.
 `Disk` and `S3`) and the configuration they require.
 
 ### Disk Service
+
 Declare a Disk service in `config/storage.yml`:
 
 ``` yaml
@@ -96,6 +97,7 @@ local:
 ```
 
 ### Amazon S3 Service
+
 Declare an S3 service in `config/storage.yml`:
 
 ``` yaml
@@ -112,6 +114,7 @@ Also, add the S3 client gem to your Gemfile:
 gem "aws-sdk-s3", require: false
 ```
 ### Microsoft Azure Storage Service
+
 Declare an Azure Storage service in `config/storage.yml`:
 
 ``` yaml
@@ -130,6 +133,7 @@ gem "azure-storage", require: false
 ```
 
 ### Google Cloud Storage Service
+
 Declare a Google Cloud Storage service in `config/storage.yml`:
 
 ``` yaml
@@ -192,7 +196,7 @@ production:
 NOTE: Files are served from the primary service.
 
 Attach Files to a Model
---------------------------
+-----------------------
 
 ### `has_one_attached`
 
@@ -280,7 +284,7 @@ Call `images.attached?` to determine whether a particular message has any images
 ```
 
 Remove File Attached to Model
--------------------------------
+-----------------------------
 
 To remove an attachment from a model, call `purge` on the attachment. Removal
 can be done in the background if your application is setup to use Active Job.
@@ -295,7 +299,7 @@ user.avatar.purge_later
 ```
 
 Link to Attachments
-----------------------
+-------------------
 
 Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
@@ -314,11 +318,10 @@ helper allows you to set the disposition.
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
-Create Variations of Attached Image
------------------------------------
+Transform Images
+----------------
 
-Sometimes your application requires images in a different format than
-what was uploaded. To create variation of the image, call `variant` on the Blob.
+To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
 supported transformation to the method.
 
@@ -336,10 +339,12 @@ location.
 <%= image_tag user.avatar.variant(resize: "100x100") %>
 ```
 
-Create Image Previews of Attachments
-------------------------------------
-Previews can be generated from some non-image formats. ActiveStorage supports
-Previewers for videos and PDFs.
+Preview Non-image Files
+-----------------------
+
+Some non-image files can be previewed: that is, they can be presented as images.
+For example, a video file can be previewed by extracting its first frame. Out of
+the box, Active Storage supports previewing videos and PDF documents.
 
 ```erb
 <ul>
@@ -534,8 +539,8 @@ config.active_job.queue_adapter = :inline
 config.active_storage.service = :local_test
 ```
 
-Add Support for Additional Cloud Services
-------------------------------------
+Support Additional Cloud Services
+---------------------------------
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
