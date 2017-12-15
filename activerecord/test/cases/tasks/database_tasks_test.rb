@@ -110,6 +110,7 @@ module ActiveRecord
       ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, path)
       assert File.file?(path)
     ensure
+      ActiveRecord::Base.clear_cache!
       FileUtils.rm_rf(path)
     end
   end
