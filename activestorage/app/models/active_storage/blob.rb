@@ -16,6 +16,7 @@ require "active_storage/analyzer/null_analyzer"
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
+  class InvariableError < StandardError; end
   class UnpreviewableError < StandardError; end
   class UnrepresentableError < StandardError; end
 
@@ -110,6 +111,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     content_type.start_with?("text")
   end
 
+
   # Returns an ActiveStorage::Variant instance with the set of +transformations+ provided. This is only relevant for image
   # files, and it allows any image to be transformed for size, colors, and the like. Example:
   #
@@ -125,8 +127,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
   # can then produce on-demand.
+  #
+  # Raises ActiveStorage::Blob::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
+  # variable, call ActiveStorage::Blob#previewable?.
   def variant(transformations)
-    ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
+    if variable?
+      ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
+    else
+      raise InvariableError
+    end
+  end
+
+  # Returns true if ImageMagick can transform the blob (its content type is in +ActiveStorage.variable_content_types+).
+  def variable?
+    ActiveStorage.variable_content_types.include?(content_type)
   end
 
 
@@ -170,16 +184,16 @@ class ActiveStorage::Blob < ActiveRecord::Base
     case
     when previewable?
       preview transformations
-    when image?
+    when variable?
       variant transformations
     else
       raise UnrepresentableError
     end
   end
 
-  # Returns true if the blob is an image or is previewable.
+  # Returns true if the blob is variable or is previewable.
   def representable?
-    image? || previewable?
+    variable? || previewable?
   end
 
 

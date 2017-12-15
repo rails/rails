@@ -27,6 +27,12 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/Gray/, image.colorspace)
   end
 
+  test "variation of invariable blob" do
+    assert_raises ActiveStorage::Blob::InvariableError do
+      create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize: "100x100")
+    end
+  end
+
   test "service_url doesn't grow in length despite long variant options" do
     variant = @blob.variant(font: "a" * 10_000).processed
     assert_operator variant.service_url.length, :<, 500
