@@ -232,7 +232,7 @@ module ActiveRecord
   #
   # For example:
   #
-  #   class Topic
+  #   class Topic < ActiveRecord::Base
   #     has_many :children
   #
   #     after_save :log_children
@@ -257,7 +257,7 @@ module ActiveRecord
   #
   # For example:
   #
-  #   class Topic
+  #   class Topic < ActiveRecord::Base
   #     has_many :children
   #
   #     after_commit :log_children
