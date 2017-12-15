@@ -11,7 +11,7 @@ module ActiveRecord
       def build(opts, other)
         case opts
         when String, Array
-          parts = [klass.send(:sanitize_sql, other.empty? ? opts : ([opts] + other))]
+          parts = [klass.sanitize_sql(other.empty? ? opts : ([opts] + other))]
         when Hash
           attributes = predicate_builder.resolve_column_aliases(opts)
           attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)

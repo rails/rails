@@ -77,7 +77,7 @@ module CallbacksTest
     skip_callback :save, :after,  :after_save_method, unless: :yes
     skip_callback :save, :after,  :after_save_method, if: :no
     skip_callback :save, :before, :before_save_method, unless: :no
-    skip_callback :save, :before, CallbackClass , if: :yes
+    skip_callback :save, :before, CallbackClass, if: :yes
     def yes; true; end
     def no; false; end
   end

@@ -47,9 +47,11 @@ module ActiveSupport
         reconnect_attempts: 0,
       }
 
-      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) {
-        logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{e.class}: #{e.message}" } if logger
-      }
+      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
+        if logger
+          logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
+        end
+      end
 
       DELETE_GLOB_LUA = "for i, name in ipairs(redis.call('KEYS', ARGV[1])) do redis.call('DEL', name); end"
       private_constant :DELETE_GLOB_LUA

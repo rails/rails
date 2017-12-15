@@ -1,3 +1,98 @@
+*   Log database query callers
+
+    Add `verbose_query_logs` configuration option to display the caller
+    of database queries in the log to facilitate N+1 query resolution
+    and other debugging. Excludes Ruby and Rails callers but not gems.
+
+    Enabled in development only for new and upgraded applications. Not
+    recommended for use in the production environment since it relies
+    on Ruby's `Kernel#caller` which is fairly slow.
+
+    *Olivier Lacan*
+
+*   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
+
+    ```
+    # create_table :posts do |t|
+    #   t.integer :comments_count, default: 0
+    #   t.integer :lock_version
+    #   t.timestamps
+    # end
+    class Post < ApplicationRecord
+    end
+
+    # create_table :comments do |t|
+    #   t.belongs_to :post
+    # end
+    class Comment < ApplicationRecord
+      belongs_to :post, touch: true, counter_cache: true
+    end
+    ```
+
+    Before:
+    ```
+    post = Post.create!
+    # => begin transaction
+         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
+         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
+         commit transaction
+
+    comment = Comment.create!(post: post)
+    # => begin transaction
+         INSERT INTO "comments" ("post_id") VALUES (1)
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
+
+         UPDATE "posts" SET "updated_at" = '2017-12-11 21:27:11.398330',
+         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
+         rollback transaction
+    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
+
+    Comment.take.destroy!
+    # => begin transaction
+         DELETE FROM "comments" WHERE "comments"."id" = 1
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1 WHERE "posts"."id" = 1
+
+         UPDATE "posts" SET "updated_at" = '2017-12-11 21:42:47.785901',
+         "lock_version" = 1 WHERE "posts"."id" = 1 AND "posts"."lock_version" = 0
+         rollback transaction
+    # => ActiveRecord::StaleObjectError: Attempted to touch a stale object: Post.
+    ```
+
+    After:
+    ```
+    post = Post.create!
+    # => begin transaction
+         INSERT INTO "posts" ("created_at", "updated_at", "lock_version")
+         VALUES ("2017-12-11 21:27:11.387397", "2017-12-11 21:27:11.387397", 0)
+         commit transaction
+
+    comment = Comment.create!(post: post)
+    # => begin transaction
+         INSERT INTO "comments" ("post_id") VALUES (1)
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) + 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1,
+         "updated_at" = '2017-12-11 21:37:09.802642' WHERE "posts"."id" = 1
+         commit transaction
+
+    comment.destroy!
+    # => begin transaction
+         DELETE FROM "comments" WHERE "comments"."id" = 1
+
+         UPDATE "posts" SET "comments_count" = COALESCE("comments_count", 0) - 1,
+         "lock_version" = COALESCE("lock_version", 0) + 1,
+         "updated_at" = '2017-12-11 21:39:02.685520' WHERE "posts"."id" = 1
+         commit transaction
+    ```
+
+    Fixes #31199.
+
+    *bogdanvlviv*
+
 *   Add support for PostgreSQL operator classes to `add_index`.
 
     Example:
@@ -452,6 +547,5 @@
     Previously this method always returned an empty array.
 
     *Kevin McPhillips*
-
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.

@@ -687,7 +687,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value=""></option>\n<option value="00">00</option>\n<option value="15">15</option>\n<option value="30">30</option>\n<option value="45">45</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), include_blank: true , minute_step: 15)
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), include_blank: true, minute_step: 15)
   end
 
   def test_select_minute_nil_with_blank
@@ -703,7 +703,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value=""></option>\n<option value="00">00</option>\n<option value="15">15</option>\n<option value="30">30</option>\n<option value="45">45</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(nil, include_blank: true , minute_step: 15)
+    assert_dom_equal expected, select_minute(nil, include_blank: true, minute_step: 15)
   end
 
   def test_select_minute_with_hidden

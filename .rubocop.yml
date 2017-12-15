@@ -58,6 +58,9 @@ Layout/IndentationConsistency:
 Layout/IndentationWidth:
   Enabled: true
 
+Layout/LeadingCommentSpace:
+  Enabled: true
+
 Layout/SpaceAfterColon:
   Enabled: true
 
@@ -72,6 +75,9 @@ Layout/SpaceAroundKeyword:
 
 Layout/SpaceAroundOperators:
   Enabled: true
+
+Layout/SpaceBeforeComma:
+    Enabled: true
 
 Layout/SpaceBeforeFirstArg:
     Enabled: true

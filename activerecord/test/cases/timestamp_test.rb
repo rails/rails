@@ -90,7 +90,7 @@ class TimestampTest < ActiveRecord::TestCase
       @developer.touch(:created_at)
     end
 
-    assert !@developer.created_at_changed? , "created_at should not be changed"
+    assert !@developer.created_at_changed?, "created_at should not be changed"
     assert !@developer.changed?, "record should not be changed"
     assert_not_equal previously_created_at, @developer.created_at
     assert_not_equal @previously_updated_at, @developer.updated_at

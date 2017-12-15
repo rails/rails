@@ -84,7 +84,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_formatted_offset
     assert_equal "-05:00", @twz.formatted_offset
-    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset #dst
+    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset # dst
   end
 
   def test_dst?
@@ -94,7 +94,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_zone
     assert_equal "EST", @twz.zone
-    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
+    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone # dst
   end
 
   def test_nsec
@@ -307,13 +307,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_integer
-    assert_equal Time.utc(1999, 12, 31, 19, 0 , 5), (@twz + 5).time
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 5), (@twz + 5).time
   end
 
   def test_plus_with_integer_when_self_wraps_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-    assert_equal DateTime.civil(1999, 12, 31, 19, 0 , 5), (twz + 5).time
+    assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5), (twz + 5).time
   end
 
   def test_plus_when_crossing_time_class_limit
@@ -322,21 +322,21 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_duration
-    assert_equal Time.utc(2000, 1, 5, 19, 0 , 0), (@twz + 5.days).time
+    assert_equal Time.utc(2000, 1, 5, 19, 0, 0), (@twz + 5.days).time
   end
 
   def test_minus_with_integer
-    assert_equal Time.utc(1999, 12, 31, 18, 59 , 55), (@twz - 5).time
+    assert_equal Time.utc(1999, 12, 31, 18, 59, 55), (@twz - 5).time
   end
 
   def test_minus_with_integer_when_self_wraps_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-    assert_equal DateTime.civil(1999, 12, 31, 18, 59 , 55), (twz - 5).time
+    assert_equal DateTime.civil(1999, 12, 31, 18, 59, 55), (twz - 5).time
   end
 
   def test_minus_with_duration
-    assert_equal Time.utc(1999, 12, 26, 19, 0 , 0), (@twz - 5.days).time
+    assert_equal Time.utc(1999, 12, 26, 19, 0, 0), (@twz - 5.days).time
   end
 
   def test_minus_with_time
@@ -507,7 +507,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_method_missing_with_time_return_value
     assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
-    assert_equal Time.utc(2000, 1, 31, 19, 0 , 0), @twz.months_since(1).time
+    assert_equal Time.utc(2000, 1, 31, 19, 0, 0), @twz.months_since(1).time
   end
 
   def test_marshal_dump_and_load

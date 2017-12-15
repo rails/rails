@@ -114,9 +114,13 @@ module ActiveRecord::Associations::Builder # :nodoc:
         BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
       }}
 
-      model.after_save    callback.(:saved_changes), if: :saved_changes?
-      model.after_touch   callback.(:changes_to_save)
-      model.after_destroy callback.(:changes_to_save)
+      unless reflection.counter_cache_column
+        model.after_create callback.(:saved_changes), if: :saved_changes?
+        model.after_destroy callback.(:changes_to_save)
+      end
+
+      model.after_update callback.(:saved_changes), if: :saved_changes?
+      model.after_touch callback.(:changes_to_save)
     end
 
     def self.add_default_callbacks(model, reflection)

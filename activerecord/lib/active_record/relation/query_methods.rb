@@ -1041,7 +1041,7 @@ module ActiveRecord
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
         elsif @klass.ignored_columns.any?
-          arel.project(*arel_columns(@klass.column_names))
+          arel.project(*arel_columns(@klass.column_names.map(&:to_sym)))
         else
           arel.project(table[Arel.star])
         end
@@ -1121,7 +1121,7 @@ module ActiveRecord
 
       def preprocess_order_args(order_args)
         order_args.map! do |arg|
-          klass.send(:sanitize_sql_for_order, arg)
+          klass.sanitize_sql_for_order(arg)
         end
         order_args.flatten!
 

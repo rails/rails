@@ -38,7 +38,7 @@ class ActiveRecordTestConnector
       end
     rescue Exception => e  # errors from ActiveRecord setup
       $stderr.puts "\nSkipping ActiveRecord assertion tests: #{e}"
-      #$stderr.puts "  #{e.backtrace.join("\n  ")}\n"
+      # $stderr.puts "  #{e.backtrace.join("\n  ")}\n"
       self.able_to_connect = false
     end
 

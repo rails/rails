@@ -25,3 +25,6 @@
 # Store boolean values are in sqlite3 databases as 1 and 0 instead of 't' and
 # 'f' after migrating old data.
 # Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+
+# Highlight code that triggered database queries in logs.
+Rails.application.config.active_record.verbose_query_logs = Rails.env.development?

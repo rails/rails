@@ -565,7 +565,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(4).second_to_last
     assert_nil Topic.offset(5).second_to_last
 
-    #test with limit
+    # test with limit
     assert_nil Topic.limit(1).second
     assert_nil Topic.limit(1).second_to_last
   end
@@ -1238,7 +1238,7 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with associations" do
     assert_equal authors(:david), Post.find_by(author: authors(:david)).author
-    assert_equal authors(:mary) , Post.find_by(author: authors(:mary)).author
+    assert_equal authors(:mary), Post.find_by(author: authors(:mary)).author
   end
 
   test "find_by doesn't have implicit ordering" do

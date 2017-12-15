@@ -87,19 +87,6 @@ module ActiveRecord
     # Sets the name of the internal metadata table.
 
     ##
-    # :singleton-method: protected_environments
-    # :call-seq: protected_environments
-    #
-    # The array of names of environments where destructive actions should be prohibited. By default,
-    # the value is <tt>["production"]</tt>.
-
-    ##
-    # :singleton-method: protected_environments=
-    # :call-seq: protected_environments=(environments)
-    #
-    # Sets an array of names of environments where destructive actions should be prohibited.
-
-    ##
     # :singleton-method: pluralize_table_names
     # :call-seq: pluralize_table_names
     #
@@ -122,9 +109,9 @@ module ActiveRecord
       class_attribute :table_name_suffix, instance_writer: false, default: ""
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
-      class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
       class_attribute :pluralize_table_names, instance_writer: false, default: true
 
+      self.protected_environments = ["production"]
       self.inheritance_column = "type"
       self.ignored_columns = [].freeze
 
@@ -236,6 +223,21 @@ module ActiveRecord
 
       def full_table_name_suffix #:nodoc:
         (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
+      end
+
+      # The array of names of environments where destructive actions should be prohibited. By default,
+      # the value is <tt>["production"]</tt>.
+      def protected_environments
+        if defined?(@protected_environments)
+          @protected_environments
+        else
+          superclass.protected_environments
+        end
+      end
+
+      # Sets an array of names of environments where destructive actions should be prohibited.
+      def protected_environments=(environments)
+        @protected_environments = environments.map(&:to_s)
       end
 
       # Defines the name of the table column which will store the class name on single-table

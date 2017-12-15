@@ -36,7 +36,7 @@ module ActiveSupport
           return 0 if number.zero?
           digits = digit_count(number)
           multiplier = 10**(digits - precision)
-          (number / BigDecimal.new(multiplier.to_f.to_s)).round * multiplier
+          (number / BigDecimal(multiplier.to_f.to_s)).round * multiplier
         end
 
         def convert_to_decimal(number)

@@ -57,7 +57,7 @@ module ActiveRecord
       #   store_listing = StoreListing.new(price_in_cents: '10.1')
       #
       #   # before
-      #   store_listing.price_in_cents # => BigDecimal.new(10.1)
+      #   store_listing.price_in_cents # => BigDecimal(10.1)
       #
       #   class StoreListing < ActiveRecord::Base
       #     attribute :price_in_cents, :integer

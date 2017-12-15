@@ -59,7 +59,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "key: permitted scalar values" do
     values  = ["a", :a, nil]
-    values += [0, 1.0, 2**128, BigDecimal.new(1)]
+    values += [0, 1.0, 2**128, BigDecimal(1)]
     values += [true, false]
     values += [Date.today, Time.now, DateTime.now]
     values += [STDOUT, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__),

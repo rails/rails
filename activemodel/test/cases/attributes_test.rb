@@ -33,7 +33,7 @@ module ActiveModel
 
       assert_equal 2, data.integer_field
       assert_equal "Rails FTW", data.string_field
-      assert_equal BigDecimal.new("12.3"), data.decimal_field
+      assert_equal BigDecimal("12.3"), data.decimal_field
       assert_equal "default string", data.string_with_default
       assert_equal Date.new(2016, 1, 1), data.date_field
       assert_equal false, data.boolean_field

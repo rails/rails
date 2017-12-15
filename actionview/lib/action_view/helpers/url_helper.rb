@@ -139,6 +139,11 @@ module ActionView
       #   link_to "Profiles", controller: "profiles"
       #   # => <a href="/profiles">Profiles</a>
       #
+      # When name is +nil+ the href is presented instead
+      #
+      #   link_to nil, "http://example.com"
+      #   # => <a href="http://www.example.com">http://www.example.com</a>
+      #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
       #   <%= link_to(@profile) do %>

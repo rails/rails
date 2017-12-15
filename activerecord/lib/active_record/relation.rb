@@ -52,8 +52,8 @@ module ActiveRecord
     #
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
-    def new(*args, &block)
-      scoping { @klass.new(*args, &block) }
+    def new(attributes = nil, &block)
+      scoping { klass.new(scope_for_create(attributes), &block) }
     end
 
     alias build new
@@ -77,8 +77,12 @@ module ActiveRecord
     #
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
-    def create(*args, &block)
-      scoping { @klass.create(*args, &block) }
+    def create(attributes = nil, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create(attr, &block) }
+      else
+        scoping { klass.create(scope_for_create(attributes), &block) }
+      end
     end
 
     # Similar to #create, but calls
@@ -87,8 +91,12 @@ module ActiveRecord
     #
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
-    def create!(*args, &block)
-      scoping { @klass.create!(*args, &block) }
+    def create!(attributes = nil, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create!(attr, &block) }
+      else
+        scoping { klass.create!(scope_for_create(attributes), &block) }
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -306,7 +314,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
 
-      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
       if has_join_values?
@@ -440,8 +448,10 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create
-      where_values_hash.merge!(create_with_value.stringify_keys)
+    def scope_for_create(attributes = nil)
+      scope = where_values_hash.merge!(create_with_value.stringify_keys)
+      scope.merge!(attributes) if attributes
+      scope
     end
 
     # Returns true if relation needs eager loading.

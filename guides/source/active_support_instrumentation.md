@@ -543,6 +543,13 @@ Active Storage
 | `:key`       | Secure token        |
 | `:service`   | Name of the service |
 
+### service_delete_prefixed.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:prefix`    | Key prefix          |
+| `:service`   | Name of the service |
+
 ### service_exist.active_storage
 
 | Key          | Value                       |

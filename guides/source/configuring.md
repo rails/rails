@@ -322,6 +322,10 @@ All these configuration options are delegated to the `I18n` library.
 
 * `config.active_record.schema_migrations_table_name` lets you set a string to be used as the name of the schema migrations table.
 
+* `config.active_record.internal_metadata_table_name` lets you set a string to be used as the name of the internal metadata table.
+
+* `config.active_record.protected_environments` lets you set an array of names of environments where destructive actions should be prohibited.
+
 * `config.active_record.pluralize_table_names` specifies whether Rails will look for singular or plural table names in the database. If set to `true` (the default), then the Customer class will use the `customers` table. If set to false, then the Customer class will use the `customer` table.
 
 * `config.active_record.default_timezone` determines whether to use `Time.local` (if set to `:local`) or `Time.utc` (if set to `:utc`) when pulling dates and times from the database. The default is `:utc`.
@@ -399,7 +403,7 @@ by adding the following to your `application.rb` file:
 
 The schema dumper adds one additional configuration option:
 
-* `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file. This setting is ignored unless `config.active_record.schema_format == :ruby`.
+* `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file.
 
 ### Configuring Action Controller
 

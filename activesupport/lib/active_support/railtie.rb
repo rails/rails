@@ -66,5 +66,12 @@ module ActiveSupport
         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
       end
     end
+
+    initializer "active_support.set_hash_digest_class" do |app|
+      if app.config.active_support.respond_to?(:use_hash_digest_class) && app.config.active_support.use_hash_digest_class
+        ActiveSupport::Digest.hash_digest_class =
+          app.config.active_support.use_hash_digest_class
+      end
+    end
   end
 end

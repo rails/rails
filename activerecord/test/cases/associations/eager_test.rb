@@ -1073,7 +1073,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_load_with_sti_sharing_association
-    assert_queries(2) do #should not do 1 query per subclass
+    assert_queries(2) do # should not do 1 query per subclass
       Comment.includes(:post).to_a
     end
   end
