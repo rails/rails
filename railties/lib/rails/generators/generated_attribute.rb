@@ -43,9 +43,23 @@ module Rails
         # parse possible attribute options like :limit for string/text/binary/integer, :precision/:scale for decimals or :polymorphic for references/belongs_to
         # when declaring options curly brackets should be used
         def parse_options(type_with_options)
-          options = parse_null_options(type_with_options)
-          options = options.merge parse_default_options(type_with_options)
-          options.merge type_options(type_with_options)
+          options = type_options(type_with_options)
+          options = options.merge parse_null_options(type_with_options)
+          options.merge parse_default_options(type_with_options)
+        end
+
+        def type_options(type)
+          case type
+          when /(string|text|binary|integer)\{(\d+)/
+            { limit: $2.to_i }
+          when /decimal\{(\d+)[,.-](\d+)/
+            { precision: $1.to_i, scale: $2.to_i }
+          when /(references|belongs_to)\{/
+            provided_options = type.scan(/polymorphic|required/)
+            Hash[provided_options.map { |opt| [opt.to_sym, true] }]
+          else
+            {}
+          end
         end
 
         def parse_null_options(type)
@@ -57,22 +71,8 @@ module Rails
         end
 
         def parse_default_options(type)
-          matchdata = type.match(/default=([^,}]+)/)
+          matchdata = type.match(/default=([^,}.]+)/)
           matchdata ? { default:  matchdata.captures.first } : {}
-        end
-
-        def type_options(type)
-          case type
-          when /(string|text|binary|integer)\{(\d+)/
-            { limit: $2.to_i }
-          when /decimal\{(\d+)[,.-](\d+)/
-            { precision: $1.to_i, scale: $2.to_i }
-          when /(references|belongs_to)\{([^},]+)/
-            provided_options = $2.split(/[,.-]/)
-            Hash[provided_options.map { |opt| [opt.to_sym, true] }]
-          else
-            {}
-          end
         end
       end
 
