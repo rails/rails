@@ -84,6 +84,10 @@
       url: active_job_basics.html
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
     -
+      name: Active Storage
+      url: active_storage_overview.html
+      description: This guide covers how to attach files to your Active Record models.
+    -
       name: Testing Rails Applications
       url: testing.html
       description: This is a rather comprehensive guide to the various testing facilities in Rails. It covers everything from 'What is a test?' to Integration Testing. Enjoy.
