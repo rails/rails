@@ -124,6 +124,36 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [:commit_on_destroy], @first.history
   end
 
+  def test_only_call_after_commit_on_create_when_record_is_actually_created
+    callback_ran = false
+    record = TopicWithCallbacks.new
+    record.after_commit_block(:create) { callback_ran = true }
+
+    TopicWithCallbacks.transaction do
+      record.title = "New topic"
+      record.written_on = Date.today
+      record.save
+      record.destroy
+    end
+
+    assert_equal false, callback_ran
+  end
+
+  def test_still_call_after_commit_on_destroy_when_record_is_create_and_destroyed_in_transaction_block
+    callback_ran = false
+    record = TopicWithCallbacks.new
+    record.after_commit_block(:destroy) { callback_ran = true }
+
+    TopicWithCallbacks.transaction do
+      record.title = "New topic"
+      record.written_on = Date.today
+      record.save
+      record.destroy
+    end
+
+    assert_equal true, callback_ran
+  end
+
   def test_only_call_after_commit_on_create_after_transaction_commits_for_new_record
     new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
     add_transaction_execution_blocks new_record

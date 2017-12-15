@@ -450,7 +450,7 @@ module ActiveRecord
         actions.any? do |action|
           case action
           when :create
-            transaction_record_state(:new_record)
+            transaction_record_state(:new_record) && !destroyed?
           when :destroy
             defined?(@_trigger_destroy_callback) && @_trigger_destroy_callback
           when :update
