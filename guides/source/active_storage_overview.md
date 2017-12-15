@@ -46,7 +46,7 @@ the migration is generated automatically.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
-below declares three services named `local`, `test`, and `s3`:
+below declares three services named `local`, `test`, and `amazon`:
 
 ```yaml
 local:
@@ -57,7 +57,7 @@ test:
   service: Disk
   root: <%= Rails.root.join("tmp/storage") %>
 
-s3:
+amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
@@ -80,7 +80,7 @@ To use the s3 service in production, you add the following to
 
 ```ruby
 # Store files in S3.
-config.active_storage.service = :s3
+config.active_storage.service = :amazon
 ```
 
 Continue reading for more information on the built-in service adapters (e.g.
@@ -101,7 +101,7 @@ local:
 Declare an S3 service in `config/storage.yml`:
 
 ``` yaml
-s3:
+amazon:
   service: S3
   access_key_id: ""
   secret_access_key: ""
@@ -119,7 +119,7 @@ gem "aws-sdk-s3", require: false
 Declare an Azure Storage service in `config/storage.yml`:
 
 ``` yaml
-azure:
+microsoft:
   service: AzureStorage
   path: ""
   storage_account_name: ""
