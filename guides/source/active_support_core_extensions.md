@@ -1978,19 +1978,19 @@ Extensions to `BigDecimal`
 The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s       # => "5.0"
+BigDecimal(5.00, 6).to_s       # => "5.0"
 ```
 
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
+BigDecimal(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
+BigDecimal(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`
