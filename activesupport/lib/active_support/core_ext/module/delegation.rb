@@ -115,11 +115,8 @@ class Module
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the target is +nil+ and does not respond to the delegated method a
-  # +Module::DelegationError+ is raised, as with any other value. Sometimes,
-  # however, it makes sense to be robust to that situation and that is the
-  # purpose of the <tt>:allow_nil</tt> option: If the target is not +nil+, or it
-  # is and responds to the method, everything works as usual. But if it is +nil+
-  # and does not respond to the delegated method, +nil+ is returned.
+  # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
+  # use the <tt>:allow_nil</tt> option.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
