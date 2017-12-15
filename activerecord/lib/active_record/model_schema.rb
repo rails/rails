@@ -425,7 +425,7 @@ module ActiveRecord
       #  end
       def reset_column_information
         connection.clear_cache!
-        undefine_attribute_methods
+        ([self] + descendants).each(&:undefine_attribute_methods)
         connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
