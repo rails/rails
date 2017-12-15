@@ -112,8 +112,8 @@ module XmlMiniTest
     end
 
     test "#to_tag accepts decimal types" do
-      @xml.to_tag(:b, ::BigDecimal.new("1.2"), @options)
-      assert_xml( "<b type=\"decimal\">1.2</b>")
+      @xml.to_tag(:b, ::BigDecimal("1.2"), @options)
+      assert_xml("<b type=\"decimal\">1.2</b>")
     end
 
     test "#to_tag accepts date types" do
