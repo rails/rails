@@ -372,9 +372,7 @@ module ActiveRecord
         code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
         Barcode.create!(code: code, other_attr: "xxx")
 
-        connection.change_table "barcodes" do |t|
-          connection.remove_column("barcodes", "other_attr")
-        end
+        connection.remove_column("barcodes", "other_attr")
 
         assert_equal code, Barcode.first.id
       ensure
@@ -392,9 +390,7 @@ module ActiveRecord
         code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
         Barcode.create!(region: region, code: code, other_attr: "xxx")
 
-        connection.change_table "barcodes" do |t|
-          connection.remove_column("barcodes", "other_attr")
-        end
+        connection.remove_column("barcodes", "other_attr")
 
         assert_equal ["region", "code"], connection.primary_keys("barcodes")
 
