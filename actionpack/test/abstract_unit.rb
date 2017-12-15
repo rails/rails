@@ -380,7 +380,7 @@ class ForkingExecutor
   def initialize(size)
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
+    file   = File.join Dir.tmpdir, tmpname
     @url   = "drbunix://#{file}"
     @pool  = nil
     DRb.start_service @url, @queue
@@ -421,6 +421,11 @@ class ForkingExecutor
           Minitest::UnexpectedError.new ex
         end
       }
+    end
+
+    def tmpname
+      t = Time.now.strftime("%Y%m%d")
+      "rails-tests-#{t}-#{$$}-#{rand(0x100000000).to_s(36)}-fd"
     end
 end
 
