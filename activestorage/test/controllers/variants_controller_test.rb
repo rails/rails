@@ -20,4 +20,13 @@ class ActiveStorage::VariantsControllerTest < ActionDispatch::IntegrationTest
     assert_equal 100, image.width
     assert_equal 67, image.height
   end
+
+  test "showing variant with invalid signed blob ID" do
+    get rails_blob_variation_url(
+      filename: @blob.filename,
+      signed_blob_id: "invalid",
+      variation_key: ActiveStorage::Variation.encode(resize: "100x100"))
+
+    assert_response :not_found
+  end
 end

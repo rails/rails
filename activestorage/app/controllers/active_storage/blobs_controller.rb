@@ -5,12 +5,10 @@
 # security-through-obscurity factor of the signed blob references, you'll need to implement your own
 # authenticated redirection controller.
 class ActiveStorage::BlobsController < ActionController::Base
+  include ActiveStorage::SetBlob
+
   def show
-    if blob = ActiveStorage::Blob.find_signed(params[:signed_id])
-      expires_in ActiveStorage::Blob.service.url_expires_in
-      redirect_to blob.service_url(disposition: params[:disposition])
-    else
-      head :not_found
-    end
+    expires_in ActiveStorage::Blob.service.url_expires_in
+    redirect_to @blob.service_url(disposition: params[:disposition])
   end
 end
