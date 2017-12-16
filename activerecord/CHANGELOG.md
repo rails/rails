@@ -1,3 +1,50 @@
+*   Prevent ActiveRecord::Rollback to be swallowed and not reflect for collection objects
+
+    Previously collection models used to get persisted even when
+    there's an explicit ActiveRecord::Rollback in a callback and
+    change the count of the collection obect without any regard to
+    the callback specification. This used to happen because ActiveRecord::Rollback
+    used to be silently swallowed and the rest of the pipeline triggered
+    commit from it's previously assigned data values.
+
+    For example:
+
+    ```
+    class Post < ApplicationRecord
+        has_many :comments
+    end
+
+    class Comment < ApplicationRecord
+      belongs_to :post
+      after_create -> { raise ActiveRecord::Rollback }
+    end
+    ```
+
+    Before:
+    ```
+        post = Post.first
+        post.comments.count == true     # true
+
+        post.comments.create
+        post.comments.count == 0        # false
+    ```
+
+    After:
+    ```
+        post = Post.first
+        post.comments.count == true     # true
+
+        post.comments.create
+        post.comments.count == 0        # true
+    ```
+
+    This PR fixes the problem and makes the count consistent
+    if there's a rollback on a collection object.
+
+    Fixes #28836 and #28536
+
+    *Sayan Chakraborty*
+
 *   Undefine attribute methods on descendants when resetting column
     information.
 

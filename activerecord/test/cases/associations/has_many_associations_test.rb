@@ -2543,6 +2543,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_count_does_not_change_for_collection_if_rolled_back
+    klass = Class.new(Bulb) do
+      def self.name; "Bulb"; end
+      belongs_to :car, class_name: "Car"
+      after_create { raise ActiveRecord::Rollback }
+    end
+
+    car = Car.create!
+    initial_count = car.bulbs.count
+
+    car.bulbs << klass.create
+
+    assert_equal initial_count, car.bulbs.count
+  end
+
   class AuthorWithErrorDestroyingAssociation < ActiveRecord::Base
     self.table_name = "authors"
     has_many :posts_with_error_destroying,
