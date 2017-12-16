@@ -792,6 +792,26 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_bootsnap
+    run_generator
+
+    assert_gem "bootsnap"
+    assert_file "config/boot.rb" do |content|
+      assert_match(/require 'bootsnap\/setup'/, content)
+    end
+  end
+
+  def test_skip_bootsnap
+    run_generator [destination_root, "--skip-bootsnap"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/bootsnap/, content)
+    end
+    assert_file "config/boot.rb" do |content|
+      assert_no_match(/require 'bootsnap\/setup'/, content)
+    end
+  end
+
   def test_inclusion_of_ruby_version
     run_generator
 

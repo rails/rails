@@ -84,6 +84,9 @@ module Rails
         class_option :skip_system_test,    type: :boolean, default: false,
                                            desc: "Skip system test files"
 
+        class_option :skip_bootsnap,       type: :boolean, default: false,
+                                           desc: "Skip bootsnap gem"
+
         class_option :dev,                 type: :boolean, default: false,
                                            desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -433,6 +436,10 @@ module Rails
 
       def depend_on_listen?
         !options[:skip_listen] && os_supports_listen_out_of_the_box?
+      end
+
+      def depend_on_bootsnap?
+        !options[:skip_bootsnap]
       end
 
       def os_supports_listen_out_of_the_box?
