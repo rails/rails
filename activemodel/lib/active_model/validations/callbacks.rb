@@ -54,14 +54,16 @@ module ActiveModel
         #   person.valid? # => true
         #   person.name   # => "bob"
         def before_validation(*args, &block)
-          options = args.last
-          if options.is_a?(Hash) && options[:on]
-            options[:if] = Array(options[:if])
-            options[:on] = Array(options[:on])
+          options = args.extract_options!
+          options[:if] = Array(options[:if])
+
+          if options.key?(:on)
             options[:if].unshift ->(o) {
-              options[:on].include? o.validation_context
+              !(Array(options[:on]) & Array(o.validation_context)).empty?
             }
           end
+
+          args << options
           set_callback(:validation, :before, *args, &block)
         end
 
@@ -95,13 +97,15 @@ module ActiveModel
           options = args.extract_options!
           options[:prepend] = true
           options[:if] = Array(options[:if])
-          if options[:on]
-            options[:on] = Array(options[:on])
+
+          if options.key?(:on)
             options[:if].unshift ->(o) {
-              options[:on].include? o.validation_context
+              !(Array(options[:on]) & Array(o.validation_context)).empty?
             }
           end
-          set_callback(:validation, :after, *(args << options), &block)
+
+          args << options
+          set_callback(:validation, :after, *args, &block)
         end
       end
 
