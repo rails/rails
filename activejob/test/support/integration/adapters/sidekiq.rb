@@ -51,6 +51,7 @@ module SidekiqJobsManager
         self_write.puts("TERM")
       end
 
+      require "sidekiq/cli"
       require "sidekiq/launcher"
       sidekiq = Sidekiq::Launcher.new(queues: ["integration_tests"],
                                        environment: "test",
