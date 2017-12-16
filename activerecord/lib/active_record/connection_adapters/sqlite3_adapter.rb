@@ -107,6 +107,10 @@ module ActiveRecord
         configure_connection
       end
 
+      def supports_bulk_alter?
+        true
+      end
+
       def supports_ddl_transactions?
         true
       end
@@ -200,6 +204,26 @@ module ActiveRecord
       #--
       # DATABASE STATEMENTS ======================================
       #++
+
+      def bulk_change_table(table_name, operations)
+        combinable, non_combinable = Array(operations).partition { |c, args| respond_to?(:"#{c}_for_alter", true) }
+
+        if combinable.present?
+          alter_table(:delete_me) do |definition|
+            combinable.each do |command, args|
+              table, arguments = args.shift, args
+              method = :"#{command}_for_alter"
+
+              send(method, definition, *arguments)
+            end
+          end
+        end
+
+        non_combinable.each do |command, args|
+          table, arguments = args.shift, args
+          send(command, table, *arguments)
+        end
+      end
 
       def explain(arel, binds = [])
         sql = "EXPLAIN QUERY PLAN #{to_sql(arel, binds)}"
@@ -469,6 +493,34 @@ module ActiveRecord
 
           exec_query("INSERT INTO #{quote_table_name(to)} (#{quoted_columns})
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
+        end
+
+        def add_column_for_alter(definition, column_name, type, options)
+          definition.column(column_name, type, options)
+        end
+
+        def add_timestamps_for_alter(definition, options)
+          definition.timestamps(options)
+        end
+
+        def remove_column_for_alter(definition, column_name, type = nil, options = {})
+          definition.remove_column column_name
+        end
+
+        def remove_columns_for_alter(definition, *column_names)
+          column_names.map { |column_name| remove_column_for_alter(definition, column_name) }
+        end
+
+        def change_column_for_alter(definition, column_name, type, options = {})
+          definition[column_name].instance_eval do
+            self.type    = type
+            self.limit   = options[:limit] if options.include?(:limit)
+            self.default = options[:default] if options.include?(:default)
+            self.null    = options[:null] if options.include?(:null)
+            self.precision = options[:precision] if options.include?(:precision)
+            self.scale = options[:scale] if options.include?(:scale)
+            self.collation = options[:collation] if options.include?(:collation)
+          end
         end
 
         def sqlite_version

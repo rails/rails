@@ -761,7 +761,16 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def test_adding_multiple_columns
-      assert_queries(1) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1,
+        "PostgreSQLAdapter" => 1,
+        "SQLite3Adapter"    => 6,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
@@ -783,7 +792,16 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       [:qualification, :experience].each { |c| assert column(c) }
 
-      assert_queries(1) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1,
+        "PostgreSQLAdapter" => 1,
+        "SQLite3Adapter"    => 6,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove :qualification, :experience
           t.string :qualification_experience
@@ -805,6 +823,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       expected_query_count = {
         "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
         "PostgreSQLAdapter" => 2,
+        "SQLite3Adapter"    => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -837,6 +856,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       expected_query_count = {
         "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
         "PostgreSQLAdapter" => 2,
+        "SQLite3Adapter"    => 2,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -867,6 +887,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       expected_query_count = {
         "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
         "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+        "SQLite3Adapter"    => 22,
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
