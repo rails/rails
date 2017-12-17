@@ -68,9 +68,9 @@ module ActiveSupport
     end
 
     initializer "active_support.set_hash_digest_class" do |app|
-      if app.config.active_support.respond_to?(:use_hash_digest_class) && app.config.active_support.use_hash_digest_class
+      if app.config.active_support.respond_to?(:hash_digest_class) && app.config.active_support.hash_digest_class
         ActiveSupport::Digest.hash_digest_class =
-          app.config.active_support.use_hash_digest_class
+          app.config.active_support.hash_digest_class
       end
     end
   end

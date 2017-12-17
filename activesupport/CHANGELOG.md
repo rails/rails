@@ -1,7 +1,7 @@
-*   Introduced `ActiveSupport::Digest` that allows to specify hash function implementation
-    and defaults to `Digest::MD5`.
+*   Allow the hash function used to generate non-sensitive digests, such as the
+    ETag header, to be specified with `config.active_support.hash_digest_class`.
 
-    Replaced calls to `::Digest::MD5.hexdigest` with calls to `ActiveSupport::Digest.hexdigest`.
+    The object provided must respond to `#hexdigest`, e.g. `Digest::SHA1`.
 
     *Dmitri Dolguikh*
  
