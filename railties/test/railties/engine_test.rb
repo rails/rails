@@ -1479,6 +1479,21 @@ YAML
       assert_equal "/fruits/2/bukkits/posts", last_response.body
     end
 
+    test "active_storage:install task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load 'rails/tasks/engine.rake'
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:install`
+        assert $?.success?, output
+
+        active_storage_migration = migrations.detect { |migration| migration.name == "CreateActiveStorageTables" }
+        assert active_storage_migration
+      end
+    end
+
   private
     def app
       Rails.application
