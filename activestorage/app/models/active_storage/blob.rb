@@ -172,11 +172,11 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
 
-  # Returns an ActiveStorage::Preview instance for a previewable blob or an ActiveStorage::Variant instance for an image blob.
+  # Returns an ActiveStorage::Preview for a previewable blob or an ActiveStorage::Variant for a variable image blob.
   #
   #   blob.representation(resize: "100x100").processed.service_url
   #
-  # Raises ActiveStorage::Blob::UnrepresentableError if the receiving blob is neither an image nor previewable. Call
+  # Raises ActiveStorage::Blob::UnrepresentableError if the receiving blob is neither variable nor previewable. Call
   # ActiveStorage::Blob#representable? to determine whether a blob is representable.
   #
   # See ActiveStorage::Blob#preview and ActiveStorage::Blob#variant for more information.
@@ -191,7 +191,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
   end
 
-  # Returns true if the blob is variable or is previewable.
+  # Returns true if the blob is variable or previewable.
   def representable?
     variable? || previewable?
   end
