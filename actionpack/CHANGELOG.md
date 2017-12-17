@@ -111,9 +111,9 @@
     *Rafael Mendonça França*
 
 *   Add `:allow_other_host` option to `redirect_back` method.
-    When `allow_other_host` is set to `false`, the `redirect_back`
-    will not allow a redirecting from a different host.
-    `allow_other_host` is `true` by default.
+
+    When `allow_other_host` is set to `false`, the `redirect_back` will not allow redirecting from a
+    different host. `allow_other_host` is `true` by default.
 
     *Tim Masliuchenko*
 
