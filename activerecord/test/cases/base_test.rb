@@ -1498,10 +1498,14 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "column names are quoted when using #from clause and model has ignored columns" do
     refute_empty Developer.ignored_columns
-    query = Developer.from("`developers`").to_sql
-    quoted_id = Developer.connection.quote_table_name("id")
+    query = Developer.from("developers").to_sql
+    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
 
-    assert_match(/SELECT #{quoted_id}.* FROM `developers`/, query)
+    assert_match(/SELECT #{quoted_id}.* FROM developers/, query)
+  end
+
+  test "using table name qualified column names unless having SELECT list explicitly" do
+    assert_equal developers(:david), Developer.from("developers").joins(:shared_computers).take
   end
 
   test "protected environments by default is an array with production" do
