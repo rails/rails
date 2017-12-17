@@ -406,7 +406,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, car.lock_version
 
     previously_car_updated_at = car.updated_at
-    travel(1.second) do
+    travel(2.second) do
       Wheel.create!(wheelable: car)
     end
 
@@ -422,7 +422,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 2, car.lock_version
 
     previously_car_updated_at = car.updated_at
-    travel(1.second) do
+    travel(2.second) do
       car.wheels.first.destroy!
     end
 
