@@ -287,10 +287,8 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
-    assert_nothing_raised do
-      developer = developers(:david)
-      developer.ratings.includes(comment: :post).where(posts: { id: 1 }).exists?
-    end
+    developer = developers(:david)
+    assert_not_predicate developer.ratings.includes(comment: :post).where(posts: { id: 1 }), :exists?
   end
 
   def test_exists_with_empty_table_and_no_args_given
