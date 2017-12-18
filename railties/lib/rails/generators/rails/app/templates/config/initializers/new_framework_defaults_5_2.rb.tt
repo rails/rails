@@ -10,7 +10,7 @@
 # This is needed for recyclable cache keys.
 # Rails.application.config.active_record.cache_versioning = true
 
-# Use AES 256 GCM authenticated encryption for encrypted cookies.
+# Use AES-256-GCM authenticated encryption for encrypted cookies.
 # Existing cookies will be converted on read then written with the new scheme.
 # Rails.application.config.action_dispatch.use_authenticated_cookie_encryption = true
 
