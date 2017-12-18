@@ -35,6 +35,8 @@
 #
 #   avatar.variant(resize: "100x100", monochrome: true, flip: "-90")
 class ActiveStorage::Variant
+  WEB_IMAGE_CONTENT_TYPES = %w( image/png image/jpeg image/jpg image/gif )
+
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
@@ -62,7 +64,7 @@ class ActiveStorage::Variant
   # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +service_call+ method
   # for its redirection.
   def service_url(expires_in: service.url_expires_in, disposition: :inline)
-    service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
+    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
@@ -76,11 +78,40 @@ class ActiveStorage::Variant
     end
 
     def process
-      service.upload key, transform(service.download(blob.key))
+      service.upload key, transform(blob.download)
     end
 
+
+    def filename
+      if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+        blob.filename
+      else
+        ActiveStorage::Filename.new("#{blob.filename.base}.png")
+      end
+    end
+
+    def content_type
+      blob.content_type.presence_in(WEB_IMAGE_CONTENT_TYPES) || "image/png"
+    end
+
+
     def transform(io)
+      read_image_from(io) do |image|
+        mogrify image
+        format image
+      end
+    end
+
+    def read_image_from(io, &block)
       require "mini_magick"
-      File.open MiniMagick::Image.read(io).tap { |image| variation.transform(image) }.path
+      File.open MiniMagick::Image.read(io).tap(&block).path
+    end
+
+    def mogrify(image)
+      variation.transform(image)
+    end
+
+    def format(image)
+      image.format("PNG") unless WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
     end
 end

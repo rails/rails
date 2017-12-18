@@ -4,12 +4,9 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
-  setup do
-    @blob = create_file_blob filename: "racecar.jpg"
-  end
-
-  test "resized variation" do
-    variant = @blob.variant(resize: "100x100").processed
+  test "resized variation of JPEG blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize: "100x100").processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -17,14 +14,26 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 67, image.height
   end
 
-  test "resized and monochrome variation" do
-    variant = @blob.variant(resize: "100x100", monochrome: true).processed
+  test "resized and monochrome variation of JPEG blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize: "100x100", monochrome: true).processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
     assert_equal 100, image.width
     assert_equal 67, image.height
     assert_match(/Gray/, image.colorspace)
+  end
+
+  test "resized variation of PSD blob" do
+    blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
+    variant = blob.variant(resize: "20x20").processed
+    assert_match(/icon\.png/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal "PNG", image.type
+    assert_equal 20, image.width
+    assert_equal 20, image.height
   end
 
   test "variation of invariable blob" do
@@ -34,7 +43,8 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "service_url doesn't grow in length despite long variant options" do
-    variant = @blob.variant(font: "a" * 10_000).processed
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(font: "a" * 10_000).processed
     assert_operator variant.service_url.length, :<, 500
   end
 end
