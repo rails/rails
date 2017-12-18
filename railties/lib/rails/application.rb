@@ -472,7 +472,8 @@ module Rails
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
-        env_key: env_key
+        env_key: env_key,
+        raise_if_missing_key: config.require_master_key
       )
     end
 

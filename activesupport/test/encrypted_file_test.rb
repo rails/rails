@@ -12,8 +12,9 @@ class EncryptedFileTest < ActiveSupport::TestCase
     @key_path = File.join(Dir.tmpdir, "content.txt.key")
     File.write(@key_path, ActiveSupport::EncryptedFile.generate_key)
 
-    @encrypted_file = ActiveSupport::EncryptedFile.new \
-      content_path: @content_path, key_path: @key_path, env_key: "CONTENT_KEY"
+    @encrypted_file = ActiveSupport::EncryptedFile.new(
+      content_path: @content_path, key_path: @key_path, env_key: "CONTENT_KEY", raise_if_missing_key: true
+    )
   end
 
   teardown do
@@ -46,5 +47,13 @@ class EncryptedFileTest < ActiveSupport::TestCase
     end
 
     assert_equal "#{@content} and went by the lake", @encrypted_file.read
+  end
+
+  test "raise MissingKeyError when key is missing" do
+    assert_raise(ActiveSupport::EncryptedFile::MissingKeyError) do
+      ActiveSupport::EncryptedFile.new(
+        content_path: @content_path, key_path: "", env_key: "", raise_if_missing_key: true
+      ).read
+    end
   end
 end

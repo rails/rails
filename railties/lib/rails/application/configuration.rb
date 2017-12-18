@@ -16,7 +16,8 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
-                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only
+                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :require_master_key
 
       attr_reader :encoding, :api_only
 
@@ -56,6 +57,7 @@ module Rails
         @read_encrypted_secrets              = false
         @content_security_policy             = nil
         @content_security_policy_report_only = false
+        @require_master_key                  = false
       end
 
       def load_defaults(target_version)

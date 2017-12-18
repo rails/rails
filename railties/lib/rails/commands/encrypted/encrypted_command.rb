@@ -37,9 +37,9 @@ module Rails
 
       def show(file_path)
         require_application_and_environment!
+        encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
-        say Rails.application.encrypted(file_path, key_path: options[:key]).read.presence ||
-          "File '#{file_path}' does not exist. Use bin/rails encrypted:edit #{file_path} to change that."
+        say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: options[:key], file_path: file_path)
       end
 
       private
@@ -71,6 +71,14 @@ module Rails
           require "rails/generators/rails/encrypted_file/encrypted_file_generator"
 
           Rails::Generators::EncryptedFileGenerator.new
+        end
+
+        def missing_encrypted_message(key:, key_path:, file_path:)
+          if key.nil?
+            "Missing '#{key_path}' to decrypt data. See bin/rails encrypted:help"
+          else
+            "File '#{file_path}' does not exist. Use bin/rails encrypted:edit #{file_path} to change that."
+          end
         end
     end
   end

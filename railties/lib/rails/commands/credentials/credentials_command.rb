@@ -33,8 +33,7 @@ module Rails
       def show
         require_application_and_environment!
 
-        say Rails.application.credentials.read.presence ||
-          "No credentials have been added yet. Use bin/rails credentials:edit to change that."
+        say Rails.application.credentials.read.presence || missing_credentials_message
       end
 
       private
@@ -66,6 +65,14 @@ module Rails
           require "rails/generators/rails/credentials/credentials_generator"
 
           Rails::Generators::CredentialsGenerator.new
+        end
+
+        def missing_credentials_message
+          if Rails.application.credentials.key.nil?
+            "Missing master key to decrypt credentials. See bin/rails credentials:help"
+          else
+            "No credentials have been added yet. Use bin/rails credentials:edit to change that."
+          end
         end
     end
   end
