@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_storage/downloading"
+
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -35,6 +37,8 @@
 #
 #   avatar.variant(resize: "100x100", monochrome: true, flip: "-90")
 class ActiveStorage::Variant
+  include ActiveStorage::Downloading
+
   WEB_IMAGE_CONTENT_TYPES = %w( image/png image/jpeg image/jpg image/gif )
 
   attr_reader :blob, :variation
@@ -78,7 +82,11 @@ class ActiveStorage::Variant
     end
 
     def process
-      service.upload key, transform(blob.download)
+      open_image do |image|
+        transform image
+        format image
+        upload image
+      end
     end
 
 
@@ -95,23 +103,24 @@ class ActiveStorage::Variant
     end
 
 
-    def transform(io)
-      read_image_from(io) do |image|
-        mogrify image
-        format image
-      end
+    def open_image(&block)
+      download_image.tap(&block).destroy!
     end
 
-    def read_image_from(io, &block)
+    def download_image
       require "mini_magick"
-      File.open MiniMagick::Image.read(io).tap(&block).path
+      MiniMagick::Image.create { |file| download_blob_to(file) }
     end
 
-    def mogrify(image)
+    def transform(image)
       variation.transform(image)
     end
 
     def format(image)
       image.format("PNG") unless WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+    end
+
+    def upload(image)
+      File.open(image.path, "r") { |file| service.upload(key, file) }
     end
 end
