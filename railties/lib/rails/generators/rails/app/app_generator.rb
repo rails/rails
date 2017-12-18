@@ -266,6 +266,10 @@ module Rails
           raise Error, "Invalid value for --database option. Supported for preconfiguration are: #{DATABASES.join(", ")}."
         end
 
+        if options[:api] && options[:webpack]
+          raise Error, "Invalid options are supplied. Please use either --api or --webpack."
+        end
+
         # Force sprockets and yarn to be skipped when generating API only apps.
         # Can't modify options hash as it's frozen by default.
         if options[:api]
