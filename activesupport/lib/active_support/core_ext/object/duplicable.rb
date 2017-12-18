@@ -110,8 +110,12 @@ class BigDecimal
   #
   #   BigDecimal("1.2").duplicable? # => true
   #   BigDecimal("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
+  #
+  # Ruby 2.5 deprecates BigDecimal#dup
+  # https://github.com/ruby/bigdecimal/commit/bd12a259aa5583b873a640edd337cbb906c6add5
+  #
   def duplicable?
-    true
+    RUBY_VERSION >= "2.5.0" ? false : true
   end
 end
 
