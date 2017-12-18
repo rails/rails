@@ -40,8 +40,8 @@ module ActiveRecord
       klass.arel_attribute(name, table)
     end
 
-    # Initializes new record from relation while maintaining the current
-    # scope.
+    # Initializes new record with the same scoped attributes
+    # defined in the relation.
     #
     # Expects arguments in the same format as {ActiveRecord::Base.new}[rdoc-ref:Core.new].
     #
@@ -53,7 +53,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      scoping { klass.new(scope_for_create(attributes), &block) }
+      klass.new(scope_for_create(attributes), &block)
     end
 
     alias build new
@@ -81,7 +81,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
-        scoping { klass.create(scope_for_create(attributes), &block) }
+        klass.create(scope_for_create(attributes), &block)
       end
     end
 
@@ -95,7 +95,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
-        scoping { klass.create!(scope_for_create(attributes), &block) }
+        klass.create!(scope_for_create(attributes), &block)
       end
     end
 

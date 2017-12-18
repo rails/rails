@@ -1189,6 +1189,28 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "hen", hen.name
   end
 
+  def test_create_with_scoping
+    hen = Bird.where(name: "hen").scoping do
+      Bird.where(color: "red").create!
+    end
+    assert_equal "hen", hen.name
+    assert_equal "red", hen.color
+  end
+
+  def test_create_with_scoping_leak_check
+    parrot = Bird.create!(name: "parrot", color: "red")
+    penguin = Bird.create!(name: "penguin", color: "blue")
+    found_penguin, found_parrot = nil
+    Bird.where(color: "blue").scoping do
+      Bird.where(name: "hen").new do
+        found_penguin = Bird.find_by(id: penguin.id)
+        found_parrot = Bird.find_by(id: parrot.id)
+      end
+    end
+    assert_nil found_parrot
+    assert_equal found_penguin, penguin
+  end
+
   def test_create_with_polymorphic_association
     author = authors(:david)
     post = posts(:welcome)
