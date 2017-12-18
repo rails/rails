@@ -16,7 +16,7 @@ class DigestTest < ActiveSupport::TestCase
     digest = ActiveSupport::Digest.hexdigest("hello friend")
 
     assert_equal 32, digest.length
-    assert_equal ::Digest::SHA1.hexdigest("hello friend").truncate(32), digest
+    assert_equal ::Digest::SHA1.hexdigest("hello friend")[0...32], digest
   ensure
     ActiveSupport::Digest.hash_digest_class = original_hash_digest_class
   end

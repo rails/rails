@@ -13,16 +13,8 @@ module ActiveSupport
       end
 
       def hexdigest(arg)
-        new.hexdigest(arg)
+        hash_digest_class.hexdigest(arg)[0...32]
       end
-    end
-
-    def initialize(digest_class: nil)
-      @digest_class = digest_class || self.class.hash_digest_class
-    end
-
-    def hexdigest(arg)
-      @digest_class.hexdigest(arg).truncate(32)
     end
   end
 end
