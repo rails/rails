@@ -53,7 +53,12 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      klass.new(scope_for_create(attributes), &block)
+      begin
+        klass.scope_attributes_populated = true
+        klass.new(scope_for_create(attributes), &block)
+      ensure
+        klass.scope_attributes_populated = false
+      end
     end
 
     alias build new
@@ -81,7 +86,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
-        klass.create(scope_for_create(attributes), &block)
+        new(attributes, &block).tap(&:save)
       end
     end
 
@@ -95,7 +100,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
-        klass.create!(scope_for_create(attributes), &block)
+        new(attributes, &block).tap(&:save!)
       end
     end
 

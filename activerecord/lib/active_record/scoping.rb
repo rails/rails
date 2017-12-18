@@ -30,6 +30,14 @@ module ActiveRecord
       def scope_attributes?
         current_scope
       end
+
+      def scope_attributes_populated?
+        ScopePopulatedRegistry.scope_populated?(self)
+      end
+
+      def scope_attributes_populated=(value)
+        ScopePopulatedRegistry.set_scope_populated(self, value)
+      end
     end
 
     def populate_with_current_scope_attributes # :nodoc:
@@ -41,6 +49,10 @@ module ActiveRecord
 
     def initialize_internals_callback # :nodoc:
       super
+      if self.class.scope_attributes_populated?
+        self.class.scope_attributes_populated = false
+        return
+      end
       populate_with_current_scope_attributes
     end
 
@@ -101,6 +113,36 @@ module ActiveRecord
             raise ArgumentError, "Invalid scope type '#{scope_type}' sent to the registry. Scope types must be included in VALID_SCOPE_TYPES"
           end
         end
+    end
+
+    # This class is used for `relation.new(attributes)`
+    # it stores rather current_scope is already populated to model or not.
+    # If true is set, populate_with_current_scope_attributes should not be called.
+    class ScopePopulatedRegistry # :nodoc:
+      extend ActiveSupport::PerThreadRegistry
+      def initialize
+        @registry = {}
+      end
+
+      def scope_populated?(model)
+        base = model.base_class
+        klass = model
+        while klass <= base
+          return true if @registry[klass.name]
+          klass = klass.superclass
+        end
+        false
+      end
+
+      def set_scope_populated(model, value)
+        return @registry[model.name] = true if value
+        base = model.base_class
+        klass = model
+        while klass <= base
+          @registry.delete klass.name
+          klass = klass.superclass
+        end
+      end
     end
   end
 end
