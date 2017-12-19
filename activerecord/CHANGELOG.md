@@ -1,3 +1,7 @@
+*   Fix `count(:all)` to correctly work `distinct` with custom SELECT list.
+
+    *Ryuta Kamizono*
+
 *   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
 
     ```
