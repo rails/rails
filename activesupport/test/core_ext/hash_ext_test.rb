@@ -1025,7 +1025,8 @@ class HashExtTest < ActiveSupport::TestCase
     original.freeze
     assert_nothing_raised { original.except(:a) }
 
-    assert_raise(RuntimeError) { original.except!(:a) }
+    expected_exception = Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+    assert_raise(expected_exception) { original.except!(:a) }
   end
 
   def test_except_does_not_delete_values_in_original

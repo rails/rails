@@ -246,7 +246,8 @@ module ApplicationTests
 
     test "can't change middleware after it's built" do
       boot!
-      assert_raise RuntimeError do
+      expected_exception = Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+      assert_raise expected_exception do
         app.config.middleware.use Rack::Config
       end
     end
