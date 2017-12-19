@@ -217,7 +217,7 @@ module ActiveRecord
         if operation == "count"
           column_name ||= select_for_count
           if column_name == :all
-            if distinct && (group_values.any? || !(has_limit_or_offset? && order_values.any?))
+            if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
           elsif column_name =~ /\s*DISTINCT[\s(]+/i
@@ -249,7 +249,7 @@ module ActiveRecord
       def execute_simple_calculation(operation, column_name, distinct) #:nodoc:
         column_alias = column_name
 
-        if operation == "count" && has_limit_or_offset?
+        if operation == "count" && (column_name == :all && distinct || has_limit_or_offset?)
           # Shortcut when limit is zero.
           return 0 if limit_value == 0
 
@@ -391,14 +391,12 @@ module ActiveRecord
       end
 
       def build_count_subquery(relation, column_name, distinct)
-        relation.select_values = [
-          if column_name == :all
-            distinct ? table[Arel.star] : Arel.sql(FinderMethods::ONE_AS_ONE)
-          else
-            column_alias = Arel.sql("count_column")
-            aggregate_column(column_name).as(column_alias)
-          end
-        ]
+        if column_name == :all
+          relation.select_values = [ Arel.sql(FinderMethods::ONE_AS_ONE) ] unless distinct
+        else
+          column_alias = Arel.sql("count_column")
+          relation.select_values = [ aggregate_column(column_name).as(column_alias) ]
+        end
 
         subquery = relation.arel.as(Arel.sql("subquery_for_count"))
         select_value = operation_over_aggregate_column(column_alias || Arel.star, "count", false)

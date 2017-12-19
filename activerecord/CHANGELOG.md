@@ -1,3 +1,7 @@
+*   Fix `count(:all)` to correctly work `distinct` with custom SELECT list.
+
+    *Ryuta Kamizono*
+
 *   Using subselect for `delete_all` with `limit` or `offset`.
 
     *Ryuta Kamizono*

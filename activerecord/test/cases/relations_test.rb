@@ -963,6 +963,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.distinct(false).select(:comments_count).count
   end
 
+  def test_size_with_distinct
+    posts = Post.distinct.select(:author_id, :comments_count)
+    assert_queries(1) { assert_equal 8, posts.size }
+    assert_queries(1) { assert_equal 8, posts.load.size }
+  end
+
   def test_update_all_with_scope
     tag = Tag.first
     Post.tagged_with(tag.id).update_all title: "rofl"
