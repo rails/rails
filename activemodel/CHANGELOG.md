@@ -1,3 +1,7 @@
+*   Fix to working before/after validation callbacks on multiple contexts.
+
+    *Yoshiyuki Hirano*
+
 ## Rails 5.1.4 (September 07, 2017) ##
 
 *   No changes.
