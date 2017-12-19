@@ -780,8 +780,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation
     david = authors(:david)
-    # switching the lines below would succeed in current rails
-    # assert_queries(2) {
     assert_queries(1) {
       relation = Author.where(id: Author.where(id: david.id))
       assert_equal [david], relation.to_a
@@ -820,8 +818,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_find_all_using_where_with_relation_and_alternate_primary_key
     cool_first = minivans(:cool_first)
-    # switching the lines below would succeed in current rails
-    # assert_queries(2) {
     assert_queries(1) {
       relation = Minivan.where(minivan_id: Minivan.where(name: cool_first.name))
       assert_equal [cool_first], relation.to_a
