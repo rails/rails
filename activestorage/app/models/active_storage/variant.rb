@@ -104,7 +104,13 @@ class ActiveStorage::Variant
 
 
     def open_image(&block)
-      download_image.tap(&block).destroy!
+      image = download_image
+
+      begin
+        yield image
+      ensure
+        image.destroy!
+      end
     end
 
     def download_image
