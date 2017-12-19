@@ -426,6 +426,43 @@ class TransactionTest < ActiveRecord::TestCase
     assert_equal "Three", @three
   end if Topic.connection.supports_savepoints?
 
+
+  # This test passes
+  def test_nested_transaction_with_new_transaction_applies_parent_state_on_rollback
+    topic = nil
+
+    begin
+      Topic.transaction do
+        begin
+          Topic.transaction do
+            topic = Topic.create!(title: "A new topic")
+            raise ActiveRecord::Rollback
+          end
+        rescue
+          refute_predicate topic, :persisted?
+        end
+      end
+    end
+  end
+
+  # This test fails
+  def test_nested_transaction_with_new_transaction_applies_parent_state_on_rollback_from_standard_error
+    topic = nil
+
+    begin
+      Topic.transaction do
+        begin
+          Topic.transaction do
+            topic = Topic.create!(title: "A new topic")
+            raise StandardError
+          end
+        rescue
+          refute_predicate topic, :persisted?
+        end
+      end
+    end
+  end
+
   def test_using_named_savepoints
     Topic.transaction do
       @first.approved  = true
