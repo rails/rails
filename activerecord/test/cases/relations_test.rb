@@ -896,11 +896,9 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_delete_all_with_unpermitted_relation_raises_error
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.limit(10).delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
     assert_raises(ActiveRecord::ActiveRecordError) { Author.having("SUM(id) < 3").delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.offset(10).delete_all }
   end
 
   def test_select_with_aggregates

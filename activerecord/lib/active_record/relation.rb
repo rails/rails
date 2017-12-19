@@ -10,7 +10,7 @@ module ActiveRecord
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -365,8 +365,8 @@ module ActiveRecord
     #
     # If an invalid method is supplied, #delete_all raises an ActiveRecordError:
     #
-    #   Post.limit(100).delete_all
-    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
+    #   Post.distinct.delete_all
+    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = get_value(method)
@@ -384,7 +384,7 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values?
+      if has_join_values? || has_limit_or_offset?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
         stmt.wheres = arel.constraints

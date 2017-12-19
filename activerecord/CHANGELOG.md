@@ -1,3 +1,7 @@
+*   Using subselect for `delete_all` with `limit` or `offset`.
+
+    *Ryuta Kamizono*
+
 *   Undefine attribute methods on descendants when resetting column
     information.
 
@@ -552,5 +556,6 @@
     Previously this method always returned an empty array.
 
     *Kevin McPhillips*
+
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.
