@@ -317,7 +317,7 @@ module ActiveRecord
       stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
-      if has_join_values?
+      if has_join_values? || offset_value
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
