@@ -370,11 +370,14 @@ module ActiveRecord
 
         # Do the relevant stuff to insert the given record into the association collection.
         def insert_record(record, validate = true, raise = false, &block)
-          if raise
-            record.save!(validate: validate, &block)
-          else
-            record.save(validate: validate, &block)
-          end
+          saved = if raise
+                    record.save!(validate: validate, &block)
+                  else
+                    record.save(validate: validate, &block)
+                  end
+
+          raise ActiveRecord::Rollback unless saved
+          saved
         end
 
         def delete_or_destroy(records, method)
