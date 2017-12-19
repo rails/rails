@@ -717,7 +717,8 @@ module ActiveRecord
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
           subselect.distinct unless select.limit || select.offset || select.orders.any?
 
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key.name))
+          key_name = quote_column_name(key.name)
+          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
         end
 
         def supports_rename_index?

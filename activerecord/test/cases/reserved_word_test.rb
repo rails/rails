@@ -39,7 +39,7 @@ class ReservedWordTest < ActiveRecord::TestCase
       t.string :order
       t.belongs_to :select
     end
-    @connection.create_table :values, force: true do |t|
+    @connection.create_table :values, primary_key: :as, force: true do |t|
       t.belongs_to :group
     end
   end
@@ -86,6 +86,13 @@ class ReservedWordTest < ActiveRecord::TestCase
     x.save!
     assert_equal x, Group.find_by_order("y")
     assert_equal x, Group.find(x.id)
+  end
+
+  def test_delete_all_with_subselect
+    create_test_fixtures :values
+    assert_equal 1, Values.order(:as).limit(1).offset(1).delete_all
+    assert_raise(ActiveRecord::RecordNotFound) { Values.find(2) }
+    assert Values.find(1)
   end
 
   def test_has_one_associations
