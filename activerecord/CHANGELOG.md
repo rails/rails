@@ -1,3 +1,8 @@
+*   Undefine attribute methods on descendants when resetting column
+    information.
+
+    *Chris Salzberg*
+
 *   Log database query callers
 
     Add `verbose_query_logs` configuration option to display the caller

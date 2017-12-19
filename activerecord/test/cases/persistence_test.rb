@@ -1106,13 +1106,18 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_reset_column_information_resets_children
-    child = Class.new(Topic)
-    child.new # force schema to load
+    child_class = Class.new(Topic)
+    child_class.new # force schema to load
 
     ActiveRecord::Base.connection.add_column(:topics, :foo, :string)
     Topic.reset_column_information
 
-    assert_equal "bar", child.new(foo: :bar).foo
+    # this should redefine attribute methods
+    child_class.new
+
+    assert child_class.instance_methods.include?(:foo)
+    assert child_class.instance_methods.include?(:foo_changed?)
+    assert_equal "bar", child_class.new(foo: :bar).foo
   ensure
     ActiveRecord::Base.connection.remove_column(:topics, :foo)
     Topic.reset_column_information
