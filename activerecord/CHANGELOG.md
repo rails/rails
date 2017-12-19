@@ -1,3 +1,11 @@
+*   Add `touch_all` method to `ActiveRecord::Relation`.
+
+    Example:
+
+        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+
+    *fatkodima*, *duggiefresh*
+
 *   Add `ActiveRecord::Base.base_class?` predicate.
 
     *Bogdan Gusiev*

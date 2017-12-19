@@ -369,6 +369,43 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
+    # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
+    # set to the current time or the time specified.
+    # This method can be passed attribute names and an optional time argument.
+    # If attribute names are passed, they are updated along with updated_at/on attributes.
+    # If no time argument is passed, the current time is used as default.
+    #
+    # === Examples
+    #
+    #   # Touch all records
+    #   Person.all.touch
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a custom attribute
+    #   Person.all.touch(:created_at)
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a specified time
+    #   Person.all.touch(time: Time.new(2020, 5, 16, 0, 0, 0))
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #
+    #   # Touch records with scope
+    #   Person.where(name: 'David').touch
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    def touch_all(*names, time: nil)
+      attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
+      time ||= klass.current_time_from_proper_timezone
+      updates = {}
+      attributes.each { |column| updates[column] = time }
+
+      if klass.locking_enabled?
+        quoted_locking_column = connection.quote_column_name(klass.locking_column)
+        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+      end
+
+      update_all(updates)
+    end
+
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
