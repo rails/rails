@@ -25,7 +25,8 @@ class AggregationsTest < ActiveRecord::TestCase
 
   def test_immutable_value_objects
     customers(:david).balance = Money.new(100)
-    assert_raise(RuntimeError) { customers(:david).balance.instance_eval { @amount = 20 } }
+    expected_exception = Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+    assert_raise(expected_exception) { customers(:david).balance.instance_eval { @amount = 20 } }
   end
 
   def test_inferred_mapping

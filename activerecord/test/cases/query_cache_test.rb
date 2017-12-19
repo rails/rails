@@ -279,7 +279,8 @@ class QueryCacheTest < ActiveRecord::TestCase
       payload[:sql].downcase!
     end
 
-    assert_raises RuntimeError do
+    expected_exception = Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+    assert_raises expected_exception do
       ActiveRecord::Base.cache do
         assert_queries(1) { Task.find(1); Task.find(1) }
       end
