@@ -1890,6 +1890,24 @@ module ApplicationTests
       assert_equal "https://example.org/", last_response.location
     end
 
+    test "config.active_support.hash_digest_class is Digest::MD5 by default" do
+      app "development"
+
+      assert_equal Digest::MD5, ActiveSupport::Digest.hash_digest_class
+    end
+
+    test "config.active_support.hash_digest_class can be configured" do
+      app_file "config/environments/development.rb", <<-RUBY
+      Rails.application.configure do
+        config.active_support.hash_digest_class = Digest::SHA1
+      end
+      RUBY
+
+      app "development"
+
+      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
