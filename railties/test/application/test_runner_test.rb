@@ -502,10 +502,10 @@ module ApplicationTests
     end
 
     def test_output_inline_by_default
-      create_test_file :models, "post", pass: false
+      create_test_file :models, "post", pass: false, print: false
 
       output = run_test_command("test/models/post_test.rb")
-      expect = %r{Running:\n\nPostTest\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
+      expect = %r{Running:\n\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
       assert_match expect, output
     end
 
@@ -521,6 +521,29 @@ module ApplicationTests
 
       assert_match(/Interrupt/,
         capture(:stderr) { run_test_command("test/models/post_test.rb --fail-fast", stderr: true) })
+    end
+
+    def test_run_in_parallel_with_processes
+      file_name = create_parallel_processes_test_file
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+    end
+
+    def test_run_in_parallel_with_threads
+      app_path("/test/test_helper.rb") do |file_name|
+        file = File.read(file_name)
+        file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(\\1, with: :threads)")
+        puts file
+        File.write(file_name, file)
+      end
+
+      file_name = create_parallel_threads_test_file
+
+      output = run_test_command(file_name)
+
+      assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
     end
 
     def test_raise_error_when_specified_file_does_not_exist
@@ -800,14 +823,65 @@ module ApplicationTests
         RUBY
       end
 
-      def create_test_file(path = :unit, name = "test", pass: true)
+      def create_test_file(path = :unit, name = "test", pass: true, print: true)
         app_file "test/#{path}/#{name}_test.rb", <<-RUBY
           require 'test_helper'
 
           class #{name.camelize}Test < ActiveSupport::TestCase
             def test_truth
-              puts "#{name.camelize}Test"
+              puts "#{name.camelize}Test" if #{print}
               assert #{pass}, 'wups!'
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_processes_test_file
+        app_file "test/models/parallel_test.rb", <<-RUBY
+          require 'test_helper'
+
+          class ParallelTest < ActiveSupport::TestCase
+            RD1, WR1 = IO.pipe
+            RD2, WR2 = IO.pipe
+
+            test "one" do
+              WR1.close
+              assert_equal "x", RD1.read(1) # blocks until two runs
+
+              RD2.close
+              WR2.write "y" # Allow two to run
+              WR2.close
+            end
+
+            test "two" do
+              RD1.close
+              WR1.write "x" # Allow one to run
+              WR1.close
+
+              WR2.close
+              assert_equal "y", RD2.read(1) # blocks until one runs
+            end
+          end
+        RUBY
+      end
+
+      def create_parallel_threads_test_file
+        app_file "test/models/parallel_test.rb", <<-RUBY
+          require 'test_helper'
+
+          class ParallelTest < ActiveSupport::TestCase
+            Q1 = Queue.new
+            Q2 = Queue.new
+            test "one" do
+              assert_equal "x", Q1.pop # blocks until two runs
+
+              Q2 << "y"
+            end
+
+            test "two" do
+              Q1 << "x"
+
+              assert_equal "y", Q2.pop # blocks until one runs
             end
           end
         RUBY
