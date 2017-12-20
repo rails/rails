@@ -406,6 +406,10 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end
 
 # Create a scope and build a fixture rails app

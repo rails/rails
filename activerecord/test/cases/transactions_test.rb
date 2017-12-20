@@ -576,7 +576,7 @@ class TransactionTest < ActiveRecord::TestCase
   def test_rollback_when_saving_a_frozen_record
     topic = Topic.new(title: "test")
     topic.freeze
-    e = assert_raise(RuntimeError) { topic.save }
+    e = assert_raise(frozen_error_class) { topic.save }
     # Not good enough, but we can't do much
     # about it since there is no specific error
     # for frozen objects.
