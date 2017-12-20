@@ -293,7 +293,7 @@ module ActiveRecord
       end
 
       def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "ENGINE=InnoDB", **options)
+        super(table_name, options: "", **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:

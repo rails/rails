@@ -28,6 +28,14 @@ module ActiveRecord
             super
           end
         end
+
+        def create_table(table_name, options = {})
+          if adapter_name == "Mysql2"
+            super(table_name, options: "ENGINE=InnoDB", **options)
+          else
+            super
+          end
+        end
       end
 
       class V5_0 < V5_1
