@@ -121,8 +121,7 @@ module ActiveRecord
 
         [
           offending_line.path,
-          offending_line.lineno,
-          offending_line.label
+          offending_line.lineno
         ]
       end
 
