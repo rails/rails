@@ -11,6 +11,7 @@ require "active_support/testing/isolation"
 require "active_support/testing/constant_lookup"
 require "active_support/testing/time_helpers"
 require "active_support/testing/file_fixtures"
+require "active_support/testing/parallelization"
 
 module ActiveSupport
   class TestCase < ::Minitest::Test
@@ -38,6 +39,32 @@ module ActiveSupport
       # Defaults to +:random+.
       def test_order
         ActiveSupport.test_order ||= :random
+      end
+
+      # Parallelizes the test suite.
+      #
+      # Takes a `workers` kwarg that controls how many times the process
+      # is forked. For each process a new database will be created suffixed
+      # with the worker number.
+      #
+      #   test-database-0
+      #   test-database-1
+      #
+      # If `ENV["PARALLEL_WORKERS"]` is set the workers argument will be ignored
+      # and the environment variable will be used instead. This is useful for CI
+      # environments, or other environments where you may need more workers than
+      # you do for local testing.
+      #
+      # If the number of workers is set to `1` or fewer, the tests will not be
+      # parallelized.
+      def parallelize(workers: 2)
+        workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
+
+        return if workers <= 1
+
+        Minitest.parallel_executor = Testing::Parallelization.new(workers)
+
+        parallelize_me!
       end
     end
 
