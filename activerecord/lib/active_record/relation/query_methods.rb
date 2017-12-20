@@ -444,15 +444,13 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-
-      args.compact!
-      args.flatten!
-
       spawn.left_outer_joins!(*args)
     end
     alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
+      args.compact!
+      args.flatten!
       self.left_outer_joins_values += args
       self
     end
