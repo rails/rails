@@ -292,10 +292,6 @@ module ActiveRecord
         SQL
       end
 
-      def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "", **options)
-      end
-
       def bulk_change_table(table_name, operations) #:nodoc:
         sqls = operations.flat_map do |command, args|
           table, arguments = args.shift, args
