@@ -36,4 +36,8 @@ end
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end

@@ -321,6 +321,10 @@ class ActiveSupport::TestCase
   include ActiveSupport::Testing::Stream
 
   self.test_order = :sorted
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end
 
 # Create a scope and build a fixture rails app
