@@ -12,15 +12,19 @@ module Rails
       extend ActiveSupport::Concern
       attr_reader :migration_number, :migration_file_name, :migration_class_name
 
-      module ClassMethods #:nodoc:
+      module ClassMethods
+        # Lists out migration files under given directory
+        # which are prefixed with migration number
         def migration_lookup_at(dirname)
           Dir.glob("#{dirname}/[0-9]*_*.rb")
         end
 
+        # Returns true if a migration file with given name exists under given directory
         def migration_exists?(dirname, file_name)
           migration_lookup_at(dirname).grep(/\d+_#{file_name}.rb$/).first
         end
 
+        # Returns the max migration number under given directory
         def current_migration_number(dirname)
           migration_lookup_at(dirname).collect do |file|
             File.basename(file).split("_").first.to_i
