@@ -462,6 +462,37 @@ Rails options:
     -c, --[no-]color                 Enable color in the output
 ```
 
+Parallel Testing
+----------------
+
+Parallel testing allows you to parallelize your tests into multiple processes. Running tests
+in parallel reduces the time it takes your entire test suite to run. Using Ruby's DRb system,
+Rails forks the process based on the number of workers provided. Active Record automatically
+handles creating and migrating a new database for each worker to use.
+
+To enable parallelization add the following to your `test_helper.rb`:
+
+```
+class ActiveSupport::TestCase
+  parallelize(workers: 2)
+end
+```
+
+The number of workers passes is the number of times the process will be forked. You may want to
+parallelize your local test suite differently from your CI, so an environment variable is provided
+to be able to easily change the number of workers a test run should use:
+
+```
+PARALLEL_WORKERS=15 bin/rails test
+```
+
+When parallelizing tests, Active Record automatically handles creating and migrating a database for each
+process. The databases will be suffixed with the number corresponding to the worker. For example, if you
+have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
+
+If the number of workers passes is 1 or fewer the processes will not be forked and the tests will not
+be parallelized and the tests will use the original `test-database` database.
+
 The Test Database
 -----------------
 
