@@ -330,6 +330,24 @@ class Comment < ApplicationRecord
 end
 ```
 
+### Grouping Conditional Callbacks
+
+Sometimes it is useful to have multiple callbacks use one condition. It can
+be easily achieved using `with_options`.
+
+```ruby
+class Order < ApplicationRecord
+  with_options if: :status_changed? do |order|
+    order.after_update :send_notification_to_customer
+
+    order.after_update :send_notification_to_managers
+  end
+end
+```
+
+All callbacks inside of the `with_options` block will have automatically
+passed the condition `if: :status_changed?`
+
 Callback Classes
 ----------------
 
