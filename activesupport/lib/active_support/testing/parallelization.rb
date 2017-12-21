@@ -35,6 +35,16 @@ module ActiveSupport
         @after_fork_hooks
       end
 
+      @run_cleanup_hooks = []
+
+      def self.run_cleanup_hook(&blk)
+        @run_cleanup_hooks << blk
+      end
+
+      def self.run_cleanup_hooks
+        @run_cleanup_hooks
+      end
+
       def initialize(queue_size)
         @queue_size = queue_size
         @queue      = Server.new
@@ -50,6 +60,12 @@ module ActiveSupport
 
       def after_fork(worker)
         self.class.after_fork_hooks.each do |cb|
+          cb.call(worker)
+        end
+      end
+
+      def run_cleanup(worker)
+        self.class.run_cleanup_hooks.each do |cb|
           cb.call(worker)
         end
       end
@@ -71,6 +87,8 @@ module ActiveSupport
 
               queue.record(reporter, result)
             end
+
+            run_cleanup(worker)
           end
         end
       end
