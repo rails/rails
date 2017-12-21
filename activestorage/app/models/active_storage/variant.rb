@@ -18,7 +18,7 @@ require "active_storage/downloading"
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
-#   <%= image_tag url_for(Current.user.avatar.variant(resize: "100x100")) %>
+#   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
 #
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
 # can then produce on-demand.
