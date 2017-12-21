@@ -318,6 +318,10 @@ module ActiveRecord
         postgresql_version >= 90300
       end
 
+      def supports_foreign_tables?
+        postgresql_version >= 90300
+      end
+
       def supports_pgcrypto_uuid?
         postgresql_version >= 90400
       end
