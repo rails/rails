@@ -55,6 +55,65 @@ module ActiveRecord
       end
     end
 
+    # SelectChain objects act as a placeholder for queries in which #select does
+    # not have any parameters. In this case, #select can either be chained with
+    # #not or normal scope methods.
+    class SelectChain
+      INVALID_ARGUMENTS =
+        '.select.not takes a list of one or more valid columns'.freeze
+
+      def initialize(scope)
+        @scope = scope
+      end
+
+      # Every other method sent to a select chain is delegated back to a
+      # relation that explicitly selects each column in the scope. As in,
+      # assuming a User class with four columns: id, name, created_at,
+      # and updated_at
+      #
+      #    User.select.all
+      #    # SELECT id, name, created_at, updated_at FROM users
+      #
+      # as opposed to a normal query, that would select *, as in
+      #
+      #    User.all
+      #    # SELECT * FROM users
+      def method_missing(method_name, *arguments, &block)
+        @scope.select(*current_selection)
+              .public_send(method_name, *arguments, &block)
+      end
+
+      # Returns a new relation that explicitly selects all except for a specific
+      # number of columns. Useful for when certain columns are large and you
+      # want everything except for those columns.
+      #
+      # #not accepts a list of one or more symbols only. Assuming a User class
+      # with four columns: id, name, created_at, updated_at
+      #
+      #    User.select.not(:name)
+      #    # SELECT id, created_at, updated_at FROM users
+      #
+      #    User.select.not(:created_at, :updated_at)
+      #    # SELECT id, name FROM users
+      def not(column, *columns)
+        negated = [column, *columns]
+
+        selected =
+          current_selection.reject do |selection|
+            selection = selection.to_s
+            negated.any? { |negation| selection.include?(negation.to_s) }
+          end
+
+        @scope.except(:select).select(*selected)
+      end
+
+      private
+
+      def current_selection
+        @scope.select_values.any? ? @scope.select_values : @scope.column_names
+      end
+    end
+
     FROZEN_EMPTY_ARRAY = [].freeze
     FROZEN_EMPTY_HASH = {}.freeze
 
@@ -217,17 +276,35 @@ module ActiveRecord
     #
     #   Model.select(:field).first.other_field
     #   # => ActiveModel::MissingAttributeError: missing attribute: other_field
-    def select(*fields)
+    #
+    # === no argument
+    #
+    # If no argument is passed, #select returns a new instance of SelectChain,
+    # that can either be chained with #not to return a new relation that
+    # selects the inverse of the set of listed columns, or it can be chained
+    # with normal scope methods to select each one manually. Assuming a User
+    # class with four columns: id, name, created_at, and updated_at
+    #
+    #    User.select.not(:name)
+    #    # SELECT id, created_at, updated_at
+    #
+    # See SelectChain for more details.
+    def select(chain = :chain, *fields)
       if block_given?
-        if fields.any?
+        if [chain, *fields].any?
           raise ArgumentError, "`select' with block doesn't take arguments."
         end
 
         return super()
       end
 
-      raise ArgumentError, "Call `select' with at least one field" if fields.empty?
-      spawn._select!(*fields)
+      if chain == :chain
+        SelectChain.new(spawn)
+      else
+        fields = [chain, *fields]
+        raise ArgumentError, "Call `select' with at least one field" if fields.empty?
+        spawn._select!(*fields)
+      end
     end
 
     def _select!(*fields) # :nodoc:
