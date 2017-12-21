@@ -1056,7 +1056,7 @@ module ActionView
         #  build_hidden(:year, 2008)
         #  => "<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="2008" />"
         def build_hidden(type, value)
-          return ''.html_safe unless @options.fetch(:render_discarded, true)
+          return "".html_safe unless @options.fetch(:render_discarded, true)
 
           select_options = {
             type: "hidden",
