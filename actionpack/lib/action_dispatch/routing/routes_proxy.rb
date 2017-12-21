@@ -58,6 +58,8 @@ module ActionDispatch
       def merge_script_names(previous_script_name, new_script_name)
         return new_script_name unless previous_script_name
 
+        return previous_script_name if routes.relative_url_root == previous_script_name && new_script_name == "/"
+
         resolved_parts = new_script_name.count("/")
         previous_parts = previous_script_name.count("/")
         context_parts = previous_parts - resolved_parts + 1

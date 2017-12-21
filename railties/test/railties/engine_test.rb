@@ -1364,6 +1364,34 @@ YAML
       assert_equal "/foo/bukkits/bukkit", last_response.body
     end
 
+    test "route helpers resolve script name correctly when engine is mounted to the root and in a subdirectory" do
+      add_to_config "config.relative_url_root = '/foo'"
+      @plugin.write "app/controllers/root_engine_controller.rb", <<-RUBY
+        class RootEngineController < ActionController::Base
+          def index
+            render plain: bukkit.root_engine_index_path
+          end
+        end
+      RUBY
+
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+           mount Bukkits::Engine => "/", :as => 'bukkit'
+        end
+      RUBY
+
+      @plugin.write "config/routes.rb", <<-RUBY
+        Bukkits::Engine.routes.draw do
+          get '/root_engine' => 'root_engine#index', as: 'root_engine_index'
+        end
+      RUBY
+
+      boot_rails
+
+      get("/root_engine", {}, { "SCRIPT_NAME" => "/foo" })
+      assert_equal "/foo/root_engine", last_response.body
+    end
+
     test "isolated engine can be mounted under multiple static locations" do
       app_file "app/controllers/foos_controller.rb", <<-RUBY
         class FoosController < ApplicationController
