@@ -4,11 +4,11 @@ Rails.application.routes.draw do
   get "/rails/active_storage/blobs/:signed_id/*filename" => "active_storage/blobs#show", as: :rails_service_blob
 
   direct :rails_blob do |blob, options|
-    route_for(:rails_service_blob, blob.signed_id, blob.filename, options)
+    rails_service_blob_url(blob.signed_id, blob.filename, options)
   end
 
-  resolve("ActiveStorage::Blob")       { |blob, options| route_for(:rails_blob, blob) }
-  resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
+  resolve("ActiveStorage::Blob")       { |blob, options| rails_blob_url(blob, options) }
+  resolve("ActiveStorage::Attachment") { |attachment, options| rails_blob_url(attachment.blob, options) }
 
 
   get "/rails/active_storage/variants/:signed_blob_id/:variation_key/*filename" => "active_storage/variants#show", as: :rails_blob_variation
@@ -18,10 +18,10 @@ Rails.application.routes.draw do
     variation_key  = variant.variation.key
     filename       = variant.blob.filename
 
-    route_for(:rails_blob_variation, signed_blob_id, variation_key, filename, options)
+    rails_blob_variation_url(signed_blob_id, variation_key, filename, options)
   end
 
-  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_variant, variant, options) }
+  resolve("ActiveStorage::Variant") { |variant, options| rails_variant_url(variant, options) }
 
 
   get "/rails/active_storage/previews/:signed_blob_id/:variation_key/*filename" => "active_storage/previews#show", as: :rails_blob_preview
@@ -31,10 +31,10 @@ Rails.application.routes.draw do
     variation_key  = preview.variation.key
     filename       = preview.blob.filename
 
-    route_for(:rails_blob_preview, signed_blob_id, variation_key, filename, options)
+    rails_blob_preview_url(signed_blob_id, variation_key, filename, options)
   end
 
-  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_preview, preview, options) }
+  resolve("ActiveStorage::Preview") { |preview, options| rails_preview_url(preview, options) }
 
 
   get  "/rails/active_storage/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service
