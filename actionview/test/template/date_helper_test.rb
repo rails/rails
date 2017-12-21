@@ -1116,6 +1116,25 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, start_year: 2003, end_year: 2005, prefix: "date[first]")
   end
 
+  def test_select_date_with_no_rendering_of_discarded_fields
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n).dup
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, render_discarded: false, start_year: 2003, end_year: 2005, prefix: "date[first]")
+  end
+
+  def test_select_date_with_explicit_rendering_of_discarded_fields
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n).dup
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<input type="hidden" id="date_first_month" name="date[first][month]" value="8" />\n)
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="1" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, render_discarded: true, start_year: 2003, end_year: 2005, prefix: "date[first]")
+  end
+
   def test_select_date_with_hidden
     expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003"/>\n).dup
     expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)

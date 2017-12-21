@@ -212,6 +212,8 @@ module ActionView
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets :discard_day to true.
       # * <tt>:discard_year</tt>      - Set to true if you don't want to show a year select. This includes the year
       #   as a hidden field instead of showing a select field.
+      # * <tt>:render_discarded</tt>  - Set to false to avoid rendering discarded fields altogether. In other words,
+      #   discarded fields will not be rendered as input fields or as hidden fields - they will not be rendered at all.
       # * <tt>:order</tt>             - Set to an array containing <tt>:day</tt>, <tt>:month</tt> and <tt>:year</tt> to
       #   customize the order in which the select fields are shown. If you leave out any of the symbols, the respective
       #   select will not be shown (like when you set <tt>discard_xxx: true</tt>. Defaults to the order defined in
@@ -1054,6 +1056,8 @@ module ActionView
         #  build_hidden(:year, 2008)
         #  => "<input id="post_written_on_1i" name="post[written_on(1i)]" type="hidden" value="2008" />"
         def build_hidden(type, value)
+          return ''.html_safe unless @options.fetch(:render_discarded, true)
+
           select_options = {
             type: "hidden",
             id: input_id_from_type(type),
