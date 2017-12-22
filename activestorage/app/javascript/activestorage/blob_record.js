@@ -28,8 +28,11 @@ export class BlobRecord {
   }
 
   requestDidLoad(event) {
-    const { status, response } = this.xhr
+    let { status, response } = this.xhr
     if (status >= 200 && status < 300) {
+      if (typeof response === "string" || response instanceof String) {
+        response = JSON.parse(response)
+      }
       const { direct_upload } = response
       delete response.direct_upload
       this.attributes = response
