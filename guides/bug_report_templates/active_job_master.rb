@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-gem "bundler", "< 1.16"
-
 begin
   require "bundler/inline"
 rescue LoadError => e
