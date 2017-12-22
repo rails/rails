@@ -23,3 +23,5 @@ pkg
 /guides/output
 node_modules/
 /actionview/log
+
+.idea
