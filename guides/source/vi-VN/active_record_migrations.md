@@ -1,38 +1,34 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
-
 Active Record Migrations
 ========================
 
-Migrations are a feature of Active Record that allows you to evolve your
-database schema over time. Rather than write schema modifications in pure SQL,
-migrations allow you to use an easy Ruby DSL to describe changes to your
-tables.
+Migrations là một tính năng của Active Record nó cho phép bạn phát triển lược đồ(schema) cơ sở dữ liệu của bạn qua thời gian. 
+Thay vì viết các hiệu chỉnh lược đồ trong SQL thuần,
+migrations cho phép bạn dùng Ruby DSL để mô tả thay đổi của các bảng trong cơ sở dữ liệu của bạn.
 
-After reading this guide, you will know:
+Sau khi đọc bài hướng dẫn này, bạn sẽ biết:
 
-* The generators you can use to create them.
-* The methods Active Record provides to manipulate your database.
-* The bin/rails tasks that manipulate migrations and your schema.
-* How migrations relate to `schema.rb`.
+* Các generators bạn có thể dùng để tạo chúng.
+* Các methods Active Record cung cấp để thao tác cở sở dữ liệu.
+* Các bin/rails tasks.
+* Làm thế nào để migrations liên quan đến `schema.rb`.
 
 --------------------------------------------------------------------------------
 
-Migration Overview
+Tổng quan về Migration
 ------------------
 
-Migrations are a convenient way to
-[alter your database schema over time](https://en.wikipedia.org/wiki/Schema_migration)
-in a consistent and easy way. They use a Ruby DSL so that you don't have to
-write SQL by hand, allowing your schema and changes to be database independent.
+Migrations là một phương pháp hiệu quả để
+[sửa đổi lược đồ cơ sở dữ liệu của bạn qua thời gian](https://en.wikipedia.org/wiki/Schema_migration)
+một cách nhất quán và dễ dàng. Chúng dùng Ruby DSL nên bạn không cần phải viết SQL bằng tay, 
+cho phép lược đồ và thay đổi cơ sở dữ liệu một cách độc lập.
 
-You can think of each migration as being a new 'version' of the database. A
-schema starts off with nothing in it, and each migration modifies it to add or
-remove tables, columns, or entries. Active Record knows how to update your
-schema along this timeline, bringing it from whatever point it is in the
-history to the latest version. Active Record will also update your
-`db/schema.rb` file to match the up-to-date structure of your database.
+Bạn có thể nghĩ mỗi migration như là một phiên bản mới của cơ sở dữ liệu. Một
+lược đồ(schema) bắt đầu với không có gì trong nó, và mỗi migration hiệu chỉnh nó để thêm, 
+xóa các bảng, các cột, hoặc các thực thể. Active Record biết làm thế nào để cập nhật lược đồ của bạn 
+theo thời gian, mang nó từ bất kỳ thời điểm nào đến phiên bản mới nhất. Active Record ngoài ra còn cập nhật file
+`db/schema.rb` để trùng với cơ sở dữ liệu mới nhất của bạn.
 
-Here's an example of a migration:
+Ở đây là một ví dụ về migration:
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[5.0]
@@ -47,29 +43,28 @@ class CreateProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-This migration adds a table called `products` with a string column called
-`name` and a text column called `description`. A primary key column called `id`
-will also be added implicitly, as it's the default primary key for all Active
-Record models. The `timestamps` macro adds two columns, `created_at` and
-`updated_at`. These special columns are automatically managed by Active Record
-if they exist.
+Đây là migration thêm một bảng được gọi là `products` với một string column được gọi là
+`name` và một text column được gọi là `description`. Một khóa chính(primary key) column được gọi là `id`
+sẽ được thêm một cách ngầm định, nó là khóa chính mặc định dành cho tất cả các Active
+Record models.  Trong khi đó, `timestamps` macro thêm 2 columns, `created_at` và
+`updated_at`. Đây là những columns đặc biệt được quản lý tự động bởi Active Record
+nếu chúng tồn tại.
 
-Note that we define the change that we want to happen moving forward in time.
-Before this migration is run, there will be no table. After, the table will
-exist. Active Record knows how to reverse this migration as well: if we roll
-this migration back, it will remove the table.
+Lưu ý rằng chúng ta định nghĩa thay đổi những gì chúng ta muốn theo thời gian hướng về phía trước.
+Trước khi migration này chạy, ở đây ta sẽ không có bảng nào cả. Sau đó, các bảng sẽ tồn tại. 
+Active Record ngoài ra còn biết làm thế nào để nghịch đảo quá trình migration này: nếu chúng ta rollback quá trình migration, 
+nó sẽ xóa bảng.
 
-On databases that support transactions with statements that change the schema,
-migrations are wrapped in a transaction. If the database does not support this
-then when a migration fails the parts of it that succeeded will not be rolled
-back. You will have to rollback the changes that were made by hand.
+Trên những cơ sở dữ liệu hổ trợ transactions với những câu lệnh thay đổi lược đồ,
+migrations được bao phủ trong transaction. Nếu cơ sở dữ liệu không hỗ trợ điều này thì
+khi một migration thất bại thì những phần mà nó tạo thành công sẽ không bị rollback. 
+Bạn sẽ phải rollback những thay đổi này bằng tay.
 
-NOTE: There are certain queries that can't run inside a transaction. If your
-adapter supports DDL transactions you can use `disable_ddl_transaction!` to
-disable them for a single migration.
+Lưu ý: Có những truy vấn nhất định không thể chạy trong transaction. Nếu adapter của bạn hỗ trợ DDL transactions 
+bạn có thể dùng `disable_ddl_transaction!` để
+tắt chúng dành cho một single migration.
 
-If you wish for a migration to do something that Active Record doesn't know how
-to reverse, you can use `reversible`:
+Nếu bạn muốn migration làm một việc gì đó mà Active Record không biết làm thế nào để nghịch đảo, bạn có thể dùng `reversible`:
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[5.0]
@@ -84,7 +79,7 @@ class ChangeProductsPrice < ActiveRecord::Migration[5.0]
 end
 ```
 
-Alternatively, you can use `up` and `down` instead of `change`:
+Như là một sự lựa chọn, bạn có thể sử dụng `up` và `down` thay vì `change`:
 
 ```ruby
 class ChangeProductsPrice < ActiveRecord::Migration[5.0]
@@ -102,31 +97,31 @@ class ChangeProductsPrice < ActiveRecord::Migration[5.0]
 end
 ```
 
-Creating a Migration
+Tạo một Migration
 --------------------
 
-### Creating a Standalone Migration
+### Tạo một Migration độc lập
 
-Migrations are stored as files in the `db/migrate` directory, one for each
-migration class. The name of the file is of the form
-`YYYYMMDDHHMMSS_create_products.rb`, that is to say a UTC timestamp
-identifying the migration followed by an underscore followed by the name
-of the migration. The name of the migration class (CamelCased version)
-should match the latter part of the file name. For example
-`20080906120000_create_products.rb` should define class `CreateProducts` and
-`20080906120001_add_details_to_products.rb` should define
-`AddDetailsToProducts`. Rails uses this timestamp to determine which migration
-should be run and in what order, so if you're copying a migration from another
-application or generate a file yourself, be aware of its position in the order.
+Các Migrations được chứa trong các tập tin nằm trong `db/migrate`, một cho mỗi
+migration class. Tên của file có dạng như sau:
+`YYYYMMDDHHMMSS_create_products.rb`, đó là một UTC timestamp(dấu thời gian)
+migration theo sau bởi dấu gạch dưới và theo sau là tên của migration. 
+Tên của migration class (dưới dạng CamelCased)
+nên giống như phần sau của tên file như ở trên. ví dụ
+`20080906120000_create_products.rb` nên định nghĩa class `CreateProducts` và
+`20080906120001_add_details_to_products.rb` nên định nghĩa
+`AddDetailsToProducts`. Rails dùng timestamp này để xác định migration nào
+nên chạy trước theo thứ tự, nên nếu bạn đang sao chép một migration từ một ứng dụng khác 
+hoặc tạo ra một file bởi chính bạn, hãy chú ý vị trí của nó theo thứ tự.
 
-Of course, calculating timestamps is no fun, so Active Record provides a
-generator to handle making it for you:
+Dĩ nhiên, tính toán timestamps là không dễ chút nào, nên Active Record cung cấp một
+generator để xử lý nó giúp bạn:
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts
 ```
 
-This will create an empty but appropriately named migration:
+Lệnh trên sẽ tạo ra một migration rỗng với một tên class thích hợp như sau:
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
@@ -135,15 +130,14 @@ class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is
-followed by a list of column names and types then a migration containing the
-appropriate `add_column` and `remove_column` statements will be created.
+Nếu tên migration theo dạng "AddXXXToYYY" hoặc "RemoveXXXFromYYY" và theo sau bởi danh sách tên 
+column và kiểu của column đó thì một migration chứa câu lệnh `add_column` và `remove_column` sẽ được tạo.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string
 ```
 
-will generate
+sẽ tạo
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
@@ -153,13 +147,13 @@ class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-If you'd like to add an index on the new column, you can do that as well:
+Nếu bạn muốn thêm một index trên một column mới, bạn có thể làm như sau:
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
-will generate
+sẽ tạo
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
@@ -171,13 +165,13 @@ end
 ```
 
 
-Similarly, you can generate a migration to remove a column from the command line:
+Tương tự, bạn có thể tạo một migration để xóa một column từ dòng lệnh(command line):
 
 ```bash
 $ bin/rails generate migration RemovePartNumberFromProducts part_number:string
 ```
 
-generates
+tạo ra
 
 ```ruby
 class RemovePartNumberFromProducts < ActiveRecord::Migration[5.0]
@@ -187,13 +181,13 @@ class RemovePartNumberFromProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-You are not limited to one magically generated column. For example:
+Có thể tạo nhiều column như sau:
 
 ```bash
 $ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
-generates
+tạo ra
 
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration[5.0]
@@ -204,15 +198,15 @@ class AddDetailsToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-If the migration name is of the form "CreateXXX" and is
-followed by a list of column names and types then a migration creating the table
-XXX with the columns listed will be generated. For example:
+Nếu tên migration có dạng "CreateXXX" và
+theo sau bởi danh sách các tên column và kiểu của column thì một migration sẽ tạo bảng có tên
+XXX với các columns theo sau sẽ cũng được tạo. Ví dụ:
 
 ```bash
 $ bin/rails generate migration CreateProducts name:string part_number:string
 ```
 
-generates
+tạo ra
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[5.0]
@@ -225,18 +219,18 @@ class CreateProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-As always, what has been generated for you is just a starting point. You can add
-or remove from it as you see fit by editing the
+Như thường lệ, những gì được tạo ra cho bạn chỉ là điểm khởi đầu. Bạn có thể hoặc
+xóa nó bằng cách sửa đổi
 `db/migrate/YYYYMMDDHHMMSS_add_details_to_products.rb` file.
 
-Also, the generator accepts column type as `references` (also available as
-`belongs_to`). For instance:
+Ngoài ra, generator chấp nhận kiểu column là `references` (ngoài ra có thể là kiểu
+`belongs_to`). Ví dụ:
 
 ```bash
 $ bin/rails generate migration AddUserRefToProducts user:references
 ```
 
-generates
+tạo ra
 
 ```ruby
 class AddUserRefToProducts < ActiveRecord::Migration[5.0]
@@ -246,16 +240,16 @@ class AddUserRefToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-This migration will create a `user_id` column and appropriate index.
-For more `add_reference` options, visit the [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
+Migration này sẽ tạo một `user_id` column và một index tương ứng.
+Thêm về các options của `add_reference`, truy cập [API documentation](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html#method-i-add_reference).
 
-There is also a generator which will produce join tables if `JoinTable` is part of the name:
+Ngoài ra còn có một generator sẽ tạo join tables nếu `JoinTable` là một phần của tên:
 
 ```bash
 $ bin/rails g migration CreateJoinTableCustomerProduct customer product
 ```
 
-will produce the following migration:
+sẽ sinh ra migration như sau:
 
 ```ruby
 class CreateJoinTableCustomerProduct < ActiveRecord::Migration[5.0]
@@ -270,16 +264,16 @@ end
 
 ### Model Generators
 
-The model and scaffold generators will create migrations appropriate for adding
-a new model. This migration will already contain instructions for creating the
-relevant table. If you tell Rails what columns you want, then statements for
-adding these columns will also be created. For example, running:
+Model và scaffold generators sẽ tạo các migrations tương ứng với việc tạo một
+model mới. Migration sẽ sẵng sàng chứa các chỉ dẫn dành cho việc tạo các bảng liên quan. 
+Nếu bạn báo cho Rails những columns bạn muốn, thì những câu lệnh dành cho việc
+thêm những columns sẽ ngoài ra được tạo. Ví dụ, chạy:
 
 ```bash
 $ bin/rails generate model Product name:string description:text
 ```
 
-will create a migration that looks like this
+sẽ tạo ra một migration giống như thế này
 
 ```ruby
 class CreateProducts < ActiveRecord::Migration[5.0]
@@ -294,20 +288,20 @@ class CreateProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-You can append as many column name/type pairs as you want.
+Bạn có thể thêm nhiều tên column và kiểu của column nếu bạn muốn.
 
 ### Passing Modifiers
 
-Some commonly used [type modifiers](#column-modifiers) can be passed directly on
-the command line. They are enclosed by curly braces and follow the field type:
+Một vài trường hợp sử dụng phổ biến [type modifiers](#column-modifiers) có thể được đặt trực tiếp trên command line. 
+Chúng được bao bởi dấu ngoặc móc và theo sau là kiểu trường(field):
 
-For instance, running:
+Ví dụ, ta chạy lệnh:
 
 ```bash
 $ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
 ```
 
-will produce a migration that looks like this
+sẽ sinh ra một migration giống như thế này
 
 ```ruby
 class AddDetailsToProducts < ActiveRecord::Migration[5.0]
@@ -318,19 +312,18 @@ class AddDetailsToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-TIP: Have a look at the generators help output for further details.
+Mẹo: Xem thêm để biết các generators khác.
 
-Writing a Migration
+Viết một Migration
 -------------------
 
-Once you have created your migration using one of the generators it's time to
-get to work!
+Một khi bạn đã tạo ra migration của bạn bằng cách sử dụng một trong những generators đã đến lúc
+bắt đầu làm!
 
-### Creating a Table
+### Tạo một bảng(Table)
 
-The `create_table` method is one of the most fundamental, but most of the time,
-will be generated for you from using a model or scaffold generator. A typical
-use would be
+Method `create_table` là một trong những phương thức căn bản nhất, nhưng hầu hết thời gian,
+sẽ được tạo ra bằng cách dùng một model hoặc dùng generator scaffold. Một cách sử dụng điển hình là:
 
 ```ruby
 create_table :products do |t|
@@ -338,14 +331,13 @@ create_table :products do |t|
 end
 ```
 
-which creates a `products` table with a column called `name` (and as discussed
-below, an implicit `id` column).
+Nó tạo ra một bảng `products` với một column có tên là `name` (và như thảo luận ở bên dưới, 
+ngoài ra sẽ tạo một column ngầm định là `id`).
 
-By default, `create_table` will create a primary key called `id`. You can change
-the name of the primary key with the `:primary_key` option (don't forget to
-update the corresponding model) or, if you don't want a primary key at all, you
-can pass the option `id: false`. If you need to pass database specific options
-you can place an SQL fragment in the `:options` option. For example:
+Bởi mặc định, `create_table` sẽ tạo ra một khóa chính(primary key) được gọi là `id`. Bạn có thể thay đổi tên của 
+khóa chính với option `:primary_key` (đừng quên cập nhật model tương ứng) hoặc, nếu bạn không muốn một khóa chính, bạn 
+có thể pass option `id: false`. Nếu bạn cần đặt một option cơ sở dữ liệu cụ thế
+bạn có thể đặt một mẫu SQL trong option `:options`. Ví dụ:
 
 ```ruby
 create_table :products, options: "ENGINE=BLACKHOLE" do |t|
@@ -353,45 +345,44 @@ create_table :products, options: "ENGINE=BLACKHOLE" do |t|
 end
 ```
 
-will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table.
+nó sẽ nối `ENGINE=BLACKHOLE` vào câu lệnh SQL được sử dụng để tạo bảng.
 
-Also you can pass the `:comment` option with any description for the table
-that will be stored in database itself and can be viewed with database administration
-tools, such as MySQL Workbench or PgAdmin III. It's highly recommended to specify
-comments in migrations for applications with large databases as it helps people
-to understand data model and generate documentation.
-Currently only the MySQL and PostgreSQL adapters support comments.
+Ngoài ra bạn có thể đặt option `:comment` với bất kỳ mô tả dành cho bảng
+mà nó sẽ được chứa trong cơ sở dữ liệu và có thể được xem bởi các công cụ quản trị cơ sở dữ liệu(database administration)
+, chẳng hạn như MySQL Workbench hoặc PgAdmin III. Nó rất đáng để đặt các
+comments trong các migrations dành cho ứng dụng với các cơ sở dữ liệu lớn vì nó giúp mọi người hiểu được
+mô hình dữ liệu (data model) và tạo tài liệu.
+Hiện tại chỉ có MySQL và PostgreSQL hỗ trợ comments.
 
 ### Creating a Join Table
 
-The migration method `create_join_table` creates an HABTM (has and belongs to
-many) join table. A typical use would be:
+Migration method `create_join_table` tạo một HABTM (has and belongs to
+many) join table. Một kiểu sử dụng điển hình là:
 
 ```ruby
 create_join_table :products, :categories
 ```
 
-which creates a `categories_products` table with two columns called
-`category_id` and `product_id`. These columns have the option `:null` set to
-`false` by default. This can be overridden by specifying the `:column_options`
-option:
+nó tạo ra một bảng `categories_products` với 2 columns được gọi là
+`category_id` và `product_id`. Những columns có option `:null` sẽ thành
+`false` bởi mặc định. Điều này có thể được ghi đè với chỉ thị option `:column_options`, như sau:
 
 ```ruby
 create_join_table :products, :categories, column_options: { null: true }
 ```
 
-By default, the name of the join table comes from the union of the first two
-arguments provided to create_join_table, in alphabetical order.
-To customize the name of the table, provide a `:table_name` option:
+Bởi mặc định, tên của join table đến từ sự hợp nhất của 2 đối số được cung cấp cho method create_join_table, 
+theo thứ tự alphabet.
+Để tùy chỉnh tên của bảng, cung cấp một option `:table_name`:
 
 ```ruby
 create_join_table :products, :categories, table_name: :categorization
 ```
 
-creates a `categorization` table.
+tạo một bảng `categorization`.
 
-`create_join_table` also accepts a block, which you can use to add indices
-(which are not created by default) or additional columns:
+`create_join_table` ngoài ra còn chấp nhận block, nó cho phép bạn có thể thêm các index
+(nó sẽ không được tạo bởi mặc định) hoặc thêm column:
 
 ```ruby
 create_join_table :products, :categories do |t|
@@ -400,11 +391,11 @@ create_join_table :products, :categories do |t|
 end
 ```
 
-### Changing Tables
+### Thay đổi bảng Tables
 
-A close cousin of `create_table` is `change_table`, used for changing existing
-tables. It is used in a similar fashion to `create_table` but the object
-yielded to the block knows more tricks. For example:
+Một method anh em của `create_table` là `change_table`, được dùng để thay đổi các bảng đã tồn tại. 
+Nó được dùng giống như `create_table` nhưng object
+với nhiều thủ thuật với block hơn. Ví dụ:
 
 ```ruby
 change_table :products do |t|
@@ -415,83 +406,82 @@ change_table :products do |t|
 end
 ```
 
-removes the `description` and `name` columns, creates a `part_number` string
-column and adds an index on it. Finally it renames the `upccode` column.
+xóa các columns `description` và `name`, tạo một một string column `part_number`
+và thêm index trên column đó. Cuối cùng đổi tên column `upccode` thành `upc_code`.
 
-### Changing Columns
+### Thay đổi Columns
 
-Like the `remove_column` and `add_column` Rails provides the `change_column`
-migration method.
+Giống như `remove_column` và `add_column` Rails cung cấp method `change_column`
+migration.
 
 ```ruby
 change_column :products, :part_number, :text
 ```
 
-This changes the column `part_number` on products table to be a `:text` field.
-Note that `change_column` command is irreversible.
+Điều này thay đổi column `part_number` trên bảng products thành field `:text`.
+lưu ý rằng `change_column` là lệnh không thể nghịch đảo.
 
-Besides `change_column`, the `change_column_null` and `change_column_default`
-methods are used specifically to change a not null constraint and default
-values of a column.
+Bên cạnh `change_column`, các methods `change_column_null` và `change_column_default`
+được sử dụng để thay đổi một ràng buộc(constraint) not null và giá trị mặc định của một column.
 
 ```ruby
 change_column_null :products, :name, false
 change_column_default :products, :approved, from: true, to: false
 ```
 
-This sets `:name` field on products to a `NOT NULL` column and the default
-value of the `:approved` field from true to false.
+Đây là tập field `:name` trên products với column `NOT NULL` và giá trị mặc định của
+field `:approved` từ true thành false.
 
-Note: You could also write the above `change_column_default` migration as
-`change_column_default :products, :approved, false`, but unlike the previous
-example, this would make your migration irreversible.
+Lưu ý: Bạn ngoài ra có thể viết `change_column_default` migration như sau:
+`change_column_default :products, :approved, false`, nhưng không giống như ví dụ trước, 
+điều này sẽ làm cho migration của bạn không thể đảo ngược được.
 
 ### Column Modifiers
 
-Column modifiers can be applied when creating or changing a column:
+Column modifiers có thể được apply khi tạo hoặc thay đổi một column:
 
-* `limit`        Sets the maximum size of the `string/text/binary/integer` fields.
-* `precision`    Defines the precision for the `decimal` fields, representing the
-total number of digits in the number.
-* `scale`        Defines the scale for the `decimal` fields, representing the
-number of digits after the decimal point.
-* `polymorphic`  Adds a `type` column for `belongs_to` associations.
-* `null`         Allows or disallows `NULL` values in the column.
-* `default`      Allows to set a default value on the column. Note that if you
-are using a dynamic value (such as a date), the default will only be calculated
-the first time (i.e. on the date the migration is applied).
-* `index`        Adds an index for the column.
-* `comment`      Adds a comment for the column.
+* `limit`        Thiết lập kích cỡ tối đa của fields `string/text/binary/integer`.
+* `precision`    Định nghĩa độ chính xác dành cho fields `decimal`, trình bày
+tổng số chữ số trong số.
+* `scale`        Định nghĩa sự mở rộng(scale) cho fields `decimal` fields, trình bày
+số chữ số sau phần thập phân.
+* `polymorphic`  Thêm một column `type` dành cho sự phối hợp(associations) `belongs_to`.
+* `null`         Cho phép hoặc không cho phép giá trị `NULL` trong column.
+* `default`      Cho phép thiết lập giá trị mặc định trên column. Lưu ý rằng nếu bạn dùng một giá trị động(dynamic) 
+(chẳng hạn như date), mặc định sẽ chỉ được tính
+lần đầu tiên (ví dụ dựa trên ngày migration được áp dụng).
+* `index`        Thêm một index dành cho column.
+* `comment`      Thêm comment dành cho column.
 
-Some adapters may support additional options; see the adapter specific API docs
-for further information.
+Một vài adapters có thể hỗ trợ thêm các options; xem thêm các adapter cụ thể trong API docs
+để biết thêm.
 
-NOTE: `null` and `default` cannot be specified via command line.
+Lưu ý: `null` và `default` không thể chỉ định thông qua command line.
 
-### Foreign Keys
+### Khóa ngoại (Foreign Keys)
 
-While it's not required you might want to add foreign key constraints to
+Mặc dù không bắt buộc, bạn có thể muốn thêm ràng buộc khóa ngoại(foreign key) với
 [guarantee referential integrity](#active-record-and-referential-integrity).
 
 ```ruby
 add_foreign_key :articles, :authors
 ```
 
-This adds a new foreign key to the `author_id` column of the `articles`
-table. The key references the `id` column of the `authors` table. If the
-column names can not be derived from the table names, you can use the
-`:column` and `:primary_key` options.
+Lệnh trên sẽ thêm khóa ngoại cho column `author_id` của bảng `articles`
+. Khóa ngoại sẽ tham chiếu đến column `id` của bảng `authors`. Nếu
+tên column không bắt nguồn từ tên table, bạn có thể dùng
+`:column` và `:primary_key` như là options.
 
-Rails will generate a name for every foreign key starting with
-`fk_rails_` followed by 10 characters which are deterministically
-generated from the `from_table` and `column`.
-There is a `:name` option to specify a different name if needed.
+Rails sẽ tạo một tên dành cho mỗi foreign key bắt đầu với
+`fk_rails_` theo sau là 10 ký tự được tạo theo mẫu
+từ `from_table` và `column`.
+Có một option `:name` để chỉ rõ tên khác nhau nếu cần.
 
-NOTE: Active Record only supports single column foreign keys. `execute` and
-`structure.sql` are required to use composite foreign keys. See
-[Schema Dumping and You](#schema-dumping-and-you).
+Lưu ý: Active Record chỉ hỗ trợ single column foreign keys. `execute` và
+`structure.sql` được yêu cầu dùng các khóa ngoại phức hợp(foreign keys composite). Xem
+[Schema Dumping và bạn](#schema-dumping-and-you).
 
-Removing a foreign key is easy as well:
+Xóa một khóa ngoại tương đối dễ dàng như sau:
 
 ```ruby
 # let Active Record figure out the column name
@@ -504,47 +494,46 @@ remove_foreign_key :accounts, column: :owner_id
 remove_foreign_key :accounts, name: :special_fk_name
 ```
 
-### When Helpers aren't Enough
+### Khi Helpers là không đủ
 
-If the helpers provided by Active Record aren't enough you can use the `execute`
-method to execute arbitrary SQL:
+Nếu các helpers được cung cấp bởi Active Record bạn có thể dùng method `execute`
+method để thực thi SQL tùy ý:
 
 ```ruby
 Product.connection.execute("UPDATE products SET price = 'free' WHERE 1=1")
 ```
 
-For more details and examples of individual methods, check the API documentation.
-In particular the documentation for
+Để biết thêm chi tiết về các methods riêng lẻ, kiểm tra tài liệu API.
+Đặc biệt là tài liệu cho
 [`ActiveRecord::ConnectionAdapters::SchemaStatements`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/SchemaStatements.html)
-(which provides the methods available in the `change`, `up` and `down` methods),
+(nó cung cấp các method thích hợp trong `change`, `up` và `down`),
 [`ActiveRecord::ConnectionAdapters::TableDefinition`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/TableDefinition.html)
-(which provides the methods available on the object yielded by `create_table`)
-and
+(nó cung cấp các phương thức thích hợp trên object được gọi bởi `create_table`)
+và
 [`ActiveRecord::ConnectionAdapters::Table`](http://api.rubyonrails.org/classes/ActiveRecord/ConnectionAdapters/Table.html)
-(which provides the methods available on the object yielded by `change_table`).
+(nó cung cấp các phương thức thích hợp trên object được gọi bởi `change_table`).
 
-### Using the `change` Method
+### Dùng method `change`
 
-The `change` method is the primary way of writing migrations. It works for the
-majority of cases, where Active Record knows how to reverse the migration
-automatically. Currently, the `change` method supports only these migration
-definitions:
+Method `change` là một phương thức chính để viết migrations. Nó làm việc với các trường hợp chính, 
+nơi Active Record biết làm thế nào để đảo ngược migration một cách tự động. Hiện tại, method `change` 
+chỉ hỗ trợ những migration sau:
 
 * add_column
 * add_foreign_key
 * add_index
 * add_reference
 * add_timestamps
-* change_column_default (must supply a :from and :to option)
+* change_column_default (phải cung cấp một :from và :to)
 * change_column_null
 * create_join_table
 * create_table
 * disable_extension
 * drop_join_table
-* drop_table (must supply a block)
+* drop_table (phải cung cấp một block)
 * enable_extension
-* remove_column (must supply a type)
-* remove_foreign_key (must supply a second table)
+* remove_column (phải cung cấp một type)
+* remove_foreign_key (phải cung cấp một bảng thứ hai)
 * remove_index
 * remove_reference
 * remove_timestamps
@@ -552,25 +541,25 @@ definitions:
 * rename_index
 * rename_table
 
-`change_table` is also reversible, as long as the block does not call `change`,
-`change_default` or `remove`.
+`change_table` ngoài ra có thể đảo ngược, miễn là block không gọi `change`,
+`change_default` hoặc `remove`.
 
-`remove_column` is reversible if you supply the column type as the third
-argument. Provide the original column options too, otherwise Rails can't
-recreate the column exactly when rolling back:
+`remove_column` có thể đảo ngược nếu bạn cung cấp kiểu của column như là đối số thứ 3. 
+cung cấp các column gốc, ngược lại Rails không thế
+tạo lại column khi rolling back:
 
 ```ruby
 remove_column :posts, :slug, :string, null: false, default: '', index: true
 ```
 
-If you're going to need to use any other methods, you should use `reversible`
-or write the `up` and `down` methods instead of using the `change` method.
+Nếu bạn định sử dụng bất kỳ method khác, bạn nên dùng `reversible`
+hoặc viết `up` và `down` thay vì dùng `change`.
 
-### Using `reversible`
+### Sử dụng method `reversible`
 
-Complex migrations may require processing that Active Record doesn't know how
-to reverse. You can use `reversible` to specify what to do when running a
-migration and what else to do when reverting it. For example:
+Các migrations phức tạp có thể yêu cầu các xử lý mà Active Record không biết làm thế nào để
+đảo ngược. Bạn có thể dùng `reversible` để chỉ định những gì cần làm khi chạy một
+migration và những gì khác phải làm khi đang đảo ngược nó. Ví dụ:
 
 ```ruby
 class ExampleMigration < ActiveRecord::Migration[5.0]
@@ -602,28 +591,26 @@ class ExampleMigration < ActiveRecord::Migration[5.0]
 end
 ```
 
-Using `reversible` will ensure that the instructions are executed in the
-right order too. If the previous example migration is reverted,
-the `down` block will be run after the `home_page_url` column is removed and
-right before the table `distributors` is dropped.
+Dùng `reversible` sẽ chắc chắn rằng các chỉ dẫn được thực thi theo
+đúng thứ tự. Nếu ví dụ của migration trước là đã đảo ngược,
+thì block `down` sẽ chạy sau column `home_page_url` là được xóa và
+trước khi bảng `distributors` bị bỏ.
 
-Sometimes your migration will do something which is just plain irreversible; for
-example, it might destroy some data. In such cases, you can raise
-`ActiveRecord::IrreversibleMigration` in your `down` block. If someone tries
-to revert your migration, an error message will be displayed saying that it
-can't be done.
+Đôi khi migration sẽ làm một điều gì đó mà không thể đảo ngược hoàn toàn; ví dụ
+, nó có thể hủy một vài dữ liệu. Trong trường hợp này, bạn có thể đưa ra(raise)
+`ActiveRecord::IrreversibleMigration` trong block `down` của bạn. Nếu một ai đó thử
+đảo ngược migration của bạn, một message lỗi sẽ thông báo diều đó là không được phép.
 
-### Using the `up`/`down` Methods
+### Sử dụng methods `up`/`down`
 
-You can also use the old style of migration using `up` and `down` methods
-instead of the `change` method.
-The `up` method should describe the transformation you'd like to make to your
-schema, and the `down` method of your migration should revert the
-transformations done by the `up` method. In other words, the database schema
-should be unchanged if you do an `up` followed by a `down`. For example, if you
-create a table in the `up` method, you should drop it in the `down` method. It
-is wise to perform the transformations in precisely the reverse order they were
-made in the `up` method. The example in the `reversible` section is equivalent to:
+Ngoài ra bạn có thể dùng method migration sử dụng `up` và `down` thay thì method `change`.
+Method `up` nên mô tả sự biến đổi mà bạn muốn thực hiện với
+lược đồ(schema), và method `down` của migration của bạn nên đảo ngược các biến đổi
+được hoàn thành bởi phương thức `up`. Nói cách khác, lược đồ cơ sở dữ liệu nên không thay đổi
+nếu bạn sử dụng `up` theo sau là `down`. Ví dụ, nếu bạn
+tạo một bảng trong method `up`, bạn nên bỏ nó trong method `down`. Nó là
+để thực hiện biến đổi theo thứ tự ngược mà nó đã làm với method up
+. Ví dụ trong phần `reversible` là tương đương với:
 
 ```ruby
 class ExampleMigration < ActiveRecord::Migration[5.0]
@@ -657,14 +644,13 @@ class ExampleMigration < ActiveRecord::Migration[5.0]
 end
 ```
 
-If your migration is irreversible, you should raise
-`ActiveRecord::IrreversibleMigration` from your `down` method. If someone tries
-to revert your migration, an error message will be displayed saying that it
-can't be done.
+Nếu migratio không thể nghịch đảo, bạn nên raise
+`ActiveRecord::IrreversibleMigration` từ method `down`. If someone tries
+to revert your migration, một message lỗi sẽ thông báo diều đó là không được phép.
 
-### Reverting Previous Migrations
+### Đảo ngược các Migrations trước
 
-You can use Active Record's ability to rollback migrations using the `revert` method:
+Bạn có thể dùng tính năng của Active Record's để rollback migrations dùng method `revert`:
 
 ```ruby
 require_relative '20121212123456_example_migration'
@@ -680,11 +666,10 @@ class FixupExampleMigration < ActiveRecord::Migration[5.0]
 end
 ```
 
-The `revert` method also accepts a block of instructions to reverse.
-This could be useful to revert selected parts of previous migrations.
-For example, let's imagine that `ExampleMigration` is committed and it
-is later decided it would be best to use Active Record validations,
-in place of the `CHECK` constraint, to verify the zipcode.
+Method `revert` ngoài ra chấp nhận một block các chỉ thị để đảo ngược.
+Ví dụ, tưởng tượng rằng `ExampleMigration` là committed và nó
+sau đó quyết định tốt nhất nếu dùng Active Record validations,
+trong chỗ ràng buộc `CHECK`, để xác thực zipcode.
 
 ```ruby
 class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[5.0]
@@ -714,115 +699,112 @@ class DontUseConstraintForZipcodeValidationMigration < ActiveRecord::Migration[5
 end
 ```
 
-The same migration could also have been written without using `revert`
-but this would have involved a few more steps: reversing the order
-of `create_table` and `reversible`, replacing `create_table`
-by `drop_table`, and finally replacing `up` by `down` and vice-versa.
-This is all taken care of by `revert`.
+Migration giống như thế có thể được viết mà không dùng `revert`
+nhưng điều này có liên quan đến một vài bược nữa: đảo ngược thứ tự của 
+`create_table` và `reversible`, thay thế `create_table`
+bằng `drop_table`, và cuối cùng thay thế `up` bằng `down` và ngược lại.
+Tất cả được chăm nom bởi `revert`.
 
-NOTE: If you want to add check constraints like in the examples above,
-you will have to use `structure.sql` as dump method. See
-[Schema Dumping and You](#schema-dumping-and-you).
+Lưu ý: Nếu bạn muốn thêm một kiểm tra ràng buộc giống như trong ví dụ trên,
+bạn sẽ phải dùng `structure.sql` như là một dump method. Xem
+[Schema Dumping và bạn](#schema-dumping-and-you).
 
-Running Migrations
+Chạy Migrations
 ------------------
 
-Rails provides a set of bin/rails tasks to run certain sets of migrations.
+Rails cung cấp một tập hợp bin/rails tasks để chạy các migrations.
 
-The very first migration related bin/rails task you will use will probably be
-`rails db:migrate`. In its most basic form it just runs the `change` or `up`
-method for all the migrations that have not yet been run. If there are
-no such migrations, it exits. It will run these migrations in order based
-on the date of the migration.
+Migration đầu tiên liên quan đến bin/rails task mà bạn sẽ dùng chắc chắn là
+`rails db:migrate`. Trong hình thức cơ bản nhất nó chỉ chạy `change` hoặc `up`
+cho tất cả các migrations chưa được chạy. Nếu
+không có migration nào, nó sẽ thoát. Nó ngoài ra chạy các migration theo thứ tự thời gian tạo các migration.
 
-Note that running the `db:migrate` task also invokes the `db:schema:dump` task, which
-will update your `db/schema.rb` file to match the structure of your database.
+Lưu ý rằng chạy task `db:migrate` ngoài ra còn gọi task `db:schema:dump`, nó
+sẽ cập nhật `db/schema.rb` cảu bạn để trùng với cấu trúc cơ sở dữ liệu của bạn.
 
-If you specify a target version, Active Record will run the required migrations
-(change, up, down) until it has reached the specified version. The version
-is the numerical prefix on the migration's filename. For example, to migrate
-to version 20080906120000 run:
+Nếu bạn chỉ định một phiên bản đích, Active Record sẽ chạy các migrations được yêu cầu
+(change, up, down) cho đến khi nó đạt đến phiên bản đích. Phiên bản(version)
+là số tiền tố trước tên file migration. Ví dụ, để migrate
+đến phiên bản 20080906120000 ta chạy:
 
 ```bash
 $ bin/rails db:migrate VERSION=20080906120000
 ```
 
-If version 20080906120000 is greater than the current version (i.e., it is
-migrating upwards), this will run the `change` (or `up`) method
-on all migrations up to and
-including 20080906120000, and will not execute any later migrations. If
-migrating downwards, this will run the `down` method on all the migrations
-down to, but not including, 20080906120000.
+Nếu phiên bản 20080906120000 lớn hơn phiên bản hiện tại (ví dụ, nó là một
+migrating tiến lên), điều này sẽ chạy `change` (hoặc `up`) trên tất cả các migrations cho đến
+phiên bản 20080906120000, và sẽ không thực thi bất kì migrations nào sau đó. Nếu
+migrating là lùi, thì nó sẽ tạo method `down` trên tất cả các migrations
+lùi, nhưng không bao gồm phiên bản 20080906120000.
 
 ### Rolling Back
 
-A common task is to rollback the last migration. For example, if you made a
-mistake in it and wish to correct it. Rather than tracking down the version
-number associated with the previous migration you can run:
+Một task phổ biến là rollback migration sau cùng. Ví dụ, nếu bạn có sai sót nào đó ở phiên bản mới nhất. 
+Thay vì phải theo dõi các phiên bản
+và các số đi với các phiên bản trước thì bạn có thể chạy:
 
 ```bash
 $ bin/rails db:rollback
 ```
 
-This will rollback the latest migration, either by reverting the `change`
-method or by running the `down` method. If you need to undo
-several migrations you can provide a `STEP` parameter:
+Lệnh trên sẽ rollback phiên bản migration mới nhất, bằng cách đảo ngược method `change`
+hoặc bằng cách chạy method `down`. Nếu bạn cần hoàn tác một vài
+migrations bạn có thể thêm tham số `STEP`:
 
 ```bash
 $ bin/rails db:rollback STEP=3
 ```
 
-will revert the last 3 migrations.
+sẽ đảo ngược 3 migrations sau cùng.
 
-The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating
-back up again. As with the `db:rollback` task, you can use the `STEP` parameter
-if you need to go more than one version back, for example:
+Task `db:migrate:redo` là một lệnh tắt để rollback và migration backup lại. 
+Giống như với task `db:rollback`, bạn có thể dùng tham số `STEP`
+như sau:
 
 ```bash
 $ bin/rails db:migrate:redo STEP=3
 ```
 
-Neither of these bin/rails tasks do anything you could not do with `db:migrate`. They
-are simply more convenient, since you do not need to explicitly specify the
-version to migrate to.
+Cả hai lệnh bin/rails đều làm bất cứ thứ gì bạn không thế làm với `db:migrate`. Chúng
+hiệu quả hơn, vì bạn không cần phải chỉ rõ phiên bản để migrate đến.
 
-### Setup the Database
+### Thiết lập cơ sở dữ liệu(Database)
 
-The `rails db:setup` task will create the database, load the schema and initialize
-it with the seed data.
+Task `rails db:setup` sẽ tạo cơ sở dữ liệu, load lược đồ csdl và thực hiện
+seed dữ liệu vào csdl.
 
 ### Resetting the Database
 
-The `rails db:reset` task will drop the database and set it up again. This is
-functionally equivalent to `rails db:drop db:setup`.
+Task `rails db:reset` sẽ xóa csdl và thiết lập lại nó. Chức năng này
+tương đương `rails db:drop db:setup`.
 
-NOTE: This is not the same as running all the migrations. It will only use the
-contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
-`rails db:reset` may not help you. To find out more about dumping the schema see
-[Schema Dumping and You](#schema-dumping-and-you) section.
+Lưu ý: Điều này không giống như tất cả các migration. Nó sẽ chỉ dùng
+nội dung của `db/schema.rb` hiện tại hoặc file `db/structure.sql`. Nếu migration không thể rolled back,
+`rails db:reset` không thể giúp bạn. Để tìm hiểu thêm, xem phần
+[Schema Dumping và bạn](#schema-dumping-and-you).
 
-### Running Specific Migrations
+### Chạy các Migrations chỉ định
 
-If you need to run a specific migration up or down, the `db:migrate:up` and
-`db:migrate:down` tasks will do that. Just specify the appropriate version and
-the corresponding migration will have its `change`, `up` or `down` method
-invoked, for example:
+Nếu bạn cần chạy các migration chỉ định như `up` và `down`, lệnh `db:migrate:up` và
+`db:migrate:down` sẽ làm điều đó. Chỉ định phiên bản thích hợp và
+migration tương ứng sẽ có các method `change`, `up` hoặc `down`
+được gọi, ví dụ:
 
 ```bash
 $ bin/rails db:migrate:up VERSION=20080906120000
 ```
 
-will run the 20080906120000 migration by running the `change` method (or the
-`up` method). This task will
+sẽ chạy phiên bản migration 20080906120000 bởi việc chạy method `change` (hoặc method
+`up`). This task will
 first check whether the migration is already performed and will do nothing if
 Active Record believes that it has already been run.
 
-### Running Migrations in Different Environments
+### Chạy các Migrations trong các môi trường khác
 
-By default running `bin/rails db:migrate` will run in the `development` environment.
-To run migrations against another environment you can specify it using the
-`RAILS_ENV` environment variable while running the command. For example to run
-migrations against the `test` environment you could run:
+Bởi mặc định `bin/rails db:migrate` sẽ chạy trong môi trường `development`.
+Để chạy các migrations với các môi trường khác bạn có thể chỉ rõ nó bằng cách dùng
+biến môi trường `RAILS_ENV` trong khi chạy lệnh trên. Ví dụ chạy các
+migrations với môi trường `test` như sau:
 
 ```bash
 $ bin/rails db:migrate RAILS_ENV=test
@@ -874,7 +856,7 @@ class CreateProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-generates the following output
+tạo ra
 
 ```bash
 ==  CreateProducts: migrating =================================================
@@ -886,24 +868,23 @@ generates the following output
 ==  CreateProducts: migrated (10.0054s) =======================================
 ```
 
-If you want Active Record to not output anything, then running `rails db:migrate
-VERBOSE=false` will suppress all output.
+Nếu bạn muốn Active Record không xuất ra bất cứ thứ gì, thì chạy `rails db:migrate
+VERBOSE=false` sẽ không có xuất lệnh.
 
-Changing Existing Migrations
+Thay đổi Migrations hiện tại
 ----------------------------
 
-Occasionally you will make a mistake when writing a migration. If you have
-already run the migration, then you cannot just edit the migration and run the
-migration again: Rails thinks it has already run the migration and so will do
-nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `bin/rails db:rollback`), edit your migration and then run
-`rails db:migrate` to run the corrected version.
+Đôi khi bạn sẽ mắc phải sai lầm khi viết một migration. Nếu bạn
+đã chạy migration đó, thì bạn không thể hiệu chỉnh migration và chạy
+migration lại: Rails nghĩ nó đã chạy migration và sẽ không
+làm gì khi bạn chạy `rails db:migrate`. Bạn phải rollback migration (ví dụ với: `bin/rails db:rollback`), 
+chỉnh sửa migration của bạn và chạy `rails db:migrate` để chỉnh sửa phiên bản đó.
 
-In general, editing existing migrations is not a good idea. You will be
-creating extra work for yourself and your co-workers and cause major headaches
-if the existing version of the migration has already been run on production
-machines. Instead, you should write a new migration that performs the changes
-you require. Editing a freshly generated migration that has not yet been
+Nói chung, chỉnh sửa một migrations không phải là một ý hay. Bạn sẽ tạo thêm công việc
+cho bản thân và đồng nghiệp của bạn và có thể dẫn đến các vấn đề nhức đầu
+nếu tồn tại một phiên bản của migration đã chạy trên môi trường production. 
+Thay vào đó, thay vào đó bạn nên viết các migration mới thực hiện những thay đổi
+mà bạn yêu cầu. Editing a freshly generated migration that has not yet been
 committed to source control (or, more generally, which has not been propagated
 beyond your development machine) is relatively harmless.
 
@@ -998,7 +979,7 @@ ensures conflicts are going to happen in the case of a merge where both
 branches touched the schema. When that happens, solve conflicts manually,
 keeping the highest version number of the two.
 
-Active Record and Referential Integrity
+Active Record và tính toàn vẹn dữ liệu
 ---------------------------------------
 
 The Active Record way claims that intelligence belongs in your models, not in
@@ -1019,10 +1000,10 @@ such features, the `execute` method can be used to execute arbitrary SQL.
 Migrations and Seed Data
 ------------------------
 
-The main purpose of Rails' migration feature is to issue commands that modify the
-schema using a consistent process. Migrations can also be used
-to add or modify data. This is useful in an existing database that can't be destroyed
-and recreated, such as a production database.
+Mục đích chính của tính năng migration trong Rails là để đưa ra những lệnh hiệu chỉnh
+lược đồ dùng một quy trình nhất quán. Migrations ngoài ra có thể được dùng để thêm hoặc chỉnh sửa dữ liệu. 
+Điều này hữu ích nếu một cơ sở dữ liệu đã tồn tại mà không thể xóa hoặc
+tạo lại, chẳng hạn cơ sở dữ liệu production.
 
 ```ruby
 class AddInitialProducts < ActiveRecord::Migration[5.0]
@@ -1038,11 +1019,10 @@ class AddInitialProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-To add initial data after a database is created, Rails has a built-in
-'seeds' feature that makes the process quick and easy. This is especially
-useful when reloading the database frequently in development and test environments.
-It's easy to get started with this feature: just fill up `db/seeds.rb` with some
-Ruby code, and run `rails db:seed`:
+Để thêm các dữ liệu ban đầu sau khi tạo một cơ sở dữ liệu, Rails có một tính năng xây dựng sẵng
+gọi là 'seeds' nó giúp việc tạo dữ liệu nhanh và dễ dàng hơn. Điều này đặc biệt hữu ích
+khi tải lại cơ sở dữ liệu thường xuyên trong môi trường development và test.
+Rất dễ để bắt đầu với tính năng này: chỉ cần viết mã vào `db/seeds.rb` và chạy `rails db:seed`:
 
 ```ruby
 5.times do |i|
@@ -1050,5 +1030,4 @@ Ruby code, and run `rails db:seed`:
 end
 ```
 
-This is generally a much cleaner way to set up the database of a blank
-application.
+Phương pháp này giúp cho việc tạo dữ liệu dành cho một ứng dụng ban đầu dễ dàng hơn.
