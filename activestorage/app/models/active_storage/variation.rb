@@ -46,13 +46,15 @@ class ActiveStorage::Variation
   # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
   # and performs the +transformations+ against it. The transformed image instance is then returned.
   def transform(image)
-    transformations.each do |method, argument|
-      image.mogrify do |command|
-        if eligible_argument?(argument)
-          command.public_send(method, argument)
-        else
-          command.public_send(method)
+    transformations.each do |(method, argument)|
+      if method.to_s == "combine_options"
+        image.combine_options do |combination|
+          argument.each do |(method, argument)|
+            pass_transform_argument(combination, method, argument)
+          end
         end
+      else
+        pass_transform_argument(image, method, argument)
       end
     end
   end
@@ -65,5 +67,13 @@ class ActiveStorage::Variation
   private
     def eligible_argument?(argument)
       argument.present? && argument != true
+    end
+
+    def pass_transform_argument(instance, method, argument)
+      if eligible_argument?(argument)
+        instance.public_send(method, argument)
+      else
+        instance.public_send(method)
+      end
     end
 end
