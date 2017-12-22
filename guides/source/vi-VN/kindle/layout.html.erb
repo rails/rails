@@ -1,0 +1,27 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+<title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
+
+<link rel="stylesheet" type="text/css" href="stylesheets/kindle.css" />
+
+</head>
+<body class="guide">
+
+  <% if content_for? :header_section %>
+    <%= yield :header_section %>
+    <div class="pagebreak"></div>
+  <% end %>
+
+  <% if content_for? :index_section %>
+    <%= yield :index_section %>
+    <div class="pagebreak"></div>
+  <% end %>
+
+  <%= yield.html_safe %>
+</body>
+</html>
