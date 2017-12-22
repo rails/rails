@@ -10,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
-      if app.config.active_support.respond_to?(:use_authenticated_message_encryption)
-        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
-          app.config.active_support.use_authenticated_message_encryption
+      config.after_initialize do
+        unless app.config.active_support.use_authenticated_message_encryption.nil?
+          ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+            app.config.active_support.use_authenticated_message_encryption
+        end
       end
     end
 
