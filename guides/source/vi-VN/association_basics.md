@@ -1,22 +1,24 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
-
-Active Record Associations
+Active Record Associations(Kết hợp)
 ==========================
 
-This guide covers the association features of Active Record.
+Bài hướng dẫn này nói về tính năng Associations(kết hợp) của Active Record.
 
-After reading this guide, you will know:
+Sau khi đọc bài này, bạn sẽ biết:
 
-* How to declare associations between Active Record models.
-* How to understand the various types of Active Record associations.
-* How to use the methods added to your models by creating associations.
+* Làm thế nào để khai báo associations giữa các Active Record models.
+* Làm thế nào để hiểu các kiểu associations khác nhau Active Record.
+* Làm thế nào dùng các methods vào các models của bạn bằng cách tạo associations.
 
 --------------------------------------------------------------------------------
 
-Why Associations?
+Tại sao dùng Associations?
 -----------------
 
-In Rails, an _association_ is a connection between two Active Record models. Why do we need associations between models? Because they make common operations simpler and easier in your code. For example, consider a simple Rails application that includes a model for authors and a model for books. Each author can have many books. Without associations, the model declarations would look like this:
+Trong Rails, một _association_ là một liên kết giữa hai Active Record models. 
+Tại sao chúng ta cần associations giữa các models? Bởi vì chúng làm các thao tác trở nên đơn giản và dễ dàng hơn
+trong mã chương trình của bạn. Ví dụ, xem xét một ứng dụng Rails đơn giản mà nó bao gồm một model
+dành cho authors và một model dành cho books. Mỗi author có thể có nhiều books. 
+Không có associations, các model được khai báo giống như sau:
 
 ```ruby
 class Author < ApplicationRecord
@@ -26,13 +28,13 @@ class Book < ApplicationRecord
 end
 ```
 
-Now, suppose we wanted to add a new book for an existing author. We'd need to do something like this:
+Bây giờ, giả sử chúng ta muốn thêm một book mới dành cho một author đã tồn tại. Chúng ta cần làm như sau:
 
 ```ruby
 @book = Book.create(published_at: Time.now, author_id: @author.id)
 ```
 
-Or consider deleting an author, and ensuring that all of its books get deleted as well:
+Hoặc xem xét xóa một author, và đảm bảo tất cả books của author đó cũng bị xóa theo:
 
 ```ruby
 @books = Book.where(author_id: @author.id)
@@ -42,7 +44,8 @@ end
 @author.destroy
 ```
 
-With Active Record associations, we can streamline these - and other - operations by declaratively telling Rails that there is a connection between the two models. Here's the revised code for setting up authors and books:
+Với Active Record associations, chúng ta có thể sắp xếp các hoạt động này và các hoạt động khác bằng cách khai báo với Rails, 
+rằng có một kết nối giữa hai models. Sau đây là code dùng để thiết lập giữa authors và books:
 
 ```ruby
 class Author < ApplicationRecord
@@ -54,24 +57,26 @@ class Book < ApplicationRecord
 end
 ```
 
-With this change, creating a new book for a particular author is easier:
+Với thay đổi này, việc tạo một book mới dành cho một author cụ thể là dễ dàng hơn:
 
 ```ruby
 @book = @author.books.create(published_at: Time.now)
 ```
 
-Deleting an author and all of its books is *much* easier:
+Xóa một author và tất cả books của author đó càng dễ dàng hơn:
 
 ```ruby
 @author.destroy
 ```
 
-To learn more about the different types of associations, read the next section of this guide. That's followed by some tips and tricks for working with associations, and then by a complete reference to the methods and options for associations in Rails.
+Để tìm hiểu thêm về các kiểu associations khác, đọc phần tiếp theo của bài hướng dẫn này. 
+Tiếp theo đó là một số mẹo và thủ thuật để làm việc với associations, 
+và một danh sách tham khảo các methods và options dành cho associations trong Rails.
 
-The Types of Associations
+Kiểu(Types) của Associations
 -------------------------
 
-Rails supports six types of associations:
+Rails hỗ trợ 6 kiểu của associations:
 
 * `belongs_to`
 * `has_one`
@@ -80,13 +85,20 @@ Rails supports six types of associations:
 * `has_one :through`
 * `has_and_belongs_to_many`
 
-Associations are implemented using macro-style calls, so that you can declaratively add features to your models. For example, by declaring that one model `belongs_to` another, you instruct Rails to maintain [Primary Key](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key](https://en.wikipedia.org/wiki/Foreign_key) information between instances of the two models, and you also get a number of utility methods added to your model.
+Associations được thực hiện bằng cách dùng kiểu gọi macro, nên bạn có thể khai báo và thêm tính năng vào models của bạn. 
+Ví dụ, bằng cách khai báo một model `belongs_to`  một model khác, 
+bạn đã cung cấp cho Rails thông tin về [Primary Key(Khóa chính)](https://en.wikipedia.org/wiki/Unique_key)-[Foreign Key(Khóa ngoại)](https://en.wikipedia.org/wiki/Foreign_key) 
+giữa các đối tượng của 2 models, và ngoài ra bạn còn có thêm một số các methods tiện ích được thêm vào model của bạn.
 
-In the remainder of this guide, you'll learn how to declare and use the various forms of associations. But first, a quick introduction to the situations where each association type is appropriate.
+Trong bài này, bạn sẽ học làm thế nào để khai báo và dùng các mẫu associations khác nhau. 
+Nhưng trước tiên, ở dưới đây sẽ là một giới thiệu nhanh về các tình huống mà mỗi kiểu association thích hợp được sử dụng.
 
-### The `belongs_to` Association
+### `belongs_to` Association
 
-A `belongs_to` association sets up a one-to-one connection with another model, such that each instance of the declaring model "belongs to" one instance of the other model. For example, if your application includes authors and books, and each book can be assigned to exactly one author, you'd declare the book model this way:
+Một `belongs_to` association thiết lập một liên kết một-một với model khác, 
+sao cho mỗi đối tượng của một model "belongs to" một đối tượng của model khác. 
+Ví dụ, nếu ứng dụng của bạn bao gồm authors và books, và mỗi book có thể được gán chính xác bởi một author, 
+bạn quyết định khai báo một model book như thế này:
 
 ```ruby
 class Book < ApplicationRecord
@@ -96,9 +108,12 @@ end
 
 ![belongs_to Association Diagram](images/belongs_to.png)
 
-NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
+Lưu ý: `belongs_to` associations _phải_ dùng danh từ số ít. Nếu bạn dùng danh từ số nhiều trong ví dụ trên: `author` association trong `Book` model, 
+bạn sẽ nhận được thông báo rằng "uninitialized constant Book::Authors" (hằng Book:Authors là không được khởi tạo). 
+Sở dĩ có điều này là vì Rails tự động tham chiếu đến tên class từ tên của association. 
+Nếu tên của association được đặt số nhiều sai, thì tên class tham chiếu đến cũng sai theo.
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateBooks < ActiveRecord::Migration[5.0]
@@ -117,9 +132,12 @@ class CreateBooks < ActiveRecord::Migration[5.0]
 end
 ```
 
-### The `has_one` Association
+### `has_one` Association
 
-A `has_one` association also sets up a one-to-one connection with another model, but with somewhat different semantics (and consequences). This association indicates that each instance of a model contains or possesses one instance of another model. For example, if each supplier in your application has only one account, you'd declare the supplier model like this:
+Một `has_one` association ngoài ra cũng được thiết lập kiểu liên kết một-một với model khác, 
+nhưng với ý nghĩa khác nhau. 
+Association này chỉ ra rằng mỗi đối tượng của một model chứa hoặc sở hữu một đối tượng của model khác. 
+Ví dụ, nếu mỗi supplier trong ứng dụng của bạn chỉ-có-một account, bạn có thể khai báo supplier model như sau:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -129,7 +147,7 @@ end
 
 ![has_one Association Diagram](images/has_one.png)
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateSuppliers < ActiveRecord::Migration[5.0]
@@ -148,9 +166,9 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
 end
 ```
 
-Depending on the use case, you might also need to create a unique index and/or
-a foreign key constraint on the supplier column for the accounts table. In this
-case, the column definition might look like this:
+Phụ thuộc vào trường hợp sử dụng, bạn có thể cần tạo một chỉ mục duy nhất(unique index) và/hoặc
+một ràng buộc foreign key trên column supplier dành cho bảng accounts. Trong trường hợp này, 
+định nghĩa column sẽ giống như sau:
 
 ```ruby
 create_table :accounts do |t|
@@ -159,9 +177,12 @@ create_table :accounts do |t|
 end
 ```
 
-### The `has_many` Association
+### `has_many` Association
 
-A `has_many` association indicates a one-to-many connection with another model. You'll often find this association on the "other side" of a `belongs_to` association. This association indicates that each instance of the model has zero or more instances of another model. For example, in an application containing authors and books, the author model could be declared like this:
+Một `has_many` association chỉ ra một liên kết một-nhiều với model khác. 
+Bạn sẽ thường nhìn thấy association này đi kèm với `belongs_to` association. 
+Association này chỉ ra rằng mỗi đối tượng của model có 0 hoặc nhiều đối tượng của model khác. Ví dụ, 
+trong một ứng dụng chứa authors và books, author sẽ có nhiều books, author model có thể khai báo giống như sau:
 
 ```ruby
 class Author < ApplicationRecord
@@ -169,11 +190,11 @@ class Author < ApplicationRecord
 end
 ```
 
-NOTE: The name of the other model is pluralized when declaring a `has_many` association.
+Lưu ý: Tên của model khác được khai báo kiểu số nhiều khi dùng với `has_many` association.
 
 ![has_many Association Diagram](images/has_many.png)
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateAuthors < ActiveRecord::Migration[5.0]
@@ -192,9 +213,13 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
 end
 ```
 
-### The `has_many :through` Association
+### `has_many :through` Association
 
-A `has_many :through` association is often used to set up a many-to-many connection with another model. This association indicates that the declaring model can be matched with zero or more instances of another model by proceeding _through_ a third model. For example, consider a medical practice where patients make appointments to see physicians. The relevant association declarations could look like this:
+Một `has_many :through` association thường được dùng để thiết lập liên kết nhiều-nhiều với model khác. 
+Association chỉ ra rằng khai báo model có thể kết hợp 
+với 0 hoặc nhiều đối tượng của model khác bằng việc _thông qua_ một model thứ 3. 
+Ví dụ, xem xét một bệnh viện nơi các patients lên lịch hẹn với physicians. 
+Association liên quan được khai báo giống như sau:
 
 ```ruby
 class Physician < ApplicationRecord
@@ -215,7 +240,7 @@ end
 
 ![has_many :through Association Diagram](images/has_many_through.png)
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateAppointments < ActiveRecord::Migration[5.0]
@@ -240,19 +265,21 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
 end
 ```
 
-The collection of join models can be managed via the [`has_many` association methods](#has-many-association-reference).
-For example, if you assign:
+Tập hợp các model có thể join vào(join models) được quản lý thông qua [`has_many` association methods](#has-many-association-reference).
+Ví dụ, nếu bạn gán:
 
 ```ruby
 physician.patients = patients
 ```
 
-Then new join models are automatically created for the newly associated objects.
-If some that existed previously are now missing, then their join rows are automatically deleted.
+Join models(giao hai model) mới được tạo tự động dành cho các đối tượng mới được liên kết.
+Nếu một liên kết từ trước đã bị xóa thì, thì join rows cũng tự động bị xóa.
 
-WARNING: Automatic deletion of join models is direct, no destroy callbacks are triggered.
+Cảnh báo: Tự động xóa của join models là trực tiếp, no destroy callbacks are triggered.
 
-The `has_many :through` association is also useful for setting up "shortcuts" through nested `has_many` associations. For example, if a document has many sections, and a section has many paragraphs, you may sometimes want to get a simple collection of all paragraphs in the document. You could set that up this way:
+`has_many :through` association ngoài ra còn có thể dùng để thiết lập "đường tắt" thông qua `has_many` associations lồng nhau. 
+Ví dụ, nếu một document có nhiều sections, và một section có nhiều paragraphs, 
+đôi khi bạn có thể muốn lấy một tập hợp đơn giản các paragraphs trong document. bạn có thể thiết lập như sau:
 
 ```ruby
 class Document < ApplicationRecord
@@ -270,7 +297,7 @@ class Paragraph < ApplicationRecord
 end
 ```
 
-With `through: :sections` specified, Rails will now understand:
+Với lệnh `through: :sections` được thêm vào, Rails sẽ hiểu được câu lệnh sau:
 
 ```ruby
 @document.paragraphs
@@ -278,10 +305,10 @@ With `through: :sections` specified, Rails will now understand:
 
 ### The `has_one :through` Association
 
-A `has_one :through` association sets up a one-to-one connection with another model. This association indicates
-that the declaring model can be matched with one instance of another model by proceeding _through_ a third model.
-For example, if each supplier has one account, and each account is associated with one account history, then the
-supplier model could look like this:
+Một `has_one :through` association thiết lập một liên kết một-một với model khác. Association này chỉ ra rằng
+model khai báo có thể kết hợp với một đối tượng của model khác _thông qua_ model thứ 3.
+Ví dụ, nếu mỗi supplier có account, và mỗi account kết hợp với một account history, thì
+supplier model có thể giống như sau:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -301,7 +328,7 @@ end
 
 ![has_one :through Association Diagram](images/has_one_through.png)
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateAccountHistories < ActiveRecord::Migration[5.0]
@@ -326,9 +353,11 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
 end
 ```
 
-### The `has_and_belongs_to_many` Association
+### `has_and_belongs_to_many` Association
 
-A `has_and_belongs_to_many` association creates a direct many-to-many connection with another model, with no intervening model. For example, if your application includes assemblies and parts, with each assembly having many parts and each part appearing in many assemblies, you could declare the models this way:
+Một `has_and_belongs_to_many` association tạo một liên kết trực tiếp nhiều-nhiều với model khác, 
+và không có model nào ở giữa. Ví dụ, nếu ứng dụng của bạn bao gồm assemblies và parts, 
+với mỗi assembly có nhiều parts và mỗi part xuất hiện trong nhiều assemblies, bạn có thể khai báo model như thế này:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -342,7 +371,7 @@ end
 
 ![has_and_belongs_to_many Association Diagram](images/habtm.png)
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
@@ -365,11 +394,15 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
 end
 ```
 
-### Choosing Between `belongs_to` and `has_one`
+### Lựa chọn giữa `belongs_to` và `has_one`
 
-If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
+Nếu bạn muốn thiết lập mối quan hệ một-một giữa hai models, 
+bạn sẽ cần thêm `belongs_to` cho một model, và `has_one` cho một model khác. Làm thế nào mà bạn biết điều sẽ đặt nó như thế nào?
 
-The distinction is in where you place the foreign key (it goes on the table for the class declaring the `belongs_to` association), but you should give some thought to the actual meaning of the data as well. The `has_one` relationship says that one of something is yours - that is, that something points back to you. For example, it makes more sense to say that a supplier owns an account than that an account owns a supplier. This suggests that the correct relationships are like this:
+Điểm khác biệt là nằm ở nơi bạn đặt foreign key (nó đi vào bảng có class khai báo `belongs_to` association), 
+nhưng bạn cũng nên suy nghĩ thêm về ý nghĩa của việc cung cấp dữ liệu cho phù hợp.
+Ví dụ, ngữ nghĩa của một dữ liệu quan hệ như sau: supplier sở hữu một account mà account ngoài ra chỉ thuộc một supplier. 
+Đây là một mối quan hệ được cung cấp chính xác giống như sau:
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -381,7 +414,7 @@ class Account < ApplicationRecord
 end
 ```
 
-The corresponding migration might look like this:
+Migration tương ứng có thể giống như sau:
 
 ```ruby
 class CreateSuppliers < ActiveRecord::Migration[5.0]
@@ -402,11 +435,13 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
 end
 ```
 
-NOTE: Using `t.integer :supplier_id` makes the foreign key naming obvious and explicit. In current versions of Rails, you can abstract away this implementation detail by using `t.references :supplier` instead.
+Lưu ý: Dùng `t.integer :supplier_id` làm cho việc đặt tên foreign key rõ ràng hơn. 
+Trong phiên bản hiện tại của Rails, bạn có thể trừu tượng việc thi hành chi tiết này bằng `t.references :supplier`.
 
-### Choosing Between `has_many :through` and `has_and_belongs_to_many`
+### Lựa chọn giữa `has_many :through` và `has_and_belongs_to_many`
 
-Rails offers two different ways to declare a many-to-many relationship between models. The simpler way is to use `has_and_belongs_to_many`, which allows you to make the association directly:
+Rails cung cấp hai phương pháp khác nhau để khai báo mối quan hệ nhiều-nhiều gữa các models. 
+Phương pháp đơn giản hơn là dùng `has_and_belongs_to_many`, nó cho phép bạn tạo một association trực tiếp:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -418,7 +453,8 @@ class Part < ApplicationRecord
 end
 ```
 
-The second way to declare a many-to-many relationship is to use `has_many :through`. This makes the association indirectly, through a join model:
+Phương pháp thứ hai để khai báo mối quan hệ nhiều-nhiều là dùng `has_many :through`. 
+Phương pháp này tạo association không trực tiếp, thông qua việc join model(giao hai model):
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -437,13 +473,19 @@ class Part < ApplicationRecord
 end
 ```
 
-The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
+Nguyên tắc đơn giản nhất là bạn nên thiết lập mối quan hệ `has_many :through` 
+nếu bạn cần làm việc với mối quan hệ model(model thứ 3) như là một thực thể(entity) độc lập. 
+Nếu bạn không cần làm thêm bất cứ điều gì với mối quan hệ model, 
+thì nên sử dụng `has_and_belongs_to_many` sẽ đơn giản hơn (mặc dù bạn sẽ cần phải nhớ tạo bảng joining table(bảng giao giữa hai bảng) trong cơ sở dữ liệu).
 
-You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
+Bạn nên dùng `has_many :through` nếu bạn cần validations, callbacks hoặc thêm các thuộc tính trên join model(model giao).
 
 ### Polymorphic Associations
 
-A slightly more advanced twist on associations is the _polymorphic association_. With polymorphic associations, a model can belong to more than one other model, on a single association. For example, you might have a picture model that belongs to either an employee model or a product model. Here's how this could be declared:
+Hơi nâng cao hơn một chút về associations là _polymorphic association(kết hợp đa hình)_. 
+Với polymorphic associations, một model có thể thuộc nhiều hơn một model khác, trên một association duy nhất. 
+Ví dụ, Bạn có một picture model mà nó thuộc về một trong hai employee model hoặc a product model. 
+Sau đây là cách khai báo:
 
 ```ruby
 class Picture < ApplicationRecord
@@ -459,11 +501,14 @@ class Product < ApplicationRecord
 end
 ```
 
-You can think of a polymorphic `belongs_to` declaration as setting up an interface that any other model can use. From an instance of the `Employee` model, you can retrieve a collection of pictures: `@employee.pictures`.
+Bạn có thể nghĩ rằng một khai báo đa hình(polymorphic) `belongs_to` thiết lập một interface cho các model khác có thể dùng. 
+Từ một đối tượng của `Employee` model, bạn có thể lấy một tập hợp các pictures: `@employee.pictures`.
 
-Similarly, you can retrieve `@product.pictures`.
+Tương tự, bạn có thể lấy `@product.pictures`.
 
-If you have an instance of the `Picture` model, you can get to its parent via `@picture.imageable`. To make this work, you need to declare both a foreign key column and a type column in the model that declares the polymorphic interface:
+Nếu bạn có một đối tượng của model `Picture`, bạn có thể lấy được parent của nó thông qua `@picture.imageable`. 
+Để làm được điều này, bạn cần khai báo cả hai column foreign key và column type trong model 
+mà nó khai báo polymorphic interface:
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[5.0]
@@ -480,7 +525,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
 end
 ```
 
-This migration can be simplified by using the `t.references` form:
+Migration này có thể dùng dạng `t.references`:
 
 ```ruby
 class CreatePictures < ActiveRecord::Migration[5.0]
@@ -498,7 +543,10 @@ end
 
 ### Self Joins
 
-In designing a data model, you will sometimes find a model that should have a relation to itself. For example, you may want to store all employees in a single database model, but be able to trace relationships such as between manager and subordinates. This situation can be modeled with self-joining associations:
+Trong thiết kế một model dữ liệu, đôi khi bạn sẽ nhận ra một model nên có mối quan hệ với chính nó. 
+Ví dụ, bạn có thể muốn chứa tất cả các employees trong một model csdl duy nhất, 
+nhưng có thể theo dõi các mối quan hệ như giữa manager and subordinates. 
+Trong trường hợp này bạn có thể tạo model với self-joining associations:
 
 ```ruby
 class Employee < ApplicationRecord
@@ -509,9 +557,9 @@ class Employee < ApplicationRecord
 end
 ```
 
-With this setup, you can retrieve `@employee.subordinates` and `@employee.manager`.
+Với thiết lập này, bạn có thể lấy `@employee.subordinates` và `@employee.manager`.
 
-In your migrations/schema, you will add a references column to the model itself.
+Trong migrations/schema của bạn, bạn sẽ thêm một references column đến chính bản thân model đó.
 
 ```ruby
 class CreateEmployees < ActiveRecord::Migration[5.0]
@@ -524,10 +572,10 @@ class CreateEmployees < ActiveRecord::Migration[5.0]
 end
 ```
 
-Tips, Tricks, and Warnings
+Mẹo, thủ thuật và các cảnh báo
 --------------------------
 
-Here are a few things you should know to make efficient use of Active Record associations in your Rails applications:
+Dưới đây là một ít điều mà bạn nên biết để sử dụng Active Record associations một cách hiệu quả hợp lý:
 
 * Controlling caching
 * Avoiding name collisions
@@ -537,34 +585,45 @@ Here are a few things you should know to make efficient use of Active Record ass
 
 ### Controlling Caching
 
-All of the association methods are built around caching, which keeps the result of the most recent query available for further operations. The cache is even shared across methods. For example:
+Tất cả các methods association đều được xây dựng xung quanh caching, nó giữ các kết quả truy vấn gần đây nhất để
+sử dụng cho các thao tác trong tương lai. Cache thậm chí được chia sẻ giữa các methods. Ví dụ:
 
 ```ruby
-author.books                 # retrieves books from the database
-author.books.size            # uses the cached copy of books
-author.books.empty?          # uses the cached copy of books
+author.books                 # lấy books từ csdl
+author.books.size            # dùng cached đã được lưu của books
+author.books.empty?          # dùng cached đã được lưu của books
 ```
 
-But what if you want to reload the cache, because data might have been changed by some other part of the application? Just call `reload` on the association:
+Nhưng nếu bạn muốn tải lại(reload) cached, bởi vì dữ liệu có thể thay đổi vì nguyên nhân nào đó trong ứng dụng? 
+Chỉ cần gọi `reload` trên association:
 
 ```ruby
-author.books                 # retrieves books from the database
-author.books.size            # uses the cached copy of books
-author.books.reload.empty?   # discards the cached copy of books
-                             # and goes back to the database
+author.books                 # lấy books từ csdl
+author.books.size            # dùng cached đã được lưu của books
+author.books.reload.empty?   # hủy cached đã được lưu của books
+                             # và quay lại csdl
 ```
 
-### Avoiding Name Collisions
+### Tránh xung đột tên
 
-You are not free to use just any name for your associations. Because creating an association adds a method with that name to the model, it is a bad idea to give an association a name that is already used for an instance method of `ActiveRecord::Base`. The association method would override the base method and break things. For instance, `attributes` or `connection` are bad names for associations.
+Bạn không được sử dụng bất kỳ tên nào với associations của bạn. 
+Bởi vì việc tạo associations thêm các method với tên của nó vào model, 
+sẽ là ý tưởng tệ hại nếu thêm một tên association mà đã được sử dụng với một method của `ActiveRecord::Base`. 
+method association có thể ghi đè method cơ sở và làm hỏng mọi thứ. 
+Ví dụ, `attributes` hoặc `connection` là các tên không được dùng cho associations.
 
-### Updating the Schema
+### Cập nhât lược đồ csdl(Schema)
 
-Associations are extremely useful, but they are not magic. You are responsible for maintaining your database schema to match your associations. In practice, this means two things, depending on what sort of associations you are creating. For `belongs_to` associations you need to create foreign keys, and for `has_and_belongs_to_many` associations you need to create the appropriate join table.
+Associations cực kỳ hữu ích, nhưng chúng không có ma thuật. 
+Bạn chịu trách nhiệm duy trì database schema trùng với associations của bạn. 
+Trong thực tế, điều này có nghĩa là 2 việc cần làm, tùy thuộc vào loại associations mà bạn đang tạo. 
+Dành cho `belongs_to` associations bạn cần tạo foreign keys, 
+và `has_and_belongs_to_many` associations bạn cần tạo bảng join thích hợp.
 
-#### Creating Foreign Keys for `belongs_to` Associations
+#### Tạo Foreign Keys dành cho `belongs_to` Associations
 
-When you declare a `belongs_to` association, you need to create foreign keys as appropriate. For example, consider this model:
+Khi bạn khai báo một `belongs_to` association, bạn cần tạo foreign keys thích hợp. 
+Ví dụ, xem xét model sau:
 
 ```ruby
 class Book < ApplicationRecord
@@ -572,7 +631,7 @@ class Book < ApplicationRecord
 end
 ```
 
-This declaration needs to be backed up by the proper foreign key declaration on the books table:
+Khai báo này cần được sao lưu bằng cách khai báo chính xác foreign key trên bảng books:
 
 ```ruby
 class CreateBooks < ActiveRecord::Migration[5.0]
@@ -586,10 +645,11 @@ class CreateBooks < ActiveRecord::Migration[5.0]
 end
 ```
 
-If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
+Nếu bạn tạo association một thời gian sau khi bạn tạo các model cơ bản, 
+bạn cần nhớ tạo một `add_column` migration để cung cấp các foreign key cần thiết.
 
-It's a good practice to add an index on the foreign key to improve queries
-performance and a foreign key constraint to ensure referential data integrity:
+Một thói quen tốt là nên thêm index trên các foreign key để cải thiện tốc độ
+truy vấn và một ràng buộc foreign key để đảm bảo sự toàn vẹn giữ liệu:
 
 ```ruby
 class CreateBooks < ActiveRecord::Migration[5.0]
@@ -606,13 +666,24 @@ class CreateBooks < ActiveRecord::Migration[5.0]
 end
 ```
 
-#### Creating Join Tables for `has_and_belongs_to_many` Associations
+#### Tạo bảng join(Join Tables) dành cho `has_and_belongs_to_many` Associations
 
-If you create a `has_and_belongs_to_many` association, you need to explicitly create the joining table. Unless the name of the join table is explicitly specified by using the `:join_table` option, Active Record creates the name by using the lexical book of the class names. So a join between author and book models will give the default join table name of "authors_books" because "a" outranks "b" in lexical ordering.
+Nếu bạn tạo một `has_and_belongs_to_many` association, bạn sẽ cần tạo một bảng join. 
+Trừ khi tên của bảng join được chỉ định rõ ràng bằng cách dùng `:join_table` option, 
+Active Record tạo tên bằng cách sử dụng danh sách từ vựng của tên class. 
+Nên giao giữa author và book models sẽ tạo một join tables với tên mặc định là "authors_books" 
+bởi vì "a" đứng trước "b" theo thứ tự từ vựng.
 
-WARNING: The precedence between model names is calculated using the `<=>` operator for `String`. This means that if the strings are of different lengths, and the strings are equal when compared up to the shortest length, then the longer string is considered of higher lexical precedence than the shorter one. For example, one would expect the tables "paper_boxes" and "papers" to generate a join table name of "papers_paper_boxes" because of the length of the name "paper_boxes", but it in fact generates a join table name of "paper_boxes_papers" (because the underscore '\_' is lexicographically _less_ than 's' in common encodings).
+Cảnh báo: Độ ưu tiên giữa các tên model được tính toán dùng toán tử `<=>` dành cho chuỗi `String`. 
+Điều này có nghĩa là nếu các chuỗi có độ dài khác nhau, 
+và các chuỗi đều bằng nhau khi so sánh độ dài nhỏ nhất, 
+thì chuỗi dài hơn được xem xét độ ưu tiên cao hơn so với chuỗi có độ dài nhỏ hơn. 
+Ví dụ, một bảng "paper_boxes" và "papers" khi join lại với nhau
+sẽ tạo ra bảng "papers_paper_boxes" bởi vì độ dài của tên "paper_boxes" lớn hơn, 
+nhưng trên thực tế nó sẽ tạo ra một bảng join "paper_boxes_papers" 
+  (bởi vì dấu gạch dưới '\_' có thứ tự từ điển _bé_ hơn 's' trong encodings phổ biến).
 
-Whatever the name, you must manually generate the join table with an appropriate migration. For example, consider these associations:
+cho dù có là tên gì thì bạn cũng phải tạo ra migration thích hợp. Ví dụ, xem xét associations:
 
 ```ruby
 class Assembly < ApplicationRecord
@@ -624,7 +695,7 @@ class Part < ApplicationRecord
 end
 ```
 
-These need to be backed up by a migration to create the `assemblies_parts` table. This table should be created without a primary key:
+Cần được lưu giữ bởi một migration để tạo bảng `assemblies_parts`. Bảng này nên được tạo mà không có primary key:
 
 ```ruby
 class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
@@ -640,9 +711,12 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
 end
 ```
 
-We pass `id: false` to `create_table` because that table does not represent a model. That's required for the association to work properly. If you observe any strange behavior in a `has_and_belongs_to_many` association like mangled model IDs, or exceptions about conflicting IDs, chances are you forgot that bit.
+Chúng ta đặt `id: false` vào `create_table` bởi vì bảng trên không mô tả một model. 
+Điều này là bắt buộc để cho các association làm việc đúng. 
+Nếu bạn quan sát thấy bất kỳ hành vì kỳ lạ nào trong `has_and_belongs_to_many` association 
+như bị đọc sai model IDs, hoặc xung đột exception IDs, có khả năng bạn đã quên điều ở trên.
 
-You can also use the method `create_join_table`
+Ngoài ra bạn có thể dùng method `create_join_table`
 
 ```ruby
 class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
@@ -655,9 +729,10 @@ class CreateAssembliesPartsJoinTable < ActiveRecord::Migration[5.0]
 end
 ```
 
-### Controlling Association Scope
+### Kiểm soát phạm vi của Association
 
-By default, associations look for objects only within the current module's scope. This can be important when you declare Active Record models within a module. For example:
+Mặc định, associations tìm kiếm các objects chỉ bên trong phạm vi của module hiện tại. 
+Điều này có thể quan trọng khi bạn khai báo Active Record models bên trong một module. Ví dụ:
 
 ```ruby
 module MyApplication
@@ -673,7 +748,8 @@ module MyApplication
 end
 ```
 
-This will work fine, because both the `Supplier` and the `Account` class are defined within the same scope. But the following will _not_ work, because `Supplier` and `Account` are defined in different scopes:
+Mẫu trên sẽ làm việc tốt, bởi vì cả hai `Supplier` và `Account` class đều được định nghĩa bên trong cùng scope. 
+Nhưng như dưới đây sẽ _không_ làm việc bởi vì `Supplier` và `Account` đều được định nghĩa trong scopes khác nhau:
 
 ```ruby
 module MyApplication
@@ -691,7 +767,8 @@ module MyApplication
 end
 ```
 
-To associate a model with a model in a different namespace, you must specify the complete class name in your association declaration:
+Associate một model với một model trong một namespace khác, 
+bạn phải chỉ rõ tên class đầy đủ trong khai báo association:
 
 ```ruby
 module MyApplication
@@ -711,9 +788,9 @@ module MyApplication
 end
 ```
 
-### Bi-directional Associations
+### Associations Hai chiều
 
-It's normal for associations to work in two directions, requiring declaration on two different models:
+Bình thường các Associations làm việc theo hai hướng, yêu cầu khai báo hai models khác nhau:
 
 ```ruby
 class Author < ApplicationRecord
@@ -725,7 +802,9 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will attempt to automatically identify that these two models share a bi-directional association based on the association name. In this way, Active Record will only load one copy of the `Author` object, making your application more efficient and preventing inconsistent data:
+Active Record sẽ cố gắng để tự động xác định rằng hai models chia sẻ một association hai chiều
+dựa trên tên của association. Theo cách này, Active Record sẽ chỉ load một bản sao của đối tượng `Author`, 
+làm cho ứng dụng của bạn hiệu quả hơn và ngăn ngừa dữ liệu không nhất quán:
 
 ```ruby
 a = Author.first
@@ -735,7 +814,8 @@ a.first_name = 'David'
 a.first_name == b.author.first_name # => true
 ```
 
-Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain any of the following options:
+Active Record hỗ trợ tự động xác định dành cho hầu hết các associations với tên chuẩn. 
+Tuy nhiên, Active Record sẽ không tự động xác định một associations hai chiều mà nó chứa bất kỳ các options sau:
 
 * `:conditions`
 * `:through`
@@ -743,7 +823,7 @@ Active Record supports automatic identification for most associations with stand
 * `:class_name`
 * `:foreign_key`
 
-For example, consider the following model declarations:
+Ví dụ, xem xét việc khai báo model như sau:
 
 ```ruby
 class Author < ApplicationRecord
@@ -755,7 +835,7 @@ class Book < ApplicationRecord
 end
 ```
 
-Active Record will no longer automatically recognize the bi-directional association:
+Active Record sẽ không tự động nhận diện association hai chiều:
 
 ```ruby
 a = Author.first
@@ -765,7 +845,7 @@ a.first_name = 'David'
 a.first_name == b.writer.first_name # => false
 ```
 
-Active Record provides the `:inverse_of` option so you can explicitly declare bi-directional associations:
+Active Record cung cấp `:inverse_of` option nên bạn có thể khai báo associations hai chiều như sau:
 
 ```ruby
 class Author < ApplicationRecord
@@ -777,7 +857,8 @@ class Book < ApplicationRecord
 end
 ```
 
-By including the `:inverse_of` option in the `has_many` association declaration, Active Record will now recognize the bi-directional association:
+Bằng cách thêm `:inverse_of` option trong khái báo `has_many` association, Active Record 
+sẽ biết làm thế nào để nhận diện association hai chiều:
 
 ```ruby
 a = Author.first
@@ -787,24 +868,28 @@ a.first_name = 'David'
 a.first_name == b.writer.first_name # => true
 ```
 
-There are a few limitations to `:inverse_of` support:
+Có một ít giới hạn với `:inverse_of` được hỗ trợ:
 
-* They do not work with `:through` associations.
-* They do not work with `:polymorphic` associations.
-* They do not work with `:as` associations.
+* Chúng không làm việc với `:through` associations.
+* Chúng không làm việc với `:polymorphic` associations.
+* Chúng không làm việc với `:as` associations.
 
-Detailed Association Reference
+Association tham khảo chi tiết
 ------------------------------
 
-The following sections give the details of each type of association, including the methods that they add and the options that you can use when declaring an association.
+Sau đây là phần trình bày chi tiết của mỗi association, 
+bao gồm các method mà chúng được thêm và các options mà bạn có thể dùng khi khai báo association.
 
-### `belongs_to` Association Reference
+### `belongs_to` Association tham khảo
 
-The `belongs_to` association creates a one-to-one match with another model. In database terms, this association says that this class contains the foreign key. If the other class contains the foreign key, then you should use `has_one` instead.
+`belongs_to` association tạo ra một liên kết một-một với model khác. Trong csdl, 
+association cho biết rằng class này chứa foreign key. 
+Nếu class khác chứa foreign key, 
+thì bạn nên dùng `has_one` thay vào đó.
 
-#### Methods Added by `belongs_to`
+#### Các methods được thêm bởi `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
+Khi bạn khai báo một `belongs_to` association, class được khai báo tự động nhận 5 method liên quan tới association:
 
 * `association`
 * `association=(associate)`
@@ -813,7 +898,8 @@ When you declare a `belongs_to` association, the declaring class automatically g
 * `create_association!(attributes = {})`
 * `reload_association`
 
-In all of these methods, `association` is replaced with the symbol passed as the first argument to `belongs_to`. For example, given the declaration:
+Trong tất cả các methods, `association` được thay thế với các symbol được đặt vào
+như là đối số đầu tiên của `belongs_to`. Ví dụ, cho khai báo sau:
 
 ```ruby
 class Book < ApplicationRecord
@@ -821,7 +907,7 @@ class Book < ApplicationRecord
 end
 ```
 
-Each instance of the `Book` model will have these methods:
+Mỗi đối tượng của `Book` model sẽ có những methods sau:
 
 ```ruby
 author
@@ -832,17 +918,21 @@ create_author!
 reload_author
 ```
 
-NOTE: When initializing a new `has_one` or `belongs_to` association you must use the `build_` prefix to build the association, rather than the `association.build` method that would be used for `has_many` or `has_and_belongs_to_many` associations. To create one, use the `create_` prefix.
+Lưu ý: khi khởi tạo mới `has_one` hoặc `belongs_to` association bạn phải dùng tiền tố `build_` để 
+xây dựng association, thay vì `association.build` được sử dụng cho `has_many` hoặc `has_and_belongs_to_many` associations. 
+Để tạo, dùng tiền tố `create_`.
 
 ##### `association`
 
-The `association` method returns the associated object, if any. If no associated object is found, it returns `nil`.
+Method `association` trả về một đối tượng đã associated, nếu có. Nếu không có đối tượng nào thì, thì nó trả về rỗng `nil`.
 
 ```ruby
 @author = @book.author
 ```
 
-If the associated object has already been retrieved from the database for this object, the cached version will be returned. To override this behavior (and force a database read), call `#reload_association` on the parent object.
+If the associated object has already been retrieved from the database for this object, 
+the cached version will be returned. To override this behavior (and force a database read), 
+call `#reload_association` on the parent object.
 
 ```ruby
 @author = @book.reload_author
