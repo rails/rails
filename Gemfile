@@ -61,7 +61,7 @@ group :job do
   gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
-  gem "delayed_job", require: false
+  gem "delayed_job", require: false, github: "collectiveidea/delayed_job"
   gem "queue_classic", github: "QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
