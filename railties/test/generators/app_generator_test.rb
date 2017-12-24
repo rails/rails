@@ -105,6 +105,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ::DEFAULT_APP_FILES
   end
 
+  def test_skip_bundle
+    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      # skip_bundle is only about running bundle install, ensure the Gemfile is still
+      # generated.
+      assert_file "Gemfile"
+    end
+  end
+
   def test_assets
     run_generator
 

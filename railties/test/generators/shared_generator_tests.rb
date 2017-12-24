@@ -103,15 +103,6 @@ module SharedGeneratorTests
     end
   end
 
-  def test_skip_bundle
-    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
-      quietly { generator.invoke_all }
-      # skip_bundle is only about running bundle install, ensure the Gemfile is still
-      # generated.
-      assert_file "Gemfile"
-    end
-  end
-
   def test_skip_git
     run_generator [destination_root, "--skip-git", "--full"]
     assert_no_file(".gitignore")
