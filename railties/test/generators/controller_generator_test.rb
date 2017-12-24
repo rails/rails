@@ -116,4 +116,26 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/namespace :admin/, routes)
     end
   end
+
+  def test_controller_suffix_is_not_duplicated
+    run_generator ["account_controller"]
+
+    assert_no_file "app/controllers/account_controller_controller.rb"
+    assert_file "app/controllers/account_controller.rb"
+
+    assert_no_file "app/views/account_controller/"
+    assert_file "app/views/account/"
+
+    assert_no_file "test/controllers/account_controller_controller_test.rb"
+    assert_file "test/controllers/account_controller_test.rb"
+
+    assert_no_file "app/helpers/account_controller_helper.rb"
+    assert_file "app/helpers/account_helper.rb"
+
+    assert_no_file "app/assets/javascripts/account_controller.js"
+    assert_file "app/assets/javascripts/account.js"
+
+    assert_no_file "app/assets/stylesheets/account_controller.css"
+    assert_file "app/assets/stylesheets/account.css"
+  end
 end

@@ -20,9 +20,19 @@ module Rails
         route generate_routing_code
       end
 
-      hook_for :template_engine, :test_framework, :helper, :assets
+      hook_for :template_engine, :test_framework, :helper, :assets do |generator|
+        invoke generator, [ remove_possible_suffix(name), actions ]
+      end
 
       private
+
+        def file_name
+          @_file_name ||= remove_possible_suffix(super)
+        end
+
+        def remove_possible_suffix(name)
+          name.sub(/_?controller$/i, "")
+        end
 
         # This method creates nested route entry for namespaced resources.
         # For eg. rails g controller foo/bar/baz index show
