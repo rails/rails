@@ -35,6 +35,11 @@ module ApplicationTests
     test "restart rails server with custom pid file path" do
       skip "PTY unavailable" unless available_pty?
 
+      File.open("#{app_path}/config/boot.rb", "w") do |f|
+        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile.to_s}'"
+        f.puts "require 'bundler/setup'"
+      end
+
       master, slave = PTY.open
       pid = nil
 
