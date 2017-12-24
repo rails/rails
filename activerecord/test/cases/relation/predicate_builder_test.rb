@@ -14,5 +14,10 @@ module ActiveRecord
     ensure
       Topic.reset_column_information
     end
+
+    def test_range_collapsing_with_begin_and_end_equality
+      date = Date.new(2004, 04, 15)
+      assert_no_match(/BETWEEN/i, Topic.where(last_read: date..date).to_sql)
+    end
   end
 end

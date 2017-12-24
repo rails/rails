@@ -28,6 +28,8 @@ module ActiveRecord
           attribute.gteq(begin_bind)
         elsif value.exclude_end?
           attribute.gteq(begin_bind).and(attribute.lt(end_bind))
+        elsif value.begin == value.end
+          attribute.eq(begin_bind)
         else
           attribute.between(RangeWithBinds.new(begin_bind, end_bind))
         end
