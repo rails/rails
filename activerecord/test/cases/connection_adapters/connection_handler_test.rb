@@ -232,15 +232,15 @@ module ActiveRecord
         def test_a_class_using_custom_pool_and_switching_back_to_primary
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
 
           pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
-          assert_equal klass2.connection.object_id, pool.connection.object_id
-          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, pool.connection
+          refute_same klass2.connection, ActiveRecord::Base.connection
 
           klass2.remove_connection
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
 
         def test_connection_specification_name_should_fallback_to_parent
@@ -255,8 +255,8 @@ module ActiveRecord
         def test_remove_connection_should_not_remove_parent
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
           klass2.remove_connection
-          refute_nil ActiveRecord::Base.connection.object_id
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          refute_nil ActiveRecord::Base.connection
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
       end
     end
