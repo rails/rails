@@ -1,3 +1,7 @@
+*   Fix to invoke callbacks when using `update_attribute`.
+
+    *Mike Busch*
+
 *   Fix `count(:all)` to correctly work `distinct` with custom SELECT list.
 
     *Ryuta Kamizono*

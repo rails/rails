@@ -402,11 +402,7 @@ module ActiveRecord
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
-      if has_changes_to_save?
-        save(validate: false)
-      else
-        true
-      end
+      save(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
