@@ -324,7 +324,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator.stub :rails_command, command_check do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
   end
 
@@ -762,7 +764,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "webpacker"
@@ -783,7 +787,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
   end
 
