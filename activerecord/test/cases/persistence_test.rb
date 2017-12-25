@@ -493,6 +493,9 @@ class PersistenceTest < ActiveRecord::TestCase
 
     Topic.find(1).update_attribute(:approved, false)
     assert !Topic.find(1).approved?
+
+    Topic.find(1).update_attribute(:change_approved_before_save, true)
+    assert Topic.find(1).approved?
   end
 
   def test_update_attribute_for_readonly_attribute
