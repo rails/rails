@@ -297,7 +297,7 @@ module ActiveRecord
       end
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type)
+        if valid_alter_table_type?(type) && !options[:primary_key]
           super(table_name, column_name, type, options)
         else
           alter_table(table_name) do |definition|

@@ -267,6 +267,25 @@ module LegacyPrimaryKeyTestCases
     end
   end
 
+  if current_adapter?(:SQLite3Adapter)
+    def test_add_column_with_legacy_primary_key_should_work
+      @migration = Class.new(migration_class) {
+        def change
+          create_table :legacy_primary_keys, id: false do |t|
+            t.integer :dummy
+          end
+          add_column :legacy_primary_keys, :id, :primary_key
+        end
+      }.new
+
+      @migration.migrate(:up)
+
+      assert_equal "id", LegacyPrimaryKey.primary_key
+      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+      assert_not legacy_pk.null
+    end
+  end
+
   def test_legacy_join_table_foreign_keys_should_be_integer
     @migration = Class.new(migration_class) {
       def change
