@@ -179,9 +179,7 @@ module LegacyPrimaryKeyTestCases
 
     @migration.migrate(:up)
 
-    legacy_pk = LegacyPrimaryKey.columns_hash["id"]
-    assert_not legacy_pk.bigint?
-    assert_not legacy_pk.null
+    assert_legacy_primary_key
 
     legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
     assert_not legacy_ref.bigint?
@@ -216,74 +214,50 @@ module LegacyPrimaryKeyTestCases
     assert_match %r{create_table "legacy_primary_keys", id: :integer, default: nil}, schema
   end
 
-  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
-    def test_legacy_primary_key_in_create_table_should_be_integer
-      @migration = Class.new(migration_class) {
-        def change
-          create_table :legacy_primary_keys, id: false do |t|
-            t.primary_key :id
-          end
+  def test_legacy_primary_key_in_create_table_should_be_integer
+    @migration = Class.new(migration_class) {
+      def change
+        create_table :legacy_primary_keys, id: false do |t|
+          t.primary_key :id
         end
-      }.new
+      end
+    }.new
 
-      @migration.migrate(:up)
+    @migration.migrate(:up)
 
-      schema = dump_table_schema "legacy_primary_keys"
-      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
-    end
-
-    def test_legacy_primary_key_in_change_table_should_be_integer
-      @migration = Class.new(migration_class) {
-        def change
-          create_table :legacy_primary_keys, id: false do |t|
-            t.integer :dummy
-          end
-          change_table :legacy_primary_keys do |t|
-            t.primary_key :id
-          end
-        end
-      }.new
-
-      @migration.migrate(:up)
-
-      schema = dump_table_schema "legacy_primary_keys"
-      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
-    end
-
-    def test_add_column_with_legacy_primary_key_should_be_integer
-      @migration = Class.new(migration_class) {
-        def change
-          create_table :legacy_primary_keys, id: false do |t|
-            t.integer :dummy
-          end
-          add_column :legacy_primary_keys, :id, :primary_key
-        end
-      }.new
-
-      @migration.migrate(:up)
-
-      schema = dump_table_schema "legacy_primary_keys"
-      assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
-    end
+    assert_legacy_primary_key
   end
 
-  if current_adapter?(:SQLite3Adapter)
-    def test_add_column_with_legacy_primary_key_should_work
-      @migration = Class.new(migration_class) {
-        def change
-          create_table :legacy_primary_keys, id: false do |t|
-            t.integer :dummy
-          end
-          add_column :legacy_primary_keys, :id, :primary_key
+  def test_legacy_primary_key_in_change_table_should_be_integer
+    @migration = Class.new(migration_class) {
+      def change
+        create_table :legacy_primary_keys, id: false do |t|
+          t.integer :dummy
         end
-      }.new
+        change_table :legacy_primary_keys do |t|
+          t.primary_key :id
+        end
+      end
+    }.new
 
-      @migration.migrate(:up)
+    @migration.migrate(:up)
 
-      assert_equal "id", LegacyPrimaryKey.primary_key
-      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
-      assert_not legacy_pk.null
-    end
+    assert_legacy_primary_key
+  end
+
+  def test_add_column_with_legacy_primary_key_should_be_integer
+    @migration = Class.new(migration_class) {
+      def change
+        create_table :legacy_primary_keys, id: false do |t|
+          t.integer :dummy
+        end
+        add_column :legacy_primary_keys, :id, :primary_key
+      end
+    }.new
+
+    @migration.migrate(:up)
+
+    assert_legacy_primary_key
   end
 
   def test_legacy_join_table_foreign_keys_should_be_integer
@@ -352,6 +326,22 @@ module LegacyPrimaryKeyTestCases
       assert_match %r{create_table "legacy_primary_keys", id: :bigint, default: nil}, schema
     end
   end
+
+  private
+    def assert_legacy_primary_key
+      assert_equal "id", LegacyPrimaryKey.primary_key
+
+      legacy_pk = LegacyPrimaryKey.columns_hash["id"]
+
+      assert_equal :integer, legacy_pk.type
+      assert_not legacy_pk.bigint?
+      assert_not legacy_pk.null
+
+      if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+        schema = dump_table_schema "legacy_primary_keys"
+        assert_match %r{create_table "legacy_primary_keys", id: :(?:integer|serial), (?!default: nil)}, schema
+      end
+    end
 end
 
 module LegacyPrimaryKeyTest
