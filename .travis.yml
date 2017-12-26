@@ -63,11 +63,14 @@ rvm:
   - 2.2.8
   - 2.3.5
   - 2.4.2
+  - 2.5.0
   - ruby-head
 
 matrix:
   include:
     - rvm: 2.4.2
+      env: "GEM=av:ujs"
+    - rvm: 2.5.0
       env: "GEM=av:ujs"
     - rvm: 2.2.8
       env: "GEM=aj:integration"
@@ -88,6 +91,12 @@ matrix:
         - redis-server
         - rabbitmq
     - rvm: ruby-head
+      env: "GEM=aj:integration"
+      services:
+        - memcached
+        - redis-server
+        - rabbitmq
+    - rvm: 2.5.0
       env: "GEM=aj:integration"
       services:
         - memcached
