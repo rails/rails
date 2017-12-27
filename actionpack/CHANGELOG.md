@@ -1,3 +1,11 @@
+*   Add raise_on_missing_translations support for controllers.
+
+    This configuration determines whether an error should be raised for missing translations.
+    It can be enabled through `config.i18n.raise_on_missing_translations`. Note that described
+    configuration also affects raising error for missing translations in views.
+
+    *fatkodima*
+
 *   Added `compact` and `compact!` to `ActionController::Parameters`.
 
     *Eugene Kenny*
