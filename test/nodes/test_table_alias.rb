@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'helper'
-require 'ostruct'
 
 module Arel
   module Nodes
