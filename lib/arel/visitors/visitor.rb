@@ -6,11 +6,13 @@ module Arel
         @dispatch = get_dispatch_cache
       end
 
-      def accept object
-        visit object
+      def accept object, *args
+        visit object, *args
       end
 
       private
+
+      attr_reader :dispatch
 
       def self.dispatch_cache
         Hash.new do |hash, klass|
@@ -22,13 +24,9 @@ module Arel
         self.class.dispatch_cache
       end
 
-      def dispatch
-        @dispatch
-      end
-
-      def visit object
+      def visit object, *args
         dispatch_method = dispatch[object.class]
-        send dispatch_method, object
+        send dispatch_method, object, *args
       rescue NoMethodError => e
         raise e if respond_to?(dispatch_method, true)
         superklass = object.class.ancestors.find { |klass|

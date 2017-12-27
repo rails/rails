@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 require 'bigdecimal'
 require 'date'
-require 'arel/visitors/reduce'
 
 module Arel
   module Visitors
@@ -11,7 +10,7 @@ module Arel
       end
     end
 
-    class ToSql < Arel::Visitors::Reduce
+    class ToSql < Arel::Visitors::Visitor
       ##
       # This is some roflscale crazy stuff.  I'm roflscaling this because
       # building SQL queries is a hotspot.  I will explain the roflscale so that
