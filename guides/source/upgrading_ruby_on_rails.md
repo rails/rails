@@ -65,6 +65,17 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.1 to Rails 5.2
+-------------------------------------
+
+For more information on changes made to Rails 5.2 please see the [release notes](5_2_release_notes.html).
+
+### Bootsnap
+
+Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
+The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+otherwise change the `boot.rb` to not use bootsnap.
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
