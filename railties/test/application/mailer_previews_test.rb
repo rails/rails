@@ -55,7 +55,7 @@ module ApplicationTests
       assert_equal 200, last_response.status
     end
 
-    test "mailer previews are loaded from the default preview_path" do
+    test "mailer previews are loaded from the default preview_paths" do
       mailer "notifier", <<-RUBY
         class Notifier < ActionMailer::Base
           default from: "from@example.com"
@@ -85,37 +85,41 @@ module ApplicationTests
       assert_match '<li><a href="/rails/mailers/notifier/foo">foo</a></li>', last_response.body
     end
 
-    test "mailer previews are loaded from a custom preview_path" do
+    test "mailer previews are loaded from custom preview_paths" do
       app_dir "lib/mailer_previews"
-      add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
+      add_to_config "config.action_mailer.preview_paths = ['#{app_path}/lib/notifier_previews', '#{app_path}/lib/confirm_previews']"
 
-      mailer "notifier", <<-RUBY
-        class Notifier < ActionMailer::Base
-          default from: "from@example.com"
+      ["notifier", "confirm"].each do |keyword|
+        mailer keyword, <<-RUBY
+          class #{keyword.camelize} < ActionMailer::Base
+            default from: "from@example.com"
 
-          def foo
-            mail to: "to@example.org"
+            def foo
+              mail to: "to@example.org"
+            end
           end
-        end
-      RUBY
+        RUBY
 
-      text_template "notifier/foo", <<-RUBY
-        Hello, World!
-      RUBY
+        text_template "#{keyword}/foo", <<-RUBY
+          Hello, World!
+        RUBY
 
-      app_file "lib/mailer_previews/notifier_preview.rb", <<-RUBY
-        class NotifierPreview < ActionMailer::Preview
-          def foo
-            Notifier.foo
+        app_file "lib/#{keyword}_previews/notifier_preview.rb", <<-RUBY
+          class #{keyword.camelize}Preview < ActionMailer::Preview
+            def foo
+              #{keyword.camelize}.foo
+            end
           end
-        end
-      RUBY
+        RUBY
+      end
 
       app("development")
 
       get "/rails/mailers"
       assert_match '<h3><a href="/rails/mailers/notifier">Notifier</a></h3>', last_response.body
       assert_match '<li><a href="/rails/mailers/notifier/foo">foo</a></li>', last_response.body
+      assert_match '<h3><a href="/rails/mailers/confirm">Confirm</a></h3>', last_response.body
+      assert_match '<li><a href="/rails/mailers/confirm/foo">foo</a></li>', last_response.body
     end
 
     test "mailer previews are reloaded across requests" do
@@ -255,9 +259,29 @@ module ApplicationTests
       assert_no_match '<li><a href="/rails/mailers/notifier/bar">bar</a></li>', last_response.body
     end
 
-    test "mailer previews are reloaded from a custom preview_path" do
+    test "mailer preview_path option is deprecated" do
+      prev = ActionMailer::Base.preview_paths
+      ActionMailer::Base.preview_paths = ["#{app_path}/lib/mailer/previews"]
+      assert_deprecated do
+        assert "#{app_path}/lib/mailer/previews", ActionMailer::Base.preview_path
+      end
+    ensure
+      ActionMailer::Base.preview_paths = prev
+    end
+
+    test "mailer preview_path= option is deprecated" do
+      prev = ActionMailer::Base.preview_paths
+      assert_deprecated do
+        ActionMailer::Base.preview_path = "#{app_path}/lib/mailer/previews"
+      end
+      assert ["#{app_path}/lib/mailer/previews"], ActionMailer::Base.preview_paths
+    ensure
+      ActionMailer::Base.preview_paths = prev
+    end
+
+    test "mailer previews are reloaded from custom preview_paths" do
       app_dir "lib/mailer_previews"
-      add_to_config "config.action_mailer.preview_path = '#{app_path}/lib/mailer_previews'"
+      add_to_config "config.action_mailer.preview_paths = ['#{app_path}/lib/mailer_previews']"
 
       app("development")
 

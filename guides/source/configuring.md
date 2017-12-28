@@ -856,10 +856,10 @@ values for `:smtp` delivery method.
     config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
     ```
 
-* `config.action_mailer.preview_path` specifies the location of mailer previews.
+* `config.action_mailer.preview_paths` specifies the locations of mailer previews. Appending paths to this configuration option will cause those paths to be used in the search for mailer previews.
 
     ```ruby
-    config.action_mailer.preview_path = "#{Rails.root}/lib/mailer_previews"
+    config.action_mailer.preview_paths << "#{Rails.root}/lib/mailer_previews"
     ```
 
 * `config.action_mailer.show_previews` enable or disable mailer previews. By default this is `true` in development.
@@ -1702,6 +1702,8 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 * `add_locales`: Adds the files in `config/locales` (from the application, railties, and engines) to `I18n.load_path`, making available the translations in these files.
 
 * `add_view_paths`: Adds the directory `app/views` from the application, railties, and engines to the lookup path for view files for the application.
+
+* `add_mailer_preview_paths`: Adds the directory `test/mailers/previews` from the application, railties, and engines to the lookup path for mailer preview files for the application.
 
 * `load_environment_config`: Loads the `config/environments` file for the current environment.
 
