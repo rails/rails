@@ -90,7 +90,7 @@ Continue reading for more information on the built-in service adapters (e.g.
 
 Declare a Disk service in `config/storage.yml`:
 
-``` yaml
+```yaml
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
@@ -100,7 +100,7 @@ local:
 
 Declare an S3 service in `config/storage.yml`:
 
-``` yaml
+```yaml
 amazon:
   service: S3
   access_key_id: ""
@@ -111,7 +111,7 @@ amazon:
 
 Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
 
-``` ruby
+```ruby
 gem "aws-sdk-s3", require: false
 ```
 
@@ -119,7 +119,7 @@ gem "aws-sdk-s3", require: false
 
 Declare an Azure Storage service in `config/storage.yml`:
 
-``` yaml
+```yaml
 azure:
   service: AzureStorage
   path: ""
@@ -130,7 +130,7 @@ azure:
 
 Add the [`azure-storage`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
-``` ruby
+```ruby
 gem "azure-storage", require: false
 ```
 
@@ -138,28 +138,37 @@ gem "azure-storage", require: false
 
 Declare a Google Cloud Storage service in `config/storage.yml`:
 
-``` yaml
+```yaml
 google:
   service: GCS
-  keyfile: {
-    type: "service_account",
-    project_id: "",
-    private_key_id: "",
-    private_key: "",
-    client_email: "",
-    client_id: "",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    token_uri: "https://accounts.google.com/o/oauth2/token",
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
+  credentials: <%= Rails.root.join("path/to/keyfile.json") %>
+  project: ""
+  bucket: ""
+```
+
+Optionally provide a Hash of credentials instead of a keyfile path:
+
+```yaml
+google:
+  service: GCS
+  credentials:
+    type: "service_account"
+    project_id: ""
+    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
+    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key) %>
+    client_email: ""
+    client_id: ""
+    auth_uri: "https://accounts.google.com/o/oauth2/auth"
+    token_uri: "https://accounts.google.com/o/oauth2/token"
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
     client_x509_cert_url: ""
-  }
   project: ""
   bucket: ""
 ```
 
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
-``` ruby
+```ruby
 gem "google-cloud-storage", "~> 1.3", require: false
 ```
 
@@ -173,7 +182,7 @@ service to the new, then go all-in on the new service. Define each of the
 services you'd like to use as described above and reference them from a mirrored
 service.
 
-``` yaml
+```yaml
 s3_west_coast:
   service: S3
   access_key_id: ""
@@ -208,7 +217,7 @@ files. Each record can have one file attached to it.
 For example, suppose your application has a `User` model. If you want each user to
 have an avatar, define the `User` model like this:
 
-``` ruby
+```ruby
 class User < ApplicationRecord
   has_one_attached :avatar
 end
@@ -216,7 +225,7 @@ end
 
 You can create a user with an avatar:
 
-``` ruby
+```ruby
 class SignupController < ApplicationController
   def create
     user = User.create!(user_params)
@@ -329,7 +338,7 @@ supported transformation to the method.
 
 To enable variants, add `mini_magick` to your `Gemfile`:
 
-``` ruby
+```ruby
 gem 'mini_magick'
 ```
 
@@ -511,7 +520,7 @@ want to clear the files, you can do it in an `after_teardown` callback. Doing it
 here ensures that all connections created during the test are complete and
 you won't receive an error from Active Storage saying it can't find a file.
 
-``` ruby
+```ruby
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
 
@@ -533,7 +542,7 @@ the purge job is executed immediately rather at an unknown time in the future.
 You may also want to use a separate service definition for the test environment
 so your tests don't delete the files you create during development.
 
-``` ruby
+```ruby
 # Use inline job processing to make things happen immediately
 config.active_job.queue_adapter = :inline
 
