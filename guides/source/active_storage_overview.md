@@ -108,7 +108,8 @@ amazon:
   region: ""
   bucket: ""
 ```
-Also, add the S3 client gem to your `Gemfile`:
+
+Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
 
 ``` ruby
 gem "aws-sdk-s3", require: false
@@ -127,7 +128,7 @@ azure:
   container: ""
 ```
 
-Also, add the Microsoft Azure Storage client gem to your `Gemfile`:
+Add the [`azure-storage`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
 ``` ruby
 gem "azure-storage", require: false
@@ -156,7 +157,7 @@ google:
   bucket: ""
 ```
 
-Also, add the Google Cloud Storage client gem to your `Gemfile`:
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ``` ruby
 gem "google-cloud-storage", "~> 1.3", require: false
