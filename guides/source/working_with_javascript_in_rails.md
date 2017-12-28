@@ -351,7 +351,7 @@ that have a `data-remote` attribute:
 
 NOTE: All handlers bound to these events are always passed the event object as the
 first argument. The table below describes the extra parameters passed after the
-event argument. For exemple, if the extra parameters are listed as `xhr, settings`,
+event argument. For example, if the extra parameters are listed as `xhr, settings`,
 then to access them, you would define your handler with `function(event, xhr, settings)`.
 
 | Event name          | Extra parameters | Fired                                                       |
