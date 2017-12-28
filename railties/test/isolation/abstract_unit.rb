@@ -82,22 +82,6 @@ module TestHelpers
       assert_match "charset=utf-8", resp[1]["Content-Type"]
       assert extract_body(resp).match(/Yay! You.*re on Rails!/)
     end
-
-    def assert_success(resp)
-      assert_equal 202, resp[0]
-    end
-
-    def assert_missing(resp)
-      assert_equal 404, resp[0]
-    end
-
-    def assert_header(key, value, resp)
-      assert_equal value, resp[1][key.to_s]
-    end
-
-    def assert_body(expected, resp)
-      assert_equal expected, extract_body(resp)
-    end
   end
 
   module Generation
