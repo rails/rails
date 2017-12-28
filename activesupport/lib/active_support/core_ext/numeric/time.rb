@@ -58,8 +58,8 @@ class Numeric
   # Returns the number of milliseconds equivalent to the seconds provided.
   # Used with the standard time durations.
   #
-  #   2.in_milliseconds # => 2000
-  #   1.hour.in_milliseconds # => 3600000
+  #   2.in_milliseconds # => 2 000
+  #   1.hour.in_milliseconds # => 3 600 000
   def in_milliseconds
     self * 1000
   end
