@@ -3,7 +3,6 @@ require 'helper'
 
 require 'arel/collectors/bind'
 require 'arel/collectors/composite'
-require 'arel/collectors/sql_string'
 
 module Arel
   module Collectors

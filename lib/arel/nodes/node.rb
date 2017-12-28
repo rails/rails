@@ -1,6 +1,4 @@
 # frozen_string_literal: true
-require 'arel/collectors/sql_string'
-
 module Arel
   module Nodes
     ###

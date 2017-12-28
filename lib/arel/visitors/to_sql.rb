@@ -1,7 +1,4 @@
 # frozen_string_literal: true
-require 'bigdecimal'
-require 'date'
-
 module Arel
   module Visitors
     class UnsupportedVisitError < StandardError

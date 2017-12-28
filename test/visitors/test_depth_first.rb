@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 require 'helper'
-require 'set'
 
 module Arel
   module Visitors

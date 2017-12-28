@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 require 'helper'
 
-require 'arel/collectors/bind'
-
 module Arel
   module Collectors
     class TestBind < Arel::Test
