@@ -51,6 +51,20 @@ module Arel
         assert_equal 'SELECT DISTINCT', compile(core)
       end
 
+      it 'encloses LATERAL queries in parens' do
+        subquery = @table.project(:id).where(@table[:name].matches('foo%'))
+        compile(subquery.lateral).must_be_like %{
+          LATERAL (SELECT id FROM "users" WHERE "users"."name" ILIKE 'foo%')
+        }
+      end
+
+      it 'produces LATERAL queries with alias' do
+        subquery = @table.project(:id).where(@table[:name].matches('foo%'))
+        compile(subquery.lateral('bar')).must_be_like %{
+          LATERAL (SELECT id FROM "users" WHERE "users"."name" ILIKE 'foo%') bar
+        }
+      end
+
       describe "Nodes::Matches" do
         it "should know how to visit" do
           node = @table[:name].matches('foo%')

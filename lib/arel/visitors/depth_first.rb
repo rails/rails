@@ -25,6 +25,7 @@ module Arel
       alias :visit_Arel_Nodes_GroupingElement   :unary
       alias :visit_Arel_Nodes_Grouping          :unary
       alias :visit_Arel_Nodes_Having            :unary
+      alias :visit_Arel_Nodes_Lateral           :unary
       alias :visit_Arel_Nodes_Limit             :unary
       alias :visit_Arel_Nodes_Not               :unary
       alias :visit_Arel_Nodes_Offset            :unary

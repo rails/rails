@@ -202,6 +202,11 @@ module Arel
     end
     alias :minus :except
 
+    def lateral table_name = nil
+      base = table_name.nil? ? ast : as(table_name)
+      Nodes::Lateral.new(base)
+    end
+
     def with *subqueries
       if subqueries.first.is_a? Symbol
         node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
