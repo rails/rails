@@ -141,6 +141,12 @@ module ActionDispatch
           source_to_show_id = source_to_show[:id]
         end
 
+        params_readable = begin
+                            request.parameters
+                          rescue ActionController::BadRequest
+                            false
+                          end
+
         DebugView.new([RESCUES_TEMPLATE_PATH],
           request: request,
           exception: wrapper.exception,
@@ -150,7 +156,8 @@ module ActionDispatch
           routes_inspector: routes_inspector(wrapper.exception),
           source_extracts: wrapper.source_extracts,
           line_number: wrapper.line_number,
-          file: wrapper.file
+          file: wrapper.file,
+          params_readable: params_readable
         )
       end
 

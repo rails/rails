@@ -6,7 +6,9 @@
 <% end %>
 
 <h2 style="margin-top: 30px">Request</h2>
-<p><b>Parameters</b>:</p> <pre><%= debug_params(@request.filtered_parameters) %></pre>
+<% if @params_readable %>
+  <p><b>Parameters</b>:</p> <pre><%= debug_params(@request.filtered_parameters) %></pre>
+<% end %>
 
 <div class="details">
   <div class="summary"><a href="#" onclick="return toggleSessionDump()">Toggle session dump</a></div>

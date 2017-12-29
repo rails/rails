@@ -1,5 +1,5 @@
 <%= @exception.class.to_s %><%
-  if @request.parameters['controller']
+  if @params_readable && @request.parameters['controller']
 %> in <%= @request.parameters['controller'].camelize %>Controller<% if @request.parameters['action'] %>#<%= @request.parameters['action'] %><% end %>
 <% end %>
 

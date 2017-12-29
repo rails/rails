@@ -499,4 +499,23 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
       end
     end
   end
+
+  test "debug exceptions app shows diagnostics when malformed query parameters are provided" do
+    @app = DevelopmentApp
+
+    get "/bad_request?x[y]=1&x[y][][w]=2"
+
+    assert_response 400
+    assert_match "ActionController::BadRequest", body
+  end
+
+  test "debug exceptions app shows diagnostics when malformed query parameters are provided by xhr" do
+    @app = DevelopmentApp
+    xhr_request_env = { "action_dispatch.show_exceptions" => true, "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest" }
+
+    get "/bad_request?x[y]=1&x[y][][w]=2", headers: xhr_request_env
+
+    assert_response 400
+    assert_match "ActionController::BadRequest", body
+  end
 end
