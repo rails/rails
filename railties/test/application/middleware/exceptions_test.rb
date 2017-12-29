@@ -136,5 +136,21 @@ module ApplicationTests
       assert_match(/boooom/, last_response.body)
       assert_match(/測試テスト시험/, last_response.body)
     end
+
+    test "displays diagnostics message when malformed query parameters are provided" do
+      controller :foo, <<-RUBY
+        class FooController < ActionController::Base
+          def index
+          end
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      get "/foo?x[y]=1&x[y][][w]=2"
+      assert_equal 400, last_response.status
+      assert_match "Invalid query parameters", last_response.body
+    end
   end
 end

@@ -1,3 +1,7 @@
+*   Fix a bug where DebugExceptions throws an error when malformed query parameters are provided
+
+    *Yuki Nishijima*, *Stan Lo*
+
 ## Rails 6.0.0.rc1 (April 24, 2019) ##
 
 *   Make system tests take a failed screenshot in a `before_teardown` hook
