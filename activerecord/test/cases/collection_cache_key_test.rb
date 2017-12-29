@@ -141,5 +141,11 @@ module ActiveRecord
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
+
+    test "cache_key with a relation having custom select and order" do
+      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
   end
 end
