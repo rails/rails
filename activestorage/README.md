@@ -124,7 +124,30 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```ruby
     <%= form.file_field :attachments, multiple: true, direct_upload: true %>
     ```
-3. That's it! Uploads begin upon form submission.
+3. Configure CORS on remote to allow uploads from your domain
+
+    You probably need to configure CORS on S3 or GCS to allow uploads.
+    The headers you need to allow for are Content-Type and Content-Md5.
+    For GCS, this is accomplished by by saving something along these lines as config/gcs_policy.json
+
+    ```js
+    [
+      {
+        "origin": ["https://yourhost.yourdomain.com"],
+        "method": ["*"],
+        "responseHeader": ["Content-Type", "Content-Md5"],
+        "maxAgeSeconds": 3600
+      }
+    ]
+    ```
+
+    and then sending it to GCS via:
+
+    ```sh
+    $ gsutil cors set config/gcs_policy.json gs://your_bucket_name
+    ```
+
+4. That's it! Uploads begin upon form submission.
 
 ### Direct upload JavaScript events
 
