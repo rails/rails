@@ -57,12 +57,12 @@ module ActiveSupport
 
     # Returns a <tt>Time</tt> instance that represents the time in +time_zone+.
     def time
-      @time ||= period.to_local(@utc)
+      @time ||= incorporate_utc_offset(@utc, utc_offset)
     end
 
     # Returns a <tt>Time</tt> instance of the simultaneous time in the UTC timezone.
     def utc
-      @utc ||= period.to_utc(@time)
+      @utc ||= incorporate_utc_offset(@time, -utc_offset)
     end
     alias_method :comparable_time, :utc
     alias_method :getgm, :utc
@@ -104,13 +104,13 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'    # => 'Eastern Time (US & Canada)'
     #   Time.zone.now.utc?                          # => false
     def utc?
-      period.offset.abbreviation == :UTC || period.offset.abbreviation == :UCT
+      zone == "UTC" || zone == "UCT"
     end
     alias_method :gmt?, :utc?
 
     # Returns the offset from current time to UTC time in seconds.
     def utc_offset
-      period.utc_total_offset
+      period.observed_utc_offset
     end
     alias_method :gmt_offset, :utc_offset
     alias_method :gmtoff, :utc_offset
@@ -132,7 +132,7 @@ module ActiveSupport
     #   Time.zone = 'Eastern Time (US & Canada)'   # => "Eastern Time (US & Canada)"
     #   Time.zone.now.zone # => "EST"
     def zone
-      period.zone_identifier.to_s
+      period.abbreviation
     end
 
     # Returns a string of the object's date, time, zone, and offset from UTC.
@@ -524,6 +524,16 @@ module ActiveSupport
     end
 
     private
+      SECONDS_PER_DAY = 86400
+
+      def incorporate_utc_offset(time, offset)
+        if time.kind_of?(Date)
+          time + Rational(offset, SECONDS_PER_DAY)
+        else
+          time + offset
+        end
+      end
+
       def get_period_and_ensure_valid_local_time(period)
         # we don't want a Time.local instance enforcing its own DST rules as well,
         # so transfer time values to a utc constructor if necessary

@@ -95,6 +95,14 @@ module ActiveSupport
   def self.to_time_preserves_timezone=(value)
     DateAndTime::Compatibility.preserve_timezone = value
   end
+
+  def self.utc_to_local_returns_utc_offset_times
+    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times
+  end
+
+  def self.utc_to_local_returns_utc_offset_times=(value)
+    DateAndTime::Compatibility.utc_to_local_returns_utc_offset_times = value
+  end
 end
 
 autoload :I18n, "active_support/i18n"

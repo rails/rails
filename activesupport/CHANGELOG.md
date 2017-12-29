@@ -1,3 +1,16 @@
+*   Update to TZInfo v2.0.0.
+
+    This changes the output of `ActiveSupport::TimeZone.utc_to_local`, but
+    can be controlled with the
+    `Rails.application.config.active_support.utc_to_local_returns_utc_offset_times` config.
+
+    New Rails 6.1 apps have it enabled by default, existing apps can upgrade
+    via the config in config/initializers/new_framework_defaults_6_1.rb
+
+    See the `utc_to_local_returns_utc_offset_times` documentation for details.
+
+    *Phil Ross and Jared Beck*
+
 *   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
 
     `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback
