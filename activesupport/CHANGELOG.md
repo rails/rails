@@ -1,3 +1,10 @@
+*   Update to TZInfo v2.0.0.
+
+    `TimeZone#utc_to_local` now returns local times with the appropriate UTC
+    offset (instead of returning local times as UTC).
+
+    *Phil Ross*
+
 *   If the same block is `included` multiple times for a Concern, an exception is no longer raised.
 
     *Mark J. Titorenko*, *Vlad Bokov*
