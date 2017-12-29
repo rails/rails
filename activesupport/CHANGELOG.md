@@ -1,3 +1,15 @@
+*   Update to TZInfo v2.0.0.
+
+    Full adoption is controlled by the
+    `Rails.application.config.active_support.use_tzinfo2_format` config.
+
+    New Rails 6.1 apps have it enabled by default, existing apps can upgrade
+    via the config in config/initializers/new_framework_defaults_6_1.rb
+
+    See the `use_tzinfo2_format` documentation for details.
+
+    *Phil Ross and Jared Beck*
+
 *   [Breaking change] `ActiveSupport::Callbacks#halted_callback_hook` now receive a 2nd argument:
 
     `ActiveSupport::Callbacks#halted_callback_hook` now receive the name of the callback

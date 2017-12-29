@@ -21,3 +21,6 @@
 # This change is not backwards compatible with earlier Rails versions.
 # It's best enabled when your entire app is migrated and stable on 6.1.
 # Rails.application.config.action_dispatch.cookies_same_site_protection = :lax
+
+# Specify whether Rails outputs times in a TZInfo 2 or 1 compatible way.
+# Rails.application.config.active_support.use_tzinfo2_format = true

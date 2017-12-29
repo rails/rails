@@ -203,7 +203,7 @@ module ActiveSupport
       end
 
       def find_tzinfo(name)
-        TZInfo::Timezone.new(MAPPING[name] || name)
+        TZInfo::Timezone.get(MAPPING[name] || name)
       end
 
       alias_method :create, :new
@@ -273,7 +273,7 @@ module ActiveSupport
                 memo
               end
             else
-              create(tz_id, nil, TZInfo::Timezone.new(tz_id))
+              create(tz_id, nil, TZInfo::Timezone.get(tz_id))
             end
           end.sort!
         end
@@ -302,11 +302,11 @@ module ActiveSupport
 
     # Returns the offset of this time zone from UTC in seconds.
     def utc_offset
-      if @utc_offset
-        @utc_offset
-      else
-        tzinfo.current_period.utc_offset if tzinfo && tzinfo.current_period
-      end
+      @utc_offset ||
+        tzinfo&.current_period&.yield_self do |period|
+          ActiveSupport.use_tzinfo2_format ?
+            period.base_utc_offset : period.observed_utc_offset
+        end
     end
 
     # Returns a formatted string of the offset from UTC, or an alternative
@@ -507,10 +507,19 @@ module ActiveSupport
     end
 
     # Adjust the given time to the simultaneous time in the time zone
-    # represented by +self+. Returns a Time.utc() instance -- if you want an
-    # ActiveSupport::TimeWithZone instance, use Time#in_time_zone() instead.
+    # represented by +self+. Returns a local time with the appropriate offset
+    # -- if you want an ActiveSupport::TimeWithZone instance, use
+    # Time#in_time_zone() instead.
+    #
+    # As of tzinfo 2, utc_to_local returns a Time with a non-zero utc_offset.
     def utc_to_local(time)
-      tzinfo.utc_to_local(time)
+      if ActiveSupport.use_tzinfo2_format
+        tzinfo.utc_to_local(time)
+      else
+        tzinfo.utc_to_local(time).yield_self do |t|
+          Time.utc(t.year, t.month, t.day, t.hour, t.min, t.sec, t.sec_fraction)
+        end
+      end
     end
 
     # Adjust the given time to the simultaneous time in UTC. Returns a

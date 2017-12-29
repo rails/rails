@@ -36,4 +36,12 @@ module TimeZoneTestHelpers
     ActiveSupport::TimeZone::MAPPING.clear
     ActiveSupport::TimeZone::MAPPING.merge!(old_mappings)
   end
+
+  def with_tzinfo2_format(value)
+    old_tzinfo2_format = ActiveSupport.use_tzinfo2_format
+    ActiveSupport.use_tzinfo2_format = value
+    yield
+  ensure
+    ActiveSupport.use_tzinfo2_format = old_tzinfo2_format
+  end
 end
