@@ -1,3 +1,11 @@
+*   Allow the use of callable objects as group methods for grouped selects.
+
+    Until now, the `option_groups_from_collection_for_select` method was only able to
+    handle method names as `group_method` and `group_label_method` parameters,
+    it is now able to receive procs and other callable objects too.
+
+    *Jérémie Bonal*
+
 *   Add `preload_link_tag` helper
 
     This helper that allows to the browser to initiate early fetch of resources
