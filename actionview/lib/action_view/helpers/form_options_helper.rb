@@ -217,12 +217,10 @@ module ActionView
       #   array of child objects representing the <tt><option></tt> tags. It can also be any object that responds
       #   to +call+, such as a +proc+, that will be called for each member of the +collection+ to retrieve the
       #   value.
-
       # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
       #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag. It can also be any object
       #   that responds to +call+, such as a +proc+, that will be called for each member of the +collection+ to
       #   retrieve the label.
-
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
       #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
       # * +option_value_method+ - The name of a method which, when called on a child object of a member of
