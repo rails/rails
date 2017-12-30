@@ -111,5 +111,11 @@ module ActiveRecord
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
     end
+
+    test "cache_key with a relation having distinct and order" do
+      developers = Developer.distinct.order(:salary).limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
   end
 end

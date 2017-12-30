@@ -4,8 +4,8 @@ module ActiveRecord
       query_signature = Digest::MD5.hexdigest(collection.to_sql)
       key = "#{collection.model_name.cache_key}/query-#{query_signature}"
 
-      if collection.loaded?
-        size = collection.size
+      if collection.loaded? || collection.distinct_value
+        size = collection.records.size
         if size > 0
           timestamp = collection.max_by(&timestamp_column)._read_attribute(timestamp_column)
         end
