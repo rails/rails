@@ -115,6 +115,26 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_hash_of_expressions
+    assert_difference "@object.num" => 1, "@object.num + 1" => 1 do
+      @object.increment
+    end
+  end
+
+  def test_hash_of_lambda_expressions
+    assert_difference -> { @object.num } => 1, -> { @object.num + 1 } => 1 do
+      @object.increment
+    end
+  end
+
+  def test_hash_of_expressions_identify_failure
+    assert_raises(Minitest::Assertion) do
+      assert_difference "@object.num" => 1, "1 + 1" => 1 do
+        @object.increment
+      end
+    end
+  end
+
   def test_assert_changes_pass
     assert_changes "@object.num" do
       @object.increment
