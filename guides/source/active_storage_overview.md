@@ -206,8 +206,8 @@ production:
 
 NOTE: Files are served from the primary service.
 
-Attach Files to a Model
------------------------
+Attaching Files to Records
+--------------------------
 
 ### `has_one_attached`
 
@@ -294,8 +294,8 @@ Call `images.attached?` to determine whether a particular message has any images
 @message.images.attached?
 ```
 
-Remove File Attached to Model
------------------------------
+Removing Files
+--------------
 
 To remove an attachment from a model, call `purge` on the attachment. Removal
 can be done in the background if your application is setup to use Active Job.
@@ -309,8 +309,8 @@ user.avatar.purge
 user.avatar.purge_later
 ```
 
-Link to Attachments
--------------------
+Linking to Files
+----------------
 
 Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
@@ -329,8 +329,8 @@ helper allows you to set the disposition.
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
-Transform Images
-----------------
+Transforming Images
+-------------------
 
 To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
@@ -350,8 +350,8 @@ location.
 <%= image_tag user.avatar.variant(resize: "100x100") %>
 ```
 
-Preview Non-image Files
------------------------
+Previewing Files
+----------------
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
@@ -373,8 +373,8 @@ install them yourself to use the built-in previewers. Before you install and use
 third-party software, make sure you understand the licensing implications of
 doing so.
 
-Upload Directly to Service
---------------------------
+Direct Uploads
+--------------
 
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
@@ -511,8 +511,8 @@ input[type=file][data-direct-upload-url][disabled] {
 }
 ```
 
-Clean up Stored Files Store During System Tests
------------------------------------------------
+Discarding Files Stored During System Tests
+-------------------------------------------
 
 System tests clean up test data by rolling back a transaction. Because destroy
 is never called on an object, the attached files are never cleaned up. If you
@@ -550,8 +550,8 @@ config.active_job.queue_adapter = :inline
 config.active_storage.service = :local_test
 ```
 
-Support Additional Cloud Services
----------------------------------
+Implementing Support for Other Cloud Services
+---------------------------------------------
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends
