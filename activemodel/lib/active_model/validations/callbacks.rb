@@ -55,16 +55,17 @@ module ActiveModel
         #   person.name   # => "bob"
         def before_validation(*args, &block)
           options = args.extract_options!
-          options[:if] = Array(options[:if])
 
           if options.key?(:on)
+            options = options.dup
+            options[:on] = Array(options[:on])
+            options[:if] = Array(options[:if])
             options[:if].unshift ->(o) {
-              !(Array(options[:on]) & Array(o.validation_context)).empty?
+              !(options[:on] & Array(o.validation_context)).empty?
             }
           end
 
-          args << options
-          set_callback(:validation, :before, *args, &block)
+          set_callback(:validation, :before, *args, options, &block)
         end
 
         # Defines a callback that will get called right after validation.
@@ -95,17 +96,18 @@ module ActiveModel
         #   person.status # => true
         def after_validation(*args, &block)
           options = args.extract_options!
+          options = options.dup
           options[:prepend] = true
-          options[:if] = Array(options[:if])
 
           if options.key?(:on)
+            options[:on] = Array(options[:on])
+            options[:if] = Array(options[:if])
             options[:if].unshift ->(o) {
-              !(Array(options[:on]) & Array(o.validation_context)).empty?
+              !(options[:on] & Array(o.validation_context)).empty?
             }
           end
 
-          args << options
-          set_callback(:validation, :after, *args, &block)
+          set_callback(:validation, :after, *args, options, &block)
         end
       end
 
