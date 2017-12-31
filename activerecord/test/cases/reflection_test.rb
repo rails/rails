@@ -310,15 +310,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "custom_primary_key", Author.reflect_on_association(:tags_with_primary_key).association_primary_key.to_s # nested
   end
 
-  def test_association_primary_key_type
-    # Normal Association
-    assert_equal :integer, Author.reflect_on_association(:posts).association_primary_key_type.type
-    assert_equal :string,  Author.reflect_on_association(:essay).association_primary_key_type.type
-
-    # Through Association
-    assert_equal :string, Author.reflect_on_association(:essay_category).association_primary_key_type.type
-  end
-
   def test_association_primary_key_raises_when_missing_primary_key
     reflection = ActiveRecord::Reflection.create(:has_many, :edge, nil, {}, Author)
     assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.association_primary_key }

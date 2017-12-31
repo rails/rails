@@ -458,10 +458,6 @@ module ActiveRecord
         options[:primary_key] || primary_key(klass || self.klass)
       end
 
-      def association_primary_key_type
-        klass.type_for_attribute(association_primary_key.to_s)
-      end
-
       def active_record_primary_key
         @active_record_primary_key ||= options[:primary_key] || primary_key(active_record)
       end
@@ -857,10 +853,6 @@ module ActiveRecord
         # Get the "actual" source reflection if the immediate source reflection has a
         # source reflection itself
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
-      end
-
-      def association_primary_key_type
-        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
