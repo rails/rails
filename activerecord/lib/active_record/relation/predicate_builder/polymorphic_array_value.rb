@@ -29,7 +29,7 @@ module ActiveRecord
         end
 
         def primary_key(value)
-          associated_table.association_primary_key(base_class(value))
+          associated_table.association_join_primary_key(base_class(value))
         end
 
         def base_class(value)

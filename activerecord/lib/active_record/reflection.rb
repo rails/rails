@@ -293,7 +293,7 @@ module ActiveRecord
         Relation.create(klass, table, predicate_builder)
       end
 
-      def join_primary_key(_)
+      def join_primary_key(*)
         foreign_key
       end
 
@@ -722,7 +722,7 @@ module ActiveRecord
         end
       end
 
-      def join_primary_key(klass)
+      def join_primary_key(klass = nil)
         polymorphic? ? association_primary_key(klass) : association_primary_key
       end
 
