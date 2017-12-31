@@ -869,6 +869,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [dev], company.developers
   end
 
+  def test_collection_singular_ids_setter_with_required_type_cast
+    company = companies(:rails_core)
+    dev = Developer.first
+
+    company.developer_ids = [dev.id.to_s]
+    assert_equal [dev], company.developers
+  end
+
   def test_collection_singular_ids_setter_with_string_primary_keys
     assert_nothing_raised do
       book = books(:awdr)
