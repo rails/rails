@@ -51,7 +51,7 @@ module ActiveStorage
 
       def capture(*argv, to:)
         to.binmode
-        IO.popen(argv) { |out| IO.copy_stream(out, to) }
+        IO.popen(argv, err: File::NULL) { |out| IO.copy_stream(out, to) }
         to.rewind
       end
 
