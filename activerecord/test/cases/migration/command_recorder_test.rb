@@ -360,6 +360,16 @@ module ActiveRecord
           @recorder.inverse_of :remove_foreign_key, [:dogs]
         end
       end
+
+      def test_invert_transaction_with_irreversible_inside_is_irreversible
+        assert_raises(ActiveRecord::IrreversibleMigration) do
+          @recorder.revert do
+            @recorder.transaction do
+              @recorder.execute "some sql"
+            end
+          end
+        end
+      end
     end
   end
 end
