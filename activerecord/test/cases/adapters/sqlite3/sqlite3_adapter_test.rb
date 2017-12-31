@@ -401,6 +401,58 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_custom_primary_key_in_create_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_change_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.change_table :barcodes do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_add_column_with_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.add_column :barcodes, :id, :string, primary_key: true
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end

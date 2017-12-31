@@ -91,16 +91,11 @@ module ActiveSupport
       private
         def retrieve_cache_key(key)
           case
-          when key.respond_to?(:cache_key_with_version)
-            key.cache_key_with_version
-          when key.respond_to?(:cache_key)
-            key.cache_key
-          when key.is_a?(Hash)
-            key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }.to_param
-          when key.respond_to?(:to_a)
-            key.to_a.collect { |element| retrieve_cache_key(element) }.to_param
-          else
-            key.to_param
+          when key.respond_to?(:cache_key_with_version) then key.cache_key_with_version
+          when key.respond_to?(:cache_key)              then key.cache_key
+          when key.is_a?(Array)                         then key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)                   then retrieve_cache_key(key.to_a)
+          else                                               key.to_param
           end.to_s
         end
 
@@ -569,7 +564,7 @@ module ActiveSupport
         # Expands and namespaces the cache key. May be overridden by
         # cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          namespace_key Cache.expand_cache_key(key), options
+          namespace_key expanded_key(key), options
         end
 
         # Prefix the key with a namespace string:
@@ -594,6 +589,26 @@ module ActiveSupport
           else
             key
           end
+        end
+
+        # Expands key to be a consistent string value. Invokes +cache_key+ if
+        # object responds to +cache_key+. Otherwise, +to_param+ method will be
+        # called. If the key is a Hash, then keys will be sorted alphabetically.
+        def expanded_key(key)
+          return key.cache_key.to_s if key.respond_to?(:cache_key)
+
+          case key
+          when Array
+            if key.size > 1
+              key = key.collect { |element| expanded_key(element) }
+            else
+              key = key.first
+            end
+          when Hash
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
+          end
+
+          key.to_param
         end
 
         def normalize_version(key, options = nil)

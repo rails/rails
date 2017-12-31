@@ -72,13 +72,21 @@ class SanitizeTest < ActiveRecord::TestCase
 
   def test_sanitize_sql_like_example_use_case
     searchable_post = Class.new(Post) do
-      def self.search(term)
+      def self.search_as_method(term)
         where("title LIKE ?", sanitize_sql_like(term, "!"))
       end
+
+      scope :search_as_scope, -> (term) {
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
+      }
     end
 
     assert_sql(/LIKE '20!% !_reduction!_!!'/) do
-      searchable_post.search("20% _reduction_!").to_a
+      searchable_post.search_as_method("20% _reduction_!").to_a
+    end
+
+    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+      searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
 

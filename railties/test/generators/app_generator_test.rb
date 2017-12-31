@@ -105,6 +105,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ::DEFAULT_APP_FILES
   end
 
+  def test_skip_bundle
+    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      # skip_bundle is only about running bundle install, ensure the Gemfile is still
+      # generated.
+      assert_file "Gemfile"
+    end
+  end
+
   def test_assets
     run_generator
 
@@ -315,7 +324,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator.stub :rails_command, command_check do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
   end
 
@@ -753,7 +764,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "webpacker"
@@ -774,7 +787,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
   end
 

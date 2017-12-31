@@ -90,7 +90,7 @@ Continue reading for more information on the built-in service adapters (e.g.
 
 Declare a Disk service in `config/storage.yml`:
 
-``` yaml
+```yaml
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
@@ -100,7 +100,7 @@ local:
 
 Declare an S3 service in `config/storage.yml`:
 
-``` yaml
+```yaml
 amazon:
   service: S3
   access_key_id: ""
@@ -108,9 +108,10 @@ amazon:
   region: ""
   bucket: ""
 ```
-Also, add the S3 client gem to your `Gemfile`:
 
-``` ruby
+Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile`:
+
+```ruby
 gem "aws-sdk-s3", require: false
 ```
 
@@ -118,7 +119,7 @@ gem "aws-sdk-s3", require: false
 
 Declare an Azure Storage service in `config/storage.yml`:
 
-``` yaml
+```yaml
 azure:
   service: AzureStorage
   path: ""
@@ -127,9 +128,9 @@ azure:
   container: ""
 ```
 
-Also, add the Microsoft Azure Storage client gem to your `Gemfile`:
+Add the [`azure-storage`](https://github.com/Azure/azure-storage-ruby) gem to your `Gemfile`:
 
-``` ruby
+```ruby
 gem "azure-storage", require: false
 ```
 
@@ -137,28 +138,37 @@ gem "azure-storage", require: false
 
 Declare a Google Cloud Storage service in `config/storage.yml`:
 
-``` yaml
+```yaml
 google:
   service: GCS
-  keyfile: {
-    type: "service_account",
-    project_id: "",
-    private_key_id: "",
-    private_key: "",
-    client_email: "",
-    client_id: "",
-    auth_uri: "https://accounts.google.com/o/oauth2/auth",
-    token_uri: "https://accounts.google.com/o/oauth2/token",
-    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs",
-    client_x509_cert_url: ""
-  }
+  credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
   bucket: ""
 ```
 
-Also, add the Google Cloud Storage client gem to your `Gemfile`:
+Optionally provide a Hash of credentials instead of a keyfile path:
 
-``` ruby
+```yaml
+google:
+  service: GCS
+  credentials:
+    type: "service_account"
+    project_id: ""
+    private_key_id: <%= Rails.application.credentials.dig(:gcs, :private_key_id) %>
+    private_key: <%= Rails.application.credentials.dig(:gcs, :private_key) %>
+    client_email: ""
+    client_id: ""
+    auth_uri: "https://accounts.google.com/o/oauth2/auth"
+    token_uri: "https://accounts.google.com/o/oauth2/token"
+    auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+    client_x509_cert_url: ""
+  project: ""
+  bucket: ""
+```
+
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
+
+```ruby
 gem "google-cloud-storage", "~> 1.3", require: false
 ```
 
@@ -172,7 +182,7 @@ service to the new, then go all-in on the new service. Define each of the
 services you'd like to use as described above and reference them from a mirrored
 service.
 
-``` yaml
+```yaml
 s3_west_coast:
   service: S3
   access_key_id: ""
@@ -196,8 +206,8 @@ production:
 
 NOTE: Files are served from the primary service.
 
-Attach Files to a Model
------------------------
+Attaching Files to Records
+--------------------------
 
 ### `has_one_attached`
 
@@ -207,7 +217,7 @@ files. Each record can have one file attached to it.
 For example, suppose your application has a `User` model. If you want each user to
 have an avatar, define the `User` model like this:
 
-``` ruby
+```ruby
 class User < ApplicationRecord
   has_one_attached :avatar
 end
@@ -215,7 +225,7 @@ end
 
 You can create a user with an avatar:
 
-``` ruby
+```ruby
 class SignupController < ApplicationController
   def create
     user = User.create!(user_params)
@@ -284,8 +294,8 @@ Call `images.attached?` to determine whether a particular message has any images
 @message.images.attached?
 ```
 
-Remove File Attached to Model
------------------------------
+Removing Files
+--------------
 
 To remove an attachment from a model, call `purge` on the attachment. Removal
 can be done in the background if your application is setup to use Active Job.
@@ -299,8 +309,8 @@ user.avatar.purge
 user.avatar.purge_later
 ```
 
-Link to Attachments
--------------------
+Linking to Files
+----------------
 
 Generate a permanent URL for the blob that points to the application. Upon
 access, a redirect to the actual service endpoint is returned. This indirection
@@ -319,8 +329,8 @@ helper allows you to set the disposition.
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
 
-Transform Images
-----------------
+Transforming Images
+-------------------
 
 To create variation of the image, call `variant` on the Blob.
 You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
@@ -328,7 +338,7 @@ supported transformation to the method.
 
 To enable variants, add `mini_magick` to your `Gemfile`:
 
-``` ruby
+```ruby
 gem 'mini_magick'
 ```
 
@@ -340,8 +350,8 @@ location.
 <%= image_tag user.avatar.variant(resize: "100x100") %>
 ```
 
-Preview Non-image Files
------------------------
+Previewing Files
+----------------
 
 Some non-image files can be previewed: that is, they can be presented as images.
 For example, a video file can be previewed by extracting its first frame. Out of
@@ -363,8 +373,8 @@ install them yourself to use the built-in previewers. Before you install and use
 third-party software, make sure you understand the licensing implications of
 doing so.
 
-Upload Directly to Service
---------------------------
+Direct Uploads
+--------------
 
 Active Storage, with its included JavaScript library, supports uploading
 directly from the client to the cloud.
@@ -501,8 +511,8 @@ input[type=file][data-direct-upload-url][disabled] {
 }
 ```
 
-Clean up Stored Files Store During System Tests
------------------------------------------------
+Discarding Files Stored During System Tests
+-------------------------------------------
 
 System tests clean up test data by rolling back a transaction. Because destroy
 is never called on an object, the attached files are never cleaned up. If you
@@ -510,7 +520,7 @@ want to clear the files, you can do it in an `after_teardown` callback. Doing it
 here ensures that all connections created during the test are complete and
 you won't receive an error from Active Storage saying it can't find a file.
 
-``` ruby
+```ruby
 class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
 
@@ -532,7 +542,7 @@ the purge job is executed immediately rather at an unknown time in the future.
 You may also want to use a separate service definition for the test environment
 so your tests don't delete the files you create during development.
 
-``` ruby
+```ruby
 # Use inline job processing to make things happen immediately
 config.active_job.queue_adapter = :inline
 
@@ -540,8 +550,8 @@ config.active_job.queue_adapter = :inline
 config.active_storage.service = :local_test
 ```
 
-Support Additional Cloud Services
----------------------------------
+Implementing Support for Other Cloud Services
+---------------------------------------------
 
 If you need to support a cloud service other than these, you will need to
 implement the Service. Each service extends

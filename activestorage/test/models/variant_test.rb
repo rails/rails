@@ -25,6 +25,20 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/Gray/, image.colorspace)
   end
 
+  test "center-weighted crop of JPEG blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(combine_options: {
+      gravity: "center",
+      resize: "100x100^",
+      crop: "100x100+0+0",
+    }).processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 100, image.height
+  end
+
   test "resized variation of PSD blob" do
     blob = create_file_blob(filename: "icon.psd", content_type: "image/vnd.adobe.photoshop")
     variant = blob.variant(resize: "20x20").processed

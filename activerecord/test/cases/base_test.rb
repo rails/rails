@@ -104,7 +104,7 @@ class BasicsTest < ActiveRecord::TestCase
     pk = Author.columns_hash["id"]
     ref = Post.columns_hash["author_id"]
 
-    assert_equal pk.bigint?, ref.bigint?
+    assert_equal pk.sql_type, ref.sql_type
   end
 
   def test_many_mutations

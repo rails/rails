@@ -6,8 +6,8 @@ module ActiveRecord
       query_signature = ActiveSupport::Digest.hexdigest(collection.to_sql)
       key = "#{collection.model_name.cache_key}/query-#{query_signature}"
 
-      if collection.loaded?
-        size = collection.size
+      if collection.loaded? || collection.distinct_value
+        size = collection.records.size
         if size > 0
           timestamp = collection.max_by(&timestamp_column)._read_attribute(timestamp_column)
         end
@@ -20,8 +20,7 @@ module ActiveRecord
         select_values = "COUNT(*) AS #{connection.quote_column_name("size")}, MAX(%s) AS timestamp"
 
         if collection.has_limit_or_offset?
-          query = collection.spawn
-          query.select_values = [column]
+          query = collection.select(column)
           subquery_alias = "subquery_for_cache_key"
           subquery_column = "#{subquery_alias}.#{timestamp_column}"
           subquery = query.arel.as(subquery_alias)
