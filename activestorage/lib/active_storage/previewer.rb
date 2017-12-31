@@ -42,7 +42,7 @@ module ActiveStorage
       #   end
       #
       # The output tempfile is opened in the directory returned by ActiveStorage::Downloading#tempdir.
-      def draw(*argv) # :doc:
+      def draw(*argv) #:doc:
         Tempfile.open("ActiveStorage", tempdir) do |file|
           capture(*argv, to: file)
           yield file
@@ -55,7 +55,7 @@ module ActiveStorage
         to.rewind
       end
 
-      def logger
+      def logger #:doc:
         ActiveStorage.logger
       end
   end
