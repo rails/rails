@@ -7,7 +7,7 @@
 CustomEvent = window.CustomEvent
 
 if typeof CustomEvent isnt 'function'
-  window.CustomEvent = (event, params) ->
+  CustomEvent = (event, params) ->
     evt = document.createEvent('CustomEvent')
     evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail)
     evt
