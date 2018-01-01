@@ -26,7 +26,7 @@ class Numeric
 
   # Returns the number of bytes equivalent to the megabytes provided.
   #
-  #   2.megabytes # => 2_097_152
+  #   2.megabytes # => 2097152
   def megabytes
     self * MEGABYTE
   end
@@ -34,7 +34,7 @@ class Numeric
 
   # Returns the number of bytes equivalent to the gigabytes provided.
   #
-  #   2.gigabytes # => 2_147_483_648
+  #   2.gigabytes # => 2147483648
   def gigabytes
     self * GIGABYTE
   end
@@ -42,7 +42,7 @@ class Numeric
 
   # Returns the number of bytes equivalent to the terabytes provided.
   #
-  #   2.terabytes # => 2_199_023_255_552
+  #   2.terabytes # => 2199023255552
   def terabytes
     self * TERABYTE
   end
@@ -50,7 +50,7 @@ class Numeric
 
   # Returns the number of bytes equivalent to the petabytes provided.
   #
-  #   2.petabytes # => 2_251_799_813_685_248
+  #   2.petabytes # => 2251799813685248
   def petabytes
     self * PETABYTE
   end
@@ -58,7 +58,7 @@ class Numeric
 
   # Returns the number of bytes equivalent to the exabytes provided.
   #
-  #   2.exabytes # => 2_305_843_009_213_693_952
+  #   2.exabytes # => 2305843009213693952
   def exabytes
     self * EXABYTE
   end
