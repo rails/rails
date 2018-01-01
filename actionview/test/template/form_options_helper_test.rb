@@ -110,6 +110,27 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_collection_options_with_priority_values
+    assert_dom_equal(
+      "<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", priority: ["Cabe", "Babe"])
+    )
+  end
+
+  def test_collection_options_with_preselected_and_disabled_and_priority_values
+    assert_dom_equal(
+      "<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", selected: "Cabe", disabled: "Babe", priority: ["Cabe", "Babe"])
+    )
+  end
+
+  def test_collection_options_with_preselected_value_array_and_priority_values
+    assert_dom_equal(
+      "<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\" selected=\"selected\">Cabe went home</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"&lt;Abe&gt;\" selected=\"selected\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\">Babe went home</option>\n<option value=\"Cabe\">Cabe went home</option>",
+      options_from_collection_for_select(dummy_posts, "author_name", "title", selected: ["Cabe", "<Abe>"], priority: ["Cabe", "Babe"])
+    )
+  end
+
   def test_collection_options_with_proc_for_disabled
     assert_dom_equal(
       "<option value=\"&lt;Abe&gt;\">&lt;Abe&gt; went home</option>\n<option value=\"Babe\" disabled=\"disabled\">Babe went home</option>\n<option value=\"Cabe\" disabled=\"disabled\">Cabe went home</option>",
@@ -212,6 +233,62 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<option value=\"true\">true</option>\n<option value=\"false\" selected=\"selected\">false</option>",
       options_for_select([ true, false ], selected: false, disabled: nil)
+    )
+  end
+
+  def test_array_options_for_select_with_selection_and_disabled_and_priority_value
+    assert_dom_equal(
+      "<option disabled=\"disabled\" value=\"&lt;USA&gt;\">&lt;USA&gt;</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"&lt;USA&gt;\" disabled=\"disabled\">&lt;USA&gt;</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "<USA>", "Sweden", "Japan" ], selected: "Denmark", disabled: "<USA>", priority: ["<USA>", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_selected_priority_value
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\" selected=\"selected\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], selected: "Japan", priority: ["Sweden", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_unselected_priority_value
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], selected: "Denmark", priority: ["Sweden", "Japan"])
+    )
+  end
+
+  def test_array_options_for_select_with_non_existing_priority_value
+    assert_dom_equal(
+      "<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], selected: "Denmark", priority: ["Zweden"])
+    )
+  end
+
+  def test_array_options_for_select_with_string_for_priority_separator
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">_____</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], selected: "Denmark", priority: ["Sweden", "Japan"], priority_separator: "_____")
+    )
+  end
+
+  def test_array_options_for_select_with_proc_for_priority_separator
+    assert_dom_equal(
+      "<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>\n<option value=\"\" disabled=\"disabled\">-------</option>\n<option value=\"Denmark\" selected=\"selected\">Denmark</option>\n<option value=\"Sweden\">Sweden</option>\n<option value=\"Japan\">Japan</option>",
+      options_for_select([ "Denmark", "Sweden", "Japan" ], selected: "Denmark", priority: ["Sweden", "Japan"], priority_separator: lambda { |options| "-" * options.max_by(&:length).length })
+    )
+  end
+
+  def test_array_options_for_select_with_priority_unique
+    assert_dom_equal(
+      "<option value=\"en\" class=\"bold\">English</option>\n<option value=\"jp\">Japanese</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"de\">German</option>\n<option value=\"nl\">Dutch</option>",
+      options_for_select([["English", "en", { class: "bold" }], ["German", "de"], ["Dutch", "nl"], ["Japanese", "jp"]], priority: ["en", "jp"], priority_unique: true)
+    )
+  end
+
+  def test_hash_options_for_select_with_priority_unique
+    assert_dom_equal(
+      "<option value=\"en\">English</option>\n<option value=\"jp\">Japanese</option>\n<option value=\"\" disabled=\"disabled\">-----</option>\n<option value=\"de\">German</option>\n<option value=\"nl\">Dutch</option>",
+      options_for_select({ "English" => "en", "German" => "de", "Dutch" => "nl", "Japanese" => "jp" }, { priority: ["en", "jp"], priority_separator: "-----", priority_unique: true })
     )
   end
 
@@ -452,7 +529,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select(nil, zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" \
-                 "<option value=\"E\">E</option>" \
+                 "<option value=\"E\">E</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"A\">A</option>\n" \
                  "<option value=\"C\">C</option>\n" \
@@ -464,7 +541,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select("E", zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" \
-                 "<option value=\"E\" selected=\"selected\">E</option>" \
+                 "<option value=\"E\" selected=\"selected\">E</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"A\">A</option>\n" \
                  "<option value=\"C\">C</option>\n" \
@@ -476,7 +553,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     zones = [ ActiveSupport::TimeZone.new("B"), ActiveSupport::TimeZone.new("E") ]
     opts = time_zone_options_for_select("C", zones)
     assert_dom_equal "<option value=\"B\">B</option>\n" \
-                 "<option value=\"E\">E</option>" \
+                 "<option value=\"E\">E</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"A\">A</option>\n" \
                  "<option value=\"C\" selected=\"selected\">C</option>\n" \
@@ -897,6 +974,33 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_select_with_priority_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"hest\">hest</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), priority: "hest")
+    )
+  end
+
+  def test_select_with_priority_separator_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"hest\">hest</option>\n<option value=\"\" disabled=\"disabled\">--</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option>\n<option value=\"hest\">hest</option></select>",
+      select("post", "category", %w( abe <mus> hest ), priority: "hest", priority_separator: "--")
+    )
+  end
+
+  def test_select_with_priority_unique_value
+    @post = Post.new
+    @post.category = "<mus>"
+    assert_dom_equal(
+      "<select id=\"post_category\" name=\"post[category]\"><option value=\"hest\">hest</option>\n<option value=\"\" disabled=\"disabled\">-------------</option>\n<option value=\"abe\">abe</option>\n<option value=\"&lt;mus&gt;\" selected=\"selected\">&lt;mus&gt;</option></select>",
+      select("post", "category", %w( abe <mus> hest ), priority: "hest", priority_unique: true)
+    )
+  end
+
   def test_select_not_existing_method_with_selected_value
     @post = Post.new
     assert_dom_equal(
@@ -1218,7 +1322,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     html = time_zone_select("firm", "time_zone", zones)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
                  "<option value=\"A\">A</option>\n" \
-                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"B\">B</option>\n" \
                  "<option value=\"C\">C</option>\n" \
@@ -1237,7 +1341,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     html = time_zone_select("firm", "time_zone", /A|D/)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
                  "<option value=\"A\">A</option>\n" \
-                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"B\">B</option>\n" \
                  "<option value=\"C\">C</option>\n" \
@@ -1257,7 +1361,6 @@ class FormOptionsHelperTest < ActionView::TestCase
 
     html = time_zone_select("firm", "time_zone", /A|D/)
     assert_dom_equal "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
-                 "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"A\">A</option>\n" \
                  "<option value=\"B\">B</option>\n" \
                  "<option value=\"C\">C</option>\n" \
@@ -1276,7 +1379,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal "<div class=\"field_with_errors\">" \
                  "<select id=\"firm_time_zone\" name=\"firm[time_zone]\">" \
                  "<option value=\"A\">A</option>\n" \
-                 "<option value=\"D\" selected=\"selected\">D</option>" \
+                 "<option value=\"D\" selected=\"selected\">D</option>\n" \
                  "<option value=\"\" disabled=\"disabled\">-------------</option>\n" \
                  "<option value=\"B\">B</option>\n" \
                  "<option value=\"C\">C</option>\n" \
