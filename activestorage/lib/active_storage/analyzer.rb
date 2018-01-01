@@ -26,7 +26,7 @@ module ActiveStorage
     end
 
     private
-      def logger
+      def logger #:doc:
         ActiveStorage.logger
       end
   end

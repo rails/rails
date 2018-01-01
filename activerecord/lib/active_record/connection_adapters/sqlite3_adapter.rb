@@ -452,6 +452,7 @@ module ActiveRecord
               # index name can't be the same
               opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
+              opts[:where] = index.where if index.where
               add_index(to, columns, opts)
             end
           end

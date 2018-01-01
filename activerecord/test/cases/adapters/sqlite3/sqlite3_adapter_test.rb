@@ -453,6 +453,23 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_remove_column_preserves_partial_indexes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+          t.string :region
+          t.boolean :bool_attr
+
+          t.index :code, unique: true, where: :bool_attr, name: "partial"
+        end
+        connection.remove_column :barcodes, :region
+
+        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", index.where
+      ensure
+        Barcode.reset_column_information
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end

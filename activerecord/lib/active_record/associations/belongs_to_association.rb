@@ -12,15 +12,18 @@ module ActiveRecord
         if record
           raise_on_type_mismatch!(record)
           update_counters_on_replace(record)
-          replace_keys(record)
           set_inverse_instance(record)
           @updated = true
         else
           decrement_counters
-          remove_keys
         end
 
         self.target = record
+      end
+
+      def target=(record)
+        replace_keys(record)
+        super
       end
 
       def default(&block)
@@ -78,11 +81,8 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record._read_attribute(reflection.association_primary_key(record.class))
-        end
-
-        def remove_keys
-          owner[reflection.foreign_key] = nil
+          owner[reflection.foreign_key] = record ?
+            record._read_attribute(reflection.association_primary_key(record.class)) : nil
         end
 
         def foreign_key_present?

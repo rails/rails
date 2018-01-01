@@ -5,7 +5,7 @@ module ActiveStorage
     private
       # Opens a new tempfile in #tempdir and copies blob data into it. Yields the tempfile.
       def download_blob_to_tempfile # :doc:
-        Tempfile.open("ActiveStorage", tempdir) do |file|
+        Tempfile.open([ "ActiveStorage", blob.filename.extension_with_delimiter ], tempdir) do |file|
           download_blob_to file
           yield file
         end

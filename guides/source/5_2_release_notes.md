@@ -63,9 +63,20 @@ Railties
 
 Please refer to the [Changelog][railties] for detailed changes.
 
-### Removals
+### Deprecations
 
-ToDo
+*   Deprecate `capify!` method in generators and templates.
+    ([Pull Request](https://github.com/rails/rails/pull/29493))
+
+*   Deprecated passing the environment's name as a regular argument to the
+    `rails dbconsole` and `rails console` commands.
+    ([Pull Request](https://github.com/rails/rails/pull/29358))
+
+*   Deprecated using subclass of `Rails::Application` to start the Rails server.
+    ([Pull Request](https://github.com/rails/rails/pull/30127))
+
+*   Deprecated `after_bundle` callback in Rails plugin templates.
+    ([Pull Request](https://github.com/rails/rails/pull/29446))
 
 ### Notable changes
 
