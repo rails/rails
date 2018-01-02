@@ -68,7 +68,12 @@ module Rails
       end
 
       def format_rerun_snippet(result)
-        location, line = result.method(result.name).source_location
+        location, line = if result.respond_to?(:source_location)
+          result.source_location
+        else
+          result.method(result.name).source_location
+        end
+
         "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
