@@ -38,7 +38,7 @@ module Rails
 
       private
 
-        # FIXME: We are avoiding to use alias because a bug on thor that make
+        # FIXME: We are avoiding to use alias because a bug on Thor that make
         # this method public and add it to the task list.
         def singular_name # :doc:
           file_name
