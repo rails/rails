@@ -358,6 +358,18 @@ _SQL
       end
     end
 
+    def test_infinity_values
+      PostgresqlRange.create!(int4_range: 1..Float::INFINITY,
+                              int8_range: -Float::INFINITY..0,
+                              float_range: -Float::INFINITY..Float::INFINITY)
+
+      record = PostgresqlRange.first
+
+      assert_equal(1...Float::INFINITY, record.int4_range)
+      assert_equal(-Float::INFINITY...1, record.int8_range)
+      assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
+    end
+
     private
       def assert_equal_round_trip(range, attribute, value)
         round_trip(range, attribute, value)

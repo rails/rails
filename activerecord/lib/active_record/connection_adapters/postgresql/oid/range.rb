@@ -60,7 +60,7 @@ module ActiveRecord
             end
 
             def type_cast_single_for_database(value)
-              infinity?(value) ? "" : @subtype.serialize(value)
+              infinity?(value) ? value : @subtype.serialize(value)
             end
 
             def extract_bounds(value)

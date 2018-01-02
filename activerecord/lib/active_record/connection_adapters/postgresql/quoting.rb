@@ -138,7 +138,7 @@ module ActiveRecord
           end
 
           def encode_range(range)
-            "[#{type_cast(range.first)},#{type_cast(range.last)}#{range.exclude_end? ? ')' : ']'}"
+            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
           end
 
           def determine_encoding_of_strings_in_array(value)
@@ -153,6 +153,14 @@ module ActiveRecord
             when ::Array then values.map { |item| type_cast_array(item) }
             else _type_cast(values)
             end
+          end
+
+          def type_cast_range_value(value)
+            infinity?(value) ? "" : type_cast(value)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
           end
       end
     end
