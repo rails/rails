@@ -522,6 +522,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   mini_magick
+  minitest (~> 5.10.0)
   minitest-bisect
   mocha
   mysql2 (>= 0.4.4)
@@ -560,4 +561,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.0
+   1.16.1
