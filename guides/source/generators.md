@@ -235,7 +235,7 @@ end
 
 If we generate another resource with the scaffold generator, we can see that stylesheet, JavaScript and fixture files are not created anymore. If you want to customize it further, for example to use DataMapper and RSpec instead of Active Record and TestUnit, it's just a matter of adding their gems to your application and configuring your generators.
 
-To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the rails namespace, as this is where rails searches for generators used as hooks:
+To demonstrate this, we are going to create a new helper generator that simply adds some instance variable readers. First, we create a generator within the Rails namespace, as this is where Rails searches for generators used as hooks:
 
 ```bash
 $ bin/rails generate generator rails/my_helper

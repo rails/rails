@@ -183,7 +183,7 @@ task default: :test
                                   desc: "Create dummy application at given path"
 
       class_option :full,         type: :boolean, default: false,
-                                  desc: "Generate a rails engine with bundled Rails application for testing"
+                                  desc: "Generate a Rails engine with bundled Rails application for testing"
 
       class_option :mountable,    type: :boolean, default: false,
                                   desc: "Generate mountable isolated application"

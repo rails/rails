@@ -40,7 +40,7 @@ namespace :app do
   namespace :update do
     require "rails/app_updater"
 
-    # desc "Update config/boot.rb from your current rails install"
+    # desc "Update config/boot.rb from your current Rails install"
     task :configs do
       Rails::AppUpdater.invoke_from_app_generator :create_boot_file
       Rails::AppUpdater.invoke_from_app_generator :update_config_files

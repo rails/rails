@@ -309,7 +309,7 @@ module ActionView
   #
   # ==== Examples
   #
-  # Default pattern, loads views the same way as previous versions of rails, eg. when you're
+  # Default pattern, loads views the same way as previous versions of Rails, eg. when you're
   # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")

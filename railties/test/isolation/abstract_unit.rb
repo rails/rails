@@ -396,11 +396,11 @@ class ActiveSupport::TestCase
   end
 end
 
-# Create a scope and build a fixture rails app
+# Create a scope and build a fixture Rails app
 Module.new do
   extend TestHelpers::Paths
 
-  # Build a rails app
+  # Build a Rails app
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir(app_template_path)
 
