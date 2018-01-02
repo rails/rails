@@ -142,7 +142,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/r
 
 * `config.threadsafe!` is deprecated in favor of `config.eager_load` which provides a more fine grained control on what is eager loaded.
 
-* `Rails::Plugin` has gone. Instead of adding plugins to `vendor/plugins` use gems or bundler with path or git dependencies.
+* `Rails::Plugin` has gone. Instead of adding plugins to `vendor/plugins` use gems or Bundler with path or git dependencies.
 
 Action Mailer
 -------------
