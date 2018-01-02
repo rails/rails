@@ -87,6 +87,8 @@ class Firm < Company
 
   has_many :association_with_references, -> { references(:foo) }, class_name: "Client"
 
+  has_many :developers_with_select, -> { select("id, name, first_name") }, class_name: "Developer"
+
   has_one :lead_developer, class_name: "Developer"
   has_many :projects
 

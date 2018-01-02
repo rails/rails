@@ -63,7 +63,7 @@ module ActiveRecord
           count = if reflection.has_cached_counter?
             owner._read_attribute(reflection.counter_cache_column).to_i
           else
-            scope.count
+            scope.count(:all)
           end
 
           # If there's nothing in the database and @target has no new records
