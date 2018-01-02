@@ -50,6 +50,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 20, image.height
   end
 
+  test "optimized variation of GIF blob" do
+    blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
+
+    assert_nothing_raised do
+      blob.variant(layers: "Optimize").processed
+    end
+  end
+
   test "variation of invariable blob" do
     assert_raises ActiveStorage::Blob::InvariableError do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize: "100x100")
