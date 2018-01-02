@@ -1,3 +1,8 @@
+*   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
+    SQL queries for association counting.
+
+    *Klas Eskilson*
+
 *   Fix to invoke callbacks when using `update_attribute`.
 
     *Mike Busch*
