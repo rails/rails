@@ -779,7 +779,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     Tagging.create!(taggable_type: "Post", taggable_id: post2.id, tag: tag)
 
     tag_with_includes = OrderedTag.includes(:tagged_posts).find(tag.id)
-    assert_equal(tag_with_includes.taggings.map(&:taggable).map(&:title), tag_with_includes.tagged_posts.map(&:title))
+    assert_equal tag_with_includes.ordered_taggings.map(&:taggable).map(&:title), tag_with_includes.tagged_posts.map(&:title)
   end
 
   def test_eager_has_many_through_multiple_with_order
