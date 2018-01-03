@@ -290,19 +290,18 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: https://www.sqlite.org/lang_altertable.html
-      # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_type?(type)
-        type.to_sym != :primary_key
+      def valid_alter_table_type?(type, options = {})
+        !invalid_alter_table_type?(type, options)
       end
+      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type) && !options[:primary_key]
-          super(table_name, column_name, type, options)
-        else
+        if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
           end
+        else
+          super
         end
       end
 
@@ -385,6 +384,12 @@ module ActiveRecord
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+
+        # See: https://www.sqlite.org/lang_altertable.html
+        # SQLite has an additional restriction on the ALTER TABLE statement
+        def invalid_alter_table_type?(type, options)
+          type.to_sym == :primary_key || options[:primary_key]
+        end
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
