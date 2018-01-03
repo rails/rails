@@ -801,8 +801,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.integer :age
       end
 
-      # Adding an index fires a query every time to check if an index already exists or not
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age]
@@ -826,7 +833,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert index(:index_delete_me_on_name)
 
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -848,10 +863,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert ! column(:name).default
       assert_equal :date, column(:birthdate).type
 
-      # One query for columns (delete_me table)
-      # One query for primary key (delete_me table)
-      # One query to do the bulk change
-      assert_queries(3, ignore_none: true) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
+        "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count, ignore_none: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime
