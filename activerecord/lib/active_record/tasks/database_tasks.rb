@@ -169,12 +169,40 @@ module ActiveRecord
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
+        dry_run_was, Migrator.dry_run = Migrator.dry_run, dry_run
+
         Migrator.migrate(migrations_paths, target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+        Migrator.dry_run = dry_run_was
+      end
+
+      def rollback
+        step = ENV["STEP"] ? ENV["STEP"].to_i : 1
+        dry_run_was, Migrator.dry_run = Migrator.dry_run, dry_run
+
+        Migrator.rollback(migrations_paths, step)
+      ensure
+        Migrator.dry_run = dry_run_was
+      end
+
+      def run(direction)
+        case direction
+        when :up
+          raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
+        when :down
+          raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
+        end
+
+        check_target_version
+
+        dry_run_was, Migrator.dry_run = Migrator.dry_run, dry_run
+        Migrator.run(direction, migrations_paths, target_version)
+      ensure
+        Migrator.dry_run = dry_run_was
       end
 
       def check_target_version
@@ -185,6 +213,10 @@ module ActiveRecord
 
       def target_version
         ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
+      end
+
+      def dry_run
+        ENV["DRY_RUN"] ? ENV["DRY_RUN"] == "true" : false
       end
 
       def charset_current(environment = env)

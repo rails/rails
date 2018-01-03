@@ -983,7 +983,9 @@ module ActiveRecord
 
       def load_migration
         require(File.expand_path(filename))
-        name.constantize.new(name, version)
+        migration = name.constantize.new(name, version)
+        migration.extend(DryRunMigration) if Migrator.dry_run
+        migration
       end
   end
 
@@ -997,7 +999,37 @@ module ActiveRecord
     end
   end
 
+  module DryRunMigration
+    def migrate(direction)
+      return unless respond_to?(direction)
+
+      case direction
+      when :up   then announce "migrating"
+      when :down then announce "reverting"
+      end
+
+      ActiveRecord::Base.connection_pool.with_connection do |conn|
+        exec_migration(conn, direction)
+      end
+
+      case direction
+      when :up   then announce "migrated"; write
+      when :down then announce "reverted"; write
+      end
+    end
+
+    def method_missing(method, *arguments, &block)
+      arg_list = arguments.map(&:inspect) * ", "
+
+      say "#{method}(#{arg_list})"
+      return super unless connection.respond_to?(method)
+      connection.send(method, *arguments, &block) if connection.is_a?(Migration::CommandRecorder)
+    end
+  end
+
   class Migrator#:nodoc:
+    cattr_accessor :dry_run, default: false
+
     class << self
       attr_writer :migrations_paths
       alias :migrations_path= :migrations_paths=
@@ -1255,7 +1287,7 @@ module ActiveRecord
 
         ddl_transaction(migration) do
           migration.migrate(direction)
-          record_version_state_after_migrating(migration.version)
+          record_version_state_after_migrating(migration.version) unless dry_run
         end
       rescue => e
         msg = "An error has occurred, ".dup
