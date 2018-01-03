@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module ActiveStorage::SetBlob
+module ActiveStorage::SetBlob #:nodoc:
   extend ActiveSupport::Concern
 
   included do
