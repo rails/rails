@@ -1,3 +1,13 @@
+*   Remove the `cache_key_with_version` method
+
+    ActiveSupport::Cache now use 2 conventional methods:
+    `cache_key` and `cache_version` (instead of 3)
+
+    The concatenation of key with version is now performed inside
+    `AS::Cache.expand_cache_key` instead of `cache_key_with_version`
+
+    *Bogdan Gusiev*
+
 *   Allow the hash function used to generate non-sensitive digests, such as the
     ETag header, to be specified with `config.active_support.hash_digest_class`.
 
