@@ -66,8 +66,6 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in test and production modes.
 
-* `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
-
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
@@ -537,6 +535,8 @@ Defaults to `'signed cookie'`.
 ### Configuring Action View
 
 `config.action_view` includes a small number of configuration settings:
+
+* `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
 
 * `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Model. The default is
 
