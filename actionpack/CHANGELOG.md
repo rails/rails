@@ -1,3 +1,7 @@
+*   Reduced log noise handling ActionController::RoutingErrors.
+
+    *Alberto Fernández-Capel*
+
 *   Keep part when scope option has value
 
     When a route was defined within an optional scope, if that route didn't

@@ -62,6 +62,12 @@ module ActionDispatch
       self.class.status_code_for_exception(unwrapped_exception.class.name)
     end
 
+    def exception_trace
+      trace = application_trace
+      trace = framework_trace if trace.empty? && !exception.is_a?(ActionController::RoutingError)
+      trace
+    end
+
     def application_trace
       clean_backtrace(:silent)
     end
