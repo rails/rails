@@ -78,6 +78,20 @@ class CacheKeyTest < ActiveSupport::TestCase
     assert_equal "foo/bar/baz", ActiveSupport::Cache.expand_cache_key(%w{foo bar baz}.to_enum)
   end
 
+  def test_expand_cache_key_object_with_version
+    object = Object.new
+    def object.cache_key
+      "foo"
+    end
+    def object.cache_version
+      "v1"
+    end
+    assert_equal "foo-v1", ActiveSupport::Cache.expand_cache_key(object)
+    assert_equal "foo", ActiveSupport::Cache.expand_cache_key(object, version: false)
+    assert_equal "foo-v1/foo-v1", ActiveSupport::Cache.expand_cache_key([object, object])
+    assert_equal "foo/foo", ActiveSupport::Cache.expand_cache_key([object, object], version: false)
+  end
+
   private
 
     def with_env(kv)

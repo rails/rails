@@ -77,26 +77,37 @@ module ActiveSupport
       #   ActiveSupport::Cache.expand_cache_key([:foo, :bar], "namespace")  # => "namespace/foo/bar"
       #
       # The +key+ argument can also respond to +cache_key+ or +to_param+.
-      def expand_cache_key(key, namespace = nil)
+      def expand_cache_key(key, namespace = nil, version: true)
         expanded_cache_key = (namespace ? "#{namespace}/" : "").dup
 
         if prefix = ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]
           expanded_cache_key << "#{prefix}/"
         end
 
-        expanded_cache_key << retrieve_cache_key(key)
+        expanded_cache_key << retrieve_cache_key(key, version)
         expanded_cache_key
       end
 
       private
-        def retrieve_cache_key(key)
+        def retrieve_cache_key(key, with_version)
           case
-          when key.respond_to?(:cache_key_with_version) then key.cache_key_with_version
-          when key.respond_to?(:cache_key)              then key.cache_key
-          when key.is_a?(Array)                         then key.map { |element| retrieve_cache_key(element) }.to_param
-          when key.respond_to?(:to_a)                   then retrieve_cache_key(key.to_a)
-          else                                               key.to_param
+          when key.respond_to?(:cache_key)
+            with_version ? key_with_version(key) : key.cache_key
+          when key.is_a?(Hash)
+            key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }.to_param
+          when key.respond_to?(:to_a)
+            key.to_a.collect { |element| retrieve_cache_key(element, with_version) }.to_param
+          else
+            key.to_param
           end.to_s
+        end
+
+        def key_with_version(object)
+          if object.respond_to?(:cache_version) && (version = object.cache_version)
+            "#{object.cache_key}-#{version}"
+          else
+            object.cache_key
+          end
         end
 
         # Obtains the specified cache store class, given the name of the +store+.
@@ -564,7 +575,7 @@ module ActiveSupport
         # Expands and namespaces the cache key. May be overridden by
         # cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          namespace_key expanded_key(key), options
+          namespace_key Cache.expand_cache_key(key, version: false), options
         end
 
         # Prefix the key with a namespace string:
@@ -589,26 +600,6 @@ module ActiveSupport
           else
             key
           end
-        end
-
-        # Expands key to be a consistent string value. Invokes +cache_key+ if
-        # object responds to +cache_key+. Otherwise, +to_param+ method will be
-        # called. If the key is a Hash, then keys will be sorted alphabetically.
-        def expanded_key(key)
-          return key.cache_key.to_s if key.respond_to?(:cache_key)
-
-          case key
-          when Array
-            if key.size > 1
-              key = key.collect { |element| expanded_key(element) }
-            else
-              key = key.first
-            end
-          when Hash
-            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
-          end
-
-          key.to_param
         end
 
         def normalize_version(key, options = nil)

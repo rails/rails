@@ -101,15 +101,6 @@ module ActiveRecord
       end
     end
 
-    # Returns a cache key along with the version.
-    def cache_key_with_version
-      if version = cache_version
-        "#{cache_key}-#{version}"
-      else
-        cache_key
-      end
-    end
-
     module ClassMethods
       # Defines your model's +to_param+ method to generate "pretty" URLs
       # using +method_name+, which can be any attribute or method that
