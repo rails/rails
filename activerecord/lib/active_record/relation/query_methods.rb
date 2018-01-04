@@ -378,7 +378,7 @@ module ActiveRecord
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          set_value(scope, nil)
+          set_value(scope, DEFAULT_VALUES[scope])
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -905,7 +905,7 @@ module ActiveRecord
     protected
       # Returns a relation value with a given name
       def get_value(name) # :nodoc:
-        @values[name] || default_value_for(name)
+        @values.fetch(name, DEFAULT_VALUES[name])
       end
 
       # Sets the relation value with the given name
@@ -1190,7 +1190,6 @@ module ActiveRecord
 
       DEFAULT_VALUES = {
         create_with: FROZEN_EMPTY_HASH,
-        readonly: false,
         where: Relation::WhereClause.empty,
         having: Relation::WhereClause.empty,
         from: Relation::FromClause.empty
@@ -1198,16 +1197,6 @@ module ActiveRecord
 
       Relation::MULTI_VALUE_METHODS.each do |value|
         DEFAULT_VALUES[value] ||= FROZEN_EMPTY_ARRAY
-      end
-
-      Relation::SINGLE_VALUE_METHODS.each do |value|
-        DEFAULT_VALUES[value] = nil if DEFAULT_VALUES[value].nil?
-      end
-
-      def default_value_for(name)
-        DEFAULT_VALUES.fetch(name) do
-          raise ArgumentError, "unknown relation value #{name.inspect}"
-        end
       end
   end
 end
