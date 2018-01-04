@@ -104,8 +104,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}(*args)
-          association(:#{name}).reader(*args)
+        def #{name}
+          association(:#{name}).reader
         end
       CODE
     end
