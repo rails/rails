@@ -156,11 +156,12 @@ module ActiveSupport
 
         after = exp.call
 
-        if to == UNTRACKED
-          error = "#{expression.inspect} didn't change"
-          error = "#{message}.\n#{error}" if message
-          assert before != after, error
-        else
+        error = "#{expression.inspect} didn't change"
+        error = "#{error}. It was already #{to}" if before == to
+        error = "#{message}.\n#{error}" if message
+        assert before != after, error
+
+        unless to == UNTRACKED
           error = "#{expression.inspect} didn't change to #{to}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error

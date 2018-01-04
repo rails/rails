@@ -156,6 +156,16 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_to_option_but_no_change_has_special_message
+    error = assert_raises Minitest::Assertion do
+      assert_changes "@object.num", to: 0 do
+        # no changes
+      end
+    end
+
+    assert_equal "\"@object.num\" didn't change. It was already 0", error.message
+  end
+
   def test_assert_changes_with_wrong_to_option
     assert_raises Minitest::Assertion do
       assert_changes "@object.num", to: 2 do
@@ -218,6 +228,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_changes_with_message
     error = assert_raises Minitest::Assertion do
       assert_changes "@object.num", "@object.num should 1", to: 1 do
+        @object.decrement
       end
     end
 

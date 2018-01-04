@@ -1,10 +1,16 @@
+*   `assert_changes` will always assert that the expression changes,
+    regardless of `from:` and `to:` argument combinations.
+
+    *Daniel Ma*
+
 *   Allow the hash function used to generate non-sensitive digests, such as the
     ETag header, to be specified with `config.active_support.hash_digest_class`.
 
     The object provided must respond to `#hexdigest`, e.g. `Digest::SHA1`.
 
     *Dmitri Dolguikh*
- 
+
+
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.
