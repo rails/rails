@@ -53,6 +53,12 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later!(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later!(wait_until: 10.hours.from_now)
     #
+    # Options:
+    #
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue
+    #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
@@ -60,12 +66,6 @@ module ActionMailer
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob
     #   end
-    #
-    # Options:
-    #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue
     def deliver_later!(options = {})
       enqueue_delivery :deliver_now!, options
     end
@@ -77,6 +77,12 @@ module ActionMailer
     #   Notifier.welcome(User.first).deliver_later(wait: 1.hour)
     #   Notifier.welcome(User.first).deliver_later(wait_until: 10.hours.from_now)
     #
+    # Options:
+    #
+    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
+    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
+    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
+    #
     # By default, the email will be enqueued using <tt>ActionMailer::DeliveryJob</tt>. Each
     # <tt>ActionMailer::Base</tt> class can specify the job to use by setting the class variable
     # +delivery_job+.
@@ -84,12 +90,6 @@ module ActionMailer
     #   class AccountRegistrationMailer < ApplicationMailer
     #     self.delivery_job = RegistrationDeliveryJob
     #   end
-    #
-    # Options:
-    #
-    # * <tt>:wait</tt> - Enqueue the email to be delivered with a delay.
-    # * <tt>:wait_until</tt> - Enqueue the email to be delivered at (after) a specific date / time.
-    # * <tt>:queue</tt> - Enqueue the email on the specified queue.
     def deliver_later(options = {})
       enqueue_delivery :deliver_now, options
     end
