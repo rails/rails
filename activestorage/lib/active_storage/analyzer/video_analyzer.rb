@@ -19,8 +19,6 @@ module ActiveStorage
   # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
   # install ffmpeg yourself to use this analyzer.
   class Analyzer::VideoAnalyzer < Analyzer
-    class_attribute :ffprobe_path, default: "ffprobe"
-
     def self.accept?(blob)
       blob.video?
     end
@@ -88,6 +86,10 @@ module ActiveStorage
       rescue Errno::ENOENT
         logger.info "Skipping video analysis because ffmpeg isn't installed"
         {}
+      end
+
+      def ffprobe_path
+        ActiveStorage.paths[:ffprobe] || "ffprobe"
       end
   end
 end

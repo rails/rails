@@ -41,5 +41,6 @@ module ActiveStorage
   mattr_accessor :queue
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
+  mattr_accessor :paths, default: {}
   mattr_accessor :variable_content_types, default: []
 end

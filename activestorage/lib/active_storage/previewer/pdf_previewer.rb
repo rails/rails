@@ -2,8 +2,6 @@
 
 module ActiveStorage
   class Previewer::PDFPreviewer < Previewer
-    class_attribute :mutool_path, default: "mutool"
-
     def self.accept?(blob)
       blob.content_type == "application/pdf"
     end
@@ -19,6 +17,10 @@ module ActiveStorage
     private
       def draw_first_page_from(file, &block)
         draw mutool_path, "draw", "-F", "png", "-o", "-", file.path, "1", &block
+      end
+
+      def mutool_path
+        ActiveStorage.paths[:mutool] || "mutool"
       end
   end
 end
