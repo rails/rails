@@ -201,8 +201,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-  def service_url(expires_in: service.url_expires_in, disposition: "inline")
-    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
+  def service_url(expires_in: service.url_expires_in, disposition: :inline)
+    service.url key, expires_in: expires_in, disposition: forcibly_serve_as_binary? ? :attachment : disposition, filename: filename, content_type: content_type
   end
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
@@ -324,5 +324,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
     def analyzer_class
       ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
+    end
+
+
+    def forcibly_serve_as_binary?
+      ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
     end
 end
