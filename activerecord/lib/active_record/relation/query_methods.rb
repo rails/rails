@@ -156,8 +156,8 @@ module ActiveRecord
 
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
-    # This method only works in conjunction with #includes.
-    # See #includes for more details.
+    # This method only works in conjunction with #includes and/or with #or.
+    # See #includes and #or for more details.
     #
     #   User.includes(:posts).where("posts.name = 'foo'")
     #   # Doesn't JOIN the posts table, resulting in an error.
@@ -618,6 +618,20 @@ module ActiveRecord
     #    Post.where("id = 1").or(Post.where("author_id = 3"))
     #    # SELECT `posts`.* FROM `posts` WHERE ((id = 1) OR (author_id = 3))
     #
+    # === references
+    #
+    # You'll have to explicitly reference joined tables beforehand if it is used
+    # in one relation but not in the other. For example:
+    #
+    #   joined = User.joins(:posts)
+    #   joined.where('posts.name = ?', 'example').or(joined.where('name = ?', 'example'))
+    #
+    # Will throw an error, but this will work:
+    #
+    #   joined = User.joins(:posts).references(:posts)
+    #   joined.where('posts.name = ?', 'example').or(joined.where('name = ?', 'example'))
+    #
+    # Note that #references needs the actual table name.
     def or(other)
       unless other.is_a? Relation
         raise ArgumentError, "You have passed #{other.class.name} object to #or. Pass an ActiveRecord::Relation object instead."
