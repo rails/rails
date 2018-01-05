@@ -41,6 +41,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "urls force attachment as content disposition for content types served as binary" do
+    blob = create_blob(content_type: "text/html")
+
+    freeze_time do
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url(disposition: :inline)
+    end
+  end
+
   test "purge deletes file from external service" do
     blob = create_blob
 
