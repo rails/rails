@@ -233,7 +233,7 @@ module Arel
       end
 
       it "should visit_BigDecimal" do
-        compile Nodes.build_quoted(BigDecimal.new('2.14'))
+        compile Nodes.build_quoted(BigDecimal('2.14'))
       end
 
       it "should visit_Date" do
