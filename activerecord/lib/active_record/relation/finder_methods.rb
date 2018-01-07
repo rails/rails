@@ -547,12 +547,11 @@ module ActiveRecord
         else
           relation = ordered_relation
 
-          relation.to_a[-index]
-          # TODO: can be made more performant on large result sets by
-          # for instance, last(index)[-index] (which would require
-          # refactoring the last(n) finder method to make test suite pass),
-          # or by using a combination of reverse_order, limit, and offset,
-          # e.g., reverse_order.offset(index-1).first
+          if equal?(relation) || has_limit_or_offset?
+            relation.records[-index]
+          else
+            relation.last(index)[-index]
+          end
         end
       end
 
