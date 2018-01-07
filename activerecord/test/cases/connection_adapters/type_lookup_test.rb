@@ -82,11 +82,11 @@ unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strin
         end
 
         def test_bigint_limit
-          cast_type = @connection.send(:type_map).lookup("bigint")
+          limit = @connection.send(:type_map).lookup("bigint").send(:_limit)
           if current_adapter?(:OracleAdapter)
-            assert_equal 19, cast_type.limit
+            assert_equal 19, limit
           else
-            assert_equal 8, cast_type.limit
+            assert_equal 8, limit
           end
         end
 
