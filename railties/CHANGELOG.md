@@ -57,7 +57,7 @@
 
     *bogdanvlviv*
 
-*   Deprecate support of use `Rails::Application` subclass to start Rails server.
+*   Deprecate support for using a `Rails::Application` subclass to start Rails server.
 
     *Yuji Yaginuma*
 
