@@ -677,6 +677,10 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
 
+    assert_equal comments.offset(2).to_a.last, comments.offset(2).last
+    assert_equal comments.offset(2).to_a.last(2), comments.offset(2).last(2)
+    assert_equal comments.offset(2).to_a.last(3), comments.offset(2).last(3)
+
     comments = comments.offset(1)
     assert_equal comments.limit(2).to_a.last, comments.limit(2).last
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
@@ -1047,14 +1051,6 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_by_two_attributes_but_passing_only_one
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
-  end
-
-  def test_find_last_with_offset
-    devs = Developer.order("id")
-
-    assert_equal devs[2], Developer.offset(2).first
-    assert_equal devs[-3], Developer.offset(2).last
-    assert_equal devs[-3], Developer.offset(2).order("id DESC").first
   end
 
   def test_find_by_nil_attribute

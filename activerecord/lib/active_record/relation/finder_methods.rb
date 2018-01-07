@@ -148,7 +148,7 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      return find_last(limit) if loaded? || limit_value
+      return find_last(limit) if loaded? || has_limit_or_offset?
 
       result = ordered_relation.limit(limit)
       result = result.reverse_order!
