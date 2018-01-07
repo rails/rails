@@ -127,11 +127,14 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Removals
 
-ToDo
+*   Removed deprecated Erubis ERB handler.
+    ([Commit](https://github.com/rails/rails/commit/7de7f12fd14))
 
 ### Deprecations
 
-ToDo
+*   Deprecated `image_alt` helper which used to add default alt text to
+    the image text.
+    ([Pull Request](https://github.com/rails/rails/pull/30213))
 
 ### Notable changes
 
