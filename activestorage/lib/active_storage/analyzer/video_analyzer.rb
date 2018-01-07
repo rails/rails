@@ -16,8 +16,7 @@ module ActiveStorage
   #   ActiveStorage::VideoAnalyzer.new(blob).metadata
   #   # => { width: 640, height: 480, duration: 5.0, angle: 0, aspect_ratio: [4, 3] }
   #
-  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
-  # install ffmpeg yourself to use this analyzer.
+  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::VideoAnalyzer < Analyzer
     def self.accept?(blob)
       blob.video?
