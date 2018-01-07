@@ -17,17 +17,18 @@ module ActiveStorage
     config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
-    config.active_storage.variable_content_types = [ "image/png", "image/gif", "image/jpg", "image/jpeg", "image/vnd.adobe.photoshop" ]
-    config.active_storage.content_types_to_serve_as_binary = [
-      "text/html",
-      "text/javascript",
-      "image/svg+xml",
-      "application/postscript",
-      "application/x-shockwave-flash",
-      "text/xml",
-      "application/xml",
-      "application/xhtml+xml"
-    ]
+
+    config.active_storage.variable_content_types = %w( image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop )
+    config.active_storage.content_types_to_serve_as_binary = %w(
+      text/html
+      text/javascript
+      image/svg+xml
+      application/postscript
+      application/x-shockwave-flash
+      text/xml
+      application/xml
+      application/xhtml+xml
+    )
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -38,6 +39,7 @@ module ActiveStorage
         ActiveStorage.previewers = app.config.active_storage.previewers || []
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
         ActiveStorage.paths      = app.config.active_storage.paths || {}
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
       end
