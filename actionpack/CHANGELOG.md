@@ -172,7 +172,7 @@
 
     *Yuji Yaginuma*
 
-*   Deprecate `ActionDispatch::TestResponse` response aliases
+*   Deprecate `ActionDispatch::TestResponse` response aliases.
 
     `#success?`, `#missing?` & `#error?` are not supported by the actual
     `ActionDispatch::Response` object and can produce false-positives. Instead,

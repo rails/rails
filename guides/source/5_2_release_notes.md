@@ -107,11 +107,14 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Removals
 
-ToDo
+*   Removed deprecated `ActionController::ParamsParser::ParseError`.
+    ([Commit](https://github.com/rails/rails/commit/e16c765ac6d))
 
 ### Deprecations
 
-ToDo
+*   Deprecated `#success?`, `#missing?` and `#error?` aliases of
+    `ActionDispatch::TestResponse`.
+    ([Pull Request](https://github.com/rails/rails/pull/30104))
 
 ### Notable changes
 
