@@ -402,7 +402,7 @@ module ActiveRecord
         if using_limitable_reflections?(join_dependency.reflections)
           relation
         else
-          if relation.limit_value
+          if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
           end

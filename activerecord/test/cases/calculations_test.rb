@@ -688,6 +688,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
   end
 
+  def test_pluck_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
+  end
+
   def test_pluck_not_auto_table_name_prefix_if_column_included
     Company.create!(name: "test", contracts: [Contract.new(developer_id: 7)])
     ids = Company.includes(:contracts).pluck(:developer_id)
