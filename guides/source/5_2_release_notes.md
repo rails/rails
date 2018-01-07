@@ -87,9 +87,18 @@ Action Cable
 
 Please refer to the [Changelog][action-cable] for detailed changes.
 
+### Removals
+
+*   Removed deprecated evented redis adapter.
+    ([Commit](https://github.com/rails/rails/commit/48766e32d31))
+
 ### Notable changes
 
-ToDo
+*   Added support for `host`, `port`, `db` and `password` options in cable.yml
+    ([Pull Request](https://github.com/rails/rails/pull/29528))
+
+*   Added support for compatibility with redis-rb gem for 4.0 version.
+    ([Pull Request](https://github.com/rails/rails/pull/30748))
 
 Action Pack
 -----------
