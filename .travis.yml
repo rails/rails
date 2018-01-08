@@ -5,7 +5,7 @@ before_install:
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
   - "rm ${BUNDLE_GEMFILE}.lock"
   - "gem update --system 2.6.13"
-  - "gem update bundler"
+  - "gem install bundler -v 1.15.4"
 before_script:
   - bundle update
 cache: bundler
