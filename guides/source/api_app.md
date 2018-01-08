@@ -80,7 +80,7 @@ Handled at the middleware layer:
   [`stale?`](http://api.rubyonrails.org/classes/ActionController/ConditionalGet.html#method-i-stale-3F)
   check in your controller, and Rails will handle all of the HTTP details for you.
 - HEAD requests: Rails will transparently convert `HEAD` requests into `GET` ones,
-  and return just the headers on the way out. This makes `HEAD` work reliably on
+  and return just the headers on the way out. This makes `HEAD` work reliably in
   all Rails APIs.
 
 While you could obviously build these up in terms of existing Rack middleware,
@@ -134,7 +134,7 @@ as needed.
 
 ### Creating a new application
 
-You can generate a new API Rails app:
+You can generate a new api Rails app:
 
 ```bash
 $ rails new my_api --api
@@ -385,7 +385,7 @@ controller modules by default:
   hooks defined by Action Controller (see [the instrumentation
   guide](active_support_instrumentation.html#action-controller) for
 more information regarding this).
-- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash
+- `ActionController::ParamsWrapper`: Wraps the parameters hash into a nested hash,
   so that you don't have to specify root elements sending POST requests for instance.
 - `ActionController::Head`: Support for returning a response with no content, only headers
 
