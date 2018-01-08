@@ -455,6 +455,22 @@ module ActiveRecord
       self
     end
 
+    def union(*args)
+      options = args.extract_options!
+      unique = options.fetch(:unique, true)
+
+      unions = if unique
+        arel.union(args.map(&:arel))
+      else
+        arel.union(:all, args.map(&:arel))
+      end
+      from = unions.as(@klass.arel_table.name)
+
+      relation = @klass.unscoped.spawn
+      relation.from_clause = Relation::FromClause.new(from, nil)
+      relation
+    end
+
     # Returns a new relation, which is the result of filtering the current relation
     # according to the conditions in the arguments.
     #
