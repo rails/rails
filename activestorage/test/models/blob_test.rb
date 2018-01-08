@@ -50,6 +50,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "urls allow for custom filename" do
+    blob = create_blob(filename: "original.txt")
+    new_filename = ActiveStorage::Filename.new("new.txt")
+
+    freeze_time do
+      assert_equal expected_url_for(blob), blob.service_url
+      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
+    end
+  end
+
   test "purge deletes file from external service" do
     blob = create_blob
 
@@ -66,8 +76,9 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :inline)
-      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{blob.filename.parameters}" }.to_param
-      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{blob.filename}?#{query_string}"
+    def expected_url_for(blob, disposition: :inline, filename: nil)
+      filename ||= blob.filename
+      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
+      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end
