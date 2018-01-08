@@ -672,6 +672,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
 
+* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
+
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 
 * `ActiveSupport::Cache::Store.logger` specifies the logger to use within cache store operations.
