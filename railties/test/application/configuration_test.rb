@@ -1739,9 +1739,7 @@ module ApplicationTests
 
     test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_top_of_config <<-RUBY
-        config.load_defaults 5.1
-      RUBY
+
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -1888,6 +1886,32 @@ module ApplicationTests
 
       assert_equal 301, last_response.status
       assert_equal "https://example.org/", last_response.location
+    end
+
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
+    end
+
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
+    end
+
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+      Rails.application.config.active_support.use_authenticated_message_encryption = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
     end
 
     test "config.active_support.hash_digest_class is Digest::MD5 by default" do
