@@ -61,9 +61,9 @@ module ActionDispatch
         @routes = routes
       end
 
-      def format(formatter, filter = nil)
+      def format(formatter, filter: nil, show_internal: false)
         routes_to_display = filter_routes(normalize_filter(filter))
-        routes = collect_routes(routes_to_display)
+        routes = collect_routes(routes_to_display, show_internal)
         if routes.none?
           formatter.no_routes(collect_routes(@routes))
           return formatter.result
@@ -101,10 +101,14 @@ module ActionDispatch
           end
         end
 
-        def collect_routes(routes)
-          routes.collect do |route|
+        def collect_routes(routes, show_internal = false)
+          routes = routes.collect do |route|
             RouteWrapper.new(route)
-          end.reject(&:internal?).collect do |route|
+          end
+
+          routes.reject!(&:internal?) unless show_internal
+
+          routes.collect do |route|
             collect_engine_routes(route)
 
             { name: route.name,

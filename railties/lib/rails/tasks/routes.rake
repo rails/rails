@@ -2,13 +2,14 @@
 
 require "optparse"
 
-desc "Print out all defined routes in match order, with names. Target specific controller with -c option, or grep routes using -g option"
+desc "Print out all defined routes in match order, with names. Target specific controller with -c option, or grep routes using -g option. Show internal routes with -a option."
 task routes: :environment do
   all_routes = Rails.application.routes.routes
   require "action_dispatch/routing/inspector"
   inspector = ActionDispatch::Routing::RoutesInspector.new(all_routes)
 
   routes_filter = nil
+  show_internal = false
 
   OptionParser.new do |opts|
     opts.banner = "Usage: rails routes [options]"
@@ -23,9 +24,17 @@ task routes: :environment do
       routes_filter = pattern
     end
 
+    opts.on("-a", "--all", "Show all routes including internal") do
+      show_internal = true
+    end
+
   end.parse!(ARGV.reject { |x| x == "routes" })
 
-  puts inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, routes_filter)
+  puts inspector.format(
+    ActionDispatch::Routing::ConsoleFormatter.new,
+    filter: routes_filter,
+    show_internal: show_internal
+  )
 
   exit 0 # ensure extra arguments aren't interpreted as Rake tasks
 end
