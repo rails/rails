@@ -1116,6 +1116,25 @@ class DateHelperTest < ActionView::TestCase
     assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, start_year: 2003, end_year: 2005, prefix: "date[first]")
   end
 
+  def test_select_date_with_no_rendering_of_discarded_fields
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n).dup
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, render_discarded: false, start_year: 2003, end_year: 2005, prefix: "date[first]")
+  end
+
+  def test_select_date_with_explicit_rendering_of_discarded_fields
+    expected =  %(<select id="date_first_year" name="date[first][year]">\n).dup
+    expected << %(<option value="2003" selected="selected">2003</option>\n<option value="2004">2004</option>\n<option value="2005">2005</option>\n)
+    expected << "</select>\n"
+
+    expected << %(<input type="hidden" id="date_first_month" name="date[first][month]" value="8" />\n)
+    expected << %(<input type="hidden" id="date_first_day" name="date[first][day]" value="1" />\n)
+
+    assert_dom_equal expected, select_date(Time.mktime(2003, 8, 16), date_separator: " / ", discard_month: true, discard_day: true, render_discarded: true, start_year: 2003, end_year: 2005, prefix: "date[first]")
+  end
+
   def test_select_date_with_hidden
     expected =  %(<input id="date_first_year" name="date[first][year]" type="hidden" value="2003"/>\n).dup
     expected << %(<input id="date_first_month" name="date[first][month]" type="hidden" value="8" />\n)
@@ -1893,6 +1912,31 @@ class DateHelperTest < ActionView::TestCase
     expected << "</select>\n"
 
     assert_dom_equal expected, date_select("post", "written_on", order: [ :year ])
+  end
+
+  def test_date_select_with_no_rendering_of_discarded_fields
+    @post = Post.new
+    @post.written_on = Date.new(2004, 2, 29)
+
+    expected =  %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}.dup
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", order: [ :year ], render_discarded: false)
+  end
+
+  def test_date_select_with_explicit_rendering_of_discarded_fields
+    @post = Post.new
+    @post.written_on = Date.new(2004, 2, 29)
+
+    expected = "<input type=\"hidden\" id=\"post_written_on_2i\" name=\"post[written_on(2i)]\" value=\"2\" />\n".dup
+    expected << "<input type=\"hidden\" id=\"post_written_on_3i\" name=\"post[written_on(3i)]\" value=\"1\" />\n"
+
+    expected << %{<select id="post_written_on_1i" name="post[written_on(1i)]">\n}
+    expected << %{<option value="1999">1999</option>\n<option value="2000">2000</option>\n<option value="2001">2001</option>\n<option value="2002">2002</option>\n<option value="2003">2003</option>\n<option value="2004" selected="selected">2004</option>\n<option value="2005">2005</option>\n<option value="2006">2006</option>\n<option value="2007">2007</option>\n<option value="2008">2008</option>\n<option value="2009">2009</option>\n}
+    expected << "</select>\n"
+
+    assert_dom_equal expected, date_select("post", "written_on", order: [ :year ], render_discarded: true)
   end
 
   def test_date_select_without_day_with_separator
