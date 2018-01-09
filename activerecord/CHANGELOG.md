@@ -1,3 +1,11 @@
+*   Fixed inconsistency with `first(n)` when used with `limit()`.
+    The `first(n)` finder now respects the `limit()`, making it consistent
+    with `relation.to_a.first(n)`, and also with the behavior of `last(n)`.
+
+    Fixes #23979.
+
+    *Brian Christian*
+
 *   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
     SQL queries for association counting.
 
