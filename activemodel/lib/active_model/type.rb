@@ -12,6 +12,7 @@ require "active_model/type/decimal"
 require "active_model/type/float"
 require "active_model/type/immutable_string"
 require "active_model/type/integer"
+require "active_model/type/strict_integer"
 require "active_model/type/string"
 require "active_model/type/time"
 
@@ -47,6 +48,7 @@ module ActiveModel
     register(:float, Type::Float)
     register(:immutable_string, Type::ImmutableString)
     register(:integer, Type::Integer)
+    register(:strict_integer, Type::StrictInteger)
     register(:string, Type::String)
     register(:time, Type::Time)
   end
