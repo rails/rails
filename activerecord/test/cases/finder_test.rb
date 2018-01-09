@@ -687,6 +687,24 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
   end
 
+  def test_first_on_relation_with_limit_and_offset
+    post = posts("sti_comments")
+
+    comments = post.comments.order(id: :asc)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+
+    assert_equal comments.offset(2).to_a.first, comments.offset(2).first
+    assert_equal comments.offset(2).to_a.first(2), comments.offset(2).first(2)
+    assert_equal comments.offset(2).to_a.first(3), comments.offset(2).first(3)
+
+    comments = comments.offset(1)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+  end
+
   def test_take_and_first_and_last_with_integer_should_return_an_array
     assert_kind_of Array, Topic.take(5)
     assert_kind_of Array, Topic.first(5)

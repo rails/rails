@@ -532,7 +532,11 @@ module ActiveRecord
         else
           relation = ordered_relation
 
-          if limit_value.nil? || index < limit_value
+          if limit_value
+            limit = [limit_value - index, limit].min
+          end
+
+          if limit > 0
             relation = relation.offset(offset_index + index) unless index.zero?
             relation.limit(limit).to_a
           else
