@@ -41,9 +41,6 @@ application to Rails 5.2, run `rails active_storage:install` to generate a
 migration that creates these tables. Use `rails db:migrate` to run the
 migration.
 
-You need not run `rails active_storage:install` in a new Rails 5.2 application:
-the migration is generated automatically.
-
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
 below declares three services named `local`, `test`, and `amazon`:

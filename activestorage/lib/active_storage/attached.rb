@@ -8,6 +8,7 @@ module ActiveStorage
   # Abstract base class for the concrete ActiveStorage::Attached::One and ActiveStorage::Attached::Many
   # classes that both provide proxy access to the blob association for a record.
   class Attached
+    class MissingTableError < StandardError; end
     attr_reader :name, :record, :dependent
 
     def initialize(name, record, dependent:)
@@ -30,6 +31,13 @@ module ActiveStorage
           ActiveStorage::Blob.find_signed(attachable)
         else
           nil
+        end
+      end
+
+      def raise_if_table_missing!
+        unless ActiveStorage::Attachment.table_exists?
+          raise(MissingTableError, "Could not find table '#{ActiveStorage::Attachment.table_name}'. " \
+            "To resolve this issue run: bin/rails active_storage:install")
         end
       end
   end

@@ -10,6 +10,7 @@ module ActiveStorage
     # You don't have to call this method to access the attachment's methods as
     # they are all available at the model level.
     def attachment
+      raise_if_table_missing!
       record.public_send("#{name}_attachment")
     end
 
