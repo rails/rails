@@ -25,6 +25,7 @@ module ActionDispatch
       "ActionView::MissingTemplate"         => "missing_template",
       "ActionController::RoutingError"      => "routing_error",
       "AbstractController::ActionNotFound"  => "unknown_action",
+      "ActiveRecord::StatementInvalid"      => "invalid_statement",
       "ActionView::Template::Error"         => "template_error"
     )
 
