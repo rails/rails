@@ -22,6 +22,12 @@ module ActionController
     end
   end
 
+  class MissingExactTemplate < ActionControllerError #:nodoc:
+    def initialize(message)
+      super(message)
+    end
+  end
+
   class ActionController::UrlGenerationError < ActionControllerError #:nodoc:
   end
 
