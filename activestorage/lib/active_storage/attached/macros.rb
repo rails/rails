@@ -44,7 +44,7 @@ module ActiveStorage
       scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
       if dependent == :purge_later
-        before_destroy { public_send(name).purge_later }
+        after_destroy_commit { public_send(name).purge_later }
       end
     end
 
@@ -89,7 +89,7 @@ module ActiveStorage
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
       if dependent == :purge_later
-        before_destroy { public_send(name).purge_later }
+        after_destroy_commit { public_send(name).purge_later }
       end
     end
   end
