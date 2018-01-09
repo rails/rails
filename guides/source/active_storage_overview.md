@@ -35,6 +35,8 @@ files.
 
 ## Setup
 
+If you are upgrading to Rails 5.2, make sure `require "active_storage/engine"` is declared in `config/application.rb`. This should already be set for new Rails 5.2 applications.
+
 Active Storage uses two tables in your application’s database named
 `active_storage_blobs` and `active_storage_attachments`. After upgrading your
 application to Rails 5.2, run `rails active_storage:install` to generate a
