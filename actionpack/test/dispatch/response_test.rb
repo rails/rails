@@ -311,7 +311,7 @@ class ResponseTest < ActiveSupport::TestCase
     end
   end
 
-  test "read x_frame_options, x_content_type_options, x_xss_protection, x_download_options and x_permitted_cross_domain_policies" do
+  test "read x_frame_options, x_content_type_options, x_xss_protection, x_download_options and x_permitted_cross_domain_policies, referrer_policy" do
     original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
@@ -319,7 +319,8 @@ class ResponseTest < ActiveSupport::TestCase
         "X-Content-Type-Options" => "nosniff",
         "X-XSS-Protection" => "1;",
         "X-Download-Options" => "noopen",
-        "X-Permitted-Cross-Domain-Policies" => "none"
+        "X-Permitted-Cross-Domain-Policies" => "none",
+        "Referrer-Policy" => "strict-origin-when-cross-origin"
       }
       resp = ActionDispatch::Response.create.tap { |response|
         response.body = "Hello"
@@ -331,6 +332,7 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal("1;", resp.headers["X-XSS-Protection"])
       assert_equal("noopen", resp.headers["X-Download-Options"])
       assert_equal("none", resp.headers["X-Permitted-Cross-Domain-Policies"])
+      assert_equal("strict-origin-when-cross-origin", resp.headers["Referrer-Policy"])
     ensure
       ActionDispatch::Response.default_headers = original_default_headers
     end

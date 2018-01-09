@@ -1,3 +1,7 @@
+*   Add `Referrer-Policy` header to default headers set.
+
+    *Guillermo Iguaran*
+
 *   Changed the system tests to set Puma as default server only when the
     user haven't specified manually another server.
 

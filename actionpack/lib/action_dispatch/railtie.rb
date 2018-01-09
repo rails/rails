@@ -28,7 +28,8 @@ module ActionDispatch
       "X-XSS-Protection" => "1; mode=block",
       "X-Content-Type-Options" => "nosniff",
       "X-Download-Options" => "noopen",
-      "X-Permitted-Cross-Domain-Policies" => "none"
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
 
     config.action_dispatch.cookies_rotations = ActiveSupport::Messages::RotationConfiguration.new
