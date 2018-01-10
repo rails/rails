@@ -512,6 +512,7 @@ DEPENDENCIES
   capybara (~> 2.15)
   chromedriver-helper
   coffee-rails
+  connection_pool
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
