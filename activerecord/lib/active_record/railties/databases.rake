@@ -6,7 +6,7 @@ db_namespace = namespace :db do
   desc "Set the environment value for the database"
   task "environment:set" => :load_config do
     ActiveRecord::InternalMetadata.create_table
-    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+    ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
   end
 
   task check_protected_environments: :load_config do
@@ -99,9 +99,8 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Migrator.run(
+      ActiveRecord::Base.connection.migration_context.run(
         :up,
-        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
       db_namespace["_dump"].invoke
@@ -113,9 +112,8 @@ db_namespace = namespace :db do
 
       ActiveRecord::Tasks::DatabaseTasks.check_target_version
 
-      ActiveRecord::Migrator.run(
+      ActiveRecord::Base.connection.migration_context.run(
         :down,
-        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
         ActiveRecord::Tasks::DatabaseTasks.target_version
       )
       db_namespace["_dump"].invoke
@@ -131,8 +129,7 @@ db_namespace = namespace :db do
       puts "\ndatabase: #{ActiveRecord::Base.connection_config[:database]}\n\n"
       puts "#{'Status'.center(8)}  #{'Migration ID'.ljust(14)}  Migration Name"
       puts "-" * 50
-      paths = ActiveRecord::Tasks::DatabaseTasks.migrations_paths
-      ActiveRecord::Migrator.migrations_status(paths).each do |status, version, name|
+      ActiveRecord::Base.connection.migration_context.migrations_status.each do |status, version, name|
         puts "#{status.center(8)}  #{version.ljust(14)}  #{name}"
       end
       puts
@@ -142,14 +139,14 @@ db_namespace = namespace :db do
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Migrator.rollback(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
+    ActiveRecord::Base.connection.migration_context.rollback(step)
     db_namespace["_dump"].invoke
   end
 
   # desc 'Pushes the schema to the next version (specify steps w/ STEP=n).'
   task forward: :load_config do
     step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Migrator.forward(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
+    ActiveRecord::Base.connection.migration_context.forward(step)
     db_namespace["_dump"].invoke
   end
 
@@ -172,12 +169,12 @@ db_namespace = namespace :db do
 
   desc "Retrieves the current schema version number"
   task version: :load_config do
-    puts "Current version: #{ActiveRecord::Migrator.current_version}"
+    puts "Current version: #{ActiveRecord::Base.connection.migration_context.current_version}"
   end
 
   # desc "Raises an error if there are pending migrations"
   task abort_if_pending_migrations: :load_config do
-    pending_migrations = ActiveRecord::Migrator.open(ActiveRecord::Tasks::DatabaseTasks.migrations_paths).pending_migrations
+    pending_migrations = ActiveRecord::Base.connection.migration_context.open.pending_migrations
 
     if pending_migrations.any?
       puts "You have #{pending_migrations.size} pending #{pending_migrations.size > 1 ? 'migrations:' : 'migration:'}"
