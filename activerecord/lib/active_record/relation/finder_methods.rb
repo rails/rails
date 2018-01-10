@@ -313,7 +313,7 @@ module ActiveRecord
       return false if !conditions || limit_value == 0
 
       if eager_loading?
-        relation = apply_join_dependency(construct_join_dependency(eager_loading: false))
+        relation = apply_join_dependency(eager_loading: false)
         return relation.exists?(conditions)
       end
 
@@ -396,10 +396,11 @@ module ActiveRecord
         )
       end
 
-      def apply_join_dependency(join_dependency = construct_join_dependency)
+      def apply_join_dependency(join_dependency = nil, eager_loading: true)
+        join_dependency ||= construct_join_dependency(eager_loading: eager_loading)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if using_limitable_reflections?(join_dependency.reflections)
+        if !eager_loading || using_limitable_reflections?(join_dependency.reflections)
           relation
         else
           if has_limit_or_offset?
