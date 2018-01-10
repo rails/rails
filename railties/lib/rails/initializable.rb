@@ -1,12 +1,14 @@
 # frozen_string_literal: true
 
 require "tsort"
+require "activesupport/lib/active_support/concern"
 
 module Rails
   module Initializable
-    def self.included(base) #:nodoc:
-      base.extend ClassMethods
-    end
+    # def self.included(base) #:nodoc:
+    #   base.extend ClassMethods
+    # end
+    extend ActiveSupport::Concern
 
     class Initializer
       attr_reader :name, :block
