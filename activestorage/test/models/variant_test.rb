@@ -59,7 +59,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "variation of invariable blob" do
-    assert_raises ActiveStorage::Blob::InvariableError do
+    assert_raises ActiveStorage::InvariableError do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize: "100x100")
     end
   end

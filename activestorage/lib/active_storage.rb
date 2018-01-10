@@ -26,7 +26,9 @@
 require "active_record"
 require "active_support"
 require "active_support/rails"
+
 require "active_storage/version"
+require "active_storage/errors"
 
 module ActiveStorage
   extend ActiveSupport::Autoload

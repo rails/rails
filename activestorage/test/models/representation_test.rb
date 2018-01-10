@@ -34,7 +34,7 @@ class ActiveStorage::RepresentationTest < ActiveSupport::TestCase
   test "representing an unrepresentable blob" do
     blob = create_blob
 
-    assert_raises ActiveStorage::Blob::UnrepresentableError do
+    assert_raises ActiveStorage::UnrepresentableError do
       blob.representation resize: "100x100"
     end
   end
