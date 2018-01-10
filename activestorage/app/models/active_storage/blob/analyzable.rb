@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_storage/analyzer/null_analyzer"
 
 module ActiveStorage::Blob::Analyzable

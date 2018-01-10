@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveStorage::Blob::Representable
   extend ActiveSupport::Concern
 
