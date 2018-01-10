@@ -23,7 +23,7 @@ module ActiveStorage::Blob::Representable
   # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
   # can then produce on-demand.
   #
-  # Raises ActiveStorage::Blob::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
+  # Raises ActiveStorage::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
@@ -51,7 +51,7 @@ module ActiveStorage::Blob::Representable
   #
   #   <%= image_tag video.preview(resize: "100x100") %>
   #
-  # This method raises ActiveStorage::Blob::UnpreviewableError if no previewer accepts the receiving blob. To determine
+  # This method raises ActiveStorage::UnpreviewableError if no previewer accepts the receiving blob. To determine
   # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
   def preview(transformations)
     if previewable?
@@ -71,7 +71,7 @@ module ActiveStorage::Blob::Representable
   #
   #   blob.representation(resize: "100x100").processed.service_url
   #
-  # Raises ActiveStorage::Blob::UnrepresentableError if the receiving blob is neither variable nor previewable. Call
+  # Raises ActiveStorage::UnrepresentableError if the receiving blob is neither variable nor previewable. Call
   # ActiveStorage::Blob#representable? to determine whether a blob is representable.
   #
   # See ActiveStorage::Blob#preview and ActiveStorage::Blob#variant for more information.
