@@ -313,23 +313,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
-  def test_active_storage_install
-    command_check = -> command, _ do
-      @binstub_called ||= 0
-      case command
-      when "active_storage:install"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
-      end
-    end
-
-    generator.stub :rails_command, command_check do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
