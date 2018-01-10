@@ -358,24 +358,6 @@ module ActiveRecord
         offset_value || 0
       end
 
-      def find_with_associations
-        # NOTE: the JoinDependency constructed here needs to know about
-        #       any joins already present in `self`, so pass them in
-        #
-        # failing to do so means that in cases like activerecord/test/cases/associations/inner_join_association_test.rb:136
-        # incorrect SQL is generated. In that case, the join dependency for
-        # SpecialCategorizations is constructed without knowledge of the
-        # preexisting join in joins_values to categorizations (by way of
-        # the `has_many :through` for categories).
-        #
-        join_dependency = construct_join_dependency
-
-        relation = apply_join_dependency(join_dependency)
-        relation._select!(join_dependency.aliases.columns)
-
-        yield relation, join_dependency
-      end
-
       def construct_relation_for_exists(conditions)
         relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
 
@@ -396,18 +378,23 @@ module ActiveRecord
         )
       end
 
-      def apply_join_dependency(join_dependency = nil, eager_loading: true)
-        join_dependency ||= construct_join_dependency(eager_loading: eager_loading)
+      def apply_join_dependency(eager_loading: true)
+        join_dependency = construct_join_dependency(eager_loading: eager_loading)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if !eager_loading || using_limitable_reflections?(join_dependency.reflections)
-          relation
-        else
+        if eager_loading && !using_limitable_reflections?(join_dependency.reflections)
           if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
           end
-          relation.except(:limit, :offset)
+          relation.limit_value = relation.offset_value = nil
+        end
+
+        if block_given?
+          relation._select!(join_dependency.aliases.columns)
+          yield relation, join_dependency
+        else
+          relation
         end
       end
 

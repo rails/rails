@@ -430,7 +430,7 @@ module ActiveRecord
                     relation = self
 
                     if eager_loading?
-                      find_with_associations { |rel, _| relation = rel }
+                      apply_join_dependency { |rel, _| relation = rel }
                     end
 
                     conn = klass.connection
@@ -533,7 +533,7 @@ module ActiveRecord
         skip_query_cache_if_necessary do
           @records =
             if eager_loading?
-              find_with_associations do |relation, join_dependency|
+              apply_join_dependency do |relation, join_dependency|
                 if ActiveRecord::NullRelation === relation
                   []
                 else
