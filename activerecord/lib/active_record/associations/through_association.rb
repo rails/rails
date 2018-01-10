@@ -68,7 +68,7 @@ module ActiveRecord
         end
 
         def foreign_key_present?
-          through_reflection.belongs_to? && !owner[through_reflection.foreign_key].nil?
+          through_reflection.belongs_to_or_through? && !owner[through_reflection.foreign_key].nil?
         end
 
         def ensure_mutable

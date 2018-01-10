@@ -504,6 +504,10 @@ module ActiveRecord
         @association_scope_cache.clear
       end
 
+      def belongs_to_or_through?
+        belongs_to?
+      end
+
       def nested?
         false
       end
@@ -834,6 +838,10 @@ module ActiveRecord
 
       def join_scopes(table, predicate_builder) # :nodoc:
         source_reflection.join_scopes(table, predicate_builder) + super
+      end
+
+      def belongs_to_or_through?
+        through_reflection.belongs_to_or_through?
       end
 
       def has_scope?

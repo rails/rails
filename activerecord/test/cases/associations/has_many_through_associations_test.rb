@@ -1308,6 +1308,35 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_single_has_many_through_association_with_unpersisted_parent_instance
+    post_with_single_has_many_through = Class.new(Post) do
+      def self.name; "PostWithSingleHasManyThrough"; end
+      has_many :subscriptions, through: :author
+    end
+    post = post_with_single_has_many_through.new
+    post.author = Author.create!(name: "Federico Morissette")
+    book = Book.create!(name: "essays on single has many through associations")
+    post.author.books << book
+    subscription = Subscription.first
+    book.subscriptions << subscription
+    assert_equal [subscription], post.subscriptions.to_a
+  end
+
+  def test_nested_has_many_through_association_with_unpersisted_parent_instance
+    post_with_nested_has_many_through = Class.new(Post) do
+      def self.name; "PostWithNestedHasManyThrough"; end
+      has_many :books, through: :author
+      has_many :subscriptions, through: :books
+    end
+    post = post_with_nested_has_many_through.new
+    post.author = Author.create!(name: "Obie Weissnat")
+    book = Book.create!(name: "essays on nested has many through associations")
+    post.author.books << book
+    subscription = Subscription.first
+    book.subscriptions << subscription
+    assert_equal [subscription], post.subscriptions.to_a
+  end
+
   private
     def make_model(name)
       Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
