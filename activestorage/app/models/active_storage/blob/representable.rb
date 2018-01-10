@@ -22,7 +22,7 @@ module ActiveStorage::Blob::Representable
   # can then produce on-demand.
   #
   # Raises ActiveStorage::Blob::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
-  # variable, call ActiveStorage::Blob#previewable?.
+  # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
       ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
