@@ -1,3 +1,9 @@
+*   Take into account association conditions when deleting through records.
+
+    Fixes #18424.
+
+    *Piotr Jakubowski*
+
 *   Fix nested `has_many :through` associations on unpersisted parent instances.
 
     For example, if you have

@@ -140,6 +140,7 @@ module ActiveRecord
 
           scope = through_association.scope
           scope.where! construct_join_attributes(*records)
+          scope = scope.where(through_scope_attributes)
 
           case method
           when :destroy
