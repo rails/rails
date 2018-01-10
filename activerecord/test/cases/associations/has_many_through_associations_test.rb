@@ -1314,12 +1314,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       has_many :subscriptions, through: :author
     end
     post = post_with_single_has_many_through.new
-    post.author = Author.create!(name: "Federico Morissette")
-    book = Book.create!(name: "essays on single has many through associations")
-    post.author.books << book
-    subscription = Subscription.first
-    book.subscriptions << subscription
-    assert_equal [subscription], post.subscriptions.to_a
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on single has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on single has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
   end
 
   def test_nested_has_many_through_association_with_unpersisted_parent_instance
@@ -1329,12 +1337,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       has_many :subscriptions, through: :books
     end
     post = post_with_nested_has_many_through.new
-    post.author = Author.create!(name: "Obie Weissnat")
-    book = Book.create!(name: "essays on nested has many through associations")
-    post.author.books << book
-    subscription = Subscription.first
-    book.subscriptions << subscription
-    assert_equal [subscription], post.subscriptions.to_a
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on nested has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on nested has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
   end
 
   private
