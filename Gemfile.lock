@@ -1,10 +1,10 @@
 GIT
-  remote: https://github.com/QueueClassic/queue_classic.git
-  revision: cde82d17ded2799ed726dd7b0df6ce1fd4c1b7da
-  branch: master
+  remote: https://github.com/Kjarrigan/queue_classic.git
+  revision: dee64b361355d56700ad7aa3b151bf653a617526
+  branch: update-pg
   specs:
     queue_classic (3.2.0.RC1)
-      pg (>= 0.17, < 0.20)
+      pg (>= 0.17, < 2.0)
 
 GIT
   remote: https://github.com/matthewd/rb-inotify.git
@@ -340,9 +340,9 @@ GEM
     parser (2.4.0.0)
       ast (~> 2.2)
     path_expander (1.0.2)
-    pg (0.19.0)
-    pg (0.19.0-x64-mingw32)
-    pg (0.19.0-x86-mingw32)
+    pg (1.0.0)
+    pg (1.0.0-x64-mingw32)
+    pg (1.0.0-x86-mingw32)
     powerpack (0.1.1)
     psych (2.2.4)
     public_suffix (3.0.1)
