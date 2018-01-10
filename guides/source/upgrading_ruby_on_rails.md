@@ -72,7 +72,7 @@ For more information on changes made to Rails 5.1 please see the [release notes]
 
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
-If your application uses the the top-level `HashWithIndifferentAccess` class, you
+If your application uses the top-level `HashWithIndifferentAccess` class, you
 should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
 
 It is only soft-deprecated, which means that your code will not break at the
