@@ -1,4 +1,4 @@
-gem "pg", "~> 0.18"
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 require "thread"
 
