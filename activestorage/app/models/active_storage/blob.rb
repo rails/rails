@@ -14,12 +14,12 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  include Analyzable, Representable
+  include Analyzable, Identifiable, Representable
 
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
-  store :metadata, accessors: [ :analyzed ], coder: JSON
+  store :metadata, accessors: [ :analyzed, :identified ], coder: JSON
 
   class_attribute :service
 
@@ -136,8 +136,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
   # and +create_after_upload!+.
   def upload(io)
-    self.checksum  = compute_checksum_in_chunks(io)
-    self.byte_size = io.size
+    self.checksum     = compute_checksum_in_chunks(io)
+    self.content_type = extract_content_type(io)
+    self.byte_size    = io.size
+    self.identified   = true
 
     service.upload(key, io, checksum: checksum)
   end
@@ -180,6 +182,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
         io.rewind
       end.base64digest
+    end
+
+    def extract_content_type(io)
+      Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
     end
 
     def forcibly_serve_as_binary?

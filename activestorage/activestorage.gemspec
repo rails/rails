@@ -27,4 +27,8 @@ Gem::Specification.new do |s|
 
   s.add_dependency "actionpack", version
   s.add_dependency "activerecord", version
+
+  s.add_dependency "marcel", "~> 0.3.1"
+
+  s.add_development_dependency "webmock", "~> 3.2.1"
 end

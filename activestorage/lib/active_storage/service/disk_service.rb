@@ -9,10 +9,10 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_reader :root
+    attr_reader :root, :host
 
-    def initialize(root:)
-      @root = root
+    def initialize(root:, host:)
+      @root, @host = root, host
     end
 
     def upload(key, io, checksum: nil)
@@ -69,14 +69,13 @@ module ActiveStorage
         verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
         generated_url =
-          if defined?(Rails.application)
-            Rails.application.routes.url_helpers.rails_disk_service_path \
-              verified_key_with_expiration,
-              filename: filename, disposition: content_disposition_with(type: disposition, filename: filename), content_type: content_type
-          else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}" \
-              "&disposition=#{content_disposition_with(type: disposition, filename: filename)}"
-          end
+          Rails.application.routes.url_helpers.rails_disk_service_url(
+            verified_key_with_expiration,
+            filename: filename,
+            disposition: content_disposition_with(type: disposition, filename: filename),
+            content_type: content_type,
+            host: host
+          )
 
         payload[:url] = generated_url
 
@@ -97,12 +96,7 @@ module ActiveStorage
           purpose: :blob_token }
         )
 
-        generated_url =
-          if defined?(Rails.application)
-            Rails.application.routes.url_helpers.update_rails_disk_service_path verified_token_with_expiration
-          else
-            "/rails/active_storage/disk/#{verified_token_with_expiration}"
-          end
+        generated_url = Rails.application.routes.url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: host)
 
         payload[:url] = generated_url
 
