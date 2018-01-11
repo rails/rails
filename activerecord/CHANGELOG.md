@@ -1,3 +1,25 @@
+*   Instrument model's schema load
+
+    This allows to configure models from application or gems based on available
+    columns and without connecting to database on startup:
+
+        module HasSomething
+          extend ActiveSupport::Concern
+          class_methods do
+            def has_something(*columns, except: nil, only: list)
+              event = "#{self}.load_schema.active_record"
+              ActiveSupport::Notifications.subscribe(event) do |*, payload|
+                # do some stuff
+                if self.column_names.include?("extra_something")
+                  # do more stuff
+                end
+              end
+            end
+          end
+        end
+
+    *Andrey Novikov*
+
 *   Take into account association conditions when deleting through records.
 
     Fixes #18424.

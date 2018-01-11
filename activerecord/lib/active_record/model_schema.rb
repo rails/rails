@@ -454,7 +454,10 @@ module ActiveRecord
           @load_schema_monitor.synchronize do
             return if defined?(@columns_hash) && @columns_hash
 
-            load_schema!
+            instrumenter = ActiveSupport::Notifications.instrumenter
+            instrumenter.instrument("#{self}.load_schema.active_record", model: self) do
+              load_schema!
+            end
 
             @schema_loaded = true
           end

@@ -1050,6 +1050,8 @@ ActiveRecord::Schema.define do
     t.string :string_with_default, default: "the original default"
   end
 
+  create_table :unused_models, comment: "Unused table for single test", force: true
+
   create_table :users, force: true do |t|
     t.string :token
     t.string :auth_token

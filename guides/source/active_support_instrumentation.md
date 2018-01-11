@@ -288,6 +288,25 @@ INFO. The adapters will add their own data as well.
 }
 ```
 
+### MODEL.schema_load.active_record
+
+This hook will be called once for every model class when database connection will be established and columns information is retrieved.
+
+Gems can use this hook to configure models behavior depending on available columns.
+
+`Model` in the key will be replaced by model class name (e.g. `User`).
+
+| Key              | Value                                    |
+| ---------------- | ---------------------------------------- |
+| `:model`         | Model class                              |
+
+
+```ruby
+{
+  model: User,
+}
+```
+
 Action Mailer
 -------------
 
