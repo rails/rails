@@ -231,7 +231,7 @@ module ActionView
         word = if (count == 1 || count =~ /^1(\.0+)?$/)
           singular
         else
-          plural || singular.pluralize(locale)
+          plural || singular.pluralize(locale: locale)
         end
 
         "#{count || 0} #{word}"
