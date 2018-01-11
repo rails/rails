@@ -27,6 +27,7 @@ require "models/joke"
 require "models/bird"
 require "models/car"
 require "models/bulb"
+require "models/unused_model"
 require "concurrent/atomic/count_down_latch"
 
 class FirstAbstractClass < ActiveRecord::Base
@@ -1518,5 +1519,20 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
   ensure
     ActiveRecord::Base.protected_environments = previous_protected_environments
+  end
+
+  def test_schema_load_event_being_issued_only_once_for_model
+    Developer.connection # force model to load its schema
+    collector = Hash.new { 0 }
+    subscription = ActiveSupport::Notifications.subscribe(/load_schema.active_record/) do |*, payload|
+      collector[payload[:model]] += 1
+    end
+    UnusedModel.connection
+    UnusedModel.connection_pool.checkin(UnusedModel.connection)
+    UnusedModel.count
+    Developer.count
+    assert_equal({ UnusedModel => 1 }, collector)
+  ensure
+    ActiveSupport::Notifications.unsubscribe(subscription)
   end
 end
