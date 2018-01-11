@@ -269,7 +269,7 @@ module Rails
         # %w( mysql oracle postgresql sqlite3 frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
         when "oracle"         then ["ruby-oci8", nil]
-        when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
