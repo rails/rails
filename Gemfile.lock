@@ -1,12 +1,4 @@
 GIT
-  remote: https://github.com/Kjarrigan/queue_classic.git
-  revision: dee64b361355d56700ad7aa3b151bf653a617526
-  branch: update-pg
-  specs:
-    queue_classic (3.2.0.RC1)
-      pg (>= 0.17, < 2.0)
-
-GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -22,6 +14,14 @@ GIT
     websocket-client-simple (0.3.0)
       event_emitter
       websocket
+
+GIT
+  remote: https://github.com/rafaelfranca/queue_classic.git
+  revision: dee64b361355d56700ad7aa3b151bf653a617526
+  branch: update-pg
+  specs:
+    queue_classic (3.2.0.RC1)
+      pg (>= 0.17, < 2.0)
 
 GIT
   remote: https://github.com/robin850/sdoc.git
