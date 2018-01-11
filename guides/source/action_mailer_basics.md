@@ -805,7 +805,7 @@ config.action_mailer.smtp_settings = {
   user_name:            '<username>',
   password:             '<password>',
   authentication:       'plain',
-  enable_starttls_auto: true  }
+  enable_starttls_auto: true }
 ```
 Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
