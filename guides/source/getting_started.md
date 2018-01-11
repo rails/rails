@@ -87,7 +87,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.3.1p112
+ruby 2.5.0p0
 ```
 
 Rails requires Ruby version 2.2.2 or later. If the version number returned is
