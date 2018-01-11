@@ -1,3 +1,7 @@
+*   Add missing instrumentation for `read_multi` in `ActiveSupport::Cache::Store`.
+
+    *Ignatius Reza Lesmana*
+
 *   `assert_changes` will always assert that the expression changes,
     regardless of `from:` and `to:` argument combinations.
 
