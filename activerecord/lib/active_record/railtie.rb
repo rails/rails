@@ -59,6 +59,7 @@ module ActiveRecord
         console = ActiveSupport::Logger.new(STDERR)
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
+      ActiveRecord::Base.verbose_query_logs = false
     end
 
     runner do
