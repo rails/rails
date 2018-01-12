@@ -457,7 +457,7 @@ class LoginsController < ApplicationController
   # "Delete" a login, aka "log the user out"
   def destroy
     # Remove the user id from the session
-    @_current_user = session[:current_user_id] = nil
+    session.delete(:current_user_id)
     redirect_to root_url
   end
 end
