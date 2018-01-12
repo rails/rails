@@ -7,12 +7,12 @@
 
     *Daniel Ma*
 
-*   Allow the hash function used to generate non-sensitive digests, such as the
-    ETag header, to be specified with `config.active_support.hash_digest_class`.
+*   Use SHA-1 to generate non-sensitive digests, such as the ETag header.
 
-    The object provided must respond to `#hexdigest`, e.g. `Digest::SHA1`.
+    Enabled by default for new apps; upgrading apps can opt in by setting
+    `config.active_support.use_sha1_digests = true`.
 
-    *Dmitri Dolguikh*
+    *Dmitri Dolguikh*, *Eugene Kenny*
 
 
 ## Rails 5.2.0.beta2 (November 28, 2017) ##

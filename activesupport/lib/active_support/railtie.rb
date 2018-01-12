@@ -70,9 +70,10 @@ module ActiveSupport
     end
 
     initializer "active_support.set_hash_digest_class" do |app|
-      if app.config.active_support.hash_digest_class
-        ActiveSupport::Digest.hash_digest_class =
-          app.config.active_support.hash_digest_class
+      config.after_initialize do
+        if app.config.active_support.use_sha1_digests
+          ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+        end
       end
     end
   end
