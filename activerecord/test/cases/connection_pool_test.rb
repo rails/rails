@@ -109,6 +109,44 @@ module ActiveRecord
         assert_equal connection, t.join.value
       end
 
+      def test_full_pool_blocking_shares_load_interlock
+        @pool.instance_variable_set(:@size, 1)
+
+        load_interlock_latch = Concurrent::CountDownLatch.new
+        connection_latch = Concurrent::CountDownLatch.new
+
+        able_to_get_connection = false
+        able_to_load = false
+
+        thread_with_load_interlock = Thread.new do
+          ActiveSupport::Dependencies.interlock.running do
+            load_interlock_latch.count_down
+            connection_latch.wait
+
+            @pool.with_connection do
+              able_to_get_connection = true
+            end
+          end
+        end
+
+        thread_with_last_connection = Thread.new do
+          @pool.with_connection do
+            connection_latch.count_down
+            load_interlock_latch.wait
+
+            ActiveSupport::Dependencies.interlock.loading do
+              able_to_load = true
+            end
+          end
+        end
+
+        thread_with_load_interlock.join
+        thread_with_last_connection.join
+
+        assert able_to_get_connection
+        assert able_to_load
+      end
+
       def test_removing_releases_latch
         cs = @pool.size.times.map { @pool.checkout }
         t = Thread.new { @pool.checkout }
