@@ -1507,7 +1507,7 @@ Testing Jobs
 ------------
 
 Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both, the jobs themselves (their behavior when they get enqueued)
+you'll need to test both the jobs themselves (their behavior when they get enqueued)
 and that other entities correctly enqueue them.
 
 ### A Basic Test Case
