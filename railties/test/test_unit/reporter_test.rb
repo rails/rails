@@ -161,7 +161,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
 
     def failed_test
-      ft = Minitest::Result.from(ExampleTest.new(:woot))
+      ft = ExampleTest.new(:woot)
       ft.failures << begin
                        raise Minitest::Assertion, "boo"
                      rescue Minitest::Assertion => e
@@ -174,17 +174,17 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       error = ArgumentError.new("wups")
       error.set_backtrace([ "some_test.rb:4" ])
 
-      et = Minitest::Result.from(ExampleTest.new(:woot))
+      et = ExampleTest.new(:woot)
       et.failures << Minitest::UnexpectedError.new(error)
       et
     end
 
     def passing_test
-      Minitest::Result.from(ExampleTest.new(:woot))
+      ExampleTest.new(:woot)
     end
 
     def skipped_test
-      st = Minitest::Result.from(ExampleTest.new(:woot))
+      st = ExampleTest.new(:woot)
       st.failures << begin
                        raise Minitest::Skip, "skipchurches, misstemples"
                      rescue Minitest::Assertion => e
