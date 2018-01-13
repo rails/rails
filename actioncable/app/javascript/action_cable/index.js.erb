@@ -1,12 +1,3 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS104: Avoid inline assignments
- * DS207: Consider shorter variations of null checks
- * DS208: Avoid top-level this
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 //= export ActionCable
 //= require_self
 //= require ./action_cable/consumer
@@ -17,14 +8,16 @@ this.ActionCable = {
   logger: window.console,
 
   createConsumer(url) {
-    if (url == null) { let left
-    url = (left = this.getConfig("url")) != null ? left : this.INTERNAL.default_mount_path }
+    if (url == null) {
+      const urlConfig = this.getConfig("url")
+      url = (urlConfig ? urlConfig : this.INTERNAL.default_mount_path)
+    }
     return new ActionCable.Consumer(this.createWebSocketURL(url))
   },
 
   getConfig(name) {
     const element = document.head.querySelector(`meta[name='action-cable-${name}']`)
-    return (element != null ? element.getAttribute("content") : undefined)
+    return (element ? element.getAttribute("content") : undefined)
   },
 
   createWebSocketURL(url) {
@@ -41,17 +34,17 @@ this.ActionCable = {
   },
 
   startDebugging() {
-    return this.debugging = true
+    this.debugging = true
   },
 
   stopDebugging() {
-    return this.debugging = null
+    this.debugging = null
   },
 
   log(...messages) {
     if (this.debugging) {
       messages.push(Date.now())
-      return this.logger.log("[ActionCable]", ...Array.from(messages))
+      this.logger.log("[ActionCable]", ...messages)
     }
   }
 }

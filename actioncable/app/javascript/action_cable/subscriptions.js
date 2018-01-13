@@ -1,16 +1,9 @@
-/*
- * decaffeinate suggestions:
- * DS101: Remove unnecessary use of Array.from
- * DS102: Remove unnecessary code created because of implicit returns
- * DS205: Consider reworking code to avoid use of IIFEs
- * Full docs: https://github.com/decaffeinate/decaffeinate/blob/master/docs/suggestions.md
- */
 // Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
 // us ActionCable.Subscriptions#create, and it should be called through the consumer like so:
 //
-//   @App = {}
-//   App.cable = ActionCable.createConsumer "ws://example.com/accounts/1"
-//   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
+//   App = {}
+//   App.cable = ActionCable.createConsumer("ws://example.com/accounts/1")
+//   App.appearance = App.cable.subscriptions.create("AppearanceChannel")
 //
 // For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
 ActionCable.Subscriptions = class Subscriptions {
@@ -45,34 +38,30 @@ ActionCable.Subscriptions = class Subscriptions {
   }
 
   reject(identifier) {
-    return (() => {
-      const result = []
-      for (let subscription of Array.from(this.findAll(identifier))) {
-        this.forget(subscription)
-        this.notify(subscription, "rejected")
-        result.push(subscription)
-      }
-      return result
-    })()
+    return this.findAll(identifier).map((subscription) => {
+      this.forget(subscription)
+      this.notify(subscription, "rejected")
+      return subscription
+    })
   }
 
   forget(subscription) {
-    this.subscriptions = (Array.from(this.subscriptions).filter((s) => s !== subscription))
+    this.subscriptions = (this.subscriptions.filter((s) => s !== subscription))
     return subscription
   }
 
   findAll(identifier) {
-    return Array.from(this.subscriptions).filter((s) => s.identifier === identifier)
+    return this.subscriptions.filter((s) => s.identifier === identifier)
   }
 
   reload() {
-    return Array.from(this.subscriptions).map((subscription) =>
+    return this.subscriptions.map((subscription) =>
       this.sendCommand(subscription, "subscribe"))
   }
 
   notifyAll(callbackName, ...args) {
-    return Array.from(this.subscriptions).map((subscription) =>
-      this.notify(subscription, callbackName, ...Array.from(args)))
+    return this.subscriptions.map((subscription) =>
+      this.notify(subscription, callbackName, ...args))
   }
 
   notify(subscription, callbackName, ...args) {
@@ -83,13 +72,8 @@ ActionCable.Subscriptions = class Subscriptions {
       subscriptions = [subscription]
     }
 
-    return (() => {
-      const result = []
-      for (subscription of Array.from(subscriptions)) {
-        result.push((typeof subscription[callbackName] === "function" ? subscription[callbackName](...Array.from(args || [])) : undefined))
-      }
-      return result
-    })()
+    return subscriptions.map((subscription) =>
+      (typeof subscription[callbackName] === "function" ? subscription[callbackName](...args) : undefined))
   }
 
   sendCommand(subscription, command) {
