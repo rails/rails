@@ -1013,7 +1013,7 @@ module ActiveRecord
         join_nodes                = buckets[:join_node].uniq
         string_joins              = buckets[:string_join].map(&:strip).uniq
 
-        join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
+        join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
@@ -1028,7 +1028,7 @@ module ActiveRecord
         alias_tracker.aliases
       end
 
-      def convert_join_strings_to_ast(table, joins)
+      def convert_join_strings_to_ast(joins)
         joins
           .flatten
           .reject(&:blank?)
