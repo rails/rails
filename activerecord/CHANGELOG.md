@@ -1,3 +1,8 @@
+*   Fix a bug when `destroy_all` and `Klass.destroy([id_1, id_2])` will return
+    all records instead of only affected ones
+
+    *Philip Kurlovich*
+
 *   Take into account association conditions when deleting through records.
 
     Fixes #18424.
