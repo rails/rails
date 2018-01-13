@@ -123,6 +123,11 @@ module ActiveRecord
       # This essentially finds the object (or multiple objects) with the given id, creates a new object
       # from the attributes, and then calls destroy on it.
       #
+      # For single id argument: Returns frozen destroyed object. If destroy callback chain halted
+      # returns +false+
+      # For array of ids argument: Returns the collection of objects that were destroyed; each will
+      # be frozen, to reflect that no changes should be made (since they can't be persisted).
+      #
       # ==== Parameters
       #
       # * +id+ - This should be the id or an array of ids to be destroyed.
@@ -137,7 +142,7 @@ module ActiveRecord
       #   Todo.destroy(todos)
       def destroy(id)
         if id.is_a?(Array)
-          find(id).each(&:destroy)
+          find(id).select(&:destroy)
         else
           find(id).destroy
         end

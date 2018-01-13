@@ -346,7 +346,7 @@ module ActiveRecord
     #
     #   Person.where(age: 0..18).destroy_all
     def destroy_all
-      records.map(&:destroy).select{ |record| record.present? }.tap { reset }
+      records.select(&:destroy).tap { reset }
     end
 
     # Deletes the records without instantiating the records
