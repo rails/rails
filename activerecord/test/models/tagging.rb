@@ -14,3 +14,7 @@ class Tagging < ActiveRecord::Base
   belongs_to :taggable, polymorphic: true, counter_cache: :tags_count
   has_many :things, through: :taggable
 end
+
+class IndestructibleTagging < Tagging
+  before_destroy { throw :abort }
+end

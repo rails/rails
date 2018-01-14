@@ -538,6 +538,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_counter_caches_on_destroy_with_indestructible_through_record
+    post = posts(:welcome)
+    tag  = post.indestructible_tags.create!(name: "doomed")
+    post.update_columns(indestructible_tags_count: post.indestructible_tags.count)
+
+    assert_no_difference "post.reload.indestructible_tags_count" do
+      posts(:welcome).indestructible_tags.destroy(tag)
+    end
+  end
+
   def test_replace_association
     assert_queries(4) { posts(:welcome);people(:david);people(:michael); posts(:welcome).people.reload }
 
