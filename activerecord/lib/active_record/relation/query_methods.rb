@@ -327,8 +327,8 @@ module ActiveRecord
     end
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
-                                     :limit, :offset, :joins, :includes, :from,
-                                     :readonly, :having])
+                                     :limit, :offset, :joins, :left_outer_joins,
+                                     :includes, :from, :readonly, :having])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -375,6 +375,7 @@ module ActiveRecord
       args.each do |scope|
         case scope
         when Symbol
+          scope = :left_outer_joins if scope == :left_joins
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
