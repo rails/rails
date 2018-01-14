@@ -27,7 +27,7 @@
   },
   "scripts": {
     "prebuild": "yarn lint",
-    "build": "webpack -p",
+    "build": "webpack",
     "lint": "eslint app/javascript"
   }
 }
