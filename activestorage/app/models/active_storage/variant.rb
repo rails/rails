@@ -76,11 +76,12 @@ class ActiveStorage::Variant
     self
   end
 
-  private
-    def processed?
-      service.exist?(key)
-    end
+  # Returns true if the existing processing has been found on the service
+  def processed?
+    service.exist?(key)
+  end
 
+  private
     def process
       open_image do |image|
         transform image
@@ -88,7 +89,6 @@ class ActiveStorage::Variant
         upload image
       end
     end
-
 
     def filename
       if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
