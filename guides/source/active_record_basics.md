@@ -45,6 +45,8 @@ relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
+NOTE: If you are not familiar with relational database management systems (rDBMS), but want to know more, please do this tutorial.
+
 ### Active Record as an ORM Framework
 
 Active Record gives us several mechanisms, the most important being the ability
@@ -142,7 +144,7 @@ end
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL statement like:
+that the `products` table was created using an MySQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -152,7 +154,7 @@ CREATE TABLE products (
 );
 ```
 
-Following the table schema above, you would be able to write code like the
+Schema above declares a table with two columns: `id` and `name`. Each row of this table represents a certain product with these two parameters. Thus, you would be able to write code like the
 following:
 
 ```ruby
