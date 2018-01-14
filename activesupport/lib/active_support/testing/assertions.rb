@@ -79,11 +79,14 @@ module ActiveSupport
       #   assert_difference 'Article.count', -1, 'An Article should be destroyed' do
       #     post :delete, params: { id: ... }
       #   end
-      def assert_difference(expression, difference = 1, message = nil, &block)
+      def assert_difference(expression, *args, &block)
         expressions =
           if expression.is_a?(Hash)
+            message = args[0]
             expression
           else
+            difference = args[0] || 1
+            message = args[1]
             Hash[Array(expression).map { |e| [e, difference] }]
           end
 
