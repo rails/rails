@@ -599,9 +599,15 @@ class PersistenceTest < ActiveRecord::TestCase
   end
 
   def test_delete_new_record
-    client = Client.new
+    client = Client.new(name: "37signals")
     client.delete
     assert client.frozen?
+
+    assert_not client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+
+    assert client.frozen?
+    assert_raise(RuntimeError) { client.name = "something else" }
   end
 
   def test_delete_record_with_associations
@@ -609,13 +615,24 @@ class PersistenceTest < ActiveRecord::TestCase
     client.delete
     assert client.frozen?
     assert_kind_of Firm, client.firm
+
+    assert_not client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+
+    assert client.frozen?
     assert_raise(RuntimeError) { client.name = "something else" }
   end
 
   def test_destroy_new_record
-    client = Client.new
+    client = Client.new(name: "37signals")
     client.destroy
     assert client.frozen?
+
+    assert_not client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+
+    assert client.frozen?
+    assert_raise(RuntimeError) { client.name = "something else" }
   end
 
   def test_destroy_record_with_associations
@@ -623,6 +640,11 @@ class PersistenceTest < ActiveRecord::TestCase
     client.destroy
     assert client.frozen?
     assert_kind_of Firm, client.firm
+
+    assert_not client.save
+    assert_raise(ActiveRecord::RecordNotSaved) { client.save! }
+
+    assert client.frozen?
     assert_raise(RuntimeError) { client.name = "something else" }
   end
 

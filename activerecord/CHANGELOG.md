@@ -1,3 +1,7 @@
+*   Don't allow destroyed object mutation after `save` or `save!` is called.
+
+    *Ryuta Kamizono*
+
 *   Take into account association conditions when deleting through records.
 
     Fixes #18424.
