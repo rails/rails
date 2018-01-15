@@ -1275,7 +1275,8 @@ module ActiveRecord
         #   association will use "person_id" as the default <tt>:foreign_key</tt>.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option
+        #   (it will be automatically detected if the association matches the name of the class).
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1324,7 +1325,8 @@ module ActiveRecord
         #
         #   If you are going to modify the association (rather than just read from it), then it is
         #   a good idea to set the <tt>:inverse_of</tt> option on the source association on the
-        #   join model. This allows associated records to be built which will automatically create
+        #   join model (it will be automatically detected if the association matches the name of
+        #   the class). This allows associated records to be built which will automatically create
         #   the appropriate join model records when they are saved. (See the 'Association Join Models'
         #   section above.)
         # [:source]
@@ -1350,6 +1352,7 @@ module ActiveRecord
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_many association.
+        #   Note that it will be automatically detected if the association matches the name of the class.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:extend]
         #   Specifies a module or array of modules that will be extended into the association object returned.
@@ -1447,7 +1450,8 @@ module ActiveRecord
         #   will use "person_id" as the default <tt>:foreign_key</tt>.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option
+        #   (it will be automatically detected if the association matches the name of the class).
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1465,7 +1469,8 @@ module ActiveRecord
         #   or #belongs_to association on the join model.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option
+        #   (it will be automatically detected if the association matches the name of the class).
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1487,6 +1492,7 @@ module ActiveRecord
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
         #   that is the inverse of this #has_one association.
+        #   Note that it will be automatically detected if the association matches the name of the class.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:required]
         #   When set to +true+, the association will also have its presence validated.
@@ -1573,7 +1579,8 @@ module ActiveRecord
         #   of "favorite_person_id".
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option
+        #   (it will be automatically detected if the association matches the name of the class).
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
@@ -1624,6 +1631,7 @@ module ActiveRecord
         # [:inverse_of]
         #   Specifies the name of the #has_one or #has_many association on the associated
         #   object that is the inverse of this #belongs_to association.
+        #   Note that it will be automatically detected if the association matches the name of the class.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:optional]
         #   When set to +true+, the association will not have its presence validated.
@@ -1794,7 +1802,8 @@ module ActiveRecord
         #   default <tt>:foreign_key</tt>.
         #
         #   If you are going to modify the association (rather than just read from it), then it is
-        #   a good idea to set the <tt>:inverse_of</tt> option.
+        #   a good idea to set the <tt>:inverse_of</tt> option
+        #   (you should explicitly specify it even if the association matches the name of the class).
         # [:association_foreign_key]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
