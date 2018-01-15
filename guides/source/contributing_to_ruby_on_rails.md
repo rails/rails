@@ -134,13 +134,12 @@ learn about Ruby on Rails, and the API, which serves as a reference.
 
 You can help improve the Rails guides by making them more coherent, consistent or readable, adding missing information, correcting factual errors, fixing typos, or bringing them up to date with the latest edge Rails.
 
-To do so, open a pull request to [Rails](https://github.com/rails/rails) on GitHub. Source files for Rails guides are located [here](https://github.com/rails/rails/tree/master/guides/source).
+To do so, make changes to Rails guides (source files located [here](https://github.com/rails/rails/tree/master/guides/source)
+on GitHub. Then open a pull request to [Rails](https://github.com/rails/rails)).
 
 When working with documentation, please take into account the [API Documentation Guidelines](api_documentation_guidelines.html) and the [Ruby on Rails Guides Guidelines](ruby_on_rails_guides_guidelines.html).
 
 NOTE: To help our CI servers you should add [ci skip] to your documentation commit message to skip build on that commit. Please remember to use it for commits containing only documentation changes.
-
-NOTE2: In case you are new to GitHub, you need to register and then make an edit to Rails guide source files. Upon that a new fork will be created, which you can use in new pull request.
 
 Translating Rails Guides
 ------------------------
