@@ -30,6 +30,8 @@ require "active_support/rails"
 require "active_storage/version"
 require "active_storage/errors"
 
+require "marcel"
+
 module ActiveStorage
   extend ActiveSupport::Autoload
 

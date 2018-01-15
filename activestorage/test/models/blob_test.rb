@@ -13,6 +13,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
+  test "create after upload extracts content type from data" do
+    blob = create_file_blob content_type: "application/octet-stream"
+    assert_equal "image/jpeg", blob.content_type
+  end
+
+  test "create after upload extracts content type from filename" do
+    blob = create_blob content_type: "application/octet-stream"
+    assert_equal "text/plain", blob.content_type
+  end
+
   test "text?" do
     blob = create_blob data: "Hello world!"
     assert blob.text?
@@ -79,6 +89,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     def expected_url_for(blob, disposition: :inline, filename: nil)
       filename ||= blob.filename
       query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
-      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
+      "http://localhost:3000/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

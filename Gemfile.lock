@@ -69,6 +69,7 @@ PATH
     activestorage (5.2.0.beta2)
       actionpack (= 5.2.0.beta2)
       activerecord (= 5.2.0.beta2)
+      marcel (~> 0.3.1)
     activesupport (5.2.0.beta2)
       concurrent-ruby (~> 1.0, >= 1.0.2)
       i18n (~> 0.7)
@@ -194,6 +195,8 @@ GEM
     concurrent-ruby (1.0.5-java)
     connection_pool (2.2.1)
     cookiejar (0.3.3)
+    crack (0.4.3)
+      safe_yaml (~> 1.0.0)
     crass (1.0.3)
     curses (1.0.2)
     daemons (1.2.4)
@@ -266,6 +269,7 @@ GEM
       multi_json (~> 1.11)
       os (~> 0.9)
       signet (~> 0.7)
+    hashdiff (0.3.7)
     hiredis (0.6.1)
     hiredis (0.6.1-java)
     http_parser.rb (0.6.0)
@@ -297,12 +301,15 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
+    marcel (0.3.1)
+      mimemagic (~> 0.3.2)
     memoist (0.16.0)
     metaclass (0.0.4)
     method_source (0.9.0)
     mime-types (3.1)
       mime-types-data (~> 3.2015)
     mime-types-data (3.2016.0521)
+    mimemagic (0.3.2)
     mini_magick (4.8.0)
     mini_mime (0.1.4)
     mini_portile2 (2.3.0)
@@ -402,6 +409,7 @@ GEM
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
       et-orbi (~> 1.0)
+    safe_yaml (1.0.4)
     sass (3.5.3)
       sass-listen (~> 4.0.0)
     sass-listen (4.0.0)
@@ -481,6 +489,10 @@ GEM
       json (>= 1.8)
       nokogiri (~> 1.6)
     wdm (0.1.1)
+    webmock (3.2.1)
+      addressable (>= 2.3.6)
+      crack (>= 0.3.2)
+      hashdiff
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
@@ -557,6 +569,7 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   w3c_validators
   wdm (>= 0.1.0)
+  webmock
   websocket-client-simple!
 
 BUNDLED WITH

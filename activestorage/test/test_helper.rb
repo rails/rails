@@ -7,6 +7,7 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
+require "webmock/minitest"
 require "mini_magick"
 
 begin
@@ -33,13 +34,15 @@ rescue Errno::ENOENT
 end
 
 require "tmpdir"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
+ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"), host: "http://localhost:3000")
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
+
+  setup { WebMock.allow_net_connect! }
 
   private
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")

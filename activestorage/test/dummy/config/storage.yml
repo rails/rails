@@ -1,3 +1,4 @@
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
+  host: http://localhost:3000
