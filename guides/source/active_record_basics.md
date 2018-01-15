@@ -144,7 +144,7 @@ end
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an MySQL statement like:
+that the `products` table was created using a MySQL statement like:
 
 ```sql
 CREATE TABLE products (
@@ -154,8 +154,9 @@ CREATE TABLE products (
 );
 ```
 
-Schema above declares a table with two columns: `id` and `name`. Each row of this table represents a certain product with these two parameters. Thus, you would be able to write code like the
-following:
+Schema above declares a table with two columns: `id` and `name`. Each row of
+this table represents a certain product with these two parameters. Thus, you
+would be able to write code like the following:
 
 ```ruby
 p = Product.new
