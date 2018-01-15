@@ -1,3 +1,7 @@
+*   Fix relation merger issue with `left_outer_joins`.
+
+    *Mehmet Emin İNAÇ*
+
 *   Don't allow destroyed object mutation after `save` or `save!` is called.
 
     *Ryuta Kamizono*

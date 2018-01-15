@@ -72,6 +72,12 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal 1, comments.count
   end
 
+  def test_relation_merging_with_left_outer_joins
+    comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.left_outer_joins(:author).where(body: "Such a lovely day"))
+
+    assert_equal 1, comments.count
+  end
+
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
       post = Post.where(body: "Such a lovely day").first

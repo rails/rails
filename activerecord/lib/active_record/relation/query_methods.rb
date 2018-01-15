@@ -979,6 +979,8 @@ module ActiveRecord
           case join
           when Hash, Symbol, Array
             :association_join
+          when ActiveRecord::Associations::JoinDependency
+            :stashed_join
           else
             raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
