@@ -81,6 +81,28 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
+  def test_no_auto_value_on_zero_is_disabled
+    skip unless current_adapter?(:Mysql2Adapter)
+
+    begin
+      fixtures = [
+        { "name" => "first", "wheels_count" => 2 },
+        { "name" => "second", "wheels_count" => 3 }
+      ]
+      subscriber = InsertQuerySubscriber.new
+      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
+
+      assert_nothing_raised do
+        ActiveRecord::Base.connection.insert_fixtures(fixtures, "aircraft")
+      end
+
+      expected_sql = "INSERT INTO `aircraft` (`id`, `name`, `wheels_count`) VALUES (DEFAULT, 'first', 2), (DEFAULT, 'second', 3)"
+      assert_equal expected_sql, subscriber.events.first
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscription)
+    end
+  end
+
   def test_broken_yaml_exception
     badyaml = Tempfile.new ["foo", ".yml"]
     badyaml.write "a: : "
