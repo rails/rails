@@ -110,7 +110,7 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations[options[:env]]
+          @current_config ||= connection_class.configurations[options[:env]]
         end
       end
 
@@ -127,10 +127,10 @@ module ActiveRecord
       end
 
       def create_all
-        old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
+        old_pool = connection_class.connection_handler.retrieve_connection_pool(connection_class.connection_specification_name)
         each_local_configuration { |configuration| create configuration }
         if old_pool
-          ActiveRecord::Base.connection_handler.establish_connection(old_pool.spec.to_hash)
+          connection_class.connection_handler.establish_connection(old_pool.spec.to_hash)
         end
       end
 
@@ -138,7 +138,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           create configuration
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        connection_class.establish_connection(environment.to_sym)
       end
 
       def drop(*arguments)
@@ -172,7 +172,7 @@ module ActiveRecord
         Migrator.migrate(migrations_paths, target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
-        ActiveRecord::Base.clear_cache!
+        connection_class.clear_cache!
       ensure
         Migration.verbose = verbose_was
       end
@@ -188,7 +188,7 @@ module ActiveRecord
       end
 
       def charset_current(environment = env)
-        charset ActiveRecord::Base.configurations[environment]
+        charset connection_class.configurations[environment]
       end
 
       def charset(*arguments)
@@ -197,7 +197,7 @@ module ActiveRecord
       end
 
       def collation_current(environment = env)
-        collation ActiveRecord::Base.configurations[environment]
+        collation connection_class.configurations[environment]
       end
 
       def collation(*arguments)
@@ -219,7 +219,7 @@ module ActiveRecord
         each_current_configuration(environment) { |configuration|
           purge configuration
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        Aconnection_class.establish_connection(environment.to_sym)
       end
 
       def structure_dump(*arguments)
@@ -234,11 +234,11 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
+      def load_schema(configuration, format = connection_class.schema_format, file = nil, environment = env) # :nodoc:
         file ||= schema_file(format)
 
         check_schema_file(file)
-        ActiveRecord::Base.establish_connection(configuration)
+        connection_class.establish_connection(configuration)
 
         case format
         when :ruby
@@ -252,7 +252,7 @@ module ActiveRecord
         ActiveRecord::InternalMetadata[:environment] = environment
       end
 
-      def schema_file(format = ActiveRecord::Base.schema_format)
+      def schema_file(format = connection_class.schema_format)
         case format
         when :ruby
           File.join(db_dir, "schema.rb")
@@ -261,11 +261,11 @@ module ActiveRecord
         end
       end
 
-      def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
+      def load_schema_current(format = connection_class.schema_format, file = nil, environment = env)
         each_current_configuration(environment) { |configuration, configuration_environment|
           load_schema configuration, format, file, configuration_environment
         }
-        ActiveRecord::Base.establish_connection(environment.to_sym)
+        connection_class.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
@@ -289,11 +289,15 @@ module ActiveRecord
       # Dumps the schema cache in YAML format for the connection into the file
       #
       # ==== Examples:
-      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(connection_class.connection, "tmp/schema_dump.yaml")
       def dump_schema_cache(conn, filename)
         conn.schema_cache.clear!
         conn.data_sources.each { |table| conn.schema_cache.add(table) }
         open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+      end
+      
+      def connection_class
+        ActiveRecord::Base
       end
 
       private
@@ -310,7 +314,7 @@ module ActiveRecord
           environments = [environment]
           environments << "test" if environment == "development"
 
-          ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
+          connection_class.configurations.slice(*environments).each do |configuration_environment, configuration|
             next unless configuration["database"]
 
             yield configuration, configuration_environment
@@ -318,7 +322,7 @@ module ActiveRecord
         end
 
         def each_local_configuration
-          ActiveRecord::Base.configurations.each_value do |configuration|
+          connection_class.configurations.each_value do |configuration|
             next unless configuration["database"]
 
             if local_database?(configuration)
