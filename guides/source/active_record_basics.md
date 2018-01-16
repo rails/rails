@@ -45,7 +45,7 @@ relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
 
-NOTE: If you are not familiar with relational database management systems (rDBMS), but want to know more, please do this tutorial.
+NOTE: If you are not familiar with relational database management systems (rDBMS), but want to know more, please do [this tutorial](https://www.w3schools.com/sql/default.asp).
 
 ### Active Record as an ORM Framework
 
