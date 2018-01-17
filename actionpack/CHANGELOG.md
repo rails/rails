@@ -1,3 +1,8 @@
+*   Update the default HSTS max-age value to 31536000 seconds (1 year)
+    to meet the minimum max-age requirement for https://hstspreload.org/.
+
+    *Grant Bourque*
+
 *   Add `Referrer-Policy` header to default headers set.
 
     *Guillermo Iguaran*

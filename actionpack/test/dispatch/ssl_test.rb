@@ -98,8 +98,8 @@ class RedirectSSLTest < SSLTest
 end
 
 class StrictTransportSecurityTest < SSLTest
-  EXPECTED = "max-age=15552000"
-  EXPECTED_WITH_SUBDOMAINS = "max-age=15552000; includeSubDomains"
+  EXPECTED = "max-age=31536000"
+  EXPECTED_WITH_SUBDOMAINS = "max-age=31536000; includeSubDomains"
 
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
