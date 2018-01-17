@@ -791,39 +791,44 @@ location ~ ^/assets/ {
 
 ### Local Precompilation
 
-There are several reasons why you might want to precompile your assets locally.
-Among them are:
+Sometimes, you may not want or be able to compile assets on the production
+server. For instance, you may have limited write access to your production
+filesystem, or you may plan to deploy frequently without making any changes to
+your assets.
 
-* You may not have write access to your production file system.
-* You may be deploying to more than one server, and want to avoid
-duplication of work.
-* You may be doing frequent deploys that do not include asset changes.
+In such cases, you can precompile assets _locally_ — that is, add a finalized
+set of compiled, production-ready assets to your source code repository before
+pushing to production. This way, they do not need to be precompiled separately
+on the production server upon each deployment.
 
-Local compilation allows you to commit the compiled files into source control,
-and deploy as normal.
+As above, you can perform this step using
 
-There are three caveats:
-
-* You must not run the Capistrano deployment task that precompiles assets.
-* You must ensure any necessary compressors or minifiers are
-available on your development system.
-* You must change the following application configuration setting:
-
-In `config/environments/development.rb`, place the following line:
-
-```ruby
-config.assets.prefix = "/dev-assets"
+```bash
+$ RAILS_ENV=production rails assets:precompile
 ```
 
-The `prefix` change makes Sprockets use a different URL for serving assets in
-development mode, and pass all requests to Sprockets. The prefix is still set to
-`/assets` in the production environment. Without this change, the application
-would serve the precompiled assets from `/assets` in development, and you would
-not see any local changes until you compile assets again.
+Note the following caveats:
 
-In practice, this will allow you to precompile locally, have those files in your
-working tree, and commit those files to source control when needed.  Development
-mode will work as expected.
+* If precompiled assets are available, they will be served — even if they no
+  longer match the original (uncompiled) assets, _even on the development
+  server._
+
+  To ensure that the development server always compiles assets on-the-fly (and
+  thus always reflects the most recent state of the code), the development
+  environment _must be configured to keep precompiled assets in a different
+  location than production does._ Otherwise, any assets precompiled for use in
+  production will clobber requests for them in development (_i.e.,_ subsequent
+  changes you make to assets will not be reflected in the browser).
+
+  You can do this by adding the following line to
+  `config/environments/development.rb`:
+
+  ```ruby
+  config.assets.prefix = "/dev-assets"
+  ```
+* Do not run the Capistrano deployment task that precompiles assets.
+* Any necessary compressors or minifiers must be available on your development
+  system.
 
 ### Live Compilation
 
@@ -836,9 +841,9 @@ To enable this option set:
 config.assets.compile = true
 ```
 
-On the first request the assets are compiled and cached as outlined in
-development above, and the manifest names used in the helpers are altered to
-include the SHA256 hash.
+On the first request the assets are compiled and cached as outlined in [Assets
+Cache Store](#assets-cache-store), and the manifest names used in the helpers
+are altered to include the SHA256 hash.
 
 Sprockets also sets the `Cache-Control` HTTP header to `max-age=31536000`. This
 signals all caches between your server and the client browser that this content
