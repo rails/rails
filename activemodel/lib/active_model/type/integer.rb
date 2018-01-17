@@ -5,10 +5,6 @@ module ActiveModel
     class Integer < Value # :nodoc:
       include Helpers::Numeric
 
-      # Column storage size in bytes.
-      # 4 bytes means an integer as opposed to smallint etc.
-      DEFAULT_LIMIT = 4
-
       def initialize(*)
         super
         @range = min_value...max_value
@@ -63,7 +59,7 @@ module ActiveModel
         end
 
         def _limit
-          limit || DEFAULT_LIMIT
+          limit || 8 # 8 bytes means a bigint as opposed to smallint etc.
         end
     end
   end

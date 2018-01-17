@@ -63,13 +63,13 @@ module ActiveModel
 
       test "values below int min value are out of range" do
         assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(-2147483649)
+          Integer.new(limit: 4).serialize(-2147483649)
         end
       end
 
       test "values above int max value are out of range" do
         assert_raises(ActiveModel::RangeError) do
-          Integer.new.serialize(2147483648)
+          Integer.new(limit: 4).serialize(2147483648)
         end
       end
 
