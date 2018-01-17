@@ -4,7 +4,8 @@
   "description": "Attach cloud and local files in Rails applications",
   "main": "app/assets/javascripts/activestorage.js",
   "files": [
-    "app/assets/javascripts/*.js"
+    "app/assets/javascripts/*.js",
+    "app/assets/javascripts/*.js.map"
   ],
   "homepage": "http://rubyonrails.org/",
   "repository": {
@@ -27,7 +28,7 @@
   },
   "scripts": {
     "prebuild": "yarn lint",
-    "build": "webpack",
+    "build": "webpack -p",
     "lint": "eslint app/javascript"
   }
 }
