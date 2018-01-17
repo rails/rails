@@ -5,10 +5,6 @@ module ActiveModel
     class Integer < Value # :nodoc:
       include Helpers::Numeric
 
-      # Column storage size in bytes.
-      # 4 bytes means an integer as opposed to smallint etc.
-      DEFAULT_LIMIT = 4
-
       def initialize(*)
         super
         @range = min_value...max_value
@@ -50,20 +46,20 @@ module ActiveModel
 
         def ensure_in_range(value)
           unless range.cover?(value)
-            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{_limit} bytes"
+            raise ActiveModel::RangeError, "#{value} is out of range for #{self.class} with limit #{limit} bytes"
           end
         end
 
         def max_value
-          1 << (_limit * 8 - 1) # 8 bits per byte with one bit for sign
+          if limit
+            1 << (limit * 8 - 1) # 8 bits per byte with one bit for sign
+          else
+            ::Float::INFINITY
+          end
         end
 
         def min_value
           -max_value
-        end
-
-        def _limit
-          limit || DEFAULT_LIMIT
         end
     end
   end
