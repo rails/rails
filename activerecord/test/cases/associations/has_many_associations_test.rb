@@ -2614,6 +2614,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)
+    def test_has_many_with_out_of_range_value
+      reference = Reference.create!(id: 2147483648)
+      assert_equal [], reference.ideal_jobs
+    end
+  end
+
   private
 
     def force_signal37_to_load_all_clients_of_firm
