@@ -20,6 +20,10 @@ module AbstractController
     end
     alias :t :translate
 
+    def current_scope
+      "#{controller_path.tr('/', '.')}.#{action_name}"
+    end
+
     # Delegates to <tt>I18n.localize</tt>. Also aliased as <tt>l</tt>.
     def localize(*args)
       I18n.localize(*args)
