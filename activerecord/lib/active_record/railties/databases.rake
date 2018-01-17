@@ -63,7 +63,7 @@ db_namespace = namespace :db do
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
   task :_dump do
-    if ActiveRecord::Base.dump_schema_after_migration
+    if ActiveRecord::Base.dump_schema_after_migration && !ActiveRecord::Migrator.dry_run
       case ActiveRecord::Base.schema_format
       when :ruby then db_namespace["schema:dump"].invoke
       when :sql  then db_namespace["structure:dump"].invoke
@@ -95,29 +95,13 @@ db_namespace = namespace :db do
 
     # desc 'Runs the "up" for a given migration VERSION.'
     task up: :load_config do
-      raise "VERSION is required" if !ENV["VERSION"] || ENV["VERSION"].empty?
-
-      ActiveRecord::Tasks::DatabaseTasks.check_target_version
-
-      ActiveRecord::Migrator.run(
-        :up,
-        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
-        ActiveRecord::Tasks::DatabaseTasks.target_version
-      )
+      ActiveRecord::Tasks::DatabaseTasks.run(:up)
       db_namespace["_dump"].invoke
     end
 
     # desc 'Runs the "down" for a given migration VERSION.'
     task down: :load_config do
-      raise "VERSION is required - To go down one migration, use db:rollback" if !ENV["VERSION"] || ENV["VERSION"].empty?
-
-      ActiveRecord::Tasks::DatabaseTasks.check_target_version
-
-      ActiveRecord::Migrator.run(
-        :down,
-        ActiveRecord::Tasks::DatabaseTasks.migrations_paths,
-        ActiveRecord::Tasks::DatabaseTasks.target_version
-      )
+      ActiveRecord::Tasks::DatabaseTasks.run(:down)
       db_namespace["_dump"].invoke
     end
 
@@ -141,8 +125,7 @@ db_namespace = namespace :db do
 
   desc "Rolls the schema back to the previous version (specify steps w/ STEP=n)."
   task rollback: :load_config do
-    step = ENV["STEP"] ? ENV["STEP"].to_i : 1
-    ActiveRecord::Migrator.rollback(ActiveRecord::Tasks::DatabaseTasks.migrations_paths, step)
+    ActiveRecord::Tasks::DatabaseTasks.rollback
     db_namespace["_dump"].invoke
   end
 
