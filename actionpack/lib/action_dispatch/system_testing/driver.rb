@@ -5,7 +5,7 @@ module ActionDispatch
     class Driver # :nodoc:
       def initialize(name, **options)
         @name = name
-        @browser = options[:using]
+        @browser = Browser.new(options[:using])
         @screen_size = options[:screen_size]
         @options = options[:options]
       end
@@ -32,34 +32,11 @@ module ActionDispatch
         end
 
         def browser_options
-          if @browser == :headless_chrome
-            browser_options = Selenium::WebDriver::Chrome::Options.new
-            browser_options.args << "--headless"
-            browser_options.args << "--disable-gpu"
-
-            @options.merge(options: browser_options)
-          elsif @browser == :headless_firefox
-            browser_options = Selenium::WebDriver::Firefox::Options.new
-            browser_options.args << "-headless"
-
-            @options.merge(options: browser_options)
-          else
-            @options
-          end
-        end
-
-        def browser
-          if @browser == :headless_chrome
-            :chrome
-          elsif @browser == :headless_firefox
-            :firefox
-          else
-            @browser
-          end
+          @options.merge(options: @browser.options).compact
         end
 
         def register_selenium(app)
-          Capybara::Selenium::Driver.new(app, { browser: browser }.merge(browser_options)).tap do |driver|
+          Capybara::Selenium::Driver.new(app, { browser: @browser.type }.merge(browser_options)).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
           end
         end
