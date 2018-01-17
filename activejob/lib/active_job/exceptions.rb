@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/numeric/time"
 
 module ActiveJob
@@ -47,7 +49,7 @@ module ActiveJob
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
-              yield self, exception
+              yield self, error
             else
               logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error

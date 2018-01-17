@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
@@ -6,18 +8,21 @@ module ActiveRecord
       end
 
       def call(attribute, value)
+        return attribute.in([]) if value.empty?
+
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
         nils, values = values.partition(&:nil?)
-
-        return attribute.in([]) if values.empty? && nils.empty?
-
         ranges, values = values.partition { |v| v.is_a?(Range) }
 
         values_predicate =
           case values.length
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
-          else attribute.in(values)
+          else
+            bind_values = values.map do |v|
+              predicate_builder.build_bind_attribute(attribute.name, v)
+            end
+            attribute.in(bind_values)
           end
 
         unless nils.empty?
@@ -26,11 +31,9 @@ module ActiveRecord
 
         array_predicates = ranges.map { |range| predicate_builder.build(attribute, range) }
         array_predicates.unshift(values_predicate)
-        array_predicates.inject { |composite, predicate| composite.or(predicate) }
+        array_predicates.inject(&:or)
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :predicate_builder

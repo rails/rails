@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
@@ -157,7 +159,7 @@ module ActiveRecord
 
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
     def initialize(env = "production")
-      msg = "You are attempting to run a destructive action against your '#{env}' database.\n"
+      msg = "You are attempting to run a destructive action against your '#{env}' database.\n".dup
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
       msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       super(msg)
@@ -166,7 +168,7 @@ module ActiveRecord
 
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
-      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
+      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n".dup
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
       msg << "        bin/rails db:environment:set"
@@ -352,9 +354,9 @@ module ActiveRecord
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:migrate VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:migrate STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,
@@ -579,7 +581,8 @@ module ActiveRecord
       def load_schema_if_pending!
         if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
-          FileUtils.cd Rails.root do
+          root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+          FileUtils.cd(root) do
             current_config = Base.connection_config
             Base.clear_all_connections!
             system("bin/rails db:test:prepare")
@@ -731,6 +734,24 @@ module ActiveRecord
       execute_block { yield helper }
     end
 
+    # Used to specify an operation that is only run when migrating up
+    # (for example, populating a new column with its initial values).
+    #
+    # In the following example, the new column +published+ will be given
+    # the value +true+ for all existing records.
+    #
+    #    class AddPublishedToPosts < ActiveRecord::Migration[5.2]
+    #      def change
+    #        add_column :posts, :published, :boolean, default: false
+    #        up_only do
+    #          execute "update posts set published = 'true'"
+    #        end
+    #      end
+    #    end
+    def up_only
+      execute_block { yield } unless reverting?
+    end
+
     # Runs the given migration classes.
     # Last argument can specify options:
     # - :direction (default is :up)
@@ -863,15 +884,17 @@ module ActiveRecord
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
           inserted_comment = "# This migration comes from #{scope} (originally #{migration.version})\n"
-          if /\A#.*\b(?:en)?coding:\s*\S+/ =~ source
+          magic_comments = "".dup
+          loop do
             # If we have a magic comment in the original migration,
             # insert our comment after the first newline(end of the magic comment line)
             # so the magic keep working.
             # Note that magic comments must be at the first line(except sh-bang).
-            source[/\n/] = "\n#{inserted_comment}"
-          else
-            source = "#{inserted_comment}#{source}"
+            source.sub!(/\A(?:#.*\b(?:en)?coding:\s*\S+|#\s*frozen_string_literal:\s*(?:true|false)).*\n/) do |magic_comment|
+              magic_comments << magic_comment; ""
+            end || break
           end
+          source = "#{magic_comments}#{inserted_comment}#{source}"
 
           if duplicate = destination_migrations.detect { |m| m.name == migration.name }
             if options[:on_skip] && duplicate.scope != scope.to_s
@@ -1022,12 +1045,7 @@ module ActiveRecord
         new(:up, migrations(migrations_paths), nil)
       end
 
-      def schema_migrations_table_name
-        SchemaMigration.table_name
-      end
-      deprecate :schema_migrations_table_name
-
-      def get_all_versions(connection = Base.connection)
+      def get_all_versions
         if SchemaMigration.table_exists?
           SchemaMigration.all_versions.map(&:to_i)
         else
@@ -1035,12 +1053,13 @@ module ActiveRecord
         end
       end
 
-      def current_version(connection = Base.connection)
-        get_all_versions(connection).max || 0
+      def current_version(connection = nil)
+        get_all_versions.max || 0
+      rescue ActiveRecord::NoDatabaseError
       end
 
-      def needs_migration?(connection = Base.connection)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions(connection)).size > 0
+      def needs_migration?(connection = nil)
+        (migrations(migrations_paths).collect(&:version) - get_all_versions).size > 0
       end
 
       def any_migrations?
@@ -1104,13 +1123,21 @@ module ActiveRecord
 
       def move(direction, migrations_paths, steps)
         migrator = new(direction, migrations(migrations_paths))
-        start_index = migrator.migrations.index(migrator.current_migration)
 
-        if start_index
-          finish = migrator.migrations[start_index + steps]
-          version = finish ? finish.version : 0
-          send(direction, migrations_paths, version)
+        if current_version != 0 && !migrator.current_migration
+          raise UnknownMigrationVersionError.new(current_version)
         end
+
+        start_index =
+          if current_version == 0
+            0
+          else
+            migrator.migrations.index(migrator.current_migration)
+          end
+
+        finish = migrator.migrations[start_index + steps]
+        version = finish ? finish.version : 0
+        send(direction, migrations_paths, version)
       end
     end
 
@@ -1217,7 +1244,7 @@ module ActiveRecord
 
       # Return true if a valid version is not provided.
       def invalid_target?
-        !target && @target_version && @target_version > 0
+        @target_version && @target_version != 0 && !target
       end
 
       def execute_migration_in_transaction(migration, direction)
@@ -1231,7 +1258,7 @@ module ActiveRecord
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
-        msg = "An error has occurred, "
+        msg = "An error has occurred, ".dup
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace
@@ -1250,10 +1277,10 @@ module ActiveRecord
       end
 
       def validate(migrations)
-        name , = migrations.group_by(&:name).find { |_, v| v.length > 1 }
+        name, = migrations.group_by(&:name).find { |_, v| v.length > 1 }
         raise DuplicateMigrationNameError.new(name) if name
 
-        version , = migrations.group_by(&:version).find { |_, v| v.length > 1 }
+        version, = migrations.group_by(&:version).find { |_, v| v.length > 1 }
         raise DuplicateMigrationVersionError.new(version) if version
       end
 

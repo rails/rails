@@ -1,33 +1,27 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
+## Rails 5.2.0.beta2 (November 28, 2017) ##
 
-*   Add `:args` to `process.action_mailer` event.
+*   No changes.
 
-    *Yuji Yaginuma*
 
-*   Add parameterized invocation of mailers as a way to share before filters and defaults between actions.
-    See `ActionMailer::Parameterized` for a full example of the benefit.
+## Rails 5.2.0.beta1 (November 27, 2017) ##
 
-    *DHH*
+*   Add `assert_enqueued_email_with` test helper.
 
-*   Allow lambdas to be used as lazy defaults in addition to procs.
-
-    *DHH*
-
-*   Mime type: allow to custom content type when setting body in headers
-    and attachments.
-
-    Example:
-
-        def test_emails
-          attachments["invoice.pdf"] = "This is test File content"
-          mail(body: "Hello there", content_type: "text/html")
+        assert_enqueued_email_with ContactMailer, :welcome do
+          ContactMailer.welcome.deliver_later
         end
 
-    *Minh Quy*
+    *Mikkel Malmberg*
 
-*   Exception handling: use `rescue_from` to handle exceptions raised by
-    mailer actions, by message delivery, and by deferred delivery jobs.
+*   Allow Action Mailer classes to configure their delivery job.
 
-    *Jeremy Daer*
+        class MyMailer < ApplicationMailer
+          self.delivery_job = MyCustomDeliveryJob
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actionmailer/CHANGELOG.md) for previous changes.
+          ...
+        end
+
+    *Matthew Mongeau*
+
+
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionmailer/CHANGELOG.md) for previous changes.

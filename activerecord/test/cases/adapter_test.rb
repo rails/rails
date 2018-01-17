@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/book"
 require "models/post"
@@ -156,26 +158,6 @@ module ActiveRecord
       end
     end
 
-    # test resetting sequences in odd tables in PostgreSQL
-    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
-      require "models/movie"
-      require "models/subscriber"
-
-      def test_reset_empty_table_with_custom_pk
-        Movie.delete_all
-        Movie.connection.reset_pk_sequence! "movies"
-        assert_equal 1, Movie.create(name: "fight club").id
-      end
-
-      def test_reset_table_with_non_integer_pk
-        Subscriber.delete_all
-        Subscriber.connection.reset_pk_sequence! "subscribers"
-        sub = Subscriber.new(name: "robert drake")
-        sub.id = "bob drake"
-        assert_nothing_raised { sub.save! }
-      end
-    end
-
     def test_uniqueness_violations_are_translated_to_specific_exception
       @connection.execute "INSERT INTO subscribers(nick) VALUES('me')"
       error = assert_raises(ActiveRecord::RecordNotUnique) do
@@ -211,16 +193,78 @@ module ActiveRecord
       end
     end
 
+    def test_exceptions_from_notifications_are_not_translated
+      original_error = StandardError.new("This StandardError shouldn't get translated")
+      subscriber = ActiveSupport::Notifications.subscribe("sql.active_record") { raise original_error }
+      actual_error = assert_raises(StandardError) do
+        @connection.execute("SELECT * FROM posts")
+      end
+
+      assert_equal original_error, actual_error
+
+    ensure
+      ActiveSupport::Notifications.unsubscribe(subscriber) if subscriber
+    end
+
+    def test_database_related_exceptions_are_translated_to_statement_invalid
+      error = assert_raises(ActiveRecord::StatementInvalid) do
+        @connection.execute("This is a syntax error")
+      end
+
+      assert_instance_of ActiveRecord::StatementInvalid, error
+      assert_kind_of Exception, error.cause
+    end
+
     def test_select_all_always_return_activerecord_result
       result = @connection.select_all "SELECT * FROM posts"
       assert result.is_a?(ActiveRecord::Result)
+    end
+
+    if ActiveRecord::Base.connection.prepared_statements
+      def test_select_all_with_legacy_binds
+        post = Post.create!(title: "foo", body: "bar")
+        expected = @connection.select_all("SELECT * FROM posts WHERE id = #{post.id}")
+        result = @connection.select_all("SELECT * FROM posts WHERE id = #{Arel::Nodes::BindParam.new(nil).to_sql}", nil, [[nil, post.id]])
+        assert_equal expected.to_hash, result.to_hash
+      end
+
+      def test_insert_update_delete_with_legacy_binds
+        binds = [[nil, 1]]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
+
+      def test_insert_update_delete_with_binds
+        binds = [Relation::QueryAttribute.new("id", 1, Type.default_value)]
+        bind_param = Arel::Nodes::BindParam.new(nil)
+
+        id = @connection.insert("INSERT INTO events(id) VALUES (#{bind_param.to_sql})", nil, nil, nil, nil, binds)
+        assert_equal 1, id
+
+        @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+
+        @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
+        assert_nil result.first
+      end
     end
 
     def test_select_methods_passing_a_association_relation
       author = Author.create!(name: "john")
       Post.create!(author: author, title: "foo", body: "bar")
       query = author.posts.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({ "title" => "foo" }, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
@@ -230,7 +274,6 @@ module ActiveRecord
     def test_select_methods_passing_a_relation
       Post.create!(title: "foo", body: "bar")
       query = Post.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query.arel, nil, query.bound_attributes))
       assert_equal({ "title" => "foo" }, @connection.select_one(query))
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
@@ -245,11 +288,11 @@ module ActiveRecord
       def test_log_invalid_encoding
         error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise "ы".force_encoding(Encoding::ASCII_8BIT)
+            raise "ы".dup.force_encoding(Encoding::ASCII_8BIT)
           end
         end
 
-        assert_not_nil error.message
+        assert_equal "ы", error.message
       end
     end
   end
@@ -335,6 +378,26 @@ module ActiveRecord
         assert @connection.transaction_open?
         @connection.disconnect!
         assert !@connection.transaction_open?
+      end
+    end
+
+    # test resetting sequences in odd tables in PostgreSQL
+    if ActiveRecord::Base.connection.respond_to?(:reset_pk_sequence!)
+      require "models/movie"
+      require "models/subscriber"
+
+      def test_reset_empty_table_with_custom_pk
+        Movie.delete_all
+        Movie.connection.reset_pk_sequence! "movies"
+        assert_equal 1, Movie.create(name: "fight club").id
+      end
+
+      def test_reset_table_with_non_integer_pk
+        Subscriber.delete_all
+        Subscriber.connection.reset_pk_sequence! "subscribers"
+        sub = Subscriber.new(name: "robert drake")
+        sub.id = "bob drake"
+        assert_nothing_raised { sub.save! }
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "minitest/mock"
@@ -18,6 +20,10 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
       class Customer < Struct.new(:name, :id)
         extend ActiveModel::Naming
         include ActiveModel::Conversion
+
+        def cache_key
+          [ name, id ].join("/")
+        end
       end
     RUBY
 
@@ -53,7 +59,7 @@ class PerRequestDigestCacheTest < ActiveSupport::TestCase
     assert_equal 200, last_response.status
 
     values = ActionView::LookupContext::DetailsKey.digest_caches.first.values
-    assert_equal [ "8ba099b7749542fe765ff34a6824d548" ], values
+    assert_equal [ "effc8928d0b33535c8a21d24ec617161" ], values
     assert_equal %w(david dingus), last_response.body.split.map(&:strip)
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   # Backtraces often include many lines that are not relevant for the context
   # under review. This makes it hard to find the signal amongst the backtrace

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,8 +9,11 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "activesupport", "5.0.1"
+  gem "activesupport", "5.1.0"
 end
 
 require "active_support/core_ext/object/blank"

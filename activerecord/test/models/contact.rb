@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ContactFakeColumns
   def self.extended(base)
     base.class_eval do

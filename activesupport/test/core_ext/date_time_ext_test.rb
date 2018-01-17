@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "core_ext/date_and_time_behavior"
@@ -138,10 +140,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005, 4, 30, 23, 59, Rational(59999999999, 1000000000)), DateTime.civil(2005, 4, 20, 10, 10, 10).end_of_month
   end
 
-  def test_last_year
-    assert_equal DateTime.civil(2004, 6, 5, 10),  DateTime.civil(2005, 6, 5, 10, 0, 0).last_year
-  end
-
   def test_ago
     assert_equal DateTime.civil(2005, 2, 22, 10, 10, 9),  DateTime.civil(2005, 2, 22, 10, 10, 10).ago(1)
     assert_equal DateTime.civil(2005, 2, 22, 9, 10, 10),  DateTime.civil(2005, 2, 22, 10, 10, 10).ago(3600)
@@ -166,6 +164,9 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2005, 2, 22, 16, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(hour: 16, min: 45)
     assert_equal DateTime.civil(2005, 2, 22, 15, 45),     DateTime.civil(2005, 2, 22, 15, 15, 10).change(min: 45)
 
+    # datetime with non-zero offset
+    assert_equal DateTime.civil(2005, 2, 22, 15, 15, 10, Rational(-5, 24)), DateTime.civil(2005, 2, 22, 15, 15, 10, 0).change(offset: Rational(-5, 24))
+
     # datetime with fractions of a second
     assert_equal DateTime.civil(2005, 2, 1, 15, 15, 10.7), DateTime.civil(2005, 2, 22, 15, 15, 10.7).change(day: 1)
     assert_equal DateTime.civil(2005, 1, 2, 11, 22, Rational(33000008, 1000000)), DateTime.civil(2005, 1, 2, 11, 22, 33).change(usec: 8)
@@ -186,7 +187,7 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     assert_equal DateTime.civil(2013, 10, 3, 15, 15, 10),  DateTime.civil(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, days: 5)
     assert_equal DateTime.civil(2013, 10, 17, 15, 15, 10), DateTime.civil(2005, 2, 28, 15, 15, 10).advance(years: 7, months: 19, weeks: 2, days: 5)
     assert_equal DateTime.civil(2001, 12, 27, 15, 15, 10), DateTime.civil(2005, 2, 28, 15, 15, 10).advance(years: -3, months: -2, days: -1)
-    assert_equal DateTime.civil(2005, 2, 28, 15, 15, 10),  DateTime.civil(2004, 2, 29, 15, 15, 10).advance(years: 1) #leap day plus one year
+    assert_equal DateTime.civil(2005, 2, 28, 15, 15, 10),  DateTime.civil(2004, 2, 29, 15, 15, 10).advance(years: 1) # leap day plus one year
     assert_equal DateTime.civil(2005, 2, 28, 20, 15, 10),  DateTime.civil(2005, 2, 28, 15, 15, 10).advance(hours: 5)
     assert_equal DateTime.civil(2005, 2, 28, 15, 22, 10),  DateTime.civil(2005, 2, 28, 15, 15, 10).advance(minutes: 7)
     assert_equal DateTime.civil(2005, 2, 28, 15, 15, 19),  DateTime.civil(2005, 2, 28, 15, 15, 10).advance(seconds: 9)
@@ -219,10 +220,6 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
 
   def test_date_time_should_have_correct_last_week_for_leap_year
     assert_equal DateTime.civil(2016, 2, 29), DateTime.civil(2016, 3, 7).last_week
-  end
-
-  def test_last_month_on_31st
-    assert_equal DateTime.civil(2004, 2, 29), DateTime.civil(2004, 3, 31).last_month
   end
 
   def test_last_quarter_on_31st

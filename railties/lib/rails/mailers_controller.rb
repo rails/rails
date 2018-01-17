@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
@@ -5,6 +7,8 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
 
   before_action :require_local!, unless: :show_previews?
   before_action :find_preview, only: :preview
+
+  helper_method :part_query
 
   def index
     @previews = ActionMailer::Preview.all
@@ -19,7 +23,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
-        @email = @preview.call(@email_action)
+        @email = @preview.call(@email_action, params)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
@@ -75,5 +79,9 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       elsif @email.mime_type == format
         @email
       end
+    end
+
+    def part_query(mime_type)
+      request.query_parameters.merge(part: mime_type).to_query
     end
 end

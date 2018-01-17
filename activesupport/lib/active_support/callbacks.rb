@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 require "active_support/descendants_tracker"
 require "active_support/core_ext/array/extract_options"
@@ -62,8 +64,7 @@ module ActiveSupport
 
     included do
       extend ActiveSupport::DescendantsTracker
-      class_attribute :__callbacks, instance_writer: false
-      self.__callbacks ||= {}
+      class_attribute :__callbacks, instance_writer: false, default: {}
     end
 
     CALLBACK_FILTER_TYPES = [:before, :after, :around]
@@ -297,8 +298,8 @@ module ActiveSupport
           @kind    = kind
           @filter  = filter
           @key     = compute_identifier filter
-          @if      = Array(options[:if])
-          @unless  = Array(options[:unless])
+          @if      = check_conditionals(Array(options[:if]))
+          @unless  = check_conditionals(Array(options[:unless]))
         end
 
         def filter; @key; end
@@ -322,7 +323,7 @@ module ActiveSupport
 
         def duplicates?(other)
           case @filter
-          when Symbol, String
+          when Symbol
             matches?(other.kind, other.filter)
           else
             false
@@ -349,9 +350,21 @@ module ActiveSupport
         end
 
         private
+          def check_conditionals(conditionals)
+            if conditionals.any? { |c| c.is_a?(String) }
+              raise ArgumentError, <<-MSG.squish
+                Passing string to be evaluated in :if and :unless conditional
+                options is not supported. Pass a symbol for an instance method,
+                or a lambda, proc or block, instead.
+              MSG
+            end
+
+            conditionals
+          end
+
           def compute_identifier(filter)
             case filter
-            when String, ::Proc
+            when ::Proc
               filter.object_id
             else
               filter
@@ -426,7 +439,6 @@ module ActiveSupport
         # Filters support:
         #
         #   Symbols:: A method to call.
-        #   Strings:: Some content to evaluate.
         #   Procs::   A proc to call with the object.
         #   Objects:: An object with a <tt>before_foo</tt> method on it to call.
         #
@@ -436,8 +448,6 @@ module ActiveSupport
           case filter
           when Symbol
             new(nil, filter, [], nil)
-          when String
-            new(nil, :instance_exec, [:value], compile_lambda(filter))
           when Conditionals::Value
             new(filter, :call, [:target, :value], nil)
           when ::Proc
@@ -453,10 +463,6 @@ module ActiveSupport
 
             new(filter, method_to_call, [:target], nil)
           end
-        end
-
-        def self.compile_lambda(filter)
-          eval("lambda { |value| #{filter} }")
         end
       end
 
@@ -512,7 +518,6 @@ module ActiveSupport
         end
       end
 
-      # An Array with a compile method.
       class CallbackChain #:nodoc:#
         include Enumerable
 
@@ -598,7 +603,7 @@ module ActiveSupport
             Proc.new do |target, result_lambda|
               terminate = true
               catch(:abort) do
-                result_lambda.call if result_lambda.is_a?(Proc)
+                result_lambda.call
                 terminate = false
               end
               terminate
@@ -651,23 +656,16 @@ module ActiveSupport
         #
         # ===== Options
         #
-        # * <tt>:if</tt> - A symbol, a string (deprecated) or an array of symbols,
-        #   each naming an instance method or a proc; the callback will be called
-        #   only when they all return a true value.
-        # * <tt>:unless</tt> - A symbol, a string (deprecated) or an array of symbols,
-        #   each naming an instance method or a proc; the callback will be called
-        #   only when they all return a false value.
+        # * <tt>:if</tt> - A symbol or an array of symbols, each naming an instance
+        #   method or a proc; the callback will be called only when they all return
+        #   a true value.
+        # * <tt>:unless</tt> - A symbol or an array of symbols, each naming an
+        #   instance method or a proc; the callback will be called only when they
+        #   all return a false value.
         # * <tt>:prepend</tt> - If +true+, the callback will be prepended to the
         #   existing chain rather than appended.
         def set_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
-
-          if options[:if].is_a?(String) || options[:unless].is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to :if and :unless conditional options is deprecated
-              and will be removed in Rails 5.2 without replacement.
-            MSG
-          end
 
           self_chain = get_callbacks name
           mapped = filters.map do |filter|
@@ -692,13 +690,6 @@ module ActiveSupport
         # already been set (unless the <tt>:raise</tt> option is set to <tt>false</tt>).
         def skip_callback(name, *filter_list, &block)
           type, filters, options = normalize_callback_params(filter_list, block)
-
-          if options[:if].is_a?(String) || options[:unless].is_a?(String)
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing string to :if and :unless conditional options is deprecated
-              and will be removed in Rails 5.2 without replacement.
-            MSG
-          end
 
           options[:raise] = true unless options.key?(:raise)
 

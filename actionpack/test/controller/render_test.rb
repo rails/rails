@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_models"
 
@@ -160,6 +162,17 @@ class TestController < ActionController::Base
     render action: "hello_world"
   end
 
+  def conditional_hello_with_expires_and_confliciting_cache_control_headers
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    expires_now
+    render action: "hello_world"
+  end
+
+  def conditional_hello_without_expires_and_confliciting_cache_control_headers
+    response.headers["Cache-Control"] = "no-cache, must-revalidate"
+    render action: "hello_world"
+  end
+
   def conditional_hello_with_bangs
     render action: "hello_world"
   end
@@ -257,7 +270,7 @@ end
 module TemplateModificationHelper
   private
     def modify_template(name)
-      path = File.expand_path("../../fixtures/#{name}.erb", __FILE__)
+      path = File.expand_path("../fixtures/#{name}.erb", __dir__)
       original = File.read(path)
       File.write(path, "#{original} Modified!")
       ActionView::LookupContext::DetailsKey.clear
@@ -287,9 +300,9 @@ class ExpiresInRenderTest < ActionController::TestCase
 
   def test_dynamic_render_with_file
     # This is extremely bad, but should be possible to do.
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     response = get :dynamic_render_with_file, params: { id: '../\\../test/abstract_unit.rb' }
-    assert_equal File.read(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb")),
+    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
       response.body
   end
 
@@ -306,16 +319,16 @@ class ExpiresInRenderTest < ActionController::TestCase
   end
 
   def test_dynamic_render
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
       get :dynamic_render, params: { id: '../\\../test/abstract_unit.rb' }
     end
   end
 
   def test_permitted_dynamic_render_file_hash
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     response = get :dynamic_render_permit, params: { id: { file: '../\\../test/abstract_unit.rb' } }
-    assert_equal File.read(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb")),
+    assert_equal File.read(File.expand_path("../../test/abstract_unit.rb", __dir__)),
       response.body
   end
 
@@ -364,6 +377,16 @@ class ExpiresInRenderTest < ActionController::TestCase
     get :conditional_hello_with_cache_control_headers
     assert_match(/no-cache/, @response.headers["Cache-Control"])
     assert_match(/no-transform/, @response.headers["Cache-Control"])
+  end
+
+  def test_expires_now_with_conflicting_cache_control_headers
+    get :conditional_hello_with_expires_and_confliciting_cache_control_headers
+    assert_equal "no-cache", @response.headers["Cache-Control"]
+  end
+
+  def test_no_expires_now_with_conflicting_cache_control_headers
+    get :conditional_hello_without_expires_and_confliciting_cache_control_headers
+    assert_equal "no-cache", @response.headers["Cache-Control"]
   end
 
   def test_date_header_when_expires_in
@@ -569,7 +592,7 @@ class EtagRenderTest < ActionController::TestCase
     end
 
     def strong_etag(record)
-      %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
+      %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(record))}")
     end
 end
 
@@ -601,6 +624,18 @@ class MetalRenderTest < ActionController::TestCase
   def test_access_to_logger_in_view
     get :accessing_logger_in_template
     assert_equal "NilClass", @response.body
+  end
+end
+
+class ActionControllerRenderTest < ActionController::TestCase
+  class MinimalController < ActionController::Metal
+    include AbstractController::Rendering
+    include ActionController::Rendering
+  end
+
+  def test_direct_render_to_string_with_body
+    mc = MinimalController.new
+    assert_equal "Hello world!", mc.render_to_string(body: ["Hello world!"])
   end
 end
 

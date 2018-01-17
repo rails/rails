@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -14,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = ""
+        virtual = "".dup
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -125,8 +127,7 @@ module ActionView
         end
     end
 
-    cattr_accessor :caching
-    self.caching = true
+    cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching
@@ -309,13 +310,13 @@ module ActionView
   # ==== Examples
   #
   # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml},}`
+  # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
   # This one allows you to keep files with different formats in separate subdirectories,
-  # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
-  # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
+  # eg. <tt>users/new.html</tt> will be loaded from <tt>users/html/new.erb</tt> or <tt>users/new.html.erb</tt>,
+  # <tt>users/new.js</tt> from <tt>users/js/new.erb</tt> or <tt>users/new.js.erb</tt>, etc.
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #

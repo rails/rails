@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/request"
 require "active_support/core_ext/uri"
 require "active_support/core_ext/array/extract_options"
@@ -140,13 +142,13 @@ module ActionDispatch
       #   get "/stories" => redirect("/posts")
       #
       # This will redirect the user, while ignoring certain parts of the request, including query string, etc.
-      # `/stories`, `/stories?foo=bar`, etc all redirect to `/posts`.
+      # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, etc all redirect to <tt>/posts</tt>.
       #
       # You can also use interpolation in the supplied redirect argument:
       #
       #   get 'docs/:article', to: redirect('/wiki/%{article}')
       #
-      # Note that if you return a path without a leading slash then the url is prefixed with the
+      # Note that if you return a path without a leading slash then the URL is prefixed with the
       # current SCRIPT_NAME environment variable. This is typically '/' but may be different in
       # a mounted engine or where the application is deployed to a subdirectory of a website.
       #
@@ -165,7 +167,7 @@ module ActionDispatch
       # Note that the +do end+ syntax for the redirect block wouldn't work, as Ruby would pass
       # the block to +get+ instead of +redirect+. Use <tt>{ ... }</tt> instead.
       #
-      # The options version of redirect allows you to supply only the parts of the url which need
+      # The options version of redirect allows you to supply only the parts of the URL which need
       # to change, it also supports interpolation of the path similar to the first example.
       #
       #   get 'stores/:name',       to: redirect(subdomain: 'stores', path: '/%{name}')
@@ -173,8 +175,8 @@ module ActionDispatch
       #   get '/stories', to: redirect(path: '/posts')
       #
       # This will redirect the user, while changing only the specified parts of the request,
-      # for example the `path` option in the last example.
-      # `/stories`, `/stories?foo=bar`, redirect to `/posts` and `/posts?foo=bar` respectively.
+      # for example the +path+ option in the last example.
+      # <tt>/stories</tt>, <tt>/stories?foo=bar</tt>, redirect to <tt>/posts</tt> and <tt>/posts?foo=bar</tt> respectively.
       #
       # Finally, an object which responds to call can be supplied to redirect, allowing you to reuse
       # common redirect routes. The call method must accept two arguments, params and request, and return

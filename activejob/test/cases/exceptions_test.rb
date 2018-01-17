@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/retry_job"
 
@@ -59,7 +61,7 @@ class ExceptionsTest < ActiveJob::TestCase
   test "custom handling of job that exceeds retry attempts" do
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
-      assert_equal "Dealt with a job that failed to retry in a custom way after 6 attempts", JobBuffer.last_value
+      assert_equal "Dealt with a job that failed to retry in a custom way after 6 attempts. Message: CustomCatchError", JobBuffer.last_value
     end
   end
 

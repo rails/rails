@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, to: :association, prefix: true
-    delegate :association_primary_key, to: :association
+    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
     def initialize(klass, arel_table, association = nil)
       @klass = klass

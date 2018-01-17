@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable
@@ -41,7 +43,7 @@ module ActionCable
 
       def remove(data)
         logger.info "Unsubscribing from channel: #{data['identifier']}"
-        remove_subscription subscriptions[data["identifier"]]
+        remove_subscription find(data)
       end
 
       def remove_subscription(subscription)

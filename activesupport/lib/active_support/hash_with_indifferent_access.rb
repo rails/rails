@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/reverse_merge"
 
@@ -71,16 +73,6 @@ module ActiveSupport
         self.default_proc = hash.default_proc if hash.default_proc
       else
         super(constructor)
-      end
-    end
-
-    def default(*args)
-      arg_key = args.first
-
-      if include?(key = convert_key(arg_key))
-        self[key]
-      else
-        super
       end
     end
 
@@ -185,6 +177,36 @@ module ActiveSupport
       super(convert_key(key), *extras)
     end
 
+    if Hash.new.respond_to?(:dig)
+      # Same as <tt>Hash#dig</tt> where the key passed as argument can be
+      # either a string or a symbol:
+      #
+      #   counters = ActiveSupport::HashWithIndifferentAccess.new
+      #   counters[:foo] = { bar: 1 }
+      #
+      #   counters.dig('foo', 'bar')     # => 1
+      #   counters.dig(:foo, :bar)       # => 1
+      #   counters.dig(:zoo)             # => nil
+      def dig(*args)
+        args[0] = convert_key(args[0]) if args.size > 0
+        super(*args)
+      end
+    end
+
+    # Same as <tt>Hash#default</tt> where the key passed as argument can be
+    # either a string or a symbol:
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new(1)
+    #   hash.default                   # => 1
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new { |hash, key| key }
+    #   hash.default                   # => nil
+    #   hash.default('foo')            # => 'foo'
+    #   hash.default(:foo)             # => 'foo'
+    def default(*args)
+      super(*args.map { |arg| convert_key(arg) })
+    end
+
     # Returns an array of the values at the specified indices:
     #
     #   hash = ActiveSupport::HashWithIndifferentAccess.new
@@ -195,13 +217,26 @@ module ActiveSupport
       indices.collect { |key| self[convert_key(key)] }
     end
 
+    # Returns an array of the values at the specified indices, but also
+    # raises an exception when one of the keys can't be found.
+    #
+    #   hash = ActiveSupport::HashWithIndifferentAccess.new
+    #   hash[:a] = 'x'
+    #   hash[:b] = 'y'
+    #   hash.fetch_values('a', 'b') # => ["x", "y"]
+    #   hash.fetch_values('a', 'c') { |key| 'z' } # => ["x", "z"]
+    #   hash.fetch_values('a', 'c') # => KeyError: key not found: "c"
+    def fetch_values(*indices, &block)
+      indices.collect { |key| fetch(key, &block) }
+    end if Hash.method_defined?(:fetch_values)
+
     # Returns a shallow copy of the hash.
     #
     #   hash = ActiveSupport::HashWithIndifferentAccess.new({ a: { b: 'b' } })
     #   dup  = hash.dup
     #   dup[:a][:c] = 'c'
     #
-    #   hash[:a][:c] # => nil
+    #   hash[:a][:c] # => "c"
     #   dup[:a][:c]  # => "c"
     def dup
       self.class.new(self).tap do |new_hash|
@@ -225,11 +260,13 @@ module ActiveSupport
     def reverse_merge(other_hash)
       super(self.class.new(other_hash))
     end
+    alias_method :with_defaults, :reverse_merge
 
     # Same semantics as +reverse_merge+ but modifies the receiver in-place.
     def reverse_merge!(other_hash)
-      replace(reverse_merge(other_hash))
+      super(self.class.new(other_hash))
     end
+    alias_method :with_defaults!, :reverse_merge!
 
     # Replaces the contents of this hash with other_hash.
     #
@@ -267,6 +304,21 @@ module ActiveSupport
     def transform_values(*args, &block)
       return to_enum(:transform_values) unless block_given?
       dup.tap { |hash| hash.transform_values!(*args, &block) }
+    end
+
+    def transform_keys(*args, &block)
+      return to_enum(:transform_keys) unless block_given?
+      dup.tap { |hash| hash.transform_keys!(*args, &block) }
+    end
+
+    def slice(*keys)
+      keys.map! { |key| convert_key(key) }
+      self.class.new(super)
+    end
+
+    def slice!(*keys)
+      keys.map! { |key| convert_key(key) }
+      super
     end
 
     def compact

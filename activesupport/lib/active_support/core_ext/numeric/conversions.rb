@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/number_helper"
 require "active_support/core_ext/module/deprecation"
@@ -106,19 +108,19 @@ module ActiveSupport::NumericWithFormat
     when Integer, String
       super(format)
     when :phone
-      return ActiveSupport::NumberHelper.number_to_phone(self, options || {})
+      ActiveSupport::NumberHelper.number_to_phone(self, options || {})
     when :currency
-      return ActiveSupport::NumberHelper.number_to_currency(self, options || {})
+      ActiveSupport::NumberHelper.number_to_currency(self, options || {})
     when :percentage
-      return ActiveSupport::NumberHelper.number_to_percentage(self, options || {})
+      ActiveSupport::NumberHelper.number_to_percentage(self, options || {})
     when :delimited
-      return ActiveSupport::NumberHelper.number_to_delimited(self, options || {})
+      ActiveSupport::NumberHelper.number_to_delimited(self, options || {})
     when :rounded
-      return ActiveSupport::NumberHelper.number_to_rounded(self, options || {})
+      ActiveSupport::NumberHelper.number_to_rounded(self, options || {})
     when :human
-      return ActiveSupport::NumberHelper.number_to_human(self, options || {})
+      ActiveSupport::NumberHelper.number_to_human(self, options || {})
     when :human_size
-      return ActiveSupport::NumberHelper.number_to_human_size(self, options || {})
+      ActiveSupport::NumberHelper.number_to_human_size(self, options || {})
     when Symbol
       super()
     else

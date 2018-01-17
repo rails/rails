@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ORIG_ARGV = ARGV.dup
 
 require "active_support/core_ext/kernel/reporting"
@@ -35,5 +37,9 @@ class ActiveSupport::TestCase
   # Skips the current run on JRuby using Minitest::Assertions#skip
   private def jruby_skip(message = "")
     skip message if defined?(JRUBY_VERSION)
+  end
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
   end
 end

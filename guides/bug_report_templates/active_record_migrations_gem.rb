@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,8 +9,11 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "activerecord", "5.0.1"
+  gem "activerecord", "5.1.0"
   gem "sqlite3"
 end
 
@@ -32,7 +37,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[5.0]
+class ChangeAmountToAddScale < ActiveRecord::Migration[5.1]
   def change
     reversible do |dir|
       dir.up do
@@ -48,16 +53,14 @@ end
 
 class BugTest < Minitest::Test
   def test_migration_up
-    migrator = ActiveRecord::Migrator.new(:up, [ChangeAmountToAddScale])
-    migrator.run
+    ChangeAmountToAddScale.migrate(:up)
     Payment.reset_column_information
 
     assert_equal "decimal(10,2)", Payment.columns.last.sql_type
   end
 
   def test_migration_down
-    migrator = ActiveRecord::Migrator.new(:down, [ChangeAmountToAddScale])
-    migrator.run
+    ChangeAmountToAddScale.migrate(:down)
     Payment.reset_column_information
 
     assert_equal "decimal(10,0)", Payment.columns.last.sql_type

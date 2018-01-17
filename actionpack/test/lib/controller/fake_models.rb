@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model"
 
 Customer = Struct.new(:name, :id) do
@@ -25,6 +27,10 @@ Customer = Struct.new(:name, :id) do
 
   def persisted?
     id.present?
+  end
+
+  def cache_key
+    "#{name}/#{id}"
   end
 end
 

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has Many Association
   module Associations
+    # = Active Record Has Many Association
     # This is the proxy that handles a has many association.
     #
     # If the association has a <tt>:through</tt> option further specialization
@@ -31,12 +33,7 @@ module ActiveRecord
 
       def insert_record(record, validate = true, raise = false)
         set_owner_attributes(record)
-
-        if raise
-          record.save!(validate: validate)
-        else
-          record.save(validate: validate)
-        end
+        super
       end
 
       def empty?
@@ -66,7 +63,7 @@ module ActiveRecord
           count = if reflection.has_cached_counter?
             owner._read_attribute(reflection.counter_cache_column).to_i
           else
-            scope.count
+            scope.count(:all)
           end
 
           # If there's nothing in the database and @target has no new records

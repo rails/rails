@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/hash/except"
@@ -49,8 +51,7 @@ module ActiveModel
       private :validation_context=
       define_callbacks :validate, scope: :name
 
-      class_attribute :_validators, instance_writer: false
-      self._validators = Hash.new { |h, k| h[k] = [] }
+      class_attribute :_validators, instance_writer: false, default: Hash.new { |h, k| h[k] = [] }
     end
 
     module ClassMethods
@@ -147,6 +148,9 @@ module ActiveModel
       #   or <tt>unless: Proc.new { |user| user.signup_step <= 2 }</tt>). The
       #   method, proc or string should return or evaluate to a +true+ or +false+
       #   value.
+      #
+      # NOTE: Calling +validate+ multiple times on the same method will overwrite previous definitions.
+      #
       def validate(*args, &block)
         options = args.extract_options!
 
@@ -160,14 +164,14 @@ module ActiveModel
 
         if options.key?(:on)
           options = options.dup
+          options[:on] = Array(options[:on])
           options[:if] = Array(options[:if])
           options[:if].unshift ->(o) {
-            !(Array(options[:on]) & Array(o.validation_context)).empty?
+            !(options[:on] & Array(o.validation_context)).empty?
           }
         end
 
-        args << options
-        set_callback(:validate, *args, &block)
+        set_callback(:validate, *args, options, &block)
       end
 
       # List all validators that are being used to validate the model using
@@ -432,4 +436,4 @@ module ActiveModel
   end
 end
 
-Dir[File.dirname(__FILE__) + "/validations/*.rb"].each { |file| require file }
+Dir[File.expand_path("validations/*.rb", __dir__)].each { |file| require file }

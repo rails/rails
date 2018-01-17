@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 
 class Module
@@ -20,7 +22,7 @@ class Module
   #
   # == Using comments:
   #
-  #   class Todo
+  #   class Todo < ApplicationRecord
   #     # Other todo implementation
   #     # ...
   #
@@ -28,7 +30,6 @@ class Module
   #     has_many :events
   #
   #     before_create :track_creation
-  #     after_destroy :track_deletion
   #
   #     private
   #       def track_creation
@@ -40,7 +41,7 @@ class Module
   #
   # Noisy syntax.
   #
-  #   class Todo
+  #   class Todo < ApplicationRecord
   #     # Other todo implementation
   #     # ...
   #
@@ -50,7 +51,6 @@ class Module
   #       included do
   #         has_many :events
   #         before_create :track_creation
-  #         after_destroy :track_deletion
   #       end
   #
   #       private
@@ -68,7 +68,7 @@ class Module
   # increased overhead can be a reasonable tradeoff even if it reduces our
   # at-a-glance perception of how things work.
   #
-  #   class Todo
+  #   class Todo < ApplicationRecord
   #     # Other todo implementation
   #     # ...
   #
@@ -80,7 +80,7 @@ class Module
   # By quieting the mix-in noise, we arrive at a natural, low-ceremony way to
   # separate bite-sized concerns.
   #
-  #   class Todo
+  #   class Todo < ApplicationRecord
   #     # Other todo implementation
   #     # ...
   #
@@ -88,7 +88,6 @@ class Module
   #       included do
   #         has_many :events
   #         before_create :track_creation
-  #         after_destroy :track_deletion
   #       end
   #
   #       private
@@ -99,7 +98,7 @@ class Module
   #   end
   #
   #   Todo.ancestors
-  #   # => [Todo, Todo::EventTracking, Object]
+  #   # => [Todo, Todo::EventTracking, ApplicationRecord, Object]
   #
   # This small step has some wonderful ripple effects. We can
   # * grok the behavior of our class in one glance,

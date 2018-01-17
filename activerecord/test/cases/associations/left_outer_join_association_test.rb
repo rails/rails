@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -7,7 +9,7 @@ require "models/categorization"
 require "models/person"
 
 class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :essays, :posts, :comments, :categorizations, :people
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categorizations, :people
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
     result = Author.left_outer_joins(:thinking_posts, :welcome_posts).to_a

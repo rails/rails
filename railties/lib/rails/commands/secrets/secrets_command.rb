@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "rails/secrets"
 
@@ -13,10 +15,7 @@ module Rails
       end
 
       def setup
-        require "rails/generators"
-        require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
-
-        Rails::Generators::EncryptedSecretsGenerator.start
+        deprecate_in_favor_of_credentials_and_exit
       end
 
       def edit
@@ -34,8 +33,7 @@ module Rails
         require_application_and_environment!
 
         Rails::Secrets.read_for_editing do |tmp_path|
-          say "Waiting for secrets file to be saved. Abort with Ctrl-C."
-          system("\$EDITOR #{tmp_path}")
+          system("#{ENV["EDITOR"]} #{tmp_path}")
         end
 
         say "New secrets encrypted and saved."
@@ -43,7 +41,25 @@ module Rails
         say "Aborted changing encrypted secrets: nothing saved."
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
+      rescue Errno::ENOENT => error
+        if error.message =~ /secrets\.yml\.enc/
+          deprecate_in_favor_of_credentials_and_exit
+        else
+          raise
+        end
       end
+
+      def show
+        say Rails::Secrets.read
+      end
+
+      private
+        def deprecate_in_favor_of_credentials_and_exit
+          say "Encrypted secrets is deprecated in favor of credentials. Run:"
+          say "bin/rails credentials:help"
+
+          exit 1
+        end
     end
   end
 end

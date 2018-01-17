@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class UrlHelperTest < ActiveSupport::TestCase
@@ -7,8 +9,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   # In those cases, we'll set up a simple mock
   attr_accessor :controller, :request
 
-  cattr_accessor :request_forgery
-  self.request_forgery = false
+  cattr_accessor :request_forgery, default: false
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
@@ -16,6 +17,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+
+    scope :engine do
+      get "/" => "foo#bar"
+    end
   end
 
   include ActionView::Helpers::UrlHelper
@@ -231,7 +236,11 @@ class UrlHelperTest < ActiveSupport::TestCase
     end
 
     def to_h
-      { foo: :bar, baz: "quux" }
+      if permitted?
+        { foo: :bar, baz: "quux" }
+      else
+        raise ArgumentError
+      end
     end
   end
 
@@ -505,6 +514,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert !current_page?("http://www.example.com/", check_parameters: true)
   end
 
+  def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
+    @request = request_for_url("/?order=desc&page=1")
+
+    assert !current_page?(:back, check_parameters: false)
+  end
+
   def test_current_page_with_params_that_match
     @request = request_for_url("/?order=desc&page=1")
 
@@ -512,10 +527,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/?order=desc&page=1")
   end
 
-  def test_current_page_with_not_get_verb
-    @request = request_for_url("/events", method: :post)
+  def test_current_page_with_scope_that_match
+    @request = request_for_url("/engine/")
 
-    assert !current_page?("/events")
+    assert current_page?("/engine")
   end
 
   def test_current_page_with_escaped_params
@@ -526,7 +541,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
+    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".dup.force_encoding(Encoding::ASCII_8BIT)) do
       assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
@@ -542,6 +557,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", method: :post)
+
+    assert !current_page?("/events")
   end
 
   def test_link_unless_current
@@ -605,8 +626,8 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_mail_to_with_special_characters
     assert_dom_equal(
-      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C%7E@example.org">#!$%&amp;&#39;*+-/=?^_`{}|~@example.org</a>},
-      mail_to("#!$%&'*+-/=?^_`{}|~@example.org")
+      %{<a href="mailto:%23%21%24%25%26%27%2A%2B-%2F%3D%3F%5E_%60%7B%7D%7C@example.org">#!$%&amp;&#39;*+-/=?^_`{}|@example.org</a>},
+      mail_to("#!$%&'*+-/=?^_`{}|@example.org")
     )
   end
 
@@ -672,13 +693,6 @@ class UrlHelperTest < ActiveSupport::TestCase
   def request_forgery_protection_token
     "form_token"
   end
-
-  private
-    def sort_query_string_params(uri)
-      path, qs = uri.split("?")
-      qs = qs.split("&amp;").sort.join("&amp;") if qs
-      qs ? "#{path}?#{qs}" : path
-    end
 end
 
 class UrlHelperControllerTest < ActionController::TestCase
@@ -876,6 +890,11 @@ class WorkshopsController < ActionController::Base
     @workshop = Workshop.new(params[:id])
     render inline: "<%= url_for(@workshop) %>\n<%= link_to('Workshop', @workshop) %>"
   end
+
+  def edit
+    @workshop = Workshop.new(params[:id])
+    render inline: "<%= current_page?(@workshop) %>"
+  end
 end
 
 class SessionsController < ActionController::Base
@@ -939,5 +958,12 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
   end
 end

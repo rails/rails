@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module MiddlewareTest
@@ -21,7 +23,7 @@ module MiddlewareTest
 
     def call(env)
       result = @app.call(env)
-      result[1]["Middleware-Order"] << "!"
+      result[1]["Middleware-Order"] += "!"
       result
     end
   end

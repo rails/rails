@@ -1,16 +1,18 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module RenderFile
   class BasicController < ActionController::Base
-    self.view_paths = File.dirname(__FILE__)
+    self.view_paths = __dir__
 
     def index
-      render file: File.join(File.dirname(__FILE__), *%w[.. .. fixtures test hello_world])
+      render file: File.expand_path("../../fixtures/test/hello_world", __dir__)
     end
 
     def with_instance_variables
       @secret = "in the sauce"
-      render file: File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
+      render file: File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
     end
 
     def relative_path
@@ -25,11 +27,11 @@ module RenderFile
 
     def pathname
       @secret = "in the sauce"
-      render file: Pathname.new(File.dirname(__FILE__)).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar])
+      render file: Pathname.new(__dir__).join(*%w[.. .. fixtures test dot.directory render_file_with_ivar])
     end
 
     def with_locals
-      path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+      path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
       render file: path, locals: { secret: "in the sauce" }
     end
   end

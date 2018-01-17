@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_models"
 
@@ -5,6 +7,16 @@ class FormHelperTest < ActionView::TestCase
   include RenderERBUtils
 
   tests ActionView::Helpers::FormHelper
+
+  class WithActiveStorageRoutesControllers < ActionController::Base
+    test_routes do
+      post "/rails/active_storage/direct_uploads" => "active_storage/direct_uploads#create", as: :rails_direct_uploads
+    end
+
+    def url_options
+      { host: "testtwo.host" }
+    end
+  end
 
   def form_for(*)
     @output_buffer = super
@@ -93,7 +105,7 @@ class FormHelperTest < ActionView::TestCase
 
     @post = Post.new
     @comment = Comment.new
-    def @post.errors()
+    def @post.errors
       Class.new {
         def [](field); field == "author_name" ? ["can't be empty"] : [] end
         def empty?() false end
@@ -540,6 +552,27 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, file_field("import", "file", multiple: true, name: "custom")
   end
 
+  def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_not_defined
+    expected = '<input type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+  end
+
+  def test_file_field_with_direct_upload_when_rails_direct_uploads_url_is_defined
+    @controller = WithActiveStorageRoutesControllers.new
+
+    expected = '<input data-direct-upload-url="http://testtwo.host/rails/active_storage/direct_uploads" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", direct_upload: true)
+  end
+
+  def test_file_field_with_direct_upload_dont_mutate_arguments
+    original_options = { class: "pix", direct_upload: true }
+
+    expected = '<input class="pix" type="file" name="import[file]" id="import_file" />'
+    assert_dom_equal expected, file_field("import", "file", original_options)
+
+    assert_equal({ class: "pix", direct_upload: true }, original_options)
+  end
+
   def test_hidden_field
     assert_dom_equal(
       '<input id="post_title" name="post[title]" type="hidden" value="Hello World" />',
@@ -714,19 +747,19 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_explicit_checked_and_unchecked_values_when_object_value_is_big_decimal
-    @post.secret = BigDecimal.new(0)
+    @post.secret = BigDecimal(0)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input checked="checked" id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
-    @post.secret = BigDecimal.new(1)
+    @post.secret = BigDecimal(1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
     )
 
-    @post.secret = BigDecimal.new(2.2, 1)
+    @post.secret = BigDecimal(2.2, 1)
     assert_dom_equal(
       '<input name="post[secret]" type="hidden" value="1" /><input id="post_secret" name="post[secret]" type="checkbox" value="0" />',
       check_box("post", "secret", {}, 0, 1)
@@ -1353,7 +1386,7 @@ class FormHelperTest < ActionView::TestCase
     )
     assert_dom_equal(
       '<select name="post[secret]"></select>',
-      select("post", "secret", [], {}, "id" => nil)
+      select("post", "secret", [], {}, { "id" => nil })
     )
     assert_dom_equal(
       text_field("post", "title", "id" => nil),
@@ -1446,8 +1479,8 @@ class FormHelperTest < ActionView::TestCase
       check_box("post[]", "secret")
     )
     assert_dom_equal(
-       %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
-       radio_button("post[]", "title", "Hello World")
+      %{<input checked="checked" id="post_#{pid}_title_hello_world" name="post[#{pid}][title]" type="radio" value="Hello World" />},
+      radio_button("post[]", "title", "Hello World")
      )
     assert_dom_equal(
       %{<input id="post_#{pid}_title_goodbye_world" name="post[#{pid}][title]" type="radio" value="Goodbye World" />},
@@ -1525,6 +1558,38 @@ class FormHelperTest < ActionView::TestCase
     end
 
     assert_dom_equal expected, output_buffer
+  end
+
+  def test_form_for_is_not_affected_by_form_with_generates_ids
+    old_value = ActionView::Helpers::FormHelper.form_with_generates_ids
+    ActionView::Helpers::FormHelper.form_with_generates_ids = false
+
+    form_for(@post, html: { id: "create-post" }) do |f|
+      concat f.label(:title) { "The Title" }
+      concat f.text_field(:title)
+      concat f.text_area(:body)
+      concat f.check_box(:secret)
+      concat f.submit("Create post")
+      concat f.button("Create post")
+      concat f.button {
+        concat content_tag(:span, "Create post")
+      }
+    end
+
+    expected = whole_form("/posts/123", "create-post", "edit_post", method: "patch") do
+      "<label for='post_title'>The Title</label>" \
+      "<input name='post[title]' type='text' id='post_title' value='Hello World' />" \
+      "<textarea name='post[body]' id='post_body'>\nBack to the hill and over it again!</textarea>" \
+      "<input name='post[secret]' type='hidden' value='0' />" \
+      "<input name='post[secret]' checked='checked' type='checkbox' id='post_secret' value='1' />" \
+      "<input name='commit' data-disable-with='Create post' type='submit' value='Create post' />" \
+      "<button name='button' type='submit'>Create post</button>" \
+      "<button name='button' type='submit'><span>Create post</span></button>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  ensure
+    ActionView::Helpers::FormHelper.form_with_generates_ids = old_value
   end
 
   def test_form_for_with_collection_radio_buttons
@@ -2893,7 +2958,7 @@ class FormHelperTest < ActionView::TestCase
       expected = 0
       @post.comments.each do |comment|
         f.fields_for(:comments, comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -2907,7 +2972,7 @@ class FormHelperTest < ActionView::TestCase
       expected = 0
       @post.comments.each do |comment|
         f.fields_for(:comments, comment) { |cf|
-          assert_equal cf.index, expected
+          assert_equal expected, cf.index
           expected += 1
         }
       end
@@ -2920,7 +2985,7 @@ class FormHelperTest < ActionView::TestCase
     form_for(@post) do |f|
       expected = 0
       f.fields_for(:comments, @post.comments) { |cf|
-        assert_equal cf.index, expected
+        assert_equal expected, cf.index
         expected += 1
       }
     end
@@ -2931,7 +2996,7 @@ class FormHelperTest < ActionView::TestCase
 
     form_for(@post) do |f|
       f.fields_for(:comments, Comment.new(321), child_index: "abc") { |cf|
-        assert_equal cf.index, "abc"
+        assert_equal "abc", cf.index
       }
     end
   end
@@ -3446,9 +3511,9 @@ class FormHelperTest < ActionView::TestCase
       method = options[:method]
 
       if options.fetch(:enforce_utf8, true)
-        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}
+        txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
       else
-        txt = ""
+        txt = "".dup
       end
 
       if method && !%w(get post).include?(method.to_s)
@@ -3459,7 +3524,7 @@ class FormHelperTest < ActionView::TestCase
     end
 
     def form_text(action = "/", id = nil, html_class = nil, remote = nil, multipart = nil, method = nil)
-      txt =  %{<form accept-charset="UTF-8" action="#{action}"}
+      txt =  %{<form accept-charset="UTF-8" action="#{action}"}.dup
       txt << %{ enctype="multipart/form-data"} if multipart
       txt << %{ data-remote="true"} if remote
       txt << %{ class="#{html_class}"} if html_class

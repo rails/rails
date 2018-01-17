@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/customer"
@@ -23,7 +25,6 @@ require "models/chef"
 require "models/department"
 require "models/cake_designer"
 require "models/drink_designer"
-require "models/mocktail_designer"
 require "models/recipe"
 
 class ReflectionTest < ActiveRecord::TestCase
@@ -252,50 +253,35 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal expected, actual
   end
 
-  def test_scope_chain
-    expected = [
-      [Tagging.reflect_on_association(:tag).scope, Post.reflect_on_association(:first_blue_tags).scope],
-      [Post.reflect_on_association(:first_taggings).scope],
-      [Author.reflect_on_association(:misc_posts).scope]
-    ]
-    actual = assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags).scope_chain
-    end
-    assert_equal expected, actual
-
-    expected = [
-      [
-        Tagging.reflect_on_association(:blue_tag).scope,
-        Post.reflect_on_association(:first_blue_tags_2).scope,
-        Author.reflect_on_association(:misc_post_first_blue_tags_2).scope
-      ],
-      [],
-      []
-    ]
-    actual = assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
-    end
-    assert_equal expected, actual
-  end
-
   def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case
-    @hotel = Hotel.create!
-    @department = @hotel.departments.create!
-    @department.chefs.create!(employable: CakeDesigner.create!)
-    @department.chefs.create!(employable: DrinkDesigner.create!)
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!(employable: CakeDesigner.create!)
+    department.chefs.create!(employable: DrinkDesigner.create!)
 
-    assert_equal 1, @hotel.cake_designers.size
-    assert_equal 1, @hotel.drink_designers.size
-    assert_equal 2, @hotel.chefs.size
+    assert_equal 1, hotel.cake_designers.size
+    assert_equal 1, hotel.cake_designers.count
+    assert_equal 1, hotel.drink_designers.size
+    assert_equal 1, hotel.drink_designers.count
+    assert_equal 2, hotel.chefs.size
+    assert_equal 2, hotel.chefs.count
   end
 
   def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
-    @hotel = Hotel.create!
-    @hotel.mocktail_designers << MocktailDesigner.create!
+    hotel = Hotel.create!
+    hotel.mocktail_designers << MocktailDesigner.create!
 
-    assert_equal 1, @hotel.mocktail_designers.size
-    assert_equal 1, @hotel.mocktail_designers.count
-    assert_equal 1, @hotel.chef_lists.size
+    assert_equal 1, hotel.mocktail_designers.size
+    assert_equal 1, hotel.mocktail_designers.count
+    assert_equal 1, hotel.chef_lists.size
+    assert_equal 1, hotel.chef_lists.count
+
+    hotel.mocktail_designers = []
+
+    assert_equal 0, hotel.mocktail_designers.size
+    assert_equal 0, hotel.mocktail_designers.count
+    assert_equal 0, hotel.chef_lists.size
+    assert_equal 0, hotel.chef_lists.count
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations
@@ -335,15 +321,6 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "custom_primary_key", Author.reflect_on_association(:tags_with_primary_key).association_primary_key.to_s # nested
   end
 
-  def test_association_primary_key_type
-    # Normal Association
-    assert_equal :integer, Author.reflect_on_association(:posts).association_primary_key_type.type
-    assert_equal :string,  Author.reflect_on_association(:essay).association_primary_key_type.type
-
-    # Through Association
-    assert_equal :string, Author.reflect_on_association(:essay_category).association_primary_key_type.type
-  end
-
   def test_association_primary_key_raises_when_missing_primary_key
     reflection = ActiveRecord::Reflection.create(:has_many, :edge, nil, {}, Author)
     assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.association_primary_key }
@@ -364,9 +341,16 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::UnknownPrimaryKey) { reflection.active_record_primary_key }
   end
 
+  def test_type
+    assert_equal "taggable_type", Post.reflect_on_association(:taggings).type.to_s
+    assert_equal "imageable_class", Post.reflect_on_association(:images).type.to_s
+    assert_nil Post.reflect_on_association(:readers).type
+  end
+
   def test_foreign_type
     assert_equal "sponsorable_type", Sponsor.reflect_on_association(:sponsorable).foreign_type.to_s
     assert_equal "sponsorable_type", Sponsor.reflect_on_association(:thing).foreign_type.to_s
+    assert_nil Sponsor.reflect_on_association(:sponsor_club).foreign_type
   end
 
   def test_collection_association
@@ -407,26 +391,15 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "category_id", Post.reflect_on_association(:categorizations).foreign_key.to_s
   end
 
-  def test_through_reflection_scope_chain_does_not_modify_other_reflections
-    orig_conds = assert_deprecated do
-      Post.reflect_on_association(:first_blue_tags_2).scope_chain
-    end.inspect
-    assert_deprecated do
-      Author.reflect_on_association(:misc_post_first_blue_tags_2).scope_chain
-    end
-    assert_equal orig_conds, assert_deprecated {
-      Post.reflect_on_association(:first_blue_tags_2).scope_chain
-    }.inspect
-  end
-
   def test_symbol_for_class_name
     assert_equal Client, Firm.reflect_on_association(:unsorted_clients_with_symbol).klass
   end
 
   def test_class_for_class_name
-    assert_deprecated do
-      assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm), :validate?
+    error = assert_raises(ArgumentError) do
+      ActiveRecord::Reflection.create(:has_many, :clients, nil, { class_name: Client }, Firm)
     end
+    assert_equal "A class was passed to `:class_name` but we are expecting a string.", error.message
   end
 
   def test_join_table

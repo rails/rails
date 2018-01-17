@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/hash/transform_values"
@@ -35,6 +37,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert @params.as_json.key? "person"
   end
 
+  test "to_s returns the string representation of the parameters hash" do
+    assert_equal '{"person"=>{"age"=>"32", "name"=>{"first"=>"David", "last"=>"Heinemeier Hansson"}, ' \
+      '"addresses"=>[{"city"=>"Chicago", "state"=>"Illinois"}]}}', @params.to_s
+  end
+
   test "each carries permitted status" do
     @params.permit!
     @params.each { |key, value| assert(value.permitted?) if key == "person" }
@@ -44,6 +51,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     @params.each { |key, value| assert_not(value.permitted?) if key == "person" }
   end
 
+  test "each returns key,value array for block with arity 1" do
+    @params.each do |arg|
+      assert_kind_of Array, arg
+      assert_equal "person", arg[0]
+      assert_kind_of ActionController::Parameters, arg[1]
+    end
+  end
+
   test "each_pair carries permitted status" do
     @params.permit!
     @params.each_pair { |key, value| assert(value.permitted?) if key == "person" }
@@ -51,6 +66,14 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "each_pair carries unpermitted status" do
     @params.each_pair { |key, value| assert_not(value.permitted?) if key == "person" }
+  end
+
+  test "each_pair returns key,value array for block with arity 1" do
+    @params.each_pair do |arg|
+      assert_kind_of Array, arg
+      assert_equal "person", arg[0]
+      assert_kind_of ActionController::Parameters, arg[1]
+    end
   end
 
   test "empty? returns true when params contains no key/value pairs" do
@@ -99,7 +122,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "has_value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute @params.has_value?("New York")
+    refute params.has_value?("New York")
   end
 
   test "include? returns true if the given key is present in the params" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Locking
     # Locking::Pessimistic provides support for row-level locking using
@@ -51,8 +53,8 @@ module ActiveRecord
     #   end
     #
     # Database-specific information on row locking:
-    #   MySQL: http://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
-    #   PostgreSQL: http://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
+    #   MySQL: https://dev.mysql.com/doc/refman/5.7/en/innodb-locking-reads.html
+    #   PostgreSQL: https://www.postgresql.org/docs/current/interactive/sql-select.html#SQL-FOR-UPDATE-SHARE
     module Pessimistic
       # Obtain a row lock on this record. Reloads the record to obtain the requested
       # lock. Pass an SQL locking clause to append the end of the SELECT statement
@@ -61,12 +63,13 @@ module ActiveRecord
       def lock!(lock = true)
         if persisted?
           if changed?
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Locking a record with unpersisted changes is deprecated and will raise an
-              exception in Rails 5.2. Use `save` to persist the changes, or `reload` to
-              discard them explicitly.
+            raise(<<-MSG.squish)
+              Locking a record with unpersisted changes is not supported. Use
+              `save` to persist the changes, or `reload` to discard them
+              explicitly.
             MSG
           end
+
           reload(lock: lock)
         end
         self

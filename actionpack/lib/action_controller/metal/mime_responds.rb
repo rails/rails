@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/collector"
 
 module ActionController #:nodoc:
@@ -182,7 +184,7 @@ module ActionController #:nodoc:
     #   request.variant = [:tablet, :phone]
     #
     # This will work similarly to formats and MIME types negotiation. If there
-    # is no +:tablet+ variant declared, +:phone+ variant will be picked:
+    # is no +:tablet+ variant declared, the +:phone+ variant will be used:
     #
     #   respond_to do |format|
     #     format.html.none

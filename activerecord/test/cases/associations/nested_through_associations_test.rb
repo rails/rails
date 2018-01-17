@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/post"
@@ -22,9 +24,14 @@ require "models/category"
 require "models/categorization"
 require "models/membership"
 require "models/essay"
+require "models/hotel"
+require "models/department"
+require "models/chef"
+require "models/cake_designer"
+require "models/drink_designer"
 
 class NestedThroughAssociationsTest < ActiveRecord::TestCase
-  fixtures :authors, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
+  fixtures :authors, :author_addresses, :books, :posts, :subscriptions, :subscribers, :tags, :taggings,
            :people, :readers, :references, :jobs, :ratings, :comments, :members, :member_details,
            :member_types, :sponsors, :clubs, :organizations, :categories, :categories_posts,
            :categorizations, :memberships, :essays
@@ -423,6 +430,11 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert authors.empty?
   end
 
+  def test_nested_has_many_through_with_scope_on_polymorphic_reflection
+    authors = Author.joins(:ordered_posts).where("posts.id" => posts(:misc_by_bob).id)
+    assert_equal [authors(:mary), authors(:bob)], authors.distinct.sort_by(&:id)
+  end
+
   def test_has_many_through_with_foreign_key_option_on_through_reflection
     assert_equal [posts(:welcome), posts(:authorless)], people(:david).agents_posts.order("posts.id")
     assert_equal [authors(:david)], references(:david_unicyclist).agents_posts_authors
@@ -565,6 +577,37 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert !c.post_taggings.empty?
     c.save
     assert !c.post_taggings.empty?
+  end
+
+  def test_polymorphic_has_many_through_when_through_association_has_not_loaded
+    cake_designer = CakeDesigner.create!(chef: Chef.new)
+    drink_designer = DrinkDesigner.create!(chef: Chef.new)
+    department = Department.create!(chefs: [cake_designer.chef, drink_designer.chef])
+    Hotel.create!(departments: [department])
+    hotel = Hotel.includes(:cake_designers, :drink_designers).take
+
+    assert_equal [cake_designer], hotel.cake_designers
+    assert_equal [drink_designer], hotel.drink_designers
+  end
+
+  def test_polymorphic_has_many_through_when_through_association_has_already_loaded
+    cake_designer = CakeDesigner.create!(chef: Chef.new)
+    drink_designer = DrinkDesigner.create!(chef: Chef.new)
+    department = Department.create!(chefs: [cake_designer.chef, drink_designer.chef])
+    Hotel.create!(departments: [department])
+    hotel = Hotel.includes(:chefs, :cake_designers, :drink_designers).take
+
+    assert_equal [cake_designer], hotel.cake_designers
+    assert_equal [drink_designer], hotel.drink_designers
+  end
+
+  def test_polymorphic_has_many_through_joined_different_table_twice
+    cake_designer = CakeDesigner.create!(chef: Chef.new)
+    drink_designer = DrinkDesigner.create!(chef: Chef.new)
+    department = Department.create!(chefs: [cake_designer.chef, drink_designer.chef])
+    hotel = Hotel.create!(departments: [department])
+
+    assert_equal hotel, Hotel.joins(:cake_designers, :drink_designers).take
   end
 
   private

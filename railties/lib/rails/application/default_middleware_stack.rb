@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Application
     class DefaultMiddlewareStack
@@ -10,7 +12,7 @@ module Rails
       end
 
       def build_stack
-        ActionDispatch::MiddlewareStack.new.tap do |middleware|
+        ActionDispatch::MiddlewareStack.new do |middleware|
           if config.force_ssl
             middleware.use ::ActionDispatch::SSL, config.ssl_options
           end
@@ -59,6 +61,10 @@ module Rails
             end
             middleware.use config.session_store, config.session_options
             middleware.use ::ActionDispatch::Flash
+          end
+
+          unless config.api_only
+            middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
           end
 
           middleware.use ::Rack::Head

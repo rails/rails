@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/conversions"
 require "active_support/core_ext/string/inflections"
 require "active_support/core_ext/object/deep_dup"
@@ -93,6 +95,18 @@ module ActiveModel
       @details  = other.details.dup
     end
 
+    # Merges the errors from <tt>other</tt>.
+    #
+    # other - The ActiveModel::Errors instance.
+    #
+    # Examples
+    #
+    #   person.errors.merge!(other)
+    def merge!(other)
+      @messages.merge!(other.messages) { |_, ary1, ary2| ary1 + ary2 }
+      @details.merge!(other.details) { |_, ary1, ary2| ary1 + ary2 }
+    end
+
     # Clear the error messages.
     #
     #   person.errors.full_messages # => ["name cannot be nil"]
@@ -132,15 +146,6 @@ module ActiveModel
     #
     #   person.errors[:name]  # => ["cannot be nil"]
     #   person.errors['name'] # => ["cannot be nil"]
-    #
-    # Note that, if you try to get errors of an attribute which has
-    # no errors associated with it, this method will instantiate
-    # an empty error list for it and +keys+ will return an array
-    # of error keys which includes this attribute.
-    #
-    #   person.errors.keys    # => []
-    #   person.errors[:name]  # => []
-    #   person.errors.keys    # => [:name]
     def [](attribute)
       messages[attribute.to_sym]
     end
@@ -181,7 +186,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.values   # => [["cannot be nil", "must be specified"]]
     def values
-      messages.values
+      messages.select do |key, value|
+        !value.empty?
+      end.values
     end
 
     # Returns all message keys.
@@ -189,7 +196,9 @@ module ActiveModel
     #   person.errors.messages # => {:name=>["cannot be nil", "must be specified"]}
     #   person.errors.keys     # => [:name]
     def keys
-      messages.keys
+      messages.select do |key, value|
+        !value.empty?
+      end.keys
     end
 
     # Returns +true+ if no errors are found, +false+ otherwise.
@@ -313,9 +322,13 @@ module ActiveModel
     #  person.errors.added? :name, :too_long                                # => false
     #  person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
-      message = message.call if message.respond_to?(:call)
-      message = normalize_message(attribute, message, options)
-      self[attribute].include? message
+      if message.is_a? Symbol
+        self.details[attribute].map { |e| e[:error] }.include? message
+      else
+        message = message.call if message.respond_to?(:call)
+        message = normalize_message(attribute, message, options)
+        self[attribute].include? message
+      end
     end
 
     # Returns all the full error messages in an array.
@@ -389,20 +402,18 @@ module ActiveModel
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 
       if @base.class.respond_to?(:i18n_scope)
-        defaults = @base.class.lookup_ancestors.map do |klass|
-          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        i18n_scope = @base.class.i18n_scope.to_s
+        defaults = @base.class.lookup_ancestors.flat_map do |klass|
+          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
         end
+        defaults << :"#{i18n_scope}.errors.messages.#{type}"
       else
         defaults = []
       end
 
-      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
       defaults << :"errors.attributes.#{attribute}.#{type}"
       defaults << :"errors.messages.#{type}"
-
-      defaults.compact!
-      defaults.flatten!
 
       key = defaults.shift
       defaults = options.delete(:message) if options[:message]

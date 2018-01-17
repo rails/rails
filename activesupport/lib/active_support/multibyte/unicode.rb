@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Multibyte
     module Unicode
@@ -357,7 +359,7 @@ module ActiveSupport
 
         # Returns the directory in which the data files are stored.
         def self.dirname
-          File.dirname(__FILE__) + "/../values/"
+          File.expand_path("../values", __dir__)
         end
 
         # Returns the filename for the data file for this version.

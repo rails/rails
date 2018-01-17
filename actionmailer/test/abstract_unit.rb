@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/kernel/reporting"
 
 # These are the normal settings that will be set up by Railties
@@ -9,7 +11,7 @@ end
 
 module Rails
   def self.root
-    File.expand_path("../", File.dirname(__FILE__))
+    File.expand_path("..", __dir__)
   end
 end
 
@@ -28,7 +30,7 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.expand_path("fixtures", File.dirname(__FILE__))
+FIXTURE_LOAD_PATH = File.expand_path("fixtures", __dir__)
 ActionMailer::Base.view_paths = FIXTURE_LOAD_PATH
 
 class ActiveSupport::TestCase

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/inflector"
 
@@ -119,6 +121,13 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  MixtureToTitleCaseWithKeepIdSuffix.each_with_index do |(before, titleized), index|
+    define_method "test_titleize_with_keep_id_suffix_mixture_to_title_case_#{index}" do
+      assert_equal(titleized, ActiveSupport::Inflector.titleize(before, keep_id_suffix: true),
+        "mixture to TitleCase with keep_id_suffix failed for #{before}")
+    end
+  end
+
   def test_camelize
     CamelToUnderscore.each do |camel, underscore|
       assert_equal(camel, ActiveSupport::Inflector.camelize(underscore))
@@ -213,6 +222,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
 
     assert_equal("json_html_api", ActiveSupport::Inflector.underscore("JSONHTMLAPI"))
+  end
+
+  def test_acronym_regexp_is_deprecated
+    assert_deprecated do
+      ActiveSupport::Inflector.inflections.acronym_regex
+    end
   end
 
   def test_underscore
@@ -324,6 +339,12 @@ class InflectorTest < ActiveSupport::TestCase
     end
   end
 
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, ActiveSupport::Inflector.humanize(underscore, keep_id_suffix: true))
+    end
+  end
+
   def test_humanize_by_rule
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.human(/_cnt$/i, '\1_count')
@@ -339,6 +360,19 @@ class InflectorTest < ActiveSupport::TestCase
     end
     assert_equal("Reported bugs", ActiveSupport::Inflector.humanize("col_rpted_bugs"))
     assert_equal("Col rpted bugs", ActiveSupport::Inflector.humanize("COL_rpted_bugs"))
+  end
+
+  def test_humanize_with_acronyms
+    ActiveSupport::Inflector.inflections do |inflect|
+      inflect.acronym "LAX"
+      inflect.acronym "SFO"
+    end
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("LAX ROUNDTRIP TO SFO"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("LAX ROUNDTRIP TO SFO", capitalize: false))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("lax roundtrip to sfo"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("lax roundtrip to sfo", capitalize: false))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo"))
+    assert_equal("LAX roundtrip to SFO", ActiveSupport::Inflector.humanize("Lax Roundtrip To Sfo", capitalize: false))
   end
 
   def test_constantize
@@ -407,6 +441,8 @@ class InflectorTest < ActiveSupport::TestCase
       inflect.singular(/es$/, "")
 
       inflect.irregular("el", "los")
+
+      inflect.uncountable("agua")
     end
 
     assert_equal("hijos", "hijo".pluralize(:es))
@@ -419,12 +455,17 @@ class InflectorTest < ActiveSupport::TestCase
     assert_equal("los", "el".pluralize(:es))
     assert_equal("els", "el".pluralize)
 
+    assert_equal("agua", "agua".pluralize(:es))
+    assert_equal("aguas", "agua".pluralize)
+
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
     assert ActiveSupport::Inflector.inflections(:es).plurals.empty?
     assert ActiveSupport::Inflector.inflections(:es).singulars.empty?
+    assert ActiveSupport::Inflector.inflections(:es).uncountables.empty?
     assert !ActiveSupport::Inflector.inflections.plurals.empty?
     assert !ActiveSupport::Inflector.inflections.singulars.empty?
+    assert !ActiveSupport::Inflector.inflections.uncountables.empty?
   end
 
   def test_clear_all

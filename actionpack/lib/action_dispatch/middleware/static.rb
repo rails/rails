@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "active_support/core_ext/uri"
 
@@ -6,11 +8,11 @@ module ActionDispatch
   # When initialized, it can accept optional HTTP headers, which will be set
   # when a response containing a file's contents is delivered.
   #
-  # This middleware will render the file specified in `env["PATH_INFO"]`
+  # This middleware will render the file specified in <tt>env["PATH_INFO"]</tt>
   # where the base path is in the +root+ directory. For example, if the +root+
-  # is set to `public/`, then a request with `env["PATH_INFO"]` of
-  # `assets/application.js` will return a response with the contents of a file
-  # located at `public/assets/application.js` if the file exists. If the file
+  # is set to +public/+, then a request with <tt>env["PATH_INFO"]</tt> of
+  # +assets/application.js+ will return a response with the contents of a file
+  # located at +public/assets/application.js+ if the file exists. If the file
   # does not exist, a 404 "File not Found" response will be returned.
   class FileHandler
     def initialize(root, index: "index", headers: {})
@@ -23,8 +25,8 @@ module ActionDispatch
     # correct read permissions, the return value is a URI-escaped string
     # representing the filename. Otherwise, false is returned.
     #
-    # Used by the `Static` class to check the existence of a valid file
-    # in the server's `public/` directory (see Static#call).
+    # Used by the +Static+ class to check the existence of a valid file
+    # in the server's +public/+ directory (see Static#call).
     def match?(path)
       path = ::Rack::Utils.unescape_path path
       return false unless ::Rack::Utils.valid_path? path
@@ -33,7 +35,7 @@ module ActionDispatch
       paths = [path, "#{path}#{ext}", "#{path}/#{@index}#{ext}"]
 
       if match = paths.detect { |p|
-        path = File.join(@root, p.force_encoding(Encoding::UTF_8))
+        path = File.join(@root, p.dup.force_encoding(Encoding::UTF_8))
         begin
           File.file?(path) && File.readable?(path)
         rescue SystemCallError
@@ -99,7 +101,7 @@ module ActionDispatch
   # This middleware will attempt to return the contents of a file's body from
   # disk in the response. If a file is not found on disk, the request will be
   # delegated to the application stack. This middleware is commonly initialized
-  # to serve assets from a server's `public/` directory.
+  # to serve assets from a server's +public/+ directory.
   #
   # This middleware verifies the path to ensure that only files
   # living in the root directory can be rendered. A request cannot

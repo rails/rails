@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Hack to load json gem first so we can overwrite its to_json.
 require "json"
 require "bigdecimal"
@@ -130,6 +132,12 @@ end
 module Enumerable
   def as_json(options = nil) #:nodoc:
     to_a.as_json(options)
+  end
+end
+
+class IO
+  def as_json(options = nil) #:nodoc:
+    to_s
   end
 end
 

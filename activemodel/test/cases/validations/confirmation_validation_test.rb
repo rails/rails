@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 require "models/topic"
@@ -32,6 +34,19 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     assert t.invalid?
 
     t.title_confirmation = "We should be confirmed"
+    assert t.valid?
+  end
+
+  def test_validates_confirmation_of_with_boolean_attribute
+    Topic.validates_confirmation_of(:approved)
+
+    t = Topic.new(approved: true, approved_confirmation: nil)
+    assert t.valid?
+
+    t.approved_confirmation = false
+    assert t.invalid?
+
+    t.approved_confirmation = true
     assert t.valid?
   end
 

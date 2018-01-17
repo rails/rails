@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_dispatch/http/upload"
 require "action_controller/metal/strong_parameters"
@@ -57,7 +59,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
 
   test "key: permitted scalar values" do
     values  = ["a", :a, nil]
-    values += [0, 1.0, 2**128, BigDecimal.new(1)]
+    values += [0, 1.0, 2**128, BigDecimal(1)]
     values += [true, false]
     values += [Date.today, Time.now, DateTime.now]
     values += [STDOUT, StringIO.new, ActionDispatch::Http::UploadedFile.new(tempfile: __FILE__),
@@ -310,6 +312,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
     refute_predicate merged_params[:person], :empty?
   end
 
+  test "#with_defaults is an alias of reverse_merge" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    merged_params = @params.with_defaults(default_params)
+
+    assert_equal "1234", merged_params[:id]
+    refute_predicate merged_params[:person], :empty?
+  end
+
   test "not permitted is sticky beyond reverse_merge" do
     refute_predicate @params.reverse_merge(a: "b"), :permitted?
   end
@@ -322,6 +332,14 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "#reverse_merge! with parameters" do
     default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
     @params.reverse_merge!(default_params)
+
+    assert_equal "1234", @params[:id]
+    refute_predicate @params[:person], :empty?
+  end
+
+  test "#with_defaults! is an alias of reverse_merge!" do
+    default_params = ActionController::Parameters.new(id: "1234", person: {}).permit!
+    @params.with_defaults!(default_params)
 
     assert_equal "1234", @params[:id]
     refute_predicate @params[:person], :empty?
@@ -361,17 +379,17 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "32", @params[:person].permit([ :age ])[:age]
   end
 
-  test "to_h returns empty hash on unpermitted params" do
-    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_h.is_a? ActionController::Parameters
-    assert @params.to_h.empty?
+  test "to_h raises UnfilteredParameters on unfiltered params" do
+    assert_raises(ActionController::UnfilteredParameters) do
+      @params.to_h
+    end
   end
 
   test "to_h returns converted hash on permitted params" do
     @params.permit!
 
-    assert @params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_h.is_a? ActionController::Parameters
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @params.to_h
+    assert_not_kind_of ActionController::Parameters, @params.to_h
   end
 
   test "to_h returns converted hash when .permit_all_parameters is set" do
@@ -379,37 +397,69 @@ class ParametersPermitTest < ActiveSupport::TestCase
       ActionController::Parameters.permit_all_parameters = true
       params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
 
-      assert params.to_h.is_a? ActiveSupport::HashWithIndifferentAccess
-      assert_not @params.to_h.is_a? ActionController::Parameters
+      assert_instance_of ActiveSupport::HashWithIndifferentAccess, params.to_h
+      assert_not_kind_of ActionController::Parameters, params.to_h
       assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_h)
     ensure
       ActionController::Parameters.permit_all_parameters = false
     end
   end
 
-  test "to_h returns always permitted parameter on unpermitted params" do
-    params = ActionController::Parameters.new(
-      controller: "users",
-      action: "create",
-      user: {
-        name: "Sengoku Nadeko"
-      }
-    )
+  test "to_hash raises UnfilteredParameters on unfiltered params" do
+    assert_raises(ActionController::UnfilteredParameters) do
+      @params.to_hash
+    end
+  end
 
-    assert_equal({ "controller" => "users", "action" => "create" }, params.to_h)
+  test "to_hash returns converted hash on permitted params" do
+    @params.permit!
+
+    assert_instance_of Hash, @params.to_hash
+    assert_not_kind_of ActionController::Parameters, @params.to_hash
+  end
+
+  test "parameters can be implicit converted to Hash" do
+    params = ActionController::Parameters.new
+    params.permit!
+
+    assert_equal({ a: 1 }, { a: 1 }.merge!(params))
+  end
+
+  test "to_hash returns converted hash when .permit_all_parameters is set" do
+    begin
+      ActionController::Parameters.permit_all_parameters = true
+      params = ActionController::Parameters.new(crab: "Senjougahara Hitagi")
+
+      assert_instance_of Hash, params.to_hash
+      assert_not_kind_of ActionController::Parameters, params.to_hash
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params.to_hash)
+      assert_equal({ "crab" => "Senjougahara Hitagi" }, params)
+    ensure
+      ActionController::Parameters.permit_all_parameters = false
+    end
   end
 
   test "to_unsafe_h returns unfiltered params" do
-    assert @params.to_unsafe_h.is_a? ActiveSupport::HashWithIndifferentAccess
-    assert_not @params.to_unsafe_h.is_a? ActionController::Parameters
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, @params.to_unsafe_h
+    assert_not_kind_of ActionController::Parameters, @params.to_unsafe_h
   end
 
   test "to_unsafe_h returns unfiltered params even after accessing few keys" do
     params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
     expected = { "f" => { "language_facet" => ["Tibetan"] } }
 
-    assert params["f"].is_a? ActionController::Parameters
+    assert_instance_of ActionController::Parameters, params["f"]
     assert_equal expected, params.to_unsafe_h
+  end
+
+  test "to_unsafe_h does not mutate the parameters" do
+    params = ActionController::Parameters.new("f" => { "language_facet" => ["Tibetan"] })
+    params[:f]
+
+    params.to_unsafe_h
+
+    assert_not_predicate params, :permitted?
+    assert_not_predicate params[:f], :permitted?
   end
 
   test "to_h only deep dups Ruby collections" do

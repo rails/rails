@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/reply"
 require "models/topic"
@@ -60,10 +62,10 @@ module ActiveRecord
 
       topic.attributes = dbtopic.attributes.except("id")
 
-      #duped has no timestamp values
+      # duped has no timestamp values
       duped = dbtopic.dup
 
-      #clear topic timestamp values
+      # clear topic timestamp values
       topic.send(:clear_timestamp_attributes)
 
       assert_equal topic.changes, duped.changes
@@ -98,7 +100,7 @@ module ActiveRecord
       # temporary change to the topic object
       topic.updated_at -= 3.days
 
-      #dup should not preserve the timestamps if present
+      # dup should not preserve the timestamps if present
       new_topic = topic.dup
       assert_nil new_topic.updated_at
       assert_nil new_topic.created_at
@@ -143,6 +145,8 @@ module ActiveRecord
     end
 
     def test_dup_without_primary_key
+      skip if current_adapter?(:OracleAdapter)
+
       klass = Class.new(ActiveRecord::Base) do
         self.table_name = "parrots_pirates"
       end

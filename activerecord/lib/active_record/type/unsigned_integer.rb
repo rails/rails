@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Type
     class UnsignedInteger < ActiveModel::Type::Integer # :nodoc:

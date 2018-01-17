@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -64,7 +66,7 @@ class LintTest < ActiveRecord::TestCase
 end
 
 class BasicsTest < ActiveRecord::TestCase
-  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :categorizations, :categories, :posts
+  fixtures :topics, :companies, :developers, :projects, :computers, :accounts, :minimalistics, "warehouse-things", :authors, :author_addresses, :categorizations, :categories, :posts
 
   def test_column_names_are_escaped
     conn      = ActiveRecord::Base.connection
@@ -102,7 +104,7 @@ class BasicsTest < ActiveRecord::TestCase
     pk = Author.columns_hash["id"]
     ref = Post.columns_hash["author_id"]
 
-    assert_equal pk.bigint?, ref.bigint?
+    assert_equal pk.sql_type, ref.sql_type
   end
 
   def test_many_mutations
@@ -627,7 +629,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "title" , "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
     post.reload
@@ -701,6 +703,17 @@ class BasicsTest < ActiveRecord::TestCase
     topic = Topic.find(1)
     topic.attributes = attributes
     assert_nil topic.bonus_time
+  end
+
+  def test_attributes
+    category = Category.new(name: "Ruby")
+
+    expected_attributes = category.attribute_names.map do |attribute_name|
+      [attribute_name, category.public_send(attribute_name)]
+    end.to_h
+
+    assert_instance_of Hash, category.attributes
+    assert_equal expected_attributes, category.attributes
   end
 
   def test_boolean
@@ -872,10 +885,15 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_bignum
     company = Company.find(1)
-    company.rating = 2147483647
+    company.rating = 2147483648
     company.save
     company = Company.find(1)
-    assert_equal 2147483647, company.rating
+    assert_equal 2147483648, company.rating
+  end
+
+  def test_bignum_pk
+    company = Company.create!(id: 2147483648, name: "foo")
+    assert_equal company, Company.find(company.id)
   end
 
   # TODO: extend defaults tests to other databases!
@@ -894,80 +912,6 @@ class BasicsTest < ActiveRecord::TestCase
         assert_equal "a text field", default.char3
       end
     end
-  end
-
-  class NumericData < ActiveRecord::Base
-    self.table_name = "numeric_data"
-
-    attribute :my_house_population, :integer
-    attribute :atoms_in_universe, :integer
-  end
-
-  def test_big_decimal_conditions
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-    assert_equal 0, NumericData.where("bank_balance > ?", 2000.0).count
-  end
-
-  def test_numeric_fields
-    m = NumericData.new(
-      bank_balance: 1586.43,
-      big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("1000234000567.95"), m1.big_bank_balance
-  end
-
-  def test_numeric_fields_with_scale
-    m = NumericData.new(
-      bank_balance: 1586.43122334,
-      big_bank_balance: BigDecimal("234000567.952344"),
-      world_population: 6000000000,
-      my_house_population: 3
-    )
-    assert m.save
-
-    m1 = NumericData.find(m.id)
-    assert_not_nil m1
-
-    # As with migration_test.rb, we should make world_population >= 2**62
-    # to cover 64-bit platforms and test it is a Bignum, but the main thing
-    # is that it's an Integer.
-    assert_kind_of Integer, m1.world_population
-    assert_equal 6000000000, m1.world_population
-
-    assert_kind_of Integer, m1.my_house_population
-    assert_equal 3, m1.my_house_population
-
-    assert_kind_of BigDecimal, m1.bank_balance
-    assert_equal BigDecimal("1586.43"), m1.bank_balance
-
-    assert_kind_of BigDecimal, m1.big_bank_balance
-    assert_equal BigDecimal("234000567.95"), m1.big_bank_balance
   end
 
   def test_auto_id
@@ -1115,29 +1059,15 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
-
     res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res2
 
-    res3 = nil
-    assert_nothing_raised do
-      res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
-    end
-    assert_equal res, res3
-
     res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res5 = nil
-    assert_nothing_raised do
-      res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
-    end
-
+    res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
     assert_equal res4, res5
 
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res7 = nil
-    assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
-    end
+    res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     assert_equal res6, res7
   end
 
@@ -1512,17 +1442,81 @@ class BasicsTest < ActiveRecord::TestCase
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
+    assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
+    assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do
     refute Developer.new.respond_to?(:first_name)
     refute Developer.new.respond_to?(:first_name=)
     refute Developer.new.respond_to?(:first_name?)
+    refute SubDeveloper.new.respond_to?(:first_name)
+    refute SubDeveloper.new.respond_to?(:first_name=)
+    refute SubDeveloper.new.respond_to?(:first_name?)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name=)
+    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name?)
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
     assert Developer.new.respond_to?(:last_name)
     assert Developer.new.respond_to?(:last_name=)
     assert Developer.new.respond_to?(:last_name?)
+    assert SubDeveloper.new.respond_to?(:last_name)
+    assert SubDeveloper.new.respond_to?(:last_name=)
+    assert SubDeveloper.new.respond_to?(:last_name?)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name=)
+    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name?)
+  end
+
+  test "ignored columns are stored as an array of string" do
+    assert_equal(%w(first_name last_name), Developer.ignored_columns)
+    assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
+  end
+
+  test "when #reload called, ignored columns' attribute methods are not defined" do
+    developer = Developer.create!(name: "Developer")
+    refute developer.respond_to?(:first_name)
+    refute developer.respond_to?(:first_name=)
+
+    developer.reload
+
+    refute developer.respond_to?(:first_name)
+    refute developer.respond_to?(:first_name=)
+  end
+
+  test "ignored columns not included in SELECT" do
+    query = Developer.all.to_sql.downcase
+
+    # ignored column
+    refute query.include?("first_name")
+
+    # regular column
+    assert query.include?("name")
+  end
+
+  test "column names are quoted when using #from clause and model has ignored columns" do
+    refute_empty Developer.ignored_columns
+    query = Developer.from("developers").to_sql
+    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+
+    assert_match(/SELECT #{quoted_id}.* FROM developers/, query)
+  end
+
+  test "using table name qualified column names unless having SELECT list explicitly" do
+    assert_equal developers(:david), Developer.from("developers").joins(:shared_computers).take
+  end
+
+  test "protected environments by default is an array with production" do
+    assert_equal ["production"], ActiveRecord::Base.protected_environments
+  end
+
+  def test_protected_environments_are_stored_as_an_array_of_string
+    previous_protected_environments = ActiveRecord::Base.protected_environments
+    ActiveRecord::Base.protected_environments = [:staging, "production"]
+    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+  ensure
+    ActiveRecord::Base.protected_environments = previous_protected_environments
   end
 end

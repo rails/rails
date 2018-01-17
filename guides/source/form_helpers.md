@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-Form Helpers
-============
+Action View Form Helpers
+========================
 
 Forms in web applications are an essential interface for user input. However, form markup can quickly become tedious to write and maintain because of the need to handle form control naming and its numerous attributes. Rails does away with this complexity by providing view helpers for generating form markup. However, since these helpers have different use cases, developers need to know the differences between the helper methods before putting them to use.
 
@@ -164,7 +164,7 @@ make it easier for users to click the inputs.
 
 Other form controls worth mentioning are textareas, password fields,
 hidden fields, search fields, telephone fields, date fields, time fields,
-color fields, datetime fields, datetime-local fields, month fields, week fields,
+color fields, datetime-local fields, month fields, week fields,
 URL fields, email fields, number fields and range fields:
 
 ```erb
@@ -274,10 +274,12 @@ There are a few things to note here:
 The resulting HTML is:
 
 ```html
-<form accept-charset="UTF-8" action="/articles" method="post" class="nifty_form">
-  <input id="article_title" name="article[title]" type="text" />
-  <textarea id="article_body" name="article[body]" cols="60" rows="12"></textarea>
-  <input name="commit" type="submit" value="Create" />
+<form class="nifty_form" id="new_article" action="/articles" accept-charset="UTF-8" method="post">
+  <input name="utf8" type="hidden" value="&#x2713;" />
+  <input type="hidden" name="authenticity_token" value="NRkFyRWxdYNfUg7vYxLOp2SLf93lvnl+QwDWorR42Dp6yZXPhHEb6arhDOIWcqGit8jfnrPwL781/xlrzj63TA==" />
+  <input type="text" name="article[title]" id="article_title" />
+  <textarea name="article[body]" id="article_body" cols="60" rows="12"></textarea>
+  <input type="submit" name="commit" value="Create" data-disable-with="Create" />
 </form>
 ```
 
@@ -299,9 +301,11 @@ You can create a similar binding without actually creating `<form>` tags with th
 which produces the following output:
 
 ```html
-<form accept-charset="UTF-8" action="/people" class="new_person" id="new_person" method="post">
-  <input id="person_name" name="person[name]" type="text" />
-  <input id="contact_detail_phone_number" name="contact_detail[phone_number]" type="text" />
+<form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
+  <input name="utf8" type="hidden" value="&#x2713;" />
+  <input type="hidden" name="authenticity_token" value="bL13x72pldyDD8bgtkjKQakJCpd4A8JdXGbfksxBDHdf1uC0kCMqe2tvVdUYfidJt0fj3ihC4NxiVHv8GVYxJA==" />
+  <input type="text" name="person[name]" id="person_name" />
+  <input type="text" name="contact_detail[phone_number]" id="contact_detail_phone_number" />
 </form>
 ```
 
@@ -877,7 +881,7 @@ Active Record provides model level support via the `accepts_nested_attributes_fo
 
 ```ruby
 class Person < ApplicationRecord
-  has_many :addresses
+  has_many :addresses, inverse_of: :person
   accepts_nested_attributes_for :addresses
 end
 
@@ -916,7 +920,7 @@ When an association accepts nested attributes `fields_for` renders its block onc
 ```ruby
 def new
   @person = Person.new
-  2.times { @person.addresses.build}
+  2.times { @person.addresses.build }
 end
 ```
 

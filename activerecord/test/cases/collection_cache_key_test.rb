@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/computer"
 require "models/developer"
@@ -11,20 +13,74 @@ module ActiveRecord
     fixtures :developers, :projects, :developers_projects, :topics, :comments, :posts
 
     test "collection_cache_key on model" do
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, Developer.collection_cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, Developer.collection_cache_key)
     end
 
     test "cache_key for relation" do
-      developers = Developer.where(name: "David")
-      last_developer_timestamp = developers.order(updated_at: :desc).first.updated_at
+      developers = Developer.where(salary: 100000).order(updated_at: :desc)
+      last_developer_timestamp = developers.first.updated_at
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
 
-      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/ =~ developers.cache_key
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
 
-      assert_equal Digest::MD5.hexdigest(developers.to_sql), $1
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
       assert_equal developers.count.to_s, $2
       assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with limit" do
+      developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5)
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for loaded relation" do
+      developers = Developer.where(salary: 100000).order(updated_at: :desc).limit(5).load
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with table alias" do
+      table_alias = Developer.arel_table.alias("omg_developers")
+      table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
+
+      developers = ActiveRecord::Relation.create(Developer, table_alias, predicate_builder)
+      developers = developers.where(salary: 100000).order(updated_at: :desc)
+      last_developer_timestamp = developers.first.updated_at
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+
+      /\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/ =~ developers.cache_key
+
+      assert_equal ActiveSupport::Digest.hexdigest(developers.to_sql), $1
+      assert_equal developers.count.to_s, $2
+      assert_equal last_developer_timestamp.to_s(ActiveRecord::Base.cache_timestamp_format), $3
+    end
+
+    test "cache_key for relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post")
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
+    end
+
+    test "cache_key for loaded relation with includes" do
+      comments = Comment.includes(:post).where("posts.type": "Post").load
+      assert_match(/\Acomments\/query-(\h+)-(\d+)-(\d+)\z/, comments.cache_key)
     end
 
     test "it triggers at most one query" do
@@ -48,7 +104,7 @@ module ActiveRecord
 
     test "cache_key for empty relation" do
       developers = Developer.where(name: "Non Existent Developer")
-      assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-0\z/, developers.cache_key)
     end
 
     test "cache_key with custom timestamp column" do
@@ -64,7 +120,7 @@ module ActiveRecord
 
     test "collection proxy provides a cache_key" do
       developers = projects(:active_record).developers
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
 
     test "cache_key for loaded collection with zero size" do
@@ -72,18 +128,30 @@ module ActiveRecord
       posts = Post.includes(:comments)
       empty_loaded_collection = posts.first.comments
 
-      assert_match(/\Acomments\/query-(\h+)-0\Z/, empty_loaded_collection.cache_key)
+      assert_match(/\Acomments\/query-(\h+)-0\z/, empty_loaded_collection.cache_key)
     end
 
     test "cache_key for queries with offset which return 0 rows" do
       developers = Developer.offset(20)
-      assert_match(/\Adevelopers\/query-(\h+)-0\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-0\z/, developers.cache_key)
     end
 
     test "cache_key with a relation having selected columns" do
       developers = Developer.select(:salary)
 
-      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\Z/, developers.cache_key)
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having distinct and order" do
+      developers = Developer.distinct.order(:salary).limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having custom select and order" do
+      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end
   end
 end

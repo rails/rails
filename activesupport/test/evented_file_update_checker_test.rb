@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "pathname"
 require "file_update_checker_shared_tests"

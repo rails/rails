@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/dependencies"
 
 module AbstractController
@@ -5,11 +7,8 @@ module AbstractController
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_helpers
-      self._helpers = Module.new
-
-      class_attribute :_helper_methods
-      self._helper_methods = Array.new
+      class_attribute :_helpers, default: Module.new
+      class_attribute :_helper_methods, default: Array.new
     end
 
     class MissingHelperError < LoadError

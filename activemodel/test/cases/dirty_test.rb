@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class DirtyTest < ActiveModel::TestCase
@@ -96,7 +98,7 @@ class DirtyTest < ActiveModel::TestCase
   end
 
   test "attribute mutation" do
-    @model.instance_variable_set("@name", "Yam")
+    @model.instance_variable_set("@name", "Yam".dup)
     assert !@model.name_changed?
     @model.name.replace("Hadad")
     assert !@model.name_changed?
@@ -216,5 +218,9 @@ class DirtyTest < ActiveModel::TestCase
     assert @model.changed?
     assert_equal "Dmitry", @model.name
     assert_equal "White", @model.color
+  end
+
+  test "model can be dup-ed without Attributes" do
+    assert @model.dup
   end
 end

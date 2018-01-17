@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   module Redirecting
     extend ActiveSupport::Concern
@@ -29,7 +31,7 @@ module ActionController
     #   redirect_to post_url(@post), status: 301
     #   redirect_to action: 'atom', status: 302
     #
-    # The status code can either be a standard {HTTP Status code}[http://www.iana.org/assignments/http-status-codes] as an
+    # The status code can either be a standard {HTTP Status code}[https://www.iana.org/assignments/http-status-codes] as an
     # integer, or a symbol representing the downcased, underscored and symbolized description.
     # Note that the status code must be a 3xx HTTP code, or redirection will not occur.
     #
@@ -66,7 +68,7 @@ module ActionController
     # if possible, otherwise redirects to the provided default fallback
     # location.
     #
-    # The referrer information is pulled from the HTTP `Referer` (sic) header on
+    # The referrer information is pulled from the HTTP +Referer+ (sic) header on
     # the request. This is an optional header and its presence on the request is
     # subject to browser security settings and user preferences. If the request
     # is missing this header, the <tt>fallback_location</tt> will be used.
@@ -77,15 +79,18 @@ module ActionController
     #   redirect_back fallback_location: "/images/screenshot.jpg"
     #   redirect_back fallback_location: posts_url
     #   redirect_back fallback_location: proc { edit_post_url(@post) }
+    #   redirect_back fallback_location: '/', allow_other_host: false
     #
-    # All options that can be passed to <tt>redirect_to</tt> are accepted as
+    # ==== Options
+    # * <tt>:fallback_location</tt> - The default fallback location that will be used on missing +Referer+ header.
+    # * <tt>:allow_other_host</tt> - Allow or disallow redirection to the host that is different to the current host, defaults to true.
+    #
+    # All other options that can be passed to <tt>redirect_to</tt> are accepted as
     # options and the behavior is identical.
-    def redirect_back(fallback_location:, **args)
-      if referer = request.headers["Referer"]
-        redirect_to referer, **args
-      else
-        redirect_to fallback_location, **args
-      end
+    def redirect_back(fallback_location:, allow_other_host: true, **args)
+      referer = request.headers["Referer"]
+      redirect_to_referer = referer && (allow_other_host || _url_host_allowed?(referer))
+      redirect_to redirect_to_referer ? referer : fallback_location, **args
     end
 
     def _compute_redirect_to_location(request, options) #:nodoc:
@@ -93,7 +98,7 @@ module ActionController
       # The scheme name consist of a letter followed by any combination of
       # letters, digits, and the plus ("+"), period ("."), or hyphen ("-")
       # characters; and is terminated by a colon (":").
-      # See http://tools.ietf.org/html/rfc3986#section-3.1
+      # See https://tools.ietf.org/html/rfc3986#section-3.1
       # The protocol relative scheme starts with a double slash "//".
       when /\A([a-z][a-z\d\-+\.]*:|\/\/).*/i
         options
@@ -117,6 +122,12 @@ module ActionController
         else
           302
         end
+      end
+
+      def _url_host_allowed?(url)
+        URI(url.to_s).host == request.host
+      rescue ArgumentError, URI::Error
+        false
       end
   end
 end

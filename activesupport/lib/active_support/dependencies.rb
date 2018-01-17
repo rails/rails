@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "thread"
 require "concurrent/map"
@@ -18,8 +20,7 @@ module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
     extend self
 
-    mattr_accessor :interlock
-    self.interlock = Interlock.new
+    mattr_accessor :interlock, default: Interlock.new
 
     # :doc:
 
@@ -46,46 +47,37 @@ module ActiveSupport #:nodoc:
     # :nodoc:
 
     # Should we turn on Ruby warnings on the first load of dependent files?
-    mattr_accessor :warnings_on_first_load
-    self.warnings_on_first_load = false
+    mattr_accessor :warnings_on_first_load, default: false
 
     # All files ever loaded.
-    mattr_accessor :history
-    self.history = Set.new
+    mattr_accessor :history, default: Set.new
 
     # All files currently loaded.
-    mattr_accessor :loaded
-    self.loaded = Set.new
+    mattr_accessor :loaded, default: Set.new
 
     # Stack of files being loaded.
-    mattr_accessor :loading
-    self.loading = []
+    mattr_accessor :loading, default: []
 
     # Should we load files or require them?
-    mattr_accessor :mechanism
-    self.mechanism = ENV["NO_RELOAD"] ? :require : :load
+    mattr_accessor :mechanism, default: ENV["NO_RELOAD"] ? :require : :load
 
     # The set of directories from which we may automatically load files. Files
     # under these directories will be reloaded on each request in development mode,
     # unless the directory also appears in autoload_once_paths.
-    mattr_accessor :autoload_paths
-    self.autoload_paths = []
+    mattr_accessor :autoload_paths, default: []
 
     # The set of directories from which automatically loaded constants are loaded
     # only once. All directories in this set must also be present in +autoload_paths+.
-    mattr_accessor :autoload_once_paths
-    self.autoload_once_paths = []
+    mattr_accessor :autoload_once_paths, default: []
 
     # An array of qualified constant names that have been loaded. Adding a name
     # to this array will cause it to be unloaded the next time Dependencies are
     # cleared.
-    mattr_accessor :autoloaded_constants
-    self.autoloaded_constants = []
+    mattr_accessor :autoloaded_constants, default: []
 
     # An array of constant names that need to be unloaded on every request. Used
     # to allow arbitrary constants to be marked for unloading.
-    mattr_accessor :explicitly_unloadable_constants
-    self.explicitly_unloadable_constants = []
+    mattr_accessor :explicitly_unloadable_constants, default: []
 
     # The WatchStack keeps a stack of the modules being watched as files are
     # loaded. If a file in the process of being loaded (parent.rb) triggers the
@@ -93,7 +85,7 @@ module ActiveSupport #:nodoc:
     # handles the new constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
-    # autoloaded_constants. If it was being `require`d, they will be discarded.
+    # autoloaded_constants. If it was being required, they will be discarded.
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb.
@@ -175,8 +167,7 @@ module ActiveSupport #:nodoc:
     end
 
     # An internal stack used to record which constants are loaded by any block.
-    mattr_accessor :constant_watch_stack
-    self.constant_watch_stack = WatchStack.new
+    mattr_accessor :constant_watch_stack, default: WatchStack.new
 
     # Module includes this module.
     module ModuleConstMissing #:nodoc:
@@ -624,7 +615,7 @@ module ActiveSupport #:nodoc:
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
-      return autoloaded_constants.include?(name)
+      autoloaded_constants.include?(name)
     end
 
     # Will the provided constant descriptor be unloaded?

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "date"
 require "abstract_unit"
 require "timeout"
@@ -78,6 +80,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_titleize_with_keep_id_suffix
+    MixtureToTitleCaseWithKeepIdSuffix.each do |before, titleized|
+      assert_equal(titleized, before.titleize(keep_id_suffix: true))
+    end
+  end
+
   def test_upcase_first
     assert_equal "What a Lovely Day", "what a Lovely Day".upcase_first
   end
@@ -98,6 +106,13 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_camelize_lower
     assert_equal("capital", "Capital".camelize(:lower))
+  end
+
+  def test_camelize_invalid_option
+    e = assert_raise ArgumentError do
+      "Capital".camelize(nil)
+    end
+    assert_equal("Invalid option, use either :upper or :lower.", e.message)
   end
 
   def test_dasherize
@@ -182,7 +197,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_parameterized_underscore_preserve_case
-    StringToParameterizePreserceCaseWithUnderscore.each do |normal, slugged|
+    StringToParameterizePreserveCaseWithUnderscore.each do |normal, slugged|
       assert_equal(slugged, normal.parameterize(separator: "_", preserve_case: true))
     end
   end
@@ -196,6 +211,12 @@ class StringInflectionsTest < ActiveSupport::TestCase
   def test_humanize_without_capitalize
     UnderscoreToHumanWithoutCapitalize.each do |underscore, human|
       assert_equal(human, underscore.humanize(capitalize: false))
+    end
+  end
+
+  def test_humanize_with_keep_id_suffix
+    UnderscoreToHumanWithKeepIdSuffix.each do |underscore, human|
+      assert_equal(human, underscore.humanize(keep_id_suffix: true))
     end
   end
 
@@ -221,7 +242,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_string_squish
     original = %{\u205f\u3000 A string surrounded by various unicode spaces,
-      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}
+      with tabs(\t\t), newlines(\n\n), unicode nextlines(\u0085\u0085) and many spaces(  ). \u00a0\u2007}.dup
 
     expected = "A string surrounded by various unicode spaces, " \
       "with tabs( ), newlines( ), unicode nextlines( ) and many spaces( )."
@@ -291,8 +312,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
-      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8).truncate(10)
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".dup.force_encoding(Encoding::UTF_8),
+      "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".dup.force_encoding(Encoding::UTF_8).truncate(10)
   end
 
   def test_truncate_should_not_be_html_safe
@@ -313,7 +334,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_remove!
-    original = "This is a very good day to die"
+    original = "This is a very good day to die".dup
     assert_equal "This is a good day to die", original.remove!(" very")
     assert_equal "This is a good day to die", original
     assert_equal "This is a good day", original.remove!(" to ", /die/)
@@ -646,7 +667,7 @@ end
 
 class OutputSafetyTest < ActiveSupport::TestCase
   def setup
-    @string = "hello"
+    @string = "hello".dup
     @object = Class.new(Object) do
       def to_s
         "other"
@@ -722,7 +743,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe yields unsafe" do
-    @other_string = "other"
+    @other_string = "other".dup
 
     string = @string.html_safe
     @other_string.concat(string)
@@ -745,7 +766,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "Concatting safe onto unsafe with << yields unsafe" do
-    @other_string = "other"
+    @other_string = "other".dup
     string = @string.html_safe
 
     @other_string << string
@@ -801,7 +822,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
   test "Concatting an integer to safe always yields safe" do
     string = @string.html_safe
     string = string.concat(13)
-    assert_equal "hello".concat(13), string
+    assert_equal "hello".dup.concat(13), string
     assert string.html_safe?
   end
 
@@ -856,7 +877,8 @@ end
 
 class StringIndentTest < ActiveSupport::TestCase
   test "does not indent strings that only contain newlines (edge cases)" do
-    ["", "\n", "\n" * 7].each do |str|
+    ["", "\n", "\n" * 7].each do |string|
+      str = string.dup
       assert_nil str.indent!(8)
       assert_equal str, str.indent(8)
       assert_equal str, str.indent(1, "\t")

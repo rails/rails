@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "env_helpers"
 require "rails/command"
@@ -18,6 +20,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     options = parse_arguments(args)
     assert_equal "production", options[:environment]
     assert_nil options[:server]
+  end
+
+  def test_daemon_with_option
+    args = ["-d"]
+    options = parse_arguments(args)
+    assert_equal true, options[:daemonize]
+  end
+
+  def test_daemon_without_option
+    args = []
+    options = parse_arguments(args)
+    assert_equal false, options[:daemonize]
   end
 
   def test_server_option_without_environment
@@ -77,6 +91,18 @@ class Rails::ServerTest < ActiveSupport::TestCase
     args = ["--no-dev-caching"]
     options = parse_arguments(args)
     assert_equal false, options[:caching]
+  end
+
+  def test_early_hints_with_option
+    args = ["--early-hints"]
+    options = parse_arguments(args)
+    assert_equal true, options[:early_hints]
+  end
+
+  def test_early_hints_is_nil_by_default
+    args = []
+    options = parse_arguments(args)
+    assert_nil options[:early_hints]
   end
 
   def test_log_stdout
@@ -139,11 +165,37 @@ class Rails::ServerTest < ActiveSupport::TestCase
     end
   end
 
+  def test_argument_precedence_over_environment_variable
+    switch_env "PORT", "1234" do
+      args = ["-p", "5678"]
+      options = parse_arguments(args)
+      assert_equal 5678, options[:Port]
+    end
+
+    switch_env "PORT", "1234" do
+      args = ["-p", "3000"]
+      options = parse_arguments(args)
+      assert_equal 3000, options[:Port]
+    end
+
+    switch_env "HOST", "1.2.3.4" do
+      args = ["-b", "127.0.0.1"]
+      options = parse_arguments(args)
+      assert_equal "127.0.0.1", options[:Host]
+    end
+  end
+
   def test_records_user_supplied_options
     server_options = parse_arguments(["-p", 3001])
     assert_equal [:Port], server_options[:user_supplied_options]
 
     server_options = parse_arguments(["--port", 3001])
+    assert_equal [:Port], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["-p3001", "-C", "--binding", "127.0.0.1"])
+    assert_equal [:Port, :Host, :caching], server_options[:user_supplied_options]
+
+    server_options = parse_arguments(["--port=3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
   end
 
@@ -162,7 +214,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
     ARGV.replace args
 
     options = parse_arguments(args)
-    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C"
+    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
 
     assert_equal expected, options[:restart_cmd]
   ensure

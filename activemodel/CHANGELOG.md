@@ -1,32 +1,60 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
+*   Fix to working before/after validation callbacks on multiple contexts.
 
-*   Remove deprecated behavior that halts callbacks when the return is false.
+    *Yoshiyuki Hirano*
 
-    *Rafael Mendonça França*
+## Rails 5.2.0.beta2 (November 28, 2017) ##
 
-*   Remove unused `ActiveModel::TestCase` class.
-
-    *Yuji Yaginuma*
-
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
-
-    *Iain Beeston*
-
-*   Allow indifferent access in `ActiveModel::Errors`.
-
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
-
-    *Kenichi Kamiya*
-
-*   Removed deprecated `:tokenizer` in the length validator.
-
-    *Rafael Mendonça França*
-
-*   Removed deprecated methods in `ActiveModel::Errors`.
-
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
+*   No changes.
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+## Rails 5.2.0.beta1 (November 27, 2017) ##
+
+*   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
+
+    *bogdanvlviv*
+
+*   Allow passing a Proc or Symbol to length validator options.
+
+    *Matt Rohrer*
+
+*   Add method `#merge!` for `ActiveModel::Errors`.
+
+    *Jahfer Husain*
+
+*   Fix regression in numericality validator when comparing Decimal and Float input
+    values with more scale than the schema.
+
+    *Bradley Priest*
+
+*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
+
+    Change `#keys` to only return the keys that don't have empty messages.
+
+    Change `#values` to only return the not empty values.
+
+    Example:
+
+        # Before
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => [:name]
+        person.errors.values   # => [[]]
+
+        # After
+        person = Person.new
+        person.errors.keys     # => []
+        person.errors.values   # => []
+        person.errors.messages # => {}
+        person.errors[:name]   # => []
+        person.errors.messages # => {:name => []}
+        person.errors.keys     # => []
+        person.errors.values   # => []
+
+    *bogdanvlviv*
+
+
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.

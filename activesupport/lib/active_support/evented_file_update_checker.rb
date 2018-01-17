@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "pathname"
 require "concurrent/atomic/atomic_boolean"
@@ -124,6 +126,11 @@ module ActiveSupport
         dtw = (@files + @dirs.keys).map { |f| @ph.existing_parent(f) }
         dtw.compact!
         dtw.uniq!
+
+        normalized_gem_paths = Gem.path.map { |path| File.join path, "" }
+        dtw = dtw.reject do |path|
+          normalized_gem_paths.any? { |gem_path| path.to_s.start_with?(gem_path) }
+        end
 
         @ph.filter_out_descendants(dtw)
       end

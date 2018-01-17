@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "mailers/base_mailer"
@@ -5,7 +7,7 @@ require "mailers/caching_mailer"
 
 CACHE_DIR = "test_cache"
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
-FILE_STORE_PATH = File.join(File.dirname(__FILE__), "/../temp/", CACHE_DIR)
+FILE_STORE_PATH = File.join(__dir__, "/../temp/", CACHE_DIR)
 
 class FragmentCachingMailer < ActionMailer::Base
   abstract!
@@ -20,10 +22,6 @@ class BaseCachingTest < ActiveSupport::TestCase
     @mailer = FragmentCachingMailer.new
     @mailer.perform_caching = true
     @mailer.cache_store = @store
-  end
-
-  def test_fragment_cache_key
-    assert_equal "views/what a key", @mailer.fragment_cache_key("what a key")
   end
 end
 
@@ -126,7 +124,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
 
     assert_match expected_body, email.body.encoded
     assert_match expected_body,
-      @store.read("views/caching/#{template_digest("caching_mailer/fragment_cache")}")
+      @store.read("views/caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}/caching")
   end
 
   def test_fragment_caching_in_partials
@@ -135,7 +133,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     assert_match(expected_body, email.body.encoded)
 
     assert_match(expected_body,
-      @store.read("views/caching/#{template_digest("caching_mailer/_partial")}"))
+      @store.read("views/caching_mailer/_partial:#{template_digest("caching_mailer/_partial")}/caching"))
   end
 
   def test_skip_fragment_cache_digesting
@@ -185,7 +183,7 @@ class FunctionalFragmentCachingTest < BaseCachingTest
     end
 
     assert_equal "caching_mailer", payload[:mailer]
-    assert_equal "views/caching/#{template_digest("caching_mailer/fragment_cache")}", payload[:key]
+    assert_equal [ :views, "caching_mailer/fragment_cache:#{template_digest("caching_mailer/fragment_cache")}", :caching ], payload[:key]
   ensure
     @mailer.enable_fragment_cache_logging = true
   end
@@ -200,7 +198,7 @@ end
 class CacheHelperOutputBufferTest < BaseCachingTest
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -216,9 +214,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -237,9 +235,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 

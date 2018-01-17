@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -42,15 +44,8 @@ module ActiveRecord
         # a record (as primary keys cannot be +nil+). This might be done via the
         # +SecureRandom.uuid+ method and a +before_save+ callback, for instance.
         def primary_key(name, type = :primary_key, **options)
-          options[:auto_increment] = true if [:integer, :bigint].include?(type) && !options.key?(:default)
           if type == :uuid
             options[:default] = options.fetch(:default, "gen_random_uuid()")
-          elsif options.delete(:auto_increment) == true && %i(integer bigint).include?(type)
-            type = if type == :bigint || options[:limit] == 8
-              :bigserial
-            else
-              :serial
-            end
           end
 
           super
@@ -98,10 +93,6 @@ module ActiveRecord
 
         def int8range(*args, **options)
           args.each { |name| column(name, :int8range, options) }
-        end
-
-        def json(*args, **options)
-          args.each { |name| column(name, :json, options) }
         end
 
         def jsonb(*args, **options)
@@ -183,10 +174,32 @@ module ActiveRecord
 
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
+
+        private
+          def integer_like_primary_key_type(type, options)
+            if type == :bigint || options[:limit] == 8
+              :bigserial
+            else
+              :serial
+            end
+          end
       end
 
       class Table < ActiveRecord::ConnectionAdapters::Table
         include ColumnMethods
+      end
+
+      class AlterTable < ActiveRecord::ConnectionAdapters::AlterTable
+        attr_reader :constraint_validations
+
+        def initialize(td)
+          super
+          @constraint_validations = []
+        end
+
+        def validate_constraint(name)
+          @constraint_validations << name
+        end
       end
     end
   end

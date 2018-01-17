@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view"
 require "action_controller/log_subscriber"
 require "action_controller/metal/params_wrapper"
@@ -223,6 +225,7 @@ module ActionController
       Flash,
       FormBuilder,
       RequestForgeryProtection,
+      ContentSecurityPolicy,
       ForceSSL,
       Streaming,
       DataStreaming,
@@ -261,6 +264,13 @@ module ActionController
       PROTECTED_IVARS
     end
 
+    def self.make_response!(request)
+      ActionDispatch::Response.create.tap do |res|
+        res.request = request
+      end
+    end
+
+    ActiveSupport.run_load_hooks(:action_controller_base, self)
     ActiveSupport.run_load_hooks(:action_controller, self)
   end
 end

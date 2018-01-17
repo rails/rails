@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class AssertDifferenceTest < ActiveSupport::TestCase
@@ -85,7 +87,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
 
   def test_expression_is_evaluated_in_the_appropriate_scope
     silence_warnings do
-      local_scope = local_scope = "foo"
+      local_scope = "foo"
+      local_scope = local_scope  # to suppress unused variable warning
       assert_difference("local_scope; @object.num") { @object.increment }
     end
   end
@@ -153,6 +156,16 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_to_option_but_no_change_has_special_message
+    error = assert_raises Minitest::Assertion do
+      assert_changes "@object.num", to: 0 do
+        # no changes
+      end
+    end
+
+    assert_equal "\"@object.num\" didn't change. It was already 0", error.message
+  end
+
   def test_assert_changes_with_wrong_to_option
     assert_raises Minitest::Assertion do
       assert_changes "@object.num", to: 2 do
@@ -176,6 +189,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   end
 
   def test_assert_changes_works_with_any_object
+    # Silences: instance variable @new_object not initialized.
     retval = silence_warnings do
       assert_changes :@new_object, from: nil, to: 42 do
         @new_object = 42
@@ -198,7 +212,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_changes_with_to_and_case_operator
     token = nil
 
-    assert_changes "token", to: /\w{32}/ do
+    assert_changes -> { token }, to: /\w{32}/ do
       token = SecureRandom.hex
     end
   end
@@ -206,7 +220,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_changes_with_to_and_from_and_case_operator
     token = SecureRandom.hex
 
-    assert_changes "token", from: /\w{32}/, to: /\w{32}/ do
+    assert_changes -> { token }, from: /\w{32}/, to: /\w{32}/ do
       token = SecureRandom.hex
     end
   end
@@ -214,6 +228,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
   def test_assert_changes_with_message
     error = assert_raises Minitest::Assertion do
       assert_changes "@object.num", "@object.num should 1", to: 1 do
+        @object.decrement
       end
     end
 
@@ -233,11 +248,8 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1.\nExpected: 0\n  Actual: 1", error.message
+    assert_equal "@object.num should not change.\n\"@object.num\" did change to 1", error.message
   end
-end
-
-class AlsoDoingNothingTest < ActiveSupport::TestCase
 end
 
 # Setup and teardown callbacks.

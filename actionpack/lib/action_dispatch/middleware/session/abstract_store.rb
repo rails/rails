@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"
@@ -53,7 +55,7 @@ module ActionDispatch
       rescue ArgumentError => argument_error
         if argument_error.message =~ %r{undefined class/module ([\w:]*\w)}
           begin
-            # Note that the regexp does not allow $1 to end with a ':'
+            # Note that the regexp does not allow $1 to end with a ':'.
             $1.constantize
           rescue LoadError, NameError
             raise ActionDispatch::Session::SessionRestoreError

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view"
 require "rails"
 
@@ -5,7 +7,7 @@ module ActionView
   # = Action View Railtie
   class Railtie < Rails::Engine # :nodoc:
     config.action_view = ActiveSupport::OrderedOptions.new
-    config.action_view.embed_authenticity_token_in_remote_forms = false
+    config.action_view.embed_authenticity_token_in_remote_forms = nil
     config.action_view.debug_missing_translation = true
 
     config.eager_load_namespaces << ActionView
@@ -14,6 +16,22 @@ module ActionView
       ActiveSupport.on_load(:action_view) do
         ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms =
           app.config.action_view.delete(:embed_authenticity_token_in_remote_forms)
+      end
+    end
+
+    initializer "action_view.form_with_generates_remote_forms" do |app|
+      ActiveSupport.on_load(:action_view) do
+        form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
+        ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
+      end
+    end
+
+    initializer "action_view.form_with_generates_ids" do |app|
+      ActiveSupport.on_load(:action_view) do
+        form_with_generates_ids = app.config.action_view.delete(:form_with_generates_ids)
+        unless form_with_generates_ids.nil?
+          ActionView::Helpers::FormHelper.form_with_generates_ids = form_with_generates_ids
+        end
       end
     end
 

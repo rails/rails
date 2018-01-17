@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/code_statistics"
 
 class CodeStatisticsTest < ActiveSupport::TestCase
   def setup
-    @tmp_path = File.expand_path(File.join(File.dirname(__FILE__), "fixtures", "tmp"))
+    @tmp_path = File.expand_path("fixtures/tmp", __dir__)
     @dir_js   = File.join(@tmp_path, "lib.js")
     FileUtils.mkdir_p(@dir_js)
   end

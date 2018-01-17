@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -386,7 +388,7 @@ module AbstractController
 
       def test_url_action_controller_parameters
         add_host!
-        assert_raise(ArgumentError) do
+        assert_raise(ActionController::UnfilteredParameters) do
           W.new.url_for(ActionController::Parameters.new(controller: "c", action: "a", protocol: "javascript", f: "%0Aeval(name)"))
         end
       end

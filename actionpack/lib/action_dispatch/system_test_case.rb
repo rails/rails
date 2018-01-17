@@ -1,9 +1,15 @@
+# frozen_string_literal: true
+
+gem "capybara", "~> 2.15"
+
 require "capybara/dsl"
+require "capybara/minitest"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
+require "action_dispatch/system_testing/test_helpers/undef_methods"
 
 module ActionDispatch
   # = System Testing
@@ -48,7 +54,7 @@ module ActionDispatch
   # By default, <tt>ActionDispatch::SystemTestCase</tt> is driven by the
   # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
   #
-  # Changing the driver configuration options are easy. Let's say you want to use
+  # Changing the driver configuration options is easy. Let's say you want to use
   # the Firefox browser instead of Chrome. In your +application_system_test_case.rb+
   # file add the following:
   #
@@ -63,16 +69,23 @@ module ActionDispatch
   # size of the browser screen. These two options are not applicable for
   # headless drivers and will be silently ignored if passed.
   #
+  # Headless browsers such as headless Chrome and headless Firefox are also supported.
+  # You can use these browsers by setting the +:using+ argument to +:headless_chrome+ or +:headless_firefox+.
+  #
   # To use a headless driver, like Poltergeist, update your Gemfile to use
   # Poltergeist instead of Selenium and then declare the driver name in the
-  # +application_system_test_case.rb+ file. In this case you would leave out the +:using+
-  # option because the driver is headless.
+  # +application_system_test_case.rb+ file. In this case, you would leave out
+  # the +:using+ option because the driver is headless, but you can still use
+  # +:screen_size+ to change the size of the browser screen, also you can use
+  # +:options+ to pass options supported by the driver. Please refer to your
+  # driver documentation to learn about supported options.
   #
   #   require "test_helper"
   #   require "capybara/poltergeist"
   #
   #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  #     driven_by :poltergeist
+  #     driven_by :poltergeist, screen_size: [1400, 1400], options:
+  #       { js_errors: true }
   #   end
   #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
@@ -80,12 +93,14 @@ module ActionDispatch
   # tests as long as you include the required gems and files.
   class SystemTestCase < IntegrationTest
     include Capybara::DSL
+    include Capybara::Minitest::Assertions
     include SystemTesting::TestHelpers::SetupAndTeardown
     include SystemTesting::TestHelpers::ScreenshotHelper
+    include SystemTesting::TestHelpers::UndefMethods
 
     def initialize(*) # :nodoc:
       super
-      self.class.superclass.driver.use
+      self.class.driver.use
     end
 
     def self.start_application # :nodoc:
@@ -98,6 +113,8 @@ module ActionDispatch
       SystemTesting::Server.new.run
     end
 
+    class_attribute :driver, instance_accessor: false
+
     # System Test configuration options
     #
     # The default settings are Selenium, using Chrome, with a screen size
@@ -107,17 +124,22 @@ module ActionDispatch
     #
     #   driven_by :poltergeist
     #
+    #   driven_by :selenium, screen_size: [800, 800]
+    #
+    #   driven_by :selenium, using: :chrome
+    #
+    #   driven_by :selenium, using: :headless_chrome
+    #
     #   driven_by :selenium, using: :firefox
     #
-    #   driven_by :selenium, screen_size: [800, 800]
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400])
-      @driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size)
+    #   driven_by :selenium, using: :headless_firefox
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
+      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
     end
 
-    # Returns the driver object for the initialized system test
-    def self.driver
-      @driver ||= SystemTestCase.driven_by(:selenium)
-    end
+    driven_by :selenium
+
+    ActiveSupport.run_load_hooks(:action_dispatch_system_test_case, self)
   end
 
   SystemTestCase.start_application

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/core_ext/string/strip"
 require "yaml"
@@ -99,12 +101,28 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal ["omg", "zomg"], errors.values
   end
 
+  test "values returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.values
+  end
+
   test "keys returns the error keys" do
     errors = ActiveModel::Errors.new(self)
     errors.messages[:foo] << "omg"
     errors.messages[:baz] << "zomg"
 
     assert_equal [:foo, :baz], errors.keys
+  end
+
+  test "keys returns an empty array after try to get a message only" do
+    errors = ActiveModel::Errors.new(self)
+    errors.messages[:foo]
+    errors.messages[:baz]
+
+    assert_equal [], errors.keys
   end
 
   test "detecting whether there are errors with empty?, blank?, include?" do
@@ -203,6 +221,13 @@ class ErrorsTest < ActiveModel::TestCase
     person = Person.new
     person.errors.add(:name, "cannot be blank")
     assert !person.errors.added?(:name)
+  end
+
+  test "added? returns false when checking for an error by symbol and a different error with same message is present" do
+    I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
+    person = Person.new
+    person.errors.add(:name, :wrong)
+    assert !person.errors.added?(:name, :used)
   end
 
   test "size calculates the number of error messages" do
@@ -357,6 +382,18 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal [:name], person.errors.messages.keys
     assert_equal [:name], person.errors.details.keys
+  end
+
+  test "merge errors" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+
+    person = Person.new
+    person.errors.add(:name, :blank)
+    person.errors.merge!(errors)
+
+    assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
+    assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
   end
 
   test "errors are marshalable" do

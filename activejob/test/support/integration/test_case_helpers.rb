@@ -1,4 +1,5 @@
-require "active_support/core_ext/string/inflections"
+# frozen_string_literal: true
+
 require "support/integration/jobs_manager"
 
 module TestCaseHelpers
@@ -28,8 +29,7 @@ module TestCaseHelpers
     end
 
     def adapter_is?(*adapter_class_symbols)
-      adapter = ActiveJob::Base.queue_adapter.class.name.demodulize.chomp("Adapter").underscore
-      adapter_class_symbols.map(&:to_s).include? adapter
+      adapter_class_symbols.map(&:to_s).include? ActiveJob::Base.queue_adapter_name
     end
 
     def wait_for_jobs_to_finish_for(seconds = 60)

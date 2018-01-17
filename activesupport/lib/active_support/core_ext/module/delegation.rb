@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "active_support/core_ext/regexp"
 
@@ -113,11 +115,8 @@ class Module
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the target is +nil+ and does not respond to the delegated method a
-  # +Module::DelegationError+ is raised, as with any other value. Sometimes,
-  # however, it makes sense to be robust to that situation and that is the
-  # purpose of the <tt>:allow_nil</tt> option: If the target is not +nil+, or it
-  # is and responds to the method, everything works as usual. But if it is +nil+
-  # and does not respond to the delegated method, +nil+ is returned.
+  # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
+  # use the <tt>:allow_nil</tt> option.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
@@ -174,7 +173,7 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    methods.each do |method|
+    methods.map do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
@@ -219,62 +218,68 @@ class Module
   # When building decorators, a common pattern may emerge:
   #
   #   class Partition
-  #     def initialize(first_event)
-  #       @events = [ first_event ]
+  #     def initialize(event)
+  #       @event = event
   #     end
   #
-  #     def people
-  #       if @events.first.detail.people.any?
-  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-  #       else
-  #         @events.collect(&:creator).uniq
-  #       end
+  #     def person
+  #       @event.detail.person || @event.creator
   #     end
   #
   #     private
   #       def respond_to_missing?(name, include_private = false)
-  #         @events.respond_to?(name, include_private)
+  #         @event.respond_to?(name, include_private)
   #       end
   #
   #       def method_missing(method, *args, &block)
-  #         @events.send(method, *args, &block)
+  #         @event.send(method, *args, &block)
   #       end
   #   end
   #
-  # With `Module#delegate_missing_to`, the above is condensed to:
+  # With <tt>Module#delegate_missing_to</tt>, the above is condensed to:
   #
   #   class Partition
-  #     delegate_missing_to :@events
+  #     delegate_missing_to :@event
   #
-  #     def initialize(first_event)
-  #       @events = [ first_event ]
+  #     def initialize(event)
+  #       @event = event
   #     end
   #
-  #     def people
-  #       if @events.first.detail.people.any?
-  #         @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-  #       else
-  #         @events.collect(&:creator).uniq
-  #       end
+  #     def person
+  #       @event.detail.person || @event.creator
   #     end
   #   end
   #
-  # The target can be anything callable within the object. E.g. instance
-  # variables, methods, constants and the likes.
+  # The target can be anything callable within the object, e.g. instance
+  # variables, methods, constants, etc.
+  #
+  # The delegated method must be public on the target, otherwise it will
+  # raise +NoMethodError+.
   def delegate_missing_to(target)
     target = target.to_s
     target = "self.#{target}" if DELEGATION_RESERVED_METHOD_NAMES.include?(target)
 
     module_eval <<-RUBY, __FILE__, __LINE__ + 1
       def respond_to_missing?(name, include_private = false)
-        #{target}.respond_to?(name, include_private)
+        # It may look like an oversight, but we deliberately do not pass
+        # +include_private+, because they do not get delegated.
+
+        #{target}.respond_to?(name) || super
       end
 
       def method_missing(method, *args, &block)
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
-          super
+          begin
+            super
+          rescue NoMethodError
+            if #{target}.nil?
+              raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+            else
+              raise
+            end
+          end
         end
       end
     RUBY

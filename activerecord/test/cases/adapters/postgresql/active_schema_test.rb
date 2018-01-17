@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
@@ -56,6 +58,9 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
       expected = %(CREATE UNIQUE INDEX  "index_people_on_lower_last_name" ON "people" USING #{type} (lower(last_name)))
       assert_equal expected, add_index(:people, "lower(last_name)", using: type, unique: true)
     end
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
+    assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: { last_name: :bpchar_pattern_ops })
 
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -120,7 +122,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -129,7 +131,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -320,22 +322,21 @@ class BaseTest < ActiveSupport::TestCase
 
   test "implicit multipart with attachments creates nested parts" do
     email = BaseMailer.implicit_multipart(attachments: true)
-    assert_equal("application/pdf", email.parts[0].mime_type)
-    assert_equal("multipart/alternative", email.parts[1].mime_type)
-    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-    assert_equal("TEXT Implicit Multipart", email.parts[1].parts[0].body.encoded)
-    assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Implicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+    multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+    assert_equal("text/plain", multipart.parts[0].mime_type)
+    assert_equal("TEXT Implicit Multipart", multipart.parts[0].body.encoded)
+    assert_equal("text/html", multipart.parts[1].mime_type)
+    assert_equal("HTML Implicit Multipart", multipart.parts[1].body.encoded)
   end
 
   test "implicit multipart with attachments and sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, parts_order: order do
       email = BaseMailer.implicit_multipart(attachments: true)
-      assert_equal("application/pdf", email.parts[0].mime_type)
-      assert_equal("multipart/alternative", email.parts[1].mime_type)
-      assert_equal("text/plain", email.parts[1].parts[1].mime_type)
-      assert_equal("text/html", email.parts[1].parts[0].mime_type)
+      assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+      multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+      assert_equal(%w[ text/html text/plain ], multipart.parts.map(&:mime_type).sort)
     end
   end
 
@@ -425,12 +426,12 @@ class BaseTest < ActiveSupport::TestCase
 
   test "explicit multipart with attachments creates nested parts" do
     email = BaseMailer.explicit_multipart(attachments: true)
-    assert_equal("application/pdf", email.parts[0].mime_type)
-    assert_equal("multipart/alternative", email.parts[1].mime_type)
-    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-    assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
-    assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+    multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+    assert_equal("text/plain", multipart.parts[0].mime_type)
+    assert_equal("TEXT Explicit Multipart", multipart.parts[0].body.encoded)
+    assert_equal("text/html", multipart.parts[1].mime_type)
+    assert_equal("HTML Explicit Multipart", multipart.parts[1].body.encoded)
   end
 
   test "explicit multipart with templates" do
@@ -576,7 +577,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = AssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
@@ -590,7 +591,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = TempAssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "the view is not rendered when mail was never called" do
@@ -966,5 +967,20 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+  end
+end
+
+class BasePreviewTest < ActiveSupport::TestCase
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome(params)
+    end
+  end
+
+  test "has access to params" do
+    params = { name: "World" }
+
+    message = BaseMailerPreview.call(:welcome, params)
+    assert_equal "World", message["name"].decoded
   end
 end

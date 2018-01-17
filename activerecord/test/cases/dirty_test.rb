@@ -1,13 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"    # For booleans
 require "models/pirate"   # For timestamps
 require "models/parrot"
 require "models/person"   # For optimistic locking
 require "models/aircraft"
-
-class NumericData < ActiveRecord::Base
-  self.table_name = "numeric_data"
-end
+require "models/numeric_data"
 
 class DirtyTest < ActiveRecord::TestCase
   include InTimeZone
@@ -302,11 +301,9 @@ class DirtyTest < ActiveRecord::TestCase
   end
 
   def test_virtual_attribute_will_change
-    assert_deprecated do
-      parrot = Parrot.create!(name: "Ruby")
-      parrot.send(:attribute_will_change!, :cancel_save_from_callback)
-      assert parrot.has_changes_to_save?
-    end
+    parrot = Parrot.create!(name: "Ruby")
+    parrot.send(:attribute_will_change!, :cancel_save_from_callback)
+    assert parrot.has_changes_to_save?
   end
 
   def test_association_assignment_changes_foreign_key
@@ -349,12 +346,13 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_partial_update_with_optimistic_locking
     person = Person.new(first_name: "foo")
-    old_lock_version = person.lock_version
 
     with_partial_writes Person, false do
       assert_queries(2) { 2.times { person.save! } }
       Person.where(id: person.id).update_all(first_name: "baz")
     end
+
+    old_lock_version = person.lock_version
 
     with_partial_writes Person, true do
       assert_queries(0) { 2.times { person.save! } }
@@ -468,11 +466,10 @@ class DirtyTest < ActiveRecord::TestCase
 
   def test_save_should_not_save_serialized_attribute_with_partial_writes_if_not_present
     with_partial_writes(Topic) do
-      Topic.create!(author_name: "Bill", content: { a: "a" })
-      topic = Topic.select("id, author_name").first
+      topic = Topic.create!(author_name: "Bill", content: { a: "a" })
+      topic = Topic.select("id, author_name").find(topic.id)
       topic.update_columns author_name: "John"
-      topic = Topic.first
-      assert_not_nil topic.content
+      assert_not_nil topic.reload.content
     end
   end
 
@@ -670,6 +667,47 @@ class DirtyTest < ActiveRecord::TestCase
     assert binary.changed?
   end
 
+  test "changes is correct for subclass" do
+    foo = Class.new(Pirate) do
+      def catchphrase
+        super.upcase
+      end
+    end
+
+    pirate = foo.create!(catchphrase: "arrrr")
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
+  end
+
+  test "changes is correct if override attribute reader" do
+    pirate = Pirate.create!(catchphrase: "arrrr")
+    def pirate.catchphrase
+      super.upcase
+    end
+
+    new_catchphrase = "arrrr matey!"
+
+    pirate.catchphrase = new_catchphrase
+    assert pirate.catchphrase_changed?
+
+    expected_changes = {
+      "catchphrase" => ["arrrr", new_catchphrase]
+    }
+
+    assert_equal new_catchphrase.upcase, pirate.catchphrase
+    assert_equal expected_changes, pirate.changes
+  end
+
   test "attribute_changed? doesn't compute in-place changes for unrelated attributes" do
     test_type_class = Class.new(ActiveRecord::Type::Value) do
       define_method(:changed_in_place?) do |*|
@@ -731,6 +769,13 @@ class DirtyTest < ActiveRecord::TestCase
 
     person.first_name = nil
     assert person.changed?
+  end
+
+  test "attributes not selected are still missing after save" do
+    person = Person.select(:id).first
+    assert_raises(ActiveModel::MissingAttributeError) { person.first_name }
+    assert person.save # calls forget_attribute_assignments
+    assert_raises(ActiveModel::MissingAttributeError) { person.first_name }
   end
 
   test "saved_change_to_attribute? returns whether a change occurred in the last save" do
@@ -800,15 +845,14 @@ class DirtyTest < ActiveRecord::TestCase
     assert_equal %w(first_name lock_version updated_at).sort, person.saved_changes.keys.sort
   end
 
-  test "changed? in after callbacks returns true but is deprecated" do
+  test "changed? in after callbacks returns false" do
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "people"
 
       after_save do
-        ActiveSupport::Deprecation.silence do
-          raise "changed? should be true" unless changed?
-        end
+        raise "changed? should be false" if changed?
         raise "has_changes_to_save? should be false" if has_changes_to_save?
+        raise "saved_changes? should be true" unless saved_changes?
       end
     end
 

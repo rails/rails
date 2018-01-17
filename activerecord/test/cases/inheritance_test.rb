@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/company"
+require "models/membership"
 require "models/person"
 require "models/post"
 require "models/project"
@@ -29,7 +32,7 @@ end
 
 class InheritanceTest < ActiveRecord::TestCase
   include InheritanceTestHelper
-  fixtures :companies, :projects, :subscribers, :accounts, :vegetables
+  fixtures :companies, :projects, :subscribers, :accounts, :vegetables, :memberships
 
   def test_class_with_store_full_sti_class_returns_full_name
     with_store_full_sti_class do
@@ -144,12 +147,16 @@ class InheritanceTest < ActiveRecord::TestCase
     # Concrete subclass of AR::Base.
     assert Post.descends_from_active_record?
 
+    # Concrete subclasses of a concrete class which has a type column.
+    assert !StiPost.descends_from_active_record?
+    assert !SubStiPost.descends_from_active_record?
+
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
+    assert !AbstractStiPost.descends_from_active_record?
 
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
+    # Concrete subclass of an abstract class which has a type column.
+    assert !SubAbstractStiPost.descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
@@ -169,7 +176,8 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Post, Post.base_class
     assert_equal Post, SpecialPost.base_class
     assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
+    assert_equal Post, SubStiPost.base_class
+    assert_equal SubAbstractStiPost, SubAbstractStiPost.base_class
   end
 
   def test_abstract_inheritance_base_class
@@ -272,6 +280,21 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_where_new_with_subclass
+    firm = Company.where(type: "Firm").new
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_with_subclass
+    firm = Company.where(type: "Firm").create(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_bang_with_subclass
+    firm = Company.where(type: "Firm").create!(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
@@ -292,6 +315,30 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_unrelated_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
+  end
+
+  def test_where_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
+  end
+
+  def test_where_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").new }
+  end
+
+  def test_where_create_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create }
+  end
+
+  def test_where_create_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create }
+  end
+
+  def test_where_create_bang_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create! }
+  end
+
+  def test_where_create_bang_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create! }
   end
 
   def test_new_with_unrelated_namespaced_type
@@ -316,7 +363,7 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_new_with_autoload_paths
-    path = File.expand_path("../../models/autoloadable", __FILE__)
+    path = File.expand_path("../models/autoloadable", __dir__)
     ActiveSupport::Dependencies.autoload_paths << path
 
     firm = Company.new(type: "ExtraFirm")
@@ -417,7 +464,8 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}.#{con.quote_column_name('id')} = 1/) do
+    bind_param = Arel::Nodes::BindParam.new(nil)
+    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end
@@ -434,6 +482,10 @@ class InheritanceTest < ActiveRecord::TestCase
   def test_scope_inherited_properly
     assert_nothing_raised { Company.of_first_firm }
     assert_nothing_raised { Client.of_first_firm }
+  end
+
+  def test_inheritance_with_default_scope
+    assert_equal 1, SelectedMembership.count(:all)
   end
 end
 

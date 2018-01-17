@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require_relative "xml_mini_engine_test"
 
 class REXMLEngineTest < XMLMiniEngineTest

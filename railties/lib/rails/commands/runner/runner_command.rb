@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class RunnerCommand < Base # :nodoc:
@@ -13,10 +15,10 @@ module Rails
       end
 
       def self.banner(*)
-        "#{super} [<'Some.ruby(code)'> | <filename.rb>]"
+        "#{super} [<'Some.ruby(code)'> | <filename.rb> | -]"
       end
 
-      def perform(code_or_file = nil, *file_argv)
+      def perform(code_or_file = nil, *command_argv)
         unless code_or_file
           help
           exit 1
@@ -27,13 +29,16 @@ module Rails
         require_application_and_environment!
         Rails.application.load_runner
 
-        if File.exist?(code_or_file)
+        ARGV.replace(command_argv)
+
+        if code_or_file == "-"
+          eval($stdin.read, TOPLEVEL_BINDING, "stdin")
+        elsif File.exist?(code_or_file)
           $0 = code_or_file
-          ARGV.replace(file_argv)
           Kernel.load code_or_file
         else
           begin
-            eval(code_or_file, binding, __FILE__, __LINE__)
+            eval(code_or_file, TOPLEVEL_BINDING, __FILE__, __LINE__)
           rescue SyntaxError, NameError => error
             $stderr.puts "Please specify a valid ruby command or the path of a script to run."
             $stderr.puts "Run '#{self.class.executable} -h' for help."

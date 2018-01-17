@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yaml"
 
 module RailsGuides
@@ -15,7 +17,7 @@ module RailsGuides
     end
 
     def documents_by_section
-      @documents_by_section ||= YAML.load_file(File.expand_path("../../source/#{@lang ? @lang + '/' : ''}documents.yaml", __FILE__))
+      @documents_by_section ||= YAML.load_file(File.expand_path("../source/#{@language ? @language + '/' : ''}documents.yaml", __dir__))
     end
 
     def documents_flat

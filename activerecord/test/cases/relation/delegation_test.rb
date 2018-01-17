@@ -1,37 +1,17 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
 
 module ActiveRecord
-  class DelegationTest < ActiveRecord::TestCase
-    fixtures :posts
-
-    def call_method(target, method)
-      method_arity = target.to_a.method(method).arity
-
-      if method_arity.zero?
-        target.public_send(method)
-      elsif method_arity < 0
-        if method == :shuffle!
-          target.public_send(method)
-        else
-          target.public_send(method, 1)
-        end
-       elsif method_arity == 1
-         target.public_send(method, 1)
-      else
-        raise NotImplementedError
-      end
-    end
-  end
-
-  module DelegationWhitelistBlacklistTests
+  module DelegationWhitelistTests
     ARRAY_DELEGATES = [
       :+, :-, :|, :&, :[], :shuffle,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
       :exclude?, :find_all, :flat_map, :group_by, :include?, :length,
-      :map, :none?, :one?, :partition, :reject, :reverse,
-      :sample, :second, :sort, :sort_by, :third,
+      :map, :none?, :one?, :partition, :reject, :reverse, :rotate,
+      :sample, :second, :sort, :sort_by, :slice, :third, :index, :rindex,
       :to_ary, :to_set, :to_xml, :to_yaml, :join,
       :in_groups, :in_groups_of, :to_sentence, :to_formatted_s, :as_json
     ]
@@ -43,18 +23,32 @@ module ActiveRecord
     end
   end
 
-  class DelegationAssociationTest < DelegationTest
-    include DelegationWhitelistBlacklistTests
+  module DeprecatedArelDelegationTests
+    AREL_METHODS = [
+      :with, :orders, :froms, :project, :projections, :taken, :constraints, :exists, :locked, :where_sql,
+      :ast, :source, :join_sources, :to_dot, :create_insert, :create_true, :create_false
+    ]
 
-    def target
-      Post.first.comments
+    def test_deprecate_arel_delegation
+      AREL_METHODS.each do |method|
+        assert_deprecated { target.public_send(method) }
+        assert_deprecated { target.public_send(method) }
+      end
     end
   end
 
-  class DelegationRelationTest < DelegationTest
-    include DelegationWhitelistBlacklistTests
+  class DelegationAssociationTest < ActiveRecord::TestCase
+    include DelegationWhitelistTests
+    include DeprecatedArelDelegationTests
 
-    fixtures :comments
+    def target
+      Post.new.comments
+    end
+  end
+
+  class DelegationRelationTest < ActiveRecord::TestCase
+    include DelegationWhitelistTests
+    include DeprecatedArelDelegationTests
 
     def target
       Comment.all

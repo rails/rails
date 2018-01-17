@@ -1,45 +1,34 @@
-## Rails 5.1.0.beta1 (February 23, 2017) ##
+## Rails 5.2.0.beta2 (November 28, 2017) ##
 
-*   Redis subscription adapters now support `channel_prefix` option in `cable.yml`
+*   No changes.
 
-    Avoids channel name collisions when multiple apps use the same Redis server.
 
-    *Chad Ingram*
+## Rails 5.2.0.beta1 (November 27, 2017) ##
 
-*   Permit same-origin connections by default.
+*   Removed deprecated evented redis adapter.
 
-    Added new option `config.action_cable.allow_same_origin_as_host = false`
-    to disable this behaviour.
+    *Rafael Mendonça França*
 
-    *Dávid Halász*, *Matthew Draper*
+*   Support redis-rb 4.0.
 
-*   Prevent race where the client could receive and act upon a
-    subscription confirmation before the channel's `subscribed` method
-    completed.
+    *Jeremy Daer*
 
-    Fixes #25381.
+*   Hash long stream identifiers when using PostgreSQL adapter.
+
+    PostgreSQL has a limit on identifiers length (63 chars, [docs](https://www.postgresql.org/docs/current/static/sql-syntax-lexical.html#SQL-SYNTAX-IDENTIFIERS)).
+    Provided fix minifies identifiers longer than 63 chars by hashing them with SHA1.
+
+    Fixes #28751.
 
     *Vladimir Dementyev*
 
-*   Buffer now writes to WebSocket connections, to avoid blocking threads
-    that could be doing more useful things.
+*   Action Cable's `redis` adapter allows for other common redis-rb options (`host`, `port`, `db`, `password`) in cable.yml.
 
-    *Matthew Draper*, *Tinco Andringa*
+    Previously, it accepts only a [redis:// url](https://www.iana.org/assignments/uri-schemes/prov/redis) as an option.
+    While we can add all of these options to the `url` itself, it is not explicitly documented. This alternative setup
+    is shown as the first example in the [Redis rubygem](https://github.com/redis/redis-rb#getting-started), which
+    makes this set of options as sensible as using just the `url`.
 
-*   Protect against concurrent writes to a WebSocket connection from
-    multiple threads; the underlying OS write is not always threadsafe.
+    *Marc Rendl Ignacio*
 
-    *Tinco Andringa*
-
-*   Add `ActiveSupport::Notifications` hook to `Broadcaster#broadcast`.
-
-    *Matthew Wear*
-
-*   Close hijacked socket when connection is shut down.
-
-    Fixes #25613.
-
-    *Tinco Andringa*
-
-
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.

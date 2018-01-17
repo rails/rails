@@ -1,7 +1,8 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
 COMPONENT_ROOT = File.expand_path("..", __dir__)
-require File.expand_path("../tools/test", COMPONENT_ROOT)
+require_relative "../../tools/test"
 
 module Minitest
   def self.plugin_active_record_options(opts, options)

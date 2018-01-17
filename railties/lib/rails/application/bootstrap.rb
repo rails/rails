@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "active_support/notifications"
 require "active_support/dependencies"
@@ -81,7 +83,6 @@ INFO
 
       initializer :set_secrets_root, group: :all do
         Rails::Secrets.root = root
-        Rails::Secrets.read_encrypted_secrets = config.read_encrypted_secrets
       end
     end
   end

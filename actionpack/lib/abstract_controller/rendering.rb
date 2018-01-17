@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/error"
 require "action_view"
 require "action_view/view_paths"
@@ -18,7 +20,6 @@ module AbstractController
 
     # Normalizes arguments, options and then delegates render_to_body and
     # sticks the result in <tt>self.response_body</tt>.
-    # :api: public
     def render(*args, &block)
       options = _normalize_render(*args, &block)
       rendered_body = render_to_body(options)
@@ -40,19 +41,16 @@ module AbstractController
     # (as ActionController extends it to be anything that
     # responds to the method each), this method needs to be
     # overridden in order to still return a string.
-    # :api: plugin
     def render_to_string(*args, &block)
       options = _normalize_render(*args, &block)
       render_to_body(options)
     end
 
     # Performs the actual template rendering.
-    # :api: public
     def render_to_body(options = {})
     end
 
-    # Returns Content-Type of rendered content
-    # :api: public
+    # Returns Content-Type of rendered content.
     def rendered_format
       Mime[:text]
     end
@@ -63,7 +61,6 @@ module AbstractController
 
     # This method should return a hash with assigns.
     # You can overwrite this configuration per controller.
-    # :api: public
     def view_assigns
       protected_vars = _protected_ivars
       variables      = instance_variables
@@ -74,11 +71,11 @@ module AbstractController
       }
     end
 
+  private
     # Normalize args by converting <tt>render "foo"</tt> to
     # <tt>render :action => "foo"</tt> and <tt>render "foo/bar"</tt> to
     # <tt>render :file => "foo/bar"</tt>.
-    # :api: plugin
-    def _normalize_args(action = nil, options = {})
+    def _normalize_args(action = nil, options = {}) # :doc:
       if action.respond_to?(:permitted?)
         if action.permitted?
           action
@@ -93,20 +90,17 @@ module AbstractController
     end
 
     # Normalize options.
-    # :api: plugin
-    def _normalize_options(options)
+    def _normalize_options(options) # :doc:
       options
     end
 
     # Process extra options.
-    # :api: plugin
-    def _process_options(options)
+    def _process_options(options) # :doc:
       options
     end
 
     # Process the rendered format.
-    # :api: private
-    def _process_format(format)
+    def _process_format(format) # :nodoc:
     end
 
     def _process_variant(options)
@@ -119,8 +113,7 @@ module AbstractController
     end
 
     # Normalize args and options.
-    # :api: private
-    def _normalize_render(*args, &block)
+    def _normalize_render(*args, &block) # :nodoc:
       options = _normalize_args(*args, &block)
       _process_variant(options)
       _normalize_options(options)

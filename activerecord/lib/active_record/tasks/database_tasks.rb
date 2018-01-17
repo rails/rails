@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Tasks # :nodoc:
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
@@ -71,9 +73,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
-      register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
-      register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
+      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first
@@ -162,16 +164,27 @@ module ActiveRecord
       end
 
       def migrate
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-        version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-        scope   = ENV["SCOPE"]
+        check_target_version
+
+        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, version) do |migration|
+        Migrator.migrate(migrations_paths, target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def check_target_version
+        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+          raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
+        end
+      end
+
+      def target_version
+        ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
       end
 
       def charset_current(environment = env)
@@ -221,22 +234,22 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
         file ||= schema_file(format)
+
+        check_schema_file(file)
+        ActiveRecord::Base.establish_connection(configuration)
 
         case format
         when :ruby
-          check_schema_file(file)
-          ActiveRecord::Base.establish_connection(configuration)
           load(file)
         when :sql
-          check_schema_file(file)
           structure_load(configuration, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
         ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+        ActiveRecord::InternalMetadata[:environment] = environment
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
@@ -249,16 +262,16 @@ module ActiveRecord
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration|
-          load_schema configuration, format, file
+        each_current_configuration(environment) { |configuration, configuration_environment|
+          load_schema configuration, format, file, configuration_environment
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
-          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
+          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}.dup
+          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
       end
@@ -286,20 +299,21 @@ module ActiveRecord
       private
 
         def class_for_adapter(adapter)
-          key = @tasks.keys.detect { |pattern| adapter[pattern] }
-          unless key
+          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
-          @tasks[key]
+          task.is_a?(String) ? task.constantize : task
         end
 
         def each_current_configuration(environment)
           environments = [environment]
           environments << "test" if environment == "development"
 
-          configurations = ActiveRecord::Base.configurations.values_at(*environments)
-          configurations.compact.each do |configuration|
-            yield configuration unless configuration["database"].blank?
+          ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
+            next unless configuration["database"]
+
+            yield configuration, configuration_environment
           end
         end
 

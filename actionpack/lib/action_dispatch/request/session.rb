@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 
 module ActionDispatch
@@ -7,10 +9,10 @@ module ActionDispatch
       ENV_SESSION_KEY         = Rack::RACK_SESSION # :nodoc:
       ENV_SESSION_OPTIONS_KEY = Rack::RACK_SESSION_OPTIONS # :nodoc:
 
-      # Singleton object used to determine if an optional param wasn't specified
+      # Singleton object used to determine if an optional param wasn't specified.
       Unspecified = Object.new
 
-      # Creates a session hash, merging the properties of the previous session if any
+      # Creates a session hash, merging the properties of the previous session if any.
       def self.create(store, req, default_options)
         session_was = find req
         session     = Request::Session.new(store, req)
@@ -63,7 +65,7 @@ module ActionDispatch
         @req      = req
         @delegate = {}
         @loaded   = false
-        @exists   = nil # we haven't checked yet
+        @exists   = nil # We haven't checked yet.
       end
 
       def id
@@ -79,7 +81,7 @@ module ActionDispatch
         options = self.options || {}
         @by.send(:delete_session, @req, options.id(@req), options)
 
-        # Load the new sid to be written with the response
+        # Load the new sid to be written with the response.
         @loaded = false
         load_for_write!
       end
@@ -101,11 +103,13 @@ module ActionDispatch
 
       # Returns keys of the session as Array.
       def keys
+        load_for_read!
         @delegate.keys
       end
 
       # Returns values of the session as Array.
       def values
+        load_for_read!
         @delegate.values
       end
 

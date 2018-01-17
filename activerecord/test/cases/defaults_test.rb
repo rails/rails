@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/default"
@@ -51,7 +53,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
 
   def test_default_decimal_number
     record = DefaultNumber.new
-    assert_equal BigDecimal.new("2.78"), record.decimal_number
+    assert_equal BigDecimal("2.78"), record.decimal_number
     assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end
@@ -87,9 +89,14 @@ if current_adapter?(:PostgreSQLAdapter)
 
     test "schema dump includes default expression" do
       output = dump_table_schema("defaults")
-      assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+      if ActiveRecord::Base.connection.postgresql_version >= 100000
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "CURRENT_DATE" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "CURRENT_TIMESTAMP" }/, output
+      else
+        assert_match %r/t\.date\s+"modified_date",\s+default: -> { "\('now'::text\)::date" }/, output
+        assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
+      end
       assert_match %r/t\.date\s+"modified_date_function",\s+default: -> { "now\(\)" }/, output
-      assert_match %r/t\.datetime\s+"modified_time",\s+default: -> { "now\(\)" }/, output
       assert_match %r/t\.datetime\s+"modified_time_function",\s+default: -> { "now\(\)" }/, output
     end
   end

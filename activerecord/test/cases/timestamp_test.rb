@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/ddl_helper"
 require "models/developer"
@@ -88,7 +90,7 @@ class TimestampTest < ActiveRecord::TestCase
       @developer.touch(:created_at)
     end
 
-    assert !@developer.created_at_changed? , "created_at should not be changed"
+    assert !@developer.created_at_changed?, "created_at should not be changed"
     assert !@developer.changed?, "record should not be changed"
     assert_not_equal previously_created_at, @developer.created_at
     assert_not_equal @previously_updated_at, @developer.updated_at
@@ -444,17 +446,6 @@ class TimestampTest < ActiveRecord::TestCase
     toy = Toy.first
     assert_equal ["created_at", "updated_at"], toy.send(:all_timestamp_attributes_in_model)
   end
-
-  def test_index_is_created_for_both_timestamps
-    ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
-      t.timestamps null: true, index: true
-    end
-
-    indexes = ActiveRecord::Base.connection.indexes("foos")
-    assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
-  ensure
-    ActiveRecord::Base.connection.drop_table(:foos)
-  end
 end
 
 class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
@@ -472,5 +463,16 @@ class TimestampsWithoutTransactionTest < ActiveRecord::TestCase
       assert_nil post.created_at
       assert_nil post.updated_at
     end
+  end
+
+  def test_index_is_created_for_both_timestamps
+    ActiveRecord::Base.connection.create_table(:foos, force: true) do |t|
+      t.timestamps null: true, index: true
+    end
+
+    indexes = ActiveRecord::Base.connection.indexes("foos")
+    assert_equal ["created_at", "updated_at"], indexes.flat_map(&:columns).sort
+  ensure
+    ActiveRecord::Base.connection.drop_table(:foos)
   end
 end

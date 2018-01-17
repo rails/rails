@@ -43,5 +43,9 @@ You can override the +connections:+ parameter in either file using the +ARCONN+
 
   $ ARCONN=postgresql bundle exec ruby -Itest test/cases/base_test.rb
 
+Or
+
+  $ bundle exec rake test:postgresql TEST=test/cases/base_test.rb
+
 You can specify a custom location for the config file using the +ARCONFIG+
 environment variable.

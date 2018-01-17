@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/message_encryptor"
+require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
@@ -14,12 +17,10 @@ module Rails
     end
 
     @cipher = "aes-128-gcm"
-    @read_encrypted_secrets = false
     @root = File # Wonky, but ensures `join` uses the current directory.
 
     class << self
-      attr_writer   :root
-      attr_accessor :read_encrypted_secrets
+      attr_writer :root
 
       def parse(paths, env:)
         paths.each_with_object(Hash.new) do |path, all_secrets|
@@ -29,10 +30,6 @@ module Rails
           all_secrets.merge!(secrets["shared"].deep_symbolize_keys) if secrets["shared"]
           all_secrets.merge!(secrets[env].deep_symbolize_keys) if secrets[env]
         end
-      end
-
-      def generate_key
-        SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
       end
 
       def key
@@ -56,15 +53,8 @@ module Rails
         FileUtils.mv("#{path}.tmp", path)
       end
 
-      def read_for_editing
-        tmp_path = File.join(Dir.tmpdir, File.basename(path))
-        IO.binwrite(tmp_path, read)
-
-        yield tmp_path
-
-        write(IO.binread(tmp_path))
-      ensure
-        FileUtils.rm(tmp_path) if File.exist?(tmp_path)
+      def read_for_editing(&block)
+        writing(read, &block)
       end
 
       private
@@ -88,14 +78,24 @@ module Rails
 
         def preprocess(path)
           if path.end_with?(".enc")
-            if @read_encrypted_secrets
-              decrypt(IO.binread(path))
-            else
-              ""
-            end
+            decrypt(IO.binread(path))
           else
             IO.read(path)
           end
+        end
+
+        def writing(contents)
+          tmp_file = "#{File.basename(path)}.#{Process.pid}"
+          tmp_path = File.join(Dir.tmpdir, tmp_file)
+          IO.binwrite(tmp_path, contents)
+
+          yield tmp_path
+
+          updated_contents = IO.binread(tmp_path)
+
+          write(updated_contents) if updated_contents != contents
+        ensure
+          FileUtils.rm(tmp_path) if File.exist?(tmp_path)
         end
 
         def encryptor

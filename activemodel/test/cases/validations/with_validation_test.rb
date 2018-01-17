@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 require "models/topic"
@@ -68,51 +70,15 @@ class ValidatesWithTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], OTHER_ERROR_MESSAGE
   end
 
-  test "with if statements that return false" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 2")
-    end
-    topic = Topic.new
-    assert topic.valid?
-  end
-
-  test "with if statements that return true" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 1")
-    end
-    topic = Topic.new
-    assert topic.invalid?
-    assert_includes topic.errors[:base], ERROR_MESSAGE
-  end
-
-  test "with unless statements that return true" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 1")
-    end
-    topic = Topic.new
-    assert topic.valid?
-  end
-
-  test "with unless statements that returns false" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 2")
-    end
-    topic = Topic.new
-    assert topic.invalid?
-    assert_includes topic.errors[:base], ERROR_MESSAGE
-  end
-
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = Minitest::Mock.new
-    validator.expect(:new, validator, [{ foo: :bar, if: "1 == 1", class: Topic }])
+    validator.expect(:new, validator, [{ foo: :bar, if: :condition_is_true, class: Topic }])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [Symbol])
     validator.expect(:is_a?, false, [String])
 
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(validator, if: "1 == 1", foo: :bar)
-    end
+    Topic.validates_with(validator, if: :condition_is_true, foo: :bar)
     assert topic.valid?
     validator.verify
   end

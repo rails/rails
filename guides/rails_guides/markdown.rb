@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"
@@ -104,6 +106,10 @@ module RailsGuides
                 node[:id] = dom_id(hierarchy)
                 node.inner_html = "#{node_index(hierarchy)} #{node.inner_html}"
               end
+            end
+
+            doc.css("h3, h4, h5, h6").each do |node|
+              node.inner_html = "<a class='anchorlink' href='##{node[:id]}'>#{node.inner_html}</a>"
             end
           end.to_html
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/array"
 require "active_support/core_ext/big_decimal"
@@ -58,7 +60,7 @@ class ToSentenceTest < ActiveSupport::TestCase
       ["one", "two"].to_sentence(passing: "invalid option")
     end
 
-    assert_equal exception.message, "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale"
+    assert_equal "Unknown key: :passing. Valid keys are: :words_connector, :two_words_connector, :last_word_connector, :locale", exception.message
   end
 
   def test_always_returns_string
@@ -88,7 +90,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_hash_elements
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
     ].to_xml(skip_instruct: true, indent: 0)
 
     assert_equal '<objects type="array"><object>', xml.first(30)
@@ -171,7 +173,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_instruct
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
     ].to_xml(skip_instruct: false, indent: 0)
 
     assert_match(/^<\?xml [^>]*/, xml)
@@ -181,7 +183,7 @@ class ToXmlTest < ActiveSupport::TestCase
   def test_to_xml_with_block
     xml = [
       { name: "David", age: 26, age_in_millis: 820497600000 },
-      { name: "Jason", age: 31, age_in_millis: BigDecimal.new("1.0") }
+      { name: "Jason", age: 31, age_in_millis: BigDecimal("1.0") }
     ].to_xml(skip_instruct: true, indent: 0) do |builder|
       builder.count 2
     end

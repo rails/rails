@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/person"
 require "models/topic"
@@ -60,17 +62,23 @@ class ValidatesTest < ActiveModel::TestCase
   end
 
   def test_validates_with_if_as_local_conditions
-    Person.validates :karma, presence: true, email: { unless: :condition_is_true }
+    Person.validates :karma, presence: true, email: { if: :condition_is_false }
     person = Person.new
     person.valid?
     assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_if_as_shared_conditions
-    Person.validates :karma, presence: true, email: true, if: :condition_is_true
+    Person.validates :karma, presence: true, email: true, if: :condition_is_false
+    person = Person.new
+    assert person.valid?
+  end
+
+  def test_validates_with_unless_as_local_conditions
+    Person.validates :karma, presence: true, email: { unless: :condition_is_true }
     person = Person.new
     person.valid?
-    assert_equal ["can't be blank", "is not an email"], person.errors[:karma].sort
+    assert_equal ["can't be blank"], person.errors[:karma]
   end
 
   def test_validates_with_unless_shared_conditions

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -165,6 +167,20 @@ class ValidationsTest < ActiveRecord::TestCase
     topic.wibble.gsub!("-", "")
 
     assert topic.valid?
+  end
+
+  def test_numericality_validation_checks_against_raw_value
+    klass = Class.new(Topic) do
+      def self.model_name
+        ActiveModel::Name.new(self, nil, "Topic")
+      end
+      attribute :wibble, :decimal, scale: 2, precision: 9
+      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
+    end
+
+    assert_not klass.new(wibble: "97.179").valid?
+    assert_not klass.new(wibble: 97.179).valid?
+    assert_not klass.new(wibble: BigDecimal("97.179")).valid?
   end
 
   def test_acceptance_validator_doesnt_require_db_connection

@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 require "cases/helper"
+require "models/author"
+require "models/categorization"
 require "models/post"
 
 module ActiveRecord
   class OrTest < ActiveRecord::TestCase
     fixtures :posts
+    fixtures :authors, :author_addresses
 
     def test_or_with_relation
       expected = Post.where("id = 1 or id = 2").to_a
@@ -26,7 +31,7 @@ module ActiveRecord
     end
 
     def test_or_with_bind_params
-      assert_equal Post.find([1, 2]), Post.where(id: 1).or(Post.where(id: 2)).to_a
+      assert_equal Post.find([1, 2]).sort_by(&:id), Post.where(id: 1).or(Post.where(id: 2)).sort_by(&:id)
     end
 
     def test_or_with_null_both
@@ -54,6 +59,31 @@ module ActiveRecord
     def test_or_with_incompatible_relations
       error = assert_raises ArgumentError do
         Post.order("body asc").where("id = 1").or(Post.order("id desc").where(id: [2, 3])).to_a
+      end
+
+      assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
+    end
+
+    def test_or_with_unscope_where
+      expected = Post.where("id = 1 or id = 2")
+      partial = Post.where("id = 1 and id != 2")
+      assert_equal expected, partial.or(partial.unscope(:where).where("id = 2")).to_a
+    end
+
+    def test_or_with_unscope_where_column
+      expected = Post.where("id = 1 or id = 2")
+      partial = Post.where(id: 1).where.not(id: 2)
+      assert_equal expected, partial.or(partial.unscope(where: :id).where("id = 2")).to_a
+    end
+
+    def test_or_with_unscope_order
+      expected = Post.where("id = 1 or id = 2")
+      assert_equal expected, Post.order("body asc").where("id = 1").unscope(:order).or(Post.where("id = 2")).to_a
+    end
+
+    def test_or_with_incompatible_unscope
+      error = assert_raises ArgumentError do
+        Post.order("body asc").where("id = 1").or(Post.order("body asc").where("id = 2").unscope(:order)).to_a
       end
 
       assert_equal "Relation passed to #or must be structurally compatible. Incompatible values: [:order]", error.message
@@ -87,6 +117,14 @@ module ActiveRecord
       assert_raises ArgumentError do
         Post.where(id: [1, 2, 3]).or(title: "Rails")
       end
+    end
+
+    def test_or_with_references_inequality
+      joined = Post.includes(:author)
+      actual = joined.where(authors: { id: 1 })
+        .or(joined.where(title: "I don't have any comments"))
+      expected = Author.find(1).posts + Post.where(title: "I don't have any comments")
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
     end
   end
 end

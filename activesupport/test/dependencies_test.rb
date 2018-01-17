@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "pp"
 require "active_support/dependencies"
@@ -104,7 +106,7 @@ class DependenciesTest < ActiveSupport::TestCase
     with_loading "dependencies" do
       old_warnings, ActiveSupport::Dependencies.warnings_on_first_load = ActiveSupport::Dependencies.warnings_on_first_load, true
       filename = "check_warnings"
-      expanded = File.expand_path("#{File.dirname(__FILE__)}/dependencies/#{filename}")
+      expanded = File.expand_path("dependencies/#{filename}", __dir__)
       $check_warnings_load_count = 0
 
       assert_not ActiveSupport::Dependencies.loaded.include?(expanded)
@@ -293,7 +295,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_doesnt_break_normal_require
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
     with_autoloading_fixtures do
@@ -312,7 +314,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_doesnt_break_normal_require_nested
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -332,7 +334,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_true_when_file_not_yet_required
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -345,7 +347,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_true_when_file_not_yet_required_even_when_no_new_constants_added
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -359,7 +361,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_require_returns_false_when_file_already_required
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -379,7 +381,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_load_returns_true_when_file_found
-    path = File.expand_path("../autoloading_fixtures/load_path", __FILE__)
+    path = File.expand_path("autoloading_fixtures/load_path", __dir__)
     original_path = $:.dup
     $:.push(path)
 
@@ -438,7 +440,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_loadable_constants_for_path_should_handle_relative_paths
     fake_root = "dependencies"
-    relative_root = File.dirname(__FILE__) + "/dependencies"
+    relative_root = File.expand_path("dependencies", __dir__)
     ["", "/"].each do |suffix|
       with_loading fake_root + suffix do
         assert_equal ["A::B"], ActiveSupport::Dependencies.loadable_constants_for_path(relative_root + "/a/b")
@@ -463,7 +465,7 @@ class DependenciesTest < ActiveSupport::TestCase
   end
 
   def test_loadable_constants_with_load_path_without_trailing_slash
-    path = File.dirname(__FILE__) + "/autoloading_fixtures/class_folder/inline_class.rb"
+    path = File.expand_path("autoloading_fixtures/class_folder/inline_class.rb", __dir__)
     with_loading "autoloading_fixtures/class/" do
       assert_equal [], ActiveSupport::Dependencies.loadable_constants_for_path(path)
     end
@@ -991,7 +993,7 @@ class DependenciesTest < ActiveSupport::TestCase
   def test_remove_constant_does_not_trigger_loading_autoloads
     constant = "ShouldNotBeAutoloaded"
     Object.class_eval do
-      autoload constant, File.expand_path("../autoloading_fixtures/should_not_be_required", __FILE__)
+      autoload constant, File.expand_path("autoloading_fixtures/should_not_be_required", __dir__)
     end
 
     assert_nil ActiveSupport::Dependencies.remove_constant(constant), "Kernel#autoload has been triggered by remove_constant"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "cases/migration/helper"
 require "bigdecimal/util"
@@ -402,33 +404,6 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migrator.up(migrations_path)
   end
 
-  def test_migration_sets_internal_metadata_even_when_fully_migrated
-    current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-    migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
-
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
-
-    original_rails_env  = ENV["RAILS_ENV"]
-    original_rack_env   = ENV["RACK_ENV"]
-    ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
-    new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-
-    refute_equal current_env, new_env
-
-    sleep 1 # mysql by default does not store fractional seconds in the database
-
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
-  ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
-    ENV["RAILS_ENV"] = original_rails_env
-    ENV["RACK_ENV"]  = original_rack_env
-    ActiveRecord::Migrator.up(migrations_path)
-  end
-
   def test_internal_metadata_stores_environment_when_other_data_exists
     ActiveRecord::InternalMetadata.delete_all
     ActiveRecord::InternalMetadata[:foo] = "bar"
@@ -529,11 +504,10 @@ class MigrationTest < ActiveRecord::TestCase
 
   unless mysql_enforcing_gtid_consistency?
     def test_create_table_with_query
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM person"
+      Person.connection.create_table :table_from_query_testings, as: "SELECT id FROM people WHERE id = 1"
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -541,11 +515,10 @@ class MigrationTest < ActiveRecord::TestCase
     end
 
     def test_create_table_with_query_from_relation
-      Person.connection.create_table(:person, force: true)
-
-      Person.connection.create_table :table_from_query_testings, as: Person.select(:id)
+      Person.connection.create_table :table_from_query_testings, as: Person.select(:id).where(id: 1)
 
       columns = Person.connection.columns(:table_from_query_testings)
+      assert_equal [1], Person.connection.select_values("SELECT * FROM table_from_query_testings")
       assert_equal 1, columns.length
       assert_equal "id", columns.first.name
     ensure
@@ -828,8 +801,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.integer :age
       end
 
-      # Adding an index fires a query every time to check if an index already exists or not
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age]
@@ -853,7 +833,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert index(:index_delete_me_on_name)
 
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -875,10 +863,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert ! column(:name).default
       assert_equal :date, column(:birthdate).type
 
-      # One query for columns (delete_me table)
-      # One query for primary key (delete_me table)
-      # One query to do the bulk change
-      assert_queries(3, ignore_none: true) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
+        "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count, ignore_none: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime
@@ -941,7 +934,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert_equal [@migrations_path + "/4_people_have_hobbies.bukkits.rb", @migrations_path + "/5_people_have_descriptions.bukkits.rb"], copied.map(&:filename)
 
     expected = "# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[0].chomp
+    assert_equal expected, IO.readlines(@migrations_path + "/4_people_have_hobbies.bukkits.rb")[1].chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
@@ -1044,8 +1037,8 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     assert File.exist?(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")
     assert_equal [@migrations_path + "/4_currencies_have_symbols.bukkits.rb"], copied.map(&:filename)
 
-    expected = "# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
-    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..1].join.chomp
+    expected = "# frozen_string_literal: true\n# coding: ISO-8859-15\n# This migration comes from bukkits (originally 1)"
+    assert_equal expected, IO.readlines(@migrations_path + "/4_currencies_have_symbols.bukkits.rb")[0..2].join.chomp
 
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
@@ -1132,22 +1125,5 @@ class CopyMigrationsTest < ActiveRecord::TestCase
 
   def test_unknown_migration_version_should_raise_an_argument_error
     assert_raise(ArgumentError) { ActiveRecord::Migration[1.0] }
-  end
-
-  def test_deprecate_initialize_internal_tables
-    assert_deprecated { ActiveRecord::Base.connection.initialize_schema_migrations_table }
-    assert_deprecated { ActiveRecord::Base.connection.initialize_internal_metadata_table }
-  end
-
-  def test_deprecate_migration_keys
-    assert_deprecated { ActiveRecord::Base.connection.migration_keys }
-  end
-
-  def test_deprecate_supports_migrations
-    assert_deprecated { ActiveRecord::Base.connection.supports_migrations? }
-  end
-
-  def test_deprecate_schema_migrations_table_name
-    assert_deprecated { ActiveRecord::Migrator.schema_migrations_table_name }
   end
 end

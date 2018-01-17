@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Server
     # An instance of this configuration object is available via ActionCable.server.config, which allows you to tweak Action Cable configuration
@@ -23,13 +25,26 @@ module ActionCable
       # Also makes sure proper dependencies are required.
       def pubsub_adapter
         adapter = (cable.fetch("adapter") { "redis" })
+
+        # Require the adapter itself and give useful feedback about
+        #   1. Missing adapter gems and
+        #   2. Adapter gems' missing dependencies.
         path_to_adapter = "action_cable/subscription_adapter/#{adapter}"
         begin
           require path_to_adapter
-        rescue Gem::LoadError => e
-          raise Gem::LoadError, "Specified '#{adapter}' for Action Cable pubsub adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by Action Cable)."
         rescue LoadError => e
-          raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/cable.yml is valid. If you use an adapter other than 'postgresql' or 'redis' add the necessary adapter gem to the Gemfile.", e.backtrace
+          # We couldn't require the adapter itself. Raise an exception that
+          # points out config typos and missing gems.
+          if e.path == path_to_adapter
+            # We can assume that a non-builtin adapter was specified, so it's
+            # either misspelled or missing from Gemfile.
+            raise e.class, "Could not load the '#{adapter}' Action Cable pubsub adapter. Ensure that the adapter is spelled correctly in config/cable.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+
+          # Bubbled up from the adapter require. Prefix the exception message
+          # with some guidance about how to address it and reraise.
+          else
+            raise e.class, "Error loading the '#{adapter}' Action Cable pubsub adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+          end
         end
 
         adapter = adapter.camelize

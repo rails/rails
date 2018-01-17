@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/kernel/singleton_class"
 require "thread"
@@ -282,7 +284,7 @@ module ActionView
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
-        source = <<-end_src
+        source = <<-end_src.dup
           def #{method_name}(local_assigns, output_buffer)
             _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
@@ -328,13 +330,13 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
-        # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        locals.each_with_object("") { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        # Assign for the same variable is to suppress unused variable warning
+        locals.each_with_object("".dup) { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name
         @method_name ||= begin
-          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
+          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".dup
           m.tr!("-".freeze, "_".freeze)
           m
         end

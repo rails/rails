@@ -1,24 +1,20 @@
+# frozen_string_literal: true
+
 module ActionView
   class Template
     module Handlers
-      autoload :Erubis, "action_view/template/handlers/erb/deprecated_erubis"
-
       class ERB
         autoload :Erubi, "action_view/template/handlers/erb/erubi"
-        autoload :Erubis, "action_view/template/handlers/erb/erubis"
 
         # Specify trim mode for the ERB compiler. Defaults to '-'.
         # See ERB documentation for suitable values.
-        class_attribute :erb_trim_mode
-        self.erb_trim_mode = "-"
+        class_attribute :erb_trim_mode, default: "-"
 
         # Default implementation used.
-        class_attribute :erb_implementation
-        self.erb_implementation = Erubi
+        class_attribute :erb_implementation, default: Erubi
 
         # Do not escape templates of these mime types.
-        class_attribute :escape_whitelist
-        self.escape_whitelist = ["text/plain"]
+        class_attribute :escape_whitelist, default: ["text/plain"]
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 

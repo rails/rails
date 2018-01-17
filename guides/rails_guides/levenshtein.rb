@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   module Levenshtein
     # This code is based directly on the Text gem implementation.
@@ -36,7 +38,7 @@ module RailsGuides
         d[m] = x
       end
 
-      return x
+      x
     end
   end
 end

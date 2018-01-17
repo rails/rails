@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -13,7 +15,7 @@ require "models/post"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors, :author_addresses
 
   def setup
     Account.destroyed_account_ids.clear
@@ -28,7 +30,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     companies(:first_firm).account
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
+    log_all = ActiveRecord::SQLCounter.log_all
+    assert log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{log_all}"
   end
 
   def test_has_one_cache_nils
@@ -305,6 +308,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::UnknownAttributeError) do
       firm.create_account_with_inexistent_foreign_key
     end
+  end
+
+  def test_create_when_parent_is_new_raises
+    firm = Firm.new
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
+      firm.create_account
+    end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
   end
 
   def test_reload_association
@@ -678,5 +690,39 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       SpecialAuthor.joins(book: :subscription).where.not(where_clause)
     end
+  end
+
+  class DestroyByParentBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyByParentAuthor"
+    before_destroy :dont, unless: :destroyed_by_association
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class DestroyByParentAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "DestroyByParentBook", foreign_key: "author_id", dependent: :destroy
+  end
+
+  test "destroyed_by_association set in child destroy callback on parent destroy" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.destroy
+
+    assert_not DestroyByParentBook.exists?(book.id)
+  end
+
+  test "destroyed_by_association set in child destroy callback on replace" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.book = DestroyByParentBook.create!
+    author.save!
+
+    assert_not DestroyByParentBook.exists?(book.id)
   end
 end

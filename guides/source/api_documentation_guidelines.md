@@ -16,7 +16,7 @@ RDoc
 ----
 
 The [Rails API documentation](http://api.rubyonrails.org) is generated with
-[RDoc](http://docs.seattlerb.org/rdoc/). To generate it, make sure you are
+[RDoc](https://ruby.github.io/rdoc/). To generate it, make sure you are
 in the rails root directory, run `bundle install` and execute:
 
 ```bash
@@ -26,9 +26,9 @@ in the rails root directory, run `bundle install` and execute:
 Resulting HTML files can be found in the ./doc/rdoc directory.
 
 Please consult the RDoc documentation for help with the
-[markup](http://docs.seattlerb.org/rdoc/RDoc/Markup.html),
+[markup](https://ruby.github.io/rdoc/RDoc/Markup.html),
 and also take into account these [additional
-directives](http://docs.seattlerb.org/rdoc/RDoc/Parser/Ruby.html).
+directives](https://ruby.github.io/rdoc/RDoc/Parser/Ruby.html).
 
 Wording
 -------
@@ -82,12 +82,12 @@ used. Instead of:
 English
 -------
 
-Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](http://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
+Please use American English (*color*, *center*, *modularize*, etc). See [a list of American and British English spelling differences here](https://en.wikipedia.org/wiki/American_and_British_English_spelling_differences).
 
 Oxford Comma
 ------------
 
-Please use the [Oxford comma](http://en.wikipedia.org/wiki/Serial_comma)
+Please use the [Oxford comma](https://en.wikipedia.org/wiki/Serial_comma)
 ("red, white, and blue", instead of "red, white and blue").
 
 Example Code
@@ -281,7 +281,7 @@ Methods created with `(module|class)_eval(STRING)` have a comment by their side 
 
 ```ruby
 for severity in Severity.constants
-  class_eval <<-EOT, __FILE__, __LINE__
+  class_eval <<-EOT, __FILE__, __LINE__ + 1
     def #{severity.downcase}(message = nil, progname = nil, &block)  # def debug(message = nil, progname = nil, &block)
       add(#{severity}, message, progname, &block)                    #   add(DEBUG, message, progname, &block)
     end                                                              # end
@@ -333,10 +333,6 @@ As a contributor, it's important to think about whether this API is meant for en
 
 A class or module is marked with `:nodoc:` to indicate that all methods are internal API and should never be used directly.
 
-If you come across an existing `:nodoc:` you should tread lightly. Consider asking someone from the core team or author of the code before removing it. This should almost always happen through a pull request instead of the docrails project.
-
-A `:nodoc:` should never be added simply because a method or class is missing documentation. There may be an instance where an internal public method wasn't given a `:nodoc:` by mistake, for example when switching a method from private to public visibility. When this happens it should be discussed over a PR on a case-by-case basis and never committed directly to docrails.
-
 To summarize, the Rails team uses `:nodoc:` to mark publicly visible methods and classes for internal use; changes to the visibility of API should be considered carefully and discussed over a pull request first.
 
 Regarding the Rails Stack
@@ -354,7 +350,7 @@ into account, one such example is
 
 ```ruby
 # image_tag("icon.png")
-#   # => <img alt="Icon" src="/assets/icon.png" />
+#   # => <img src="/assets/icon.png" />
 ```
 
 Although the default behavior for `#image_tag` is to always return

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class ControllerGenerator < NamedBase # :nodoc:
@@ -13,12 +15,8 @@ module Rails
       end
 
       def add_routes
-        unless options[:skip_routes]
-          actions.reverse_each do |action|
-            # route prepends two spaces onto the front of the string that is passed, this corrects that.
-            route indent(generate_routing_code(action), 2)[2..-1]
-          end
-        end
+        return if options[:skip_routes]
+        route generate_routing_code
       end
 
       hook_for :template_engine, :test_framework, :helper, :assets
@@ -26,14 +24,15 @@ module Rails
       private
 
         # This method creates nested route entry for namespaced resources.
-        # For eg. rails g controller foo/bar/baz index
+        # For eg. rails g controller foo/bar/baz index show
         # Will generate -
         # namespace :foo do
         #   namespace :bar do
         #     get 'baz/index'
+        #     get 'baz/show'
         #   end
         # end
-        def generate_routing_code(action)
+        def generate_routing_code
           depth = 0
           lines = []
 
@@ -47,7 +46,10 @@ module Rails
 
           # Create route
           #     get 'baz/index'
-          lines << indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
+          #     get 'baz/show'
+          actions.each do |action|
+            lines << indent(%{get '#{file_name}/#{action}'\n}, depth * 2)
+          end
 
           # Create `end` ladder
           #   end

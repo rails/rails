@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_model"
 require "controller/fake_models"
@@ -7,7 +9,7 @@ class ApplicationController < ActionController::Base
 end
 
 module Quiz
-  #Models
+  # Models
   Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
@@ -56,7 +58,7 @@ class TestController < ApplicationController
   end
 
   def hello_world_file
-    render file: File.expand_path("../../../fixtures/actionpack/hello", __FILE__), formats: [:html]
+    render file: File.expand_path("../../fixtures/actionpack/hello", __dir__), formats: [:html]
   end
 
   # :ported:
@@ -125,7 +127,7 @@ class TestController < ApplicationController
   # :ported:
   def render_file_with_instance_variables
     @secret = "in the sauce"
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
+    path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
     render file: path
   end
 
@@ -142,21 +144,21 @@ class TestController < ApplicationController
 
   def render_file_using_pathname
     @secret = "in the sauce"
-    render file: Pathname.new(File.dirname(__FILE__)).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
+    render file: Pathname.new(__dir__).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
   end
 
   def render_file_from_template
     @secret = "in the sauce"
-    @path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar"))
+    @path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals"))
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 

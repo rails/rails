@@ -1,12 +1,30 @@
+# frozen_string_literal: true
+
 require "cases/helper"
+require "models/person"
 
 module ActiveRecord
   module ConnectionAdapters
     class ConnectionHandlerTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      fixtures :people
+
       def setup
         @handler = ConnectionHandler.new
         @spec_name = "primary"
         @pool = @handler.establish_connection(ActiveRecord::Base.configurations["arunit"])
+      end
+
+      def test_default_env_fall_back_to_default_env_when_rails_env_or_rack_env_is_empty_string
+        original_rails_env = ENV["RAILS_ENV"]
+        original_rack_env  = ENV["RACK_ENV"]
+        ENV["RAILS_ENV"]   = ENV["RACK_ENV"] = ""
+
+        assert_equal "default_env", ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+      ensure
+        ENV["RAILS_ENV"] = original_rails_env
+        ENV["RACK_ENV"]  = original_rack_env
       end
 
       def test_establish_connection_uses_spec_name
@@ -126,6 +144,33 @@ module ActiveRecord
           rd.close
         end
 
+        def test_forked_child_doesnt_mangle_parent_connection
+          object_id = ActiveRecord::Base.connection.object_id
+          assert ActiveRecord::Base.connection.active?
+
+          rd, wr = IO.pipe
+          rd.binmode
+          wr.binmode
+
+          pid = fork {
+            rd.close
+            if ActiveRecord::Base.connection.active?
+              wr.write Marshal.dump ActiveRecord::Base.connection.object_id
+            end
+            wr.close
+
+            exit # allow finalizers to run
+          }
+
+          wr.close
+
+          Process.waitpid pid
+          assert_not_equal object_id, Marshal.load(rd.read)
+          rd.close
+
+          assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
+        end
+
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
           @pool.schema_cache = @pool.connection.schema_cache
           @pool.schema_cache.add("posts")
@@ -187,15 +232,15 @@ module ActiveRecord
         def test_a_class_using_custom_pool_and_switching_back_to_primary
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
 
           pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
-          assert_equal klass2.connection.object_id, pool.connection.object_id
-          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, pool.connection
+          refute_same klass2.connection, ActiveRecord::Base.connection
 
           klass2.remove_connection
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
 
         def test_connection_specification_name_should_fallback_to_parent
@@ -210,8 +255,8 @@ module ActiveRecord
         def test_remove_connection_should_not_remove_parent
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
           klass2.remove_connection
-          refute_nil ActiveRecord::Base.connection.object_id
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          refute_nil ActiveRecord::Base.connection
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
       end
     end

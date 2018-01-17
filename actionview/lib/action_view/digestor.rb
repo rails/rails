@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "action_view/dependency_tracker"
 require "monitor"
@@ -62,8 +64,10 @@ module ActionView
             node
           end
         else
-          logger.error "  '#{name}' file doesn't exist, so no dependencies"
-          logger.error "  Couldn't find template for digesting: #{name}"
+          unless name.include?("#") # Dynamic template partial names can never be tracked
+            logger.error "  Couldn't find template for digesting: #{name}"
+          end
+
           seen[name] ||= Missing.new(name, logical_name, nil)
         end
       end
@@ -85,7 +89,7 @@ module ActionView
       end
 
       def digest(finder, stack = [])
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
+        ActiveSupport::Digest.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
       end
 
       def dependency_digest(finder, stack)

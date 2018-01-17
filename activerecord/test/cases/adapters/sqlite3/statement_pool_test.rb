@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class SQLite3StatementPoolTest < ActiveRecord::SQLite3TestCase
@@ -8,7 +10,7 @@ class SQLite3StatementPoolTest < ActiveRecord::SQLite3TestCase
       assert_equal "bar", cache["foo"]
 
       pid = fork {
-        lookup = cache["foo"];
+        lookup = cache["foo"]
         exit!(!lookup)
       }
 

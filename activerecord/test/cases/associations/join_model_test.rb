@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/tag"
 require "models/tagging"
@@ -19,7 +21,7 @@ require "models/car"
 class AssociationsJoinModelTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
 
-  fixtures :posts, :authors, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
+  fixtures :posts, :authors, :author_addresses, :categories, :categorizations, :comments, :tags, :taggings, :author_favorites, :vertices, :items, :books,
     # Reload edges table from fixtures as otherwise repeated test was failing
     :edges
 
@@ -97,11 +99,11 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_polymorphic_has_many_create_model_with_inheritance_and_custom_base_class
-    post = SubStiPost.create title: "SubStiPost", body: "SubStiPost body"
-    assert_instance_of SubStiPost, post
+    post = SubAbstractStiPost.create title: "SubAbstractStiPost", body: "SubAbstractStiPost body"
+    assert_instance_of SubAbstractStiPost, post
 
     tagging = tags(:misc).taggings.create(taggable: post)
-    assert_equal "SubStiPost", tagging.taggable_type
+    assert_equal "SubAbstractStiPost", tagging.taggable_type
   end
 
   def test_polymorphic_has_many_going_through_join_model_with_inheritance
@@ -402,7 +404,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_one
-    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2
+    assert_equal Tagging.find(1, 2).sort_by(&:id), authors(:david).taggings_2.sort_by(&:id)
   end
 
   def test_has_many_through_polymorphic_has_many
@@ -465,7 +467,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     new_tag = Tag.new(name: "new")
 
     saved_post.tags << new_tag
-    assert new_tag.persisted? #consistent with habtm!
+    assert new_tag.persisted? # consistent with habtm!
     assert saved_post.persisted?
     assert_includes saved_post.tags, new_tag
 
@@ -494,25 +496,25 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     post_thinking = posts(:thinking)
     assert_nothing_raised { post_thinking.tags << push }
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 1, post_thinking.reload.tags.size)
     assert_equal(count + 1, post_thinking.tags.reload.size)
 
     assert_kind_of Tag, post_thinking.tags.create!(name: "foo")
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 2, post_thinking.reload.tags.size)
     assert_equal(count + 2, post_thinking.tags.reload.size)
 
     assert_nothing_raised { post_thinking.tags.concat(Tag.create!(name: "abc"), Tag.create!(name: "def")) }
     assert_nil(wrong = post_thinking.tags.detect { |t| t.class != Tag },
-                message = "Expected a Tag in tags collection, got #{wrong.class}.")
+               "Expected a Tag in tags collection, got #{wrong.class}.")
     assert_nil(wrong = post_thinking.taggings.detect { |t| t.class != Tagging },
-                message = "Expected a Tagging in taggings collection, got #{wrong.class}.")
+               "Expected a Tagging in taggings collection, got #{wrong.class}.")
     assert_equal(count + 4, post_thinking.reload.tags.size)
     assert_equal(count + 4, post_thinking.tags.reload.size)
 

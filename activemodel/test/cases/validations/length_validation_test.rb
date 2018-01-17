@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 require "models/topic"
@@ -407,5 +409,36 @@ class LengthValidationTest < ActiveModel::TestCase
 
     assert Topic.new("title" => "david").valid?
     assert Topic.new("title" => "david2").invalid?
+  end
+
+  def test_validates_length_of_using_proc_as_maximum
+    Topic.validates_length_of :title, maximum: ->(model) { 5 }
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert t.valid?
+
+    t.title = "notvalid"
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert t.valid?
+  end
+
+  def test_validates_length_of_using_proc_as_maximum_with_model_method
+    Topic.send(:define_method, :max_title_length, lambda { 5 })
+    Topic.validates_length_of :title, maximum: Proc.new(&:max_title_length)
+
+    t = Topic.new("title" => "valid", "content" => "whatever")
+    assert t.valid?
+
+    t.title = "notvalid"
+    assert t.invalid?
+    assert t.errors[:title].any?
+    assert_equal ["is too long (maximum is 5 characters)"], t.errors[:title]
+
+    t.title = ""
+    assert t.valid?
   end
 end

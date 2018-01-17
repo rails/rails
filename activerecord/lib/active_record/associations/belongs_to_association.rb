@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Belongs To Association
   module Associations
+    # = Active Record Belongs To Association
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def handle_dependency
         target.send(options[:dependent]) if load_target
@@ -10,15 +12,22 @@ module ActiveRecord
         if record
           raise_on_type_mismatch!(record)
           update_counters_on_replace(record)
-          replace_keys(record)
           set_inverse_instance(record)
           @updated = true
         else
           decrement_counters
-          remove_keys
         end
 
         self.target = record
+      end
+
+      def target=(record)
+        replace_keys(record)
+        super
+      end
+
+      def default(&block)
+        writer(owner.instance_exec(&block)) if reader.nil?
       end
 
       def reset
@@ -43,9 +52,9 @@ module ActiveRecord
         def update_counters(by)
           if require_counter_update? && foreign_key_present?
             if target && !stale_target?
-              target.increment!(reflection.counter_cache_column, by)
+              target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              klass.update_counters(target_id, reflection.counter_cache_column => by)
+              klass.update_counters(target_id, reflection.counter_cache_column => by, touch: reflection.options[:touch])
             end
           end
         end
@@ -72,11 +81,8 @@ module ActiveRecord
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record._read_attribute(reflection.association_primary_key(record.class))
-        end
-
-        def remove_keys
-          owner[reflection.foreign_key] = nil
+          owner[reflection.foreign_key] = record ?
+            record._read_attribute(reflection.association_primary_key(record.class)) : nil
         end
 
         def foreign_key_present?

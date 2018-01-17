@@ -20,16 +20,7 @@ Guide Assumptions
 
 This guide is designed for beginners who want to get started with a Rails
 application from scratch. It does not assume that you have any prior experience
-with Rails. However, to get the most out of it, you need to have some
-prerequisites installed:
-
-* The [Ruby](https://www.ruby-lang.org/en/downloads) language version 2.2.2 or newer.
-* Right version of [Development Kit](http://rubyinstaller.org/downloads/), if you
-  are using Windows.
-* The [RubyGems](https://rubygems.org) packaging system, which is installed with
-  Ruby by default. To learn more about RubyGems, please read the
-  [RubyGems Guides](http://guides.rubygems.org).
-* A working installation of the [SQLite3 Database](https://www.sqlite.org).
+with Rails.
 
 Rails is a web application framework running on the Ruby programming language.
 If you have no prior experience with Ruby, you will find a very steep learning
@@ -46,7 +37,7 @@ development with Rails.
 What is Rails?
 --------------
 
-Rails is a web application development framework written in the Ruby language.
+Rails is a web application development framework written in the Ruby programming language.
 It is designed to make programming web applications easier by making assumptions
 about what every developer needs to get started. It allows you to write less
 code while accomplishing more than many other languages and frameworks.
@@ -86,6 +77,9 @@ your prompt will look something like `c:\source_code>`
 
 ### Installing Rails
 
+Before you install Rails, you should check to make sure that your system has the
+proper prerequisites installed. These include Ruby and SQLite3.
+
 Open up a command line prompt. On macOS open Terminal.app, on Windows choose
 "Run" from your Start menu and type 'cmd.exe'. Any commands prefaced with a
 dollar sign `$` should be run in the command line. Verify that you have a
@@ -96,12 +90,19 @@ $ ruby -v
 ruby 2.3.1p112
 ```
 
+Rails requires Ruby version 2.2.2 or later. If the version number returned is
+less than that number, you'll need to install a fresh copy of Ruby.
+
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
 on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
 while macOS users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
 For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
+If you are working on Windows, you should also install the
+[Ruby Installer Development Kit](http://rubyinstaller.org/downloads/).
+
+You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
 On Windows, if you installed Rails through Rails Installer, you
 already have SQLite installed. Others can find installation instructions
@@ -127,7 +128,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.0.0", you are ready to continue.
+If it says something like "Rails 5.1.1", you are ready to continue.
 
 ### Creating the Blog Application
 
@@ -171,18 +172,20 @@ of the files and folders that Rails created by default:
 |app/|Contains the controllers, models, views, helpers, mailers, channels, jobs and assets for your application. You'll focus on this folder for the remainder of this guide.|
 |bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
-|config.ru|Rack configuration for Rack based servers used to start the application.|
+|config.ru|Rack configuration for Rack based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
 |db/|Contains your current database schema, as well as the database migrations.|
-|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](http://bundler.io).|
+|Gemfile<br>Gemfile.lock|These files allow you to specify what gem dependencies are needed for your Rails application. These files are used by the Bundler gem. For more information about Bundler, see the [Bundler website](https://bundler.io).|
 |lib/|Extended modules for your application.|
 |log/|Application log files.|
+|package.json|This file allows you to specify what npm dependencies are needed for your Rails application. This file is used by Yarn. For more information about Yarn, see the [Yarn website](https://yarnpkg.com/lang/en/).|
 |public/|The only folder seen by the world as-is. Contains static files and compiled assets.|
-|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing Rakefile, you should add your own tasks by adding files to the lib/tasks directory of your application.|
+|Rakefile|This file locates and loads tasks that can be run from the command line. The task definitions are defined throughout the components of Rails. Rather than changing `Rakefile`, you should add your own tasks by adding files to the `lib/tasks` directory of your application.|
 |README.md|This is a brief instruction manual for your application. You should edit this file to tell others what your application does, how to set it up, and so on.|
 |test/|Unit tests, fixtures, and other test apparatus. These are covered in [Testing Rails Applications](testing.html).|
 |tmp/|Temporary files (like cache and pid files).|
 |vendor/|A place for all third-party code. In a typical Rails application this includes vendored gems.|
-|.gitignore|This file tells git which files (or patterns) it should ignore. See [Github - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
+|.gitignore|This file tells git which files (or patterns) it should ignore. See [GitHub - Ignoring files](https://help.github.com/articles/ignoring-files) for more info about ignoring files.
+|.ruby-version|This file contains the default Ruby version.|
 
 Hello, Rails!
 -------------
@@ -207,7 +210,7 @@ TIP: Compiling CoffeeScript and JavaScript asset compression requires you
 have a JavaScript runtime available on your system, in the absence
 of a runtime you will see an `execjs` error during asset compilation.
 Usually macOS and Windows come with a JavaScript runtime installed.
-Rails adds the `therubyracer` gem to the generated `Gemfile` in a
+Rails adds the `mini_racer` gem to the generated `Gemfile` in a
 commented line for new apps and you can uncomment if you need it.
 `therubyrhino` is the recommended runtime for JRuby users and is added by
 default to the `Gemfile` in apps generated under JRuby. You can investigate
@@ -308,7 +311,7 @@ end
 ```
 
 This is your application's _routing file_ which holds entries in a special
-[DSL (domain-specific language)](http://en.wikipedia.org/wiki/Domain-specific_language)
+[DSL (domain-specific language)](https://en.wikipedia.org/wiki/Domain-specific_language)
 that tells Rails how to connect incoming requests to
 controllers and actions.
 Edit this file by adding the line of code `root 'welcome#index'`.
@@ -369,16 +372,17 @@ singular form `article` and makes meaningful use of the distinction.
 
 ```bash
 $ bin/rails routes
-      Prefix Verb   URI Pattern                  Controller#Action
-    articles GET    /articles(.:format)          articles#index
-             POST   /articles(.:format)          articles#create
- new_article GET    /articles/new(.:format)      articles#new
-edit_article GET    /articles/:id/edit(.:format) articles#edit
-     article GET    /articles/:id(.:format)      articles#show
-             PATCH  /articles/:id(.:format)      articles#update
-             PUT    /articles/:id(.:format)      articles#update
-             DELETE /articles/:id(.:format)      articles#destroy
-        root GET    /                            welcome#index
+       Prefix Verb   URI Pattern                  Controller#Action
+welcome_index GET    /welcome/index(.:format)     welcome#index
+     articles GET    /articles(.:format)          articles#index
+              POST   /articles(.:format)          articles#create
+  new_article GET    /articles/new(.:format)      articles#new
+ edit_article GET    /articles/:id/edit(.:format) articles#edit
+      article GET    /articles/:id(.:format)      articles#show
+              PATCH  /articles/:id(.:format)      articles#update
+              PUT    /articles/:id(.:format)      articles#update
+              DELETE /articles/:id(.:format)      articles#destroy
+         root GET    /                            welcome#index
 ```
 
 In the next section, you will add the ability to create new articles in your
@@ -508,23 +512,23 @@ harmoniously! It's time to create the form for a new article.
 
 To create a form within this template, you will use a *form
 builder*. The primary form builder for Rails is provided by a helper
-method called `form_for`. To use this method, add this code into
+method called `form_with`. To use this method, add this code into
 `app/views/articles/new.html.erb`:
 
 ```html+erb
-<%= form_for :article do |f| %>
+<%= form_with scope: :article, local: true do |form| %>
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 ```
@@ -532,12 +536,12 @@ method called `form_for`. To use this method, add this code into
 If you refresh the page now, you'll see the exact same form from our example above.
 Building forms in Rails is really just that easy!
 
-When you call `form_for`, you pass it an identifying object for this
-form. In this case, it's the symbol `:article`. This tells the `form_for`
+When you call `form_with`, you pass it an identifying scope for this
+form. In this case, it's the symbol `:article`. This tells the `form_with`
 helper what this form is for. Inside the block for this method, the
-`FormBuilder` object - represented by `f` - is used to build two labels and two
+`FormBuilder` object - represented by `form` - is used to build two labels and two
 text fields, one each for the title and text of an article. Finally, a call to
-`submit` on the `f` object will create a submit button for the form.
+`submit` on the `form` object will create a submit button for the form.
 
 There's one problem with this form though. If you inspect the HTML that is
 generated, by viewing the source of the page, you will see that the `action`
@@ -546,15 +550,15 @@ this route goes to the very page that you're on right at the moment, and that
 route should only be used to display the form for a new article.
 
 The form needs to use a different URL in order to go somewhere else.
-This can be done quite simply with the `:url` option of `form_for`.
+This can be done quite simply with the `:url` option of `form_with`.
 Typically in Rails, the action that is used for new form submissions
 like this is called "create", and so the form should be pointed to that action.
 
-Edit the `form_for` line inside `app/views/articles/new.html.erb` to look like
+Edit the `form_with` line inside `app/views/articles/new.html.erb` to look like
 this:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
 ```
 
 In this example, the `articles_path` helper is passed to the `:url` option.
@@ -564,15 +568,16 @@ To see what Rails will do with this, we look back at the output of
 ```bash
 $ bin/rails routes
       Prefix Verb   URI Pattern                  Controller#Action
-    articles GET    /articles(.:format)          articles#index
-             POST   /articles(.:format)          articles#create
- new_article GET    /articles/new(.:format)      articles#new
-edit_article GET    /articles/:id/edit(.:format) articles#edit
-     article GET    /articles/:id(.:format)      articles#show
-             PATCH  /articles/:id(.:format)      articles#update
-             PUT    /articles/:id(.:format)      articles#update
-             DELETE /articles/:id(.:format)      articles#destroy
-        root GET    /                            welcome#index
+welcome_index GET    /welcome/index(.:format)     welcome#index
+     articles GET    /articles(.:format)          articles#index
+              POST   /articles(.:format)          articles#create
+  new_article GET    /articles/new(.:format)      articles#new
+ edit_article GET    /articles/:id/edit(.:format) articles#edit
+      article GET    /articles/:id(.:format)      articles#show
+              PATCH  /articles/:id(.:format)      articles#update
+              PUT    /articles/:id(.:format)      articles#update
+              DELETE /articles/:id(.:format)      articles#destroy
+         root GET    /                            welcome#index
 ```
 
 The `articles_path` helper tells Rails to point the form to the URI Pattern
@@ -590,6 +595,10 @@ familiar error:
 
 You now need to create the `create` action within the `ArticlesController` for
 this to work.
+
+NOTE: By default `form_with` submits forms using Ajax thereby skipping full page
+redirects. To make this guide easier to get into we've disabled that with
+`local: true` for now.
 
 ### Creating articles
 
@@ -909,6 +918,7 @@ And then finally, add the view for this action, located at
   <tr>
     <th>Title</th>
     <th>Text</th>
+    <th></th>
   </tr>
 
   <% @articles.each do |article| %>
@@ -954,7 +964,7 @@ Now, add another link in `app/views/articles/new.html.erb`, underneath the
 form, to go back to the `index` action:
 
 ```erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
   ...
 <% end %>
 
@@ -1065,7 +1075,7 @@ something went wrong. To do that, you'll modify
 `app/views/articles/new.html.erb` to check for error messages:
 
 ```html+erb
-<%= form_for :article, url: articles_path do |f| %>
+<%= form_with scope: :article, url: articles_path, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1082,17 +1092,17 @@ something went wrong. To do that, you'll modify
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
@@ -1157,7 +1167,7 @@ it look as follows:
 ```html+erb
 <h1>Edit article</h1>
 
-<%= form_for(@article) do |f| %>
+<%= form_with(model: @article, local: true) do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1174,17 +1184,17 @@ it look as follows:
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
@@ -1195,17 +1205,16 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-Passing the article object to the method, will automagically create url for submitting the edited article form. 
+Passing the article object to the method, will automagically create url for submitting the edited article form.
 This option tells Rails that we want this form to be submitted
 via the `PATCH` HTTP method which is the HTTP method you're expected to use to
 **update** resources according to the REST protocol.
 
-The first parameter of `form_for` can be an object, say, `@article` which would
+The arguments to `form_with` could be model objects, say, `model: @article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
-symbol (`:article`) with the same name as the instance variable (`@article`)
-also automagically leads to the same behavior.
-More details can be found in [form_for documentation]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for).
+symbol scope (`scope: :article`) just creates the fields but without anything filled into them.
+More details can be found in [form_with documentation]
+(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
 Next, we need to create the `update` action in
 `app/controllers/articles_controller.rb`.
@@ -1302,7 +1311,7 @@ Create a new file `app/views/articles/_form.html.erb` with the following
 content:
 
 ```html+erb
-<%= form_for @article do |f| %>
+<%= form_with model: @article, local: true do |form| %>
 
   <% if @article.errors.any? %>
     <div id="error_explanation">
@@ -1319,29 +1328,29 @@ content:
   <% end %>
 
   <p>
-    <%= f.label :title %><br>
-    <%= f.text_field :title %>
+    <%= form.label :title %><br>
+    <%= form.text_field :title %>
   </p>
 
   <p>
-    <%= f.label :text %><br>
-    <%= f.text_area :text %>
+    <%= form.label :text %><br>
+    <%= form.text_area :text %>
   </p>
 
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 
 <% end %>
 ```
 
-Everything except for the `form_for` declaration remained the same.
-The reason we can use this shorter, simpler `form_for` declaration
+Everything except for the `form_with` declaration remained the same.
+The reason we can use this shorter, simpler `form_with` declaration
 to stand in for either of the other forms is that `@article` is a *resource*
 corresponding to a full set of RESTful routes, and Rails is able to infer
 which URI and method to use.
-For more information about this use of `form_for`, see [Resource-oriented style]
-(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_for-label-Resource-oriented+style).
+For more information about this use of `form_with`, see [Resource-oriented style]
+(http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with-label-Resource-oriented+style).
 
 Now, let's update the `app/views/articles/new.html.erb` view to use this new
 partial, rewriting it completely:
@@ -1488,14 +1497,14 @@ second argument, and then the options as another argument. The `method: :delete`
 and `data: { confirm: 'Are you sure?' }` options are used as HTML5 attributes so
 that when the link is clicked, Rails will first show a confirm dialog to the
 user, and then submit the link with method `delete`.  This is done via the
-JavaScript file `jquery_ujs` which is automatically included in your
+JavaScript file `rails-ujs` which is automatically included in your
 application's layout (`app/views/layouts/application.html.erb`) when you
 generated the application. Without this file, the confirmation dialog box won't
 appear.
 
 ![Confirm Dialog](images/getting_started/confirm_dialog.png)
 
-TIP: Learn more about jQuery Unobtrusive Adapter (jQuery UJS) on
+TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
 Congratulations, you can now create, show, list, update and destroy
@@ -1544,8 +1553,8 @@ You'll learn a little about associations in the next section of this guide.
 
 The (`:references`) keyword used in the bash command is a special data type for models.
 It creates a new column on your database table with the provided model name appended with an `_id`
-that can hold integer values. You can get a better understanding after analyzing the
-`db/schema.rb` file below.
+that can hold integer values. To get a better understanding, analyze the
+`db/schema.rb` file after running the migration.
 
 In addition to the model, Rails has also made a migration to create the
 corresponding database table:
@@ -1680,17 +1689,17 @@ So first, we'll wire up the Article show template
 </p>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1699,7 +1708,7 @@ So first, we'll wire up the Article show template
 ```
 
 This adds a form on the `Article` show page that creates a new comment by
-calling the `CommentsController` `create` action. The `form_for` call here uses
+calling the `CommentsController` `create` action. The `form_with` call here uses
 an array, which will build a nested route, such as `/articles/1/comments`.
 
 Let's wire up the `create` in `app/controllers/comments_controller.rb`:
@@ -1761,17 +1770,17 @@ add that to the `app/views/articles/show.html.erb`.
 <% end %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1827,17 +1836,17 @@ following:
 <%= render @article.comments %>
 
 <h2>Add a comment:</h2>
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 
@@ -1857,17 +1866,17 @@ Let us also move that new comment section out to its own partial. Again, you
 create a file `app/views/comments/_form.html.erb` containing:
 
 ```html+erb
-<%= form_for([@article, @article.comments.build]) do |f| %>
+<%= form_with(model: [ @article, @article.comments.build ], local: true) do |form| %>
   <p>
-    <%= f.label :commenter %><br>
-    <%= f.text_field :commenter %>
+    <%= form.label :commenter %><br>
+    <%= form.text_field :commenter %>
   </p>
   <p>
-    <%= f.label :body %><br>
-    <%= f.text_area :body %>
+    <%= form.label :body %><br>
+    <%= form.text_area :body %>
   </p>
   <p>
-    <%= f.submit %>
+    <%= form.submit %>
   </p>
 <% end %>
 ```

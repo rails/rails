@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "sneakers/runner"
 require "sneakers/publisher"
 require "timeout"

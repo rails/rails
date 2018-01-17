@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/inflections"
 
 module ActiveJob
@@ -7,6 +9,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
+      class_attribute :_queue_adapter_name, instance_accessor: false, instance_predicate: false
       class_attribute :_queue_adapter, instance_accessor: false, instance_predicate: false
       self.queue_adapter = :async
     end
@@ -19,26 +22,32 @@ module ActiveJob
         _queue_adapter
       end
 
+      def queue_adapter_name
+        _queue_adapter_name
+      end
+
       # Specify the backend queue provider. The default queue adapter
       # is the +:async+ queue. See QueueAdapters for more
       # information.
-      def queue_adapter=(name_or_adapter_or_class)
-        self._queue_adapter = interpret_adapter(name_or_adapter_or_class)
+      def queue_adapter=(name_or_adapter)
+        case name_or_adapter
+        when Symbol, String
+          queue_adapter = ActiveJob::QueueAdapters.lookup(name_or_adapter).new
+          assign_adapter(name_or_adapter.to_s, queue_adapter)
+        else
+          if queue_adapter?(name_or_adapter)
+            adapter_name = "#{name_or_adapter.class.name.demodulize.remove('Adapter').underscore}"
+            assign_adapter(adapter_name, name_or_adapter)
+          else
+            raise ArgumentError
+          end
+        end
       end
 
       private
-
-        def interpret_adapter(name_or_adapter_or_class)
-          case name_or_adapter_or_class
-          when Symbol, String
-            ActiveJob::QueueAdapters.lookup(name_or_adapter_or_class).new
-          else
-            if queue_adapter?(name_or_adapter_or_class)
-              name_or_adapter_or_class
-            else
-              raise ArgumentError
-            end
-          end
+        def assign_adapter(adapter_name, queue_adapter)
+          self._queue_adapter_name = adapter_name
+          self._queue_adapter = queue_adapter
         end
 
         QUEUE_ADAPTER_METHODS = [:enqueue, :enqueue_at].freeze

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "dalli"
 rescue LoadError => e
@@ -5,14 +7,13 @@ rescue LoadError => e
   raise e
 end
 
-require "digest/md5"
 require "active_support/core_ext/marshal"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://memcached.org/
+    # https://memcached.org
     #
     # This is currently the most popular cache store for production websites.
     #
@@ -90,22 +91,6 @@ module ActiveSupport
         end
       end
 
-      # Reads multiple values from the cache using a single call to the
-      # servers for all keys. Options can be passed in the last argument.
-      def read_multi(*names)
-        options = names.extract_options!
-        options = merged_options(options)
-
-        keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
-        raw_values = @data.get_multi(keys_to_names.keys)
-        values = {}
-        raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
-        end
-        values
-      end
-
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
@@ -114,7 +99,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
-            @data.incr(normalize_key(name, options), amount)
+            @data.incr(normalize_key(name, options), amount, options[:expires_in])
           end
         end
       end
@@ -127,7 +112,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
-            @data.decr(normalize_key(name, options), amount)
+            @data.decr(normalize_key(name, options), amount, options[:expires_in])
           end
         end
       end
@@ -156,11 +141,29 @@ module ActiveSupport
           expires_in = options[:expires_in].to_i
           if expires_in > 0 && !options[:raw]
             # Set the memcache expire a few minutes in the future to support race condition ttls on read
-            expires_in += 300
+            expires_in += 5.minutes
           end
           rescue_error_with false do
             @data.send(method, key, value, expires_in, options)
           end
+        end
+
+        # Reads multiple entries from the cache implementation.
+        def read_multi_entries(names, options)
+          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+
+          raw_values = @data.get_multi(keys_to_names.keys)
+          values = {}
+
+          raw_values.each do |key, value|
+            entry = deserialize_entry(value)
+
+            unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+              values[keys_to_names[key]] = entry.value
+            end
+          end
+
+          values
         end
 
         # Delete an entry from the cache.
@@ -175,7 +178,7 @@ module ActiveSupport
           key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
+          key = "#{key[0, 213]}:md5:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
           key
         end
 

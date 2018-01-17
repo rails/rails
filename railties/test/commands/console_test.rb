@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "env_helpers"
 require "rails/command"
@@ -47,7 +49,7 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
   end
 
   def test_console_with_environment
-    start ["-e production"]
+    start ["-e", "production"]
     assert_match(/\sproduction\s/, output)
   end
 
@@ -82,24 +84,35 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     assert_match(/\sspecial-production\s/, output)
   end
 
+  def test_e_option_is_properly_expanded
+    start ["-e", "prod"]
+    assert_match(/\sproduction\s/, output)
+  end
+
   def test_environment_option
     start ["--environment=special-production"]
     assert_match(/\sspecial-production\s/, output)
   end
 
   def test_rails_env_is_production_when_first_argument_is_p
-    start ["p"]
-    assert_match(/\sproduction\s/, output)
+    assert_deprecated do
+      start ["p"]
+      assert_match(/\sproduction\s/, output)
+    end
   end
 
   def test_rails_env_is_test_when_first_argument_is_t
-    start ["t"]
-    assert_match(/\stest\s/, output)
+    assert_deprecated do
+      start ["t"]
+      assert_match(/\stest\s/, output)
+    end
   end
 
   def test_rails_env_is_development_when_argument_is_d
-    start ["d"]
-    assert_match(/\sdevelopment\s/, output)
+    assert_deprecated do
+      start ["d"]
+      assert_match(/\sdevelopment\s/, output)
+    end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
@@ -111,7 +124,9 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
       end
     end
 
-    assert_match("dev", parse_arguments(["dev"])[:environment])
+    assert_deprecated do
+      assert_match("dev", parse_arguments(["dev"])[:environment])
+    end
   ensure
     Rails::Command::ConsoleCommand.class_eval do
       undef_method :available_environments
@@ -157,21 +172,8 @@ class Rails::ConsoleTest < ActiveSupport::TestCase
     end
 
     def parse_arguments(args)
-      Rails::Command::ConsoleCommand.class_eval do
-        alias_method :old_perform, :perform
-        define_method(:perform) do
-          extract_environment_option_from_argument
-
-          options
-        end
-      end
-
-      Rails::Command.invoke(:console, args)
-    ensure
-      Rails::Command::ConsoleCommand.class_eval do
-        undef_method :perform
-        alias_method :perform, :old_perform
-        undef_method :old_perform
-      end
+      command = Rails::Command::ConsoleCommand.new([], args)
+      command.send(:extract_environment_option_from_argument)
+      command.options
     end
 end

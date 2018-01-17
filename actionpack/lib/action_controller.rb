@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/rails"
 require "abstract_controller"
 require "action_dispatch"
@@ -20,6 +22,7 @@ module ActionController
 
   autoload_under "metal" do
     autoload :ConditionalGet
+    autoload :ContentSecurityPolicy
     autoload :Cookies
     autoload :DataStreaming
     autoload :EtagWithTemplateDigest

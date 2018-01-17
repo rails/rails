@@ -63,7 +63,7 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting Puma
-=> Rails 5.0.0 application starting in development on http://0.0.0.0:3000
+=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
 => Run `rails server -h` for more startup options
 Puma starting in single mode...
 * Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
@@ -102,6 +102,7 @@ Please choose a generator below.
 
 Rails:
   assets
+  channel
   controller
   generator
   ...
@@ -241,6 +242,8 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
+    invoke  test_unit
+    create    test/system/high_scores_test.rb
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.coffee
@@ -262,12 +265,12 @@ $ bin/rails db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions 
-about code. In unit testing, we take a little part of code, say a method of a model, 
-and test its inputs and outputs. Unit tests are your friend. The sooner you make 
-peace with the fact that your quality of life will drastically increase when you unit 
-test your code, the better. Seriously. Please visit 
-[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth 
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions
+about code. In unit testing, we take a little part of code, say a method of a model,
+and test its inputs and outputs. Unit tests are your friend. The sooner you make
+peace with the fact that your quality of life will drastically increase when you unit
+test your code, the better. Seriously. Please visit
+[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth
 look at unit testing.
 
 Let's see the interface Rails created for us.
@@ -287,14 +290,14 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 You can specify the environment in which the `console` command should operate.
 
 ```bash
-$ bin/rails console staging
+$ bin/rails console -e staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 5.0.0)
+Loading development environment in sandbox (Rails 5.1.0)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
@@ -428,12 +431,12 @@ INFO: You can also use `bin/rails -T`  to get the list of tasks.
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             5.0.0
+Rails version             5.1.0
 Ruby version              2.2.2 (x86_64-linux)
 RubyGems version          2.4.6
-Rack version              1.6
+Rack version              2.0.1
 JavaScript Runtime        Node.js (V8)
-Middleware                Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x007ffd131a7c88>, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, Rails::Rack::Logger, ActionDispatch::ShowExceptions, ActionDispatch::DebugExceptions, ActionDispatch::RemoteIp, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
+Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
@@ -533,7 +536,8 @@ The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` 
 
 * `rails tmp:cache:clear` clears `tmp/cache`.
 * `rails tmp:sockets:clear` clears `tmp/sockets`.
-* `rails tmp:clear` clears all cache and sockets files.
+* `rails tmp:screenshots:clear` clears `tmp/screenshots`.
+* `rails tmp:clear` clears all cache, sockets and screenshot files.
 * `rails tmp:create` creates tmp directories for cache, sockets and pids.
 
 ### Miscellaneous
@@ -641,17 +645,20 @@ $ cat config/database.yml
 # Configure Using Gemfile
 # gem 'pg'
 #
-development:
+default: &default
   adapter: postgresql
   encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
   database: gitapp_development
-  pool: 5
-  username: gitapp
-  password:
 ...
 ...
 ```
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
+It also generated some lines in our `database.yml` configuration corresponding to our choice of PostgreSQL for database.
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.

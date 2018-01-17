@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Topic < ActiveRecord::Base
   scope :base, -> { all }
   scope :written_before, lambda { |time|
@@ -14,7 +16,7 @@ class Topic < ActiveRecord::Base
   scope :replied, -> { where "replies_count > 0" }
 
   scope "approved_as_string", -> { where(approved: true) }
-  scope :anonymous_extension, -> { all } do
+  scope :anonymous_extension, -> {} do
     def one
       1
     end
@@ -63,6 +65,9 @@ class Topic < ActiveRecord::Base
 
   after_initialize :set_email_address
 
+  attr_accessor :change_approved_before_save
+  before_save :change_approved_callback
+
   class_attribute :after_initialize_called
   after_initialize do
     self.class.after_initialize_called = true
@@ -94,6 +99,10 @@ class Topic < ActiveRecord::Base
     def before_destroy_for_transaction; end
     def after_save_for_transaction; end
     def after_create_for_transaction; end
+
+    def change_approved_callback
+      self.approved = change_approved_before_save unless change_approved_before_save.nil?
+    end
 end
 
 class ImportantTopic < Topic

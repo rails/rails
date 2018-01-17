@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
-require File.expand_path(File.dirname(__FILE__)) + "/test/config"
-require File.expand_path(File.dirname(__FILE__)) + "/test/support/config"
+require_relative "test/config"
+require_relative "test/support/config"
 
 def run_without_aborting(*tasks)
   errors = []
@@ -66,7 +68,7 @@ end
         (Dir["test/cases/**/*_test.rb"].reject {
           |x| x.include?("/adapters/")
         } + Dir["test/cases/adapters/#{adapter_short}/**/*_test.rb"]).all? do |file|
-          sh(Gem.ruby, "-w" , "-Itest", file)
+          sh(Gem.ruby, "-w", "-Itest", file)
         end || raise("Failures")
       end
     end
@@ -134,7 +136,7 @@ task drop_postgresql_databases: "db:postgresql:drop"
 task rebuild_postgresql_databases: "db:postgresql:rebuild"
 
 task :lines do
-  load File.expand_path("..", File.dirname(__FILE__)) + "/tools/line_statistics"
+  load File.expand_path("../tools/line_statistics", __dir__)
   files = FileList["lib/active_record/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end

@@ -294,6 +294,10 @@ a, a:link, a:visited {
 #mainCol a, #subCol a, #feature a {color: #980905;}
 #mainCol a code, #subCol a code, #feature a code {color: #980905;}
 
+#mainCol a.anchorlink, #mainCol a.anchorlink code {color: #333;}
+#mainCol a.anchorlink { text-decoration: none; }
+#mainCol a.anchorlink:hover { text-decoration: underline; }
+
 /* Navigation
 --------------------------------------- */
 

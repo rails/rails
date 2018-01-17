@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class NumberHelperTest < ActionView::TestCase
@@ -77,7 +79,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "1.23 &lt;b&gt;km3&lt;/b&gt;", number_to_human(1_234_567_000_000, units: volume)
     assert_equal "1.23 &lt;b&gt;Pl&lt;/b&gt;", number_to_human(1_234_567_000_000_000, units: volume)
 
-    #Including fractionals
+    # Including fractionals
     distance = { mili: "<b>mm</b>", centi: "<b>cm</b>", deci: "<b>dm</b>", unit: "<b>m</b>",
                  ten: "<b>dam</b>", hundred: "<b>hm</b>", thousand: "<b>km</b>",
                  micro: "<b>um</b>", nano: "<b>nm</b>", pico: "<b>pm</b>", femto: "<b>fm</b>" }

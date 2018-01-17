@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -61,18 +63,6 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     sleep 2
     @connection.verify!
     assert @connection.active?
-  end
-
-  def test_verify_with_args_is_deprecated
-    assert_deprecated do
-      @connection.verify!(option: true)
-    end
-    assert_deprecated do
-      @connection.verify!([])
-    end
-    assert_deprecated do
-      @connection.verify!({})
-    end
   end
 
   def test_execute_after_disconnect
@@ -184,10 +174,10 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   end
 
-  def test_logs_name_rename_column_sql
+  def test_logs_name_rename_column_for_alter
     @connection.execute "CREATE TABLE `bar_baz` (`foo` varchar(255))"
     @subscriber.logged.clear
-    @connection.send(:rename_column_sql, "bar_baz", "foo", "foo2")
+    @connection.send(:rename_column_for_alter, "bar_baz", "foo", "foo2")
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   ensure
     @connection.execute "DROP TABLE `bar_baz`"

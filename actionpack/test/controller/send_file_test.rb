@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
-  def file_path() File.expand_path(__FILE__) end
+  def file_path() __FILE__ end
   def file_data() @data ||= File.open(file_path, "rb") { |f| f.read } end
 end
 
@@ -176,7 +178,7 @@ class SendFileTest < ActionController::TestCase
       "image.jpg" => "image/jpeg",
       "image.tif" => "image/tiff",
       "image.gif" => "image/gif",
-      "movie.mpg" => "video/mpeg",
+      "movie.mp4" => "video/mp4",
       "file.zip" => "application/zip",
       "file.unk" => "application/octet-stream",
       "zip" => "application/octet-stream"

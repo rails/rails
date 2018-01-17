@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
-      class InactivePGconn
+      class InactivePgConnection
         def query(*args)
-          raise PGError
+          raise PG::Error
         end
 
         def status
-          PGconn::CONNECTION_BAD
+          PG::CONNECTION_BAD
         end
       end
 
@@ -21,7 +23,7 @@ module ActiveRecord
             assert_equal "bar", cache["foo"]
 
             pid = fork {
-              lookup = cache["foo"];
+              lookup = cache["foo"]
               exit!(!lookup)
             }
 
@@ -31,7 +33,7 @@ module ActiveRecord
         end
 
         def test_dealloc_does_not_raise_on_inactive_connection
-          cache = StatementPool.new InactivePGconn.new, 10
+          cache = StatementPool.new InactivePgConnection.new, 10
           cache["foo"] = "bar"
           assert_nothing_raised { cache.clear }
         end

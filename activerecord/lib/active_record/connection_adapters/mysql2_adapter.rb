@@ -1,17 +1,16 @@
+# frozen_string_literal: true
+
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", ">= 0.3.18", "< 0.5"
+gem "mysql2", "~> 0.4.4"
 require "mysql2"
-raise "mysql2 0.4.3 is not supported. Please upgrade to 0.4.4+" if Mysql2::VERSION == "0.4.3"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     # Establishes a connection to the database that's used by all Active Record objects.
     def mysql2_connection(config)
       config = config.symbolize_keys
-
-      config[:username] = "root" if config[:username].nil?
       config[:flags] ||= 0
 
       if config[:flags].kind_of? Array
@@ -103,6 +102,11 @@ module ActiveRecord
       def disconnect!
         super
         @connection.close
+      end
+
+      def discard! # :nodoc:
+        @connection.automatic_close = false
+        @connection = nil
       end
 
       private

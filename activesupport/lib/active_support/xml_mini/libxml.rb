@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "libxml"
 require "active_support/core_ext/object/blank"
 require "stringio"
@@ -14,11 +16,9 @@ module ActiveSupport
         data = StringIO.new(data || "")
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
         LibXML::XML::Parser.io(data).parse.to_hash
       end
     end
@@ -55,7 +55,7 @@ module LibXML #:nodoc:
           if c.element?
             c.to_hash(node_hash)
           elsif c.text? || c.cdata?
-            node_hash[CONTENT_ROOT] ||= ""
+            node_hash[CONTENT_ROOT] ||= "".dup
             node_hash[CONTENT_ROOT] << c.content
           end
         end

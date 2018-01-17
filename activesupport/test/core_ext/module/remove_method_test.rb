@@ -1,25 +1,27 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/remove_method"
 
 module RemoveMethodTests
   class A
     def do_something
-      return 1
+      1
     end
 
     def do_something_protected
-      return 1
+      1
     end
     protected :do_something_protected
 
     def do_something_private
-      return 1
+      1
     end
     private :do_something_private
 
     class << self
       def do_something_else
-        return 2
+        2
       end
     end
   end

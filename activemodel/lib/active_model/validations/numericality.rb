@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class NumericalityValidator < EachValidator # :nodoc:
@@ -36,7 +38,9 @@ module ActiveModel
           return
         end
 
-        unless raw_value.is_a?(Numeric)
+        if raw_value.is_a?(Numeric)
+          value = raw_value
+        else
           value = parse_raw_value_as_a_number(raw_value)
         end
 
@@ -70,6 +74,7 @@ module ActiveModel
       end
 
       def parse_raw_value_as_a_number(raw_value)
+        return raw_value.to_i if is_integer?(raw_value)
         Kernel.Float(raw_value) if raw_value !~ /\A0[xX]/
       end
 
@@ -103,7 +108,7 @@ module ActiveModel
     module HelperMethods
       # Validates whether the value of the specified attribute is numeric by
       # trying to convert it to a float with Kernel.Float (if <tt>only_integer</tt>
-      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\Z/</tt>
+      # is +false+) or applying it to the regular expression <tt>/\A[\+\-]?\d+\z/</tt>
       # (if <tt>only_integer</tt> is set to +true+).
       #
       #   class Person < ActiveRecord::Base

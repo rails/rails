@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/railtie"
 require "rails/engine/railties"
 require "active_support/core_ext/module/delegation"
@@ -40,7 +42,7 @@ module Rails
   #
   #   class MyEngine < Rails::Engine
   #     # Add a load path for this specific Engine
-  #     config.autoload_paths << File.expand_path("../lib/some/path", __FILE__)
+  #     config.autoload_paths << File.expand_path("lib/some/path", __dir__)
   #
   #     initializer "my_engine.add_middleware" do |app|
   #       app.middleware.use MyEngine::Middleware

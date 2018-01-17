@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   # Returns the version of the currently loaded Active Support as a <tt>Gem::Version</tt>.
   def self.gem_version
@@ -6,9 +8,9 @@ module ActiveSupport
 
   module VERSION
     MAJOR = 5
-    MINOR = 1
+    MINOR = 2
     TINY  = 0
-    PRE   = "beta1"
+    PRE   = "beta2"
 
     STRING = [MAJOR, MINOR, TINY, PRE].compact.join(".")
   end

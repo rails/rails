@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/person"
@@ -62,10 +64,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     club1 = Club.includes(:members).find_by_id club.id
     assert_equal [member1, member2].sort_by(&:id),
                  club1.members.sort_by(&:id)
-  end
-
-  def make_model(name)
-    Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
   end
 
   def test_ordered_has_many_through
@@ -150,20 +148,6 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     sicp.students.reload
     sicp.students.destroy(*student.all.to_a)
     assert after_destroy_called, "after destroy should be called"
-  end
-
-  def make_no_pk_hm_t
-    lesson = make_model "Lesson"
-    student = make_model "Student"
-
-    lesson_student = make_model "LessonStudent"
-    lesson_student.table_name = "lessons_students"
-
-    lesson_student.belongs_to :lesson, anonymous_class: lesson
-    lesson_student.belongs_to :student, anonymous_class: student
-    lesson.has_many :lesson_students, anonymous_class: lesson_student
-    lesson.has_many :students, through: :lesson_students, anonymous_class: student
-    [lesson, lesson_student, student]
   end
 
   def test_pk_is_not_required_for_join
@@ -335,6 +319,17 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.reload
 
     assert_includes post.single_people, person
+  end
+
+  def test_build_then_remove_then_save
+    post = posts(:thinking)
+    post.people.build(first_name: "Bob")
+    ted = post.people.build(first_name: "Ted")
+    post.people.delete(ted)
+    post.save!
+    post.reload
+
+    assert_equal ["Bob"], post.people.collect(&:first_name)
   end
 
   def test_both_parent_ids_set_when_saving_new
@@ -822,7 +817,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     sarah = Person.create!(first_name: "Sarah", primary_contact_id: people(:susan).id, gender: "F", number1_fan_id: 1)
     john = Person.create!(first_name: "John", primary_contact_id: sarah.id, gender: "M", number1_fan_id: 1)
     assert_equal sarah.agents, [john]
-    assert_equal people(:susan).agents.flat_map(&:agents), people(:susan).agents_of_agents
+    assert_equal people(:susan).agents.flat_map(&:agents).sort, people(:susan).agents_of_agents.sort
   end
 
   def test_associate_existing_with_nonstandard_primary_key_on_belongs_to
@@ -874,6 +869,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [dev], company.developers
   end
 
+  def test_collection_singular_ids_setter_with_required_type_cast
+    company = companies(:rails_core)
+    dev = Developer.first
+
+    company.developer_ids = [dev.id.to_s]
+    assert_equal [dev], company.developers
+  end
+
   def test_collection_singular_ids_setter_with_string_primary_keys
     assert_nothing_raised do
       book = books(:awdr)
@@ -885,32 +888,20 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_collection_singular_ids_setter_with_changed_primary_key
-    company = companies(:first_firm)
-    client = companies(:first_client)
-    company.clients_using_primary_key_ids = [client.name]
-    assert_equal [client], company.clients_using_primary_key
-  end
-
   def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set
     company = companies(:rails_core)
     ids = [Developer.first.id, -9999]
     e = assert_raises(ActiveRecord::RecordNotFound) { company.developer_ids = ids }
-    assert_match(/Couldn't find all Developers with 'id'/, e.message)
-  end
-
-  def test_collection_singular_ids_setter_raises_exception_when_invalid_ids_set_with_changed_primary_key
-    company = companies(:first_firm)
-    ids = [Client.first.name, "unknown client"]
-    e = assert_raises(ActiveRecord::RecordNotFound) { company.clients_using_primary_key_ids = ids }
-    assert_match(/Couldn't find all Clients with 'name'/, e.message)
+    msg = "Couldn't find all Developers with 'id': (1, -9999) (found 1 results, but was looking for 2). Couldn't find Developer with id -9999."
+    assert_equal(msg, e.message)
   end
 
   def test_collection_singular_ids_through_setter_raises_exception_when_invalid_ids_set
     author = authors(:david)
     ids = [categories(:general).name, "Unknown"]
     e = assert_raises(ActiveRecord::RecordNotFound) { author.essay_category_ids = ids }
-    assert_equal "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2)", e.message
+    msg = "Couldn't find all Categories with 'name': (General, Unknown) (found 1 results, but was looking for 2). Couldn't find Category with name Unknown."
+    assert_equal msg, e.message
   end
 
   def test_build_a_model_from_hm_through_association_with_where_clause
@@ -951,6 +942,13 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_nothing_raised do
       people(:michael).posts.first.update!(title: "Can write")
     end
+  end
+
+  def test_has_many_through_polymorphic_with_rewhere
+    post = TaggedPost.create!(title: "Tagged", body: "Post")
+    tag = post.tags.create!(name: "Tag")
+    assert_equal [tag], TaggedPost.preload(:tags).last.tags
+    assert_equal [tag], TaggedPost.eager_load(:tags).last.tags
   end
 
   def test_has_many_through_polymorphic_with_primary_key_option
@@ -1135,6 +1133,32 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal ["parrot", "bulbul"], owner.toys.map { |r| r.pet.name }
   end
 
+  def test_has_many_through_associations_sum_on_columns
+    post1 = Post.create(title: "active", body: "sample")
+    post2 = Post.create(title: "inactive", body: "sample")
+
+    person1 = Person.create(first_name: "aaron", followers_count: 1)
+    person2 = Person.create(first_name: "schmit", followers_count: 2)
+    person3 = Person.create(first_name: "bill", followers_count: 3)
+    person4 = Person.create(first_name: "cal", followers_count: 4)
+
+    Reader.create(post_id: post1.id, person_id: person1.id)
+    Reader.create(post_id: post1.id, person_id: person2.id)
+    Reader.create(post_id: post1.id, person_id: person3.id)
+    Reader.create(post_id: post1.id, person_id: person4.id)
+
+    Reader.create(post_id: post2.id, person_id: person1.id)
+    Reader.create(post_id: post2.id, person_id: person2.id)
+    Reader.create(post_id: post2.id, person_id: person3.id)
+    Reader.create(post_id: post2.id, person_id: person4.id)
+
+    active_persons = Person.joins(:readers).joins(:posts).distinct(true).where("posts.title" => "active")
+
+    assert_equal active_persons.map(&:followers_count).reduce(:+), 10
+    assert_equal active_persons.sum(:followers_count), 10
+    assert_equal active_persons.sum(:followers_count), active_persons.map(&:followers_count).reduce(:+)
+  end
+
   def test_has_many_through_associations_on_new_records_use_null_relations
     person = Person.new
 
@@ -1234,6 +1258,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     TenantMembership.current_member = nil
   end
 
+  def test_has_many_through_with_scope_that_has_joined_same_table_with_parent_relation
+    assert_equal authors(:david), Author.joins(:comments_for_first_author).take
+  end
+
+  def test_has_many_through_with_unscope_should_affect_to_through_scope
+    assert_equal [comments(:eager_other_comment1)], authors(:mary).unordered_comments
+  end
+
+  def test_has_many_through_with_scope_should_accept_string_and_hash_join
+    assert_equal authors(:david), Author.joins({ comments_for_first_author: :post }, "inner join posts posts_alias on authors.id = posts_alias.author_id").eager_load(:categories).take
+  end
+
   def test_has_many_through_with_scope_should_respect_table_alias
     family = Family.create!
     users = 3.times.map { User.create! }
@@ -1245,6 +1281,25 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, users[2].family_members.to_a.size
   end
 
+  def test_through_scope_is_affected_by_unscoping
+    author = authors(:david)
+
+    expected = author.comments.to_a
+    FirstPost.unscoped do
+      assert_equal expected.sort_by(&:id), author.comments_on_first_posts.sort_by(&:id)
+    end
+  end
+
+  def test_through_scope_isnt_affected_by_scoping
+    author = authors(:david)
+
+    expected = author.comments_on_first_posts.to_a
+    FirstPost.where(id: 2).scoping do
+      author.comments_on_first_posts.reset
+      assert_equal expected.sort_by(&:id), author.comments_on_first_posts.sort_by(&:id)
+    end
+  end
+
   def test_incorrectly_ordered_through_associations
     assert_raises(ActiveRecord::HasManyThroughOrderError) do
       DeveloperWithIncorrectlyOrderedHasManyThrough.create(
@@ -1252,4 +1307,87 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       )
     end
   end
+
+  def test_has_many_through_update_ids_with_conditions
+    author = Author.create!(name: "Bill")
+    category = categories(:general)
+
+    author.update(
+      special_categories_with_condition_ids: [category.id],
+      nonspecial_categories_with_condition_ids: [category.id]
+    )
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [category.id], author.nonspecial_categories_with_condition_ids
+
+    author.update(nonspecial_categories_with_condition_ids: [])
+    author.reload
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [], author.nonspecial_categories_with_condition_ids
+  end
+
+  def test_single_has_many_through_association_with_unpersisted_parent_instance
+    post_with_single_has_many_through = Class.new(Post) do
+      def self.name; "PostWithSingleHasManyThrough"; end
+      has_many :subscriptions, through: :author
+    end
+    post = post_with_single_has_many_through.new
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on single has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on single has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
+  end
+
+  def test_nested_has_many_through_association_with_unpersisted_parent_instance
+    post_with_nested_has_many_through = Class.new(Post) do
+      def self.name; "PostWithNestedHasManyThrough"; end
+      has_many :books, through: :author
+      has_many :subscriptions, through: :books
+    end
+    post = post_with_nested_has_many_through.new
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on nested has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on nested has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
+  end
+
+  private
+    def make_model(name)
+      Class.new(ActiveRecord::Base) { define_singleton_method(:name) { name } }
+    end
+
+    def make_no_pk_hm_t
+      lesson = make_model "Lesson"
+      student = make_model "Student"
+
+      lesson_student = make_model "LessonStudent"
+      lesson_student.table_name = "lessons_students"
+
+      lesson_student.belongs_to :lesson, anonymous_class: lesson
+      lesson_student.belongs_to :student, anonymous_class: student
+      lesson.has_many :lesson_students, anonymous_class: lesson_student
+      lesson.has_many :students, through: :lesson_students, anonymous_class: student
+      [lesson, lesson_student, student]
+    end
 end

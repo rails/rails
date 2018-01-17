@@ -1,7 +1,11 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "optparse"
 require "action_dispatch"
 require "rails"
+require "active_support/deprecation"
+require "active_support/core_ext/string/filters"
 require "rails/dev_caching"
 
 module Rails
@@ -18,10 +22,15 @@ module Rails
       set_environment
     end
 
-    # TODO: this is no longer required but we keep it for the moment to support older config.ru files.
     def app
       @app ||= begin
         app = super
+        if app.is_a?(Class)
+          ActiveSupport::Deprecation.warn(<<-MSG.squish)
+            Using `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
+            Please change `run #{app}` to `run Rails.application` in config.ru.
+          MSG
+        end
         app.respond_to?(:to_app) ? app.to_app : app
       end
     end
@@ -64,9 +73,9 @@ module Rails
       end
 
       def print_boot_information
-        url = "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}"
+        url = "on #{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
         puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-        puts "=> Rails #{Rails.version} application starting in #{Rails.env} on #{url}"
+        puts "=> Rails #{Rails.version} application starting in #{Rails.env} #{url}"
         puts "=> Run `rails server -h` for more startup options"
       end
 
@@ -91,14 +100,19 @@ module Rails
       def restart_command
         "bin/rails server #{ARGV.join(' ')}"
       end
+
+      def use_puma?
+        server.to_s == "Rack::Handler::Puma"
+      end
   end
 
   module Command
     class ServerCommand < Base # :nodoc:
+      DEFAULT_PORT = 3000
       DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
 
       class_option :port, aliases: "-p", type: :numeric,
-        desc: "Runs Rails on the specified port.", banner: :port, default: 3000
+        desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
       class_option :binding, aliases: "-b", type: :string,
         desc: "Binds Rails to the specified IP - defaults to 'localhost' in development and '0.0.0.0' in other environments'.",
         banner: :IP
@@ -112,6 +126,8 @@ module Rails
         desc: "Specifies the PID file."
       class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
+      class_option "restart", type: :boolean, default: nil, hide: true
+      class_option "early_hints", type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
 
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
@@ -122,6 +138,7 @@ module Rails
 
       def perform
         set_application_directory!
+        prepare_restart
         Rails::Server.new(server_options).tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -145,7 +162,8 @@ module Rails
             daemonize:             options[:daemon],
             pid:                   pid,
             caching:               options["dev-caching"],
-            restart_cmd:           restart_command
+            restart_cmd:           restart_command,
+            early_hints:           early_hints
           }
         end
       end
@@ -154,9 +172,16 @@ module Rails
         def user_supplied_options
           @user_supplied_options ||= begin
             # Convert incoming options array to a hash of flags
-            #   ["-p", "3001", "-c", "foo"] # => {"-p" => true, "-c" => true}
+            #   ["-p3001", "-C", "--binding", "127.0.0.1"] # => {"-p"=>true, "-C"=>true, "--binding"=>true}
             user_flag = {}
-            @original_options.each_with_index { |command, i| user_flag[command] = true if i.even? }
+            @original_options.each do |command|
+              if command.to_s.start_with?("--")
+                option = command.split("=")[0]
+                user_flag[option] = true
+              elsif command =~ /\A(-.)/
+                user_flag[Regexp.last_match[0]] = true
+              end
+            end
 
             # Collect all options that the user has explicitly defined so we can
             # differentiate them from defaults
@@ -184,14 +209,16 @@ module Rails
         end
 
         def port
-          ENV.fetch("PORT", options[:port]).to_i
+          options[:port] || ENV.fetch("PORT", DEFAULT_PORT).to_i
         end
 
         def host
-          unless (default_host = options[:binding])
+          if options[:binding]
+            options[:binding]
+          else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
+            ENV.fetch("HOST", default_host)
           end
-          ENV.fetch("HOST", default_host)
         end
 
         def environment
@@ -199,7 +226,11 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@server} #{@original_options.join(" ")}"
+          "bin/rails server #{@server} #{@original_options.join(" ")} --restart"
+        end
+
+        def early_hints
+          options[:early_hints]
         end
 
         def pid
@@ -208,6 +239,10 @@ module Rails
 
         def self.banner(*)
           "rails server [puma, thin etc] [options]"
+        end
+
+        def prepare_restart
+          FileUtils.rm_f(options[:pid]) if options[:restart]
         end
     end
   end

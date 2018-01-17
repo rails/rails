@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "core_ext/date_and_time_behavior"
@@ -93,11 +95,11 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_beginning_of_week_in_calendar_reform
-    assert_equal Date.new(1582, 10, 1), Date.new(1582, 10, 15).beginning_of_week #friday
+    assert_equal Date.new(1582, 10, 1), Date.new(1582, 10, 15).beginning_of_week # friday
   end
 
   def test_end_of_week_in_calendar_reform
-    assert_equal Date.new(1582, 10, 17), Date.new(1582, 10, 4).end_of_week #thursday
+    assert_equal Date.new(1582, 10, 17), Date.new(1582, 10, 4).end_of_week # thursday
   end
 
   def test_end_of_year
@@ -116,10 +118,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
 
   def test_prev_year_in_calendar_reform
     assert_equal Date.new(1582, 10, 4), Date.new(1583, 10, 14).prev_year
-  end
-
-  def test_last_year
-    assert_equal Date.new(2004, 6, 5),  Date.new(2005, 6, 5).last_year
   end
 
   def test_last_year_in_leap_years
@@ -146,7 +144,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2012, 9, 28), Date.new(2005, 2, 28).advance(years: 7, months: 7)
     assert_equal Date.new(2013, 10, 3), Date.new(2005, 2, 28).advance(years: 7, months: 19, days: 5)
     assert_equal Date.new(2013, 10, 17), Date.new(2005, 2, 28).advance(years: 7, months: 19, weeks: 2, days: 5)
-    assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29).advance(years: 1) #leap day plus one year
+    assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29).advance(years: 1) # leap day plus one year
   end
 
   def test_advance_does_first_years_and_then_days
@@ -181,10 +179,6 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   def test_next_week_in_calendar_reform
     assert_equal Date.new(1582, 10, 15), Date.new(1582, 9, 30).next_week(:friday)
     assert_equal Date.new(1582, 10, 18), Date.new(1582, 10, 4).next_week
-  end
-
-  def test_last_month_on_31st
-    assert_equal Date.new(2004, 2, 29), Date.new(2004, 3, 31).last_month
   end
 
   def test_last_quarter_on_31st

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -86,12 +88,6 @@ class DeveloperWithSymbolClassName < Developer
   has_and_belongs_to_many :projects, class_name: :ProjectWithSymbolsForKeys
 end
 
-ActiveSupport::Deprecation.silence do
-  class DeveloperWithConstantClassName < Developer
-    has_and_belongs_to_many :projects, class_name: ProjectWithSymbolsForKeys
-  end
-end
-
 class DeveloperWithExtendOption < Developer
   module NamedExtension
     def category
@@ -109,6 +105,21 @@ class ProjectUnscopingDavidDefaultScope < ActiveRecord::Base
     join_table: "developers_projects",
     foreign_key: "project_id",
     association_foreign_key: "developer_id"
+end
+
+class Kitchen < ActiveRecord::Base
+  has_one :sink
+end
+
+class Sink < ActiveRecord::Base
+  has_and_belongs_to_many :sources, join_table: :edges
+  belongs_to :kitchen
+  accepts_nested_attributes_for :kitchen
+end
+
+class Source < ActiveRecord::Base
+  self.table_name = "men"
+  has_and_belongs_to_many :sinks, join_table: :edges
 end
 
 class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
@@ -350,19 +361,6 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert proj.persisted?
     assert_equal Developer.find(1).projects.sort_by(&:id).last, proj  # prove join table is updated
-  end
-
-  def test_create_by_new_record
-    devel = Developer.new(name: "Marcel", salary: 75000)
-    devel.projects.build(name: "Make bed")
-    proj2 = devel.projects.build(name: "Lie in it")
-    assert_equal devel.projects.last, proj2
-    assert !proj2.persisted?
-    devel.save
-    assert devel.persisted?
-    assert proj2.persisted?
-    assert_equal devel.projects.last, proj2
-    assert_equal Developer.find_by_name("Marcel").projects.last, proj2  # prove join table is updated
   end
 
   def test_creation_respects_hash_condition
@@ -939,20 +937,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_not_nil Developer._reflections["shared_computers"]
     # Checking the fixture for named association is important here, because it's the only way
     # we've been able to reproduce this bug
-    assert_not_nil File.read(File.expand_path("../../../fixtures/developers.yml", __FILE__)).index("shared_computers")
+    assert_not_nil File.read(File.expand_path("../../fixtures/developers.yml", __dir__)).index("shared_computers")
     assert_equal developers(:david).shared_computers.first, computers(:laptop)
   end
 
   def test_with_symbol_class_name
     assert_nothing_raised do
       developer = DeveloperWithSymbolClassName.new
-      developer.projects
-    end
-  end
-
-  def test_with_constant_class_name
-    assert_nothing_raised do
-      developer = DeveloperWithConstantClassName.new
       developer.projects
     end
   end
@@ -1020,5 +1011,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.partial_writes = original_partial_writes
     end
+  end
+
+  def test_has_and_belongs_to_many_with_belongs_to
+    sink = Sink.create! kitchen: Kitchen.new, sources: [Source.new]
+    assert_equal 1, sink.sources.count
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActionController
@@ -7,8 +9,7 @@ module ActionController
     include Head
 
     included do
-      class_attribute :etaggers
-      self.etaggers = []
+      class_attribute :etaggers, default: []
     end
 
     module ClassMethods
@@ -227,7 +228,7 @@ module ActionController
     #   expires_in 3.hours, public: true, must_revalidate: true
     #
     # This method will overwrite an existing Cache-Control header.
-    # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
+    # See https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html for more possibilities.
     #
     # The method will also ensure an HTTP Date header for client compatibility.
     def expires_in(seconds, options = {})

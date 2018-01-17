@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/strip"
 
 module ActiveRecord
@@ -22,7 +24,7 @@ module ActiveRecord
         private
 
           def visit_AlterTable(o)
-            sql = "ALTER TABLE #{quote_table_name(o.name)} "
+            sql = "ALTER TABLE #{quote_table_name(o.name)} ".dup
             sql << o.adds.map { |col| accept col }.join(" ")
             sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
             sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
@@ -30,17 +32,17 @@ module ActiveRecord
 
           def visit_ColumnDefinition(o)
             o.sql_type = type_to_sql(o.type, o.options)
-            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}".dup
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
           def visit_AddColumnDefinition(o)
-            "ADD #{accept(o.column)}"
+            "ADD #{accept(o.column)}".dup
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} ".dup
 
             statements = o.columns.map { |c| accept c }
             statements << accept(o.primary_keys) if o.primary_keys
@@ -55,12 +57,12 @@ module ActiveRecord
 
             create_sql << "(#{statements.join(', ')})" if statements.present?
             add_table_options!(create_sql, table_options(o))
-            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
+            create_sql << " AS #{to_sql(o.as)}" if o.as
             create_sql
           end
 
           def visit_PrimaryKeyDefinition(o)
-            "PRIMARY KEY (#{o.name.join(', ')})"
+            "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
           end
 
           def visit_ForeignKeyDefinition(o)
@@ -93,6 +95,7 @@ module ActiveRecord
             if options_sql = options[:options]
               create_sql << " #{options_sql}"
             end
+            create_sql
           end
 
           def column_options(o)
@@ -111,6 +114,11 @@ module ActiveRecord
             if options[:primary_key] == true
               sql << " PRIMARY KEY"
             end
+            sql
+          end
+
+          def to_sql(sql)
+            sql = sql.to_sql if sql.respond_to?(:to_sql)
             sql
           end
 
@@ -133,5 +141,6 @@ module ActiveRecord
           end
       end
     end
+    SchemaCreation = AbstractAdapter::SchemaCreation # :nodoc:
   end
 end

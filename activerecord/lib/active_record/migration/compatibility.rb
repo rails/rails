@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     module Compatibility # :nodoc: all
@@ -11,10 +13,38 @@ module ActiveRecord
         const_get(name)
       end
 
-      V5_1 = Current
+      V5_2 = Current
+
+      class V5_1 < V5_2
+        def change_column(table_name, column_name, type, options = {})
+          if adapter_name == "PostgreSQL"
+            clear_cache!
+            sql = connection.send(:change_column_sql, table_name, column_name, type, options)
+            execute "ALTER TABLE #{quote_table_name(table_name)} #{sql}"
+            change_column_default(table_name, column_name, options[:default]) if options.key?(:default)
+            change_column_null(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
+            change_column_comment(table_name, column_name, options[:comment]) if options.key?(:comment)
+          else
+            super
+          end
+        end
+
+        def create_table(table_name, options = {})
+          if adapter_name == "Mysql2"
+            super(table_name, options: "ENGINE=InnoDB", **options)
+          else
+            super
+          end
+        end
+      end
 
       class V5_0 < V5_1
         module TableDefinition
+          def primary_key(name, type = :primary_key, **options)
+            type = :integer if type == :primary_key
+            super
+          end
+
           def references(*args, **options)
             super(*args, type: :integer, **options)
           end
@@ -34,7 +64,7 @@ module ActiveRecord
             end
           end
 
-          # Since 5.1 Postgres adapter uses bigserial type for primary
+          # Since 5.1 PostgreSQL adapter uses bigserial type for primary
           # keys by default and MySQL uses bigint. This compat layer makes old migrations utilize
           # serial/int type instead -- the way it used to work before 5.1.
           unless options.key?(:id)
@@ -42,11 +72,8 @@ module ActiveRecord
           end
 
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -55,21 +82,46 @@ module ActiveRecord
 
         def change_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
           end
         end
 
+        def create_join_table(table_1, table_2, column_options: {}, **options)
+          column_options.reverse_merge!(type: :integer)
+
+          if block_given?
+            super do |t|
+              yield compatible_table_definition(t)
+            end
+          else
+            super
+          end
+        end
+
+        def add_column(table_name, column_name, type, options = {})
+          if type == :primary_key
+            type = :integer
+            options[:primary_key] = true
+          end
+          super
+        end
+
         def add_reference(table_name, ref_name, **options)
           super(table_name, ref_name, type: :integer, **options)
         end
         alias :add_belongs_to :add_reference
+
+        private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            t
+          end
       end
 
       class V4_2 < V5_0
@@ -88,11 +140,8 @@ module ActiveRecord
 
         def create_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -101,11 +150,8 @@ module ActiveRecord
 
         def change_table(table_name, options = {})
           if block_given?
-            super(table_name, options) do |t|
-              class << t
-                prepend TableDefinition
-              end
-              yield t
+            super do |t|
+              yield compatible_table_definition(t)
             end
           else
             super
@@ -141,6 +187,12 @@ module ActiveRecord
         end
 
         private
+          def compatible_table_definition(t)
+            class << t
+              prepend TableDefinition
+            end
+            super
+          end
 
           def index_name_for_remove(table_name, options = {})
             index_name = index_name(table_name, options)

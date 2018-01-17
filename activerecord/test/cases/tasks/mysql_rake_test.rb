@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
@@ -73,7 +75,7 @@ if current_adapter?(:Mysql2Adapter)
       end
     end
 
-    class MysqlDBCreateAsRootTest < ActiveRecord::TestCase
+    class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
       def setup
         @connection    = stub("Connection", create_database: true)
         @error         = Mysql2::Error.new("Invalid permissions")
@@ -84,13 +86,8 @@ if current_adapter?(:Mysql2Adapter)
           "password" => "wossname"
         }
 
-        $stdin.stubs(:gets).returns("secret\n")
-        $stdout.stubs(:print).returns(nil)
-        @error.stubs(:errno).returns(1045)
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).
-          raises(@error).
-          then.returns(true)
+        ActiveRecord::Base.stubs(:establish_connection).raises(@error)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -100,75 +97,11 @@ if current_adapter?(:Mysql2Adapter)
         $stdout, $stderr = @original_stdout, @original_stderr
       end
 
-      def test_root_password_is_requested
-        assert_permissions_granted_for("pat")
-        $stdin.expects(:gets).returns("secret\n")
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_connection_established_as_root
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Base.expects(:establish_connection).with(
-          "adapter"  => "mysql2",
-          "database" => nil,
-          "username" => "root",
-          "password" => "secret"
-        )
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_database_created_by_root
-        assert_permissions_granted_for("pat")
-        @connection.expects(:create_database).
-          with("my-app-db", {})
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_grant_privileges_for_normal_user
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_do_not_grant_privileges_for_root_user
-        @configuration["username"] = "root"
-        @configuration["password"] = ""
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      def test_connection_established_as_normal_user
-        assert_permissions_granted_for("pat")
-        ActiveRecord::Base.expects(:establish_connection).returns do
-          ActiveRecord::Base.expects(:establish_connection).with(
-            "adapter"  => "mysql2",
-            "database" => "my-app-db",
-            "username" => "pat",
-            "password" => "secret"
-          )
-
-          raise @error
+      def test_raises_error
+        assert_raises(Mysql2::Error) do
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration
         end
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
       end
-
-      def test_sends_output_to_stderr_when_other_errors
-        @error.stubs(:errno).returns(42)
-
-        $stderr.expects(:puts).at_least_once.returns(nil)
-
-        ActiveRecord::Tasks::DatabaseTasks.create @configuration
-      end
-
-      private
-
-        def assert_permissions_granted_for(db_user)
-          db_name = @configuration["database"]
-          db_password = @configuration["password"]
-          @connection.expects(:execute).with("GRANT ALL PRIVILEGES ON #{db_name}.* TO '#{db_user}'@'localhost' IDENTIFIED BY '#{db_password}' WITH GRANT OPTION;")
-        end
     end
 
     class MySQLDBDropTest < ActiveRecord::TestCase
@@ -296,13 +229,22 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump_with_extra_flags
         filename = "awesome-file.sql"
-        expected_command = ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--noop", "test-db"]
+        expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_dump_flags(["--noop"]) do
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
           end
         end
+      end
+
+      def test_structure_dump_with_ignore_tables
+        filename = "awesome-file.sql"
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
       end
 
       def test_warn_when_external_structure_dump_command_execution_fails
@@ -355,7 +297,7 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_load
         filename = "awesome-file.sql"
-        expected_command = ["mysql", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db", "--noop"]
+        expected_command = ["mysql", "--noop", "--execute", %{SET FOREIGN_KEY_CHECKS = 0; SOURCE #{filename}; SET FOREIGN_KEY_CHECKS = 1}, "--database", "test-db"]
 
         assert_called_with(Kernel, :system, expected_command, returns: true) do
           with_structure_load_flags(["--noop"]) do

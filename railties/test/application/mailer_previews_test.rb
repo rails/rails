@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "base64"
@@ -30,7 +32,7 @@ module ApplicationTests
     test "/rails/mailers is accessible with correct configuration" do
       add_to_config "config.action_mailer.show_previews = true"
       app("production")
-      get "/rails/mailers", {}, "REMOTE_ADDR" => "4.2.42.42"
+      get "/rails/mailers", {}, { "REMOTE_ADDR" => "4.2.42.42" }
       assert_equal 200, last_response.status
     end
 
@@ -480,9 +482,60 @@ module ApplicationTests
 
       app("development")
 
-      get "/rails/mailers", {}, "SCRIPT_NAME" => "/my_app"
+      get "/rails/mailers", {}, { "SCRIPT_NAME" => "/my_app" }
       assert_match '<h3><a href="/my_app/rails/mailers/notifier">Notifier</a></h3>', last_response.body
       assert_match '<li><a href="/my_app/rails/mailers/notifier/foo">foo</a></li>', last_response.body
+    end
+
+    test "mailer preview receives query params" do
+      mailer "notifier", <<-RUBY
+        class Notifier < ActionMailer::Base
+          default from: "from@example.com"
+
+          def foo(name)
+            @name = name
+            mail to: "to@example.org"
+          end
+        end
+      RUBY
+
+      html_template "notifier/foo", <<-RUBY
+        <p>Hello, <%= @name %>!</p>
+      RUBY
+
+      text_template "notifier/foo", <<-RUBY
+        Hello, <%= @name %>!
+      RUBY
+
+      mailer_preview "notifier", <<-RUBY
+        class NotifierPreview < ActionMailer::Preview
+          def foo
+            Notifier.foo(params[:name] || "World")
+          end
+        end
+      RUBY
+
+      app("development")
+
+      get "/rails/mailers/notifier/foo.txt"
+      assert_equal 200, last_response.status
+      assert_match '<iframe seamless name="messageBody" src="?part=text%2Fplain">', last_response.body
+      assert_match '<option selected value="?part=text%2Fplain">', last_response.body
+      assert_match '<option  value="?part=text%2Fhtml">', last_response.body
+
+      get "/rails/mailers/notifier/foo?part=text%2Fplain"
+      assert_equal 200, last_response.status
+      assert_match %r[Hello, World!], last_response.body
+
+      get "/rails/mailers/notifier/foo.html?name=Ruby"
+      assert_equal 200, last_response.status
+      assert_match '<iframe seamless name="messageBody" src="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<option selected value="?name=Ruby&amp;part=text%2Fhtml">', last_response.body
+      assert_match '<option  value="?name=Ruby&amp;part=text%2Fplain">', last_response.body
+
+      get "/rails/mailers/notifier/foo?name=Ruby&part=text%2Fhtml"
+      assert_equal 200, last_response.status
+      assert_match %r[<p>Hello, Ruby!</p>], last_response.body
     end
 
     test "plain text mailer preview with attachment" do

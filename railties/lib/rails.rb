@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/ruby_version_check"
 
 require "pathname"
@@ -87,8 +89,8 @@ module Rails
     #   groups assets: [:development, :test]
     #
     #   # Returns
-    #   # => [:default, :development, :assets] for Rails.env == "development"
-    #   # => [:default, :production]           for Rails.env == "production"
+    #   # => [:default, "development", :assets] for Rails.env == "development"
+    #   # => [:default, "production"]           for Rails.env == "production"
     def groups(*groups)
       hash = groups.extract_options!
       env = Rails.env

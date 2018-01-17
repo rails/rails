@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "cases/helper"
 require "models/person"
@@ -167,6 +169,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
   end
 
+  def test_lock_new_when_explicitly_passing_value
+    p1 = Person.new(first_name: "Douglas Adams", lock_version: 42)
+    p1.save!
+    assert_equal 42, p1.lock_version
+  end
+
   def test_touch_existing_lock
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
@@ -183,6 +191,19 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
+    end
+  end
+
+  def test_explicit_update_lock_column_raise_error
+    person = Person.find(1)
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      person.first_name = "Douglas Adams"
+      person.lock_version = 42
+
+      assert person.lock_version_changed?
+
+      person.save
     end
   end
 
@@ -225,10 +246,33 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version_before_type_cast
   end
 
+  def test_touch_existing_lock_without_default_should_work_with_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.touch
+
+    assert_equal 1, t1.lock_version
+  end
+
+  def test_touch_stale_object_with_lock_without_default
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.touch
+    end
+  end
+
   def test_lock_without_default_should_work_with_null_in_the_database
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
-    t2 = LockWithoutDefault.last
+    t2 = LockWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
@@ -247,17 +291,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_without_default_should_update_with_lock_col
-    t1 = LockWithoutDefault.create(title: "title1", lock_version: 6)
-
-    assert_equal 6, t1.lock_version
-
-    t1.update(lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.lock_version
-  end
-
   def test_lock_without_default_queries_count
     t1 = LockWithoutDefault.create(title: "title1")
 
@@ -269,12 +302,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.lock_version
-
-    assert_queries(1) { t1.update(title: "title3", lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.lock_version
 
     t2 = LockWithoutDefault.new(title: "title1")
 
@@ -302,7 +329,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
 
     t1 = LockWithCustomColumnWithoutDefault.last
-    t2 = LockWithCustomColumnWithoutDefault.last
+    t2 = LockWithCustomColumnWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.custom_lock_version
     assert_nil t1.custom_lock_version_before_type_cast
@@ -321,17 +348,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal "new title2", t2.title
   end
 
-  def test_lock_with_custom_column_without_default_should_update_with_lock_col
-    t1 = LockWithCustomColumnWithoutDefault.create(title: "title1", custom_lock_version: 6)
-
-    assert_equal 6, t1.custom_lock_version
-
-    t1.update(custom_lock_version: 0)
-    t1.reload
-
-    assert_equal 0, t1.custom_lock_version
-  end
-
   def test_lock_with_custom_column_without_default_queries_count
     t1 = LockWithCustomColumnWithoutDefault.create(title: "title1")
 
@@ -343,12 +359,6 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t1.reload
     assert_equal "title2", t1.title
     assert_equal 1, t1.custom_lock_version
-
-    assert_queries(1) { t1.update(title: "title3", custom_lock_version: 6) }
-
-    t1.reload
-    assert_equal "title3", t1.title
-    assert_equal 6, t1.custom_lock_version
 
     t2 = LockWithCustomColumnWithoutDefault.new(title: "title1")
 
@@ -389,11 +399,43 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_counter_cache_with_touch_and_lock_version
+    car = Car.create!
+
+    assert_equal 0, car.wheels_count
+    assert_equal 0, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(2.second) do
+      Wheel.create!(wheelable: car)
+    end
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 1, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    car.wheels.first.update(size: 42)
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 2, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(2.second) do
+      car.wheels.first.destroy!
+    end
+
+    assert_equal 0, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 3, car.lock_version
+  end
+
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
 
     assert_difference "car.wheels.count"  do
-      car.wheels << Wheel.create!
+      car.wheels.create
     end
     assert_difference "car.wheels.count", -1  do
       car.reload.destroy
@@ -468,6 +510,31 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
     PersonalLegacyThing.reset_column_information
   end
 
+  def test_destroy_existing_object_with_locking_column_value_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.destroy
+
+    assert t1.destroyed?
+  end
+
+  def test_destroy_stale_object
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.destroy!
+    end
+
+    refute stale_object.destroyed?
+  end
+
   private
 
     def add_counter_column_to(model, col = "test_count")
@@ -530,18 +597,18 @@ unless in_memory_db?
       end
     end
 
-    # Locking a record reloads it.
-    def test_sane_lock_method
+    def test_lock_does_not_raise_when_the_object_is_not_dirty
+      person = Person.find 1
       assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, "fooman"
-          # Locking a dirty record is deprecated
-          assert_deprecated do
-            person.lock!
-          end
-          assert_equal old, person.first_name
-        end
+        person.lock!
+      end
+    end
+
+    def test_lock_raises_when_the_record_is_dirty
+      person = Person.find 1
+      person.first_name = "fooman"
+      assert_raises(RuntimeError) do
+        person.lock!
       end
     end
 
@@ -576,14 +643,12 @@ unless in_memory_db?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-      def test_no_locks_no_wait
-        first, second = duel { Person.find 1 }
-        assert first.end > second.end
-      end
+    def test_no_locks_no_wait
+      first, second = duel { Person.find 1 }
+      assert first.end > second.end
+    end
 
-      private
-
+    private
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
@@ -611,6 +676,5 @@ unless in_memory_db?
         assert t3 > t2
         [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
       end
-    end
   end
 end

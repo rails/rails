@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -33,7 +35,7 @@ module ActiveRecord
 
         # Quotes schema names for use in SQL queries.
         def quote_schema_name(name)
-          PGconn.quote_ident(name)
+          PG::Connection.quote_ident(name)
         end
 
         def quote_table_name_for_assignment(table, attr)
@@ -42,7 +44,7 @@ module ActiveRecord
 
         # Quotes column names for use in SQL queries.
         def quote_column_name(name) # :nodoc:
-          @quoted_column_names[name] ||= PGconn.quote_ident(super).freeze
+          @quoted_column_names[name] ||= PG::Connection.quote_ident(super).freeze
         end
 
         # Quote date/time values for use in SQL input.
@@ -62,7 +64,7 @@ module ActiveRecord
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
-          elsif column.type == :uuid && value.include?("()")
+          elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
             value = type_cast_from_column(column, value)
@@ -77,6 +79,9 @@ module ActiveRecord
         end
 
         private
+          def lookup_cast_type(sql_type)
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+          end
 
           def _quote(value)
             case value
@@ -96,6 +101,8 @@ module ActiveRecord
               end
             when OID::Array::Data
               _quote(encode_array(value))
+            when Range
+              _quote(encode_range(value))
             else
               super
             end
@@ -105,13 +112,15 @@ module ActiveRecord
             case value
             when Type::Binary::Data
               # Return a bind param hash with format as binary.
-              # See http://deveiate.org/code/pg/PGconn.html#method-i-exec_prepared-doc
+              # See https://deveiate.org/code/pg/PG/Connection.html#method-i-exec_prepared-doc
               # for more information
               { value: value.to_s, format: 1 }
             when OID::Xml::Data, OID::Bit::Data
               value.to_s
             when OID::Array::Data
               encode_array(value)
+            when Range
+              encode_range(value)
             else
               super
             end
@@ -128,6 +137,10 @@ module ActiveRecord
             result
           end
 
+          def encode_range(range)
+            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+          end
+
           def determine_encoding_of_strings_in_array(value)
             case value
             when ::Array then determine_encoding_of_strings_in_array(value.first)
@@ -140,6 +153,14 @@ module ActiveRecord
             when ::Array then values.map { |item| type_cast_array(item) }
             else _type_cast(values)
             end
+          end
+
+          def type_cast_range_value(value)
+            infinity?(value) ? "" : type_cast(value)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
           end
       end
     end

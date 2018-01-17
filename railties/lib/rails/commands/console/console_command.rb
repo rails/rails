@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "irb"
 require "irb/completion"
 
@@ -70,16 +72,25 @@ module Rails
       class_option :sandbox, aliases: "-s", type: :boolean, default: false,
         desc: "Rollback database modifications on exit."
 
-      class_option :environment, aliases: "-e", type: :string,
-        desc: "Specifies the environment to run this console under (test/development/production)."
+      def initialize(args = [], local_options = {}, config = {})
+        console_options = []
+
+        # For the same behavior as OptionParser, leave only options after "--" in ARGV.
+        termination = local_options.find_index("--")
+        if termination
+          console_options = local_options[termination + 1..-1]
+          local_options = local_options[0...termination]
+        end
+
+        ARGV.replace(console_options)
+        super(args, local_options, config)
+      end
 
       def perform
         extract_environment_option_from_argument
 
         # RAILS_ENV needs to be set before config/application is required.
         ENV["RAILS_ENV"] = options[:environment]
-
-        ARGV.clear # Clear ARGV so IRB doesn't freak.
 
         require_application_and_environment!
         Rails::Console.start(Rails.application, options)

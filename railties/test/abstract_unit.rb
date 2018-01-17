@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 ENV["RAILS_ENV"] ||= "test"
 
 require "stringio"
@@ -12,8 +14,7 @@ require "rails/all"
 
 module TestApp
   class Application < Rails::Application
-    config.root = File.dirname(__FILE__)
-    secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+    config.root = __dir__
   end
 end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "timeout"
 require "rack/content_length"
@@ -294,13 +296,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read content type with default charset utf-8" do
-    original = ActionDispatch::Response.default_charset
-    begin
-      resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
-      assert_equal("utf-8", resp.charset)
-    ensure
-      ActionDispatch::Response.default_charset = original
-    end
+    resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
+    assert_equal("utf-8", resp.charset)
   end
 
   test "read content type with charset utf-16" do
@@ -314,13 +311,16 @@ class ResponseTest < ActiveSupport::TestCase
     end
   end
 
-  test "read x_frame_options, x_content_type_options and x_xss_protection" do
+  test "read x_frame_options, x_content_type_options, x_xss_protection, x_download_options and x_permitted_cross_domain_policies, referrer_policy" do
     original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         "X-Frame-Options" => "DENY",
         "X-Content-Type-Options" => "nosniff",
-        "X-XSS-Protection" => "1;"
+        "X-XSS-Protection" => "1;",
+        "X-Download-Options" => "noopen",
+        "X-Permitted-Cross-Domain-Policies" => "none",
+        "Referrer-Policy" => "strict-origin-when-cross-origin"
       }
       resp = ActionDispatch::Response.create.tap { |response|
         response.body = "Hello"
@@ -330,6 +330,9 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal("DENY", resp.headers["X-Frame-Options"])
       assert_equal("nosniff", resp.headers["X-Content-Type-Options"])
       assert_equal("1;", resp.headers["X-XSS-Protection"])
+      assert_equal("noopen", resp.headers["X-Download-Options"])
+      assert_equal("none", resp.headers["X-Permitted-Cross-Domain-Policies"])
+      assert_equal("strict-origin-when-cross-origin", resp.headers["Referrer-Policy"])
     ensure
       ActionDispatch::Response.default_headers = original_default_headers
     end
@@ -381,10 +384,10 @@ class ResponseTest < ActiveSupport::TestCase
     app = lambda { |env| @response.to_a }
     env = Rack::MockRequest.env_for("/")
 
-    status, headers, body = app.call(env)
+    _status, headers, _body = app.call(env)
     assert_nil headers["Content-Length"]
 
-    status, headers, body = Rack::ContentLength.new(app).call(env)
+    _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_equal "5", headers["Content-Length"]
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "tempfile"
@@ -165,7 +167,7 @@ module ActiveRecord
             data binary
           )
         eosql
-        str = "\x80".force_encoding("ASCII-8BIT")
+        str = "\x80".dup.force_encoding("ASCII-8BIT")
         binary = DualEncoding.new name: "いただきます！", data: str
         binary.save!
         assert_equal str, binary.data
@@ -174,7 +176,7 @@ module ActiveRecord
       end
 
       def test_type_cast_should_not_mutate_encoding
-        name = "hello".force_encoding(Encoding::ASCII_8BIT)
+        name = "hello".dup.force_encoding(Encoding::ASCII_8BIT)
         Owner.create(name: name)
         assert_equal Encoding::ASCII_8BIT, name.encoding
       ensure
@@ -264,14 +266,6 @@ module ActiveRecord
         SQL
         assert_logged [[sql.squish, "SCHEMA", []]] do
           @conn.tables
-        end
-      end
-
-      def test_indexes_logs_name
-        with_example_table do
-          assert_logged [["PRAGMA index_list(\"ex\")", "SCHEMA", []]] do
-            assert_deprecated { @conn.indexes("ex", "hello") }
-          end
         end
       end
 
@@ -366,6 +360,116 @@ module ActiveRecord
         end
       end
 
+      class Barcode < ActiveRecord::Base
+        self.primary_key = "code"
+      end
+
+      def test_copy_table_with_existing_records_have_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: "code", id: :string, limit: 42, force: true) do |t|
+          t.text :other_attr
+        end
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(code: code, other_attr: "xxx")
+
+        connection.remove_column("barcodes", "other_attr")
+
+        assert_equal code, Barcode.first.id
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_copy_table_with_composite_primary_keys
+        connection = Barcode.connection
+        connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+          t.string :region
+          t.string :code
+          t.text :other_attr
+        end
+        region = "US"
+        code = "214fe0c2-dd47-46df-b53b-66090b3c1d40"
+        Barcode.create!(region: region, code: code, other_attr: "xxx")
+
+        connection.remove_column("barcodes", "other_attr")
+
+        assert_equal ["region", "code"], connection.primary_keys("barcodes")
+
+        barcode = Barcode.first
+        assert_equal region, barcode.region
+        assert_equal code, barcode.code
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_create_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_change_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.change_table :barcodes do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_add_column_with_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.add_column :barcodes, :id, :string, primary_key: true
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_remove_column_preserves_partial_indexes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+          t.string :region
+          t.boolean :bool_attr
+
+          t.index :code, unique: true, where: :bool_attr, name: "partial"
+        end
+        connection.remove_column :barcodes, :region
+
+        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", index.where
+      ensure
+        Barcode.reset_column_information
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
@@ -394,6 +498,10 @@ module ActiveRecord
             end
           end
         end
+      end
+
+      def test_deprecate_valid_alter_table_type
+        assert_deprecated { @conn.valid_alter_table_type?(:string) }
       end
 
       private

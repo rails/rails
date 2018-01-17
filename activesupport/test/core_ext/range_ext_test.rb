@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "active_support/core_ext/numeric"
@@ -12,6 +14,11 @@ class RangeTest < ActiveSupport::TestCase
   def test_to_s_from_times
     date_range = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     assert_equal "BETWEEN '2005-12-10 15:30:00' AND '2005-12-10 17:30:00'", date_range.to_s(:db)
+  end
+
+  def test_to_s_with_alphabets
+    alphabet_range = ("a".."z")
+    assert_equal "BETWEEN 'a' AND 'z'", alphabet_range.to_s(:db)
   end
 
   def test_to_s_with_numeric
@@ -99,24 +106,27 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_each_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).each {}
     end
   end
 
   def test_step_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
     assert_raises TypeError do
       ((twz - 1.hour)..twz).step(1) {}
     end
   end
 
   def test_include_on_time_with_zone
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"] , Time.utc(2006, 11, 28, 10, 30))
-    assert_raises TypeError do
-      ((twz - 1.hour)..twz).include?(twz)
-    end
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz).include?(twz)
+  end
+
+  def test_case_equals_on_time_with_zone
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Eastern Time (US & Canada)"], Time.utc(2006, 11, 28, 10, 30))
+    assert ((twz - 1.hour)..twz) === twz
   end
 
   def test_date_time_with_each

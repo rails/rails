@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/duration"
 require "active_support/values/time_zone"
 require "active_support/core_ext/object/acts_like"
@@ -330,6 +332,42 @@ module ActiveSupport
       since(-other)
     end
 
+    # Returns a new +ActiveSupport::TimeWithZone+ where one or more of the elements have
+    # been changed according to the +options+ parameter. The time options (<tt>:hour</tt>,
+    # <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly,
+    # so if only the hour is passed, then minute, sec, usec and nsec is set to 0. If the
+    # hour and minute is passed, then sec, usec and nsec is set to 0. The +options+
+    # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
+    # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>,
+    # <tt>:nsec</tt>, <tt>:offset</tt>, <tt>:zone</tt>. Pass either <tt>:usec</tt>
+    # or <tt>:nsec</tt>, not both. Similarly, pass either <tt>:zone</tt> or
+    # <tt>:offset</tt>, not both.
+    #
+    #   t = Time.zone.now          # => Fri, 14 Apr 2017 11:45:15 EST -05:00
+    #   t.change(year: 2020)       # => Tue, 14 Apr 2020 11:45:15 EST -05:00
+    #   t.change(hour: 12)         # => Fri, 14 Apr 2017 12:00:00 EST -05:00
+    #   t.change(min: 30)          # => Fri, 14 Apr 2017 11:30:00 EST -05:00
+    #   t.change(offset: "-10:00") # => Fri, 14 Apr 2017 11:45:15 HST -10:00
+    #   t.change(zone: "Hawaii")   # => Fri, 14 Apr 2017 11:45:15 HST -10:00
+    def change(options)
+      if options[:zone] && options[:offset]
+        raise ArgumentError, "Can't change both :offset and :zone at the same time: #{options.inspect}"
+      end
+
+      new_time = time.change(options)
+
+      if options[:zone]
+        new_zone = ::Time.find_zone(options[:zone])
+      elsif options[:offset]
+        new_zone = ::Time.find_zone(new_time.utc_offset)
+      end
+
+      new_zone ||= time_zone
+      periods = new_zone.periods_for_local(new_time)
+
+      self.class.new(nil, new_zone, new_time, periods.include?(period) ? period : nil)
+    end
+
     # Uses Date to provide precise Time calculations for years, months, and days
     # according to the proleptic Gregorian calendar. The result is returned as a
     # new TimeWithZone object.
@@ -411,6 +449,17 @@ module ActiveSupport
       @to_datetime ||= utc.to_datetime.new_offset(Rational(utc_offset, 86_400))
     end
 
+    # Returns an instance of +Time+, either with the same UTC offset
+    # as +self+ or in the local system timezone depending on the setting
+    # of +ActiveSupport.to_time_preserves_timezone+.
+    def to_time
+      if preserve_timezone
+        @to_time_with_instance_offset ||= getlocal(utc_offset)
+      else
+        @to_time_with_system_offset ||= getlocal
+      end
+    end
+
     # So that +self+ <tt>acts_like?(:time)</tt>.
     def acts_like_time?
       true
@@ -429,7 +478,7 @@ module ActiveSupport
 
     def freeze
       # preload instance variables before freezing
-      period; utc; time; to_datetime
+      period; utc; time; to_datetime; to_time
       super
     end
 

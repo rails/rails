@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task generate: "generate:html"
@@ -17,13 +19,13 @@ namespace :guides do
 
   namespace :generate do
     desc "Generate HTML guides"
-    task :html => :encoding do
+    task html: :encoding do
       ENV["WARNINGS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
-    task :kindle => :encoding do
+    task kindle: :encoding do
       require "kindlerb"
       unless Kindlerb.kindlegen_available?
         abort "Please run `setupkindlerb` to install kindlegen"
@@ -38,7 +40,7 @@ namespace :guides do
 
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-  task :validate => :encoding do
+  task validate: :encoding do
     ruby "w3c_validator.rb"
   end
 

@@ -1,4 +1,26 @@
+# frozen_string_literal: true
+
 module AbstractController
+  # = Abstract Controller Callbacks
+  #
+  # Abstract Controller provides hooks during the life cycle of a controller action.
+  # Callbacks allow you to trigger logic during this cycle. Available callbacks are:
+  #
+  # * <tt>after_action</tt>
+  # * <tt>append_after_action</tt>
+  # * <tt>append_around_action</tt>
+  # * <tt>append_before_action</tt>
+  # * <tt>around_action</tt>
+  # * <tt>before_action</tt>
+  # * <tt>prepend_after_action</tt>
+  # * <tt>prepend_around_action</tt>
+  # * <tt>prepend_before_action</tt>
+  # * <tt>skip_after_action</tt>
+  # * <tt>skip_around_action</tt>
+  # * <tt>skip_before_action</tt>
+  #
+  # NOTE: Calling the same callback multiple times will overwrite previous callback definitions.
+  #
   module Callbacks
     extend ActiveSupport::Concern
 
@@ -9,12 +31,12 @@ module AbstractController
 
     included do
       define_callbacks :process_action,
-                       terminator: ->(controller, result_lambda) { result_lambda.call if result_lambda.is_a?(Proc); controller.performed? },
+                       terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
                        skip_after_callbacks_if_terminated: true
     end
 
-    # Override AbstractController::Base's process_action to run the
-    # process_action callbacks around the normal behavior.
+    # Override <tt>AbstractController::Base#process_action</tt> to run the
+    # <tt>process_action</tt> callbacks around the normal behavior.
     def process_action(*args)
       run_callbacks(:process_action) do
         super

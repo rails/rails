@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller"
 
@@ -103,7 +105,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     assert_url_for "/dummy_model", DummyModel
 
     # array
-    assert_url_for "/dummy_model" , [DummyModel]
+    assert_url_for "/dummy_model", [DummyModel]
   end
 
   def test_signed_up_with_url
@@ -119,7 +121,7 @@ class ActionMailerUrlTest < ActionMailer::TestCase
     expected = new_mail
     expected.to      = @recipient
     expected.subject = "[Signed up] Welcome #{@recipient}"
-    expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img alt=\"Somelogo\" src=\"/images/somelogo.png\" />"
+    expected.body    = "Hello there,\n\nMr. #{@recipient}. Please see our greeting at http://example.com/welcome/greeting http://www.basecamphq.com/welcome\n\n<img src=\"/images/somelogo.png\" />"
     expected.from    = "system@loudthinking.com"
     expected.date    = Time.local(2004, 12, 12)
     expected.content_type = "text/html"

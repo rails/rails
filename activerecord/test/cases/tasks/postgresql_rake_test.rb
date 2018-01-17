@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
@@ -217,23 +219,35 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(structure_dump: true)
+        @connection    = stub(schema_search_path: nil, structure_dump: true)
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
         }
-        @filename = "awesome-file.sql"
+        @filename = "/tmp/awesome-file.sql"
+        FileUtils.touch(@filename)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
-        File.stubs(:open)
+      end
+
+      def teardown
+        FileUtils.rm_f(@filename)
       end
 
       def test_structure_dump
         Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
 
         ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      end
+
+      def test_structure_dump_header_comments_removed
+        Kernel.stubs(:system).returns(true)
+        File.write(@filename, "-- header comment\n\n-- more header comment\n statement \n-- lower comment\n")
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+
+        assert_equal [" statement \n", "-- lower comment\n"], File.readlines(@filename).first(2)
       end
 
       def test_structure_dump_with_extra_flags
@@ -244,6 +258,14 @@ if current_adapter?(:PostgreSQLAdapter)
             ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
           end
         end
+      end
+
+      def test_structure_dump_with_ignore_tables
+        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
+
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db").returns(true)
+
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
       end
 
       def test_structure_dump_with_schema_search_path
@@ -270,6 +292,16 @@ if current_adapter?(:PostgreSQLAdapter)
         with_dump_schemas("foo,bar") do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
         end
+      end
+
+      def test_structure_dump_execution_fails
+        filename = "awesome-file.sql"
+        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", filename, "my-app-db").returns(nil)
+
+        e = assert_raise(RuntimeError) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+        assert_match("failed to execute:", e.message)
       end
 
       private
@@ -300,7 +332,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def test_structure_load

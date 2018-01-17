@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/code_statistics_calculator"
 require "active_support/core_ext/enumerable"
 
@@ -7,7 +9,8 @@ class CodeStatistics #:nodoc:
                 "Model tests",
                 "Mailer tests",
                 "Job tests",
-                "Integration tests"]
+                "Integration tests",
+                "System tests"]
 
   HEADERS = { lines: " Lines", code_lines: "   LOC", classes: "Classes", methods: "Methods" }
 

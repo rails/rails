@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "bigdecimal"
 require "securerandom"
@@ -5,6 +7,11 @@ require "securerandom"
 class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   def setup
     @conn = ActiveRecord::Base.connection
+    @initial_represent_boolean_as_integer = ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer
+  end
+
+  def teardown
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = @initial_represent_boolean_as_integer
   end
 
   def test_type_cast_binary_encoding_without_logger
@@ -15,15 +22,23 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_true
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = false
     assert_equal "t", @conn.type_cast(true)
+
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    assert_equal 1, @conn.type_cast(true)
   end
 
   def test_type_cast_false
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = false
     assert_equal "f", @conn.type_cast(false)
+
+    ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer = true
+    assert_equal 0, @conn.type_cast(false)
   end
 
   def test_type_cast_bigdecimal
-    bd = BigDecimal.new "10.0"
+    bd = BigDecimal "10.0"
     assert_equal bd.to_f, @conn.type_cast(bd)
   end
 

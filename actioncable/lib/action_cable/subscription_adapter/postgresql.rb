@@ -1,6 +1,9 @@
-gem "pg", "~> 0.18"
+# frozen_string_literal: true
+
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 require "thread"
+require "digest/sha1"
 
 module ActionCable
   module SubscriptionAdapter
@@ -12,16 +15,16 @@ module ActionCable
 
       def broadcast(channel, payload)
         with_connection do |pg_conn|
-          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel)}, '#{pg_conn.escape_string(payload)}'")
+          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{pg_conn.escape_string(payload)}'")
         end
       end
 
       def subscribe(channel, callback, success_callback = nil)
-        listener.add_subscriber(channel, callback, success_callback)
+        listener.add_subscriber(channel_identifier(channel), callback, success_callback)
       end
 
       def unsubscribe(channel, callback)
-        listener.remove_subscriber(channel, callback)
+        listener.remove_subscriber(channel_identifier(channel), callback)
       end
 
       def shutdown
@@ -41,6 +44,10 @@ module ActionCable
       end
 
       private
+        def channel_identifier(channel)
+          channel.size > 63 ? Digest::SHA1.hexdigest(channel) : channel
+        end
+
         def listener
           @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
         end

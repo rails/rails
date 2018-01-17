@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -40,6 +42,7 @@ module ApplicationTests
         "ActionDispatch::Cookies",
         "ActionDispatch::Session::CookieStore",
         "ActionDispatch::Flash",
+        "ActionDispatch::ContentSecurityPolicy::Middleware",
         "Rack::Head",
         "Rack::ConditionalGet",
         "Rack::ETag"
@@ -246,7 +249,7 @@ module ApplicationTests
 
     test "can't change middleware after it's built" do
       boot!
-      assert_raise RuntimeError do
+      assert_raise frozen_error_class do
         app.config.middleware.use Rack::Config
       end
     end
@@ -274,7 +277,7 @@ module ApplicationTests
       assert_equal "max-age=0, private, must-revalidate", last_response.headers["Cache-Control"]
       assert_equal etag, last_response.headers["Etag"]
 
-      get "/", {}, "HTTP_IF_NONE_MATCH" => etag
+      get "/", {}, { "HTTP_IF_NONE_MATCH" => etag }
       assert_equal 304, last_response.status
       assert_equal "", last_response.body
       assert_nil last_response.headers["Content-Type"]

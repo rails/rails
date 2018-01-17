@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AbstractController
   module Caching
     # Fragment caching is used for caching various blocks within
@@ -25,7 +27,10 @@ module AbstractController
 
         self.fragment_cache_keys = []
 
-        helper_method :fragment_cache_key if respond_to?(:helper_method)
+        if respond_to?(:helper_method)
+          helper_method :fragment_cache_key
+          helper_method :combined_fragment_cache_key
+        end
       end
 
       module ClassMethods
@@ -62,9 +67,28 @@ module AbstractController
       # with the specified +key+ value. The key is expanded using
       # ActiveSupport::Cache.expand_cache_key.
       def fragment_cache_key(key)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          Calling fragment_cache_key directly is deprecated and will be removed in Rails 6.0.
+          All fragment accessors now use the combined_fragment_cache_key method that retains the key as an array,
+          such that the caching stores can interrogate the parts for cache versions used in
+          recyclable cache keys.
+        MSG
+
         head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
         ActiveSupport::Cache.expand_cache_key([*head, *tail], :views)
+      end
+
+      # Given a key (as described in +expire_fragment+), returns
+      # a key array suitable for use in reading, writing, or expiring a
+      # cached fragment. All keys begin with <tt>:views</tt>,
+      # followed by ENV["RAILS_CACHE_ID"] or ENV["RAILS_APP_VERSION"] if set,
+      # followed by any controller-wide key prefix values, ending
+      # with the specified +key+ value.
+      def combined_fragment_cache_key(key)
+        head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
+        tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
+        [ :views, (ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]), *head, *tail ].compact
       end
 
       # Writes +content+ to the location signified by
@@ -72,7 +96,7 @@ module AbstractController
       def write_fragment(key, content, options = nil)
         return content unless cache_configured?
 
-        key = fragment_cache_key(key)
+        key = combined_fragment_cache_key(key)
         instrument_fragment_cache :write_fragment, key do
           content = content.to_str
           cache_store.write(key, content, options)
@@ -85,7 +109,7 @@ module AbstractController
       def read_fragment(key, options = nil)
         return unless cache_configured?
 
-        key = fragment_cache_key(key)
+        key = combined_fragment_cache_key(key)
         instrument_fragment_cache :read_fragment, key do
           result = cache_store.read(key, options)
           result.respond_to?(:html_safe) ? result.html_safe : result
@@ -96,7 +120,7 @@ module AbstractController
       # +key+ exists (see +expire_fragment+ for acceptable formats).
       def fragment_exist?(key, options = nil)
         return unless cache_configured?
-        key = fragment_cache_key(key)
+        key = combined_fragment_cache_key(key)
 
         instrument_fragment_cache :exist_fragment?, key do
           cache_store.exist?(key, options)
@@ -123,7 +147,7 @@ module AbstractController
       # method (or <tt>delete_matched</tt>, for Regexp keys).
       def expire_fragment(key, options = nil)
         return unless cache_configured?
-        key = fragment_cache_key(key) unless key.is_a?(Regexp)
+        key = combined_fragment_cache_key(key) unless key.is_a?(Regexp)
 
         instrument_fragment_cache :expire_fragment, key do
           if key.is_a?(Regexp)
@@ -135,8 +159,7 @@ module AbstractController
       end
 
       def instrument_fragment_cache(name, key) # :nodoc:
-        payload = instrument_payload(key)
-        ActiveSupport::Notifications.instrument("#{name}.#{instrument_name}", payload) { yield }
+        ActiveSupport::Notifications.instrument("#{name}.#{instrument_name}", instrument_payload(key)) { yield }
       end
     end
   end

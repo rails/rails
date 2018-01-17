@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/deprecation"
 
@@ -6,6 +8,16 @@ class MethodWrappersTest < ActiveSupport::TestCase
     @klass = Class.new do
       def new_method; "abc" end
       alias_method :old_method, :new_method
+
+      protected
+
+        def new_protected_method; "abc" end
+        alias_method :old_protected_method, :new_protected_method
+
+      private
+
+        def new_private_method; "abc" end
+        alias_method :old_private_method, :new_private_method
     end
   end
 
@@ -30,5 +42,17 @@ class MethodWrappersTest < ActiveSupport::TestCase
     deprecator.deprecate_methods(@klass, old_method: :new_method)
 
     assert_deprecated(warning, deprecator) { assert_equal "abc", @klass.new.old_method }
+  end
+
+  def test_deprecate_methods_protected_method
+    ActiveSupport::Deprecation.deprecate_methods(@klass, old_protected_method: :new_protected_method)
+
+    assert(@klass.protected_method_defined?(:old_protected_method))
+  end
+
+  def test_deprecate_methods_private_method
+    ActiveSupport::Deprecation.deprecate_methods(@klass, old_private_method: :new_private_method)
+
+    assert(@klass.private_method_defined?(:old_private_method))
   end
 end

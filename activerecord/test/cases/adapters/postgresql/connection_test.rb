@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -31,15 +33,21 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_not_nil @connection.encoding
+      assert_queries(1) do
+        assert_not_nil @connection.encoding
+      end
     end
 
     def test_collation
-      assert_not_nil @connection.collation
+      assert_queries(1) do
+        assert_not_nil @connection.collation
+      end
     end
 
     def test_ctype
-      assert_not_nil @connection.ctype
+      assert_queries(1) do
+        assert_not_nil @connection.ctype
+      end
     end
 
     def test_default_client_min_messages
@@ -95,7 +103,7 @@ module ActiveRecord
     end
 
     def test_indexes_logs_name
-      assert_deprecated { @connection.indexes("items", "hello") }
+      @connection.indexes("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -209,6 +217,13 @@ module ActiveRecord
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+      end
+    end
+
+    def test_set_session_timezone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
+        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
       end
     end
 

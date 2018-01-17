@@ -1,9 +1,47 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
-    # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    IndexDefinition = Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
+    # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
+    class IndexDefinition # :nodoc:
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment
+
+      def initialize(
+        table, name,
+        unique = false,
+        columns = [],
+        lengths: {},
+        orders: {},
+        opclasses: {},
+        where: nil,
+        type: nil,
+        using: nil,
+        comment: nil
+      )
+        @table = table
+        @name = name
+        @unique = unique
+        @columns = columns
+        @lengths = concise_options(lengths)
+        @orders = concise_options(orders)
+        @opclasses = concise_options(opclasses)
+        @where = where
+        @type = type
+        @using = using
+        @comment = comment
+      end
+
+      private
+        def concise_options(options)
+          if columns.size == options.size && options.values.uniq.size == 1
+            options.values.first
+          else
+            options
+          end
+        end
+    end
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
@@ -57,6 +95,11 @@ module ActiveRecord
       def custom_primary_key?
         options[:primary_key] != default_primary_key
       end
+
+      def validate?
+        options.fetch(:validate, true)
+      end
+      alias validated? validate?
 
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
         if to_table_ord
@@ -121,7 +164,7 @@ module ActiveRecord
         end
 
         def polymorphic_options
-          as_options(polymorphic)
+          as_options(polymorphic).merge(options.slice(:null, :first, :after))
         end
 
         def index_options
@@ -177,6 +220,7 @@ module ActiveRecord
         :decimal,
         :float,
         :integer,
+        :json,
         :string,
         :text,
         :time,
@@ -369,6 +413,9 @@ module ActiveRecord
       alias :belongs_to :references
 
       def new_column_definition(name, type, **options) # :nodoc:
+        if integer_like_primary_key?(type, options)
+          type = integer_like_primary_key_type(type, options)
+        end
         type = aliased_types(type.to_s, type)
         options[:primary_key] ||= type == :primary_key
         options[:null] = false if options[:primary_key]
@@ -382,6 +429,14 @@ module ActiveRecord
 
         def aliased_types(name, fallback)
           "timestamp" == name ? :datetime : fallback
+        end
+
+        def integer_like_primary_key?(type, options)
+          options[:primary_key] && [:integer, :bigint].include?(type) && !options.key?(:default)
+        end
+
+        def integer_like_primary_key_type(type, options)
+          type
         end
     end
 

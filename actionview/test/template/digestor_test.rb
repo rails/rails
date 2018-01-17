@@ -1,20 +1,11 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "fileutils"
 require "action_view/dependency_tracker"
 
-class FixtureTemplate
-  attr_reader :source, :handler
-
-  def initialize(template_path)
-    @source = File.read(template_path)
-    @handler = ActionView::Template.handler_for_extension(:erb)
-  rescue Errno::ENOENT
-    raise ActionView::MissingTemplate.new([], "", [], true, [])
-  end
-end
-
 class FixtureFinder < ActionView::LookupContext
-  FIXTURES_DIR = "#{File.dirname(__FILE__)}/../fixtures/digestor"
+  FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
 
   def initialize(details = {})
     super(ActionView::PathSet.new(["digestor", "digestor/api"]), details, [])
@@ -122,13 +113,13 @@ class TemplateDigestorTest < ActionView::TestCase
   end
 
   def test_logging_of_missing_template_for_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       dependencies("messages/something_missing")
     end
   end
 
   def test_logging_of_missing_template_for_nested_dependencies
-    assert_logged "'messages/something_missing' file doesn't exist, so no dependencies" do
+    assert_logged "Couldn't find template for digesting: messages/something_missing" do
       nested_dependencies("messages/something_missing")
     end
   end

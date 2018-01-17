@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_models"
 
@@ -10,8 +12,8 @@ module RenderTestCases
     @view = Class.new(ActionView::Base) do
       def view_cache_dependencies; end
 
-      def fragment_cache_key(key)
-        ActiveSupport::Cache.expand_cache_key(key, :views)
+      def combined_fragment_cache_key(key)
+        [ :views, key ]
       end
     end.new(paths, @assigns)
 
@@ -27,7 +29,7 @@ module RenderTestCases
 
   def test_render_without_options
     e = assert_raises(ArgumentError) { @view.render() }
-    assert_match(/You invoked render but did not give any of (.+) option./, e.message)
+    assert_match(/You invoked render but did not give any of (.+) option\./, e.message)
   end
 
   def test_render_file
@@ -83,6 +85,10 @@ module RenderTestCases
     assert_equal "<h1>Kein Kommentar</h1>", @view.render(template: "comments/empty", locale: [:de])
   end
 
+  def test_render_template_with_variants
+    assert_equal "<h1>No Comment</h1>\n", @view.render(template: "comments/empty", variants: :grid)
+  end
+
   def test_render_file_with_handlers
     assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: [:builder])
     assert_equal "<h1>No Comment</h1>\n", @view.render(file: "comments/empty", handlers: :builder)
@@ -134,7 +140,7 @@ module RenderTestCases
   end
 
   def test_render_file_with_full_path
-    template_path = File.join(File.dirname(__FILE__), "../fixtures/test/hello_world")
+    template_path = File.expand_path("../fixtures/test/hello_world", __dir__)
     assert_equal "Hello world!", @view.render(file: template_path)
   end
 
@@ -156,7 +162,7 @@ module RenderTestCases
   end
 
   def test_render_outside_path
-    assert File.exist?(File.join(File.dirname(__FILE__), "../../test/abstract_unit.rb"))
+    assert File.exist?(File.expand_path("../../test/abstract_unit.rb", __dir__))
     assert_raises ActionView::MissingTemplate do
       @view.render(template: "../\\../test/abstract_unit.rb")
     end
@@ -168,6 +174,10 @@ module RenderTestCases
 
   def test_render_partial_with_format
     assert_equal "partial html", @view.render(partial: "test/partial")
+  end
+
+  def test_render_partial_with_variants
+    assert_equal "<h1>Partial with variants</h1>\n", @view.render(partial: "test/partial_with_variants", variants: :grid)
   end
 
   def test_render_partial_with_selected_format
@@ -253,7 +263,7 @@ module RenderTestCases
   def test_render_sub_template_with_errors
     e = assert_raises(ActionView::Template::Error) { @view.render(template: "test/sub_template_raise") }
     assert_match %r!method.*doesnt_exist!, e.message
-    assert_match %r{Trace of template inclusion: .*test/sub_template_raise.html.erb}, e.sub_template_message
+    assert_match %r{Trace of template inclusion: .*test/sub_template_raise\.html\.erb}, e.sub_template_message
     assert_equal "1", e.line_number
     assert_equal File.expand_path("#{FIXTURE_LOAD_PATH}/test/_raise.html.erb"), e.file_name
   end
@@ -431,7 +441,7 @@ module RenderTestCases
   end
 
   CustomHandler = lambda do |template|
-    "@output_buffer = ''\n" \
+    "@output_buffer = ''.dup\n" \
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
@@ -575,7 +585,7 @@ module RenderTestCases
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
     ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
-    assert_equal @view.render(inline: "Hello, World!", type: :foo1), @view.render(inline: "Hello, World!", type: :foo2)
+    assert_equal @view.render(inline: "Hello, World!".dup, type: :foo1), @view.render(inline: "Hello, World!".dup, type: :foo2)
   ensure
     ActionView::Template.unregister_template_handler :foo1, :foo2
   end
@@ -710,6 +720,6 @@ class CachedCollectionViewRenderTest < ActiveSupport::TestCase
   private
     def cache_key(*names, virtual_path)
       digest = ActionView::Digestor.digest name: virtual_path, finder: @view.lookup_context, dependencies: []
-      @view.fragment_cache_key([ *names, digest ])
+      @view.combined_fragment_cache_key([ "#{virtual_path}:#{digest}", *names ])
     end
 end

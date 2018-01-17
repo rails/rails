@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/active_model"
 require "rails/generators/model_helpers"
 

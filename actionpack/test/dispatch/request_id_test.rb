@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class RequestIdTest < ActiveSupport::TestCase

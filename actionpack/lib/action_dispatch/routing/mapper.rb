@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
@@ -17,9 +19,9 @@ module ActionDispatch
         CALL  = ->(app, req) { app.call req.env }
 
         def initialize(app, constraints, strategy)
-          # Unwrap Constraints objects.  I don't actually think it's possible
+          # Unwrap Constraints objects. I don't actually think it's possible
           # to pass a Constraints object to this constructor, but there were
-          # multiple places that kept testing children of this object.  I
+          # multiple places that kept testing children of this object. I
           # *think* they were just being defensive, but I have no idea.
           if app.is_a?(self.class)
             constraints += app.constraints
@@ -54,6 +56,7 @@ module ActionDispatch
 
       class Mapping #:nodoc:
         ANCHOR_CHARACTERS_REGEX = %r{\A(\\A|\^)|(\\Z|\\z|\$)\Z}
+        OPTIONAL_FORMAT_REGEX = %r{(?:\(\.:format\)+|\.:format|/)\Z}
 
         attr_reader :requirements, :defaults
         attr_reader :to, :default_controller, :default_action
@@ -93,7 +96,7 @@ module ActionDispatch
         end
 
         def self.optional_format?(path, format)
-          format != false && !path.include?(":format") && !path.end_with?("/")
+          format != false && path !~ OPTIONAL_FORMAT_REGEX
         end
 
         def initialize(set, ast, defaults, controller, default_action, modyoule, to, formatted, scope_constraints, blocks, via, options_constraints, anchor, options)
@@ -218,7 +221,7 @@ module ActionDispatch
         private
           def add_wildcard_options(options, formatted, path_ast)
             # Add a constraint for wildcard route to make it non-greedy and match the
-            # optional format part of the route by default
+            # optional format part of the route by default.
             if formatted != false
               path_ast.grep(Journey::Nodes::Star).each_with_object({}) { |node, hash|
                 hash[node.name.to_sym] ||= /.+?/
@@ -305,7 +308,7 @@ module ActionDispatch
           def check_controller_and_action(path_params, controller, action)
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
-                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems."
+                message = "'#{part}' is not a supported controller name. This can lead to potential routing problems.".dup
                 message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
@@ -396,7 +399,7 @@ module ActionDispatch
       end
 
       module Base
-        # Matches a url pattern to one or more routes.
+        # Matches a URL pattern to one or more routes.
         #
         # You should not use the +match+ method in your router
         # without specifying an HTTP method.
@@ -406,7 +409,7 @@ module ActionDispatch
         #   # sets :controller, :action and :id in params
         #   match ':controller/:action/:id', via: [:get, :post]
         #
-        # Note that +:controller+, +:action+ and +:id+ are interpreted as url
+        # Note that +:controller+, +:action+ and +:id+ are interpreted as URL
         # query parameters and thus available through +params+ in an action.
         #
         # If you want to expose your action to GET, use +get+ in the router:
@@ -455,7 +458,7 @@ module ActionDispatch
         #
         # === Options
         #
-        # Any options not seen here are passed on as params with the url.
+        # Any options not seen here are passed on as params with the URL.
         #
         # [:controller]
         #   The route's controller.
@@ -470,7 +473,17 @@ module ActionDispatch
         #   <tt>params[<:param>]</tt>.
         #   In your router:
         #
-        #      resources :user, param: :name
+        #      resources :users, param: :name
+        #
+        #   The +users+ resource here will have the following routes generated for it:
+        #
+        #      GET       /users(.:format)
+        #      POST      /users(.:format)
+        #      GET       /users/new(.:format)
+        #      GET       /users/:name/edit(.:format)
+        #      GET       /users/:name(.:format)
+        #      PATCH/PUT /users/:name(.:format)
+        #      DELETE    /users/:name(.:format)
         #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
@@ -481,8 +494,8 @@ module ActionDispatch
         #        end
         #      end
         #
-        #   user = User.find_by(name: 'Phusion')
-        #   user_path(user)  # => "/users/Phusion"
+        #      user = User.find_by(name: 'Phusion')
+        #      user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
@@ -651,18 +664,30 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
-            app.routes.define_mounted_helper(name)
+
+            script_namer = ->(options) do
+              prefix_options = options.slice(*_route.segment_keys)
+              prefix_options[:relative_url_root] = "".freeze
+
+              if options[:_recall]
+                prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
+              end
+
+              # We must actually delete prefix segment keys to avoid passing them to next url_for.
+              _route.segment_keys.each { |k| options.delete(k) }
+              _routes.url_helpers.send("#{name}_path", prefix_options)
+            end
+
+            app.routes.define_mounted_helper(name, script_namer)
+
             app.routes.extend Module.new {
               def optimize_routes_generation?; false; end
+
               define_method :find_script_name do |options|
                 if options.key? :script_name
                   super(options)
                 else
-                  prefix_options = options.slice(*_route.segment_keys)
-                  prefix_options[:relative_url_root] = "".freeze
-                  # we must actually delete prefix segment keys to avoid passing them to next url_for
-                  _route.segment_keys.each { |k| options.delete(k) }
-                  _routes.url_helpers.send("#{name}_path", prefix_options)
+                  script_namer.call(options)
                 end
               end
             }
@@ -1238,7 +1263,7 @@ module ActionDispatch
         #
         #   resource :profile
         #
-        # creates six different routes in your application, all mapping to
+        # This creates six different routes in your application, all mapping to
         # the +Profiles+ controller (note that the controller is named after
         # the plural):
         #
@@ -1250,7 +1275,7 @@ module ActionDispatch
         #   POST      /profile
         #
         # === Options
-        # Takes same options as +resources+.
+        # Takes same options as resources[rdoc-ref:#resources]
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1315,7 +1340,7 @@ module ActionDispatch
         #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
-        # Takes same options as <tt>Base#match</tt> as well as:
+        # Takes same options as match[rdoc-ref:Base#match] as well as:
         #
         # [:path_names]
         #   Allows you to change the segment component of the +edit+ and +new+ actions.
@@ -1323,14 +1348,14 @@ module ActionDispatch
         #
         #     resources :posts, path_names: { new: "brand_new" }
         #
-        #   The above example will now change /posts/new to /posts/brand_new
+        #   The above example will now change /posts/new to /posts/brand_new.
         #
         # [:path]
         #   Allows you to change the path prefix for the resource.
         #
         #     resources :posts, path: 'postings'
         #
-        #   The resource and all segments will now route to /postings instead of /posts
+        #   The resource and all segments will now route to /postings instead of /posts.
         #
         # [:only]
         #   Only generate routes for the given actions.
@@ -1525,7 +1550,7 @@ module ActionDispatch
           end
         end
 
-        # See ActionDispatch::Routing::Mapper::Scoping#namespace
+        # See ActionDispatch::Routing::Mapper::Scoping#namespace.
         def namespace(path, options = {})
           if resource_scope?
             nested { super }
@@ -1545,7 +1570,7 @@ module ActionDispatch
           !parent_resource.singleton? && @scope[:shallow]
         end
 
-        # Matches a url pattern to one or more routes.
+        # Matches a URL pattern to one or more routes.
         # For more information, see match[rdoc-ref:Base#match].
         #
         #   match 'path' => 'controller#action', via: patch
@@ -1836,7 +1861,7 @@ module ActionDispatch
             path_types.fetch(String, []).each do |_path|
               route_options = options.dup
               if _path && option_path
-                raise ArgumentError, "Ambigous route definition. Both :path and the route path where specified as strings."
+                raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
               end
               to = get_to_from_path(_path, to, route_options[:action])
               decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
@@ -2003,7 +2028,7 @@ module ActionDispatch
         #     concerns :commentable
         #   end
         #
-        # concerns also work in any routes helper that you want to use:
+        # Concerns also work in any routes helper that you want to use:
         #
         #   namespace :posts do
         #     concerns :commentable
@@ -2021,7 +2046,7 @@ module ActionDispatch
       end
 
       module CustomUrls
-        # Define custom url helpers that will be added to the application's
+        # Define custom URL helpers that will be added to the application's
         # routes. This allows you to override and/or replace the default behavior
         # of routing helpers, e.g:
         #
@@ -2037,37 +2062,37 @@ module ActionDispatch
         #     { controller: "pages", action: "index", subdomain: "www" }
         #   end
         #
-        # The return value from the block passed to `direct` must be a valid set of
-        # arguments for `url_for` which will actually build the url string. This can
+        # The return value from the block passed to +direct+ must be a valid set of
+        # arguments for +url_for+ which will actually build the URL string. This can
         # be one of the following:
         #
-        #   * A string, which is treated as a generated url
-        #   * A hash, e.g. { controller: "pages", action: "index" }
-        #   * An array, which is passed to `polymorphic_url`
-        #   * An Active Model instance
-        #   * An Active Model class
+        # * A string, which is treated as a generated URL
+        # * A hash, e.g. <tt>{ controller: "pages", action: "index" }</tt>
+        # * An array, which is passed to +polymorphic_url+
+        # * An Active Model instance
+        # * An Active Model class
         #
-        # NOTE: Other url helpers can be called in the block but be careful not to invoke
-        # your custom url helper again otherwise it will result in a stack overflow error
+        # NOTE: Other URL helpers can be called in the block but be careful not to invoke
+        # your custom URL helper again otherwise it will result in a stack overflow error.
         #
         # You can also specify default options that will be passed through to
-        # your url helper definition, e.g:
+        # your URL helper definition, e.g:
         #
         #   direct :browse, page: 1, size: 10 do |options|
         #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
         #   end
         #
-        # In this instance the `params` object comes from the context in which the the
-        # block is executed, e.g. generating a url inside a controller action or a view.
+        # In this instance the +params+ object comes from the context in which the the
+        # block is executed, e.g. generating a URL inside a controller action or a view.
         # If the block is executed where there isn't a params object such as this:
         #
         #   Rails.application.routes.url_helpers.browse_path
         #
-        # then it will raise a `NameError`. Because of this you need to be aware of the
-        # context in which you will use your custom url helper when defining it.
+        # then it will raise a +NameError+. Because of this you need to be aware of the
+        # context in which you will use your custom URL helper when defining it.
         #
-        # NOTE: The `direct` method can't be used inside of a scope block such as
-        # `namespace` or `scope` and will raise an error if it detects that it is.
+        # NOTE: The +direct+ method can't be used inside of a scope block such as
+        # +namespace+ or +scope+ and will raise an error if it detects that it is.
         def direct(name, options = {}, &block)
           unless @scope.root?
             raise RuntimeError, "The direct method can't be used inside a routes scope block"
@@ -2076,9 +2101,9 @@ module ActionDispatch
           @set.add_url_helper(name, options, &block)
         end
 
-        # Define custom polymorphic mappings of models to urls. This alters the
-        # behavior of `polymorphic_url` and consequently the behavior of
-        # `link_to` and `form_for` when passed a model instance, e.g:
+        # Define custom polymorphic mappings of models to URLs. This alters the
+        # behavior of +polymorphic_url+ and consequently the behavior of
+        # +link_to+ and +form_for+ when passed a model instance, e.g:
         #
         #   resource :basket
         #
@@ -2086,10 +2111,10 @@ module ActionDispatch
         #     [:basket]
         #   end
         #
-        # This will now generate "/basket" when a `Basket` instance is passed to
-        # `link_to` or `form_for` instead of the standard "/baskets/:id".
+        # This will now generate "/basket" when a +Basket+ instance is passed to
+        # +link_to+ or +form_for+ instead of the standard "/baskets/:id".
         #
-        # NOTE: This custom behavior only applies to simple polymorphic urls where
+        # NOTE: This custom behavior only applies to simple polymorphic URLs where
         # a single model instance is passed and not more complicated forms, e.g:
         #
         #   # config/routes.rb
@@ -2104,8 +2129,8 @@ module ActionDispatch
         #   link_to "Profile", @current_user
         #   link_to "Profile", [:admin, @current_user]
         #
-        # The first `link_to` will generate "/profile" but the second will generate
-        # the standard polymorphic url of "/admin/users/1".
+        # The first +link_to+ will generate "/profile" but the second will generate
+        # the standard polymorphic URL of "/admin/users/1".
         #
         # You can pass options to a polymorphic mapping - the arity for the block
         # needs to be two as the instance is passed as the first argument, e.g:
@@ -2114,12 +2139,12 @@ module ActionDispatch
         #     [:basket, options]
         #   end
         #
-        # This generates the url "/basket#items" because when the last item in an
-        # array passed to `polymorphic_url` is a hash then it's treated as options
-        # to the url helper that gets called.
+        # This generates the URL "/basket#items" because when the last item in an
+        # array passed to +polymorphic_url+ is a hash then it's treated as options
+        # to the URL helper that gets called.
         #
-        # NOTE: The `resolve` method can't be used inside of a scope block such as
-        # `namespace` or `scope` and will raise an error if it detects that it is.
+        # NOTE: The +resolve+ method can't be used inside of a scope block such as
+        # +namespace+ or +scope+ and will raise an error if it detects that it is.
         def resolve(*args, &block)
           unless @scope.root?
             raise RuntimeError, "The resolve method can't be used inside a routes scope block"

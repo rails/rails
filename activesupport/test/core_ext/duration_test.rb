@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/inflector"
 require "active_support/time"
@@ -69,6 +71,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "7 days",                          7.days.inspect
     assert_equal "1 week",                          1.week.inspect
     assert_equal "2 weeks",                         1.fortnight.inspect
+    assert_equal "0 seconds",                       (10 % 5.seconds).inspect
+    assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
   end
 
   def test_inspect_locale
@@ -96,24 +100,57 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 2.seconds - 1.second
     assert_equal 1.second, 2.seconds - 1
     assert_instance_of ActiveSupport::Duration, 2.seconds - 1
+    assert_equal 1.second, 2 - 1.second
+    assert_instance_of ActiveSupport::Duration, 2.seconds - 1
   end
 
   def test_multiply
     assert_equal 7.days, 1.day * 7
     assert_instance_of ActiveSupport::Duration, 1.day * 7
-
-    assert_deprecated do
-      assert_equal 86400, 1.day * 1.second
-    end
+    assert_equal 86400, 1.day * 1.second
   end
 
   def test_divide
     assert_equal 1.day, 7.days / 7
     assert_instance_of ActiveSupport::Duration, 7.days / 7
 
-    assert_deprecated do
-      assert_equal 1, 1.day / 1.day
-    end
+    assert_equal 1.hour, 1.day / 24
+    assert_instance_of ActiveSupport::Duration, 1.day / 24
+
+    assert_equal 24, 86400 / 1.hour
+    assert_kind_of Integer, 86400 / 1.hour
+
+    assert_equal 24, 1.day / 1.hour
+    assert_kind_of Integer, 1.day / 1.hour
+
+    assert_equal 1, 1.day / 1.day
+    assert_kind_of Integer, 1.day / 1.hour
+  end
+
+  def test_modulo
+    assert_equal 1.minute, 5.minutes % 120
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 120
+
+    assert_equal 1.minute, 5.minutes % 2.minutes
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 2.minutes
+
+    assert_equal 1.minute, 5.minutes % 120.seconds
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 120.seconds
+
+    assert_equal 5.minutes, 5.minutes % 1.hour
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 1.hour
+
+    assert_equal 1.day, 36.days % 604800
+    assert_instance_of ActiveSupport::Duration, 36.days % 604800
+
+    assert_equal 1.day, 36.days % 7.days
+    assert_instance_of ActiveSupport::Duration, 36.days % 7.days
+
+    assert_equal 800.seconds, 8000 % 1.hour
+    assert_instance_of ActiveSupport::Duration, 8000 % 1.hour
+
+    assert_equal 1.month, 13.months % 1.year
+    assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
   def test_date_added_with_multiplied_duration
@@ -121,13 +158,11 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_time
-    assert_deprecated do
-      assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
-    end
+    assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016, 4, 28, 00, 45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -140,13 +175,6 @@ class DurationTest < ActiveSupport::TestCase
       1.second.ago("")
     end
     assert_equal 'expected a time or date, got ""', e.message, "ensure ArgumentError is not being raised by dependencies.rb"
-  end
-
-  def test_implicit_coercion_is_deprecated
-    assert_deprecated { 1 + 1.second }
-    assert_deprecated { 1 - 1.second }
-    assert_deprecated { 1 * 1.second }
-    assert_deprecated { 1 / 1.second }
   end
 
   def test_fractional_weeks
@@ -286,20 +314,175 @@ class DurationTest < ActiveSupport::TestCase
   def test_comparable
     assert_equal(-1, (0.seconds <=> 1.second))
     assert_equal(-1, (1.second <=> 1.minute))
-
-    assert_deprecated do
-      assert_equal(-1, (1 <=> 1.minute))
-    end
-
+    assert_equal(-1, (1 <=> 1.minute))
     assert_equal(0, (0.seconds <=> 0.seconds))
     assert_equal(0, (0.seconds <=> 0.minutes))
     assert_equal(0, (1.second <=> 1.second))
     assert_equal(1, (1.second <=> 0.second))
     assert_equal(1, (1.minute <=> 1.second))
+    assert_equal(1, (61 <=> 1.minute))
+  end
 
-    assert_deprecated do
-      assert_equal(1, (61 <=> 1.minute))
+  def test_implicit_coercion
+    assert_equal 2.days, 2 * 1.day
+    assert_instance_of ActiveSupport::Duration, 2 * 1.day
+    assert_equal Time.utc(2017, 1, 3), Time.utc(2017, 1, 1) + 2 * 1.day
+    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 2 * 1.day
+  end
+
+  def test_scalar_coerce
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+    assert_instance_of ActiveSupport::Duration::Scalar, 10 + scalar
+    assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
+  end
+
+  def test_scalar_delegations
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+    assert_kind_of Float, scalar.to_f
+    assert_kind_of Integer, scalar.to_i
+    assert_kind_of String, scalar.to_s
+  end
+
+  def test_scalar_unary_minus
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal(-10, -scalar)
+    assert_instance_of ActiveSupport::Duration::Scalar, -scalar
+  end
+
+  def test_scalar_compare
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal(1, scalar <=> 5)
+    assert_equal(0, scalar <=> 10)
+    assert_equal(-1, scalar <=> 15)
+    assert_nil(scalar <=> "foo")
+  end
+
+  def test_scalar_plus
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal 20, 10 + scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 10 + scalar
+    assert_equal 20, scalar + 10
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar + 10
+    assert_equal 20, 10.seconds + scalar
+    assert_instance_of ActiveSupport::Duration, 10.seconds + scalar
+    assert_equal 20, scalar + 10.seconds
+    assert_instance_of ActiveSupport::Duration, scalar + 10.seconds
+
+    exception = assert_raises(TypeError) do
+      scalar + "foo"
     end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_plus_parts
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal({ days: 1, seconds: 10 }, (scalar + 1.day).parts)
+    assert_equal({ days: -1, seconds: 10 }, (scalar + -1.day).parts)
+  end
+
+  def test_scalar_minus
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal 10, 20 - scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 20 - scalar
+    assert_equal 5, scalar - 5
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar - 5
+    assert_equal 10, 20.seconds - scalar
+    assert_instance_of ActiveSupport::Duration, 20.seconds - scalar
+    assert_equal 5, scalar - 5.seconds
+    assert_instance_of ActiveSupport::Duration, scalar - 5.seconds
+
+    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+
+    exception = assert_raises(TypeError) do
+      scalar - "foo"
+    end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_minus_parts
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal({ days: -1, seconds: 10 }, (scalar - 1.day).parts)
+    assert_equal({ days: 1, seconds: 10 }, (scalar - -1.day).parts)
+  end
+
+  def test_scalar_multiply
+    scalar = ActiveSupport::Duration::Scalar.new(5)
+
+    assert_equal 10, 2 * scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 2 * scalar
+    assert_equal 10, scalar * 2
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar * 2
+    assert_equal 10, 2.seconds * scalar
+    assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
+    assert_equal 10, scalar * 2.seconds
+    assert_instance_of ActiveSupport::Duration, scalar * 2.seconds
+
+    exception = assert_raises(TypeError) do
+      scalar * "foo"
+    end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_multiply_parts
+    scalar = ActiveSupport::Duration::Scalar.new(1)
+    assert_equal({ days: 2 }, (scalar * 2.days).parts)
+    assert_equal(172800, (scalar * 2.days).value)
+    assert_equal({ days: -2 }, (scalar * -2.days).parts)
+    assert_equal(-172800, (scalar * -2.days).value)
+  end
+
+  def test_scalar_divide
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal 10, 100 / scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 100 / scalar
+    assert_equal 5, scalar / 2
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar / 2
+    assert_equal 10, 100.seconds / scalar
+    assert_instance_of ActiveSupport::Duration, 100.seconds / scalar
+    assert_equal 5, scalar / 2.seconds
+    assert_kind_of Integer, scalar / 2.seconds
+
+    exception = assert_raises(TypeError) do
+      scalar / "foo"
+    end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_modulo
+    scalar = ActiveSupport::Duration::Scalar.new(10)
+
+    assert_equal 1, 31 % scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 31 % scalar
+    assert_equal 1, scalar % 3
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar % 3
+    assert_equal 1, 31.seconds % scalar
+    assert_instance_of ActiveSupport::Duration, 31.seconds % scalar
+    assert_equal 1, scalar % 3.seconds
+    assert_instance_of ActiveSupport::Duration, scalar % 3.seconds
+
+    exception = assert_raises(TypeError) do
+      scalar % "foo"
+    end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_modulo_parts
+    scalar = ActiveSupport::Duration::Scalar.new(82800)
+    assert_equal({ hours: 1 }, (scalar % 2.hours).parts)
+    assert_equal(3600, (scalar % 2.hours).value)
   end
 
   def test_twelve_months_equals_one_year

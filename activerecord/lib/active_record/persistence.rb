@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Persistence
   module Persistence
@@ -69,6 +71,132 @@ module ActiveRecord
         klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
       end
 
+      # Updates an object (or multiple objects) and saves it to the database, if validations pass.
+      # The resulting object is returned whether the object was saved successfully to the database or not.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - This should be the id or an array of ids to be updated.
+      # * +attributes+ - This should be a hash of attributes or an array of hashes.
+      #
+      # ==== Examples
+      #
+      #   # Updates one record
+      #   Person.update(15, user_name: "Samuel", group: "expert")
+      #
+      #   # Updates multiple records
+      #   people = { 1 => { "first_name" => "David" }, 2 => { "first_name" => "Jeremy" } }
+      #   Person.update(people.keys, people.values)
+      #
+      #   # Updates multiple records from the result of a relation
+      #   people = Person.where(group: "expert")
+      #   people.update(group: "masters")
+      #
+      # Note: Updating a large number of records will run an UPDATE
+      # query for each record, which may cause a performance issue.
+      # When running callbacks is not needed for each record update,
+      # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
+      # for updating all records in a single query.
+      def update(id = :all, attributes)
+        if id.is_a?(Array)
+          id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
+            object.update(attributes[idx])
+          }
+        elsif id == :all
+          all.each { |record| record.update(attributes) }
+        else
+          if ActiveRecord::Base === id
+            raise ArgumentError,
+              "You are passing an instance of ActiveRecord::Base to `update`. " \
+              "Please pass the id of the object by calling `.id`."
+          end
+          object = find(id)
+          object.update(attributes)
+          object
+        end
+      end
+
+      # Destroy an object (or multiple objects) that has the given id. The object is instantiated first,
+      # therefore all callbacks and filters are fired off before the object is deleted. This method is
+      # less efficient than #delete but allows cleanup methods and other actions to be run.
+      #
+      # This essentially finds the object (or multiple objects) with the given id, creates a new object
+      # from the attributes, and then calls destroy on it.
+      #
+      # ==== Parameters
+      #
+      # * +id+ - This should be the id or an array of ids to be destroyed.
+      #
+      # ==== Examples
+      #
+      #   # Destroy a single object
+      #   Todo.destroy(1)
+      #
+      #   # Destroy multiple objects
+      #   todos = [1,2,3]
+      #   Todo.destroy(todos)
+      def destroy(id)
+        if id.is_a?(Array)
+          find(id).each(&:destroy)
+        else
+          find(id).destroy
+        end
+      end
+
+      # Deletes the row with a primary key matching the +id+ argument, using a
+      # SQL +DELETE+ statement, and returns the number of rows deleted. Active
+      # Record objects are not instantiated, so the object's callbacks are not
+      # executed, including any <tt>:dependent</tt> association options.
+      #
+      # You can delete multiple rows at once by passing an Array of <tt>id</tt>s.
+      #
+      # Note: Although it is often much faster than the alternative, #destroy,
+      # skipping callbacks might bypass business logic in your application
+      # that ensures referential integrity or performs other essential jobs.
+      #
+      # ==== Examples
+      #
+      #   # Delete a single row
+      #   Todo.delete(1)
+      #
+      #   # Delete multiple rows
+      #   Todo.delete([2,3,4])
+      def delete(id_or_array)
+        where(primary_key => id_or_array).delete_all
+      end
+
+      def _insert_record(values) # :nodoc:
+        primary_key_value = nil
+
+        if primary_key && Hash === values
+          arel_primary_key = arel_attribute(primary_key)
+          primary_key_value = values[arel_primary_key]
+
+          if !primary_key_value && prefetch_primary_key?
+            primary_key_value = next_sequence_value
+            values[arel_primary_key] = primary_key_value
+          end
+        end
+
+        if values.empty?
+          im = arel_table.compile_insert(connection.empty_insert_statement_value)
+          im.into arel_table
+        else
+          im = arel_table.compile_insert(_substitute_values(values))
+        end
+
+        connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
+      end
+
+      def _update_record(values, id, id_was) # :nodoc:
+        bind = predicate_builder.build_bind_attribute(primary_key, id_was || id)
+        um = arel_table.where(
+          arel_attribute(primary_key).eq(bind)
+        ).compile_update(_substitute_values(values), primary_key)
+
+        connection.update(um, "#{self} Update")
+      end
+
       private
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
@@ -77,6 +205,13 @@ module ActiveRecord
         # the single-table inheritance discriminator.
         def discriminate_class_for_record(record)
           self
+        end
+
+        def _substitute_values(values)
+          values.map do |attr, value|
+            bind = predicate_builder.build_bind_attribute(attr.name, value)
+            [attr, bind]
+          end
         end
     end
 
@@ -100,6 +235,10 @@ module ActiveRecord
       !(@new_record || @destroyed)
     end
 
+    ##
+    # :call-seq:
+    #   save(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -121,12 +260,16 @@ module ActiveRecord
     #
     # Attributes marked as readonly are silently ignored if the record is
     # being updated.
-    def save(*args)
-      create_or_update(*args)
+    def save(*args, &block)
+      create_or_update(*args, &block)
     rescue ActiveRecord::RecordInvalid
       false
     end
 
+    ##
+    # :call-seq:
+    #   save!(*args)
+    #
     # Saves the model.
     #
     # If the model is new, a record gets created in the database, otherwise
@@ -150,8 +293,8 @@ module ActiveRecord
     # being updated.
     #
     # Unless an error is raised, returns true.
-    def save!(*args)
-      create_or_update(*args) || raise(RecordNotSaved.new("Failed to save the record", self))
+    def save!(*args, &block)
+      create_or_update(*args, &block) || raise(RecordNotSaved.new("Failed to save the record", self))
     end
 
     # Deletes the record in the database and freezes this instance to
@@ -167,7 +310,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      self.class.delete(id) if persisted?
+      _relation_for_itself.delete_all if persisted?
       @destroyed = true
       freeze
     end
@@ -218,7 +361,7 @@ module ActiveRecord
     def becomes(klass)
       became = klass.new
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutation_tracker", @mutation_tracker) if defined?(@mutation_tracker)
+      became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
@@ -259,11 +402,7 @@ module ActiveRecord
       verify_readonly_attribute(name)
       public_send("#{name}=", value)
 
-      if has_changes_to_save?
-        save(validate: false)
-      else
-        true
-      end
+      save(validate: false)
     end
 
     # Updates the attributes of the model from the passed-in hash and saves the
@@ -322,10 +461,10 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      updated_count = self.class.unscoped.where(self.class.primary_key => id).update_all(attributes)
+      updated_count = _relation_for_itself.update_all(attributes)
 
       attributes.each do |k, v|
-        raw_write_attribute(k, v)
+        write_attribute_without_type_cast(k, v)
       end
 
       updated_count == 1
@@ -343,7 +482,7 @@ module ActiveRecord
     # Wrapper around #increment that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def increment!(attribute, by = 1, touch: nil)
@@ -364,7 +503,7 @@ module ActiveRecord
     # Wrapper around #decrement that writes the update to the database.
     # Only +attribute+ is updated; the record itself is not saved.
     # This means that any other modified attributes will still be dirty.
-    # Validations and callbacks are skipped. Supports the `touch` option from
+    # Validations and callbacks are skipped. Supports the +touch+ option from
     # +update_counters+, see that for more.
     # Returns +self+.
     def decrement!(attribute, by = 1, touch: nil)
@@ -513,12 +652,11 @@ module ActiveRecord
           changes[column] = write_attribute(column, time)
         end
 
-        primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
+        scope = _relation_for_itself
 
         if locking_enabled?
           locking_column = self.class.locking_column
-          scope = scope.where(locking_column => _read_attribute(locking_column))
+          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
           changes[locking_column] = increment_lock
         end
 
@@ -547,12 +685,17 @@ module ActiveRecord
     end
 
     def relation_for_destroy
+      _relation_for_itself
+    end
+
+    def _relation_for_itself
       self.class.unscoped.where(self.class.primary_key => id)
     end
 
-    def create_or_update(*args)
+    def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
-      result = new_record? ? _create_record : _update_record(*args)
+      return false if destroyed?
+      result = new_record? ? _create_record(&block) : _update_record(*args, &block)
       result != false
     end
 
@@ -564,9 +707,12 @@ module ActiveRecord
         rows_affected = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class.unscoped._update_record attributes_values, id, id_in_database
+        rows_affected = self.class._update_record(attributes_values, id, id_in_database)
         @_trigger_update_callback = rows_affected > 0
       end
+
+      yield(self) if block_given?
+
       rows_affected
     end
 
@@ -575,10 +721,13 @@ module ActiveRecord
     def _create_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
-      new_id = self.class.unscoped.insert attributes_values
+      new_id = self.class._insert_record(attributes_values)
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false
+
+      yield(self) if block_given?
+
       id
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
@@ -10,7 +12,7 @@ module ActionDispatch
   # This middleware is responsible for logging exceptions and
   # showing a debugging page in case the request is local.
   class DebugExceptions
-    RESCUES_TEMPLATE_PATH = File.expand_path("../templates", __FILE__)
+    RESCUES_TEMPLATE_PATH = File.expand_path("templates", __dir__)
 
     class DebugView < ActionView::Base
       def debug_params(params)
@@ -21,7 +23,7 @@ module ActionDispatch
         if clean_params.empty?
           "None"
         else
-          PP.pp(clean_params, "", 200)
+          PP.pp(clean_params, "".dup, 200)
         end
       end
 

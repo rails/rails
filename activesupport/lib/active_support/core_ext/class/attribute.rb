@@ -1,10 +1,22 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/kernel/singleton_class"
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/array/extract_options"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
   # Subclasses can change their own value and it will not impact parent class.
+  #
+  # ==== Options
+  #
+  # * <tt>:instance_reader</tt> - Sets the instance reader method (defaults to true).
+  # * <tt>:instance_writer</tt> - Sets the instance writer method (defaults to true).
+  # * <tt>:instance_accessor</tt> - Sets both instance methods (defaults to true).
+  # * <tt>:instance_predicate</tt> - Sets a predicate method (defaults to true).
+  # * <tt>:default</tt> - Sets a default value for the attribute (defaults to nil).
+  #
+  # ==== Examples
   #
   #   class Base
   #     class_attribute :setting
@@ -68,32 +80,35 @@ class Class
   #   object.setting = false  # => NoMethodError
   #
   # To opt out of both instance methods, pass <tt>instance_accessor: false</tt>.
+  #
+  # To set a default value for the attribute, pass <tt>default:</tt>, like so:
+  #
+  #   class_attribute :settings, default: {}
   def class_attribute(*attrs)
     options = attrs.extract_options!
-    instance_reader = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
-    instance_writer = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
+    instance_reader    = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
+    instance_writer    = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
     instance_predicate = options.fetch(:instance_predicate, true)
+    default_value      = options.fetch(:default, nil)
 
     attrs.each do |name|
-      remove_possible_singleton_method(name)
+      singleton_class.silence_redefinition_of_method(name)
       define_singleton_method(name) { nil }
 
-      remove_possible_singleton_method("#{name}?")
+      singleton_class.silence_redefinition_of_method("#{name}?")
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
       ivar = "@#{name}"
 
-      remove_possible_singleton_method("#{name}=")
+      singleton_class.silence_redefinition_of_method("#{name}=")
       define_singleton_method("#{name}=") do |val|
         singleton_class.class_eval do
-          remove_possible_method(name)
-          define_method(name) { val }
+          redefine_method(name) { val }
         end
 
         if singleton_class?
           class_eval do
-            remove_possible_method(name)
-            define_method(name) do
+            redefine_method(name) do
               if instance_variable_defined? ivar
                 instance_variable_get ivar
               else
@@ -106,8 +121,7 @@ class Class
       end
 
       if instance_reader
-        remove_possible_method name
-        define_method(name) do
+        redefine_method(name) do
           if instance_variable_defined?(ivar)
             instance_variable_get ivar
           else
@@ -115,13 +129,17 @@ class Class
           end
         end
 
-        remove_possible_method "#{name}?"
-        define_method("#{name}?") { !!public_send(name) } if instance_predicate
+        redefine_method("#{name}?") { !!public_send(name) } if instance_predicate
       end
 
       if instance_writer
-        remove_possible_method "#{name}="
-        attr_writer name
+        redefine_method("#{name}=") do |val|
+          instance_variable_set ivar, val
+        end
+      end
+
+      unless default_value.nil?
+        self.send("#{name}=", default_value)
       end
     end
   end

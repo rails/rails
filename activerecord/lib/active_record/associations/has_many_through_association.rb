@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has Many Through Association
   module Associations
+    # = Active Record Has Many Through Association
     class HasManyThroughAssociation < HasManyAssociation #:nodoc:
       include ThroughAssociation
 
@@ -39,11 +41,7 @@ module ActiveRecord
         ensure_not_nested
 
         if record.new_record? || record.has_changes_to_save?
-          if raise
-            record.save!(validate: validate)
-          else
-            return unless record.save(validate: validate)
-          end
+          return unless super
         end
 
         save_through_record(record)
@@ -113,6 +111,11 @@ module ActiveRecord
           record
         end
 
+        def remove_records(existing_records, records, method)
+          super
+          delete_through_records(records)
+        end
+
         def target_reflection_has_associated_record?
           !(through_reflection.belongs_to? && owner[through_reflection.foreign_key].blank?)
         end
@@ -137,6 +140,7 @@ module ActiveRecord
 
           scope = through_association.scope
           scope.where! construct_join_attributes(*records)
+          scope = scope.where(through_scope_attributes)
 
           case method
           when :destroy
@@ -144,14 +148,7 @@ module ActiveRecord
               count = scope.destroy_all.length
             else
               scope.each(&:_run_destroy_callbacks)
-
-              arel = scope.arel
-
-              stmt = Arel::DeleteManager.new
-              stmt.from scope.klass.arel_table
-              stmt.wheres = arel.constraints
-
-              count = scope.klass.connection.delete(stmt, "SQL", scope.bound_attributes)
+              count = scope.delete_all
             end
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)

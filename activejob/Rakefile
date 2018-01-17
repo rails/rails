@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
-#TODO: add qu back to the list after it support Rails 5.1
-#TODO: add delayed_job back to the list after it support Rails 5.1
-ACTIVEJOB_ADAPTERS = %w(async inline que queue_classic resque sidekiq sneakers sucker_punch backburner test)
+# TODO: add qu back to the list after it support Rails 5.1
+ACTIVEJOB_ADAPTERS = %w(async inline delayed_job que queue_classic resque sidekiq sneakers sucker_punch backburner test)
 ACTIVEJOB_ADAPTERS.delete("queue_classic") if defined?(JRUBY_VERSION)
 
 task default: :test
@@ -44,9 +45,8 @@ namespace :test do
 
     namespace :isolated do
       task adapter => "test:env:#{adapter}" do
-        dir = File.dirname(__FILE__)
-        Dir.glob("#{dir}/test/cases/**/*_test.rb").all? do |file|
-          sh(Gem.ruby, "-w", "-I#{dir}/lib", "-I#{dir}/test", file)
+        Dir.glob("#{__dir__}/test/cases/**/*_test.rb").all? do |file|
+          sh(Gem.ruby, "-w", "-I#{__dir__}/lib", "-I#{__dir__}/test", file)
         end || raise("Failures")
       end
     end
