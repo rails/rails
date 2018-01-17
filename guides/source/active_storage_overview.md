@@ -49,12 +49,10 @@ below declares three services named `local`, `test`, and `amazon`:
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
-  host: http://localhost:3000
 
 test:
   service: Disk
   root: <%= Rails.root.join("tmp/storage") %>
-  host: http://localhost:3000
 
 amazon:
   service: S3
@@ -93,7 +91,15 @@ Declare a Disk service in `config/storage.yml`:
 local:
   service: Disk
   root: <%= Rails.root.join("storage") %>
-  host: http://localhost:3000
+```
+
+Optionally specify a host for generating URLs (the default is `http://localhost:3000`):
+
+```yaml
+local:
+  service: Disk
+  root: <%= Rails.root.join("storage") %>
+  host: http://myapp.test
 ```
 
 ### Amazon S3 Service

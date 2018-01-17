@@ -6,13 +6,12 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   mirror_config = (1..3).map do |i|
     [ "mirror_#{i}",
       service: "Disk",
-      root: Dir.mktmpdir("active_storage_tests_mirror_#{i}"),
-      host: "http://localhost:3000" ]
+      root: Dir.mktmpdir("active_storage_tests_mirror_#{i}") ]
   end.to_h
 
   config = mirror_config.merge \
     mirror:  { service: "Mirror", primary: "primary", mirrors: mirror_config.keys },
-    primary: { service: "Disk", root: Dir.mktmpdir("active_storage_tests_primary"), host: "http://localhost:3000" }
+    primary: { service: "Disk", root: Dir.mktmpdir("active_storage_tests_primary") }
 
   SERVICE = ActiveStorage::Service.configure :mirror, config
 
