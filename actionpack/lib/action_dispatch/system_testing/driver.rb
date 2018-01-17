@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "action_dispatch/system_testing/browser"
+
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
