@@ -49,6 +49,12 @@ module AbstractController
         end
       end
 
+      def test_current_scope
+        @controller.stub :action_name, :index do
+          assert_equal "abstract_controller.testing.translation.index", @controller.current_scope
+        end
+      end
+
       def test_lazy_lookup_with_symbol
         @controller.stub :action_name, :index do
           assert_equal "bar", @controller.t(:'.foo')
