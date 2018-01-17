@@ -1,3 +1,8 @@
+*   Update the default HSTS max-age value to 31536000 seconds (1 year)
+    to meet the minimum max-age requirement for https://hstspreload.org/.
+
+    *Grant Bourque*
+
 *   Add support for automatic nonce generation for Rails UJS
 
     Because the UJS library creates a script tag to process responses it
