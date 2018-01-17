@@ -5,6 +5,12 @@ require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
 
+driver_name = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
+driver = Object.const_get("Redis::Connection::#{driver_name.camelize}")
+
+Redis::Connection.drivers.clear
+Redis::Connection.drivers.append(driver)
+
 module ActiveSupport::Cache::RedisCacheStoreTests
   class LookupTest < ActiveSupport::TestCase
     test "may be looked up as :redis_cache_store" do
