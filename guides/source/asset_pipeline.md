@@ -826,7 +826,8 @@ Note the following caveats:
   ```ruby
   config.assets.prefix = "/dev-assets"
   ```
-* Do not run the Capistrano deployment task that precompiles assets.
+* The asset precompile task in your deployment tool (_e.g.,_ Capistrano) should
+  be disabled.
 * Any necessary compressors or minifiers must be available on your development
   system.
 
