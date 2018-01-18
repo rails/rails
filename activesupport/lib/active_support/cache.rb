@@ -168,6 +168,13 @@ module ActiveSupport
               pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
             end
           end
+
+          def ensure_connection_pool_added!
+            require "connection_pool"
+          rescue LoadError => e
+            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
+            raise e
+          end
       end
 
       # Creates a new cache. The options will be passed to any write method calls
@@ -689,13 +696,6 @@ module ActiveSupport
 
           write(name, result, options)
           result
-        end
-
-        def ensure_connection_pool_added!
-          require "connection_pool"
-        rescue LoadError => e
-          $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
-          raise e
         end
     end
 

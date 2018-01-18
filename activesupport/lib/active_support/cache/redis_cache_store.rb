@@ -311,7 +311,7 @@ module ActiveSupport
             if pool_options.empty?
               redis_connection
             else
-              ensure_connection_pool_added!
+              self.class.send(:ensure_connection_pool_added!)
               ConnectionPool.new(pool_options) { redis_connection }
             end
           else

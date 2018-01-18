@@ -68,13 +68,7 @@ module ActiveSupport
         if pool_options.empty?
           Dalli::Client.new(addresses, options)
         else
-          begin
-            require "connection_pool"
-          rescue LoadError => e
-            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
-            raise e
-          end
-
+          ensure_connection_pool_added!
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         end
       end
