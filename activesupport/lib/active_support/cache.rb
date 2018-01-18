@@ -160,6 +160,16 @@ module ActiveSupport
       attr_reader :silence, :options
       alias :silence? :silence
 
+      class << self
+        private
+          def retrieve_pool_options(options)
+            {}.tap do |pool_options|
+              pool_options[:size] = options[:pool_size] if options[:pool_size]
+              pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+            end
+          end
+      end
+
       # Creates a new cache. The options will be passed to any write method calls
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
@@ -679,13 +689,6 @@ module ActiveSupport
 
           write(name, result, options)
           result
-        end
-
-        def pool_options(options)
-          {}.tap do |pool_options|
-            pool_options[:size] = options[:pool_size] if options[:pool_size]
-            pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
-          end
         end
 
         def ensure_connection_pool_added!

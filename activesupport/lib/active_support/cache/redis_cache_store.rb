@@ -200,21 +200,6 @@ module ActiveSupport
         @redis ||= wrap_in_connection_pool(self.class.build_redis(**redis_options))
       end
 
-      def wrap_in_connection_pool(redis_connection)
-        if redis_connection.is_a?(::Redis)
-          pool_options = pool_options(redis_options)
-
-          if pool_options.empty?
-            redis_connection
-          else
-            ensure_connection_pool_added!
-            ConnectionPool.new(pool_options) { redis_connection }
-          end
-        else
-          redis_connection
-        end
-      end
-
       def inspect
         instance = @redis || @redis_options
         "<##{self.class} options=#{options.inspect} redis=#{instance.inspect}>"
@@ -319,6 +304,21 @@ module ActiveSupport
       end
 
       private
+        def wrap_in_connection_pool(redis_connection)
+          if redis_connection.is_a?(::Redis)
+            pool_options = self.class.send(:retrieve_pool_options, redis_options)
+
+            if pool_options.empty?
+              redis_connection
+            else
+              ensure_connection_pool_added!
+              ConnectionPool.new(pool_options) { redis_connection }
+            end
+          else
+            redis_connection
+          end
+        end
+
         def set_redis_capabilities
           case redis
           when Redis::Distributed
