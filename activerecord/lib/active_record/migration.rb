@@ -1043,7 +1043,7 @@ module ActiveRecord
         migrations
       end
 
-      Migrator.new(:down, migrations, target_version).migrate
+      Migrator.new(:down, selected_migrations, target_version).migrate
     end
 
     def run(direction, target_version)
