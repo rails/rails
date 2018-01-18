@@ -37,6 +37,18 @@ module ApplicationTests
         assert_match(/AMigration: reverted/, output)
       end
 
+      test "version outputs current version" do
+        app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
+          class OneMigration < ActiveRecord::Migration::Current
+          end
+        MIGRATION
+
+        rails "db:migrate"
+
+        output = rails("db:version")
+        assert_match(/Current version: 1/, output)
+      end
+
       test "migrate with specified VERSION in different formats" do
         app_file "db/migrate/01_one_migration.rb", <<-MIGRATION
           class OneMigration < ActiveRecord::Migration::Current

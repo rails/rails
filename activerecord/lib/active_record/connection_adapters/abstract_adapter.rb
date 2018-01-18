@@ -119,6 +119,14 @@ module ActiveRecord
         end
       end
 
+      def migrations_paths
+        @config[:migrations_paths] || Migrator.migrations_paths
+      end
+
+      def migration_context
+        MigrationContext.new(migrations_paths)
+      end
+
       class Version
         include Comparable
 
