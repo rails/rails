@@ -37,7 +37,7 @@ PATH
     actioncable (5.2.0.beta2)
       actionpack (= 5.2.0.beta2)
       nio4r (~> 2.0)
-      websocket-driver (~> 0.6.1)
+      websocket-driver (>= 0.6.1)
     actionmailer (5.2.0.beta2)
       actionpack (= 5.2.0.beta2)
       actionview (= 5.2.0.beta2)
