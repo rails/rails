@@ -29,12 +29,20 @@ module ApplicationTests
 
         assert_match(/AMigration: migrated/, output)
 
+        # run all the migrations to test scope for down
+        output = rails("db:migrate")
+        assert_match(/CreateUsers: migrated/, output)
+
         output = rails("db:migrate", "SCOPE=bukkits", "VERSION=0")
         assert_no_match(/drop_table\(:users\)/, output)
         assert_no_match(/CreateUsers/, output)
         assert_no_match(/remove_column\(:users, :email\)/, output)
 
         assert_match(/AMigration: reverted/, output)
+
+        output = rails("db:migrate", "VERSION=0")
+
+        assert_match(/CreateUsers: reverted/, output)
       end
 
       test "version outputs current version" do
