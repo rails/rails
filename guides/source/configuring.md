@@ -200,6 +200,7 @@ The full set of methods that can be used in this block are as follows:
 * `force_plural` allows pluralized model names. Defaults to `false`.
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
+* `system_tests` defines which integration tool to use to generate system tests. Defaults to `:test_unit`.
 * `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
 * `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
