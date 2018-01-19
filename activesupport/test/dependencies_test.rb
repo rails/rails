@@ -187,21 +187,40 @@ class DependenciesTest < ActiveSupport::TestCase
 
   # Regression see https://github.com/rails/rails/issues/31694
   def test_included_constant_that_changes_to_have_exception_then_back_does_not_loop_forever
-    with_autoloading_fixtures do
-      require_dependency "constant_reload_error"
-      loaded = ActiveSupport::Dependencies.autoloaded_constants.inspect
-      assert loaded.include?("ConstantReloadError")
-      assert loaded.include?("AnotherConstant::ReloadError")
-      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
-      path = File.join(__dir__, "autoloading_fixtures/another_constant/reload_error.rb")
-      old_text = File.read(path)
-      new_text = old_text.sub("# no_such_method_as_this", "no_such_method_as_this")
-      File.open(path, "w") { |file| file.puts new_text }
-      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
+    path = File.join(__dir__, "autoloading_fixtures/another_constant/reload_error.rb")
+    original_text = File.read(path)
+    error_text = original_text.sub("# no_such_method_as_this", "no_such_method_as_this")
 
-      File.open(path, "w") { |file| file.puts old_text }
-      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
+    with_autoloading_fixtures do
+      # This constant is accessable:
+      assert ConstantReloadError
+      assert AnotherConstant::ReloadError
+
+      Timeout.timeout(0.1) do
+        # Remove the constant, as if Rails development middleware is reloading changed files:
+        ActiveSupport::Dependencies.remove_unloadable_constants!
+        refute defined?(AnotherConstant::ReloadError)
+      end
+
+      # Change the file so that there is an error in it:
+      File.write(path, error_text)
+
+      # Reload the file, with the error:
+      assert_raises(NameError) {
+        AnotherConstant::ReloadError
+      }
+      # Change the file again, so that it is **correct** this time:
+      File.write(path, original_text)
+
+      # Again: Remove the constant, as if Rails development middleware is reloading changed files:
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+      refute defined?(AnotherConstant::ReloadError)
+
+      # Now, reload the _fixed_ constant:
+      assert AnotherConstant::ReloadError
     end
+  ensure
+    File.write(path, original_text)
   end
 
   def test_module_loading
