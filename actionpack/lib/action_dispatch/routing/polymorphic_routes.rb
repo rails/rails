@@ -99,6 +99,8 @@ module ActionDispatch
       #   polymorphic_url(Comment) # same as comments_url()
       #
       def polymorphic_url(record_or_hash_or_array, options = {})
+        options[:secure] = true if Rails.configuration.force_ssl
+
         if Hash === record_or_hash_or_array
           options = record_or_hash_or_array.merge(options)
           record  = options.delete :id
