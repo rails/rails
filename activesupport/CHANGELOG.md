@@ -1,3 +1,10 @@
+*   Support hash as first argument in `assert_difference`. This allows to specify multiple
+    numeric differences in the same assertion.
+
+        assert_difference ->{ Article.count } => 1, ->{ Post.count } => 2
+
+    *Julien Meichelbeck*
+
 *   Add missing instrumentation for `read_multi` in `ActiveSupport::Cache::Store`.
 
     *Ignatius Reza Lesmana*

@@ -99,7 +99,7 @@ module Rails
     end
 
     property "Database schema version" do
-      ActiveRecord::Migrator.current_version rescue nil
+      ActiveRecord::Base.connection.migration_context.current_version rescue nil
     end
   end
 end

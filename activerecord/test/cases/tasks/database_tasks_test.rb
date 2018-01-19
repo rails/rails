@@ -28,10 +28,10 @@ module ActiveRecord
 
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
-      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
 
       protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Migrator.current_environment
+      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
       assert_not_includes protected_environments, current_env
       # Assert no error
       ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
@@ -45,10 +45,10 @@ module ActiveRecord
     end
 
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
 
       protected_environments = ActiveRecord::Base.protected_environments
-      current_env            = ActiveRecord::Migrator.current_environment
+      current_env            = ActiveRecord::Base.connection.migration_context.current_environment
       assert_not_includes protected_environments, current_env
       # Assert no error
       ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
@@ -63,7 +63,7 @@ module ActiveRecord
 
     def test_raises_an_error_if_no_migrations_have_been_made
       ActiveRecord::InternalMetadata.stubs(:table_exists?).returns(false)
-      ActiveRecord::Migrator.stubs(:current_version).returns(1)
+      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
 
       assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
         ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
@@ -347,50 +347,92 @@ module ActiveRecord
     end
   end
 
-  class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+  if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+    class DatabaseTasksMigrateTest < ActiveRecord::TestCase
+      self.use_transactional_tests = false
+
+      # Use a memory db here to avoid having to rollback at the end
+      setup do
+        migrations_path = MIGRATIONS_ROOT + "/valid"
+        file = ActiveRecord::Base.connection.raw_connection.filename
+        @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3",
+          database: ":memory:", migrations_paths: migrations_path
+        source_db = SQLite3::Database.new file
+        dest_db = ActiveRecord::Base.connection.raw_connection
+        backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
+        backup.step(-1)
+        backup.finish
+      end
+
+      teardown do
+        @conn.release_connection if @conn
+        ActiveRecord::Base.establish_connection :arunit
+      end
+
+      def test_migrate_set_and_unset_verbose_and_version_env_vars
+        verbose, version = ENV["VERBOSE"], ENV["VERSION"]
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "false"
+
+        # run down migration because it was already run on copied db
+        assert_empty capture_migration_output
+
+        ENV.delete("VERSION")
+        ENV.delete("VERBOSE")
+
+        # re-run up migration
+        assert_includes capture_migration_output, "migrating"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"] = verbose, version
+      end
+
+      def test_migrate_set_and_unset_empty_values_for_verbose_and_version_env_vars
+        verbose, version = ENV["VERBOSE"], ENV["VERSION"]
+
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "false"
+
+        # run down migration because it was already run on copied db
+        assert_empty capture_migration_output
+
+        ENV["VERBOSE"] = ""
+        ENV["VERSION"] = ""
+
+        # re-run up migration
+        assert_includes capture_migration_output, "migrating"
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"] = verbose, version
+      end
+
+      def test_migrate_set_and_unset_nonsense_values_for_verbose_and_version_env_vars
+        verbose, version = ENV["VERBOSE"], ENV["VERSION"]
+
+        # run down migration because it was already run on copied db
+        ENV["VERSION"] = "2"
+        ENV["VERBOSE"] = "false"
+
+        assert_empty capture_migration_output
+
+        ENV["VERBOSE"] = "yes"
+        ENV["VERSION"] = "2"
+
+        # run no migration because 2 was already run
+        assert_empty capture_migration_output
+      ensure
+        ENV["VERBOSE"], ENV["VERSION"] = verbose, version
+      end
+
+      private
+        def capture_migration_output
+          capture(:stdout) do
+            ActiveRecord::Tasks::DatabaseTasks.migrate
+          end
+        end
+    end
+  end
+
+  class DatabaseTasksMigrateErrorTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
-
-    def setup
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = "custom/path"
-    end
-
-    def teardown
-      ActiveRecord::Tasks::DatabaseTasks.migrations_paths = nil
-    end
-
-    def test_migrate_receives_correct_env_vars
-      verbose, version = ENV["VERBOSE"], ENV["VERSION"]
-
-      ENV["VERBOSE"] = "false"
-      ENV["VERSION"] = "4"
-      ActiveRecord::Migrator.expects(:migrate).with("custom/path", 4)
-      ActiveRecord::Migration.expects(:verbose=).with(false)
-      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-
-      ENV.delete("VERBOSE")
-      ENV.delete("VERSION")
-      ActiveRecord::Migrator.expects(:migrate).with("custom/path", nil)
-      ActiveRecord::Migration.expects(:verbose=).with(true)
-      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-
-      ENV["VERBOSE"] = ""
-      ENV["VERSION"] = ""
-      ActiveRecord::Migrator.expects(:migrate).with("custom/path", nil)
-      ActiveRecord::Migration.expects(:verbose=).with(true)
-      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-
-      ENV["VERBOSE"] = "yes"
-      ENV["VERSION"] = "0"
-      ActiveRecord::Migrator.expects(:migrate).with("custom/path", 0)
-      ActiveRecord::Migration.expects(:verbose=).with(true)
-      ActiveRecord::Migration.expects(:verbose=).with(ActiveRecord::Migration.verbose)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
-    ensure
-      ENV["VERBOSE"], ENV["VERSION"] = verbose, version
-    end
 
     def test_migrate_raise_error_on_invalid_version_format
       version = ENV["VERSION"]

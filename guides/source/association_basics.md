@@ -795,7 +795,7 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 #### Methods Added by `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
+When you declare a `belongs_to` association, the declaring class automatically gains 6 methods related to the association:
 
 * `association`
 * `association=(associate)`
@@ -1146,7 +1146,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 #### Methods Added by `has_one`
 
-When you declare a `has_one` association, the declaring class automatically gains five methods related to the association:
+When you declare a `has_one` association, the declaring class automatically gains 6 methods related to the association:
 
 * `association`
 * `association=(associate)`
@@ -1419,7 +1419,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 #### Methods Added by `has_many`
 
-When you declare a `has_many` association, the declaring class automatically gains 16 methods related to the association:
+When you declare a `has_many` association, the declaring class automatically gains 17 methods related to the association:
 
 * `collection`
 * `collection<<(object, ...)`
@@ -1952,7 +1952,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 #### Methods Added by `has_and_belongs_to_many`
 
-When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 16 methods related to the association:
+When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 17 methods related to the association:
 
 * `collection`
 * `collection<<(object, ...)`

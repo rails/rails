@@ -363,7 +363,7 @@ module ActiveSupport
 
         # Truncate keys that exceed 1kB.
         def normalize_key(key, options)
-          truncate_key super
+          truncate_key super.b
         end
 
         def truncate_key(key)

@@ -37,7 +37,7 @@ PATH
     actioncable (5.2.0.beta2)
       actionpack (= 5.2.0.beta2)
       nio4r (~> 2.0)
-      websocket-driver (~> 0.6.1)
+      websocket-driver (>= 0.6.1)
     actionmailer (5.2.0.beta2)
       actionpack (= 5.2.0.beta2)
       actionview (= 5.2.0.beta2)
@@ -496,8 +496,6 @@ GEM
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
-    websocket-driver (0.6.5-java)
-      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
     xpath (2.1.0)
       nokogiri (~> 1.3)
@@ -524,6 +522,7 @@ DEPENDENCIES
   capybara (~> 2.15)
   chromedriver-helper
   coffee-rails
+  connection_pool
   dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record

@@ -58,6 +58,12 @@ module ActiveSupport
       #     post :create, params: { article: {...} }
       #   end
       #
+      # A hash of expressions/numeric differences can also be passed in and evaluated.
+      #
+      #   assert_difference ->{ Article.count } => 1, ->{ Notification.count } => 2 do
+      #     post :create, params: { article: {...} }
+      #   end
+      #
       # A lambda or a list of lambdas can be passed in and evaluated:
       #
       #   assert_difference ->{ Article.count }, 2 do
@@ -73,20 +79,28 @@ module ActiveSupport
       #   assert_difference 'Article.count', -1, 'An Article should be destroyed' do
       #     post :delete, params: { id: ... }
       #   end
-      def assert_difference(expression, difference = 1, message = nil, &block)
-        expressions = Array(expression)
+      def assert_difference(expression, *args, &block)
+        expressions =
+          if expression.is_a?(Hash)
+            message = args[0]
+            expression
+          else
+            difference = args[0] || 1
+            message = args[1]
+            Hash[Array(expression).map { |e| [e, difference] }]
+          end
 
-        exps = expressions.map { |e|
+        exps = expressions.keys.map { |e|
           e.respond_to?(:call) ? e : lambda { eval(e, block.binding) }
         }
         before = exps.map(&:call)
 
         retval = yield
 
-        expressions.zip(exps).each_with_index do |(code, e), i|
-          error  = "#{code.inspect} didn't change by #{difference}"
+        expressions.zip(exps, before) do |(code, diff), exp, before_value|
+          error  = "#{code.inspect} didn't change by #{diff}"
           error  = "#{message}.\n#{error}" if message
-          assert_equal(before[i] + difference, e.call, error)
+          assert_equal(before_value + diff, exp.call, error)
         end
 
         retval

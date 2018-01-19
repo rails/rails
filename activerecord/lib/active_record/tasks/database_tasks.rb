@@ -54,10 +54,10 @@ module ActiveRecord
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Migrator.current_environment
-          stored  = ActiveRecord::Migrator.last_stored_environment
+          current = ActiveRecord::Base.connection.migration_context.current_environment
+          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
-          if ActiveRecord::Migrator.protected_environment?
+          if ActiveRecord::Base.connection.migration_context.protected_environment?
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
@@ -169,7 +169,7 @@ module ActiveRecord
         verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, target_version) do |migration|
+        Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
