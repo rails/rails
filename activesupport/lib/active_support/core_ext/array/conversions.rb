@@ -208,4 +208,34 @@ class Array
       end
     end
   end
+
+  # this method is to generate a CSV string from an Array of Hashes to
+  # create a CSV file from it. The string that it returns
+  # can be written into a file to generate the equivalent CSV for the array.
+  # For Example, if you have an array of the details of 2 persons as below:
+  #
+  # persons = [
+  #   {name: 'Rohit', email: 'rohit@abc.com'},
+  #   {name: 'Amit', email: 'amit@xyz.com'}
+  # ]
+  #
+  # if you run the following code:
+  # -> persons.to_csv_str
+  # it will return the following string:
+  # -> "name,email\nRohit,rohit@abc.com\nAmit,amit@xyz.com\n"
+  # which can then be written to a file to get the equivalent CSV file for the Array
+  def to_csv_str
+    return if blank?
+    first_elem = self.first
+    if first_elem.is_a?(Hash)
+      header = first_elem.keys
+      csv_str = CSV.generate do |csv|
+        csv << header
+        self.each do |elem|
+          csv << elem.values
+        end
+      end
+    end
+    csv_str
+  end
 end
