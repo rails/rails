@@ -176,16 +176,20 @@ class MigratorTest < ActiveRecord::TestCase
   end
 
   def test_migrations_status_with_schema_define_in_subdirectories
-    _, migrator = migrator_class(3)
-    migrator = migrator.new("valid_with_subdirectories")
+    path = MIGRATIONS_ROOT + "/valid_with_subdirectories"
+    prev_paths = ActiveRecord::Migrator.migrations_paths
+    ActiveRecord::Migrator.migrations_paths = path
 
-    migrator.migrate
+    ActiveRecord::Schema.define(version: 3) do
+    end
 
     assert_equal [
-      ["up", "001", "********** NO FILE **********"],
-      ["up", "002", "********** NO FILE **********"],
-      ["up", "003", "********** NO FILE **********"],
-    ], migrator.migrations_status
+      ["up", "001", "Valid people have last names"],
+      ["up", "002", "We need reminders"],
+      ["up", "003", "Innocent jointable"],
+    ], ActiveRecord::MigrationContext.new(path).migrations_status
+  ensure
+    ActiveRecord::Migrator.migrations_paths = prev_paths
   end
 
   def test_migrations_status_from_two_directories
