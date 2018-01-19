@@ -89,13 +89,15 @@ class String
   #   'active_record/errors'.camelize         # => "ActiveRecord::Errors"
   #   'active_record/errors'.camelize(:lower) # => "activeRecord::Errors"
   def camelize(first_letter = :upper)
-    case first_letter
+    case first_letter.to_sym
     when :upper
       ActiveSupport::Inflector.camelize(self, true)
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
+    when true, false
+      ActiveSupport::Inflector.camelize(self, first_letter)
     else
-      raise ArgumentError, "Invalid option, use either :upper or :lower."
+      raise ArgumentError, "Invalid option, use either :upper or :lower, true or false, was provided #{first_letter.inspect}"
     end
   end
   alias_method :camelcase, :camelize
