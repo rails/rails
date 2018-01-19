@@ -1,3 +1,12 @@
+*   Preserve display aspect ratio when extracting width and height from videos
+    with rectangular samples in `ActiveStorage::Analyzer::VideoAnalyzer`.
+
+    When a video contains a display aspect ratio, emit it in metadata as
+    `:display_aspect_ratio` rather than the ambiguous `:aspect_ratio`. Compute
+    its height by scaling its encoded frame width according to the DAR.
+
+    *George Claghorn*
+
 *   Use `after_destroy_commit` instead of `before_destroy` for purging
     attachments when a record is destroyed.
 
