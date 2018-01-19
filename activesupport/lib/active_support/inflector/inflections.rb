@@ -227,7 +227,7 @@ module ActiveSupport
         case scope
         when :all
           @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
-          else
+        else
           instance_variable_set "@#{scope}", []
         end
       end

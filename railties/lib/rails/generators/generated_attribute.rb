@@ -75,7 +75,7 @@ module Rails
                         when :date                 then :date_select
                         when :text                 then :text_area
                         when :boolean              then :check_box
-          else
+                        else
                           :text_field
         end
       end
@@ -91,7 +91,7 @@ module Rails
                      when :text                        then "MyText"
                      when :boolean                     then false
                      when :references, :belongs_to     then nil
-          else
+                     else
                        ""
         end
       end

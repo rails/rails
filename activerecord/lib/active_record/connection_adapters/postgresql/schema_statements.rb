@@ -38,7 +38,7 @@ module ActiveRecord
                       " TABLESPACE = \"#{value}\""
                     when :connection_limit
                       " CONNECTION LIMIT = #{value}"
-            else
+                    else
                       ""
             end
           end
