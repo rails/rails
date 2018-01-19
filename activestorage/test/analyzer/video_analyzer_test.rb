@@ -39,7 +39,8 @@ class ActiveStorage::Analyzer::VideoAnalyzerTest < ActiveSupport::TestCase
 
   test "analyzing a video without a video stream" do
     blob = create_file_blob(filename: "video_without_video_stream.mp4", content_type: "video/mp4")
-    assert_equal({ "analyzed" => true, "identified" => true }, blob.tap(&:analyze).metadata)
+    metadata = extract_metadata_from(blob)
+    assert_equal({ "analyzed" => true, "identified" => true }, metadata)
   end
 
   private
