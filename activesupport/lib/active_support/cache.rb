@@ -357,23 +357,11 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        results = {}
-        names.each do |name|
-          key     = normalize_key(name, options)
-          version = normalize_version(name, options)
-          entry   = read_entry(key, options)
-
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
-            elsif entry.mismatched?(version)
-              # Skip mismatched versions
-            else
-              results[name] = entry.value
-            end
+        instrument :read_multi, names, options do |payload|
+          read_multi_entries(names, options).tap do |results|
+            payload[:hits] = results.keys
           end
         end
-        results
       end
 
       # Cache Storage API to write multiple values at once.
@@ -414,14 +402,19 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        read_multi(*names, options).tap do |results|
-          writes = {}
+        instrument :read_multi, names, options do |payload|
+          read_multi_entries(names, options).tap do |results|
+            payload[:hits] = results.keys
+            payload[:super_operation] = :fetch_multi
 
-          (names - results.keys).each do |name|
-            results[name] = writes[name] = yield(name)
+            writes = {}
+
+            (names - results.keys).each do |name|
+              results[name] = writes[name] = yield(name)
+            end
+
+            write_multi writes, options
           end
-
-          write_multi writes, options
         end
       end
 
@@ -536,6 +529,28 @@ module ActiveSupport
         # this method.
         def write_entry(key, entry, options)
           raise NotImplementedError.new
+        end
+
+        # Reads multiple entries from the cache implementation. Subclasses MAY
+        # implement this method.
+        def read_multi_entries(names, options)
+          results = {}
+          names.each do |name|
+            key     = normalize_key(name, options)
+            version = normalize_version(name, options)
+            entry   = read_entry(key, options)
+
+            if entry
+              if entry.expired?
+                delete_entry(key, options)
+              elsif entry.mismatched?(version)
+                # Skip mismatched versions
+              else
+                results[name] = entry.value
+              end
+            end
+          end
+          results
         end
 
         # Writes multiple entries to the cache implementation. Subclasses MAY

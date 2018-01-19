@@ -1,3 +1,68 @@
+*   Fix relation merger issue with `left_outer_joins`.
+
+    *Mehmet Emin İNAÇ*
+
+*   Don't allow destroyed object mutation after `save` or `save!` is called.
+
+    *Ryuta Kamizono*
+
+*   Take into account association conditions when deleting through records.
+
+    Fixes #18424.
+
+    *Piotr Jakubowski*
+
+*   Fix nested `has_many :through` associations on unpersisted parent instances.
+
+    For example, if you have
+
+        class Post < ActiveRecord::Base
+          belongs_to :author
+          has_many :books, through: :author
+          has_many :subscriptions, through: :books
+        end
+
+        class Author < ActiveRecord::Base
+          has_one :post
+          has_many :books
+          has_many :subscriptions, through: :books
+        end
+
+        class Book < ActiveRecord::Base
+          belongs_to :author
+          has_many :subscriptions
+        end
+
+        class Subscription < ActiveRecord::Base
+          belongs_to :book
+        end
+
+    Before:
+
+    If `post` is not persisted, then `post.subscriptions` will be empty.
+
+    After:
+
+    If `post` is not persisted, then `post.subscriptions` can be set and used
+    just like it would if `post` were persisted.
+
+    Fixes #16313.
+
+    *Zoltan Kiss*
+
+*   Fixed inconsistency with `first(n)` when used with `limit()`.
+    The `first(n)` finder now respects the `limit()`, making it consistent
+    with `relation.to_a.first(n)`, and also with the behavior of `last(n)`.
+
+    Fixes #23979.
+
+    *Brian Christian*
+
+*   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
+    SQL queries for association counting.
+
+    *Klas Eskilson*
+
 *   Fix to invoke callbacks when using `update_attribute`.
 
     *Mike Busch*

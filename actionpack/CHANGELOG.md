@@ -1,3 +1,7 @@
+*   Add `Referrer-Policy` header to default headers set.
+
+    *Guillermo Iguaran*
+
 *   Changed the system tests to set Puma as default server only when the
     user haven't specified manually another server.
 
@@ -172,7 +176,7 @@
 
     *Yuji Yaginuma*
 
-*   Deprecate `ActionDispatch::TestResponse` response aliases
+*   Deprecate `ActionDispatch::TestResponse` response aliases.
 
     `#success?`, `#missing?` & `#error?` are not supported by the actual
     `ActionDispatch::Response` object and can produce false-positives. Instead,

@@ -364,6 +364,31 @@ module ActiveRecord
           SQL
         end
 
+        def bulk_change_table(table_name, operations)
+          sql_fragments = []
+          non_combinable_operations = []
+
+          operations.each do |command, args|
+            table, arguments = args.shift, args
+            method = :"#{command}_for_alter"
+
+            if respond_to?(method, true)
+              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+              sql_fragments << sqls
+              non_combinable_operations << procs if procs.present?
+            else
+              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+              non_combinable_operations.each(&:call)
+              sql_fragments = []
+              non_combinable_operations = []
+              send(command, table, *arguments)
+            end
+          end
+
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+          non_combinable_operations.each(&:call)
+        end
+
         # Renames a table.
         # Also renames a table's primary key sequence if the sequence name exists and
         # matches the Active Record default.
@@ -394,7 +419,7 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
           clear_cache!
-          sqls, procs = change_column_for_alter(table_name, column_name, type, options)
+          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, options)).partition { |v| v.is_a?(String) }
           execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
           procs.each(&:call)
         end
@@ -665,12 +690,10 @@ module ActiveRecord
 
           def change_column_for_alter(table_name, column_name, type, options = {})
             sqls = [change_column_sql(table_name, column_name, type, options)]
-            procs = []
             sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
             sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
-            procs << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
-
-            [sqls, procs]
+            sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
+            sqls
           end
 
 
@@ -692,6 +715,14 @@ module ActiveRecord
 
           def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
             "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
+          end
+
+          def add_timestamps_for_alter(table_name, options = {})
+            [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
+          end
+
+          def remove_timestamps_for_alter(table_name, options = {})
+            [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
           end
 
           def add_index_opclass(quoted_columns, **options)

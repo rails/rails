@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/deep_dup"
 require "active_model/attribute_set"
 require "active_model/attribute/user_provided_default"
 

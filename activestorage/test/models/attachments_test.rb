@@ -97,6 +97,29 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.avatar_attachment.blob.filename.to_s
   end
 
+  test "identify newly-attached, directly-uploaded blob" do
+    # Simulate a direct upload.
+    blob = create_blob_before_direct_upload(filename: "racecar.jpg", content_type: "application/octet-stream", byte_size: 1124062, checksum: "7GjDDNEQb4mzMzsW+MS0JQ==")
+    ActiveStorage::Blob.service.upload(blob.key, file_fixture("racecar.jpg").open)
+
+    stub_request(:get, %r{localhost:3000/rails/active_storage/disk/.*}).to_return(body: file_fixture("racecar.jpg"))
+    @user.avatar.attach(blob)
+
+    assert_equal "image/jpeg", @user.avatar.reload.content_type
+    assert @user.avatar.identified?
+  end
+
+  test "identify newly-attached blob only once" do
+    blob = create_file_blob
+    assert blob.identified?
+
+    # The blob's backing file is a PNG image. Fudge its content type so we can tell if it's identified when we attach it.
+    blob.update! content_type: "application/octet-stream"
+
+    @user.avatar.attach blob
+    assert_equal "application/octet-stream", blob.content_type
+  end
+
   test "analyze newly-attached blob" do
     perform_enqueued_jobs do
       @user.avatar.attach create_file_blob
@@ -115,7 +138,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     assert blob.reload.analyzed?
 
-    @user.avatar.attachment.destroy
+    @user.avatar.detach
 
     assert_no_enqueued_jobs do
       @user.reload.avatar.attach blob

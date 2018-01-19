@@ -245,7 +245,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 
@@ -276,7 +275,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 

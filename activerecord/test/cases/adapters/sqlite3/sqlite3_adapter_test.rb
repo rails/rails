@@ -500,6 +500,10 @@ module ActiveRecord
         end
       end
 
+      def test_deprecate_valid_alter_table_type
+        assert_deprecated { @conn.valid_alter_table_type?(:string) }
+      end
+
       private
 
         def assert_logged(logs)

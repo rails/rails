@@ -694,6 +694,7 @@ module ActiveRecord
 
     def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
+      return false if destroyed?
       result = new_record? ? _create_record(&block) : _update_record(*args, &block)
       result != false
     end

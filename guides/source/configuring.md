@@ -66,8 +66,6 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 
 * `config.cache_classes` controls whether or not application classes and modules should be reloaded on each request. Defaults to `false` in development mode, and `true` in test and production modes.
 
-* `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
-
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
@@ -202,6 +200,7 @@ The full set of methods that can be used in this block are as follows:
 * `force_plural` allows pluralized model names. Defaults to `false`.
 * `helper` defines whether or not to generate helpers. Defaults to `true`.
 * `integration_tool` defines which integration tool to use to generate integration tests. Defaults to `:test_unit`.
+* `system_tests` defines which integration tool to use to generate system tests. Defaults to `:test_unit`.
 * `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
 * `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
@@ -538,6 +537,8 @@ Defaults to `'signed cookie'`.
 
 `config.action_view` includes a small number of configuration settings:
 
+* `config.action_view.cache_template_loading` controls whether or not templates should be reloaded on each request. Defaults to whatever is set for `config.cache_classes`.
+
 * `config.action_view.field_error_proc` provides an HTML generator for displaying errors that come from Active Model. The default is
 
     ```ruby
@@ -671,6 +672,8 @@ There are a few configuration options available in Active Support:
 * `config.active_support.use_standard_json_time_format` enables or disables serializing dates to ISO 8601 format. Defaults to `true`.
 
 * `config.active_support.time_precision` sets the precision of JSON encoded time values. Defaults to `3`.
+
+* `config.active_support.use_sha1_digests` specifies whether to use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header. Defaults to false.
 
 * `ActiveSupport::Logger.silencer` is set to `false` to disable the ability to silence logging in a block. The default is `true`.
 

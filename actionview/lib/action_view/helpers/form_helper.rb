@@ -19,7 +19,7 @@ module ActionView
     # compared to using vanilla HTML.
     #
     # Typically, a form designed to create or update a resource reflects the
-    # identity of the resource in several ways: (i) the url that the form is
+    # identity of the resource in several ways: (i) the URL that the form is
     # sent to (the form element's +action+ attribute) should result in a request
     # being routed to the appropriate controller action (with the appropriate <tt>:id</tt>
     # parameter in the case of an existing resource), (ii) input fields should
@@ -166,7 +166,7 @@ module ActionView
       #   So for example you may use a named route directly. When the model is
       #   represented by a string or symbol, as in the example above, if the
       #   <tt>:url</tt> option is not specified, by default the form will be
-      #   sent back to the current url (We will describe below an alternative
+      #   sent back to the current URL (We will describe below an alternative
       #   resource-oriented usage of +form_for+ in which the URL does not need
       #   to be specified explicitly).
       # * <tt>:namespace</tt> - A namespace for your form to ensure uniqueness of
@@ -608,7 +608,7 @@ module ActionView
       #   This is helpful when fragment-caching the form. Remote forms
       #   get the authenticity token from the <tt>meta</tt> tag, so embedding is
       #   unnecessary unless you support browsers without JavaScript.
-      # * <tt>:local</tt> - By default form submits are remote and unobstrusive XHRs.
+      # * <tt>:local</tt> - By default form submits are remote and unobtrusive XHRs.
       #   Disable remote submits with <tt>local: true</tt>.
       # * <tt>:skip_enforcing_utf8</tt> - By default a hidden field named +utf8+
       #   is output to enforce UTF-8 submits. Set to true to skip the field.

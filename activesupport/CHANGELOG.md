@@ -1,10 +1,27 @@
-*   Allow the hash function used to generate non-sensitive digests, such as the
-    ETag header, to be specified with `config.active_support.hash_digest_class`.
+*   Support hash as first argument in `assert_difference`. This allows to specify multiple
+    numeric differences in the same assertion.
 
-    The object provided must respond to `#hexdigest`, e.g. `Digest::SHA1`.
+        assert_difference ->{ Article.count } => 1, ->{ Post.count } => 2
 
-    *Dmitri Dolguikh*
- 
+    *Julien Meichelbeck*
+
+*   Add missing instrumentation for `read_multi` in `ActiveSupport::Cache::Store`.
+
+    *Ignatius Reza Lesmana*
+
+*   `assert_changes` will always assert that the expression changes,
+    regardless of `from:` and `to:` argument combinations.
+
+    *Daniel Ma*
+
+*   Use SHA-1 to generate non-sensitive digests, such as the ETag header.
+
+    Enabled by default for new apps; upgrading apps can opt in by setting
+    `config.active_support.use_sha1_digests = true`.
+
+    *Dmitri Dolguikh*, *Eugene Kenny*
+
+
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.

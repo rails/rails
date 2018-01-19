@@ -71,6 +71,16 @@ class MigrationTest < ActiveRecord::TestCase
     ActiveRecord::Migration.verbose = @verbose_was
   end
 
+  def test_migrator_migrations_path_is_deprecated
+    assert_deprecated do
+      ActiveRecord::Migrator.migrations_path = "/whatever"
+    end
+  ensure
+    assert_deprecated do
+      ActiveRecord::Migrator.migrations_path = "db/migrate"
+    end
+  end
+
   def test_migration_version_matches_component_version
     assert_equal ActiveRecord::VERSION::STRING.to_f, ActiveRecord::Migration.current_version
   end
@@ -78,20 +88,20 @@ class MigrationTest < ActiveRecord::TestCase
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
-    ActiveRecord::Migrator.up(migrations_path)
-    assert_equal 3, ActiveRecord::Migrator.current_version
-    assert_equal false, ActiveRecord::Migrator.needs_migration?
+    migrator.up
+    assert_equal 3, migrator.current_version
+    assert_equal false, migrator.needs_migration?
 
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid")
-    assert_equal 0, ActiveRecord::Migrator.current_version
-    assert_equal true, ActiveRecord::Migrator.needs_migration?
+    migrator.down
+    assert_equal 0, migrator.current_version
+    assert_equal true, migrator.needs_migration?
 
     ActiveRecord::SchemaMigration.create!(version: 3)
-    assert_equal true, ActiveRecord::Migrator.needs_migration?
+    assert_equal true, migrator.needs_migration?
   ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_detection_without_schema_migration_table
@@ -99,28 +109,31 @@ class MigrationTest < ActiveRecord::TestCase
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
-    assert_equal true, ActiveRecord::Migrator.needs_migration?
+    assert_equal true, migrator.needs_migration?
   ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_any_migrations
     old_path = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/valid"
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
-    assert ActiveRecord::Migrator.any_migrations?
+    assert migrator.any_migrations?
 
-    ActiveRecord::Migrator.migrations_paths = MIGRATIONS_ROOT + "/empty"
+    migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
-    assert_not ActiveRecord::Migrator.any_migrations?
+    assert_not migrator_empty.any_migrations?
   ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_version
-    assert_nothing_raised { ActiveRecord::Migrator.run(:up, MIGRATIONS_ROOT + "/version_check", 20131219224947) }
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/version_check")
+    assert_equal 0, migrator.current_version
+    migrator.up(20131219224947)
+    assert_equal 20131219224947, migrator.current_version
   end
 
   def test_create_table_with_force_true_does_not_drop_nonexisting_table
@@ -219,12 +232,13 @@ class MigrationTest < ActiveRecord::TestCase
     assert !Reminder.table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
-    ActiveRecord::Migrator.up(MIGRATIONS_ROOT + "/valid", &name_filter)
+    migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
+    migrator.up(&name_filter)
 
     assert_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
 
-    ActiveRecord::Migrator.down(MIGRATIONS_ROOT + "/valid", &name_filter)
+    migrator.down(&name_filter)
 
     assert_no_column Person, :last_name
     assert_raise(ActiveRecord::StatementInvalid) { Reminder.first }
@@ -382,9 +396,9 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path        = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
-    ActiveRecord::Migrator.up(migrations_path)
+    migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
 
     original_rails_env  = ENV["RAILS_ENV"]
@@ -395,13 +409,13 @@ class MigrationTest < ActiveRecord::TestCase
     refute_equal current_env, new_env
 
     sleep 1 # mysql by default does not store fractional seconds in the database
-    ActiveRecord::Migrator.up(migrations_path)
+    migrator.up
     assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
   ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+    migrator = ActiveRecord::MigrationContext.new(old_path)
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
-    ActiveRecord::Migrator.up(migrations_path)
+    migrator.up
   end
 
   def test_internal_metadata_stores_environment_when_other_data_exists
@@ -411,14 +425,15 @@ class MigrationTest < ActiveRecord::TestCase
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
     old_path        = ActiveRecord::Migrator.migrations_paths
-    ActiveRecord::Migrator.migrations_paths = migrations_path
 
     current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-    ActiveRecord::Migrator.up(migrations_path)
+    migrator = ActiveRecord::MigrationContext.new(migrations_path)
+    migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
   ensure
-    ActiveRecord::Migrator.migrations_paths = old_path
+    migrator = ActiveRecord::MigrationContext.new(old_path)
+    migrator.up
   end
 
   def test_proper_table_name_on_migration
@@ -801,8 +816,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.integer :age
       end
 
-      # Adding an index fires a query every time to check if an index already exists or not
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.index :username, unique: true, name: :awesome_username_index
           t.index [:name, :age]
@@ -826,7 +848,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       assert index(:index_delete_me_on_name)
 
-      assert_queries(3) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # Adding an index fires a query every time to check if an index already exists or not
+        "PostgreSQLAdapter" => 2,
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.remove_index :name
           t.index :name, name: :new_name_index, unique: true
@@ -848,10 +878,15 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert ! column(:name).default
       assert_equal :date, column(:birthdate).type
 
-      # One query for columns (delete_me table)
-      # One query for primary key (delete_me table)
-      # One query to do the bulk change
-      assert_queries(3, ignore_none: true) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
+        "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count, ignore_none: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
           t.change :birthdate, :datetime

@@ -47,11 +47,11 @@ module ActionView
       # When the last parameter is a hash you can add HTML attributes using that
       # parameter. The following options are supported:
       #
-      # * <tt>:extname</tt>  - Append an extension to the generated url unless the extension
-      #   already exists. This only applies for relative urls.
-      # * <tt>:protocol</tt>  - Sets the protocol of the generated url, this option only
-      #   applies when a relative url and +host+ options are provided.
-      # * <tt>:host</tt>  - When a relative url is provided the host is added to the
+      # * <tt>:extname</tt>  - Append an extension to the generated URL unless the extension
+      #   already exists. This only applies for relative URLs.
+      # * <tt>:protocol</tt>  - Sets the protocol of the generated URL. This option only
+      #   applies when a relative URL and +host+ options are provided.
+      # * <tt>:host</tt>  - When a relative URL is provided the host is added to the
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
@@ -224,8 +224,8 @@ module ActionView
       end
 
       # Returns a link tag that browsers can use to preload the +source+.
-      # The +source+ can be the path of an resource managed by asset pipeline,
-      # a full path or an URI.
+      # The +source+ can be the path of a resource managed by asset pipeline,
+      # a full path, or an URI.
       #
       # ==== Options
       #
@@ -285,7 +285,7 @@ module ActionView
       end
 
       # Returns an HTML image tag for the +source+. The +source+ can be a full
-      # path, a file or an Active Storage attachment.
+      # path, a file, or an Active Storage attachment.
       #
       # ==== Options
       #
@@ -373,12 +373,13 @@ module ActionView
       # Returns an HTML video tag for the +sources+. If +sources+ is a string,
       # a single video tag will be returned. If +sources+ is an array, a video
       # tag with nested source tags for each source will be returned. The
-      # +sources+ can be full paths or files that exists in your public videos
+      # +sources+ can be full paths or files that exist in your public videos
       # directory.
       #
       # ==== Options
-      # You can add HTML attributes using the +options+. The +options+ supports
-      # two additional keys for convenience and conformance:
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter. The following options are supported:
       #
       # * <tt>:poster</tt> - Set an image (like a screenshot) to be shown
       #   before the video loads. The path is calculated like the +src+ of +image_tag+.
@@ -395,7 +396,7 @@ module ActionView
       #   video_tag("trailer.ogg")
       #   # => <video src="/videos/trailer.ogg"></video>
       #   video_tag("trailer.ogg", controls: true, preload: 'none')
-      #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg" ></video>
+      #   # => <video preload="none" controls="controls" src="/videos/trailer.ogg"></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png")
       #   # => <video src="/videos/trailer.m4v" width="16" height="10" poster="/assets/screenshot.png"></video>
       #   video_tag("trailer.m4v", size: "16x10", poster: "screenshot.png", poster_skip_pipeline: true)
@@ -422,9 +423,14 @@ module ActionView
         end
       end
 
-      # Returns an HTML audio tag for the +source+.
-      # The +source+ can be full path or file that exists in
-      # your public audios directory.
+      # Returns an HTML audio tag for the +sources+. If +sources+ is a string,
+      # a single audio tag will be returned. If +sources+ is an array, an audio
+      # tag with nested source tags for each source will be returned. The
+      # +sources+ can be full paths or files that exist in your public audios
+      # directory.
+      #
+      # When the last parameter is a hash you can add HTML attributes using that
+      # parameter.
       #
       #   audio_tag("sound")
       #   # => <audio src="/audios/sound"></audio>

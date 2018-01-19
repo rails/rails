@@ -313,23 +313,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
-  def test_active_storage_install
-    command_check = -> command, _ do
-      @binstub_called ||= 0
-      case command
-      when "active_storage:install"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
-      end
-    end
-
-    generator.stub :rails_command, command_check do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
@@ -430,7 +413,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'~> 0.18'"
+      assert_gem "pg", "'>= 0.18', '< 2.0'"
     end
   end
 
@@ -900,7 +883,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -917,7 +900,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   def test_gitignore

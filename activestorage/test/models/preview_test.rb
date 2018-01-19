@@ -33,7 +33,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
   test "previewing an unpreviewable blob" do
     blob = create_file_blob
 
-    assert_raises ActiveStorage::Blob::UnpreviewableError do
+    assert_raises ActiveStorage::UnpreviewableError do
       blob.preview resize: "640x280"
     end
   end

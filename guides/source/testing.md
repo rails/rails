@@ -778,7 +778,7 @@ Then the test will fill in the title and body of the article with the specified
 text. Once the fields are filled in, "Create Article" is clicked on which will
 send a POST request to create the new article in the database.
 
-We will be redirected back to the the articles index page and there we assert
+We will be redirected back to the articles index page and there we assert
 that the text from the new article's title is on the articles index page.
 
 #### Taking it further
@@ -1507,7 +1507,7 @@ Testing Jobs
 ------------
 
 Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both, the jobs themselves (their behavior when they get enqueued)
+you'll need to test both the jobs themselves (their behavior when they get enqueued)
 and that other entities correctly enqueue them.
 
 ### A Basic Test Case

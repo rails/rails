@@ -91,6 +91,7 @@ module ActiveRecord
 
             if File.file?(filename)
               current_version = ActiveRecord::Migrator.current_version
+
               next if current_version.nil?
 
               cache = YAML.load(File.read(filename))

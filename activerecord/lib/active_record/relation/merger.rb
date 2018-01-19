@@ -52,7 +52,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:includes, :preload, :joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
+                      [:includes, :preload, :joins, :left_outer_joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -79,6 +79,7 @@ module ActiveRecord
         merge_clauses
         merge_preloads
         merge_joins
+        merge_outer_joins
 
         relation
       end
@@ -126,6 +127,29 @@ module ActiveRecord
             end
 
             relation.joins!(*joins_dependency)
+          end
+        end
+
+        def merge_outer_joins
+          return if other.left_outer_joins_values.blank?
+
+          if other.klass == relation.klass
+            relation.left_outer_joins!(*other.left_outer_joins_values)
+          else
+            alias_tracker = nil
+            joins_dependency = other.left_outer_joins_values.map do |join|
+              case join
+              when Hash, Symbol, Array
+                alias_tracker ||= other.alias_tracker
+                ActiveRecord::Associations::JoinDependency.new(
+                  other.klass, other.table, join, alias_tracker
+                )
+              else
+                join
+              end
+            end
+
+            relation.left_outer_joins!(*joins_dependency)
           end
         end
 

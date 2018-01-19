@@ -9,8 +9,7 @@ module ActiveStorage
   #   # => { width: 4104, height: 2736 }
   #
   # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
-  # the {ImageMagick}[http://www.imagemagick.org] system library. These libraries are not provided by Rails; you must
-  # install them yourself to use this analyzer.
+  # the {ImageMagick}[http://www.imagemagick.org] system library.
   class Analyzer::ImageAnalyzer < Analyzer
     def self.accept?(blob)
       blob.image?

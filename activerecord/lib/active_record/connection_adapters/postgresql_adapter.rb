@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
-gem "pg", "~> 0.18"
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
 require "active_record/connection_adapters/abstract_adapter"
@@ -121,6 +121,10 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def supports_bulk_alter?
+        true
+      end
 
       def supports_index_sort_order?
         true

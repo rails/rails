@@ -50,8 +50,16 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 20, image.height
   end
 
+  test "optimized variation of GIF blob" do
+    blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
+
+    assert_nothing_raised do
+      blob.variant(layers: "Optimize").processed
+    end
+  end
+
   test "variation of invariable blob" do
-    assert_raises ActiveStorage::Blob::InvariableError do
+    assert_raises ActiveStorage::InvariableError do
       create_file_blob(filename: "report.pdf", content_type: "application/pdf").variant(resize: "100x100")
     end
   end
@@ -59,6 +67,6 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "service_url doesn't grow in length despite long variant options" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(font: "a" * 10_000).processed
-    assert_operator variant.service_url.length, :<, 500
+    assert_operator variant.service_url.length, :<, 525
   end
 end

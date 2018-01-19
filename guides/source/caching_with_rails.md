@@ -100,9 +100,9 @@ called key-based expiration.
 
 Cache fragments will also be expired when the view fragment changes (e.g., the
 HTML in the view changes). The string of characters at the end of the key is a
-template tree digest. It is an MD5 hash computed based on the contents of the
-view fragment you are caching. If you change the view fragment, the MD5 hash
-will change, expiring the existing file.
+template tree digest. It is a hash digest computed based on the contents of the
+view fragment you are caching. If you change the view fragment, the digest will
+change, expiring the existing file.
 
 TIP: Cache stores like Memcached will automatically delete old cache files.
 

@@ -16,11 +16,10 @@ module ActiveStorage
   #   ActiveStorage::VideoAnalyzer.new(blob).metadata
   #   # => { width: 640, height: 480, duration: 5.0, angle: 0, aspect_ratio: [4, 3] }
   #
-  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
-  # install ffmpeg yourself to use this analyzer.
+  # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
+  #
+  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::VideoAnalyzer < Analyzer
-    class_attribute :ffprobe_path, default: "ffprobe"
-
     def self.accept?(blob)
       blob.video?
     end
@@ -88,6 +87,10 @@ module ActiveStorage
       rescue Errno::ENOENT
         logger.info "Skipping video analysis because ffmpeg isn't installed"
         {}
+      end
+
+      def ffprobe_path
+        ActiveStorage.paths[:ffprobe] || "ffprobe"
       end
   end
 end

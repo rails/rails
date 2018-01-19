@@ -3,6 +3,7 @@
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
+require "active_support/core_ext/string/strip"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:

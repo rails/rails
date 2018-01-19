@@ -34,7 +34,8 @@ module ActiveRecord
 
     def self.add_reflection(ar, name, reflection)
       ar.clear_reflections_cache
-      ar._reflections = ar._reflections.merge(name.to_s => reflection)
+      name = name.to_s
+      ar._reflections = ar._reflections.except(name).merge!(name => reflection)
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)
@@ -563,7 +564,7 @@ module ActiveRecord
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
-      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :foreign_key]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:through, :foreign_key]
 
       def add_as_source(seed)
         seed

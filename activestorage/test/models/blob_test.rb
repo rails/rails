@@ -13,6 +13,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal Digest::MD5.base64digest(data), blob.checksum
   end
 
+  test "create after upload extracts content type from data" do
+    blob = create_file_blob content_type: "application/octet-stream"
+    assert_equal "image/jpeg", blob.content_type
+  end
+
+  test "create after upload extracts content type from filename" do
+    blob = create_blob content_type: "application/octet-stream"
+    assert_equal "text/plain", blob.content_type
+  end
+
   test "text?" do
     blob = create_blob data: "Hello world!"
     assert blob.text?
@@ -41,6 +51,25 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "urls force attachment as content disposition for content types served as binary" do
+    blob = create_blob(content_type: "text/html")
+
+    freeze_time do
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url
+      assert_equal expected_url_for(blob, disposition: :attachment), blob.service_url(disposition: :inline)
+    end
+  end
+
+  test "urls allow for custom filename" do
+    blob = create_blob(filename: "original.txt")
+    new_filename = ActiveStorage::Filename.new("new.txt")
+
+    freeze_time do
+      assert_equal expected_url_for(blob), blob.service_url
+      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
+    end
+  end
+
   test "purge deletes file from external service" do
     blob = create_blob
 
@@ -57,8 +86,9 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :inline)
-      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{blob.filename.parameters}" }.to_param
-      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{blob.filename}?#{query_string}"
+    def expected_url_for(blob, disposition: :inline, filename: nil)
+      filename ||= blob.filename
+      query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
+      "http://localhost:3000/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

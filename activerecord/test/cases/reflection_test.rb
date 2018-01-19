@@ -254,23 +254,34 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case
-    @hotel = Hotel.create!
-    @department = @hotel.departments.create!
-    @department.chefs.create!(employable: CakeDesigner.create!)
-    @department.chefs.create!(employable: DrinkDesigner.create!)
+    hotel = Hotel.create!
+    department = hotel.departments.create!
+    department.chefs.create!(employable: CakeDesigner.create!)
+    department.chefs.create!(employable: DrinkDesigner.create!)
 
-    assert_equal 1, @hotel.cake_designers.size
-    assert_equal 1, @hotel.drink_designers.size
-    assert_equal 2, @hotel.chefs.size
+    assert_equal 1, hotel.cake_designers.size
+    assert_equal 1, hotel.cake_designers.count
+    assert_equal 1, hotel.drink_designers.size
+    assert_equal 1, hotel.drink_designers.count
+    assert_equal 2, hotel.chefs.size
+    assert_equal 2, hotel.chefs.count
   end
 
   def test_scope_chain_does_not_interfere_with_hmt_with_polymorphic_case_and_sti
-    @hotel = Hotel.create!
-    @hotel.mocktail_designers << MocktailDesigner.create!
+    hotel = Hotel.create!
+    hotel.mocktail_designers << MocktailDesigner.create!
 
-    assert_equal 1, @hotel.mocktail_designers.size
-    assert_equal 1, @hotel.mocktail_designers.count
-    assert_equal 1, @hotel.chef_lists.size
+    assert_equal 1, hotel.mocktail_designers.size
+    assert_equal 1, hotel.mocktail_designers.count
+    assert_equal 1, hotel.chef_lists.size
+    assert_equal 1, hotel.chef_lists.count
+
+    hotel.mocktail_designers = []
+
+    assert_equal 0, hotel.mocktail_designers.size
+    assert_equal 0, hotel.mocktail_designers.count
+    assert_equal 0, hotel.chef_lists.size
+    assert_equal 0, hotel.chef_lists.count
   end
 
   def test_scope_chain_of_polymorphic_association_does_not_leak_into_other_hmt_associations

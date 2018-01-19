@@ -16,8 +16,19 @@ module ActiveStorage
     config.active_storage = ActiveSupport::OrderedOptions.new
     config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
-    config.active_storage.variable_content_types = [ "image/png", "image/gif", "image/jpg", "image/jpeg", "image/vnd.adobe.photoshop" ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
+
+    config.active_storage.variable_content_types = %w( image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop )
+    config.active_storage.content_types_to_serve_as_binary = %w(
+      text/html
+      text/javascript
+      image/svg+xml
+      application/postscript
+      application/x-shockwave-flash
+      text/xml
+      application/xml
+      application/xhtml+xml
+    )
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -27,7 +38,10 @@ module ActiveStorage
         ActiveStorage.queue      = app.config.active_storage.queue
         ActiveStorage.previewers = app.config.active_storage.previewers || []
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
+        ActiveStorage.paths      = app.config.active_storage.paths || {}
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
       end
     end
 
@@ -68,22 +82,6 @@ module ActiveStorage
             rescue => e
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
-        end
-      end
-    end
-
-    initializer "active_storage.paths" do
-      config.after_initialize do |app|
-        if ffprobe_path = app.config.active_storage.paths.ffprobe
-          ActiveStorage::Analyzer::VideoAnalyzer.ffprobe_path = ffprobe_path
-        end
-
-        if ffmpeg_path = app.config.active_storage.paths.ffmpeg
-          ActiveStorage::Previewer::VideoPreviewer.ffmpeg_path = ffmpeg_path
-        end
-
-        if mutool_path = app.config.active_storage.paths.mutool
-          ActiveStorage::Previewer::PDFPreviewer.mutool_path = mutool_path
         end
       end
     end

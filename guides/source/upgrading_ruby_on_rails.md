@@ -65,6 +65,17 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.1 to Rails 5.2
+-------------------------------------
+
+For more information on changes made to Rails 5.2 please see the [release notes](5_2_release_notes.html).
+
+### Bootsnap
+
+Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
+The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+otherwise change the `boot.rb` to not use bootsnap.
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
@@ -72,7 +83,7 @@ For more information on changes made to Rails 5.1 please see the [release notes]
 
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
-If your application uses the the top-level `HashWithIndifferentAccess` class, you
+If your application uses the top-level `HashWithIndifferentAccess` class, you
 should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
 
 It is only soft-deprecated, which means that your code will not break at the
@@ -567,7 +578,7 @@ gem 'rails-deprecated_sanitizer'
 
 ### Rails DOM Testing
 
-The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
+The [`TagAssertions` module](http://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
 
 ### Masked Authenticity Tokens

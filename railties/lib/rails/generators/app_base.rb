@@ -301,7 +301,7 @@ module Rails
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
         when "mysql"          then ["mysql2", ["~> 0.4.4"]]
-        when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
@@ -460,16 +460,6 @@ module Rails
       def generate_spring_binstubs
         if bundle_install? && spring_install?
           bundle_command("exec spring binstub --all")
-        end
-      end
-
-      def run_active_storage
-        unless skip_active_storage?
-          if bundle_install?
-            rails_command "active_storage:install", capture: options[:quiet]
-          else
-            log("Active Storage installation was skipped. Please run `bin/rails active_storage:install` to install Active Storage files.")
-          end
         end
       end
 
