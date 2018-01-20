@@ -1,3 +1,9 @@
+*   Clear the transaction state when AR object is duped.
+
+    Fixes #31670.
+
+    *Yuriy Ustushenko*
+
 *   Support for PostgreSQL foreign tables.
 
     *fatkodima*
