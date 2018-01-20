@@ -95,14 +95,16 @@
       </dd>
     <% end %>
 
+    <dt>Format:</dt>
     <% if @email.multipart? %>
-      <dt>Format:</dt>
       <dd>
         <select id="part" onchange="refreshBody();">
           <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="<%= part_query('text/html') %>">View as HTML email</option>
           <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
         </select>
       </dd>
+    <% else %>
+      <dd id="mime_type" data-mime-type="<%= part_query(@email.mime_type) %>"><%= @email.mime_type == 'text/html' ? 'HTML email' : 'plain-text email' %></dd>
     <% end %>
 
     <% if I18n.available_locales.count > 1 %>
@@ -131,15 +133,24 @@
   function refreshBody() {
     var part_select = document.querySelector('select#part');
     var locale_select = document.querySelector('select#locale');
-    var part_param = part_select.options[part_select.selectedIndex].value;
-    var locale_param = locale_select.options[locale_select.selectedIndex].value;
     var iframe = document.getElementsByName('messageBody')[0];
-    iframe.contentWindow.location = '?' + part_param + '&' + locale_param;
+    var part_param = part_select ?
+      part_select.options[part_select.selectedIndex].value :
+      document.querySelector('#mime_type').dataset.mimeType;
+    var locale_param = locale_select ? locale_select.options[locale_select.selectedIndex].value : null;
+    var fresh_location;
+    if (locale_param) {
+      fresh_location = '?' + part_param + '&' + locale_param;
+    } else {
+      fresh_location = '?' + part_param;
+    }
+    iframe.contentWindow.location = fresh_location;
 
     if (history.replaceState) {
       var url = location.pathname.replace(/\.(txt|html)$/, '');
       var format = /html/.test(part_param) ? '.html' : '.txt';
-      window.history.replaceState({}, '', url + format + '?' + locale_param);
+      var state_to_replace = locale_param ? (url + format + '?' + locale_param) : (url + format);
+      window.history.replaceState({}, '', state_to_replace);
     }
   }
 </script>
