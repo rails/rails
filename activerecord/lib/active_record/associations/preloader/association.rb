@@ -73,11 +73,29 @@ module ActiveRecord
           end
 
           def convert_key(key)
-            if key_conversion_required?
-              key.to_s
-            else
-              key
+            converted_key = key_conversion_required? ? key.to_s : key
+
+            if converted_key.respond_to?(:downcase) && !case_sensitive_comparison?
+              converted_key = converted_key.downcase
             end
+
+            converted_key
+          end
+
+          def case_sensitive_comparison?
+            association_key_case_sensitive? || owner_key_case_sensitive?
+          end
+
+          def association_key_case_sensitive?
+            case_sensitive_column?(klass.columns_hash[association_key_name.to_s])
+          end
+
+          def owner_key_case_sensitive?
+            case_sensitive_column?(model.columns_hash[owner_key_name.to_s])
+          end
+
+          def case_sensitive_column?(column)
+            column.respond_to?(:case_sensitive?) ? column.case_sensitive? : true
           end
 
           def association_key_type

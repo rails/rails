@@ -1,3 +1,9 @@
+*   Fix `includes` unable to handle joins on case insensitive columns.
+
+    Fixes #31445.
+
+    *Hendy Tanata*
+
 *   Migrations raise when duplicate column definition.
 
     Fixes #33024.

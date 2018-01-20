@@ -24,6 +24,8 @@ require "models/category"
 require "models/categorization"
 require "models/edge"
 require "models/subscriber"
+require "models/user"
+require "models/family_tree"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
@@ -596,6 +598,40 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_equal ["comments_count AS ranking"], query.select_values
     assert_equal 1, query.to_a.size
+  end
+
+  def test_includes_case_sensitivity
+    family_tree_class = Class.new(FamilyTree) do
+      has_many :users, primary_key: :token, foreign_key: :token
+    end
+
+    def family_tree_class.name
+      superclass.name
+    end
+
+    user_class = Class.new(User) do
+      belongs_to :family_tree, primary_key: :token, foreign_key: :token
+    end
+
+    def user_class.name
+      superclass.name
+    end
+
+    family_tree_class.create! token: "TOKEN"
+    user_class.create! token: "token"
+    user_class.create! token: "token"
+    user_class.create! token: "TOKEN"
+
+    family_tree_foreign_key_column = family_tree_class.columns_hash["token"]
+    family_tree = family_tree_class.includes(:users).first
+
+    if !family_tree_foreign_key_column.respond_to?(:case_sensitive?) ||
+      family_tree_foreign_key_column.case_sensitive?
+
+      assert_equal 1, family_tree.users.size
+    else
+      assert_equal 3, family_tree.users.size
+    end
   end
 
   def test_preloading_with_associations_and_merges
