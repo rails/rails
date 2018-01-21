@@ -5,12 +5,13 @@ require "cases/helper"
 class DirtyTest < ActiveModel::TestCase
   class DirtyModel
     include ActiveModel::Dirty
-    define_attribute_methods :name, :color, :size
+    define_attribute_methods :name, :color, :size, :status
 
     def initialize
       @name = nil
       @color = nil
       @size = nil
+      @status = "initialized"
     end
 
     def name
@@ -38,6 +39,15 @@ class DirtyTest < ActiveModel::TestCase
     def size=(val)
       attribute_will_change!(:size) unless val == @size
       @size = val
+    end
+
+    def status
+      @status
+    end
+
+    def status=(val)
+      status_will_change! unless val == @status
+      @status = val
     end
 
     def save
@@ -135,15 +145,20 @@ class DirtyTest < ActiveModel::TestCase
 
   test "saving should preserve previous changes" do
     @model.name = "Jericho Cane"
+    @model.status = "waiting"
     @model.save
     assert_equal [nil, "Jericho Cane"], @model.previous_changes["name"]
+    assert_equal ["initialized", "waiting"], @model.previous_changes["status"]
   end
 
   test "setting new attributes should not affect previous changes" do
     @model.name = "Jericho Cane"
+    @model.status = "waiting"
     @model.save
     @model.name = "DudeFella ManGuy"
+    @model.status = "finished"
     assert_equal [nil, "Jericho Cane"], @model.name_previous_change
+    assert_equal ["initialized", "waiting"], @model.previous_changes["status"]
   end
 
   test "saving should preserve model's previous changed status" do
@@ -155,20 +170,26 @@ class DirtyTest < ActiveModel::TestCase
   test "previous value is preserved when changed after save" do
     assert_equal({}, @model.changed_attributes)
     @model.name = "Paul"
-    assert_equal({ "name" => nil }, @model.changed_attributes)
+    @model.status = "waiting"
+    assert_equal({ "name" => nil, "status" => "initialized" }, @model.changed_attributes)
 
     @model.save
 
     @model.name = "John"
-    assert_equal({ "name" => "Paul" }, @model.changed_attributes)
+    @model.status = "finished"
+    assert_equal({ "name" => "Paul", "status" => "waiting" }, @model.changed_attributes)
   end
 
   test "changing the same attribute multiple times retains the correct original value" do
     @model.name = "Otto"
+    @model.status = "waiting"
     @model.save
     @model.name = "DudeFella ManGuy"
     @model.name = "Mr. Manfredgensonton"
+    @model.status = "processing"
+    @model.status = "finished"
     assert_equal ["Otto", "Mr. Manfredgensonton"], @model.name_change
+    assert_equal ["waiting", "finished"], @model.status_change
     assert_equal @model.name_was, "Otto"
   end
 
