@@ -78,6 +78,19 @@ module ActiveRecord
         views.include?(view_name.to_s)
       end
 
+      # Returns an array of enum names defined in the database.
+      def enums
+        raise NotImplementedError, "#enums is not implemented"
+      end
+
+      # Checks to see if the enum type +enum_name+ exists on the database.
+      #
+      #   enum_exists?(:ebook_format)
+      #
+      def enum_exists?(_enum_name)
+        raise NotImplementedError, "#enum_exists? is not implemented"
+      end
+
       # Returns an array of indexes for the given table.
       def indexes(table_name)
         raise NotImplementedError, "#indexes is not implemented"
@@ -146,6 +159,66 @@ module ActiveRecord
         pk = primary_keys(table_name)
         pk = pk.first unless pk.size > 1
         pk
+      end
+
+
+      # Creates a new enum type with the name +enum_name+ which possible values are +values+.
+      # +enum_name+ may be either be a String or a Symbol. +values+ is an array of either String or Symbol.
+      #
+      # ====== Creating an enum type
+      #
+      #   create_enum(:ebook_format, [:pdf, :epub, :mobi])
+      #
+      # generates:
+      #
+      #   CREATE TYPE ebook_format AS ENUM ('pdf', 'epub', 'mobi')
+      #
+      # Note: only supported by PostgreSQL
+      def create_enum(enum_name, values)
+        raise NotImplementedError, "#{self.class} does not support enum types"
+      end
+
+
+      # Drops an enum type with the name +enum_name+ from the database.
+      # +enum_name+ may be either a String or a Symbol.
+      #
+      # ====== Dropping an enum
+      #
+      #   drop_enum(:ebook_format)
+      #
+      # generates:
+      #
+      #   DROP TYPE ebook_format
+      #
+      # Note: only supported by PostgreSQL
+      def drop_enum(enum_name)
+        raise NotImplementedError, "#{self.class} does not support enum types"
+      end
+
+      # Add a new value +value+ to an enum type +enum_name+.
+      # +enum_name+ and +value+ may be either be a String or a Symbol.
+      #
+      # Available options are:
+      # * <tt>:before</tt> -
+      #   Inserts the new value before the specified value.
+      # * <tt>:after</tt> -
+      #   Inserts the new value after the specified value.
+      #
+      # Note: only supported by PostgreSQL
+      #
+      # == Examples
+      #
+      #   add_value_to_enum(:ebook_format, :html)
+      #   ALTER TYPE ebook_format ADD VALUE 'html'
+      #
+      #   add_value_to_enum(:ebook_format, :html, before: :pdf)
+      #   ALTER TYPE ebook_format ADD VALUE 'html' BEFORE 'pdf'
+      #
+      #   add_value_to_enum(:ebook_format, :html, after: :pdf)
+      #   ALTER TYPE ebook_format ADD VALUE 'html' AFTER 'pdf'
+      #
+      def add_value_to_enum(enum_name, value)
+        raise NotImplementedError, "#{self.class} does not support enum types"
       end
 
       # Creates a new table with the name +table_name+. +table_name+ may either
@@ -1282,6 +1355,10 @@ module ActiveRecord
 
         def schema_creation
           SchemaCreation.new(self)
+        end
+
+        def create_enum_definition(*args)
+          raise NotImplementedError, "#{self.class} does not support enum types"
         end
 
         def create_table_definition(*args)
