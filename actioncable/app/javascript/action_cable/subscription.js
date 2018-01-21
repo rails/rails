@@ -55,38 +55,35 @@
 //
 // The "AppearanceChannel" name is automatically mapped between the client-side subscription creation and the server-side Ruby class name.
 // The AppearanceChannel#appear/away public methods are exposed automatically to client-side invocation through the perform method.
-ActionCable.Subscription = (function() {
-  const extend = function(object, properties) {
-    if (properties != null) {
-      for (let key in properties) {
-        const value = properties[key]
-        object[key] = value
-      }
-    }
-    return object
-  }
 
-  class Subscription {
-    constructor(consumer, params = {}, mixin) {
-      this.consumer = consumer
-      this.identifier = JSON.stringify(params)
-      extend(this, mixin)
-    }
-
-    // Perform a channel action with the optional data passed as an attribute
-    perform(action, data = {}) {
-      data.action = action
-      return this.send(data)
-    }
-
-    send(data) {
-      return this.consumer.send({command: "message", identifier: this.identifier, data: JSON.stringify(data)})
-    }
-
-    unsubscribe() {
-      return this.consumer.subscriptions.remove(this)
+const extend = function(object, properties) {
+  if (properties != null) {
+    for (let key in properties) {
+      const value = properties[key]
+      object[key] = value
     }
   }
+  return object
+}
 
-  return Subscription
-})()
+export default class Subscription {
+  constructor(consumer, params = {}, mixin) {
+    this.consumer = consumer
+    this.identifier = JSON.stringify(params)
+    extend(this, mixin)
+  }
+
+  // Perform a channel action with the optional data passed as an attribute
+  perform(action, data = {}) {
+    data.action = action
+    return this.send(data)
+  }
+
+  send(data) {
+    return this.consumer.send({command: "message", identifier: this.identifier, data: JSON.stringify(data)})
+  }
+
+  unsubscribe() {
+    return this.consumer.subscriptions.remove(this)
+  }
+}

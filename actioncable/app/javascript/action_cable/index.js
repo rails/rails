@@ -1,9 +1,17 @@
-//= export ActionCable
-//= require_self
-//= require ./action_cable/consumer
+import Connection from "./connection"
+import ConnectionMonitor from "./connection_monitor"
+import Consumer from "./consumer"
+import INTERNAL from "./internal"
+import Subscription from "./subscription"
+import Subscriptions from "./subscriptions"
 
-this.ActionCable = {
-  INTERNAL: <%= ActionCable::INTERNAL.to_json %>,
+export default {
+  Connection,
+  ConnectionMonitor,
+  Consumer,
+  INTERNAL,
+  Subscription,
+  Subscriptions,
   WebSocket: window.WebSocket,
   logger: window.console,
 
@@ -12,7 +20,7 @@ this.ActionCable = {
       const urlConfig = this.getConfig("url")
       url = (urlConfig ? urlConfig : this.INTERNAL.default_mount_path)
     }
-    return new ActionCable.Consumer(this.createWebSocketURL(url))
+    return new Consumer(this.createWebSocketURL(url))
   },
 
   getConfig(name) {
