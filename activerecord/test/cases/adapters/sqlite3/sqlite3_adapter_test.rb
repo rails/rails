@@ -474,6 +474,11 @@ module ActiveRecord
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
 
+
+      def test_supports_enums
+        assert_not @conn.supports_enums?, "does not support enums"
+      end
+
       def test_respond_to_enable_extension
         assert @conn.respond_to?(:enable_extension)
       end

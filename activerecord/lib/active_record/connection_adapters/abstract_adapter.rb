@@ -269,6 +269,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support database extensions?
+      def supports_enums?
+        false
+      end
+
       # Does this adapter support creating indexes in the same statement as
       # creating the table?
       def supports_indexes_in_create?

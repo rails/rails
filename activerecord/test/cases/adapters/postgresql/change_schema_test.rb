@@ -35,6 +35,44 @@ module ActiveRecord
         assert_equal :datetime, column.type
         assert column.array?
       end
+
+      def test_create_enum
+        connection.create_enum "my_enum", ["value1", "value2"]
+        assert_includes connection.enums, "my_enum"
+        assert_equal connection.enum_values("my_enum"), ["value1", "value2"]
+      end
+
+      def test_drop_enum
+        connection.create_enum "my_enum", ["value1", "value2"]
+        assert connection.enum_exists?("my_enum")
+
+        connection.drop_enum "my_enum"
+        assert_not connection.enum_exists?("my_enum")
+      end
+
+      def test_add_value_to_enum
+        connection.create_enum "my_enum", ["value1", "value2"]
+        assert_equal connection.enum_values("my_enum"), ["value1", "value2"]
+
+        connection.add_value_to_enum "my_enum", "value3"
+        assert_equal connection.enum_values("my_enum"), ["value1", "value2", "value3"]
+      end
+
+      def test_add_value_to_enum_with_before
+        connection.create_enum "my_enum", ["value1", "value2"]
+        assert_equal connection.enum_values("my_enum"), ["value1", "value2"]
+
+        connection.add_value_to_enum "my_enum", "value0", before: "value1"
+        assert_equal connection.enum_values("my_enum"), ["value0", "value1", "value2"]
+      end
+
+      def test_add_value_to_enum_with_after
+        connection.create_enum "my_enum", ["value1", "value2"]
+        assert_equal connection.enum_values("my_enum"), ["value1", "value2"]
+
+        connection.add_value_to_enum "my_enum", "value1.5", after: "value1"
+        assert_equal connection.enum_values("my_enum"), ["value1", "value1.5", "value2"]
+      end
     end
   end
 end

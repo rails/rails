@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -142,6 +141,24 @@ module ActiveRecord
               comment: comment.presence
             )
           end
+        end
+
+        # Returns an array of enum names defined in the database.
+        def enums
+          query(<<~SQL, "SCHEMA").flatten
+            SELECT DISTINCT t.typname AS enum_name
+            FROM pg_type t
+            JOIN pg_enum e ON t.oid = e.enumtypid
+            JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace;
+          SQL
+        end
+
+        # Checks to see if the enum type +enum_name+ exists on the database.
+        #
+        #   enum_exists?(:ebook_format)
+        #
+        def enum_exists?(enum_name)
+          enums.include?(enum_name)
         end
 
         def table_options(table_name) # :nodoc:
@@ -494,6 +511,38 @@ module ActiveRecord
           validate_index_length!(table_name, new_name)
 
           execute "ALTER INDEX #{quote_column_name(old_name)} RENAME TO #{quote_table_name(new_name)}"
+        end
+
+        # Creates an enum type with name +enum_name+ which values are +values+.
+        def create_enum(enum_name, values)
+          formatted_values = values.map { |v| "'#{v}'" }.join(", ")
+
+          execute "CREATE TYPE #{enum_name} AS ENUM (#{formatted_values})"
+        end
+
+        # Add a new value to an existing enum which name is +enum_name+.
+        def add_value_to_enum(enum_name, value, options = {})
+          if options[:before] && options[:after]
+            raise ArgumentError.new("You cannot use before and after options at the same time")
+          end
+
+          sql = "ALTER TYPE #{enum_name} ADD VALUE '#{value}'".dup
+          sql << " BEFORE '#{options[:before]}'" if options[:before]
+          sql << " AFTER '#{options[:after]}'" if options[:after]
+
+          execute sql
+        end
+
+        # Drops an enum type with name +enum_name+ from the database.
+        def drop_enum(enum_name)
+          execute "DROP TYPE #{enum_name}"
+        end
+
+        # Returns the list of values of the enum with name +enum_name+.
+        def enum_values(enum_name)
+          query(<<~SQL, "SCHEMA").flatten
+            SELECT unnest(enum_range(NULL::#{enum_name}))
+          SQL
         end
 
         def foreign_keys(table_name)

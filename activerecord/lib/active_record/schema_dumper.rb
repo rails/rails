@@ -35,6 +35,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      enums(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -86,11 +87,15 @@ HEADER
       def extensions(stream)
       end
 
+      # enums are only supported by PostgreSQL
+      def enums(stream)
+      end
+
       def tables(stream)
         sorted_tables = @connection.tables.sort
 
         sorted_tables.each do |table_name|
-          table(table_name, stream) unless ignored?(table_name)
+          table(table_name, stream)   unless ignored?(table_name)
         end
 
         # dump foreign keys at the end to make sure all dependent tables exist.
@@ -219,6 +224,13 @@ HEADER
 
             "  #{parts.join(', ')}"
           end
+
+          stream.puts add_foreign_key_statements.sort.join("\n")
+        end
+      end
+
+      def enum_values(stream)
+        if (enums = @connection.enums(table)).any?
 
           stream.puts add_foreign_key_statements.sort.join("\n")
         end
