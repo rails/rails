@@ -1357,10 +1357,6 @@ module ActiveRecord
           SchemaCreation.new(self)
         end
 
-        def create_enum_definition(*args)
-          raise NotImplementedError, "#{self.class} does not support enum types"
-        end
-
         def create_table_definition(*args)
           TableDefinition.new(*args)
         end

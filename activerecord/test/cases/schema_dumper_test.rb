@@ -1,5 +1,4 @@
 # frozen_string_literal: true
-require "byebug"
 require "cases/helper"
 require "support/schema_dumping_helper"
 
