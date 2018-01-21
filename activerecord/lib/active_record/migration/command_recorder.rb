@@ -11,12 +11,15 @@ module ActiveRecord
     # * add_index
     # * add_reference
     # * add_timestamps
+    # * add_value_to_enum
     # * change_column
     # * change_column_default (must supply a :from and :to option)
     # * change_column_null
+    # * create_enum
     # * create_join_table
     # * create_table
     # * disable_extension
+    # * drop_enum
     # * drop_join_table
     # * drop_table (must supply a block)
     # * enable_extension
@@ -35,7 +38,8 @@ module ActiveRecord
         :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
-        :add_foreign_key, :remove_foreign_key
+        :add_foreign_key, :remove_foreign_key,
+        :create_enum, :drop_enum, :add_value_to_enum
       ]
       include JoinTable
 
@@ -221,6 +225,11 @@ module ActiveRecord
           reversed_args << remove_options if remove_options
 
           [:add_foreign_key, reversed_args]
+        end
+
+        def invert_create_enum(args)
+          enum_name = args.first
+          [:drop_enum, enum_name]
         end
 
         def respond_to_missing?(method, _)

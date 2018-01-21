@@ -108,6 +108,15 @@ module ActiveRecord
         end
       end
 
+      def test_invert_create_enum
+        require 'byebug'
+        @recorder.revert do
+          @recorder.record :create_enum, [:ebook_format, [:pdf, :mobi]]
+        end
+        drop_enum = @recorder.commands.first
+        assert_equal [:drop_enum, :ebook_format], drop_enum
+      end
+
       def test_invert_create_table
         @recorder.revert do
           @recorder.record :create_table, [:system_settings]
