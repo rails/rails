@@ -527,6 +527,14 @@ module ActiveRecord
           end
         end
 
+        def foreign_tables
+          query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA")
+        end
+
+        def foreign_table_exists?(table_name)
+          query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
+        end
+
         # Maps logical Rails types to PostgreSQL-specific data types.
         def type_to_sql(type, limit: nil, precision: nil, scale: nil, array: nil, **) # :nodoc:
           sql = \
@@ -739,7 +747,7 @@ module ActiveRecord
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
-            scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
+            scope[:type] ||= "'r','v','m','f'" # (r)elation/table, (v)iew, (m)aterialized view, (f)oreign table
 
             sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
@@ -756,6 +764,8 @@ module ActiveRecord
                 "'r'"
               when "VIEW"
                 "'v','m'"
+              when "FOREIGN TABLE"
+                "'f'"
               end
             scope = {}
             scope[:schema] = schema ? quote(schema) : "ANY (current_schemas(false))"

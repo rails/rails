@@ -1,3 +1,7 @@
+*   Support for PostgreSQL foreign tables.
+
+    *fatkodima*
+
 *   Fix relation merger issue with `left_outer_joins`.
 
     *Mehmet Emin İNAÇ*
