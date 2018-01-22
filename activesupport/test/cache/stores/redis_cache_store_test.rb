@@ -156,15 +156,26 @@ module ActiveSupport::Cache::RedisCacheStoreTests
   class StoreAPITest < StoreTest
   end
 
+  class UnavailableRedisClient < Redis::Client
+    def ensure_connected
+      raise Redis::BaseConnectionError
+    end
+  end
+
   class FailureSafetyTest < StoreTest
-    test "fetch read failure returns nil" do
-    end
+    include FailureSafetyBehavior
 
-    test "fetch read failure does not attempt to write" do
-    end
+    private
 
-    test "write failure returns nil" do
-    end
+      def emulating_unavailability
+        old_client = Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, UnavailableRedisClient)
+
+        yield ActiveSupport::Cache::RedisCacheStore.new
+      ensure
+        Redis.send(:remove_const, :Client)
+        Redis.const_set(:Client, old_client)
+      end
   end
 
   class DeleteMatchedTest < StoreTest

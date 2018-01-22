@@ -17,6 +17,12 @@ class SlowDalliClient < Dalli::Client
   end
 end
 
+class UnavailableDalliServer < Dalli::Server
+  def alive?
+    false
+  end
+end
+
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     ss = Dalli::Client.new("localhost:11211").stats
@@ -46,6 +52,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
   include ConnectionPoolBehavior
+  include FailureSafetyBehavior
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
@@ -117,5 +124,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     ensure
       Dalli.send(:remove_const, :Client)
       Dalli.const_set(:Client, old_client)
+    end
+
+    def emulating_unavailability
+      old_server = Dalli.send(:remove_const, :Server)
+      Dalli.const_set(:Server, UnavailableDalliServer)
+
+      yield ActiveSupport::Cache::MemCacheStore.new
+    ensure
+      Dalli.send(:remove_const, :Server)
+      Dalli.const_set(:Server, old_server)
     end
 end
