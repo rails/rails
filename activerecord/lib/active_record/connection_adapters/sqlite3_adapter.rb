@@ -119,6 +119,10 @@ module ActiveRecord
         sqlite_version >= "3.8.0"
       end
 
+      def supports_expression_index?
+        sqlite_version >= "3.9.0"
+      end
+
       def requires_reloading?
         true
       end
@@ -449,7 +453,7 @@ module ActiveRecord
             end
 
             to_column_names = columns(to).map(&:name)
-            columns = index.columns.map { |c| rename[c] || c }.select do |column|
+            columns = Array(index.columns).map { |c| rename[c] || c }.select do |column|
               to_column_names.include?(column)
             end
 
