@@ -545,14 +545,12 @@ module ActiveRecord
 
       private
 
-        def combine_multi_statements(fixture_inserts, tables_to_delete)
-          super
-
-          fixture_inserts.each_with_object([]) do |sql, total_sql|
-            previous_packet = total_sql.last
+        def combine_multi_statements(total_sql)
+          total_sql.each_with_object([]) do |sql, total_sql_chunks|
+            previous_packet = total_sql_chunks.last
             sql << ";\n"
-            if max_allowed_packet_reached?(sql, previous_packet) || total_sql.empty?
-              total_sql << sql
+            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
+              total_sql_chunks << sql
             else
               previous_packet << sql
             end

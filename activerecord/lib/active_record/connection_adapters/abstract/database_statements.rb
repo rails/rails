@@ -372,12 +372,13 @@ module ActiveRecord
           build_fixture_sql(fixtures, table_name)
         end.compact
 
-        total_sql = Array.wrap(combine_multi_statements(fixture_inserts, tables_to_delete))
+        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+        total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
 
         disable_referential_integrity do
           transaction(requires_new: true) do
             total_sql.each do |sql|
-              execute sql, "Fixtures Insert"
+              execute sql, "Fixtures Load"
               yield if block_given?
             end
           end
@@ -445,10 +446,8 @@ module ActiveRecord
           manager.to_sql
         end
 
-        def combine_multi_statements(fixture_inserts, tables_to_delete)
-          tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
-
-          fixture_inserts.join(";\n")
+        def combine_multi_statements(total_sql)
+          total_sql.join(";\n")
         end
 
         # Returns a subquery for the given key using the join information.
