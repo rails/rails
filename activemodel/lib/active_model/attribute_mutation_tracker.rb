@@ -35,6 +35,10 @@ module ActiveModel
       end
     end
 
+    def changed_attribute_names
+      attr_names.select { |attr| changed?(attr) }
+    end
+
     def any_changes?
       attr_names.any? { |attr| changed?(attr) }
     end
@@ -108,9 +112,6 @@ module ActiveModel
     end
 
     def original_value(*)
-    end
-
-    def force_change(*)
     end
   end
 end
