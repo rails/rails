@@ -194,6 +194,15 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_half_way_constantize
+    with_autoloading_fixtures do
+      assert_raise(NameError, "A::B should not be returned.") { "A::C::B".constantize }
+    end
+    with_autoloading_fixtures do
+      assert_no_changes(-> { "A::C::B".safe_constantize }, "Result should not depend on constant being loaded.") {}
+    end
+  end
+
   def test_non_existing_const_raises_name_error
     with_autoloading_fixtures do
       assert_raise(NameError) { DoesNotExist }

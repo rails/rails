@@ -278,13 +278,14 @@ module ActiveSupport
       # Remove the first blank element in case of '::ClassName' notation.
       names.shift if names.size > 1 && names.first.empty?
 
-      names.inject(Object) do |constant, name|
+      names.inject([Object]) do |constants, name|
+        *top_constants, constant = constants
         if constant == Object
-          constant.const_get(name)
+          [*constants, constant.const_get(name)]
         else
           candidate = constant.const_get(name)
-          next candidate if constant.const_defined?(name, false)
-          next candidate unless Object.const_defined?(name)
+          next [*constants, candidate] if constant.const_defined?(name, false)
+          next [*constants, candidate] unless top_constants.any? { |top_constant| top_constant.const_defined?(name) }
 
           # Go down the ancestors to check if it is owned directly. The check
           # stops when we reach Object or the end of ancestors tree.
@@ -295,9 +296,9 @@ module ActiveSupport
           end
 
           # owner is in Object, so raise
-          constant.const_get(name, false)
+          [*constants, constant.const_get(name, false)]
         end
-      end
+      end.last
     end
 
     # Tries to find a constant with the name specified in the argument string.
