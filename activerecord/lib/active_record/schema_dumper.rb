@@ -35,6 +35,7 @@ module ActiveRecord
     def dump(stream)
       header(stream)
       extensions(stream)
+      enums(stream)
       tables(stream)
       trailer(stream)
       stream
@@ -84,6 +85,10 @@ HEADER
 
       # extensions are only supported by PostgreSQL
       def extensions(stream)
+      end
+
+      # enums are only supported by PostgreSQL
+      def enums(stream)
       end
 
       def tables(stream)
