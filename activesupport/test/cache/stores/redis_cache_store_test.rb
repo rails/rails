@@ -5,13 +5,9 @@ require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
 
-driver_name = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
-driver = Object.const_get("Redis::Connection::#{driver_name.camelize}")
-
-Redis::Connection.drivers.clear
-Redis::Connection.drivers.append(driver)
-
 module ActiveSupport::Cache::RedisCacheStoreTests
+  DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
+
   class LookupTest < ActiveSupport::TestCase
     test "may be looked up as :redis_cache_store" do
       assert_kind_of ActiveSupport::Cache::RedisCacheStore,
@@ -24,7 +20,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0,
+        reconnect_attempts: 0, driver: DRIVER
       ] do
         build
       end
@@ -34,7 +30,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: nil,
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0,
+        reconnect_attempts: 0, driver: DRIVER
       ] do
         build url: []
       end
@@ -44,7 +40,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: "redis://localhost:6379/0",
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0,
+        reconnect_attempts: 0, driver: DRIVER
       ] do
         build url: "redis://localhost:6379/0"
       end
@@ -54,7 +50,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         url: "redis://localhost:6379/0",
         connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-        reconnect_attempts: 0,
+        reconnect_attempts: 0, driver: DRIVER
       ] do
         build url: %w[ redis://localhost:6379/0 ]
       end
@@ -64,10 +60,10 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_called_with Redis, :new, [
         [ url: "redis://localhost:6379/0",
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0 ],
+          reconnect_attempts: 0, driver: DRIVER ],
         [ url: "redis://localhost:6379/1",
           connect_timeout: 20, read_timeout: 1, write_timeout: 1,
-          reconnect_attempts: 0 ],
+          reconnect_attempts: 0, driver: DRIVER ],
       ], returns: Redis.new do
         @cache = build url: %w[ redis://localhost:6379/0 redis://localhost:6379/1 ]
         assert_kind_of ::Redis::Distributed, @cache.redis
@@ -83,7 +79,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(**kwargs).tap do |cache|
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap do |cache|
           cache.redis
         end
       end
@@ -93,11 +89,11 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     setup do
       @namespace = "namespace"
 
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60)
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, expires_in: 60, driver: DRIVER)
       # @cache.logger = Logger.new($stdout)  # For test debugging
 
       # For LocalCacheBehavior tests
-      @peek = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace)
+      @peek = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, namespace: @namespace, driver: DRIVER)
     end
 
     teardown do
@@ -120,7 +116,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include EncodedKeyCacheBehavior
 
     setup do
-      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1)
+      @cache = ActiveSupport::Cache::RedisCacheStore.new(timeout: 0.1, driver: DRIVER)
       @cache.logger = nil
     end
   end
