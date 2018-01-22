@@ -45,56 +45,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheIncrementDecrementBehavior
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
-
-  def test_connection_pool
-    emulating_latency do
-      begin
-        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
-        cache.clear
-
-        threads = []
-
-        assert_raises Timeout::Error do
-          # One of the three threads will fail in 1 second because our pool size
-          # is only two.
-          3.times do
-            threads << Thread.new do
-              cache.read("latency")
-            end
-          end
-
-          threads.each(&:join)
-        end
-      ensure
-        threads.each(&:kill)
-      end
-    end
-  end
-
-  def test_no_connection_pool
-    emulating_latency do
-      begin
-        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-        cache.clear
-
-        threads = []
-
-        assert_nothing_raised do
-          # Default connection pool size is 5, assuming 10 will make sure that
-          # the connection pool isn't used at all.
-          10.times do
-            threads << Thread.new do
-              cache.read("latency")
-            end
-          end
-
-          threads.each(&:join)
-        end
-      ensure
-        threads.each(&:kill)
-      end
-    end
-  end
+  include ConnectionPoolBehavior
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
@@ -153,6 +104,10 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   end
 
   private
+
+    def store
+      :mem_cache_store
+    end
 
     def emulating_latency
       old_client = Dalli.send(:remove_const, :Client)
