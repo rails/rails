@@ -376,6 +376,14 @@ module ActiveRecord
         end
       end
 
+      def test_supports_extensions
+        assert @connection.supports_extensions?, "does support extensions"
+      end
+
+      def test_supports_enums
+        assert @connection.supports_enums?, "does support enums"
+      end
+
       private
 
         def with_example_table(definition = "id serial primary key, number integer, data character varying(255)", &block)
