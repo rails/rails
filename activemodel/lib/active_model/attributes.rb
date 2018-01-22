@@ -23,7 +23,7 @@ module ActiveModel
         end
         self.attribute_types = attribute_types.merge(name => type)
         define_default_attribute(name, options.fetch(:default, NO_DEFAULT_PROVIDED), type)
-        define_attribute_methods(name)
+        define_attribute_method(name)
       end
 
       private
