@@ -101,7 +101,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         configure_connection
@@ -144,7 +144,7 @@ module ActiveRecord
       end
 
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
