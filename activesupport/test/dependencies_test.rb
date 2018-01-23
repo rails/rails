@@ -185,6 +185,25 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  # Regression see https://github.com/rails/rails/issues/31694
+  def test_included_constant_that_changes_to_have_exception_then_back_does_not_loop_forever
+    with_autoloading_fixtures do
+      require_dependency "constant_reload_error"
+      loaded = ActiveSupport::Dependencies.autoloaded_constants.inspect
+      assert loaded.include?("ConstantReloadError")
+      assert loaded.include?("AnotherConstant::ReloadError")
+      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
+      path = File.join(__dir__, "autoloading_fixtures/another_constant/reload_error.rb")
+      old_text = File.read(path)
+      new_text = old_text.sub("# no_such_method_as_this", "no_such_method_as_this")
+      File.open(path, "w") { |file| file.puts new_text }
+      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
+
+      File.open(path, "w") { |file| file.puts old_text }
+      assert ActiveSupport::Dependencies.autoloaded_constants.count { |x| x == "AnotherConstant::ReloadError" } == 1
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
