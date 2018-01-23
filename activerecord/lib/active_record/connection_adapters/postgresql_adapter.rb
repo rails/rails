@@ -309,6 +309,10 @@ module ActiveRecord
         true
       end
 
+      def supports_enums?
+        true
+      end
+
       def supports_ranges?
         # Range datatypes weren't introduced until PostgreSQL 9.2
         postgresql_version >= 90200

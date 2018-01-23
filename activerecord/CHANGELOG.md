@@ -1,3 +1,19 @@
+*   Add support for [PostgreSQL enums](https://www.postgresql.org/docs/10/static/datatype-enum.html): .
+
+    Creating a new enum type:
+
+        create_enum :ebook_format, [:pdf, :epub]
+
+    Droping an enum:
+
+        drop_enum :ebook_format
+
+    Adding a new value to an existing enum:
+
+        add_enum_value :ebook_format, :mobi
+
+    *Antonio Borrero Granell*
+
 *   Support for PostgreSQL foreign tables.
 
     *fatkodima*

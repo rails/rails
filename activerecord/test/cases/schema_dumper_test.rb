@@ -339,6 +339,30 @@ class SchemaDumperTest < ActiveRecord::TestCase
       enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
       assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
     end
+
+    def test_schema_dump_includes_enums
+      connection = ActiveRecord::Base.connection
+
+      connection.stubs(:enums).returns(["ebook_format"])
+      connection.stubs(:enum_values).returns(["pdf", "mobi"])
+      output = perform_schema_dump
+      assert_match %r{create_enum "ebook_format", \["pdf", "mobi"\]}, output
+
+      connection.stubs(:enums).returns([])
+      output = perform_schema_dump
+      assert_no_match %r{create_enum}, output
+    end
+
+    def test_schema_dump_includes_enums_in_alphabetic_order
+      connection = ActiveRecord::Base.connection
+
+      connection.stubs(:enums).returns(["ebook_format", "ebook_file_format"])
+      connection.stubs(:enum_values).returns(["pdf", "mobi"])
+
+      output = perform_schema_dump
+      created_enums = output.scan(%r{create_enum "(\w+)"}).flatten
+      assert_equal ["ebook_file_format", "ebook_format"], created_enums
+    end
   end
 
   def test_schema_dump_keeps_large_precision_integer_columns_as_decimal
