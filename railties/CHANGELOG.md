@@ -1,3 +1,10 @@
+* Restrict selenium-webdriver to 3.6 version
+
+  Any version greater than 3.6 currently doesn't work with chrome latest.
+
+  *Dino Maric*
+
+
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 
 *   No changes.
