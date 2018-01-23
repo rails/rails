@@ -111,7 +111,14 @@ module ActiveRecord
     def calculate(operation, column_name)
       if has_include?(column_name)
         relation = construct_relation_for_association_calculations
-        relation.distinct! if operation.to_s.downcase == "count"
+
+        if operation.to_s.downcase == "count" && !distinct_value
+          relation.distinct!
+          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
+          if (column_name == :all || column_name.nil?) && select_values.empty?
+            relation.order_values = []
+          end
+        end
 
         relation.calculate(operation, column_name)
       else

@@ -1,3 +1,9 @@
+*   Fix `count(:all)` with eager loading and having an order other than the driving table.
+
+    Fixes #31783.
+
+    *Ryuta Kamizono*
+
 *   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
     SQL queries for association counting.
 
