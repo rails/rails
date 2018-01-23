@@ -209,12 +209,14 @@ module ActiveRecord
         combinable, non_combinable = Array(operations).partition { |c, args| respond_to?(:"#{c}_for_alter", true) }
 
         if combinable.present?
-          alter_table(:delete_me) do |definition|
+          alter_table(table_name) do |definition|
             combinable.each do |command, args|
               table, arguments = args.shift, args
               method = :"#{command}_for_alter"
 
-              send(method, definition, *arguments)
+              procs = []
+              procs << send(method, table, *arguments)
+              procs.flatten.each { |p| p.call(definition) }
             end
           end
         end
@@ -495,31 +497,29 @@ module ActiveRecord
                      SELECT #{quoted_from_columns} FROM #{quote_table_name(from)}")
         end
 
-        def add_column_for_alter(definition, column_name, type, options)
-          definition.column(column_name, type, options)
+        def add_column_for_alter(table_name, column_name, type, options)
+          Proc.new { |definition| definition.column(column_name, type, options) }
         end
 
-        def add_timestamps_for_alter(definition, options)
-          definition.timestamps(options)
+        def add_timestamps_for_alter(table_name, options)
+          Proc.new { |definition| definition.timestamps(options) }
         end
 
-        def remove_column_for_alter(definition, column_name, type = nil, options = {})
-          definition.remove_column column_name
+        def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+          Proc.new { |definition| definition.remove_column column_name }
         end
 
-        def remove_columns_for_alter(definition, *column_names)
-          column_names.map { |column_name| remove_column_for_alter(definition, column_name) }
-        end
-
-        def change_column_for_alter(definition, column_name, type, options = {})
-          definition[column_name].instance_eval do
-            self.type    = type
-            self.limit   = options[:limit] if options.include?(:limit)
-            self.default = options[:default] if options.include?(:default)
-            self.null    = options[:null] if options.include?(:null)
-            self.precision = options[:precision] if options.include?(:precision)
-            self.scale = options[:scale] if options.include?(:scale)
-            self.collation = options[:collation] if options.include?(:collation)
+        def change_column_for_alter(table_name, column_name, type, options = {})
+          Proc.new do |definition|
+            definition[column_name].instance_eval do
+              self.type    = type
+              self.limit   = options[:limit] if options.include?(:limit)
+              self.default = options[:default] if options.include?(:default)
+              self.null    = options[:null] if options.include?(:null)
+              self.precision = options[:precision] if options.include?(:precision)
+              self.scale = options[:scale] if options.include?(:scale)
+              self.collation = options[:collation] if options.include?(:collation)
+            end
           end
         end
 
