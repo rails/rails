@@ -119,17 +119,19 @@ class FixturesTest < ActiveRecord::TestCase
   if current_adapter?(:Mysql2Adapter)
     def test_insert_fixtures_set_raises_an_error_when_max_allowed_packet_is_smaller_than_fixtures_set_size
       conn = ActiveRecord::Base.connection
+      mysql_margin = 2
       packet_size = 1024
+      bytes_needed_to_have_a_1024_bytes_fixture = 855
       fixtures = {
         "traffic_lights" => [
-          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * packet_size] },
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
+      conn.stubs(:max_allowed_packet).returns(packet_size - mysql_margin)
 
       error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
-      assert_match(/Fixtures set is too large/, error.message)
+      assert_match(/Fixtures set is too large #{packet_size}\./, error.message)
     end
 
     def test_insert_fixture_set_when_max_allowed_packet_is_bigger_than_fixtures_set_size

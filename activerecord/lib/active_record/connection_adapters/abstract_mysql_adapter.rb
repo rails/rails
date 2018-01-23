@@ -568,7 +568,8 @@ module ActiveRecord
         end
 
         def max_allowed_packet
-          @max_allowed_packet ||= show_variable("max_allowed_packet")
+          bytes_margin = 2
+          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
         def with_multi_statements
