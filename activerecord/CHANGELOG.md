@@ -1,3 +1,9 @@
+*   Fix `count(:all)` with eager loading and having an order other than the driving table.
+
+    Fixes #31783.
+
+    *Ryuta Kamizono*
+
 *   Clear the transaction state when an Active Record object is duped.
 
     Fixes #31670.

@@ -21,7 +21,7 @@ require "models/comment"
 require "models/rating"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -234,6 +234,12 @@ class CalculationsTest < ActiveRecord::TestCase
       next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
+  end
+
+  def test_count_with_eager_loading_and_custom_order
+    posts = Post.includes(:comments).order("comments.id")
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
   end
 
   def test_distinct_count_all_with_custom_select_and_order
