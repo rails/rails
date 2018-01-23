@@ -22,6 +22,28 @@ module ActiveModel
         self.class.new(name, user_provided_value, type, original_attribute)
       end
 
+      def marshal_dump
+        result = [
+          name,
+          value_before_type_cast,
+          type,
+          original_attribute,
+        ]
+        result << value if defined?(@value)
+        result
+      end
+
+      def marshal_load(values)
+        name, user_provided_value, type, original_attribute, value = values
+        @name = name
+        @user_provided_value = user_provided_value
+        @type = type
+        @original_attribute = original_attribute
+        if values.length == 5
+          @value = value
+        end
+      end
+
       protected
 
         attr_reader :user_provided_value
