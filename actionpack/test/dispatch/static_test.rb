@@ -158,6 +158,12 @@ module StaticTests
     assert_not_equal "gzip", response.headers["Content-Encoding"]
   end
 
+  def test_set_vary_when_origin_compressed_but_client_cant_accept
+    file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
+    response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "None")
+    assert_equal "Accept-Encoding", response.headers["Vary"]
+  end
+
   def test_serves_brotli_files_when_header_set
     file_name = "/gzip/application-a71b3024f80aea3181c09774ca17e712.js"
     response  = get(file_name, "HTTP_ACCEPT_ENCODING" => "br")
