@@ -614,7 +614,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_default_usage
     assert_called(Rails::Generators::AppGenerator, :usage_path, returns: nil) do
-      assert_match(/Create rails files for app generator/, Rails::Generators::AppGenerator.desc)
+      assert_match(/Create Rails files for app generator/, Rails::Generators::AppGenerator.desc)
     end
   end
 

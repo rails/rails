@@ -825,7 +825,7 @@ as follows:
 article GET    /articles/:id(.:format)      articles#show
 ```
 
-The special syntax `:id` tells rails that this route expects an `:id`
+The special syntax `:id` tells Rails that this route expects an `:id`
 parameter, which in our case will be the id of the article.
 
 As we did before, we need to add the `show` action in
@@ -1113,7 +1113,7 @@ A few things are going on. We check if there are any errors with
 `@article.errors.any?`, and in that case we show a list of all
 errors with `@article.errors.full_messages`.
 
-`pluralize` is a rails helper that takes a number and a string as its
+`pluralize` is a Rails helper that takes a number and a string as its
 arguments. If the number is greater than one, the string will be automatically
 pluralized.
 
@@ -2042,7 +2042,7 @@ Authentication challenge:
 
 Other authentication methods are available for Rails applications. Two popular
 authentication add-ons for Rails are the
-[Devise](https://github.com/plataformatec/devise) rails engine and
+[Devise](https://github.com/plataformatec/devise) Rails engine and
 the [Authlogic](https://github.com/binarylogic/authlogic) gem,
 along with a number of others.
 

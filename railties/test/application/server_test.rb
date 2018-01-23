@@ -32,7 +32,7 @@ module ApplicationTests
       assert_match(/DEPRECATION WARNING: Using `Rails::Application` subclass to start the server is deprecated/, log)
     end
 
-    test "restart rails server with custom pid file path" do
+    test "restart Rails server with custom pid file path" do
       skip "PTY unavailable" unless available_pty?
 
       File.open("#{app_path}/config/boot.rb", "w") do |f|

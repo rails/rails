@@ -161,7 +161,7 @@ The above creates `lib/tasks/bootstrap.rake` with a `boot:strap` rake task.
 
 ### generate(what, *args)
 
-Runs the supplied rails generator with given arguments.
+Runs the supplied Rails generator with given arguments.
 
 ```ruby
 generate(:scaffold, "person", "name:string", "address:text", "age:number")
@@ -205,7 +205,7 @@ route "root to: 'person#index'"
 
 ### inside(dir)
 
-Enables you to run a command from the given directory. For example, if you have a copy of edge rails that you wish to symlink from your new apps, you can do this:
+Enables you to run a command from the given directory. For example, if you have a copy of edge Rails that you wish to symlink from your new apps, you can do this:
 
 ```ruby
 inside('vendor') do
@@ -232,7 +232,7 @@ CODE
 These methods let you ask questions from templates and decide the flow based on the user's answer. Let's say you want to Freeze Rails only if the user wants to:
 
 ```ruby
-rails_command("rails:freeze:gems") if yes?("Freeze rails gems?")
+rails_command("rails:freeze:gems") if yes?("Freeze Rails gems?")
 # no?(question) acts just the opposite.
 ```
 

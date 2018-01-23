@@ -11,7 +11,7 @@ module Rails
         Class.new(AppBase) do
           add_shared_options_for "application"
 
-          # include a module to get around thor's method_added hook
+          # include a module to get around Thor's method_added hook
           include(Module.new {
             def gemfile_entries; super; end
             def invoke_all; super; self; end

@@ -404,11 +404,11 @@ module Rails
         say_status :run, "bundle #{command}"
 
         # We are going to shell out rather than invoking Bundler::CLI.new(command)
-        # because `rails new` loads the Thor gem and on the other hand bundler uses
+        # because `rails new` loads the Thor gem and on the other hand Bundler uses
         # its own vendored Thor, which could be a different version. Running both
         # things in the same process is a recipe for a night with paracetamol.
         #
-        # We unset temporary bundler variables to load proper bundler and Gemfile.
+        # We unset temporary Bundler variables to load proper Bundler and Gemfile.
         #
         # Thanks to James Tucker for the Gem tricks involved in this call.
         _bundle_command = Gem.bin_path("bundler", "bundle")

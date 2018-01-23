@@ -105,7 +105,7 @@ group :ujs do
   gem "chromedriver-helper"
 end
 
-# Add your own local bundler stuff.
+# Add your own local Bundler stuff.
 local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 

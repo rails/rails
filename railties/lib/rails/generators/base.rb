@@ -4,7 +4,7 @@ begin
   require "thor/group"
 rescue LoadError
   puts "Thor is not available.\nIf you ran this command from a git checkout " \
-       "of Rails, please make sure thor is installed,\nand run this command " \
+       "of Rails, please make sure Thor is installed,\nand run this command " \
        "as `ruby #{$0} #{(ARGV | ['--dev']).join(" ")}`"
   exit
 end
@@ -38,7 +38,7 @@ module Rails
         @desc ||= if usage_path
           ERB.new(File.read(usage_path)).result(binding)
         else
-          "Description:\n    Create #{base_name.humanize.downcase} files for #{generator_name} generator."
+          "Description:\n    Create #{base_name.humanize} files for #{generator_name} generator."
         end
       end
 
@@ -112,7 +112,7 @@ module Rails
       #
       #   "test_unit:controller", "test_unit"
       #
-      # Similarly, if you want it to also look up in the rails namespace, you
+      # Similarly, if you want it to also look up in the Rails namespace, you
       # just need to provide the :in value:
       #
       #   class AwesomeGenerator < Rails::Generators::Base
@@ -208,7 +208,7 @@ module Rails
       end
 
       # Returns the default source root for a given generator. This is used internally
-      # by rails to set its generators source root. If you want to customize your source
+      # by Rails to set its generators source root. If you want to customize your source
       # root, you should use source_root.
       def self.default_source_root
         return unless base_name && generator_name
