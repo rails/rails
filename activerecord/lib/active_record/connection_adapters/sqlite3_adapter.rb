@@ -206,24 +206,28 @@ module ActiveRecord
       #++
 
       def bulk_change_table(table_name, operations)
-        combinable, non_combinable = Array(operations).partition { |c, args| respond_to?(:"#{c}_for_alter", true) }
+        procs = []
+        operations.each do |command, args|
+          table, arguments = args.shift, args
+          method = :"#{command}_for_alter"
 
-        if combinable.present?
-          alter_table(table_name) do |definition|
-            combinable.each do |command, args|
-              table, arguments = args.shift, args
-              method = :"#{command}_for_alter"
-
-              procs = []
-              procs << send(method, table, *arguments)
-              procs.flatten.each { |p| p.call(definition) }
+          if respond_to?(method, true)
+            procs << send(method, table, *arguments)
+          else
+            if procs.any?
+              alter_table(table_name) do |definition|
+                procs.flatten.each { |p| p.call(definition) }
+              end
             end
+            procs = []
+            send(command, table, *arguments)
           end
         end
 
-        non_combinable.each do |command, args|
-          table, arguments = args.shift, args
-          send(command, table, *arguments)
+        if procs.any?
+          alter_table(table_name) do |definition|
+            procs.flatten.each { |p| p.call(definition) }
+          end
         end
       end
 
