@@ -139,7 +139,7 @@ module ActiveRecord
 
     private
       def relation
-        @relation ||= Relation.new(FakeKlass, Post.arel_table, Post.predicate_builder)
+        @relation ||= Relation.new(FakeKlass)
       end
   end
 end

@@ -23,7 +23,11 @@ module ActiveRecord
       # build a relation to merge in rather than directly merging
       # the values.
       def other
-        other = Relation.create(relation.klass, relation.table, relation.predicate_builder)
+        other = Relation.create(
+          relation.klass,
+          table: relation.table,
+          predicate_builder: relation.predicate_builder
+        )
         hash.each { |k, v|
           if k == :joins
             if Hash === v
