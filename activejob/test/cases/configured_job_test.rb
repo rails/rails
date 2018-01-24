@@ -8,7 +8,7 @@ class ConfiguredJobTest < ActiveSupport::TestCase
     mock_class    = Minitest::Mock.new
     mock_instance = Minitest::Mock.new
 
-    args = ['arg1' 'arg2']
+    args = ["arg1" "arg2"]
 
     mock_class.expect :new, mock_instance, [args]
     mock_instance.expect :perform_now, true
@@ -23,8 +23,8 @@ class ConfiguredJobTest < ActiveSupport::TestCase
     mock_class    = Minitest::Mock.new
     mock_instance = Minitest::Mock.new
 
-    args = ['arg1' 'arg2']
-    options = { op1: 'op1', op2: 'op2' }
+    args = ["arg1" "arg2"]
+    options = { op1: "op1", op2: "op2" }
 
     mock_class.expect :new, mock_instance, [args]
     mock_instance.expect :enqueue, true, [options]
