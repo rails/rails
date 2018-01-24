@@ -281,7 +281,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
-        @connection.socket_io.reopen(IO::NULL)
+        @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
 
@@ -315,6 +315,10 @@ module ActiveRecord
       end
 
       def supports_materialized_views?
+        postgresql_version >= 90300
+      end
+
+      def supports_foreign_tables?
         postgresql_version >= 90300
       end
 

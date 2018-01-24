@@ -1062,7 +1062,7 @@ module ActiveRecord
       end
     end
 
-    def current_version(connection = nil)
+    def current_version
       get_all_versions.max || 0
     rescue ActiveRecord::NoDatabaseError
     end
@@ -1169,8 +1169,8 @@ module ActiveRecord
       end
 
       # For cases where a table doesn't exist like loading from schema cache
-      def current_version(connection = nil)
-        MigrationContext.new(migrations_paths).current_version(connection)
+      def current_version
+        MigrationContext.new(migrations_paths).current_version
       end
     end
 

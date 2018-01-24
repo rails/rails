@@ -889,13 +889,23 @@ module ActionMailer
         default_values = self.class.default.map do |key, value|
           [
             key,
-            value.is_a?(Proc) ? instance_exec(&value) : value
+            compute_default(value)
           ]
         end.to_h
 
         headers_with_defaults = headers.reverse_merge(default_values)
         headers_with_defaults[:subject] ||= default_i18n_subject
         headers_with_defaults
+      end
+
+      def compute_default(value)
+        return value unless value.is_a?(Proc)
+
+        if value.arity == 1
+          instance_exec(self, &value)
+        else
+          instance_exec(&value)
+        end
       end
 
       def assign_headers_to_message(message, headers)

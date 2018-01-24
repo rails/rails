@@ -20,6 +20,31 @@ require "active_support/core_ext/marshal"
 
 module ActiveSupport
   module Cache
+    module ConnectionPoolLike
+      def with
+        yield self
+      end
+    end
+
+    ::Redis.include(ConnectionPoolLike)
+
+    class RedisDistributedWithConnectionPool < ::Redis::Distributed
+      def add_node(options)
+        pool_options = {}
+        pool_options[:size] = options[:pool_size] if options[:pool_size]
+        pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+
+        if pool_options.empty?
+          super
+        else
+          options = { url: options } if options.is_a?(String)
+          options = @default_options.merge(options)
+          pool = ConnectionPool.new(pool_options) { ::Redis.new(options) }
+          @ring.add_node(pool)
+        end
+      end
+    end
+
     # Redis cache store.
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
@@ -122,7 +147,7 @@ module ActiveSupport
 
         private
           def build_redis_distributed_client(urls:, **redis_options)
-            ::Redis::Distributed.new([], DEFAULT_REDIS_OPTIONS.merge(redis_options)).tap do |dist|
+            RedisDistributedWithConnectionPool.new([], DEFAULT_REDIS_OPTIONS.merge(redis_options)).tap do |dist|
               urls.each { |u| dist.add_node url: u }
             end
           end
@@ -172,7 +197,7 @@ module ActiveSupport
       end
 
       def redis
-        @redis ||= self.class.build_redis(**redis_options)
+        @redis ||= wrap_in_connection_pool(self.class.build_redis(**redis_options))
       end
 
       def inspect
@@ -211,7 +236,7 @@ module ActiveSupport
         instrument :delete_matched, matcher do
           case matcher
           when String
-            redis.eval DELETE_GLOB_LUA, [], [namespace_key(matcher, options)]
+            redis.with { |c| c.eval DELETE_GLOB_LUA, [], [namespace_key(matcher, options)] }
           else
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
           end
@@ -228,7 +253,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
         instrument :increment, name, amount: amount do
-          redis.incrby normalize_key(name, options), amount
+          failsafe :increment do
+            redis.with { |c| c.incrby normalize_key(name, options), amount }
+          end
         end
       end
 
@@ -242,7 +269,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
         instrument :decrement, name, amount: amount do
-          redis.decrby normalize_key(name, options), amount
+          failsafe :decrement do
+            redis.with { |c| c.decrby normalize_key(name, options), amount }
+          end
         end
       end
 
@@ -263,7 +292,7 @@ module ActiveSupport
           if namespace = merged_options(options)[namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.flushdb
+            redis.with { |c| c.flushdb }
           end
         end
       end
@@ -279,6 +308,21 @@ module ActiveSupport
       end
 
       private
+        def wrap_in_connection_pool(redis_connection)
+          if redis_connection.is_a?(::Redis)
+            pool_options = self.class.send(:retrieve_pool_options, redis_options)
+
+            if pool_options.empty?
+              redis_connection
+            else
+              self.class.send(:ensure_connection_pool_added!)
+              ConnectionPool.new(pool_options) { redis_connection }
+            end
+          else
+            redis_connection
+          end
+        end
+
         def set_redis_capabilities
           case redis
           when Redis::Distributed
@@ -294,7 +338,7 @@ module ActiveSupport
         # Read an entry from the cache.
         def read_entry(key, options = nil)
           failsafe :read_entry do
-            deserialize_entry redis.get(key)
+            deserialize_entry redis.with { |c| c.get(key) }
           end
         end
 
@@ -303,7 +347,10 @@ module ActiveSupport
           options = merged_options(options)
 
           keys = names.map { |name| normalize_key(name, options) }
-          values = redis.mget(*keys)
+
+          values = failsafe(:read_multi_mget, returning: {}) do
+            redis.with { |c| c.mget(*keys) }
+          end
 
           names.zip(values).each_with_object({}) do |(name, value), results|
             if value
@@ -328,15 +375,15 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          failsafe :write_entry do
+          failsafe :write_entry, returning: false do
             if unless_exist || expires_in
               modifiers = {}
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.set key, value, modifiers
+              redis.with { |c| c.set key, value, modifiers }
             else
-              redis.set key, value
+              redis.with { |c| c.set key, value }
             end
           end
         end
@@ -344,7 +391,7 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, options)
           failsafe :delete_entry, returning: false do
-            redis.del key
+            redis.with { |c| c.del key }
           end
         end
 
@@ -353,7 +400,7 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.mapped_mset(entries)
+                redis.with { |c| c.mapped_mset(entries) }
               end
             else
               super

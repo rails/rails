@@ -274,7 +274,7 @@ module ActionDispatch
       def standard_port
         case protocol
         when "https://" then 443
-          else 80
+        else 80
         end
       end
 

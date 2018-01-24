@@ -85,10 +85,6 @@ module ActiveRecord
         @migrations_paths ||= Rails.application.paths["db/migrate"].to_a
       end
 
-      def migration_context
-        MigrationContext.new(migrations_paths)
-      end
-
       def fixtures_path
         @fixtures_path ||= if ENV["FIXTURES_PATH"]
           File.join(root, ENV["FIXTURES_PATH"])

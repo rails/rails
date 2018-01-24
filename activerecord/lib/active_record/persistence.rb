@@ -359,10 +359,10 @@ module ActiveRecord
     # Any change to the attributes on either instance will affect both instances.
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
-      became = klass.new
+      became = klass.allocate
+      became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
-      became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)
       became.errors.copy!(errors)

@@ -690,6 +690,7 @@ ActiveRecord::Schema.define do
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
     t.integer :tags_count, default: 0
+    t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
   end
@@ -847,6 +848,7 @@ ActiveRecord::Schema.define do
     t.column :taggable_type, :string
     t.column :taggable_id, :integer
     t.string :comment
+    t.string :type
   end
 
   create_table :tasks, force: true do |t|

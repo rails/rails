@@ -106,6 +106,9 @@ class Post < ActiveRecord::Base
     end
   end
 
+  has_many :indestructible_taggings, as: :taggable, counter_cache: :indestructible_tags_count
+  has_many :indestructible_tags, through: :indestructible_taggings, source: :tag
+
   has_many :taggings_with_delete_all, class_name: "Tagging", as: :taggable, dependent: :delete_all, counter_cache: :taggings_with_delete_all_count
   has_many :taggings_with_destroy, class_name: "Tagging", as: :taggable, dependent: :destroy, counter_cache: :taggings_with_destroy_count
 

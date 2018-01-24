@@ -1,6 +1,13 @@
+*   Models using the attributes API with a proc default can now be marshalled.
+
+    Fixes #31216.
+
+    *Sean Griffin*
+
 *   Fix to working before/after validation callbacks on multiple contexts.
 
     *Yoshiyuki Hirano*
+
 
 ## Rails 5.2.0.beta2 (November 28, 2017) ##
 

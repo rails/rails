@@ -881,7 +881,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
-        "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+        "PostgreSQLAdapter" => 3, # one query for columns, one for bulk change, one for comment
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -889,12 +889,13 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count, ignore_none: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
-          t.change :birthdate, :datetime
+          t.change :birthdate, :datetime, comment: "This is a comment"
         end
       end
 
       assert_equal "NONAME", column(:name).default
       assert_equal :datetime, column(:birthdate).type
+      assert_equal "This is a comment", column(:birthdate).comment
     end
 
     private
