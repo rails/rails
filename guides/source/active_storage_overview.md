@@ -64,7 +64,7 @@ Tell Active Storage which service to use by setting
 `Rails.application.config.active_storage.service`. Because each environment will
 likely use a different service, it is recommended to do this on a
 per-environment basis. To use the disk service from the previous example in the
-development environment, you would add the following to
+development environment, you need to add the following to
 `config/environments/development.rb`:
 
 ```ruby
