@@ -530,7 +530,55 @@ module ActiveRecord
         without_sql_mode("NO_AUTO_VALUE_ON_ZERO") { super }
       end
 
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        iterate_over_results = -> { while raw_connection.next_result; end; }
+
+        with_multi_statements do
+          without_sql_mode("NO_AUTO_VALUE_ON_ZERO") do
+            super(fixture_set, tables_to_delete, &iterate_over_results)
+          end
+        end
+      end
+
       private
+
+        def combine_multi_statements(total_sql)
+          total_sql.each_with_object([]) do |sql, total_sql_chunks|
+            previous_packet = total_sql_chunks.last
+            sql << ";\n"
+            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
+              total_sql_chunks << sql
+            else
+              previous_packet << sql
+            end
+          end
+        end
+
+        def max_allowed_packet_reached?(current_packet, previous_packet)
+          if current_packet.bytesize > max_allowed_packet
+            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
+          elsif previous_packet.nil?
+            false
+          else
+            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+          end
+        end
+
+        def max_allowed_packet
+          bytes_margin = 2
+          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
+        end
+
+        def with_multi_statements
+          previous_flags = @config[:flags]
+          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+          reconnect!
+
+          yield
+        ensure
+          @config[:flags] = previous_flags
+          reconnect!
+        end
 
         def without_sql_mode(mode)
           result = execute("SELECT @@SESSION.sql_mode")
