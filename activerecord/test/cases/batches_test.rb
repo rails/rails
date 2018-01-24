@@ -592,7 +592,11 @@ class EachTest < ActiveRecord::TestCase
       table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
       predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      posts = ActiveRecord::Relation.create(Post, table_alias, predicate_builder)
+      posts = ActiveRecord::Relation.create(
+        Post,
+        table: table_alias,
+        predicate_builder: predicate_builder
+      )
       posts.find_each {}
     end
   end

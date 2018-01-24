@@ -291,7 +291,11 @@ module ActiveRecord
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
-        Relation.create(klass, table, predicate_builder)
+        Relation.create(
+          klass,
+          table: table,
+          predicate_builder: predicate_builder
+        )
       end
 
       def join_primary_key(*)
