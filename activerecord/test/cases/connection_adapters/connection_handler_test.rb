@@ -171,44 +171,46 @@ module ActiveRecord
           assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
         end
 
-        def test_forked_child_recovers_from_disconnected_parent
-          object_id = ActiveRecord::Base.connection.object_id
-          assert ActiveRecord::Base.connection.active?
+        unless in_memory_db?
+          def test_forked_child_recovers_from_disconnected_parent
+            object_id = ActiveRecord::Base.connection.object_id
+            assert ActiveRecord::Base.connection.active?
 
-          rd, wr = IO.pipe
-          rd.binmode
-          wr.binmode
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
 
-          outer_pid = fork {
-            ActiveRecord::Base.connection.disconnect!
+            outer_pid = fork {
+              ActiveRecord::Base.connection.disconnect!
 
-            pid = fork {
-              rd.close
-              if ActiveRecord::Base.connection.active?
-                pair = [ActiveRecord::Base.connection.object_id,
-                        ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
-                wr.write Marshal.dump pair
-              end
-              wr.close
+              pid = fork {
+                rd.close
+                if ActiveRecord::Base.connection.active?
+                  pair = [ActiveRecord::Base.connection.object_id,
+                          ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
+                  wr.write Marshal.dump pair
+                end
+                wr.close
 
-              exit # allow finalizers to run
+                exit # allow finalizers to run
+              }
+
+              Process.waitpid pid
             }
 
-            Process.waitpid pid
-          }
+            wr.close
 
-          wr.close
+            Process.waitpid outer_pid
+            child_id, child_count = Marshal.load(rd.read)
 
-          Process.waitpid outer_pid
-          child_id, child_count = Marshal.load(rd.read)
+            assert_not_equal object_id, child_id
+            rd.close
 
-          assert_not_equal object_id, child_id
-          rd.close
+            assert_equal 3, child_count
 
-          assert_equal 3, child_count
-
-          # Outer connection is unaffected
-          assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) FROM people")
+            # Outer connection is unaffected
+            assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) FROM people")
+          end
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
