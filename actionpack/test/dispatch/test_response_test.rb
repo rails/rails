@@ -26,6 +26,10 @@ class TestResponseTest < ActiveSupport::TestCase
 
     response = ActionDispatch::TestResponse.create(200, { "Content-Type" => "application/json" }, '{ "foo": "fighters" }')
     assert_equal({ "foo" => "fighters" }, response.parsed_body)
+
+    response_body = "<script>Hello</script> World &"
+    response = ActionDispatch::TestResponse.create(200, {}, CGI.escapeHTML(response_body))
+    assert_equal response.unescaped_body, response_body
   end
 
   test "response status aliases deprecated" do
