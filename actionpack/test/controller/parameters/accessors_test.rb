@@ -78,11 +78,11 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "empty? returns true when params contains no key/value pairs" do
     params = ActionController::Parameters.new
-    assert_predicate params, :empty?
+    assert_empty params
   end
 
   test "empty? returns false when any params are present" do
-    assert_not_predicate @params, :empty?
+    assert_not_empty @params
   end
 
   test "except retains permitted status" do

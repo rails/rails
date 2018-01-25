@@ -42,7 +42,7 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
       ben.lessons << sicp
       ben.save!
       ben.destroy
-      assert_not_predicate ben.reload.lessons, :empty?
+      assert_not_empty ben.reload.lessons
     ensure
       # get rid of it so Student is still like it was
       Student.reset_callbacks(:destroy)
@@ -58,6 +58,6 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     assert_raises LessonError do
       sicp.destroy
     end
-    assert_not_predicate sicp.reload.students, :empty?
+    assert_not_empty sicp.reload.students
   end
 end

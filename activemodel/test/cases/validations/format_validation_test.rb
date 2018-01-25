@@ -16,12 +16,12 @@ class FormatValidationTest < ActiveModel::TestCase
     t = Topic.new("title" => "i'm incorrect", "content" => "Validation macros rule!")
     assert t.invalid?, "Shouldn't be valid"
     assert_equal ["is bad data"], t.errors[:title]
-    assert_predicate t.errors[:content], :empty?
+    assert_empty t.errors[:content]
 
     t.title = "Validation macros rule!"
 
     assert_predicate t, :valid?
-    assert_predicate t.errors[:title], :empty?
+    assert_empty t.errors[:title]
 
     assert_raise(ArgumentError) { Topic.validates_format_of(:title, :content) }
   end
@@ -42,7 +42,7 @@ class FormatValidationTest < ActiveModel::TestCase
     assert t.invalid?, "Shouldn't be valid"
 
     assert_equal ["is bad data"], t.errors[:title]
-    assert_predicate t.errors[:content], :empty?
+    assert_empty t.errors[:content]
 
     t.title = "-11"
     assert t.invalid?, "Shouldn't be valid"
@@ -59,7 +59,7 @@ class FormatValidationTest < ActiveModel::TestCase
     t.title = "1"
 
     assert_predicate t, :valid?
-    assert_predicate t.errors[:title], :empty?
+    assert_empty t.errors[:title]
   end
 
   def test_validate_format_with_formatted_message

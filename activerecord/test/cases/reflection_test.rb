@@ -149,7 +149,7 @@ class ReflectionTest < ActiveRecord::TestCase
     expected = Pirate.reflect_on_all_associations.select { |r| r.options[:autosave] }
     received = Pirate.reflect_on_all_autosave_associations
 
-    assert_not_predicate received, :empty?
+    assert_not_empty received
     assert_not_equal Pirate.reflect_on_all_associations.length, received.length
     assert_equal expected, received
   end

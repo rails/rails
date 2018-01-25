@@ -262,7 +262,7 @@ class ViewCacheDependencyTest < BaseCachingTest
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert_predicate NoDependenciesMailer.new.view_cache_dependencies, :empty?
+    assert_empty NoDependenciesMailer.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

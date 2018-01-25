@@ -1253,7 +1253,7 @@ class RequestVariant < BaseRequestTest
   test "clearing variant" do
     @request.variant = nil
 
-    assert_predicate @request.variant, :empty?
+    assert_empty @request.variant
     assert_not_predicate @request.variant, :phone?
     assert_not @request.variant.any?(:phone, :tablet)
   end

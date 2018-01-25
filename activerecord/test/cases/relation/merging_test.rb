@@ -113,9 +113,9 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_merging_with_from_clause
     relation = Post.all
-    assert_predicate relation.from_clause, :empty?
+    assert_empty relation.from_clause
     relation = relation.merge(Post.from("posts"))
-    assert_not_predicate relation.from_clause, :empty?
+    assert_not_empty relation.from_clause
   end
 end
 

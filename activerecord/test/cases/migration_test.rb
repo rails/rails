@@ -955,7 +955,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert_predicate copied, :empty?
+    assert_empty copied
   ensure
     clear
   end
@@ -996,7 +996,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert_predicate copied, :empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1038,7 +1038,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert_predicate copied, :empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1059,7 +1059,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert_predicate copied, :empty?
+    assert_empty copied
   ensure
     clear
   end

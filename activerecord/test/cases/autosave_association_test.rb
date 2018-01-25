@@ -881,7 +881,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     ids.each { |id| assert klass.find_by_id(id) }
 
     @pirate.save
-    assert_predicate @pirate.reload.birds, :empty?
+    assert_empty @pirate.reload.birds
     ids.each { |id| assert_nil klass.find_by_id(id) }
   end
 
@@ -889,7 +889,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.birds.create!(name: :parrot)
     @pirate.birds.first.destroy
     @pirate.save!
-    assert_predicate @pirate.reload.birds, :empty?
+    assert_empty @pirate.reload.birds
   end
 
   def test_should_skip_validation_on_has_many_if_marked_for_destruction
@@ -1010,10 +1010,10 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
       @pirate.save
     end
 
-    assert_predicate @pirate.reload.parrots, :empty?
+    assert_empty @pirate.reload.parrots
 
     join_records = Pirate.connection.select_all("SELECT * FROM parrots_pirates WHERE pirate_id = #{@pirate.id}")
-    assert_predicate join_records, :empty?
+    assert_empty join_records
   end
 
   def test_should_skip_validation_on_habtm_if_marked_for_destruction
@@ -1028,7 +1028,7 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     end
 
     @pirate.save!
-    assert_predicate @pirate.reload.parrots, :empty?
+    assert_empty @pirate.reload.parrots
   end
 
   def test_should_skip_validation_on_habtm_if_destroyed
@@ -1405,7 +1405,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     assert_not_predicate @pirate, :valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
-    assert_predicate @pirate.errors[@association_name], :empty?
+    assert_empty @pirate.errors[@association_name]
   end
 
   def test_should_not_use_default_invalid_error_on_associated_models
@@ -1413,7 +1413,7 @@ module AutosaveAssociationOnACollectionAssociationTests
 
     assert_not_predicate @pirate, :valid?
     assert_equal ["can't be blank"], @pirate.errors["#{@association_name}.name"]
-    assert_predicate @pirate.errors[@association_name], :empty?
+    assert_empty @pirate.errors[@association_name]
   end
 
   def test_should_default_invalid_error_from_i18n
@@ -1426,7 +1426,7 @@ module AutosaveAssociationOnACollectionAssociationTests
     assert_not_predicate @pirate, :valid?
     assert_equal ["cannot be blank"], @pirate.errors["#{@association_name}.name"]
     assert_equal ["#{@association_name.to_s.humanize} name cannot be blank"], @pirate.errors.full_messages
-    assert_predicate @pirate.errors[@association_name], :empty?
+    assert_empty @pirate.errors[@association_name]
   ensure
     I18n.backend = I18n::Backend::Simple.new
   end

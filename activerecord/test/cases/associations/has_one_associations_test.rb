@@ -197,7 +197,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy
 
-    assert_not_predicate firm.errors, :empty?
+    assert_not_empty firm.errors
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert_predicate firm.account, :present?
@@ -213,7 +213,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy
 
-    assert_not_predicate firm.errors, :empty?
+    assert_not_empty firm.errors
     assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
     assert_predicate firm.account, :present?

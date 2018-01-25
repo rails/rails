@@ -353,10 +353,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert_predicate posts(:welcome).people, :empty?
+      assert_empty posts(:welcome).people
     end
 
-    assert_predicate posts(:welcome).reload.people.reload, :empty?
+    assert_empty posts(:welcome).reload.people.reload
   end
 
   def test_destroy_association
@@ -366,8 +366,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_predicate posts(:welcome).reload.people, :empty?
-    assert_predicate posts(:welcome).people.reload, :empty?
+    assert_empty posts(:welcome).reload.people
+    assert_empty posts(:welcome).people.reload
   end
 
   def test_destroy_all
@@ -377,8 +377,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_predicate posts(:welcome).reload.people, :empty?
-    assert_predicate posts(:welcome).people.reload, :empty?
+    assert_empty posts(:welcome).reload.people
+    assert_empty posts(:welcome).people.reload
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records
@@ -685,10 +685,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(0) do
-      assert_predicate posts(:welcome).people, :empty?
+      assert_empty posts(:welcome).people
     end
 
-    assert_predicate posts(:welcome).reload.people.reload, :empty?
+    assert_empty posts(:welcome).reload.people.reload
   end
 
   def test_association_callback_ordering
@@ -862,7 +862,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     category = author.named_categories.create(name: "Primary")
     author.named_categories.delete(category)
     assert !Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert_predicate author.named_categories.reload, :empty?
+    assert_empty author.named_categories.reload
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys

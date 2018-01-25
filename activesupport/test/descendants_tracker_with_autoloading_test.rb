@@ -12,7 +12,7 @@ class DescendantsTrackerWithAutoloadingTest < ActiveSupport::TestCase
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
       ALL.each do |k|
-        assert_predicate ActiveSupport::DescendantsTracker.descendants(k), :empty?
+        assert_empty ActiveSupport::DescendantsTracker.descendants(k)
       end
     end
   end

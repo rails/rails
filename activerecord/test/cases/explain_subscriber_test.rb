@@ -15,20 +15,20 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collects_nothing_if_the_payload_has_an_exception
       SUBSCRIBER.finish(nil, nil, exception: Exception.new)
-      assert_predicate queries, :empty?
+      assert_empty queries
     end
 
     def test_collects_nothing_for_ignored_payloads
       ActiveRecord::ExplainSubscriber::IGNORED_PAYLOADS.each do |ip|
         SUBSCRIBER.finish(nil, nil, name: ip)
       end
-      assert_predicate queries, :empty?
+      assert_empty queries
     end
 
     def test_collects_nothing_if_collect_is_false
       ActiveRecord::ExplainRegistry.collect = false
       SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "select 1 from users", binds: [1, 2])
-      assert_predicate queries, :empty?
+      assert_empty queries
     end
 
     def test_collects_pairs_of_queries_and_binds
@@ -42,12 +42,12 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_collects_nothing_if_the_statement_is_not_whitelisted
       SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "SHOW max_identifier_length")
-      assert_predicate queries, :empty?
+      assert_empty queries
     end
 
     def test_collects_nothing_if_the_statement_is_only_partially_matched
       SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "select_db yo_mama")
-      assert_predicate queries, :empty?
+      assert_empty queries
     end
 
     def test_collects_cte_queries

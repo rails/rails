@@ -982,9 +982,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_collection_not_empty_after_building
     company = companies(:first_firm)
-    assert_predicate company.contracts, :empty?
+    assert_empty company.contracts
     company.contracts.build
-    assert_not_predicate company.contracts, :empty?
+    assert_not_empty company.contracts
   end
 
   def test_collection_size_twice_for_regressions
@@ -1199,7 +1199,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_empty_with_counter_cache
     post = posts(:welcome)
     assert_queries(0) do
-      assert_not_predicate post.comments, :empty?
+      assert_not_empty post.comments
     end
   end
 
@@ -1570,7 +1570,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_equal 3, firm.clients.size
     firm.destroy
-    assert_predicate Client.all.merge!(where: "firm_id=#{firm.id}").to_a, :empty?
+    assert_empty Client.all.merge!(where: "firm_id=#{firm.id}").to_a
   end
 
   def test_dependence_for_associations_with_hash_condition
@@ -1633,7 +1633,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedWithExceptionFirm.create!(name: "restrict")
     firm.companies.create(name: "child")
 
-    assert_not_predicate firm.companies, :empty?
+    assert_not_empty firm.companies
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedWithExceptionFirm.exists?(name: "restrict")
     assert firm.companies.exists?(name: "child")
@@ -1643,11 +1643,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.companies.create(name: "child")
 
-    assert_not_predicate firm.companies, :empty?
+    assert_not_empty firm.companies
 
     firm.destroy
 
-    assert_not_predicate firm.errors, :empty?
+    assert_not_empty firm.errors
 
     assert_equal "Cannot delete record because dependent companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
@@ -1660,11 +1660,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     firm = RestrictedWithErrorFirm.create!(name: "restrict")
     firm.companies.create(name: "child")
 
-    assert_not_predicate firm.companies, :empty?
+    assert_not_empty firm.companies
 
     firm.destroy
 
-    assert_not_predicate firm.errors, :empty?
+    assert_not_empty firm.errors
 
     assert_equal "Cannot delete record because dependent client companies exist", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
@@ -1717,7 +1717,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     orig_accounts = firm.accounts.to_a
 
     assert_not_predicate account, :valid?
-    assert_not_predicate orig_accounts, :empty?
+    assert_not_empty orig_accounts
     error = assert_raise ActiveRecord::RecordNotSaved do
       firm.accounts = [account]
     end

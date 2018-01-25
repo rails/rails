@@ -64,7 +64,7 @@ class GeneratorsTest < Rails::Generators::TestCase
     assert File.exist?(File.join(@path, "generators", "model_generator.rb"))
     assert_called_with(Rails::Generators::ModelGenerator, :start, [["Account"], {}]) do
       warnings = capture(:stderr) { Rails::Generators.invoke :model, ["Account"] }
-      assert_predicate warnings, :empty?
+      assert_empty warnings
     end
   end
 

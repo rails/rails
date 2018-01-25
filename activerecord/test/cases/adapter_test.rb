@@ -78,7 +78,7 @@ module ActiveRecord
       idx_name = "accounts_idx"
 
       indexes = @connection.indexes("accounts")
-      assert_predicate indexes, :empty?
+      assert_empty indexes
 
       @connection.add_index :accounts, :firm_id, name: idx_name
       indexes = @connection.indexes("accounts")

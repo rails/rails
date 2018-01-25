@@ -393,7 +393,7 @@ class FixturesTest < ActiveRecord::TestCase
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
     # sanity check to make sure that this file never exists
-    assert_predicate Dir[nonexistent_fixture_path + "*"], :empty?
+    assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
       ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)

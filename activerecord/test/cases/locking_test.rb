@@ -446,10 +446,10 @@ class OptimisticLockingTest < ActiveRecord::TestCase
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create! first_name: "Jon"
     p.treasures.create!
-    assert_not_predicate p.treasures, :empty?
+    assert_not_empty p.treasures
     p.destroy
-    assert_predicate p.treasures, :empty?
-    assert_predicate RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1"), :empty?
+    assert_empty p.treasures
+    assert_empty RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1")
   end
 
   def test_yaml_dumping_with_lock_column

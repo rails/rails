@@ -382,7 +382,7 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert_predicate NoDependenciesController.new.view_cache_dependencies, :empty?
+    assert_empty NoDependenciesController.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

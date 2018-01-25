@@ -111,8 +111,8 @@ class ValidationsTest < ActiveModel::TestCase
 
   def test_errors_empty_after_errors_on_check
     t = Topic.new
-    assert_predicate t.errors[:id], :empty?
-    assert_predicate t.errors, :empty?
+    assert_empty t.errors[:id]
+    assert_empty t.errors
   end
 
   def test_validates_each

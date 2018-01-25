@@ -54,7 +54,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_has_many_find_readonly
     post = Post.find(1)
-    assert_not_predicate post.comments, :empty?
+    assert_not_empty post.comments
     assert !post.comments.any?(&:readonly?)
     assert !post.comments.to_a.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)

@@ -54,7 +54,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(id: "1234")
     permitted = params.permit
     assert_predicate permitted, :permitted?
-    assert_predicate permitted, :empty?
+    assert_empty permitted
   end
 
   test "key: permitted scalar values" do

@@ -180,11 +180,11 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_has_and_belongs_to_many
     david = Developer.find(1)
 
-    assert_not_predicate david.projects, :empty?
+    assert_not_empty david.projects
     assert_equal 2, david.projects.size
 
     active_record = Project.find(1)
-    assert_not_predicate active_record.developers, :empty?
+    assert_not_empty active_record.developers
     assert_equal 3, active_record.developers.size
     assert_includes active_record.developers, david
   end
@@ -441,10 +441,10 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
   def test_removing_associations_on_destroy
     david = DeveloperWithBeforeDestroyRaise.find(1)
-    assert_not_predicate david.projects, :empty?
+    assert_not_empty david.projects
     david.destroy
-    assert_predicate david.projects, :empty?
-    assert_predicate DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1"), :empty?
+    assert_empty david.projects
+    assert_empty DeveloperWithBeforeDestroyRaise.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = 1")
   end
 
   def test_destroying
@@ -459,7 +459,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
 
     join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id} AND project_id = #{project.id}")
-    assert_predicate join_records, :empty?
+    assert_empty join_records
 
     assert_equal 1, david.reload.projects.size
     assert_equal 1, david.projects.reload.size
@@ -475,7 +475,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
 
     join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
-    assert_predicate join_records, :empty?
+    assert_empty join_records
 
     assert_equal 0, david.reload.projects.size
     assert_equal 0, david.projects.reload.size
@@ -484,23 +484,23 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   def test_destroy_all
     david = Developer.find(1)
     david.projects.reload
-    assert_not_predicate david.projects, :empty?
+    assert_not_empty david.projects
 
     assert_no_difference "Project.count" do
       david.projects.destroy_all
     end
 
     join_records = Developer.connection.select_all("SELECT * FROM developers_projects WHERE developer_id = #{david.id}")
-    assert_predicate join_records, :empty?
+    assert_empty join_records
 
-    assert_predicate david.projects, :empty?
-    assert_predicate david.projects.reload, :empty?
+    assert_empty david.projects
+    assert_empty david.projects.reload
   end
 
   def test_destroy_associations_destroys_multiple_associations
     george = parrots(:george)
-    assert_not_predicate george.pirates, :empty?
-    assert_not_predicate george.treasures, :empty?
+    assert_not_empty george.pirates
+    assert_not_empty george.treasures
 
     assert_no_difference "Pirate.count" do
       assert_no_difference "Treasure.count" do
@@ -509,12 +509,12 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     end
 
     join_records = Parrot.connection.select_all("SELECT * FROM parrots_pirates WHERE parrot_id = #{george.id}")
-    assert_predicate join_records, :empty?
-    assert_predicate george.pirates.reload, :empty?
+    assert_empty join_records
+    assert_empty george.pirates.reload
 
     join_records = Parrot.connection.select_all("SELECT * FROM parrots_treasures WHERE parrot_id = #{george.id}")
-    assert_predicate join_records, :empty?
-    assert_predicate george.treasures.reload, :empty?
+    assert_empty join_records
+    assert_empty george.treasures.reload
   end
 
   def test_associations_with_conditions

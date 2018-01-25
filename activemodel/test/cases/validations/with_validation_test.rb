@@ -114,7 +114,7 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_nil: true)
     topic = Topic.new content: ""
     assert_predicate topic, :invalid?
-    assert_predicate topic.errors[:title], :empty?
+    assert_empty topic.errors[:title]
     assert_equal ["Value is "], topic.errors[:content]
   end
 
@@ -122,8 +122,8 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
     topic = Topic.new content: ""
     assert_predicate topic, :valid?
-    assert_predicate topic.errors[:title], :empty?
-    assert_predicate topic.errors[:content], :empty?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
   end
 
   test "validates_with can validate with an instance method" do
@@ -131,7 +131,7 @@ class ValidatesWithTest < ActiveModel::TestCase
 
     topic = Topic.new title: "foo"
     assert_predicate topic, :valid?
-    assert_predicate topic.errors[:title], :empty?
+    assert_empty topic.errors[:title]
 
     topic = Topic.new
     assert_not_predicate topic, :valid?
@@ -143,7 +143,7 @@ class ValidatesWithTest < ActiveModel::TestCase
 
     topic = Topic.new title: "foo"
     assert_not_predicate topic, :valid?
-    assert_predicate topic.errors[:title], :empty?
+    assert_empty topic.errors[:title]
     assert_equal ["is missing"], topic.errors[:content]
   end
 end

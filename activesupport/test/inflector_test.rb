@@ -460,12 +460,12 @@ class InflectorTest < ActiveSupport::TestCase
 
     ActiveSupport::Inflector.inflections(:es) { |inflect| inflect.clear }
 
-    assert_predicate ActiveSupport::Inflector.inflections(:es).plurals, :empty?
-    assert_predicate ActiveSupport::Inflector.inflections(:es).singulars, :empty?
-    assert_predicate ActiveSupport::Inflector.inflections(:es).uncountables, :empty?
-    assert_not_predicate ActiveSupport::Inflector.inflections.plurals, :empty?
-    assert_not_predicate ActiveSupport::Inflector.inflections.singulars, :empty?
-    assert_not_predicate ActiveSupport::Inflector.inflections.uncountables, :empty?
+    assert_empty ActiveSupport::Inflector.inflections(:es).plurals
+    assert_empty ActiveSupport::Inflector.inflections(:es).singulars
+    assert_empty ActiveSupport::Inflector.inflections(:es).uncountables
+    assert_not_empty ActiveSupport::Inflector.inflections.plurals
+    assert_not_empty ActiveSupport::Inflector.inflections.singulars
+    assert_not_empty ActiveSupport::Inflector.inflections.uncountables
   end
 
   def test_clear_all
@@ -478,10 +478,10 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.clear :all
 
-      assert_predicate inflect.plurals, :empty?
-      assert_predicate inflect.singulars, :empty?
-      assert_predicate inflect.uncountables, :empty?
-      assert_predicate inflect.humans, :empty?
+      assert_empty inflect.plurals
+      assert_empty inflect.singulars
+      assert_empty inflect.uncountables
+      assert_empty inflect.humans
     end
   end
 
@@ -495,10 +495,10 @@ class InflectorTest < ActiveSupport::TestCase
 
       inflect.clear
 
-      assert_predicate inflect.plurals, :empty?
-      assert_predicate inflect.singulars, :empty?
-      assert_predicate inflect.uncountables, :empty?
-      assert_predicate inflect.humans, :empty?
+      assert_empty inflect.plurals
+      assert_empty inflect.singulars
+      assert_empty inflect.uncountables
+      assert_empty inflect.humans
     end
   end
 

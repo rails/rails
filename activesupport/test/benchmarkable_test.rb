@@ -26,7 +26,7 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_without_block
     assert_raise(LocalJumpError) { benchmark }
-    assert_predicate buffer, :empty?
+    assert_empty buffer
   end
 
   def test_defaults

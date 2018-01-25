@@ -36,7 +36,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.birds_with_reject_all_blank_attributes = [{ name: "", color: "", _destroy: "0" }]
     pirate.save!
 
-    assert_predicate pirate.birds_with_reject_all_blank, :empty?
+    assert_empty pirate.birds_with_reject_all_blank
   end
 
   def test_should_not_build_a_new_record_if_reject_all_blank_returns_false
@@ -44,7 +44,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     pirate.birds_with_reject_all_blank_attributes = [{ name: "", color: "" }]
     pirate.save!
 
-    assert_predicate pirate.birds_with_reject_all_blank, :empty?
+    assert_empty pirate.birds_with_reject_all_blank
   end
 
   def test_should_build_a_new_record_if_reject_all_blank_does_not_return_false
@@ -152,7 +152,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
     man = Man.create(name: "Jon")
     interest = man.interests.create(topic: "the ladies")
     man.update(interests_attributes: { _destroy: "1", id: interest.id })
-    assert_predicate man.reload.interests, :empty?
+    assert_empty man.reload.interests
   end
 
   def test_reject_if_is_not_short_circuited_if_allow_destroy_is_false

@@ -904,7 +904,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal 11, posts.size
     assert_predicate posts, :any?
     assert_predicate posts, :many?
-    assert_not_predicate posts, :empty?
+    assert_not_empty posts
   end
 
   def test_select_takes_a_variable_list_of_args
@@ -950,7 +950,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal author.posts.where(author_id: author.id).size, posts.count
 
     assert_equal 0, author.posts.where(author_id: another_author.id).size
-    assert_predicate author.posts.where(author_id: another_author.id), :empty?
+    assert_empty author.posts.where(author_id: another_author.id)
   end
 
   def test_count_with_distinct
@@ -1528,10 +1528,10 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_doesnt_add_having_values_if_options_are_blank
     scope = Post.having("")
-    assert_predicate scope.having_clause, :empty?
+    assert_empty scope.having_clause
 
     scope = Post.having([])
-    assert_predicate scope.having_clause, :empty?
+    assert_empty scope.having_clause
   end
 
   def test_having_with_binds_for_both_where_and_having

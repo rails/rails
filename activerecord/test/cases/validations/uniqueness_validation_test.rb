@@ -266,7 +266,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2.title = "I'm truly UNIQUE!"
     assert !t2.valid?, "Shouldn't be valid"
     assert !t2.save, "Shouldn't save t2 as unique"
-    assert_predicate t2.errors[:title], :empty?
+    assert_empty t2.errors[:title]
     assert_predicate t2.errors[:parent_id], :any?
 
     t2.parent_id = 4
@@ -326,15 +326,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     t2 = Topic.new("title" => "I'M UNIQUE!")
     assert t2.valid?, "Should be valid"
     assert t2.save, "Should save t2 as unique"
-    assert_predicate t2.errors[:title], :empty?
-    assert_predicate t2.errors[:parent_id], :empty?
+    assert_empty t2.errors[:title]
+    assert_empty t2.errors[:parent_id]
     assert_not_equal ["has already been taken"], t2.errors[:title]
 
     t3 = Topic.new("title" => "I'M uNiQUe!")
     assert t3.valid?, "Should be valid"
     assert t3.save, "Should save t2 as unique"
-    assert_predicate t3.errors[:title], :empty?
-    assert_predicate t3.errors[:parent_id], :empty?
+    assert_empty t3.errors[:title]
+    assert_empty t3.errors[:parent_id]
     assert_not_equal ["has already been taken"], t3.errors[:title]
   end
 

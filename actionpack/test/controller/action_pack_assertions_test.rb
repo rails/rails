@@ -301,7 +301,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_empty_flash
     process :flash_me_naked
-    assert_predicate flash, :empty?
+    assert_empty flash
   end
 
   def test_flash_exist
@@ -312,7 +312,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_flash_does_not_exist
     process :nothing
-    assert_predicate flash, :empty?
+    assert_empty flash
   end
 
   def test_session_exist
@@ -322,7 +322,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def session_does_not_exist
     process :nothing
-    assert_predicate session, :empty?
+    assert_empty session
   end
 
   def test_redirection_location
