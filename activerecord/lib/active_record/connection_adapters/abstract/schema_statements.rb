@@ -717,6 +717,28 @@ module ActiveRecord
       #
       # Note: MySQL doesn't yet support index order (it accepts the syntax but ignores it).
       #
+      # ====== Creating an index with a specific nulls sort order (first or last)
+      #
+      #   add_index(:accounts, :branch_id, order: :desc, nulls: :last)
+      #
+      # generates:
+      #
+      #   CREATE INDEX accounts_on_branch_id ON accounts (branch_id DESC NULLS LAST) -- PostgreSQL
+      #
+      #   add_index(:accounts, [:branch_id, :party_id], nulls: { party_id: :first })
+      #
+      # generates:
+      #
+      #   CREATE INDEX accounts_on_branch_id_and_party_id ON accounts (branch_id, party_id NULLS FIRST) -- PostgreSQL
+      #
+      #   add_index(:accounts, [:branch_id, :party_id], nulls: :first)
+      #
+      # generates:
+      #
+      #   CREATE INDEX accounts_on_branch_id_and_party_id ON accounts (branch_id NULLS FIRST, party_id NULLS FIRST) -- PostgreSQL
+      #
+      # Note: only supported by PostgreSQL
+      #
       # ====== Creating a partial index
       #
       #   add_index(:accounts, [:branch_id, :party_id], unique: true, where: "active")
@@ -1144,7 +1166,7 @@ module ActiveRecord
       def add_index_options(table_name, column_name, comment: nil, **options) # :nodoc:
         column_names = index_column_names(column_name)
 
-        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass)
+        options.assert_valid_keys(:unique, :order, :name, :where, :length, :internal, :using, :algorithm, :type, :opclass, :nulls)
 
         index_type = options[:type].to_s if options.key?(:type)
         index_type ||= options[:unique] ? "UNIQUE" : ""
@@ -1212,7 +1234,7 @@ module ActiveRecord
         end
 
         # Overridden by the MySQL adapter for supporting index lengths and by
-        # the PostgreSQL adapter for supporting operator classes.
+        # the PostgreSQL adapter for supporting operator classes and nulls ordering.
         def add_options_for_index_columns(quoted_columns, **options)
           if supports_index_sort_order?
             quoted_columns = add_index_sort_order(quoted_columns, options)

@@ -6,7 +6,7 @@ module ActiveRecord
     # this type are typically created and returned by methods in database
     # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
     class IndexDefinition # :nodoc:
-      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :nulls, :opclasses, :where, :type, :using, :comment
 
       def initialize(
         table, name,
@@ -14,6 +14,7 @@ module ActiveRecord
         columns = [],
         lengths: {},
         orders: {},
+        nulls: {},
         opclasses: {},
         where: nil,
         type: nil,
@@ -26,6 +27,7 @@ module ActiveRecord
         @columns = columns
         @lengths = concise_options(lengths)
         @orders = concise_options(orders)
+        @nulls = concise_options(nulls)
         @opclasses = concise_options(opclasses)
         @where = where
         @type = type

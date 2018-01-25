@@ -62,6 +62,12 @@ class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
     expected = %(CREATE  INDEX  "index_people_on_last_name" ON "people" USING gist ("last_name" bpchar_pattern_ops))
     assert_equal expected, add_index(:people, :last_name, using: :gist, opclass: { last_name: :bpchar_pattern_ops })
 
+    expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" DESC NULLS LAST, "first_name" ASC NULLS FIRST))
+    assert_equal expected, add_index(:people, [:last_name, :first_name], order: { last_name: :desc, first_name: :asc }, nulls: { last_name: :last, first_name: :first })
+
+    expected = %(CREATE  INDEX  "index_people_on_last_name_and_first_name" ON "people"  ("last_name" NULLS FIRST, "first_name" NULLS FIRST))
+    assert_equal expected, add_index(:people, [:last_name, :first_name], nulls: :first)
+
     assert_raise ArgumentError do
       add_index(:people, :last_name, algorithm: :copy)
     end

@@ -110,6 +110,7 @@ module ActiveRecord
             using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
 
             orders = {}
+            nulls = {}
             opclasses = {}
 
             if indkey.include?(0)
@@ -124,9 +125,11 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+              expressions.scan(/(?<column>\w+)\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?:NULLS (?<nulls>FIRST|LAST))?/)
+                         .each do |column, opclass, desc, nulls_order|
                 opclasses[column] = opclass.to_sym if opclass
                 orders[column] = :desc if desc
+                nulls[column] = nulls_order.downcase.to_sym if nulls_order
               end
             end
 
@@ -136,6 +139,7 @@ module ActiveRecord
               unique,
               columns,
               orders: orders,
+              nulls: nulls,
               opclasses: opclasses,
               where: where,
               using: using.to_sym,
@@ -740,9 +744,17 @@ module ActiveRecord
             end
           end
 
+          def add_index_nulls_order(quoted_columns, **options)
+            nulls_order = options_for_index_columns(options[:nulls])
+            quoted_columns.each do |name, column|
+              column << " NULLS #{nulls_order[name].upcase}" if nulls_order[name].present?
+            end
+          end
+
           def add_options_for_index_columns(quoted_columns, **options)
             quoted_columns = add_index_opclass(quoted_columns, options)
-            super
+            quoted_columns = super
+            add_index_nulls_order(quoted_columns, options)
           end
 
           def data_source_sql(name = nil, type: nil)
