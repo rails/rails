@@ -8,7 +8,7 @@ This guide documents how constant autoloading and reloading works.
 After reading this guide, you will know:
 
 * Key aspects of Ruby constants
-* What is `autoload_paths`
+* What is `autoload_paths` and `eager_load_paths`
 * How constant autoloading works
 * What is `require_dependency`
 * How constant reloading works
@@ -503,6 +503,48 @@ INFO. `autoload_paths` is computed and cached during the initialization process.
 The application needs to be restarted to reflect any changes in the directory
 structure.
 
+eager_load_paths
+----------------
+
+Eager loading is the process of loading all application classes, executed once on application boot
+when cache classes is enabled (e.g. in production).
+
+Imagine an app with `Tools` module defined in `lib/tools.rb`, and `lib/` added to `autoload_paths`.
+It works as expected in development:
+
+```
+$ rails runner -e development "puts Tools"
+Tools
+```
+
+But in production, code listed in `autoload_paths` will not be loaded:
+
+```
+$ rails runner -e production "puts Tools"
+uninitialized constant Tools
+```
+
+Use `eager_load_paths` to declare directories to be autoloaded in development and eager loaded in production.
+
+```
+config.eager_load_paths << "#{Rails.root}/components"
+```
+
+It defaults to every folder in the `app` directory of the application:
+
+```
+$ bin/rails r 'puts Rails.application.config.eager_load_paths'
+./app/assets
+./app/channels
+./app/controllers
+./app/controllers/concerns
+./app/helpers
+./app/jobs
+./app/mailers
+./app/models
+./app/models/concerns
+```
+
 
 Autoloading Algorithms
 ----------------------
@@ -831,6 +873,8 @@ Autoloading keeps track of autoloaded constants. Reloading is implemented by
 removing them all from their respective classes and modules using
 `Module#remove_const`. That way, when the code goes on, those constants are
 going to be unknown again, and files reloaded on demand.
+Use [`ActiveSupport::Reloader.to_prepare`](http://api.rubyonrails.org/classes/ActiveSupport/Reloader.html#method-c-to_prepare)
+to execute a hook on code reload.
 
 INFO. This is an all-or-nothing operation, Rails does not attempt to reload only
 what changed since dependencies between classes makes that really tricky.
