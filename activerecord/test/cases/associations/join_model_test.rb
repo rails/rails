@@ -720,18 +720,18 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     category = david.categories.first
 
     david.reload
-    assert_not_predicate  david.categories, :loaded?
+    assert_not_predicate david.categories, :loaded?
     assert_queries(1) do
       assert_includes david.categories, category
     end
-    assert_not_predicate  david.categories, :loaded?
+    assert_not_predicate david.categories, :loaded?
   end
 
   def test_has_many_through_include_returns_false_for_non_matching_record_to_verify_scoping
     david = authors(:david)
     category = Category.create!(name: "Not Associated")
 
-    assert_not_predicate  david.categories, :loaded?
+    assert_not_predicate david.categories, :loaded?
     assert ! david.categories.include?(category)
   end
 

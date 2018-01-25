@@ -108,7 +108,7 @@ class RelationTest < ActiveRecord::TestCase
       2.times { assert_equal "The First Topic", topics.first.title }
     end
 
-    assert_not_predicate  topics, :loaded?
+    assert_not_predicate topics, :loaded?
   end
 
   def test_loaded_first
@@ -875,7 +875,7 @@ class RelationTest < ActiveRecord::TestCase
     davids = Author.where(name: "David")
 
     assert_difference("Author.count", -1) { davids.delete_all }
-    assert_not_predicate  davids, :loaded?
+    assert_not_predicate davids, :loaded?
   end
 
   def test_delete_all_loaded
@@ -1006,7 +1006,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(1) { assert_equal 11, posts.size }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
     best_posts.load # force load
@@ -1017,7 +1017,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(10)
 
     assert_queries(1) { assert_equal 10, posts.size }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
     best_posts.load # force load
@@ -1028,7 +1028,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(0)
 
     assert_no_queries { assert_equal 0, posts.size }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     posts.load # force load
     assert_no_queries { assert_equal 0, posts.size }
@@ -1038,7 +1038,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.limit(0)
 
     assert_no_queries { assert_equal true, posts.empty? }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
   end
 
   def test_count_complex_chained_relations
@@ -1052,11 +1052,11 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(1) { assert_equal false, posts.empty? }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
-    assert_not_predicate  no_posts, :loaded?
+    assert_not_predicate no_posts, :loaded?
 
     best_posts = posts.where(comments_count: 0)
     best_posts.load # force load
@@ -1067,11 +1067,11 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.select("comments_count").where("id is not null").group("author_id").where("comments_count > 0")
 
     assert_queries(1) { assert_equal false, posts.empty? }
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     no_posts = posts.where(title: "")
     assert_queries(1) { assert_equal true, no_posts.empty? }
-    assert_not_predicate  no_posts, :loaded?
+    assert_not_predicate no_posts, :loaded?
   end
 
   def test_any
@@ -1087,7 +1087,7 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_queries(3) do
       assert posts.any? # Uses COUNT()
-      assert_not_predicate  posts.where(id: nil), :any?
+      assert_not_predicate posts.where(id: nil), :any?
 
       assert posts.any? { |p| p.id > 0 }
       assert ! posts.any? { |p| p.id <= 0 }
@@ -1112,7 +1112,7 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_predicate posts, :many?
-    assert_not_predicate  posts.limit(1), :many?
+    assert_not_predicate posts.limit(1), :many?
   end
 
   def test_none?
@@ -1121,7 +1121,7 @@ class RelationTest < ActiveRecord::TestCase
       assert ! posts.none? # Uses COUNT()
     end
 
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
       assert posts.none? { |p| p.id < 0 }
@@ -1137,7 +1137,7 @@ class RelationTest < ActiveRecord::TestCase
       assert ! posts.one? # Uses COUNT()
     end
 
-    assert_not_predicate  posts, :loaded?
+    assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
       assert ! posts.one? { |p| p.id < 3 }

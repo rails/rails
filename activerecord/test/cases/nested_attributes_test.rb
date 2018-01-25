@@ -632,10 +632,10 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_not_load_association_when_updating_existing_records
     @pirate.reload
     @pirate.send(association_setter, [{ id: @child_1.id, name: "Grace OMalley" }])
-    assert_not_predicate  @pirate.send(@association_name), :loaded?
+    assert_not_predicate @pirate.send(@association_name), :loaded?
 
     @pirate.save
-    assert_not_predicate  @pirate.send(@association_name), :loaded?
+    assert_not_predicate @pirate.send(@association_name), :loaded?
     assert_equal "Grace OMalley", @child_1.reload.name
   end
 

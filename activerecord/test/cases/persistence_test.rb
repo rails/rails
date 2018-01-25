@@ -217,7 +217,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a
-    assert_not_empty  topics_by_mary
+    assert_not_empty topics_by_mary
 
     assert_difference("Topic.count", -topics_by_mary.size) do
       destroyed = Topic.where(conditions).destroy_all.sort_by(&:id)

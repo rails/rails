@@ -221,20 +221,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time
-    assert_equal  1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, @twz <=> Time.utc(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_datetime
-    assert_equal  1, @twz <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, @twz <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_time_with_zone
-    assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal 1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
+    assert_equal 0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
     assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
   end
 
@@ -340,13 +340,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_time
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 1)
   end
 
   def test_minus_with_time_precision
-    assert_equal  86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
-    assert_equal  86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
   end
 
   def test_minus_with_time_with_zone
@@ -358,20 +358,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_minus_with_time_with_zone_precision
     twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0, Rational(1, 1000)), ActiveSupport::TimeZone["UTC"])
     twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"])
-    assert_equal  86_399.999999998,  twz2 - twz1
+    assert_equal 86_399.999999998,  twz2 - twz1
   end
 
   def test_minus_with_datetime
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_datetime_precision
-    assert_equal  86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_wrapped_datetime
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_plus_and_minus_enforce_spring_dst_rules

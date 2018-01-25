@@ -713,13 +713,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_find_each
     firm = companies(:first_firm)
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
 
     assert_queries(4) do
       firm.clients.find_each(batch_size: 1) { |c| assert_equal firm.id, c.firm_id }
     end
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
   end
 
   def test_find_each_with_conditions
@@ -732,13 +732,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
   end
 
   def test_find_in_batches
     firm = companies(:first_firm)
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
 
     assert_queries(2) do
       firm.clients.find_in_batches(batch_size: 2) do |clients|
@@ -746,7 +746,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
   end
 
   def test_find_all_sanitized
@@ -1441,13 +1441,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_creation_respects_hash_condition
     ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.build
 
-    assert        ms_client.save
-    assert_equal  "Microsoft", ms_client.name
+    assert ms_client.save
+    assert_equal "Microsoft", ms_client.name
 
     another_ms_client = companies(:first_firm).clients_like_ms_with_hash_conditions.create
 
-    assert_predicate        another_ms_client, :persisted?
-    assert_equal  "Microsoft", another_ms_client.name
+    assert_predicate another_ms_client, :persisted?
+    assert_equal "Microsoft", another_ms_client.name
   end
 
   def test_clearing_without_initial_access
@@ -1869,18 +1869,18 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     client = firm.clients.first
 
     firm.reload
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
     assert_queries(1) do
       assert_equal true, firm.clients.include?(client)
     end
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
   end
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     firm = companies(:first_firm)
     client = Client.create!(name: "Not Associated")
 
-    assert_not_predicate  firm.clients, :loaded?
+    assert_not_predicate firm.clients, :loaded?
     assert_equal false, firm.clients.include?(client)
   end
 
@@ -2055,7 +2055,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_one_should_return_false_if_zero
     firm = companies(:another_firm)
-    assert_not_predicate  firm.clients_like_ms, :one?
+    assert_not_predicate firm.clients_like_ms, :one?
     assert_equal 0, firm.clients_like_ms.size
   end
 
@@ -2067,7 +2067,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
   def test_calling_one_should_return_false_if_more_than_one
     firm = companies(:first_firm)
-    assert_not_predicate  firm.clients, :one?
+    assert_not_predicate firm.clients, :one?
     assert_equal 3, firm.clients.size
   end
 

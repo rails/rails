@@ -433,7 +433,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_create_respects_hash_condition
     account = companies(:first_firm).create_account_limit_500_with_hash_conditions
-    assert_predicate       account, :persisted?
+    assert_predicate account, :persisted?
     assert_equal 500, account.credit_limit
   end
 

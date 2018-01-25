@@ -1419,11 +1419,11 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
-      assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
-      assert_equal      app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
-      assert_equal      app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
+      assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
+      assert_equal app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
+      assert_equal app.env_config["action_dispatch.logger"],            Rails.logger
+      assert_equal app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
+      assert_equal app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do

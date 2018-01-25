@@ -756,26 +756,26 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time
-    assert_equal  1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999)
-    assert_equal  0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999)
+    assert_equal 0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0, 001))
   end
 
   def test_compare_with_datetime
-    assert_equal  1, Time.utc(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, Time.utc(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, Time.utc(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_time_with_zone
-    assert_equal  1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal  0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal 1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
+    assert_equal 0, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
     assert_equal(-1, Time.utc(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
   end
 
   def test_compare_with_string
-    assert_equal   1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999).to_s
-    assert_equal   0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
+    assert_equal 1, Time.utc(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59, 999).to_s
+    assert_equal 0, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
     assert_equal(-1, Time.utc(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1, 0).to_s)
     assert_nil Time.utc(2000) <=> "Invalid as Time"
   end
@@ -863,11 +863,11 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_minus_with_time_with_zone
-    assert_equal  86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
+    assert_equal 86_400.0, Time.utc(2000, 1, 2) - ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1), ActiveSupport::TimeZone["UTC"])
   end
 
   def test_minus_with_datetime
-    assert_equal  86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0, Time.utc(2000, 1, 2) - DateTime.civil(2000, 1, 1)
   end
 
   def test_time_created_with_local_constructor_cannot_represent_times_during_hour_skipped_by_dst

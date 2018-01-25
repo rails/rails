@@ -367,14 +367,14 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     # in Oracle '' is saved as null therefore need to save ' ' in not null column
     post = categories(:general).post_with_conditions.build(body: " ")
 
-    assert        post.save
-    assert_equal  "Yet Another Testing Title", post.title
+    assert post.save
+    assert_equal "Yet Another Testing Title", post.title
 
     # in Oracle '' is saved as null therefore need to save ' ' in not null column
     another_post = categories(:general).post_with_conditions.create(body: " ")
 
-    assert_predicate        another_post, :persisted?
-    assert_equal  "Yet Another Testing Title", another_post.title
+    assert_predicate another_post, :persisted?
+    assert_equal "Yet Another Testing Title", another_post.title
   end
 
   def test_distinct_after_the_fact
@@ -557,18 +557,18 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer = project.developers.first
 
     project.reload
-    assert_not_predicate  project.developers, :loaded?
+    assert_not_predicate project.developers, :loaded?
     assert_queries(1) do
       assert_includes project.developers, developer
     end
-    assert_not_predicate  project.developers, :loaded?
+    assert_not_predicate project.developers, :loaded?
   end
 
   def test_include_returns_false_for_non_matching_record_to_verify_scoping
     project = projects(:active_record)
     developer = Developer.create name: "Bryan", salary: 50_000
 
-    assert_not_predicate  project.developers, :loaded?
+    assert_not_predicate project.developers, :loaded?
     assert ! project.developers.include?(developer)
   end
 

@@ -453,7 +453,7 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "query state by predicate with custom suffix" do
-    assert_predicate     @book, :medium_to_read?
+    assert_predicate @book, :medium_to_read?
     assert_not_predicate @book, :easy_to_read?
     assert_not_predicate @book, :hard_to_read?
   end
@@ -475,18 +475,18 @@ class EnumTest < ActiveRecord::TestCase
   test "update enum attributes with custom suffix" do
     @book.medium_to_read!
     assert_not_predicate @book, :easy_to_read?
-    assert_predicate     @book, :medium_to_read?
+    assert_predicate @book, :medium_to_read?
     assert_not_predicate @book, :hard_to_read?
 
     @book.easy_to_read!
-    assert_predicate     @book, :easy_to_read?
+    assert_predicate @book, :easy_to_read?
     assert_not_predicate @book, :medium_to_read?
     assert_not_predicate @book, :hard_to_read?
 
     @book.hard_to_read!
     assert_not_predicate @book, :easy_to_read?
     assert_not_predicate @book, :medium_to_read?
-    assert_predicate     @book, :hard_to_read?
+    assert_predicate @book, :hard_to_read?
   end
 
   test "uses default status when no status is provided in fixtures" do

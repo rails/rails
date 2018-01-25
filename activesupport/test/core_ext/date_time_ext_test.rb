@@ -363,45 +363,45 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time
-    assert_equal  1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_datetime
-    assert_equal  1, DateTime.civil(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, DateTime.civil(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, DateTime.civil(2000) <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, DateTime.civil(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, DateTime.civil(2000) <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_time_with_zone
-    assert_equal  1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal  0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal 1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
+    assert_equal 0, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
     assert_equal(-1, DateTime.civil(2000) <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
   end
 
   def test_compare_with_string
-    assert_equal   1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59).to_s
-    assert_equal   0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
+    assert_equal 1, DateTime.civil(2000) <=> Time.utc(1999, 12, 31, 23, 59, 59).to_s
+    assert_equal 0, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 0).to_s
     assert_equal(-1, DateTime.civil(2000) <=> Time.utc(2000, 1, 1, 0, 0, 1).to_s)
     assert_nil DateTime.civil(2000) <=> "Invalid as Time"
   end
 
   def test_compare_with_integer
-    assert_equal  1, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440587
-    assert_equal  0, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440588
+    assert_equal 1, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440587
+    assert_equal 0, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440588
     assert_equal(-1, DateTime.civil(1970, 1, 1, 12, 0, 0) <=> 2440589)
   end
 
   def test_compare_with_float
-    assert_equal  1, DateTime.civil(1970) <=> 2440586.5
-    assert_equal  0, DateTime.civil(1970) <=> 2440587.5
+    assert_equal 1, DateTime.civil(1970) <=> 2440586.5
+    assert_equal 0, DateTime.civil(1970) <=> 2440587.5
     assert_equal(-1, DateTime.civil(1970) <=> 2440588.5)
   end
 
   def test_compare_with_rational
-    assert_equal  1, DateTime.civil(1970) <=> Rational(4881173, 2)
-    assert_equal  0, DateTime.civil(1970) <=> Rational(4881175, 2)
+    assert_equal 1, DateTime.civil(1970) <=> Rational(4881173, 2)
+    assert_equal 0, DateTime.civil(1970) <=> Rational(4881175, 2)
     assert_equal(-1, DateTime.civil(1970) <=> Rational(4881177, 2))
   end
 
