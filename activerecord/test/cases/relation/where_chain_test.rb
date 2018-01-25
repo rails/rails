@@ -59,6 +59,38 @@ module ActiveRecord
       assert_equal expected_where_clause, relation.where_clause
     end
 
+    def test_greater_than
+      relation = Post.where.greater_than(:id, 1)
+      expected = Post.arel_table[:id].gt(Arel::Nodes::BindParam.new(1))
+
+      assert_equal expected.to_sql, relation.where_clause.ast.to_sql
+    end
+
+    def test_greater_than_with_string
+      relation = Post.where.greater_than("id", 1)
+      expected = Post.arel_table[:id].gt(Arel::Nodes::BindParam.new(1))
+
+      assert_equal expected.to_sql, relation.where_clause.ast.to_sql
+    end
+
+    def test_greater_than_with_dot
+      relation = Post.where.greater_than("posts.id", 1)
+      expected = Post.arel_table[:id].gt(Arel::Nodes::BindParam.new(1))
+
+      assert_equal expected.to_sql, relation.where_clause.ast.to_sql
+    end
+
+    def test_greater_than_with_joins
+      # Would need to uses joins(:comments) or includes(:comments) for
+      # this query to actually work
+      relation = Post.where.greater_than("comments.id", 1)
+      expected = Comment.arel_table[:id].gt(Arel::Nodes::BindParam.new(1))
+
+      assert_equal expected.to_sql, relation.where_clause.ast.to_sql
+    end
+
+    # TODO test the other methods
+
     def test_rewhere_with_one_condition
       relation = Post.where(title: "hello").where(title: "world").rewhere(title: "alone")
       expected = Post.where(title: "alone")
