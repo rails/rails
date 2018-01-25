@@ -353,10 +353,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert posts(:welcome).people.empty?
+      assert_predicate posts(:welcome).people, :empty?
     end
 
-    assert posts(:welcome).reload.people.reload.empty?
+    assert_predicate posts(:welcome).reload.people.reload, :empty?
   end
 
   def test_destroy_association
@@ -366,8 +366,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert posts(:welcome).reload.people.empty?
-    assert posts(:welcome).people.reload.empty?
+    assert_predicate posts(:welcome).reload.people, :empty?
+    assert_predicate posts(:welcome).people.reload, :empty?
   end
 
   def test_destroy_all
@@ -377,8 +377,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert posts(:welcome).reload.people.empty?
-    assert posts(:welcome).people.reload.empty?
+    assert_predicate posts(:welcome).reload.people, :empty?
+    assert_predicate posts(:welcome).people.reload, :empty?
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records
@@ -685,10 +685,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(0) do
-      assert posts(:welcome).people.empty?
+      assert_predicate posts(:welcome).people, :empty?
     end
 
-    assert posts(:welcome).reload.people.reload.empty?
+    assert_predicate posts(:welcome).reload.people.reload, :empty?
   end
 
   def test_association_callback_ordering
@@ -770,9 +770,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_associations_does_not_load_them
     person = people(:michael)
-    assert !person.posts.loaded?
+    assert_not_predicate person.posts, :loaded?
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
-    assert !person.posts.loaded?
+    assert_not_predicate person.posts, :loaded?
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
@@ -862,7 +862,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     category = author.named_categories.create(name: "Primary")
     author.named_categories.delete(category)
     assert !Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.empty?
+    assert_predicate author.named_categories.reload, :empty?
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys
@@ -944,8 +944,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_association_readonly_should_be_false
-    assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.to_a.first.readonly?
+    assert_not_predicate people(:michael).posts.first, :readonly?
+    assert_not_predicate people(:michael).posts.to_a.first, :readonly?
   end
 
   def test_can_update_through_association
@@ -1034,12 +1034,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.author_categorizations
     proxy = post.send(:association_instance_get, :author_categorizations)
 
-    assert !proxy.stale_target?
+    assert_not_predicate proxy, :stale_target?
     assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
 
     post.author_id = authors(:david).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
   end
 
@@ -1056,7 +1056,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
-    assert post[:author_count].nil?
+    assert_predicate post[:author_count], :nil?
   end
 
   def test_primary_key_option_on_source

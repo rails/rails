@@ -92,11 +92,11 @@ module ActionDispatch
     end
 
     def test_empty?
-      assert @hash.empty?
+      assert_predicate @hash, :empty?
       @hash["zomg"] = "bears"
-      assert !@hash.empty?
+      assert_not_predicate @hash, :empty?
       @hash.clear
-      assert @hash.empty?
+      assert_predicate @hash, :empty?
     end
 
     def test_each

@@ -107,13 +107,13 @@ module ApplicationTests
 
     def test_runner_detects_syntax_errors
       output = rails("runner", "puts 'hello world", allow_failure: true)
-      assert_not $?.success?
+      assert_not_predicate $?, :success?
       assert_match "unterminated string meets end of file", output
     end
 
     def test_runner_detects_bad_script_name
       output = rails("runner", "iuiqwiourowe", allow_failure: true)
-      assert_not $?.success?
+      assert_not_predicate $?, :success?
       assert_match "undefined local variable or method `iuiqwiourowe' for", output
     end
 

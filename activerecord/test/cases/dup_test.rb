@@ -10,7 +10,7 @@ module ActiveRecord
     fixtures :topics
 
     def test_dup
-      assert !Topic.new.freeze.dup.frozen?
+      assert_not_predicate Topic.new.freeze.dup, :frozen?
     end
 
     def test_not_readonly
@@ -41,7 +41,7 @@ module ActiveRecord
       topic.destroy
 
       duped = topic.dup
-      assert_not duped.destroyed?
+      assert_not_predicate duped, :destroyed?
     end
 
     def test_dup_has_no_id
@@ -127,12 +127,12 @@ module ActiveRecord
 
         duped = topic.dup
         duped.title = nil
-        assert duped.invalid?
+        assert_predicate duped, :invalid?
 
         topic.title = nil
         duped.title = "Mathematics"
-        assert topic.invalid?
-        assert duped.valid?
+        assert_predicate topic, :invalid?
+        assert_predicate duped, :valid?
       end
     end
 

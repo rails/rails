@@ -329,20 +329,20 @@ class RequestPort < BaseRequestTest
 
   test "standard_port?" do
     request = stub_request
-    assert !request.ssl?
-    assert request.standard_port?
+    assert_not_predicate request, :ssl?
+    assert_predicate request, :standard_port?
 
     request = stub_request "HTTPS" => "on"
-    assert request.ssl?
-    assert request.standard_port?
+    assert_predicate request, :ssl?
+    assert_predicate request, :standard_port?
 
     request = stub_request "HTTP_HOST" => "www.example.org:8080"
-    assert !request.ssl?
-    assert !request.standard_port?
+    assert_not_predicate request, :ssl?
+    assert_not_predicate request, :standard_port?
 
     request = stub_request "HTTP_HOST" => "www.example.org:8443", "HTTPS" => "on"
-    assert request.ssl?
-    assert !request.standard_port?
+    assert_predicate request, :ssl?
+    assert_not_predicate request, :standard_port?
   end
 
   test "optional port" do
@@ -571,7 +571,7 @@ end
 class LocalhostTest < BaseRequestTest
   test "IPs that match localhost" do
     request = stub_request("REMOTE_IP" => "127.1.1.1", "REMOTE_ADDR" => "127.1.1.1")
-    assert request.local?
+    assert_predicate request, :local?
   end
 end
 
@@ -643,37 +643,37 @@ class RequestProtocol < BaseRequestTest
   test "xml http request" do
     request = stub_request
 
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    assert_not_predicate request, :xml_http_request?
+    assert_not_predicate request, :xhr?
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "DefinitelyNotAjax1.0"
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    assert_not_predicate request, :xml_http_request?
+    assert_not_predicate request, :xhr?
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    assert request.xml_http_request?
-    assert request.xhr?
+    assert_predicate request, :xml_http_request?
+    assert_predicate request, :xhr?
   end
 
   test "reports ssl" do
-    assert !stub_request.ssl?
-    assert stub_request("HTTPS" => "on").ssl?
+    assert_not_predicate stub_request, :ssl?
+    assert_predicate stub_request("HTTPS" => "on"), :ssl?
   end
 
   test "reports ssl when proxied via lighttpd" do
-    assert stub_request("HTTP_X_FORWARDED_PROTO" => "https").ssl?
+    assert_predicate stub_request("HTTP_X_FORWARDED_PROTO" => "https"), :ssl?
   end
 
   test "scheme returns https when proxied" do
     request = stub_request "rack.url_scheme" => "http"
-    assert !request.ssl?
+    assert_not_predicate request, :ssl?
     assert_equal "http", request.scheme
 
     request = stub_request(
       "rack.url_scheme" => "http",
       "HTTP_X_FORWARDED_PROTO" => "https"
     )
-    assert request.ssl?
+    assert_predicate request, :ssl?
     assert_equal "https", request.scheme
   end
 end
@@ -700,7 +700,7 @@ class RequestMethod < BaseRequestTest
 
     assert_equal "GET", request.request_method
     assert_equal "GET", request.env["REQUEST_METHOD"]
-    assert request.get?
+    assert_predicate request, :get?
   end
 
   test "invalid http method raises exception" do
@@ -748,7 +748,7 @@ class RequestMethod < BaseRequestTest
 
     assert_equal "POST", request.method
     assert_equal "PATCH",  request.request_method
-    assert request.patch?
+    assert_predicate request, :patch?
   end
 
   test "post masquerading as put" do
@@ -758,7 +758,7 @@ class RequestMethod < BaseRequestTest
     )
     assert_equal "POST", request.method
     assert_equal "PUT",  request.request_method
-    assert request.put?
+    assert_predicate request, :put?
   end
 
   test "post uneffected by local inflections" do
@@ -772,7 +772,7 @@ class RequestMethod < BaseRequestTest
       request = stub_request "REQUEST_METHOD" => "POST"
       assert_equal :post, ActionDispatch::Request::HTTP_METHOD_LOOKUP["POST"]
       assert_equal :post, request.method_symbol
-      assert request.post?
+      assert_predicate request, :post?
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
@@ -809,20 +809,20 @@ class RequestFormat < BaseRequestTest
       "QUERY_STRING" => ""
     )
 
-    assert request.xhr?
+    assert_predicate request, :xhr?
     assert_equal Mime[:js], request.format
   end
 
   test "can override format with parameter negative" do
     request = stub_request("QUERY_STRING" => "format=txt")
 
-    assert !request.format.xml?
+    assert_not_predicate request.format, :xml?
   end
 
   test "can override format with parameter positive" do
     request = stub_request("QUERY_STRING" => "format=xml")
 
-    assert request.format.xml?
+    assert_predicate request.format, :xml?
   end
 
   test "formats text/html with accept header" do
@@ -862,15 +862,15 @@ class RequestFormat < BaseRequestTest
     request = stub_request("QUERY_STRING" => "format=hello")
 
     assert_nil request.format
-    assert_not request.format.html?
-    assert_not request.format.xml?
-    assert_not request.format.json?
+    assert_not_predicate request.format, :html?
+    assert_not_predicate request.format, :xml?
+    assert_not_predicate request.format, :json?
   end
 
   test "format does not throw exceptions when malformed parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
     assert request.formats
-    assert request.format.html?
+    assert_predicate request.format, :html?
   end
 
   test "formats with xhr request" do
@@ -1234,8 +1234,8 @@ class RequestVariant < BaseRequestTest
   test "setting variant to a symbol" do
     @request.variant = :phone
 
-    assert @request.variant.phone?
-    assert_not @request.variant.tablet?
+    assert_predicate @request.variant, :phone?
+    assert_not_predicate @request.variant, :tablet?
     assert @request.variant.any?(:phone, :tablet)
     assert_not @request.variant.any?(:tablet, :desktop)
   end
@@ -1243,9 +1243,9 @@ class RequestVariant < BaseRequestTest
   test "setting variant to an array of symbols" do
     @request.variant = [:phone, :tablet]
 
-    assert @request.variant.phone?
-    assert @request.variant.tablet?
-    assert_not @request.variant.desktop?
+    assert_predicate @request.variant, :phone?
+    assert_predicate @request.variant, :tablet?
+    assert_not_predicate @request.variant, :desktop?
     assert @request.variant.any?(:tablet, :desktop)
     assert_not @request.variant.any?(:desktop, :watch)
   end
@@ -1253,8 +1253,8 @@ class RequestVariant < BaseRequestTest
   test "clearing variant" do
     @request.variant = nil
 
-    assert @request.variant.empty?
-    assert_not @request.variant.phone?
+    assert_predicate @request.variant, :empty?
+    assert_not_predicate @request.variant, :phone?
     assert_not @request.variant.any?(:phone, :tablet)
   end
 
@@ -1273,13 +1273,13 @@ end
 
 class RequestFormData < BaseRequestTest
   test "media_type is from the FORM_DATA_MEDIA_TYPES array" do
-    assert stub_request("CONTENT_TYPE" => "application/x-www-form-urlencoded").form_data?
-    assert stub_request("CONTENT_TYPE" => "multipart/form-data").form_data?
+    assert_predicate stub_request("CONTENT_TYPE" => "application/x-www-form-urlencoded"), :form_data?
+    assert_predicate stub_request("CONTENT_TYPE" => "multipart/form-data"), :form_data?
   end
 
   test "media_type is not from the FORM_DATA_MEDIA_TYPES array" do
-    assert !stub_request("CONTENT_TYPE" => "application/xml").form_data?
-    assert !stub_request("CONTENT_TYPE" => "multipart/related").form_data?
+    assert_not_predicate stub_request("CONTENT_TYPE" => "application/xml"), :form_data?
+    assert_not_predicate stub_request("CONTENT_TYPE" => "multipart/related"), :form_data?
   end
 
   test "no Content-Type header is provided and the request_method is POST" do
@@ -1287,7 +1287,7 @@ class RequestFormData < BaseRequestTest
 
     assert_equal "", request.media_type
     assert_equal "POST", request.request_method
-    assert !request.form_data?
+    assert_not_predicate request, :form_data?
   end
 end
 

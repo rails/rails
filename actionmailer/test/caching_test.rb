@@ -105,7 +105,7 @@ class FragmentCachingTest < BaseCachingTest
 
     html_safe = @mailer.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -262,7 +262,7 @@ class ViewCacheDependencyTest < BaseCachingTest
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesMailer.new.view_cache_dependencies.empty?
+    assert_predicate NoDependenciesMailer.new.view_cache_dependencies, :empty?
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

@@ -75,8 +75,8 @@ class ActiveRecord::Relation
     end
 
     test "a clause knows if it is empty" do
-      assert WhereClause.empty.empty?
-      assert_not WhereClause.new(["anything"]).empty?
+      assert_predicate WhereClause.empty, :empty?
+      assert_not_predicate WhereClause.new(["anything"]), :empty?
     end
 
     test "invert cannot handle nil" do

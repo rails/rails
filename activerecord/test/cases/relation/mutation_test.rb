@@ -25,7 +25,7 @@ module ActiveRecord
     test "#order! with symbol prepends the table name" do
       assert relation.order!(:name).equal?(relation)
       node = relation.order_values.first
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
@@ -88,7 +88,7 @@ module ActiveRecord
       assert relation.reorder!(:name).equal?(relation)
       node = relation.order_values.first
 
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end

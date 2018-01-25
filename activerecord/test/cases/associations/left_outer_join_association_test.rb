@@ -69,14 +69,14 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_predicate scope.where("comments.type" => "Comment"), :empty?
+    assert_not_predicate scope.where("comments.type" => "SpecialComment"), :empty?
+    assert_not_predicate scope.where("comments.type" => "SubSpecialComment"), :empty?
   end
 
   def test_does_not_override_select
     authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) as addr_id}}").left_outer_joins(:posts)
-    assert authors.any?
+    assert_predicate authors, :any?
     assert_respond_to authors.first, :addr_id
   end
 

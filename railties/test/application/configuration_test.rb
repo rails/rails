@@ -94,7 +94,7 @@ module ApplicationTests
 
       with_rails_env "development" do
         app "development"
-        assert Rails.application.config.log_tags.blank?
+        assert_predicate Rails.application.config.log_tags, :blank?
       end
     end
 

@@ -670,7 +670,7 @@ XML
     assert_equal "bar", @request.params[:foo]
 
     post :no_op
-    assert @request.params[:foo].blank?
+    assert_predicate @request.params[:foo], :blank?
   end
 
   def test_filtered_parameters_reset_between_requests

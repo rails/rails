@@ -39,7 +39,7 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "Should be considered safe" do
-    assert @buffer.html_safe?
+    assert_predicate @buffer, :html_safe?
   end
 
   test "Should return a safe buffer when calling to_s" do
@@ -78,13 +78,13 @@ class SafeBufferTest < ActiveSupport::TestCase
   test "Should not return safe buffer from gsub" do
     altered_buffer = @buffer.gsub("", "asdf")
     assert_equal "asdf", altered_buffer
-    assert !altered_buffer.html_safe?
+    assert_not_predicate altered_buffer, :html_safe?
   end
 
   test "Should not return safe buffer from gsub!" do
     @buffer.gsub!("", "asdf")
     assert_equal "asdf", @buffer
-    assert !@buffer.html_safe?
+    assert_not_predicate @buffer, :html_safe?
   end
 
   test "Should escape dirty buffers on add" do
@@ -101,13 +101,13 @@ class SafeBufferTest < ActiveSupport::TestCase
 
   test "Should preserve html_safe? status on copy" do
     @buffer.gsub!("", "<>")
-    assert !@buffer.dup.html_safe?
+    assert_not_predicate @buffer.dup, :html_safe?
   end
 
   test "Should return safe buffer when added with another safe buffer" do
     clean = "<script>".html_safe
     result_buffer = @buffer + clean
-    assert result_buffer.html_safe?
+    assert_predicate result_buffer, :html_safe?
     assert_equal "<script>", result_buffer
   end
 
@@ -127,8 +127,8 @@ class SafeBufferTest < ActiveSupport::TestCase
   end
 
   test "clone_empty keeps the original dirtyness" do
-    assert @buffer.clone_empty.html_safe?
-    assert !@buffer.gsub!("", "").clone_empty.html_safe?
+    assert_predicate @buffer.clone_empty, :html_safe?
+    assert_not_predicate @buffer.gsub!("", "").clone_empty, :html_safe?
   end
 
   test "Should be safe when sliced if original value was safe" do

@@ -25,8 +25,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
   test "text?" do
     blob = create_blob data: "Hello world!"
-    assert blob.text?
-    assert_not blob.audio?
+    assert_predicate blob, :text?
+    assert_not_predicate blob, :audio?
   end
 
   test "download yields chunks" do

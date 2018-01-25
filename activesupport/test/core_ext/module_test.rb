@@ -347,7 +347,7 @@ class ModuleTest < ActiveSupport::TestCase
 
   def test_delegation_with_method_arguments
     has_block = HasBlock.new(Block.new)
-    assert has_block.hello?
+    assert_predicate has_block, :hello?
   end
 
   def test_delegate_missing_to_with_method

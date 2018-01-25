@@ -235,39 +235,39 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert_not fk.validated?
+            assert_not_predicate fk, :validated?
           end
 
           def test_validate_foreign_key_infers_column
             @connection.add_foreign_key :astronauts, :rockets, validate: false
-            assert_not @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, :rockets
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_column
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
-            assert_not @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, column: "rocket_id"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_symbol_column
             @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id, validate: false
-            assert_not @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, column: :rocket_id
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_name
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk", validate: false
-            assert_not @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, name: "fancy_named_fk"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_non_existing_foreign_key_raises
@@ -280,7 +280,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk", validate: false
 
             @connection.validate_constraint :astronauts, "fancy_named_fk"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
         else
           # Foreign key should still be created, but should not be invalid
@@ -291,7 +291,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert fk.validated?
+            assert_predicate fk, :validated?
           end
         end
 

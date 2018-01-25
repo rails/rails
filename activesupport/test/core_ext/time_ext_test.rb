@@ -737,7 +737,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_time
-    assert Time.new.acts_like_time?
+    assert_predicate Time.new, :acts_like_time?
   end
 
   def test_formatted_offset_with_utc
@@ -875,7 +875,7 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
       # On Apr 2 2006 at 2:00AM in US, clocks were moved forward to 3:00AM.
       # Therefore, 2AM EST doesn't exist for this date; Time.local fails over to 3:00AM EDT
       assert_equal Time.local(2006, 4, 2, 3), Time.local(2006, 4, 2, 2)
-      assert Time.local(2006, 4, 2, 2).dst?
+      assert_predicate Time.local(2006, 4, 2, 2), :dst?
     end
   end
 

@@ -315,15 +315,15 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_date
-    assert DateTime.new.acts_like_date?
+    assert_predicate DateTime.new, :acts_like_date?
   end
 
   def test_acts_like_time
-    assert DateTime.new.acts_like_time?
+    assert_predicate DateTime.new, :acts_like_time?
   end
 
   def test_blank?
-    assert_not DateTime.new.blank?
+    assert_not_predicate DateTime.new, :blank?
   end
 
   def test_utc?

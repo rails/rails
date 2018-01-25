@@ -21,7 +21,7 @@ module ActionDispatch
         assert_equal 1, routes.length
 
         routes.clear
-        assert routes.empty?
+        assert_predicate routes, :empty?
         assert_equal 0, routes.length
       end
 

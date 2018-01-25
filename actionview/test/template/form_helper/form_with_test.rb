@@ -108,7 +108,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
     actual = form_with(skip_enforcing_utf8: true)
     expected = whole_form("http://www.example.com", skip_enforcing_utf8: true)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
   end
 
   def test_form_with_with_block_in_erb

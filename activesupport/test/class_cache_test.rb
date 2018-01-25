@@ -11,17 +11,17 @@ module ActiveSupport
       end
 
       def test_empty?
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        assert_not_predicate @cache, :empty?
       end
 
       def test_clear!
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        assert_not_predicate @cache, :empty?
         @cache.clear!
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
       end
 
       def test_set_key
@@ -40,29 +40,29 @@ module ActiveSupport
       end
 
       def test_get_constantizes
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         assert_equal ClassCacheTest, @cache.get(ClassCacheTest.name)
       end
 
       def test_get_constantizes_fails_on_invalid_names
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         assert_raise NameError do
           @cache.get("OmgTotallyInvalidConstantName")
         end
       end
 
       def test_get_alias
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         assert_equal @cache[ClassCacheTest.name], @cache.get(ClassCacheTest.name)
       end
 
       def test_safe_get_constantizes
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         assert_equal ClassCacheTest, @cache.safe_get(ClassCacheTest.name)
       end
 
       def test_safe_get_constantizes_doesnt_fail_on_invalid_names
-        assert @cache.empty?
+        assert_predicate @cache, :empty?
         assert_nil @cache.safe_get("OmgTotallyInvalidConstantName")
       end
 

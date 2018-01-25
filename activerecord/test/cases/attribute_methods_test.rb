@@ -99,8 +99,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "boolean attributes" do
-    assert !Topic.find(1).approved?
-    assert Topic.find(2).approved?
+    assert_not_predicate Topic.find(1), :approved?
+    assert_predicate Topic.find(2), :approved?
   end
 
   test "set attributes" do
@@ -457,16 +457,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     SQL
 
     assert_equal "Firm", object.string_value
-    assert object.string_value?
+    assert_predicate object, :string_value?
 
     object.string_value = "  "
-    assert !object.string_value?
+    assert_not_predicate object, :string_value?
 
     assert_equal 1, object.int_value.to_i
-    assert object.int_value?
+    assert_predicate object, :int_value?
 
     object.int_value = "0"
-    assert !object.int_value?
+    assert_not_predicate object, :int_value?
   end
 
   test "non-attribute read and write" do
@@ -541,7 +541,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     else
       topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
     end
-    assert !topic.is_test?
+    assert_not_predicate topic, :is_test?
   end
 
   test "typecast attribute from select to true" do
@@ -552,7 +552,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     else
       topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
     end
-    assert topic.is_test?
+    assert_predicate topic, :is_test?
   end
 
   test "raises ActiveRecord::DangerousAttributeError when defining an AR method in a model" do
@@ -743,7 +743,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         expected_time = Time.utc(2000, 01, 01, 10)
 
         assert_equal expected_time, record.bonus_time
-        assert record.bonus_time.utc?
+        assert_predicate record.bonus_time, :utc?
       end
     end
   end
@@ -979,9 +979,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "came_from_user?" do
     model = @target.first
 
-    assert_not model.id_came_from_user?
+    assert_not_predicate model, :id_came_from_user?
     model.id = "omg"
-    assert model.id_came_from_user?
+    assert_predicate model, :id_came_from_user?
   end
 
   test "accessed_fields" do

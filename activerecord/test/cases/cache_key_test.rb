@@ -38,8 +38,8 @@ module ActiveRecord
     end
 
     test "cache_version is only there when versioning is on" do
-      assert CacheMeWithVersion.create.cache_version.present?
-      assert_not CacheMe.create.cache_version.present?
+      assert_predicate CacheMeWithVersion.create.cache_version, :present?
+      assert_not_predicate CacheMe.create.cache_version, :present?
     end
 
     test "cache_key_with_version always has both key and version" do

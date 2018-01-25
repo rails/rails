@@ -96,10 +96,10 @@ module ActiveRecord
 
     def test_empty_scope
       relation = Relation.new(Post)
-      assert relation.empty_scope?
+      assert_predicate relation, :empty_scope?
 
       relation.merge!(relation)
-      assert relation.empty_scope?
+      assert_predicate relation, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
@@ -110,13 +110,13 @@ module ActiveRecord
 
     def test_empty_eager_loading?
       relation = Relation.new(FakeKlass)
-      assert !relation.eager_loading?
+      assert_not_predicate relation, :eager_loading?
     end
 
     def test_eager_load_values
       relation = Relation.new(FakeKlass)
       relation.eager_load! :b
-      assert relation.eager_loading?
+      assert_predicate relation, :eager_loading?
     end
 
     def test_references_values

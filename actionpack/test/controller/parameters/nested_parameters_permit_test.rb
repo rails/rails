@@ -32,7 +32,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id ]
 
-    assert permitted.permitted?
+    assert_predicate permitted, :permitted?
     assert_equal "Romeo and Juliet", permitted[:book][:title]
     assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
     assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]

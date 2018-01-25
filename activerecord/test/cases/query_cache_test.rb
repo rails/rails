@@ -82,7 +82,7 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_cache :off, conn
         end
 
-        assert !ActiveRecord::Base.connection.nil?
+        assert_not_predicate ActiveRecord::Base.connection, :nil?
         assert_cache :off
 
         middleware {
@@ -327,7 +327,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
       ActiveRecord::Base.connection_handler.establish_connection(conf)
       Task.connection_specification_name = "test2"
-      assert_not Task.connected?
+      assert_not_predicate Task, :connected?
 
       Task.cache do
         begin
@@ -562,7 +562,7 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     assert_called(ActiveRecord::Base.connection, :clear_query_cache, times: 2) do
       ActiveRecord::Base.cache do
         p = Post.find(1)
-        assert p.categories.any?
+        assert_predicate p.categories, :any?
         p.categories.delete_all
       end
     end

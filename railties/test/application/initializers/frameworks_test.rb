@@ -266,7 +266,7 @@ module ApplicationTests
         ActiveRecord::Base.connection
       RUBY
       require "#{app_path}/config/environment"
-      assert !ActiveRecord::Base.connection_pool.active_connection?
+      assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
   end
 end

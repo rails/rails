@@ -83,7 +83,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.count
     person.errors.clear
-    assert person.errors.empty?
+    assert_predicate person.errors, :empty?
   end
 
   test "error access is indifferent" do
@@ -128,8 +128,8 @@ class ErrorsTest < ActiveModel::TestCase
   test "detecting whether there are errors with empty?, blank?, include?" do
     person = Person.new
     person.errors[:foo]
-    assert person.errors.empty?
-    assert person.errors.blank?
+    assert_predicate person.errors, :empty?
+    assert_predicate person.errors, :blank?
     assert_not_includes person.errors, :foo
   end
 
@@ -371,7 +371,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.details.count
     person.errors.clear
-    assert person.errors.details.empty?
+    assert_predicate person.errors.details, :empty?
   end
 
   test "copy errors" do

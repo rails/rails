@@ -69,8 +69,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { s2.destroy }
 
     assert s1.destroy
-    assert s1.frozen?
-    assert s1.destroyed?
+    assert_predicate s1, :frozen?
+    assert_predicate s1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { StringKeyObject.find("record1") }
   end
 
@@ -104,8 +104,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) { p2.destroy }
 
     assert p1.destroy
-    assert p1.frozen?
-    assert p1.destroyed?
+    assert_predicate p1, :frozen?
+    assert_predicate p1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(1) }
   end
 
@@ -201,7 +201,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       person.first_name = "Douglas Adams"
       person.lock_version = 42
 
-      assert person.lock_version_changed?
+      assert_predicate person, :lock_version_changed?
 
       person.save
     end
@@ -440,16 +440,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_difference "car.wheels.count", -1  do
       car.reload.destroy
     end
-    assert car.destroyed?
+    assert_predicate car, :destroyed?
   end
 
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create! first_name: "Jon"
     p.treasures.create!
-    assert !p.treasures.empty?
+    assert_not_predicate p.treasures, :empty?
     p.destroy
-    assert p.treasures.empty?
-    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+    assert_predicate p.treasures, :empty?
+    assert_predicate RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1"), :empty?
   end
 
   def test_yaml_dumping_with_lock_column
@@ -519,7 +519,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     t1.destroy
 
-    assert t1.destroyed?
+    assert_predicate t1, :destroyed?
   end
 
   def test_destroy_stale_object
@@ -532,7 +532,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       stale_object.destroy!
     end
 
-    assert_not stale_object.destroyed?
+    assert_not_predicate stale_object, :destroyed?
   end
 
   private

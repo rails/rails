@@ -98,13 +98,13 @@ class FileStoreTest < ActiveSupport::TestCase
     end
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
-    assert Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }.empty?
+    assert_predicate Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }, :empty?
   end
 
   def test_log_exception_when_cache_read_fails
     File.stub(:exist?, -> { raise StandardError.new("failed") }) do
       @cache.send(:read_entry, "winston", {})
-      assert @buffer.string.present?
+      assert_predicate @buffer.string, :present?
     end
   end
 

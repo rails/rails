@@ -14,11 +14,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    assert_not_predicate @session, :https?
     @session.https!
-    assert @session.https?
+    assert_predicate @session, :https?
     @session.https! false
-    assert !@session.https?
+    assert_not_predicate @session, :https?
   end
 
   def test_host!
@@ -412,11 +412,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert request.env["rack.input"].string.empty?
+      assert_predicate request.env["rack.input"].string, :empty?
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert request.parameters["leaks"].nil?
+      assert_predicate request.parameters["leaks"], :nil?
     end
   end
 

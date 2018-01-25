@@ -481,7 +481,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_time
-    assert @twz.acts_like_time?
+    assert_predicate @twz, :acts_like_time?
     assert @twz.acts_like?(:time)
     assert ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone).acts_like?(:time)
   end
@@ -492,7 +492,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_blank?
-    assert_not @twz.blank?
+    assert_not_predicate @twz, :blank?
   end
 
   def test_is_a
@@ -514,10 +514,10 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     marshal_str = Marshal.dump(@twz)
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert mtime.utc.utc?
+    assert_predicate mtime.utc, :utc?
     assert_equal ActiveSupport::TimeZone["Eastern Time (US & Canada)"], mtime.time_zone
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert mtime.time.utc?
+    assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
   end
 
@@ -526,16 +526,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     marshal_str = Marshal.dump(twz)
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert mtime.utc.utc?
+    assert_predicate mtime.utc, :utc?
     assert_equal "America/New_York", mtime.time_zone.name
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert mtime.time.utc?
+    assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
   end
 
   def test_freeze
     @twz.freeze
-    assert @twz.frozen?
+    assert_predicate @twz, :frozen?
   end
 
   def test_freeze_preloads_instance_variables

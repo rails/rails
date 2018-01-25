@@ -39,12 +39,12 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_column
     assert_equal :string, @column.type
     assert_equal "character varying(255)", @column.sql_type
-    assert @column.array?
-    assert_not @type.binary?
+    assert_predicate @column, :array?
+    assert_not_predicate @type, :binary?
 
     ratings_column = PgArray.columns_hash["ratings"]
     assert_equal :integer, ratings_column.type
-    assert ratings_column.array?
+    assert_predicate ratings_column, :array?
   end
 
   def test_not_compatible_with_serialize_array
@@ -109,7 +109,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
     assert_equal :text, column.type
     assert_equal [], PgArray.column_defaults["snippets"]
-    assert column.array?
+    assert_predicate column, :array?
   end
 
   def test_change_column_cant_make_non_array_column_to_array
@@ -257,7 +257,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    assert_not x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_quoting_non_standard_delimiters
@@ -279,7 +279,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     assert_equal %w(one two three), x.tags
-    assert_not x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_mutate_value_in_array
@@ -290,7 +290,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     assert_equal [{ "a" => "c" }, { "b" => "b" }], x.hstores
-    assert_not x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_datetime_with_timezone_awareness

@@ -89,12 +89,12 @@ module FileUpdateCheckerSharedTests
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "updated should become true when watched files are modified" do
@@ -103,12 +103,12 @@ module FileUpdateCheckerSharedTests
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "updated should become true when watched files are deleted" do
@@ -117,12 +117,12 @@ module FileUpdateCheckerSharedTests
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     rm_f(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "should be robust to handle files with wrong modified time" do
@@ -164,14 +164,14 @@ module FileUpdateCheckerSharedTests
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
     checker.execute
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
   end
 
   test "should execute the block if files change in a watched directory one extension" do
