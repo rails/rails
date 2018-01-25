@@ -289,7 +289,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   else
     test "ActionController::Parameters does not respond to #dig on Ruby 2.2" do
       assert_not ActionController::Parameters.method_defined?(:dig)
-      assert_not @params.respond_to?(:dig)
+      assert_not_respond_to @params, :dig
     end
   end
 end

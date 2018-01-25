@@ -65,9 +65,9 @@ class NamedScopingTest < ActiveRecord::TestCase
   end
 
   def test_scope_should_respond_to_own_methods_and_methods_of_the_proxy
-    assert Topic.approved.respond_to?(:limit)
-    assert Topic.approved.respond_to?(:count)
-    assert Topic.approved.respond_to?(:length)
+    assert_respond_to Topic.approved, :limit
+    assert_respond_to Topic.approved, :count
+    assert_respond_to Topic.approved, :length
   end
 
   def test_scopes_with_options_limit_finds_to_those_matching_the_criteria_specified

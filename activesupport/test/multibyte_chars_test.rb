@@ -469,10 +469,10 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   end
 
   def test_respond_to_knows_which_methods_the_proxy_responds_to
-    assert "".mb_chars.respond_to?(:slice) # Defined on Chars
-    assert "".mb_chars.respond_to?(:capitalize!) # Defined on Chars
-    assert "".mb_chars.respond_to?(:gsub) # Defined on String
-    assert !"".mb_chars.respond_to?(:undefined_method) # Not defined
+    assert_respond_to "".mb_chars, :slice # Defined on Chars
+    assert_respond_to "".mb_chars, :capitalize! # Defined on Chars
+    assert_respond_to "".mb_chars, :gsub # Defined on String
+    assert_not_respond_to "".mb_chars, :undefined_method # Not defined
   end
 
   def test_method_works_for_proxyed_methods

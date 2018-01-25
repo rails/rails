@@ -1478,7 +1478,7 @@ module ApplicationTests
     test "respond_to? accepts include_private" do
       make_basic_app
 
-      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert_not_respond_to Rails.configuration, :method_missing
       assert Rails.configuration.respond_to?(:method_missing, true)
     end
 

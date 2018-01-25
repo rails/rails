@@ -356,7 +356,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "respond_to? accepts include_private" do
-    assert_not @response.respond_to?(:method_missing)
+    assert_not_respond_to @response, :method_missing
     assert @response.respond_to?(:method_missing, true)
   end
 

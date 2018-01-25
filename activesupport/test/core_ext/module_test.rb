@@ -383,9 +383,9 @@ class ModuleTest < ActiveSupport::TestCase
   end
 
   def test_delegate_missing_to_affects_respond_to
-    assert DecoratedTester.new(@david).respond_to?(:name)
-    assert_not DecoratedTester.new(@david).respond_to?(:private_name)
-    assert_not DecoratedTester.new(@david).respond_to?(:my_fake_method)
+    assert_respond_to DecoratedTester.new(@david), :name
+    assert_not_respond_to DecoratedTester.new(@david), :private_name
+    assert_not_respond_to DecoratedTester.new(@david), :my_fake_method
 
     assert DecoratedTester.new(@david).respond_to?(:name, true)
     assert_not DecoratedTester.new(@david).respond_to?(:private_name, true)
@@ -414,8 +414,8 @@ class ModuleTest < ActiveSupport::TestCase
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
 
-    assert_not place.respond_to?(:street)
-    assert_not place.respond_to?(:city)
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
 
     assert place.respond_to?(:street, true) # Asking for private method
     assert place.respond_to?(:city, true)
@@ -432,12 +432,12 @@ class ModuleTest < ActiveSupport::TestCase
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
 
-    assert_not place.respond_to?(:street)
-    assert_not place.respond_to?(:city)
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
 
-    assert_not place.respond_to?(:the_street)
+    assert_not_respond_to place, :the_street
     assert place.respond_to?(:the_street, true)
-    assert_not place.respond_to?(:the_city)
+    assert_not_respond_to place, :the_city
     assert place.respond_to?(:the_city, true)
   end
 end

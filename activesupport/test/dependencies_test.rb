@@ -752,7 +752,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :C, Class.new { def self.before_remove_const; end }
     C.unloadable
     assert_called(C, :before_remove_const, times: 1) do
-      assert C.respond_to?(:before_remove_const)
+      assert_respond_to C, :before_remove_const
       ActiveSupport::Dependencies.clear
       assert !defined?(C)
     end

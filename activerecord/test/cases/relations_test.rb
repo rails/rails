@@ -56,7 +56,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_dynamic_finder
     x = Post.where("author_id = ?", 1)
-    assert x.klass.respond_to?(:find_by_id), "@klass should handle dynamic finders"
+    assert_respond_to x.klass, :find_by_id
   end
 
   def test_multivalue_where
@@ -501,12 +501,12 @@ class RelationTest < ActiveRecord::TestCase
     relation = Topic.all
 
     ["find_by_title", "find_by_title_and_author_name"].each do |method|
-      assert_respond_to relation, method, "Topic.all should respond to #{method.inspect}"
+      assert_respond_to relation, method
     end
   end
 
   def test_respond_to_class_methods_and_scopes
-    assert Topic.all.respond_to?(:by_lifo)
+    assert_respond_to Topic.all, :by_lifo
   end
 
   def test_find_with_readonly_option
@@ -601,7 +601,7 @@ class RelationTest < ActiveRecord::TestCase
     reader = Reader.create! post_id: post.id, person_id: 1
     comment = Comment.create! post_id: post.id, body: "body"
 
-    assert !comment.respond_to?(:readers)
+    assert_not_respond_to comment, :readers
 
     post_rel = Post.preload(:readers).joins(:readers).where(title: "Uhuu")
     result_comment = Comment.joins(:post).merge(post_rel).to_a.first
@@ -1846,7 +1846,7 @@ class RelationTest < ActiveRecord::TestCase
   test "delegations do not leak to other classes" do
     Topic.all.by_lifo
     assert Topic.all.class.method_defined?(:by_lifo)
-    assert !Post.all.respond_to?(:by_lifo)
+    assert_not_respond_to Post.all, :by_lifo
   end
 
   def test_unscope_with_subquery

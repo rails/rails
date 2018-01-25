@@ -1447,27 +1447,27 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns have no attribute methods" do
-    refute Developer.new.respond_to?(:first_name)
-    refute Developer.new.respond_to?(:first_name=)
-    refute Developer.new.respond_to?(:first_name?)
-    refute SubDeveloper.new.respond_to?(:first_name)
-    refute SubDeveloper.new.respond_to?(:first_name=)
-    refute SubDeveloper.new.respond_to?(:first_name?)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name=)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name?)
+    assert_not_respond_to Developer.new, :first_name
+    assert_not_respond_to Developer.new, :first_name=
+    assert_not_respond_to Developer.new, :first_name?
+    assert_not_respond_to SubDeveloper.new, :first_name
+    assert_not_respond_to SubDeveloper.new, :first_name=
+    assert_not_respond_to SubDeveloper.new, :first_name?
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name=
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name?
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
-    assert Developer.new.respond_to?(:last_name)
-    assert Developer.new.respond_to?(:last_name=)
-    assert Developer.new.respond_to?(:last_name?)
-    assert SubDeveloper.new.respond_to?(:last_name)
-    assert SubDeveloper.new.respond_to?(:last_name=)
-    assert SubDeveloper.new.respond_to?(:last_name?)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name=)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name?)
+    assert_respond_to Developer.new, :last_name
+    assert_respond_to Developer.new, :last_name=
+    assert_respond_to Developer.new, :last_name?
+    assert_respond_to SubDeveloper.new, :last_name
+    assert_respond_to SubDeveloper.new, :last_name=
+    assert_respond_to SubDeveloper.new, :last_name?
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
   end
 
   test "ignored columns are stored as an array of string" do
@@ -1477,13 +1477,13 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "when #reload called, ignored columns' attribute methods are not defined" do
     developer = Developer.create!(name: "Developer")
-    refute developer.respond_to?(:first_name)
-    refute developer.respond_to?(:first_name=)
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
 
     developer.reload
 
-    refute developer.respond_to?(:first_name)
-    refute developer.respond_to?(:first_name=)
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
   end
 
   test "ignored columns not included in SELECT" do

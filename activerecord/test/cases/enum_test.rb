@@ -459,17 +459,17 @@ class EnumTest < ActiveRecord::TestCase
   end
 
   test "enum methods with custom suffix defined" do
-    assert @book.class.respond_to?(:easy_to_read)
-    assert @book.class.respond_to?(:medium_to_read)
-    assert @book.class.respond_to?(:hard_to_read)
+    assert_respond_to @book.class, :easy_to_read
+    assert_respond_to @book.class, :medium_to_read
+    assert_respond_to @book.class, :hard_to_read
 
-    assert @book.respond_to?(:easy_to_read?)
-    assert @book.respond_to?(:medium_to_read?)
-    assert @book.respond_to?(:hard_to_read?)
+    assert_respond_to @book, :easy_to_read?
+    assert_respond_to @book, :medium_to_read?
+    assert_respond_to @book, :hard_to_read?
 
-    assert @book.respond_to?(:easy_to_read!)
-    assert @book.respond_to?(:medium_to_read!)
-    assert @book.respond_to?(:hard_to_read!)
+    assert_respond_to @book, :easy_to_read!
+    assert_respond_to @book, :medium_to_read!
+    assert_respond_to @book, :hard_to_read!
   end
 
   test "update enum attributes with custom suffix" do

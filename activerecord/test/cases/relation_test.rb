@@ -242,10 +242,10 @@ module ActiveRecord
 
     def test_respond_to_for_non_selected_element
       post = Post.select(:title).first
-      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :body, "post should not respond_to?(:body) since invoking it raises exception"
 
       silence_warnings { post = Post.select("'title' as post_title").first }
-      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :title, "post should not respond_to?(:body) since invoking it raises exception"
     end
 
     def test_select_quotes_when_using_from_clause

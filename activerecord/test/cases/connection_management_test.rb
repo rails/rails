@@ -85,7 +85,7 @@ module ActiveRecord
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
         response_body = middleware(app).call(@env)[2]
-        assert response_body.respond_to?(:to_path)
+        assert_respond_to response_body, :to_path
         assert_equal "/path", response_body.to_path
       end
 

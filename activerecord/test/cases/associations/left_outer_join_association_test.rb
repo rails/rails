@@ -77,7 +77,7 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
   def test_does_not_override_select
     authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) as addr_id}}").left_outer_joins(:posts)
     assert authors.any?
-    assert authors.first.respond_to?(:addr_id)
+    assert_respond_to authors.first, :addr_id
   end
 
   test "the default scope of the target is applied when joining associations" do
