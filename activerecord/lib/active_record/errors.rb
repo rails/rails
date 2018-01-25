@@ -371,4 +371,12 @@ module ActiveRecord
   # values, such as request parameters or model attributes to query methods.
   class UnknownAttributeReference < ActiveRecordError
   end
+
+  # Raised when one record is expected but none are found
+  class NoRecordFound < ActiveRecordError
+  end
+
+  # Raised when one record is expected but more than one is found
+  class MultipleRecordsFound < ActiveRecordError
+  end
 end

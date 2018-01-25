@@ -516,6 +516,21 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
+    # Asserts that the collection contains exactly one record, and returns it.
+    #
+    # If the collection is empty, it raises <tt>ActiveRecord::NoRecordFound</tt>.
+    # If the collection contains more than one record, it raises
+    # <tt>ActiveRecord::MultipleRecordsFound</tt>.
+    def one
+      if size.zero?
+        raise ActiveRecord::NoRecordFound
+      elsif size == 1
+        first
+      else
+        raise ActiveRecord::MultipleRecordsFound
+      end
+    end
+
     protected
 
       def load_records(records)
