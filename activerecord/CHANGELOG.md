@@ -1,4 +1,4 @@
-*   Clear the transaction state when AR object is duped.
+*   Clear the transaction state when an Active Record object is duped.
 
     Fixes #31670.
 
@@ -631,7 +631,7 @@
 
     *Ryuta Kamizono*
 
-*   Fix inconsistency with changed attributes when overriding AR attribute reader.
+*   Fix inconsistency with changed attributes when overriding Active Record attribute reader.
 
     *bogdanvlviv*
 
