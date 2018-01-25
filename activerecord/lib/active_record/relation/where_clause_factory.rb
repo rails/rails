@@ -3,9 +3,10 @@
 module ActiveRecord
   class Relation
     class WhereClauseFactory # :nodoc:
-      def initialize(klass, predicate_builder)
-        @klass = klass
-        @predicate_builder = predicate_builder
+      def initialize(scope)
+        @scope = scope
+        @klass = scope.klass
+        @predicate_builder = scope.predicate_builder
       end
 
       def build(opts, other)
@@ -27,9 +28,30 @@ module ActiveRecord
         WhereClause.new(parts)
       end
 
-      protected
+      # TODO: This is messy. Rewrite it all
+      # Will probably include some refactoring of both WhereClauseFactory and PredicateBuilder
+      def build_comparison(comparison, column_name, value)
+        if column_name.to_s.include?(".".freeze)
+          table_name, col_name = column_name.to_s.split(".".freeze)
+          references_scope = table_name.classify.constantize
 
-        attr_reader :klass, :predicate_builder
+          # This seems like the wrong place for this
+          scope.references!(table_name)
+
+          column = references_scope.arel_table[col_name]
+          builder = references_scope.predicate_builder
+        else
+          column = scope.arel_table[column_name]
+          builder = predicate_builder
+        end
+
+        bind = predicate_builder.build_bind_attribute(column_name, value)
+
+        WhereClause.new([column.send(comparison, bind)])
+      end
+
+      private
+        attr_reader :scope, :klass, :predicate_builder
     end
   end
 end

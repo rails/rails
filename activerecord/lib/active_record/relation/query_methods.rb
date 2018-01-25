@@ -19,6 +19,7 @@ module ActiveRecord
 
       def initialize(scope)
         @scope = scope
+        @where_clause_factory = Relation::WhereClauseFactory.new(scope)
       end
 
       # Returns a new relation expressing WHERE + NOT condition according to
@@ -47,12 +48,48 @@ module ActiveRecord
       def not(opts, *rest)
         opts = sanitize_forbidden_attributes(opts)
 
-        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
+        where_clause = where_clause_factory.build(opts, rest)
 
-        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
-        @scope.where_clause += where_clause.invert
-        @scope
+        scope.references!(PredicateBuilder.references(opts)) if Hash === opts
+        scope.where_clause += where_clause.invert
+        scope
       end
+
+      # TODO: document these
+      # .where.greater_than(:id, 1)
+      # .where.greater_than('posts.id', 1)
+
+      # Alternate approach:
+      #   .where(:id).greater_than(1)
+      # But this would be difficult -> sql string or column_name
+      #   .where('posts.id').greater_than(1)
+
+      def greater_than(column_name, value)
+        scope.where_clause +=
+          where_clause_factory.build_comparison(:gt, column_name, value)
+        scope
+      end
+
+      def less_than(column_name, value)
+        scope.where_clause +=
+          where_factory.build_comparison(:lt, column_name, value)
+        scope
+      end
+
+      def greater_than_or_equal(column_name, value)
+        scope.where_clause +=
+          where_clause_factory.build_comparison(:gteq, column_name, value)
+        scope
+      end
+
+      def less_than_or_equal(column_name, value)
+        scope.where_clause +=
+          where_clause_factory.build_comparison(:lteq, column_name, value)
+        scope
+      end
+
+      private
+        attr_reader :scope, :where_clause_factory
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze
@@ -563,6 +600,7 @@ module ActiveRecord
     #
     # === no argument
     #
+    # TODO: update this documentation
     # If no argument is passed, #where returns a new instance of WhereChain, that
     # can be chained with #not to return a new relation that negates the where clause.
     #
@@ -1187,7 +1225,7 @@ module ActiveRecord
       end
 
       def where_clause_factory
-        @where_clause_factory ||= Relation::WhereClauseFactory.new(klass, predicate_builder)
+        @where_clause_factory ||= Relation::WhereClauseFactory.new(self)
       end
       alias having_clause_factory where_clause_factory
 
