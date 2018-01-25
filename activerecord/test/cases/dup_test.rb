@@ -3,6 +3,7 @@
 require "cases/helper"
 require "models/reply"
 require "models/topic"
+require "models/movie"
 
 module ActiveRecord
   class DupTest < ActiveRecord::TestCase
@@ -156,6 +157,21 @@ module ActiveRecord
       assert_nothing_raised do
         record.dup
       end
+    end
+
+    def test_dup_record_not_persisted_after_rollback_transaction
+      movie = Movie.new(name: "test")
+
+      assert_raises(ActiveRecord::RecordInvalid) do
+        Movie.transaction do
+          movie.save!
+          duped = movie.dup
+          duped.name = nil
+          duped.save!
+        end
+      end
+
+      assert !movie.persisted?
     end
   end
 end
