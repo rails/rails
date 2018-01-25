@@ -257,7 +257,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    refute x.changed?
+    assert_not x.changed?
   end
 
   def test_quoting_non_standard_delimiters

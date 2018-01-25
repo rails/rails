@@ -762,7 +762,7 @@ class DirtyTest < ActiveRecord::TestCase
 
   test "attributes assigned but not selected are dirty" do
     person = Person.select(:id).first
-    refute person.changed?
+    assert_not person.changed?
 
     person.first_name = "Sean"
     assert person.changed?
@@ -782,13 +782,13 @@ class DirtyTest < ActiveRecord::TestCase
     person = Person.create!(first_name: "Sean")
 
     assert person.saved_change_to_first_name?
-    refute person.saved_change_to_gender?
+    assert_not person.saved_change_to_gender?
     assert person.saved_change_to_first_name?(from: nil, to: "Sean")
     assert person.saved_change_to_first_name?(from: nil)
     assert person.saved_change_to_first_name?(to: "Sean")
-    refute person.saved_change_to_first_name?(from: "Jim", to: "Sean")
-    refute person.saved_change_to_first_name?(from: "Jim")
-    refute person.saved_change_to_first_name?(to: "Jim")
+    assert_not person.saved_change_to_first_name?(from: "Jim", to: "Sean")
+    assert_not person.saved_change_to_first_name?(from: "Jim")
+    assert_not person.saved_change_to_first_name?(to: "Jim")
   end
 
   test "saved_change_to_attribute returns the change that occurred in the last save" do
@@ -827,7 +827,7 @@ class DirtyTest < ActiveRecord::TestCase
 
     person.save
 
-    refute person.saved_changes?
+    assert_not person.saved_changes?
   end
 
   test "saved_changes returns a hash of all the changes that occurred" do
@@ -857,7 +857,7 @@ class DirtyTest < ActiveRecord::TestCase
     end
 
     person = klass.create!(first_name: "Sean")
-    refute person.changed?
+    assert_not person.changed?
   end
 
   private

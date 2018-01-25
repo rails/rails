@@ -1831,7 +1831,7 @@ module ApplicationTests
 
     test "api_only is false by default" do
       app "development"
-      refute Rails.application.config.api_only
+      assert_not Rails.application.config.api_only
     end
 
     test "api_only generator config is set when api_only is set" do

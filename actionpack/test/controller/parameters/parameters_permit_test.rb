@@ -500,9 +500,9 @@ class ParametersPermitTest < ActiveSupport::TestCase
     params = ActionController::Parameters.new(foo: "bar")
 
     assert params.permit(:foo).has_key?(:foo)
-    refute params.permit(foo: []).has_key?(:foo)
-    refute params.permit(foo: [:bar]).has_key?(:foo)
-    refute params.permit(foo: :bar).has_key?(:foo)
+    assert_not params.permit(foo: []).has_key?(:foo)
+    assert_not params.permit(foo: [:bar]).has_key?(:foo)
+    assert_not params.permit(foo: :bar).has_key?(:foo)
   end
 
   test "#permitted? is false by default" do

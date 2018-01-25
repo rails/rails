@@ -532,7 +532,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       stale_object.destroy!
     end
 
-    refute stale_object.destroyed?
+    assert_not stale_object.destroyed?
   end
 
   private

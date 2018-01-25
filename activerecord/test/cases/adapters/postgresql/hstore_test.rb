@@ -174,7 +174,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
     hstore.settings = { "key" => "value", "alongkey" => "anything" }
     assert_equal settings, hstore.settings
-    refute hstore.changed?
+    assert_not hstore.changed?
   end
 
   def test_hstore_dirty_from_database_equal
@@ -184,7 +184,7 @@ class PostgresqlHstoreTest < ActiveRecord::PostgreSQLTestCase
 
     assert_equal settings, hstore.settings
     hstore.settings = settings
-    refute hstore.changed?
+    assert_not hstore.changed?
   end
 
   def test_gen1

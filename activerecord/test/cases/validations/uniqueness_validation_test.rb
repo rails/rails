@@ -530,7 +530,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert topic.author_name.start_with?("Title1")
 
     topic2 = TopicWithAfterCreate.new(title: "Title1")
-    refute topic2.valid?
+    assert_not topic2.valid?
     assert_equal(["has already been taken"], topic2.errors[:title])
   end
 
@@ -550,7 +550,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert_empty item.errors
 
     item2 = CoolTopic.new(id: item.id, title: "MyItem2")
-    refute item2.valid?
+    assert_not item2.valid?
 
     assert_equal(["has already been taken"], item2.errors[:id])
   end

@@ -327,7 +327,7 @@ class QueryCacheTest < ActiveRecord::TestCase
       conf = ActiveRecord::Base.configurations["arunit"].merge("name" => "test2")
       ActiveRecord::Base.connection_handler.establish_connection(conf)
       Task.connection_specification_name = "test2"
-      refute Task.connected?
+      assert_not Task.connected?
 
       Task.cache do
         begin
@@ -414,20 +414,20 @@ class QueryCacheTest < ActiveRecord::TestCase
   def test_query_cache_does_not_establish_connection_if_unconnected
     with_temporary_connection_pool do
       ActiveRecord::Base.clear_active_connections!
-      refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+      assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
       middleware {
-        refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
+        assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in setup"
       }.call({})
 
-      refute ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
+      assert_not ActiveRecord::Base.connection_handler.active_connections?, "QueryCache forced ActiveRecord::Base to establish a connection in cleanup"
     end
   end
 
   def test_query_cache_is_enabled_on_connections_established_after_middleware_runs
     with_temporary_connection_pool do
       ActiveRecord::Base.clear_active_connections!
-      refute ActiveRecord::Base.connection_handler.active_connections? # sanity check
+      assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
       middleware {
         assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
@@ -444,8 +444,8 @@ class QueryCacheTest < ActiveRecord::TestCase
         assert ActiveRecord::Base.connection.query_cache_enabled
 
         Thread.new {
-          refute ActiveRecord::Base.connection_pool.query_cache_enabled
-          refute ActiveRecord::Base.connection.query_cache_enabled
+          assert_not ActiveRecord::Base.connection_pool.query_cache_enabled
+          assert_not ActiveRecord::Base.connection.query_cache_enabled
         }.join
       }.call({})
 

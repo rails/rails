@@ -187,7 +187,7 @@ module ActiveModel
     test "an attribute is not changed if it hasn't been assigned or mutated" do
       attribute = Attribute.from_database(:foo, 1, Type::Value.new)
 
-      refute attribute.changed?
+      assert_not attribute.changed?
     end
 
     test "an attribute is changed if it's been assigned a new value" do
@@ -201,7 +201,7 @@ module ActiveModel
       attribute = Attribute.from_database(:foo, 1, Type::Value.new)
       unchanged = attribute.with_value_from_user(1)
 
-      refute unchanged.changed?
+      assert_not unchanged.changed?
     end
 
     test "an attribute can not be mutated if it has not been read,
@@ -226,7 +226,7 @@ module ActiveModel
       forgotten = changed.forgetting_assignment
 
       assert changed.changed? # sanity check
-      refute forgotten.changed?
+      assert_not forgotten.changed?
     end
 
     test "with_value_from_user validates the value" do

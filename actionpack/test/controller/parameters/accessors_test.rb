@@ -82,7 +82,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "empty? returns false when any params are present" do
-    refute @params.empty?
+    assert_not @params.empty?
   end
 
   test "except retains permitted status" do
@@ -112,7 +112,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "has_key? returns false if the given key is not present in the params" do
-    refute @params.has_key?(:address)
+    assert_not @params.has_key?(:address)
   end
 
   test "has_value? returns true if the given value is present in the params" do
@@ -122,7 +122,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "has_value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute params.has_value?("New York")
+    assert_not params.has_value?("New York")
   end
 
   test "include? returns true if the given key is present in the params" do
@@ -130,7 +130,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "include? returns false if the given key is not present in the params" do
-    refute @params.include?(:address)
+    assert_not @params.include?(:address)
   end
 
   test "key? returns true if the given key is present in the params" do
@@ -138,7 +138,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "key? returns false if the given key is not present in the params" do
-    refute @params.key?(:address)
+    assert_not @params.key?(:address)
   end
 
   test "keys returns an array of the keys of the params" do
@@ -198,7 +198,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute params.value?("New York")
+    assert_not params.value?("New York")
   end
 
   test "values returns an array of the values of the params" do

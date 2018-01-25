@@ -211,7 +211,7 @@ module ActiveRecord
     end
 
     test "attributes not backed by database columns are not dirty when unchanged" do
-      refute OverloadedType.new.non_existent_decimal_changed?
+      assert_not OverloadedType.new.non_existent_decimal_changed?
     end
 
     test "attributes not backed by database columns are always initialized" do
@@ -251,7 +251,7 @@ module ActiveRecord
       assert_equal "lol", model.foo
 
       model.foo = "lol"
-      refute model.changed?
+      assert_not model.changed?
     end
 
     test "attributes not backed by database columns appear in inspect" do

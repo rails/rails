@@ -235,12 +235,12 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            refute fk.validated?
+            assert_not fk.validated?
           end
 
           def test_validate_foreign_key_infers_column
             @connection.add_foreign_key :astronauts, :rockets, validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not @connection.foreign_keys("astronauts").first.validated?
 
             @connection.validate_foreign_key :astronauts, :rockets
             assert @connection.foreign_keys("astronauts").first.validated?
@@ -248,7 +248,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           def test_validate_foreign_key_by_column
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not @connection.foreign_keys("astronauts").first.validated?
 
             @connection.validate_foreign_key :astronauts, column: "rocket_id"
             assert @connection.foreign_keys("astronauts").first.validated?
@@ -256,7 +256,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           def test_validate_foreign_key_by_symbol_column
             @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id, validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not @connection.foreign_keys("astronauts").first.validated?
 
             @connection.validate_foreign_key :astronauts, column: :rocket_id
             assert @connection.foreign_keys("astronauts").first.validated?
@@ -264,7 +264,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           def test_validate_foreign_key_by_name
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk", validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not @connection.foreign_keys("astronauts").first.validated?
 
             @connection.validate_foreign_key :astronauts, name: "fancy_named_fk"
             assert @connection.foreign_keys("astronauts").first.validated?

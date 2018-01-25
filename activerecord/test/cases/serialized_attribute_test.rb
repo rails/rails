@@ -349,7 +349,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = model.create!(foo: "bar")
     topic.foo
-    refute topic.changed?
+    assert_not topic.changed?
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access

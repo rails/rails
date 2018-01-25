@@ -167,7 +167,7 @@ module ActionCable::StreamTests
 
         @server.broadcast "channel", {}
         wait_for_async
-        refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
+        assert_not Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 

@@ -23,9 +23,9 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
       "rack.input" => -> {}
     )[1]
 
-    refute response_headers.key?("X-Frame-Options")
-    refute response_headers.key?("X-Content-Type-Options")
-    refute response_headers.key?("X-XSS-Protection")
+    assert_not response_headers.key?("X-Frame-Options")
+    assert_not response_headers.key?("X-Content-Type-Options")
+    assert_not response_headers.key?("X-XSS-Protection")
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
   end

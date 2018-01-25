@@ -1490,7 +1490,7 @@ class BasicsTest < ActiveRecord::TestCase
     query = Developer.all.to_sql.downcase
 
     # ignored column
-    refute query.include?("first_name")
+    assert_not query.include?("first_name")
 
     # regular column
     assert query.include?("name")
