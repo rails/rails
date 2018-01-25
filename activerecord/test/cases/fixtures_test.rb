@@ -211,14 +211,28 @@ class FixturesTest < ActiveRecord::TestCase
       subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
 
       assert_nothing_raised do
-        ActiveRecord::Base.connection.insert_fixtures(fixtures, "aircraft")
+        ActiveRecord::Base.connection.insert_fixtures_set("aircraft" => fixtures)
       end
 
-      expected_sql = "INSERT INTO `aircraft` (`id`, `name`, `wheels_count`) VALUES (DEFAULT, 'first', 2), (DEFAULT, 'second', 3)"
+      expected_sql = "INSERT INTO `aircraft` (`id`, `name`, `wheels_count`) VALUES (DEFAULT, 'first', 2), (DEFAULT, 'second', 3);\n"
       assert_equal expected_sql, subscriber.events.first
     ensure
       ActiveSupport::Notifications.unsubscribe(subscription)
     end
+  end
+
+  def test_deprecated_insert_fixtures
+    fixtures = [
+      { "name" => "first", "wheels_count" => 2 },
+      { "name" => "second", "wheels_count" => 3 }
+    ]
+    conn = ActiveRecord::Base.connection
+    conn.delete("DELETE FROM aircraft")
+    assert_deprecated do
+      conn.insert_fixtures(fixtures, "aircraft")
+    end
+    result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
+    assert_equal fixtures, result.to_a
   end
 
   def test_broken_yaml_exception

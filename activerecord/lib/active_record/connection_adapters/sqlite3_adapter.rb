@@ -367,9 +367,11 @@ module ActiveRecord
       end
 
       def insert_fixtures(rows, table_name)
-        rows.each do |row|
-          insert_fixture(row, table_name)
-        end
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
