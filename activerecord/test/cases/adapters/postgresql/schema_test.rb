@@ -532,6 +532,34 @@ class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
   end
 end
 
+class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_nulls_order_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name NULLS FIRST, description NULLS FIRST)"
+    output = dump_table_schema "trains"
+    assert_match(/nulls: :first/, output)
+  end
+
+  def test_non_default_nulls_order_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name, description NULLS FIRST)"
+    output = dump_table_schema "trains"
+    assert_match(/nulls: \{ description: :first \}/, output)
+  end
+end
+
 class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCase
   setup do
     @connection = ActiveRecord::Base.connection

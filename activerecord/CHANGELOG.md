@@ -1,3 +1,11 @@
+*   Add support for PostgreSQL nulls order to add_index.
+
+    Example:
+
+        add_index(:accounts, [:branch_id, :party_id], order: { party_id: :desc }, nulls: { party_id: :last })
+
+    *fatkodima*
+
 *   Fix `count(:all)` with eager loading and having an order other than the driving table.
 
     Fixes #31783.

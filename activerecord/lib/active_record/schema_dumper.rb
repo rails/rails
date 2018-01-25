@@ -186,6 +186,7 @@ HEADER
         index_parts << "unique: true" if index.unique
         index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
         index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
+        index_parts << "nulls: #{format_index_parts(index.nulls)}" if index.nulls.present?
         index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
