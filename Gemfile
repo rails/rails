@@ -20,7 +20,12 @@ gem 'mocha', '~> 0.14', require: false
 gem 'rack-cache', '~> 1.2'
 gem 'jquery-rails', '~> 4.0'
 gem 'coffee-rails', '~> 4.1.0'
-gem 'turbolinks'
+
+if RUBY_VERSION < "2.1"
+  gem 'turbolinks', '< 5.1'
+else
+  gem 'turbolinks'
+end
 
 gem 'sprockets', '~> 3.0.0.rc.1'
 gem 'execjs', '< 2.5'
