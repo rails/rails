@@ -414,6 +414,9 @@ module ActiveRecord
       alias join_to_delete join_to_update
 
       private
+        def default_insert_value(column)
+          Arel.sql("DEFAULT")
+        end
 
         def build_fixture_sql(fixtures, table_name)
           columns = schema_cache.columns_hash(table_name)
@@ -432,7 +435,7 @@ module ActiveRecord
                 bind = Relation::QueryAttribute.new(name, fixture[name], type)
                 with_yaml_fallback(bind.value_for_database)
               else
-                Arel.sql("DEFAULT")
+                default_insert_value(column)
               end
             end
           end

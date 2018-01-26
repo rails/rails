@@ -121,7 +121,7 @@ class FixturesTest < ActiveRecord::TestCase
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
       packet_size = 1024
-      bytes_needed_to_have_a_1024_bytes_fixture = 855
+      bytes_needed_to_have_a_1024_bytes_fixture = 858
       fixtures = {
         "traffic_lights" => [
           { "location" => "US", "state" => ["NY"], "long_state" => ["a" * bytes_needed_to_have_a_1024_bytes_fixture] },
@@ -199,26 +199,17 @@ class FixturesTest < ActiveRecord::TestCase
     end
   end
 
-  def test_no_auto_value_on_zero_is_disabled
-    skip unless current_adapter?(:Mysql2Adapter)
-
-    begin
-      fixtures = [
-        { "name" => "first", "wheels_count" => 2 },
-        { "name" => "second", "wheels_count" => 3 }
-      ]
-      subscriber = InsertQuerySubscriber.new
-      subscription = ActiveSupport::Notifications.subscribe("sql.active_record", subscriber)
-
-      assert_nothing_raised do
-        ActiveRecord::Base.connection.insert_fixtures_set("aircraft" => fixtures)
-      end
-
-      expected_sql = "INSERT INTO `aircraft` (`id`, `name`, `wheels_count`) VALUES (DEFAULT, 'first', 2), (DEFAULT, 'second', 3);\n"
-      assert_equal expected_sql, subscriber.events.first
-    ensure
-      ActiveSupport::Notifications.unsubscribe(subscription)
+  def test_auto_value_on_primary_key
+    fixtures = [
+      { "name" => "first", "wheels_count" => 2 },
+      { "name" => "second", "wheels_count" => 3 }
+    ]
+    conn = ActiveRecord::Base.connection
+    assert_nothing_raised do
+      conn.insert_fixtures_set({ "aircraft" => fixtures }, ["aircraft"])
     end
+    result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
+    assert_equal fixtures, result.to_a
   end
 
   def test_deprecated_insert_fixtures
