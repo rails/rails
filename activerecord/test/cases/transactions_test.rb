@@ -652,13 +652,17 @@ class TransactionTest < ActiveRecord::TestCase
     assert !@second.destroyed?, "not destroyed"
   end
 
-  def test_restore_frozen_state_after_double_destroy
+  def test_raise_for_already_destroyed_record
+    @first.destroy
+    assert_raises(ActiveRecord::RecordAlreadyDestroyed) { @first.destroy }
+  end
+
+  def test_restore_frozen_state_after_destroy
     topic = Topic.create
     reply = topic.replies.create
 
     Topic.transaction do
       topic.destroy # calls #destroy on reply (since dependent: destroy)
-      reply.destroy
 
       raise ActiveRecord::Rollback
     end

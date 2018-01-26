@@ -701,7 +701,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 15, topic.replies.size
   end
 
-  def test_counter_cache_double_destroy
+  def test_counter_cache_after_destroy
     topic = Topic.create title: "Zoom-zoom-zoom"
 
     5.times do
@@ -715,10 +715,6 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     reply.destroy
     assert_equal 4, topic.reload[:replies_count]
-
-    reply.destroy
-    assert_equal 4, topic.reload[:replies_count]
-    assert_equal 4, topic.replies.size
   end
 
   def test_concurrent_counter_cache_double_destroy

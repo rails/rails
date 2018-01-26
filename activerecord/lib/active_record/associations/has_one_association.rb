@@ -59,7 +59,7 @@ module ActiveRecord
             target.delete
           when :destroy
             target.destroyed_by_association = reflection
-            target.destroy
+            target.destroy unless target.destroyed?
           when :nullify
             target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
