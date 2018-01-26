@@ -40,6 +40,7 @@ namespace :test do
         break if system("lsof -i :4567", 1 => File::NULL)
 
         if Time.now - start_time > 5
+          system("cat log/test.log")
           puts "Timed out after 5 seconds"
           exit 1
         end
