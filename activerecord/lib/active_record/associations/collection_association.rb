@@ -395,9 +395,10 @@ module ActiveRecord
           records.each { |record| callback(:before_remove, record) }
 
           delete_records(existing_records, method) if existing_records.any?
-          records.each { |record| target.delete(record) }
-
-          records.each { |record| callback(:after_remove, record) }
+          records.each do |record| 
+              deleted = target.delete(record) 
+              callback(:after_remove, record) if deleted
+          end
         end
 
         # Delete the given records from the association,
