@@ -54,6 +54,8 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     t.save!
     t = Reply.last
     assert_equal({ foo: :bar }, t.content)
+  ensure
+    Topic.reset_column_information
   end
 
   def test_serialized_attribute_calling_dup_method
