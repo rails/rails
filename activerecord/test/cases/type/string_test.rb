@@ -9,16 +9,16 @@ module ActiveRecord
       klass.table_name = "authors"
 
       author = klass.create!(name: "Sean")
-      assert_not author.changed?
+      assert_not_predicate author, :changed?
 
       author.name << " Griffin"
-      assert author.name_changed?
+      assert_predicate author, :name_changed?
 
       author.save!
       author.reload
 
       assert_equal "Sean Griffin", author.name
-      assert_not author.changed?
+      assert_not_predicate author, :changed?
     end
   end
 end

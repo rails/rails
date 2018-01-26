@@ -407,7 +407,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_javascript_include_tag_is_html_safe
-    assert javascript_include_tag("prototype").html_safe?
+    assert_predicate javascript_include_tag("prototype"), :html_safe?
   end
 
   def test_javascript_include_tag_relative_protocol
@@ -460,8 +460,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_is_html_safe
-    assert stylesheet_link_tag("dir/file").html_safe?
-    assert stylesheet_link_tag("dir/other/file", "dir/file2").html_safe?
+    assert_predicate stylesheet_link_tag("dir/file"), :html_safe?
+    assert_predicate stylesheet_link_tag("dir/other/file", "dir/file2"), :html_safe?
   end
 
   def test_stylesheet_link_tag_escapes_options

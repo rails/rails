@@ -22,13 +22,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "[] retains permitted status" do
     @params.permit!
-    assert @params[:person].permitted?
-    assert @params[:person][:name].permitted?
+    assert_predicate @params[:person], :permitted?
+    assert_predicate @params[:person][:name], :permitted?
   end
 
   test "[] retains unpermitted status" do
-    assert_not @params[:person].permitted?
-    assert_not @params[:person][:name].permitted?
+    assert_not_predicate @params[:person], :permitted?
+    assert_not_predicate @params[:person][:name], :permitted?
   end
 
   test "as_json returns the JSON representation of the parameters hash" do
@@ -78,33 +78,33 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "empty? returns true when params contains no key/value pairs" do
     params = ActionController::Parameters.new
-    assert params.empty?
+    assert_empty params
   end
 
   test "empty? returns false when any params are present" do
-    refute @params.empty?
+    assert_not_empty @params
   end
 
   test "except retains permitted status" do
     @params.permit!
-    assert @params.except(:person).permitted?
-    assert @params[:person].except(:name).permitted?
+    assert_predicate @params.except(:person), :permitted?
+    assert_predicate @params[:person].except(:name), :permitted?
   end
 
   test "except retains unpermitted status" do
-    assert_not @params.except(:person).permitted?
-    assert_not @params[:person].except(:name).permitted?
+    assert_not_predicate @params.except(:person), :permitted?
+    assert_not_predicate @params[:person].except(:name), :permitted?
   end
 
   test "fetch retains permitted status" do
     @params.permit!
-    assert @params.fetch(:person).permitted?
-    assert @params[:person].fetch(:name).permitted?
+    assert_predicate @params.fetch(:person), :permitted?
+    assert_predicate @params[:person].fetch(:name), :permitted?
   end
 
   test "fetch retains unpermitted status" do
-    assert_not @params.fetch(:person).permitted?
-    assert_not @params[:person].fetch(:name).permitted?
+    assert_not_predicate @params.fetch(:person), :permitted?
+    assert_not_predicate @params[:person].fetch(:name), :permitted?
   end
 
   test "has_key? returns true if the given key is present in the params" do
@@ -112,7 +112,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "has_key? returns false if the given key is not present in the params" do
-    refute @params.has_key?(:address)
+    assert_not @params.has_key?(:address)
   end
 
   test "has_value? returns true if the given value is present in the params" do
@@ -122,7 +122,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "has_value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute params.has_value?("New York")
+    assert_not params.has_value?("New York")
   end
 
   test "include? returns true if the given key is present in the params" do
@@ -130,7 +130,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "include? returns false if the given key is not present in the params" do
-    refute @params.include?(:address)
+    assert_not @params.include?(:address)
   end
 
   test "key? returns true if the given key is present in the params" do
@@ -138,7 +138,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "key? returns false if the given key is not present in the params" do
-    refute @params.key?(:address)
+    assert_not @params.key?(:address)
   end
 
   test "keys returns an array of the keys of the params" do
@@ -147,48 +147,48 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   end
 
   test "reject retains permitted status" do
-    assert_not @params.reject { |k| k == "person" }.permitted?
+    assert_not_predicate @params.reject { |k| k == "person" }, :permitted?
   end
 
   test "reject retains unpermitted status" do
     @params.permit!
-    assert @params.reject { |k| k == "person" }.permitted?
+    assert_predicate @params.reject { |k| k == "person" }, :permitted?
   end
 
   test "select retains permitted status" do
     @params.permit!
-    assert @params.select { |k| k == "person" }.permitted?
+    assert_predicate @params.select { |k| k == "person" }, :permitted?
   end
 
   test "select retains unpermitted status" do
-    assert_not @params.select { |k| k == "person" }.permitted?
+    assert_not_predicate @params.select { |k| k == "person" }, :permitted?
   end
 
   test "slice retains permitted status" do
     @params.permit!
-    assert @params.slice(:person).permitted?
+    assert_predicate @params.slice(:person), :permitted?
   end
 
   test "slice retains unpermitted status" do
-    assert_not @params.slice(:person).permitted?
+    assert_not_predicate @params.slice(:person), :permitted?
   end
 
   test "transform_keys retains permitted status" do
     @params.permit!
-    assert @params.transform_keys { |k| k }.permitted?
+    assert_predicate @params.transform_keys { |k| k }, :permitted?
   end
 
   test "transform_keys retains unpermitted status" do
-    assert_not @params.transform_keys { |k| k }.permitted?
+    assert_not_predicate @params.transform_keys { |k| k }, :permitted?
   end
 
   test "transform_values retains permitted status" do
     @params.permit!
-    assert @params.transform_values { |v| v }.permitted?
+    assert_predicate @params.transform_values { |v| v }, :permitted?
   end
 
   test "transform_values retains unpermitted status" do
-    assert_not @params.transform_values { |v| v }.permitted?
+    assert_not_predicate @params.transform_values { |v| v }, :permitted?
   end
 
   test "value? returns true if the given value is present in the params" do
@@ -198,7 +198,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "value? returns false if the given value is not present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
-    refute params.value?("New York")
+    assert_not params.value?("New York")
   end
 
   test "values returns an array of the values of the params" do
@@ -208,13 +208,13 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
 
   test "values_at retains permitted status" do
     @params.permit!
-    assert @params.values_at(:person).first.permitted?
-    assert @params[:person].values_at(:name).first.permitted?
+    assert_predicate @params.values_at(:person).first, :permitted?
+    assert_predicate @params[:person].values_at(:name).first, :permitted?
   end
 
   test "values_at retains unpermitted status" do
-    assert_not @params.values_at(:person).first.permitted?
-    assert_not @params[:person].values_at(:name).first.permitted?
+    assert_not_predicate @params.values_at(:person).first, :permitted?
+    assert_not_predicate @params[:person].values_at(:name).first, :permitted?
   end
 
   test "is equal to Parameters instance with same params" do
@@ -289,7 +289,7 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
   else
     test "ActionController::Parameters does not respond to #dig on Ruby 2.2" do
       assert_not ActionController::Parameters.method_defined?(:dig)
-      assert_not @params.respond_to?(:dig)
+      assert_not_respond_to @params, :dig
     end
   end
 end

@@ -65,14 +65,14 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       end
     end
 
-    assert user.avatar.attached?
+    assert_predicate user.avatar, :attached?
     assert_equal "funky.jpg", user.avatar.filename.to_s
 
     assert_difference -> { ActiveStorage::Attachment.count }, +1 do
       user.save!
     end
 
-    assert user.reload.avatar.attached?
+    assert_predicate user.reload.avatar, :attached?
     assert_equal "funky.jpg", user.avatar.filename.to_s
   end
 
@@ -81,12 +81,12 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user = User.new(name: "Jason", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" })
     end
 
-    assert @user.new_record?
-    assert @user.avatar.attached?
+    assert_predicate @user, :new_record?
+    assert_predicate @user.avatar, :attached?
     assert_equal "town.jpg", @user.avatar.filename.to_s
 
     @user.save!
-    assert @user.reload.avatar.attached?
+    assert_predicate @user.reload.avatar, :attached?
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
@@ -106,12 +106,12 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     @user.avatar.attach(blob)
 
     assert_equal "image/jpeg", @user.avatar.reload.content_type
-    assert @user.avatar.identified?
+    assert_predicate @user.avatar, :identified?
   end
 
   test "identify newly-attached blob only once" do
     blob = create_file_blob
-    assert blob.identified?
+    assert_predicate blob, :identified?
 
     # The blob's backing file is a PNG image. Fudge its content type so we can tell if it's identified when we attach it.
     blob.update! content_type: "application/octet-stream"
@@ -136,7 +136,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user.avatar.attach blob
     end
 
-    assert blob.reload.analyzed?
+    assert_predicate blob.reload, :analyzed?
 
     @user.avatar.detach
 
@@ -161,7 +161,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     @user.avatar.detach
-    assert_not @user.avatar.attached?
+    assert_not_predicate @user.avatar, :attached?
     assert ActiveStorage::Blob.exists?(avatar_blob_id)
     assert ActiveStorage::Blob.service.exist?(avatar_key)
   end
@@ -171,7 +171,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     @user.avatar.purge
-    assert_not @user.avatar.attached?
+    assert_not_predicate @user.avatar, :attached?
     assert_not ActiveStorage::Blob.service.exist?(avatar_key)
   end
 
@@ -228,7 +228,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       end
     end
 
-    assert user.highlights.attached?
+    assert_predicate user.highlights, :attached?
     assert_equal "town.jpg", user.highlights.first.filename.to_s
     assert_equal "country.jpg", user.highlights.second.filename.to_s
 
@@ -236,7 +236,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       user.save!
     end
 
-    assert user.reload.highlights.attached?
+    assert_predicate user.reload.highlights, :attached?
     assert_equal "town.jpg", user.highlights.first.filename.to_s
     assert_equal "country.jpg", user.highlights.second.filename.to_s
   end
@@ -248,13 +248,13 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
         { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" }])
     end
 
-    assert @user.new_record?
-    assert @user.highlights.attached?
+    assert_predicate @user, :new_record?
+    assert_predicate @user.highlights, :attached?
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
 
     @user.save!
-    assert @user.reload.highlights.attached?
+    assert_predicate @user.reload.highlights, :attached?
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
   end
@@ -334,7 +334,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     @user.highlights.detach
-    assert_not @user.highlights.attached?
+    assert_not_predicate @user.highlights, :attached?
 
     assert ActiveStorage::Blob.exists?(highlight_blob_ids.first)
     assert ActiveStorage::Blob.exists?(highlight_blob_ids.second)
@@ -348,7 +348,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     @user.highlights.purge
-    assert_not @user.highlights.attached?
+    assert_not_predicate @user.highlights, :attached?
     assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
     assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
   end

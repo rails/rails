@@ -415,7 +415,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = @last_modified
     get :conditional_hello
     assert_equal 304, @response.status.to_i
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
@@ -430,7 +430,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = "Thu, 16 Jul 2008 00:00:00 GMT"
     get :conditional_hello
     assert_equal 200, @response.status.to_i
-    assert @response.body.present?
+    assert_predicate @response.body, :present?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
@@ -443,7 +443,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = @last_modified
     get :conditional_hello_with_record
     assert_equal 304, @response.status.to_i
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_not_nil @response.etag
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
@@ -459,7 +459,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = "Thu, 16 Jul 2008 00:00:00 GMT"
     get :conditional_hello_with_record
     assert_equal 200, @response.status.to_i
-    assert @response.body.present?
+    assert_predicate @response.body, :present?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
@@ -472,7 +472,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = @last_modified
     get :conditional_hello_with_collection_of_records
     assert_equal 304, @response.status.to_i
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
@@ -487,7 +487,7 @@ class LastModifiedRenderTest < ActionController::TestCase
     @request.if_modified_since = "Thu, 16 Jul 2008 00:00:00 GMT"
     get :conditional_hello_with_collection_of_records
     assert_equal 200, @response.status.to_i
-    assert @response.body.present?
+    assert_predicate @response.body, :present?
     assert_equal @last_modified, @response.headers["Last-Modified"]
   end
 
@@ -682,27 +682,27 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_created
     post :head_created
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_response :created
   end
 
   def test_head_created_with_application_json_content_type
     post :head_created_with_application_json_content_type
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal "application/json", @response.header["Content-Type"]
     assert_response :created
   end
 
   def test_head_ok_with_image_png_content_type
     post :head_ok_with_image_png_content_type
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal "image/png", @response.header["Content-Type"]
     assert_response :ok
   end
 
   def test_head_with_location_header
     get :head_with_location_header
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal "/foo", @response.headers["Location"]
     assert_response :ok
   end
@@ -718,7 +718,7 @@ class HeadRenderTest < ActionController::TestCase
       end
 
       get :head_with_location_object
-      assert @response.body.blank?
+      assert_predicate @response.body, :blank?
       assert_equal "http://www.nextangle.com/customers/1", @response.headers["Location"]
       assert_response :ok
     end
@@ -726,14 +726,14 @@ class HeadRenderTest < ActionController::TestCase
 
   def test_head_with_custom_header
     get :head_with_custom_header
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal "something", @response.headers["X-Custom-Header"]
     assert_response :ok
   end
 
   def test_head_with_www_authenticate_header
     get :head_with_www_authenticate_header
-    assert @response.body.blank?
+    assert_predicate @response.body, :blank?
     assert_equal "something", @response.headers["WWW-Authenticate"]
     assert_response :ok
   end
@@ -812,7 +812,7 @@ class HttpCacheForeverTest < ActionController::TestCase
     assert_response :ok
     assert_equal "max-age=#{100.years}, public", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
-    assert @response.weak_etag?
+    assert_predicate @response, :weak_etag?
   end
 
   def test_cache_with_private
@@ -820,7 +820,7 @@ class HttpCacheForeverTest < ActionController::TestCase
     assert_response :ok
     assert_equal "max-age=#{100.years}, private", @response.headers["Cache-Control"]
     assert_not_nil @response.etag
-    assert @response.weak_etag?
+    assert_predicate @response, :weak_etag?
   end
 
   def test_cache_response_code_with_if_modified_since

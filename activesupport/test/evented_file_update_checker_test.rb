@@ -39,18 +39,18 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) {}
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     # Pipes used for flow control across fork.
     boot_reader,  boot_writer  = IO.pipe
     touch_reader, touch_writer = IO.pipe
 
     pid = fork do
-      assert checker.updated?
+      assert_predicate checker, :updated?
 
       # Clear previous check value.
       checker.execute
-      assert !checker.updated?
+      assert_not_predicate checker, :updated?
 
       # Fork is booted, ready for file to be touched
       # notify parent process.
@@ -60,7 +60,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       # has been touched.
       IO.select([touch_reader])
 
-      assert checker.updated?
+      assert_predicate checker, :updated?
     end
 
     assert pid
@@ -72,7 +72,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     # Notify fork that files have been touched.
     touch_writer.write("touched")
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
 
     Process.wait(pid)
   end

@@ -393,7 +393,7 @@ class FixturesTest < ActiveRecord::TestCase
     nonexistent_fixture_path = FIXTURES_ROOT + "/imnothere"
 
     # sanity check to make sure that this file never exists
-    assert Dir[nonexistent_fixture_path + "*"].empty?
+    assert_empty Dir[nonexistent_fixture_path + "*"]
 
     assert_raise(Errno::ENOENT) do
       ActiveRecord::FixtureSet.new(Account.connection, "companies", Company, nonexistent_fixture_path)
@@ -1143,10 +1143,10 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   end
 
   def test_resolves_enums
-    assert books(:awdr).published?
-    assert books(:awdr).read?
-    assert books(:rfr).proposed?
-    assert books(:ddd).published?
+    assert_predicate books(:awdr), :published?
+    assert_predicate books(:awdr), :read?
+    assert_predicate books(:rfr), :proposed?
+    assert_predicate books(:ddd), :published?
   end
 end
 

@@ -39,10 +39,10 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlPoint.columns_hash["x"]
     assert_equal :point, column.type
     assert_equal "point", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlPoint.type_for_attribute("x")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_default
@@ -79,7 +79,7 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     p.reload
 
     assert_equal ActiveRecord::Point.new(10.0, 25.0), p.x
-    assert_not p.changed?
+    assert_not_predicate p, :changed?
   end
 
   def test_array_assignment
@@ -117,10 +117,10 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlPoint.columns_hash["legacy_x"]
     assert_equal :point, column.type
     assert_equal "point", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlPoint.type_for_attribute("legacy_x")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_legacy_default
@@ -157,7 +157,7 @@ class PostgresqlPointTest < ActiveRecord::PostgreSQLTestCase
     p.reload
 
     assert_equal [10.0, 25.0], p.legacy_x
-    assert_not p.changed?
+    assert_not_predicate p, :changed?
   end
 end
 

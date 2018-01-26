@@ -47,13 +47,13 @@ module ActiveSupport
       def test_start
         instrumenter.start("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.starts
-        assert_predicate notifier.finishes, :empty?
+        assert_empty notifier.finishes
       end
 
       def test_finish
         instrumenter.finish("foo", payload)
         assert_equal [["foo", instrumenter.id, payload]], notifier.finishes
-        assert_predicate notifier.starts, :empty?
+        assert_empty notifier.starts
       end
     end
   end

@@ -361,28 +361,28 @@ module DateAndTimeBehavior
   end
 
   def test_on_weekend_on_saturday
-    assert date_time_init(2015, 1, 3, 0, 0, 0).on_weekend?
-    assert date_time_init(2015, 1, 3, 15, 15, 10).on_weekend?
+    assert_predicate date_time_init(2015, 1, 3, 0, 0, 0), :on_weekend?
+    assert_predicate date_time_init(2015, 1, 3, 15, 15, 10), :on_weekend?
   end
 
   def test_on_weekend_on_sunday
-    assert date_time_init(2015, 1, 4, 0, 0, 0).on_weekend?
-    assert date_time_init(2015, 1, 4, 15, 15, 10).on_weekend?
+    assert_predicate date_time_init(2015, 1, 4, 0, 0, 0), :on_weekend?
+    assert_predicate date_time_init(2015, 1, 4, 15, 15, 10), :on_weekend?
   end
 
   def test_on_weekend_on_monday
-    assert_not date_time_init(2015, 1, 5, 0, 0, 0).on_weekend?
-    assert_not date_time_init(2015, 1, 5, 15, 15, 10).on_weekend?
+    assert_not_predicate date_time_init(2015, 1, 5, 0, 0, 0), :on_weekend?
+    assert_not_predicate date_time_init(2015, 1, 5, 15, 15, 10), :on_weekend?
   end
 
   def test_on_weekday_on_sunday
-    assert_not date_time_init(2015, 1, 4, 0, 0, 0).on_weekday?
-    assert_not date_time_init(2015, 1, 4, 15, 15, 10).on_weekday?
+    assert_not_predicate date_time_init(2015, 1, 4, 0, 0, 0), :on_weekday?
+    assert_not_predicate date_time_init(2015, 1, 4, 15, 15, 10), :on_weekday?
   end
 
   def test_on_weekday_on_monday
-    assert date_time_init(2015, 1, 5, 0, 0, 0).on_weekday?
-    assert date_time_init(2015, 1, 5, 15, 15, 10).on_weekday?
+    assert_predicate date_time_init(2015, 1, 5, 0, 0, 0), :on_weekday?
+    assert_predicate date_time_init(2015, 1, 5, 15, 15, 10), :on_weekday?
   end
 
   def with_bw_default(bw = :monday)
