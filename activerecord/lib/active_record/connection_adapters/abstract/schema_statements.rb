@@ -715,7 +715,7 @@ module ActiveRecord
       #
       #   CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
-      # Note: MySQL doesn't yet support index order (it accepts the syntax but ignores it).
+      # Note: MySQL only supports index order from 8.0.1 onwards (earlier versions accepted the syntax but ignored it).
       #
       # ====== Creating a partial index
       #
