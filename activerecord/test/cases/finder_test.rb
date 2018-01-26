@@ -868,6 +868,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
+  def test_hash_condition_find_with_aggregate_having_three_mapping_array
+    david_address = customers(:david).address
+    zaphod_address = customers(:zaphod).address
+    assert_kind_of Address, david_address
+    assert_kind_of Address, zaphod_address
+    assert_raise(NoMethodError) do
+      Customer.where(address: [david_address, zaphod_address])
+    end
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_array
+    david_balance = customers(:david).balance
+    zaphod_balance = customers(:zaphod).balance
+    assert_kind_of Money, david_balance
+    assert_kind_of Money, zaphod_balance
+    found_customers = Customer.where(balance: [david_balance, zaphod_balance])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers
+  end
+
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
