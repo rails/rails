@@ -143,6 +143,10 @@ class Build
   end
 
   def run_bug_report_templates
+    # There is a problem with inline gemfiles in bundler 1.16.0 on Ruby 2.5.0.
+    # 1.16.0 is currently the pre-installed version on Travis,
+    # so we need to the lastest bundler in this case
+    system('gem install bundler') if RUBY_VERSION == '2.5.0'
     Dir.glob("bug_report_templates/*.rb").all? do |file|
       system(Gem.ruby, "-w", file)
     end
