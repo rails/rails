@@ -110,7 +110,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest", "= 5.11.1"
   gem "minitest-bisect"
 
   platforms :mri do
