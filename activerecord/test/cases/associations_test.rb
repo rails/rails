@@ -110,6 +110,22 @@ class AssociationsTest < ActiveRecord::TestCase
     firm = companies(:first_firm)
     assert_includes firm.association_with_references.references_values, "foo"
   end
+
+  def test_one_returns_single_result
+    david = authors(:david)
+
+    assert_nothing_raised do
+      assert_equal david, Author.where(name: "David").one
+    end
+  end
+
+  def test_one_raises_exception_when_many_results
+    assert_raises(ActiveRecord::MultipleRecordsFound) { Author.where.not(id: nil).one }
+  end
+
+  def test_one_raises_exception_when_zero_results
+    assert_raises(ActiveRecord::NoRecordFound) { Author.where(name: "Alice").one }
+  end
 end
 
 class AssociationProxyTest < ActiveRecord::TestCase
