@@ -319,7 +319,7 @@ class CookiesTest < ActionController::TestCase
   def test_setting_the_same_value_to_cookie
     request.cookies[:user_name] = "david"
     get :authenticate
-    assert_predicate response.cookies, :empty?
+    assert_empty response.cookies
   end
 
   def test_setting_the_same_value_to_permanent_cookie
@@ -401,7 +401,7 @@ class CookiesTest < ActionController::TestCase
   def test_delete_unexisting_cookie
     request.cookies.clear
     get :delete_cookie
-    assert_predicate @response.cookies, :empty?
+    assert_empty @response.cookies
   end
 
   def test_deleted_cookie_predicate

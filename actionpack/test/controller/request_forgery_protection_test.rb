@@ -746,7 +746,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   test "should not emit a csrf-token meta tag" do
     SecureRandom.stub :base64, @token do
       get :meta
-      assert @response.body.blank?
+      assert_predicate @response.body, :blank?
     end
   end
 end

@@ -83,7 +83,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.count
     person.errors.clear
-    assert person.errors.empty?
+    assert_empty person.errors
   end
 
   test "error access is indifferent" do
@@ -128,8 +128,8 @@ class ErrorsTest < ActiveModel::TestCase
   test "detecting whether there are errors with empty?, blank?, include?" do
     person = Person.new
     person.errors[:foo]
-    assert person.errors.empty?
-    assert person.errors.blank?
+    assert_empty person.errors
+    assert_predicate person.errors, :blank?
     assert_not_includes person.errors, :foo
   end
 
@@ -320,7 +320,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "generate_message works without i18n_scope" do
     person = Person.new
-    assert !Person.respond_to?(:i18n_scope)
+    assert_not_respond_to Person, :i18n_scope
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
     }
@@ -371,7 +371,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.details.count
     person.errors.clear
-    assert person.errors.details.empty?
+    assert_empty person.errors.details
   end
 
   test "copy errors" do

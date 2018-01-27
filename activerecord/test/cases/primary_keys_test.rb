@@ -207,13 +207,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
       assert_equal "nextval('\"mixed_case_monkeys_monkeyID_seq\"'::regclass)", column.default_function
-      assert column.serial?
+      assert_predicate column, :serial?
     end
 
     def test_serial_with_unquoted_sequence_name
       column = Topic.columns_hash[Topic.primary_key]
       assert_equal "nextval('topics_id_seq'::regclass)", column.default_function
-      assert column.serial?
+      assert_predicate column, :serial?
     end
   end
 end
@@ -430,7 +430,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       @connection.create_table(:widgets, id: @pk_type, force: true)
       column = @connection.columns(:widgets).find { |c| c.name == "id" }
       assert_equal :integer, column.type
-      assert_not column.bigint?
+      assert_not_predicate column, :bigint?
     end
 
     test "primary key with serial/integer are automatically numbered" do
@@ -449,10 +449,10 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
-        assert column.auto_increment?
+        assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
-        assert_not column.bigint?
-        assert column.unsigned?
+        assert_not_predicate column, :bigint?
+        assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
         assert_match %r{create_table "widgets", id: :integer, unsigned: true, }, schema
@@ -461,10 +461,10 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       test "bigint primary key with unsigned" do
         @connection.create_table(:widgets, id: :bigint, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
-        assert column.auto_increment?
+        assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
-        assert column.bigint?
-        assert column.unsigned?
+        assert_predicate column, :bigint?
+        assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
         assert_match %r{create_table "widgets", id: :bigint, unsigned: true, }, schema

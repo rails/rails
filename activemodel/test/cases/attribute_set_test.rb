@@ -74,8 +74,8 @@ module ActiveModel
 
       clone.freeze
 
-      assert clone.frozen?
-      assert_not attributes.frozen?
+      assert_predicate clone, :frozen?
+      assert_not_predicate attributes, :frozen?
     end
 
     test "to_hash returns a hash of the type cast values" do
@@ -105,8 +105,8 @@ module ActiveModel
 
     test "known columns are built with uninitialized attributes" do
       attributes = attributes_with_uninitialized_key
-      assert attributes[:foo].initialized?
-      assert_not attributes[:bar].initialized?
+      assert_predicate attributes[:foo], :initialized?
+      assert_not_predicate attributes[:bar], :initialized?
     end
 
     test "uninitialized attributes are not included in the attributes hash" do
@@ -169,7 +169,7 @@ module ActiveModel
 
       assert attributes.key?(:foo)
       assert_equal [:foo], attributes.keys
-      assert attributes[:foo].initialized?
+      assert_predicate attributes[:foo], :initialized?
     end
 
     class MyType

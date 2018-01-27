@@ -26,10 +26,10 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal :money, column.type
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_default

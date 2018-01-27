@@ -120,11 +120,11 @@ class MigrationTest < ActiveRecord::TestCase
     old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
-    assert migrator.any_migrations?
+    assert_predicate migrator, :any_migrations?
 
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
-    assert_not migrator_empty.any_migrations?
+    assert_not_predicate migrator_empty, :any_migrations?
   ensure
     ActiveRecord::MigrationContext.new(old_path)
   end
@@ -170,7 +170,7 @@ class MigrationTest < ActiveRecord::TestCase
   def test_add_table_with_decimals
     Person.connection.drop_table :big_numbers rescue nil
 
-    assert !BigNumber.table_exists?
+    assert_not_predicate BigNumber, :table_exists?
     GiveMeBigNumbers.up
     BigNumber.reset_column_information
 
@@ -229,7 +229,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_filtering_migrations
     assert_no_column Person, :last_name
-    assert !Reminder.table_exists?
+    assert_not_predicate Reminder, :table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
@@ -465,7 +465,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_rename_table_with_prefix_and_suffix
-    assert !Thing.table_exists?
+    assert_not_predicate Thing, :table_exists?
     ActiveRecord::Base.table_name_prefix = "p_"
     ActiveRecord::Base.table_name_suffix = "_s"
     Thing.reset_table_name
@@ -486,7 +486,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_add_drop_table_with_prefix_and_suffix
-    assert !Reminder.table_exists?
+    assert_not_predicate Reminder, :table_exists?
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
@@ -955,7 +955,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert copied.empty?
+    assert_empty copied
   ensure
     clear
   end
@@ -996,7 +996,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert copied.empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1038,7 +1038,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert copied.empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1059,7 +1059,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert copied.empty?
+    assert_empty copied
   ensure
     clear
   end

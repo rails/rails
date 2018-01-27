@@ -169,13 +169,13 @@ module ActiveRecord
   #     self.use_transactional_tests = true
   #
   #     test "godzilla" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #       Foo.destroy_all
-  #       assert Foo.all.empty?
+  #       assert_empty Foo.all
   #     end
   #
   #     test "godzilla aftermath" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #     end
   #   end
   #

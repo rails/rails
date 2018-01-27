@@ -612,7 +612,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_is_html_safe
-    assert check_box("post", "secret").html_safe?
+    assert_predicate check_box("post", "secret"), :html_safe?
   end
 
   def test_check_box_checked_if_object_value_is_same_that_check_value
@@ -775,7 +775,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_nil_unchecked_value_is_html_safe
-    assert check_box("post", "secret", {}, "on", nil).html_safe?
+    assert_predicate check_box("post", "secret", {}, "on", nil), :html_safe?
   end
 
   def test_check_box_with_multiple_behavior

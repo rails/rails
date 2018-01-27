@@ -60,7 +60,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
       SecureRandom.base58(24).tap do |key|
         io = StringIO.new(data).tap(&:read)
         to.upload key, io, checksum: Digest::MD5.base64digest(data)
-        assert io.eof?
+        assert_predicate io, :eof?
       end
     end
 end

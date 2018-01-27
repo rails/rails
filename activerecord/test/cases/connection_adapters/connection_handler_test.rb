@@ -103,11 +103,11 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert !@handler.active_connections?
+        assert_not_predicate @handler, :active_connections?
         assert @handler.retrieve_connection(@spec_name)
-        assert @handler.active_connections?
+        assert_predicate @handler, :active_connections?
         @handler.clear_active_connections!
-        assert !@handler.active_connections?
+        assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
@@ -146,7 +146,7 @@ module ActiveRecord
 
         def test_forked_child_doesnt_mangle_parent_connection
           object_id = ActiveRecord::Base.connection.object_id
-          assert ActiveRecord::Base.connection.active?
+          assert_predicate ActiveRecord::Base.connection, :active?
 
           rd, wr = IO.pipe
           rd.binmode
@@ -174,7 +174,7 @@ module ActiveRecord
         unless in_memory_db?
           def test_forked_child_recovers_from_disconnected_parent
             object_id = ActiveRecord::Base.connection.object_id
-            assert ActiveRecord::Base.connection.active?
+            assert_predicate ActiveRecord::Base.connection, :active?
 
             rd, wr = IO.pipe
             rd.binmode

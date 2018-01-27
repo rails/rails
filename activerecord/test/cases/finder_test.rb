@@ -648,13 +648,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_with_integer_and_order_should_use_sql_limit
     relation = Topic.order("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_with_integer_and_reorder_should_use_sql_limit
     relation = Topic.reorder("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_on_loaded_relation_should_not_use_sql

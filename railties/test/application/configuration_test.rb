@@ -94,7 +94,7 @@ module ApplicationTests
 
       with_rails_env "development" do
         app "development"
-        assert Rails.application.config.log_tags.blank?
+        assert_predicate Rails.application.config.log_tags, :blank?
       end
     end
 
@@ -1419,11 +1419,11 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
-      assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
-      assert_equal      app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
-      assert_equal      app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
+      assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
+      assert_equal app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
+      assert_equal app.env_config["action_dispatch.logger"],            Rails.logger
+      assert_equal app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
+      assert_equal app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do
@@ -1478,7 +1478,7 @@ module ApplicationTests
     test "respond_to? accepts include_private" do
       make_basic_app
 
-      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert_not_respond_to Rails.configuration, :method_missing
       assert Rails.configuration.respond_to?(:method_missing, true)
     end
 
@@ -1831,7 +1831,7 @@ module ApplicationTests
 
     test "api_only is false by default" do
       app "development"
-      refute Rails.application.config.api_only
+      assert_not Rails.application.config.api_only
     end
 
     test "api_only generator config is set when api_only is set" do

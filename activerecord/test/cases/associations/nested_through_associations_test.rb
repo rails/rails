@@ -78,7 +78,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     # This ensures that the polymorphism of taggings is being observed correctly
     authors = Author.joins(:tags).where("taggings.taggable_type" => "FakeModel")
-    assert authors.empty?
+    assert_empty authors
   end
 
   # has_many through
@@ -177,7 +177,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     members = Member.joins(:organization_member_details).
                      where("member_details.id" => 9)
-    assert members.empty?
+    assert_empty members
   end
 
   # has_many through
@@ -209,7 +209,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     members = Member.joins(:organization_member_details_2).
                      where("member_details.id" => 9)
-    assert members.empty?
+    assert_empty members
   end
 
   # has_many through
@@ -425,9 +425,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     # Check the polymorphism of taggings is being observed correctly (in both joins)
     authors = Author.joins(:similar_posts).where("taggings.taggable_type" => "FakeModel")
-    assert authors.empty?
+    assert_empty authors
     authors = Author.joins(:similar_posts).where("taggings_authors_join.taggable_type" => "FakeModel")
-    assert authors.empty?
+    assert_empty authors
   end
 
   def test_nested_has_many_through_with_scope_on_polymorphic_reflection
@@ -456,9 +456,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
 
     # Ensure STI is respected in the join
     scope = Post.joins(:special_comments_ratings).where(id: posts(:sti_comments).id)
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
+    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
   def test_has_many_through_with_sti_on_nested_through_reflection
@@ -466,8 +466,8 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal [taggings(:special_comment_rating)], taggings
 
     scope = Post.joins(:special_comments_ratings_taggings).where(id: posts(:sti_comments).id)
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
   end
 
   def test_nested_has_many_through_writers_should_raise_error
@@ -517,7 +517,7 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_nested_has_many_through_with_conditions_on_through_associations_preload
-    assert Author.where("tags.id" => 100).joins(:misc_post_first_blue_tags).empty?
+    assert_empty Author.where("tags.id" => 100).joins(:misc_post_first_blue_tags)
 
     authors = assert_queries(3) { Author.includes(:misc_post_first_blue_tags).to_a.sort_by(&:id) }
     blue = tags(:blue)
@@ -574,9 +574,9 @@ class NestedThroughAssociationsTest < ActiveRecord::TestCase
     c = Categorization.new
     c.author = authors(:david)
     c.post_taggings.to_a
-    assert !c.post_taggings.empty?
+    assert_not_empty c.post_taggings
     c.save
-    assert !c.post_taggings.empty?
+    assert_not_empty c.post_taggings
   end
 
   def test_polymorphic_has_many_through_when_through_association_has_not_loaded

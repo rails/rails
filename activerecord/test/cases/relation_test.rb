@@ -96,10 +96,10 @@ module ActiveRecord
 
     def test_empty_scope
       relation = Relation.new(Post)
-      assert relation.empty_scope?
+      assert_predicate relation, :empty_scope?
 
       relation.merge!(relation)
-      assert relation.empty_scope?
+      assert_predicate relation, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
@@ -110,13 +110,13 @@ module ActiveRecord
 
     def test_empty_eager_loading?
       relation = Relation.new(FakeKlass)
-      assert !relation.eager_loading?
+      assert_not_predicate relation, :eager_loading?
     end
 
     def test_eager_load_values
       relation = Relation.new(FakeKlass)
       relation.eager_load! :b
-      assert relation.eager_loading?
+      assert_predicate relation, :eager_loading?
     end
 
     def test_references_values
@@ -242,10 +242,10 @@ module ActiveRecord
 
     def test_respond_to_for_non_selected_element
       post = Post.select(:title).first
-      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :body, "post should not respond_to?(:body) since invoking it raises exception"
 
       silence_warnings { post = Post.select("'title' as post_title").first }
-      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :title, "post should not respond_to?(:body) since invoking it raises exception"
     end
 
     def test_select_quotes_when_using_from_clause

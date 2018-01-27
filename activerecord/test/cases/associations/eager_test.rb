@@ -284,7 +284,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_loading_from_an_association_that_has_a_hash_of_conditions
-    assert !Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts.empty?
+    assert_not_empty Author.all.merge!(includes: :hello_posts_with_hash_conditions).find(authors(:david).id).hello_posts
   end
 
   def test_loading_with_no_associations
@@ -1444,51 +1444,51 @@ class EagerAssociationTest < ActiveRecord::TestCase
   test "preloading readonly association" do
     # has-one
     firm = Firm.where(id: "1").preload(:readonly_account).first!
-    assert firm.readonly_account.readonly?
+    assert_predicate firm.readonly_account, :readonly?
 
     # has_and_belongs_to_many
     project = Project.where(id: "2").preload(:readonly_developers).first!
-    assert project.readonly_developers.first.readonly?
+    assert_predicate project.readonly_developers.first, :readonly?
 
     # has-many :through
     david = Author.where(id: "1").preload(:readonly_comments).first!
-    assert david.readonly_comments.first.readonly?
+    assert_predicate david.readonly_comments.first, :readonly?
   end
 
   test "eager-loading non-readonly association" do
     # has_one
     firm = Firm.where(id: "1").eager_load(:account).first!
-    assert_not firm.account.readonly?
+    assert_not_predicate firm.account, :readonly?
 
     # has_and_belongs_to_many
     project = Project.where(id: "2").eager_load(:developers).first!
-    assert_not project.developers.first.readonly?
+    assert_not_predicate project.developers.first, :readonly?
 
     # has_many :through
     david = Author.where(id: "1").eager_load(:comments).first!
-    assert_not david.comments.first.readonly?
+    assert_not_predicate david.comments.first, :readonly?
 
     # belongs_to
     post = Post.where(id: "1").eager_load(:author).first!
-    assert_not post.author.readonly?
+    assert_not_predicate post.author, :readonly?
   end
 
   test "eager-loading readonly association" do
     # has-one
     firm = Firm.where(id: "1").eager_load(:readonly_account).first!
-    assert firm.readonly_account.readonly?
+    assert_predicate firm.readonly_account, :readonly?
 
     # has_and_belongs_to_many
     project = Project.where(id: "2").eager_load(:readonly_developers).first!
-    assert project.readonly_developers.first.readonly?
+    assert_predicate project.readonly_developers.first, :readonly?
 
     # has-many :through
     david = Author.where(id: "1").eager_load(:readonly_comments).first!
-    assert david.readonly_comments.first.readonly?
+    assert_predicate david.readonly_comments.first, :readonly?
 
     # belongs_to
     post = Post.where(id: "1").eager_load(:readonly_author).first!
-    assert post.readonly_author.readonly?
+    assert_predicate post.readonly_author, :readonly?
   end
 
   test "preloading a polymorphic association with references to the associated table" do

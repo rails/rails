@@ -79,14 +79,14 @@ module ActiveRecord
         end
         Thread.pass while conn.nil?
 
-        assert conn.in_use?
+        assert_predicate conn, :in_use?
 
         child.terminate
 
         while conn.in_use?
           Thread.pass
         end
-        assert !conn.in_use?
+        assert_not_predicate conn, :in_use?
       end
     end
   end

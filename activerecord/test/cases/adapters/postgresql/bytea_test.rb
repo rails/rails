@@ -75,7 +75,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   def test_write_value
     data = "\u001F"
     record = ByteaDataType.create(payload: data)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_equal(data, record.payload)
   end
 
@@ -101,14 +101,14 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     data = File.read(File.join(__dir__, "..", "..", "..", "assets", "example.log"))
     assert(data.size > 1)
     record = ByteaDataType.create(payload: data)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_equal(data, record.payload)
     assert_equal(data, ByteaDataType.where(id: record.id).first.payload)
   end
 
   def test_write_nil
     record = ByteaDataType.create(payload: nil)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_nil(record.payload)
     assert_nil(ByteaDataType.where(id: record.id).first.payload)
   end

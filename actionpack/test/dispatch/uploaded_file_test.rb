@@ -100,14 +100,14 @@ module ActionDispatch
     def test_delegate_eof_to_tempfile
       tf = Class.new { def eof?; true end; }
       uf = Http::UploadedFile.new(tempfile: tf.new)
-      assert uf.eof?
+      assert_predicate uf, :eof?
     end
 
     def test_respond_to?
       tf = Class.new { def read; yield end }
       uf = Http::UploadedFile.new(tempfile: tf.new)
-      assert uf.respond_to?(:headers), "responds to headers"
-      assert uf.respond_to?(:read), "responds to read"
+      assert_respond_to uf, :headers
+      assert_respond_to uf, :read
     end
   end
 end
