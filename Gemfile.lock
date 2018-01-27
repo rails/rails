@@ -533,7 +533,6 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   mini_magick
-  minitest (= 5.11.1)
   minitest-bisect
   mocha
   mysql2 (>= 0.4.4)
