@@ -20,7 +20,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   test "uploading to all services" do
     begin
       data = "Something else entirely!"
-      key  = upload(data, to: @service)
+      key  = upload(StringIO.new(data).tap(&:read), Digest::MD5.base64digest(data), to: @service)
 
       assert_equal data, SERVICE.primary.download(key)
       SERVICE.mirrors.each do |mirror|
@@ -33,7 +33,7 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
 
   test "downloading from primary service" do
     data = "Something else entirely!"
-    key  = upload(data, to: SERVICE.primary)
+    key  = upload(StringIO.new(data), Digest::MD5.base64digest(data), to: SERVICE.primary)
 
     assert_equal data, @service.download(key)
   end
@@ -56,10 +56,9 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   end
 
   private
-    def upload(data, to:)
+    def upload(io, checksum, to:)
       SecureRandom.base58(24).tap do |key|
-        io = StringIO.new(data).tap(&:read)
-        @service.upload key, io, checksum: Digest::MD5.base64digest(data)
+        to.upload key, io, checksum: checksum
         assert_predicate io, :eof?
       end
     end
