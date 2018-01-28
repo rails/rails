@@ -86,6 +86,18 @@ module ActiveRecord
               expand_from_hash(query).reduce(&:and)
             end
             queries.reduce(&:or)
+          elsif table.aggregated_with?(key)
+            mapping = table.reflect_on_aggregation(key).mapping
+            queries = Array.wrap(value).map do |object|
+              mapping.map do |field_attr, aggregate_attr|
+                if mapping.size == 1 && !object.respond_to?(aggregate_attr)
+                  build(table.arel_attribute(field_attr), object)
+                else
+                  build(table.arel_attribute(field_attr), object.send(aggregate_attr))
+                end
+              end.reduce(&:and)
+            end
+            queries.reduce(&:or)
           # FIXME: Deprecate this and provide a public API to force equality
           elsif (value.is_a?(Range) || value.is_a?(Array)) &&
             table.type(key.to_s).respond_to?(:subtype)

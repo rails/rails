@@ -868,13 +868,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
-  def test_hash_condition_find_with_aggregate_having_three_mapping_array
+  def test_hash_condition_find_with_aggregate_having_three_mappings_array
     david_address = customers(:david).address
     zaphod_address = customers(:zaphod).address
+    barney_address = customers(:barney).address
     assert_kind_of Address, david_address
     assert_kind_of Address, zaphod_address
-    found_customers = Customer.where(address: [david_address, zaphod_address])
-    assert_equal [customers(:david), customers(:zaphod)], found_customers
+    found_customers = Customer.where(address: [david_address, zaphod_address, barney_address])
+    assert_equal [customers(:david), customers(:zaphod), customers(:barney)], found_customers.sort_by(&:id)
   end
 
   def test_hash_condition_find_with_aggregate_having_one_mapping_array
@@ -883,7 +884,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, david_balance
     assert_kind_of Money, zaphod_balance
     found_customers = Customer.where(balance: [david_balance, zaphod_balance])
-    assert_equal [customers(:david), customers(:zaphod)], found_customers
+    assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
