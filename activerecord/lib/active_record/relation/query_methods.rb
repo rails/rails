@@ -47,9 +47,9 @@ module ActiveRecord
       def not(opts, *rest)
         opts = sanitize_forbidden_attributes(opts)
 
-        where_clause = @scope.send(:where_clause_factory).build(opts, rest)
+        where_clause, table_names = @scope.send(:where_clause_factory).build(opts, rest)
 
-        @scope.references!(PredicateBuilder.references(opts)) if Hash === opts
+        @scope.references!(table_names)
         @scope.where_clause += where_clause.invert
         @scope
       end
@@ -587,8 +587,9 @@ module ActiveRecord
 
     def where!(opts, *rest) # :nodoc:
       opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-      self.where_clause += where_clause_factory.build(opts, rest)
+      where_clause, table_names = where_clause_factory.build(opts, rest)
+      references!(table_names)
+      self.where_clause += where_clause
       self
     end
 
@@ -651,9 +652,9 @@ module ActiveRecord
 
     def having!(opts, *rest) # :nodoc:
       opts = sanitize_forbidden_attributes(opts)
-      references!(PredicateBuilder.references(opts)) if Hash === opts
-
-      self.having_clause += having_clause_factory.build(opts, rest)
+      having_clause, table_names = having_clause_factory.build(opts, rest)
+      references!(table_names)
+      self.having_clause += having_clause
       self
     end
 

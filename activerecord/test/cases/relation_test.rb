@@ -180,14 +180,14 @@ module ActiveRecord
     test "merging a hash interpolates conditions" do
       klass = Class.new(FakeKlass) do
         def self.sanitize_sql(args)
-          raise unless args == ["foo = ?", "bar"]
-          "foo = bar"
+          raise unless args == ["foo = ? AND 1 = 1", "bar"]
+          "foo = bar AND 1 = 1"
         end
       end
 
       relation = Relation.new(klass)
-      relation.merge!(where: ["foo = ?", "bar"])
-      assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
+      relation.merge!(where: ["foo = ? AND 1 = 1", "bar"])
+      assert_equal Relation::WhereClause.new(["foo = bar AND 1 = 1"]), relation.where_clause
     end
 
     def test_merging_readonly_false

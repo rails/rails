@@ -17,19 +17,11 @@ module ActiveRecord
     end
 
     def build_from_hash(attributes)
-      attributes = convert_dot_notation_to_hash(attributes)
-      expand_from_hash(attributes)
-    end
+      return ["1=0"] if attributes.empty?
 
-    def self.references(attributes)
-      attributes.map do |key, value|
-        if value.is_a?(Hash)
-          key
-        else
-          key = key.to_s
-          key.split(".".freeze).first if key.include?(".".freeze)
-        end
-      end.compact
+      attributes.flat_map do |key, value|
+        build_from_key_value(key, value)
+      end
     end
 
     # Define how a class is converted to Arel nodes when passed to +where+.
@@ -56,66 +48,51 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
+    def build_comparison(column_name, value, comparison_method)
+      bind = build_bind_attribute(column_name, value)
+      table.arel_attribute(column_name).send(comparison_method, bind)
+    end
+
+    def associated_predicate_builder(association_name)
+      self.class.new(table.associated_table(association_name))
+    end
+
     protected
 
       attr_reader :table
 
-      def expand_from_hash(attributes)
-        return ["1=0"] if attributes.empty?
-
-        attributes.flat_map do |key, value|
-          if value.is_a?(Hash) && !table.has_column?(key)
-            associated_predicate_builder(key).expand_from_hash(value)
-          elsif table.associated_with?(key)
-            # Find the foreign key when using queries such as:
-            # Post.where(author: author)
-            #
-            # For polymorphic relationships, find the foreign key and type:
-            # PriceEstimate.where(estimate_of: treasure)
-            associated_table = table.associated_table(key)
-            if associated_table.polymorphic_association?
-              case value.is_a?(Array) ? value.first : value
-              when Base, Relation
-                value = [value] unless value.is_a?(Array)
-                klass = PolymorphicArrayValue
-              end
-            end
-
-            klass ||= AssociationQueryValue
-            queries = klass.new(associated_table, value).queries.map do |query|
-              expand_from_hash(query).reduce(&:and)
-            end
-            queries.reduce(&:or)
-          # FIXME: Deprecate this and provide a public API to force equality
-          elsif (value.is_a?(Range) || value.is_a?(Array)) &&
-            table.type(key.to_s).respond_to?(:subtype)
-            BasicObjectHandler.new(self).call(table.arel_attribute(key), value)
-          else
-            build(table.arel_attribute(key), value)
-          end
-        end
-      end
-
     private
 
-      def associated_predicate_builder(association_name)
-        self.class.new(table.associated_table(association_name))
-      end
+      def build_from_key_value(key, value)
+        if value.is_a?(Hash) && !table.has_column?(key)
+          associated_predicate_builder(key).build_from_hash(value)
+        elsif table.associated_with?(key)
+          # Find the foreign key when using queries such as:
+          # Post.where(author: author)
+          #
+          # For polymorphic relationships, find the foreign key and type:
+          # PriceEstimate.where(estimate_of: treasure)
+          associated_table = table.associated_table(key)
+          if associated_table.polymorphic_association?
+            case value.is_a?(Array) ? value.first : value
+            when Base, Relation
+              value = [value] unless value.is_a?(Array)
+              klass = PolymorphicArrayValue
+            end
+          end
 
-      def convert_dot_notation_to_hash(attributes)
-        dot_notation = attributes.select do |k, v|
-          k.include?(".".freeze) && !v.is_a?(Hash)
+          klass ||= AssociationQueryValue
+          queries = klass.new(associated_table, value).queries.map do |query|
+            build_from_hash(query).reduce(&:and)
+          end
+          queries.reduce(&:or)
+        # FIXME: Deprecate this and provide a public API to force equality
+        elsif (value.is_a?(Range) || value.is_a?(Array)) &&
+          table.type(key.to_s).respond_to?(:subtype)
+          BasicObjectHandler.new(self).call(table.arel_attribute(key), value)
+        else
+          build(table.arel_attribute(key), value)
         end
-
-        dot_notation.each_key do |key|
-          table_name, column_name = key.split(".".freeze)
-          value = attributes.delete(key)
-          attributes[table_name] ||= {}
-
-          attributes[table_name] = attributes[table_name].merge(column_name => value)
-        end
-
-        attributes
       end
 
       def handler_for(object)

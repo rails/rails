@@ -362,5 +362,32 @@ module ActiveRecord
     def test_where_with_unsupported_arguments
       assert_raises(ArgumentError) { Author.where(42) }
     end
+
+    def test_where_with_string_and_bind_parameters
+      column = Post.arel_table[:id]
+      bind = Arel::Nodes::BindParam.new(1)
+
+      {
+        "=" => :eq,
+        "!=" => :not_eq,
+        "<>" => :not_eq,
+        "<=" => :lteq,
+        "<" => :lt,
+        ">" => :gt,
+        ">=" => :gteq
+      }.each do |comparison, comparison_method|
+        expected = column.send(comparison_method, bind)
+        relation = Post.where("id #{comparison} ?", 1)
+
+        assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
+      end
+    end
+
+    def test_where_with_string_including_table_name_and_bind_parameters
+      expected = Post.arel_table[:id].eq(Arel::Nodes::BindParam.new(1))
+      relation = Post.where("posts.id = ?", 1)
+
+      assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
+    end
   end
 end
