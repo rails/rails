@@ -704,11 +704,11 @@ module ActiveRecord
     def _update_record(attribute_names = self.attribute_names)
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        rows_affected = 0
+        affected_rows = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class._update_record(attributes_values, id, id_in_database)
-        @_trigger_update_callback = rows_affected > 0
+        affected_rows = self.class._update_record(attributes_values, id, id_in_database)
+        @_trigger_update_callback = affected_rows > 0
       end
 
       yield(self) if block_given?
