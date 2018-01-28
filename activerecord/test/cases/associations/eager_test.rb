@@ -395,7 +395,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_belongs_to_and_conditions_string_with_unquoted_table_name
     assert_nothing_raised do
-      Comment.includes(:post).references(:posts).where("posts.id = ?", 4)
+      Comment.includes(:post).where("posts.id = ?", 4)
     end
   end
 
@@ -591,10 +591,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_has_many_and_limit_and_conditions_array_on_the_eagers
-    posts = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David")
+    posts = Post.includes(:author, :comments).limit(2).where("authors.name = ?", "David")
     assert_equal 2, posts.size
 
-    count = Post.includes(:author, :comments).limit(2).references(:author).where("authors.name = ?", "David").count
+    count = Post.includes(:author, :comments).limit(2).where("authors.name = ?", "David").count
     assert_equal posts.size, count
   end
 
@@ -1492,7 +1492,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading a polymorphic association with references to the associated table" do
-    post = Post.includes(:tags).references(:tags).where("tags.name = ?", "General").first
+    post = Post.includes(:tags).where("tags.name = ?", "General").first
     assert_equal posts(:welcome), post
   end
 

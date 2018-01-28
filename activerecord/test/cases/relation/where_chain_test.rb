@@ -20,6 +20,13 @@ module ActiveRecord
       assert_equal expected_where_clause, relation.where_clause
     end
 
+    def test_not_inverts_where_clause_with_string
+      relation = Post.where.not("title = ?", "hello")
+      expected_where_clause = Post.where(title: "hello").where_clause.invert
+
+      assert_equal expected_where_clause, relation.where_clause
+    end
+
     def test_not_with_nil
       assert_raise ArgumentError do
         Post.where.not(nil)
@@ -29,6 +36,12 @@ module ActiveRecord
     def test_association_not_eq
       expected = Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new(1))
       relation = Post.joins(:comments).where.not(comments: { title: "hello" })
+      assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
+    end
+
+    def test_assocation_not_eq_with_string
+      expected = Comment.arel_table[@name].not_eq(Arel::Nodes::BindParam.new(1))
+      relation = Post.joins(:comments).where.not("comments.title = ?", "hello")
       assert_equal(expected.to_sql, relation.where_clause.ast.to_sql)
     end
 

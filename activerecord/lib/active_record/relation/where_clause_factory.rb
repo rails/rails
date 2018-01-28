@@ -34,6 +34,45 @@ module ActiveRecord
         end
       end
 
+      class BindStringClause
+        COMPARISON_METHODS = {
+          "=" => :eq,
+          "!=" => :not_eq,
+          "<>" => :not_eq,
+          "<=" => :lteq,
+          "<" => :lt,
+          ">" => :gt,
+          ">=" => :gteq
+        }
+
+        def initialize(column_name, value, comparison, predicate_builder)
+          @column_name = column_name
+          @value = value
+          @comparison_method = COMPARISON_METHODS[comparison]
+          @predicate_builder = predicate_builder
+        end
+
+        def predicates
+          if @column_name.include?(DOT)
+            table_name, col_name = @column_name.split(DOT)
+            builder = @predicate_builder.associated_predicate_builder(table_name)
+          else
+            col_name = @column_name
+            builder = @predicate_builder
+          end
+
+          [builder.build_comparison(col_name, @value, @comparison_method)]
+        end
+
+        def references
+          if @column_name.include?(DOT)
+            [@column_name.split(DOT).first]
+          else
+            []
+          end
+        end
+      end
+
       class HashClause
         def initialize(where_hash, klass, predicate_builder)
           @where_hash = where_hash
@@ -86,21 +125,37 @@ module ActiveRecord
       end
 
       def build(opts, other)
-        clause =
-          case opts
-          when String, Array
-            all_opts = other.empty? ? opts : ([opts] + other)
-            ArrayClause.new(all_opts, @klass)
-          when Hash
-            HashClause.new(opts, @klass, @predicate_builder)
-          when Arel::Nodes::Node
-            ArelClause.new(opts)
-          else
-            raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
-          end
+        case opts
+        when String, Array
+          all_opts = other.empty? ? opts : ([opts] + other)
+          clause = string_or_array_clause(all_opts)
+        when Hash
+          clause = HashClause.new(opts, @klass, @predicate_builder)
+        when Arel::Nodes::Node
+          clause = ArelClause.new(opts)
+        else
+          raise ArgumentError, "Unsupported argument type: #{opts} (#{opts.class})"
+        end
 
         [WhereClause.new(clause.predicates), clause.references]
       end
+
+      private
+
+        def string_or_array_clause(all_opts)
+          if match = bind_string_match(all_opts)
+            BindStringClause.new(match[1], all_opts[1], match[2], @predicate_builder)
+          else
+            ArrayClause.new(all_opts, @klass)
+          end
+        end
+
+        BIND_STRING = /^([a-zA-Z_][a-zA-Z0-9_\.]*)(<=|>=|<>|!=|=|<|>)\?$/
+
+        def bind_string_match(all_opts)
+          return nil unless all_opts.length == 2
+          BIND_STRING.match(all_opts[0].delete(" \t\r\n"))
+        end
     end
   end
 end

@@ -48,19 +48,20 @@ module ActiveRecord
       Arel::Nodes::BindParam.new(attr)
     end
 
+    def build_comparison(column_name, value, comparison_method)
+      bind = build_bind_attribute(column_name, value)
+      table.arel_attribute(column_name).send(comparison_method, bind)
+    end
+
+    def associated_predicate_builder(association_name)
+      self.class.new(table.associated_table(association_name))
+    end
+
     protected
 
       attr_reader :table
 
     private
-
-      def associated_predicate_builder(association_name)
-        self.class.new(table.associated_table(association_name))
-      end
-
-      def handler_for(object)
-        @handlers.detect { |klass, _| klass === object }.last
-      end
 
       def build_from_key_value(key, value)
         if value.is_a?(Hash) && !table.has_column?(key)
@@ -92,6 +93,10 @@ module ActiveRecord
         else
           build(table.arel_attribute(key), value)
         end
+      end
+
+      def handler_for(object)
+        @handlers.detect { |klass, _| klass === object }.last
       end
   end
 end
