@@ -15,10 +15,10 @@ class PresenceValidationTest < ActiveRecord::TestCase
   def test_validates_presence_of_non_association
     Boy.validates_presence_of(:name)
     b = Boy.new
-    assert b.invalid?
+    assert_predicate b, :invalid?
 
     b.name = "Alex"
-    assert b.valid?
+    assert_predicate b, :valid?
   end
 
   def test_validates_presence_of_has_one
@@ -33,23 +33,23 @@ class PresenceValidationTest < ActiveRecord::TestCase
     b = Boy.new
     f = Face.new
     b.face = f
-    assert b.valid?
+    assert_predicate b, :valid?
 
     f.mark_for_destruction
-    assert b.invalid?
+    assert_predicate b, :invalid?
   end
 
   def test_validates_presence_of_has_many_marked_for_destruction
     Boy.validates_presence_of(:interests)
     b = Boy.new
     b.interests << [i1 = Interest.new, i2 = Interest.new]
-    assert b.valid?
+    assert_predicate b, :valid?
 
     i1.mark_for_destruction
-    assert b.valid?
+    assert_predicate b, :valid?
 
     i2.mark_for_destruction
-    assert b.invalid?
+    assert_predicate b, :invalid?
   end
 
   def test_validates_presence_doesnt_convert_to_array
@@ -74,11 +74,11 @@ class PresenceValidationTest < ActiveRecord::TestCase
       Interest.validates_presence_of(:abbreviation)
 
       interest = Interest.create!(topic: "Thought Leadering", abbreviation: "tl")
-      assert interest.valid?
+      assert_predicate interest, :valid?
 
       interest.abbreviation = ""
 
-      assert interest.invalid?
+      assert_predicate interest, :invalid?
     end
   end
 

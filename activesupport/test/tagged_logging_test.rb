@@ -21,7 +21,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_nil logger.formatter
     ActiveSupport::TaggedLogging.new(logger)
     assert_not_nil logger.formatter
-    assert logger.formatter.respond_to?(:tagged)
+    assert_respond_to logger.formatter, :tagged
   end
 
   test "tagged once" do

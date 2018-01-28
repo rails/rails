@@ -819,7 +819,7 @@ class FilterTest < ActionController::TestCase
       response = test_process(RescuedController)
     end
 
-    assert response.successful?
+    assert_predicate response, :successful?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
 

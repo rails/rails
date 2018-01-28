@@ -1,3 +1,15 @@
+*   Fix `count(:all)` with eager loading and having an order other than the driving table.
+
+    Fixes #31783.
+
+    *Ryuta Kamizono*
+
+*   Clear the transaction state when an Active Record object is duped.
+
+    Fixes #31670.
+
+    *Yuriy Ustushenko*
+
 *   Support for PostgreSQL foreign tables.
 
     *fatkodima*
@@ -625,7 +637,7 @@
 
     *Ryuta Kamizono*
 
-*   Fix inconsistency with changed attributes when overriding AR attribute reader.
+*   Fix inconsistency with changed attributes when overriding Active Record attribute reader.
 
     *bogdanvlviv*
 

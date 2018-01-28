@@ -51,10 +51,10 @@ class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlComposite.columns_hash["address"]
     assert_nil column.type
     assert_equal "full_address", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_composite_mapping
@@ -113,10 +113,10 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlComposite.columns_hash["address"]
     assert_equal :full_address, column.type
     assert_equal "full_address", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_composite_mapping

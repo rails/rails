@@ -20,22 +20,22 @@ class TransactionTest < ActiveRecord::TestCase
 
   def test_persisted_in_a_model_with_custom_primary_key_after_failed_save
     movie = Movie.create
-    assert !movie.persisted?
+    assert_not_predicate movie, :persisted?
   end
 
   def test_raise_after_destroy
-    assert_not @first.frozen?
+    assert_not_predicate @first, :frozen?
 
     assert_raises(RuntimeError) {
       Topic.transaction do
         @first.destroy
-        assert @first.frozen?
+        assert_predicate @first, :frozen?
         raise
       end
     }
 
     assert @first.reload
-    assert_not @first.frozen?
+    assert_not_predicate @first, :frozen?
   end
 
   def test_successful
@@ -152,7 +152,7 @@ class TransactionTest < ActiveRecord::TestCase
     @first.approved = true
     e = assert_raises(RuntimeError) { @first.save }
     assert_equal "Make the transaction rollback", e.message
-    assert !Topic.find(1).approved?
+    assert_not_predicate Topic.find(1), :approved?
   end
 
   def test_rolling_back_in_a_callback_rollbacks_before_save
@@ -186,7 +186,7 @@ class TransactionTest < ActiveRecord::TestCase
     author = Author.create! name: "foo"
     author.name = nil
     assert_not author.save
-    assert_not author.new_record?
+    assert_not_predicate author, :new_record?
   end
 
   def test_update_should_rollback_on_failure
@@ -417,8 +417,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert @first.reload.approved?
-    assert !@second.reload.approved?
+    assert_predicate @first.reload, :approved?
+    assert_not_predicate @second.reload, :approved?
   end if Topic.connection.supports_savepoints?
 
   def test_force_savepoint_on_instance
@@ -438,8 +438,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert @first.reload.approved?
-    assert !@second.reload.approved?
+    assert_predicate @first.reload, :approved?
+    assert_not_predicate @second.reload, :approved?
   end if Topic.connection.supports_savepoints?
 
   def test_no_savepoint_in_nested_transaction_without_force
@@ -459,8 +459,8 @@ class TransactionTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@first.reload.approved?
-    assert !@second.reload.approved?
+    assert_not_predicate @first.reload, :approved?
+    assert_not_predicate @second.reload, :approved?
   end if Topic.connection.supports_savepoints?
 
   def test_many_savepoints
@@ -516,12 +516,12 @@ class TransactionTest < ActiveRecord::TestCase
       @first.approved = false
       @first.save!
       Topic.connection.rollback_to_savepoint("first")
-      assert @first.reload.approved?
+      assert_predicate @first.reload, :approved?
 
       @first.approved = false
       @first.save!
       Topic.connection.release_savepoint("first")
-      assert_not @first.reload.approved?
+      assert_not_predicate @first.reload, :approved?
     end
   end if Topic.connection.supports_savepoints?
 
@@ -663,8 +663,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    assert_not reply.frozen?
-    assert_not topic.frozen?
+    assert_not_predicate reply, :frozen?
+    assert_not_predicate topic, :frozen?
   end
 
   def test_restore_id_after_rollback
@@ -819,28 +819,28 @@ class TransactionTest < ActiveRecord::TestCase
     connection = Topic.connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
-    assert transaction.open?
-    assert !transaction.state.rolledback?
-    assert !transaction.state.committed?
+    assert_predicate transaction, :open?
+    assert_not_predicate transaction.state, :rolledback?
+    assert_not_predicate transaction.state, :committed?
 
     transaction.rollback
 
-    assert transaction.state.rolledback?
-    assert !transaction.state.committed?
+    assert_predicate transaction.state, :rolledback?
+    assert_not_predicate transaction.state, :committed?
   end
 
   def test_transactions_state_from_commit
     connection = Topic.connection
     transaction = ActiveRecord::ConnectionAdapters::TransactionManager.new(connection).begin_transaction
 
-    assert transaction.open?
-    assert !transaction.state.rolledback?
-    assert !transaction.state.committed?
+    assert_predicate transaction, :open?
+    assert_not_predicate transaction.state, :rolledback?
+    assert_not_predicate transaction.state, :committed?
 
     transaction.commit
 
-    assert !transaction.state.rolledback?
-    assert transaction.state.committed?
+    assert_not_predicate transaction.state, :rolledback?
+    assert_predicate transaction.state, :committed?
   end
 
   def test_set_state_method_is_deprecated
@@ -929,7 +929,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
         raise
       end
     rescue
-      assert !@first.reload.approved?
+      assert_not_predicate @first.reload, :approved?
     end
   end
 
@@ -950,7 +950,7 @@ class TransactionsWithTransactionalFixturesTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@first.reload.approved?
+    assert_not_predicate @first.reload, :approved?
   end
 end if Topic.connection.supports_savepoints?
 

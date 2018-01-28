@@ -22,7 +22,7 @@ module ActiveRecord
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(klass, table, predicate_builder, values = {})
+    def initialize(klass, table: klass.arel_table, predicate_builder: klass.predicate_builder, values: {})
       @klass  = klass
       @table  = table
       @values = values

@@ -25,6 +25,6 @@ class AlwaysPermittedParametersTest < ActiveSupport::TestCase
       book: { pages: 65 },
       format: "json")
     permitted = params.permit book: [:pages]
-    assert permitted.permitted?
+    assert_predicate permitted, :permitted?
   end
 end

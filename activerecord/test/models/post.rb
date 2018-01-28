@@ -326,5 +326,13 @@ class FakeKlass
     def enforce_raw_sql_whitelist(*args)
       # noop
     end
+
+    def arel_table
+      Post.arel_table
+    end
+
+    def predicate_builder
+      Post.predicate_builder
+    end
   end
 end

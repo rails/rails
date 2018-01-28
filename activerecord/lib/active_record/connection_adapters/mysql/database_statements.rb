@@ -50,6 +50,9 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         private
+          def default_insert_value(column)
+            Arel.sql("DEFAULT") unless column.auto_increment?
+          end
 
           def last_inserted_id(result)
             @connection.last_id

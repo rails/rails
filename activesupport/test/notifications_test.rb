@@ -250,8 +250,8 @@ module Notifications
       time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
-      assert_equal    :foo, event.name
-      assert_equal    time, event.time
+      assert_equal :foo, event.name
+      assert_equal time, event.time
       assert_in_delta 10.0, event.duration, 0.00001
     end
 

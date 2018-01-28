@@ -47,11 +47,11 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     new_club = new_member.association(:club).build
     assert new_member.current_membership
     assert_equal new_club, new_member.club
-    assert new_club.new_record?
-    assert new_member.current_membership.new_record?
+    assert_predicate new_club, :new_record?
+    assert_predicate new_member.current_membership, :new_record?
     assert new_member.save
-    assert new_club.persisted?
-    assert new_member.current_membership.persisted?
+    assert_predicate new_club, :persisted?
+    assert_predicate new_member.current_membership, :persisted?
   end
 
   def test_creating_association_builds_through_record_for_new
@@ -241,7 +241,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
       MemberDetail.all.merge!(includes: :member_type).to_a
     end
     @new_detail = @member_details[0]
-    assert @new_detail.send(:association, :member_type).loaded?
+    assert_predicate @new_detail.send(:association, :member_type), :loaded?
     assert_no_queries { @new_detail.member_type }
   end
 
@@ -329,12 +329,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     minivan.dashboard
     proxy = minivan.send(:association_instance_get, :dashboard)
 
-    assert !proxy.stale_target?
+    assert_not_predicate proxy, :stale_target?
     assert_equal dashboards(:cool_first), minivan.dashboard
 
     minivan.speedometer_id = speedometers(:second).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard
   end
 
@@ -346,7 +346,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
 
     minivan.speedometer_id = speedometers(:second).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal dashboards(:second), minivan.dashboard
   end
 
