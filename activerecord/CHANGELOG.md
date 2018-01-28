@@ -1,3 +1,17 @@
+*   Fix not expanded problem when passing an Array object as argument to the where method using `composed_of` column.
+
+    ```
+    david_balance = customers(:david).balance
+    Customer.where(balance: [david_balance]).to_sql
+
+    # Before: WHERE `customers`.`balance` = NULL
+    # After : WHERE `customers`.`balance` = 50
+    ```
+
+    Fixes #31723.
+
+    *Yutaro Kanagawa*
+
 *   Fix `count(:all)` with eager loading and having an order other than the driving table.
 
     Fixes #31783.
