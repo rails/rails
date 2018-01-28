@@ -310,6 +310,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
+      _raise_destroyed_record_error if destroyed?
       _relation_for_itself.delete_all if persisted?
       @destroyed = true
       freeze
@@ -324,6 +325,7 @@ module ActiveRecord
     # See ActiveRecord::Callbacks for further details.
     def destroy
       _raise_readonly_record_error if readonly?
+      _raise_destroyed_record_error if destroyed?
       destroy_associations
       self.class.connection.add_transaction_record(self)
       @_trigger_destroy_callback = if persisted?
@@ -748,6 +750,10 @@ module ActiveRecord
 
     def _raise_readonly_record_error
       raise ReadOnlyRecord, "#{self.class} is marked as readonly"
+    end
+
+    def _raise_destroyed_record_error
+      raise ActiveRecordError, "cannot destroy an already destroyed record" if destroyed?
     end
   end
 end

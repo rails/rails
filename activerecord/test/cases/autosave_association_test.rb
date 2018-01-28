@@ -736,8 +736,8 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     # We are running without transactional tests and need to cleanup.
     Bird.delete_all
     Parrot.delete_all
-    @ship.delete
-    @pirate.delete
+    @ship.delete unless @ship.destroyed?
+    @pirate.delete unless @pirate.destroyed?
   end
 
   # reload

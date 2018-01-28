@@ -302,7 +302,6 @@ module ActiveRecord
     end
 
     def destroy #:nodoc:
-      raise RecordAlreadyDestroyed.new("Record is already destroyed", self) if destroyed?
       with_transaction_returning_status { super }
     end
 

@@ -540,6 +540,14 @@ class PersistenceTest < ActiveRecord::TestCase
     end
   end
 
+  def test_delete_raises_if_record_already_deleted
+    topic = Topic.find(1)
+    topic.delete
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) { topic.delete }
+    assert_equal "cannot destroy an already destroyed record", error.message
+  end
+
   def test_destroy
     topic = Topic.find(1)
     assert_equal topic, topic.destroy, "topic.destroy did not return self"
@@ -552,6 +560,27 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal topic, topic.destroy!, "topic.destroy! did not return self"
     assert topic.frozen?, "topic not frozen after destroy!"
     assert_raise(ActiveRecord::RecordNotFound) { Topic.find(topic.id) }
+  end
+
+  def test_destroy_raises_if_record_already_destroyed
+    klass = Class.new(Topic) do
+      def self.name; "Topic"; end
+
+      attr_reader :destroy_count
+      after_destroy do
+        @destroy_count ||= 0
+        @destroy_count += 1
+      end
+    end
+
+    topic = klass.create(title: "Topic")
+    topic.destroy
+
+    error = assert_raises(ActiveRecord::ActiveRecordError) do
+      topic.destroy
+      assert_equal 1, topic.destroy_count
+    end
+    assert_equal "cannot destroy an already destroyed record", error.message
   end
 
   def test_find_raises_record_not_found_exception

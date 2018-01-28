@@ -93,16 +93,6 @@ module ActiveRecord
     end
   end
 
-  # Raised when a record cannot be destroyed because it's already destroyed.
-  class RecordAlreadyDestroyed < ActiveRecordError
-    attr_reader :record
-
-    def initialize(message = nil, record = nil)
-      @record = record
-      super(message)
-    end
-  end
-
   # Superclass for all database execution errors.
   #
   # Wraps the underlying database error as +cause+.
