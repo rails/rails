@@ -873,9 +873,8 @@ class FinderTest < ActiveRecord::TestCase
     zaphod_address = customers(:zaphod).address
     assert_kind_of Address, david_address
     assert_kind_of Address, zaphod_address
-    assert_raise(NoMethodError) do
-      Customer.where(address: [david_address, zaphod_address])
-    end
+    found_customers = Customer.where(address: [david_address, zaphod_address])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers
   end
 
   def test_hash_condition_find_with_aggregate_having_one_mapping_array

@@ -155,12 +155,10 @@ module ActiveRecord
             if aggregation = reflect_on_aggregation(attr.to_sym)
               mapping = aggregation.mapping
               mapping.each do |field_attr, aggregate_attr|
-                expanded_attrs[field_attr] = if mapping.size == 1 && !value.respond_to?(aggregate_attr)
-                  if value.is_a?(Array)
-                    value.map { |it| it.respond_to?(aggregate_attr) ? it.send(aggregate_attr) : it }
-                  else
-                    value
-                  end
+                expanded_attrs[field_attr] = if value.is_a?(Array)
+                  value.map { |it| it.send(aggregate_attr) }
+                elsif mapping.size == 1 && !value.respond_to?(aggregate_attr)
+                  value
                 else
                   value.send(aggregate_attr)
                 end
