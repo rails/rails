@@ -326,6 +326,11 @@ module ActiveRecord
         false
       end
 
+      # Does this adapter support foreign/external tables?
+      def supports_foreign_tables?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
