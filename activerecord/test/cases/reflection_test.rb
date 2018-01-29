@@ -66,6 +66,9 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
+    assert_equal :string, @first.column_for_attribute(:title).type
+    assert_equal :string, @first.type_for_attribute("title").type
+    assert_equal :string, @first.type_for_attribute(:title).type
     assert_equal 250, @first.column_for_attribute("title").limit
   end
 
@@ -81,6 +84,9 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_integer_columns
     assert_equal :integer, @first.column_for_attribute("id").type
+    assert_equal :integer, @first.column_for_attribute(:id).type
+    assert_equal :integer, @first.type_for_attribute("id").type
+    assert_equal :integer, @first.type_for_attribute(:id).type
   end
 
   def test_non_existent_columns_return_null_object
@@ -89,12 +95,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "attribute_that_doesnt_exist", column.name
     assert_nil column.sql_type
     assert_nil column.type
+
+    column = @first.column_for_attribute(:attribute_that_doesnt_exist)
+    assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
   end
 
   def test_non_existent_types_are_identity_types
     type = @first.type_for_attribute("attribute_that_doesnt_exist")
     object = Object.new
 
+    assert_equal object, type.deserialize(object)
+    assert_equal object, type.cast(object)
+    assert_equal object, type.serialize(object)
+
+    type = @first.type_for_attribute(:attribute_that_doesnt_exist)
     assert_equal object, type.deserialize(object)
     assert_equal object, type.cast(object)
     assert_equal object, type.serialize(object)
