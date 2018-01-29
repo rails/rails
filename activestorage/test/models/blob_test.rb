@@ -23,6 +23,18 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/plain", blob.content_type
   end
 
+  test "image?" do
+    blob = create_file_blob filename: "racecar.jpg"
+    assert_predicate blob, :image?
+    assert_not_predicate blob, :audio?
+  end
+
+  test "video?" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+    assert_predicate blob, :video?
+    assert_not_predicate blob, :audio?
+  end
+
   test "text?" do
     blob = create_blob data: "Hello world!"
     assert_predicate blob, :text?
