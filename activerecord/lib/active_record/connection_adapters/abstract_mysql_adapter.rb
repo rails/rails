@@ -527,10 +527,8 @@ module ActiveRecord
       end
 
       def insert_fixtures_set(fixture_set, tables_to_delete = [])
-        iterate_over_results = -> { while raw_connection.next_result; end; }
-
         with_multi_statements do
-          super(fixture_set, tables_to_delete, &iterate_over_results)
+          super { discard_remaining_results }
         end
       end
 

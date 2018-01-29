@@ -11,7 +11,7 @@ module ActiveRecord
           else
             super
           end
-          @connection.next_result while @connection.more_results?
+          discard_remaining_results
           result
         end
 
@@ -56,6 +56,10 @@ module ActiveRecord
 
           def last_inserted_id(result)
             @connection.last_id
+          end
+
+          def discard_remaining_results
+            @connection.next_result while @connection.more_results?
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
