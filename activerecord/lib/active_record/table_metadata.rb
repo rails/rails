@@ -30,7 +30,7 @@ module ActiveRecord
 
     def type(column_name)
       if klass
-        klass.type_for_attribute(column_name.to_s)
+        klass.type_for_attribute(column_name)
       else
         Type.default_value
       end
