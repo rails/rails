@@ -169,6 +169,7 @@ module ActiveRecord
           end
           expanded_attrs
         end
+        deprecate :expand_hash_conditions_for_aggregates
 
         def replace_bind_variables(statement, values)
           raise_if_bind_arity_mismatch(statement, statement.count("?"), values.size)

@@ -1,3 +1,8 @@
+*   Deprecate `expand_hash_conditions_for_aggregates` without replacement.
+    Using a `Relation` for performing queries is the prefered API.
+
+    *Ryuta Kamizono*
+
 *   Fix not expanded problem when passing an Array object as argument to the where method using `composed_of` column.
 
     ```
