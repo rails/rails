@@ -212,8 +212,7 @@ module ActiveRecord
         #
         # Option examples:
         #   composed_of :temperature, mapping: %w(reading celsius)
-        #   composed_of :balance, class_name: "Money", mapping: %w(balance amount),
-        #                         converter: Proc.new { |balance| balance.to_money }
+        #   composed_of :balance, class_name: "Money", mapping: %w(balance amount)
         #   composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
         #   composed_of :gps_location
         #   composed_of :gps_location, allow_nil: true
