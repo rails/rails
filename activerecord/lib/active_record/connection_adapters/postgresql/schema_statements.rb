@@ -124,9 +124,13 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+              expressions.scan(/(?<column>\w+)\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
                 opclasses[column] = opclass.to_sym if opclass
-                orders[column] = :desc if desc
+                if nulls
+                  orders[column] = [desc, nulls].compact.join(" ")
+                else
+                  orders[column] = :desc if desc
+                end
               end
             end
 
