@@ -682,7 +682,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_edge_option
     assert_generates_with_bundler edge: true
-    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
+    assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["'],\s+branch:\s+["']#{Regexp.escape("5-2-stable")}["']$}
   end
 
   def test_spring

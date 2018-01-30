@@ -275,7 +275,7 @@ module Rails
           ]
         elsif options.edge?
           [
-            GemfileEntry.github("rails", "rails/rails")
+            GemfileEntry.github("rails", "rails/rails", "5-2-stable")
           ]
         else
           [GemfileEntry.version("rails",

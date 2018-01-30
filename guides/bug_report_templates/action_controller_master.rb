@@ -12,7 +12,7 @@ gemfile(true) do
 
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
-  gem "rails", github: "rails/rails"
+  gem "rails", github: "rails/rails", branch: "5-2-stable"
 end
 
 require "action_controller/railtie"
