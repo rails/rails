@@ -217,6 +217,16 @@ module ActiveModel
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
+    test "marshaling dump/load legacy materialized attribute hash" do
+      builder = AttributeSet::Builder.new(foo: Type::String.new)
+      attributes = builder.build_from_database(foo: "1")
+
+      attributes.fetch(:foo) # force materialized
+      attributes = Marshal.load(Marshal.dump(attributes))
+
+      assert_equal({ foo: "1" }, attributes.to_hash)
+    end
+
     test "#accessed_attributes returns only attributes which have been read" do
       builder = AttributeSet::Builder.new(foo: Type::Value.new, bar: Type::Value.new)
       attributes = builder.build_from_database(foo: "1", bar: "2")

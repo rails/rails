@@ -76,15 +76,23 @@ module ActiveModel
     end
 
     def marshal_dump
-      materialize
+      if @materialized
+        materialize
+      else
+        [@types, @values, @additional_types, @default_attributes]
+      end
     end
 
-    def marshal_load(delegate_hash)
-      @delegate_hash = delegate_hash
-      @types = {}
-      @values = {}
-      @additional_types = {}
-      @materialized = true
+    def marshal_load(values)
+      if values.is_a?(Hash)
+        @delegate_hash = values
+        @types = {}
+        @values = {}
+        @additional_types = {}
+        @materialized = true
+      else
+        initialize(*values)
+      end
     end
 
     protected
