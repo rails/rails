@@ -284,6 +284,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
+**`ActionDispatch::ContentSecurityPolicy::Middleware`**
+
+* Provides a DSL to configure a Content-Security-Policy header.
+
 **`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
