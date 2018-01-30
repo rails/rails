@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Allow block to be passed to `ActiveJob::Base.discard_on` to allow custom handling of discard jobs.
 
     Example:

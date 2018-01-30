@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Bring back proc with arity of 1 in `ActionMailer::Base.default` proc
     since it was supported in Rails 5.0 but not deprecated.
 

@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Allow the use of callable objects as group methods for grouped selects.
 
     Until now, the `option_groups_from_collection_for_select` method was only able to

@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Models using the attributes API with a proc default can now be marshalled.
 
     Fixes #31216.

@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Add support for connection pooling on RedisCacheStore.
 
     *fatkodima*

@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Add `Referrer-Policy` header to default headers set.
 
     *Guillermo Iguaran*

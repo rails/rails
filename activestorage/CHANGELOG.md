@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc1 (January 30, 2018) ##
+
 *   Preserve display aspect ratio when extracting width and height from videos
     with rectangular samples in `ActiveStorage::Analyzer::VideoAnalyzer`.
 
