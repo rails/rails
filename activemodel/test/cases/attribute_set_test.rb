@@ -209,11 +209,6 @@ module ActiveModel
       assert_equal "value from user", attributes.fetch_value(:foo)
     end
 
-    def attributes_with_uninitialized_key
-      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      builder.build_from_database(foo: "1.1")
-    end
-
     test "freezing doesn't prevent the set from materializing" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")
@@ -253,5 +248,11 @@ module ActiveModel
       assert_equal attributes, attributes2
       assert_not_equal attributes2, attributes3
     end
+
+    private
+      def attributes_with_uninitialized_key
+        builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+        builder.build_from_database(foo: "1.1")
+      end
   end
 end
