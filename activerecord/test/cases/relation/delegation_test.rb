@@ -37,6 +37,19 @@ module ActiveRecord
     end
   end
 
+  class InvalidDelegatedRelationTests < ActiveRecord::TestCase
+    def test_invalid_relation_model_message
+      error = assert_raises(ArgumentError) do
+        PostWithInvalidRelation.new.plain_klasses
+      end
+
+      expected_message = "Rails could not find a valid model for the :plain_klasses association. "\
+                         "Please provide the :class_name option on the association declaration"
+
+      assert_equal expected_message, error.message
+    end
+  end
+
   class DelegationAssociationTest < ActiveRecord::TestCase
     include DelegationWhitelistTests
     include DeprecatedArelDelegationTests

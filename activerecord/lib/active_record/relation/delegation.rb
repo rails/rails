@@ -94,12 +94,21 @@ module ActiveRecord
 
     module ClassMethods # :nodoc:
       def create(klass, *args)
-        relation_class_for(klass).new(klass, *args)
+        relation_class_for(klass, *args).new(klass, *args)
       end
 
       private
 
-        def relation_class_for(klass)
+        def relation_class_for(klass, *args)
+          if args.first.is_a?(Associations::Association) && !klass.respond_to?(:relation_delegate_class)
+            relation_name = args.first.reflection.name
+
+            raise ArgumentError.new(
+              "Rails could not find a valid model for the #{relation_name.inspect} association. " \
+              "Please provide the :class_name option on the association declaration"
+            )
+          end
+
           klass.relation_delegate_class(self)
         end
     end
