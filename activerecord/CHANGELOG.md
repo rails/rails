@@ -1,3 +1,11 @@
+*   Allow to reset cache counters for multiple records.
+
+    ```
+    Aircraft.reset_counters([1, 2, 3], :wheels_count) # generates one query per counter
+    ```
+
+    *fatkodima*
+
 *   Support default expression for MySQL.
 
     MySQL 8.0.13 and higher supports default value to be a function or expression.

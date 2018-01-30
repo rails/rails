@@ -12,7 +12,7 @@ module ActiveRecord
       #
       # ==== Parameters
       #
-      # * +id+ - The id of the object you wish to reset a counter on.
+      # * +id+ - The id of the object you wish to reset a counter on or an array of ids.
       # * +counters+ - One or more association counters to reset. Association name or counter name can be given.
       # * <tt>:touch</tt> - Touch timestamp columns when updating.
       #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
@@ -27,8 +27,6 @@ module ActiveRecord
       #   # attributes.
       #   Post.reset_counters(1, :comments, touch: true)
       def reset_counters(id, *counters, touch: nil)
-        object = find(id)
-
         counters.each do |counter_association|
           has_many_association = _reflect_on_association(counter_association)
           unless has_many_association
@@ -47,14 +45,20 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          updates = { counter_name => object.send(counter_association).count(:all) }
+          join_subquery_alias = "subquery_for_counter_cache"
+          join_subquery_column = "#{quoted_table_name}.#{quoted_primary_key}"
+          join_subquery = unscoped.joins(counter_association.to_sym).select(join_subquery_column)
+          count_subquery = unscoped.select("COUNT(*)").from(join_subquery, join_subquery_alias)
+                                   .where("#{join_subquery_alias}.#{quoted_primary_key} = #{join_subquery_column}")
+
+          updates = ["#{connection.quote_column_name(counter_name)} = (#{count_subquery.to_sql})"]
 
           if touch
             names = touch if touch != true
-            updates.merge!(touch_attributes_with_time(*names))
+            updates << sanitize_sql_for_assignment(touch_attributes_with_time(*names))
           end
 
-          unscoped.where(primary_key => object.id).update_all(updates)
+          unscoped.where(primary_key => id).update_all updates.join(", ")
         end
 
         true
