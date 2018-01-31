@@ -34,6 +34,12 @@ class CookieJarTest < ActiveSupport::TestCase
     assert_equal "bar", request.cookie_jar.fetch(:foo)
   end
 
+  def test_to_hash
+    request.cookie_jar["foo"] = "bar"
+    assert_equal({ "foo" => "bar" }, request.cookie_jar.to_hash)
+    assert_equal({ "foo" => "bar" }, request.cookie_jar.to_h)
+  end
+
   def test_fetch_type_error
     assert_raises(KeyError) do
       request.cookie_jar.fetch(:omglolwut)
