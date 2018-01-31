@@ -81,7 +81,7 @@ class TestCaseTest < ActionController::TestCase
     end
 
     def test_empty_param
-      render plain: ::JSON.dump({ foo: params[:foo] })
+      render plain: ::JSON.dump(foo: params[:foo])
     end
 
     def test_html_output
