@@ -298,6 +298,8 @@ class PostWithInvalidRelation < Post
   has_many :plain_klasses
 end
 
+class PlainKlass; end
+
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 
@@ -333,6 +335,3 @@ class FakeKlass
     end
   end
 end
-
-# For testing invalid relations (messages). See PostWithInvalidRelation.
-class PlainKlass; end
