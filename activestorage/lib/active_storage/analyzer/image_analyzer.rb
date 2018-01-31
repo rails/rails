@@ -39,7 +39,7 @@ module ActiveStorage
       end
 
       def rotated_image?(image)
-        %w[ RightTop LeftBottom ].include?(image["orientation"])
+        %w[ RightTop LeftBottom ].include?(image["%[orientation]"])
       end
   end
 end

@@ -18,8 +18,8 @@ class ActiveStorage::Analyzer::ImageAnalyzerTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar_rotated.jpg", content_type: "image/jpeg")
     metadata = extract_metadata_from(blob)
 
-    assert_equal 4104, metadata[:width]
-    assert_equal 2736, metadata[:height]
+    assert_equal 2736, metadata[:width]
+    assert_equal 4104, metadata[:height]
   end
 
   test "analyzing an SVG image without an XML declaration" do
