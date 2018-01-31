@@ -63,6 +63,10 @@ class TestCaseTest < ActionController::TestCase
       render text: request.headers.env.to_json
     end
 
+    def test_empty_param
+      render plain: ::JSON.dump({ foo: params[:foo] })
+    end
+
     def test_html_output
       render :text => <<HTML
 <html>
@@ -170,6 +174,13 @@ XML
     def view_assigns
       { "bar" => "bar" }
     end
+  end
+
+  def test_nil_param
+    response = get :test_empty_param, params: { foo: nil }
+    payload = JSON.parse(response.body)
+    assert payload.key?("foo"), "payload should have foo key"
+    assert_nil payload["foo"]
   end
 
   class DefaultUrlOptionsCachingController < ActionController::Base
