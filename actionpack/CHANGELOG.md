@@ -1,3 +1,8 @@
+*   Add alias method `to_hash` to `to_h` for `cookies`.
+    Add alias method `to_h` to `to_hash` for `session`.
+
+    *Igor Kasyanchuk*
+
 *   Update the default HSTS max-age value to 31536000 seconds (1 year)
     to meet the minimum max-age requirement for https://hstspreload.org/.
 
