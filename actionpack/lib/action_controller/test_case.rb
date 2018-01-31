@@ -90,6 +90,7 @@ module ActionController
 
       if get?
         if query_string.blank?
+          non_path_parameters.delete_if { |_,v| v.nil? }
           self.query_string = non_path_parameters.to_query
         end
       else
