@@ -543,7 +543,7 @@ or with [npm](#npm-usage).
 
 Source code can be downloaded as part of the Rails project on GitHub
 
-* https://github.com/rails/rails/tree/master/actioncable
+* https://github.com/rails/rails/tree/5-2-stable/actioncable
 
 ## License
 

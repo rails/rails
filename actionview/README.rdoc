@@ -13,7 +13,7 @@ The latest version of Action View can be installed with RubyGems:
 
 Source code can be downloaded as part of the Rails project on GitHub:
 
-* https://github.com/rails/rails/tree/master/actionview
+* https://github.com/rails/rails/tree/5-2-stable/actionview
 
 
 == License

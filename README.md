@@ -90,7 +90,7 @@ Everyone interacting in Rails and its sub-projects' codebases, issue trackers, c
 
 ## Code Status
 
-[![Build Status](https://travis-ci.org/rails/rails.svg?branch=master)](https://travis-ci.org/rails/rails)
+[![Build Status](https://travis-ci.org/rails/rails.svg?branch=5-2-stable)](https://travis-ci.org/rails/rails)
 
 ## License
 
