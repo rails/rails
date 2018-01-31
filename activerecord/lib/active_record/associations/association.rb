@@ -242,7 +242,7 @@ module ActiveRecord
         end
 
         def raise_on_klass_not_supporting_delegation
-          if !klass.respond_to?(:relation_delegate_class)
+          if !(klass.singleton_class < Delegation::DelegateCache)
             error_message = <<-MSG.squish
               Rails could not find a valid model for the #{reflection.name.inspect} association.
               Please provide the :class_name option on the association declaration
