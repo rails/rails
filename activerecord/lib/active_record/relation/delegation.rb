@@ -102,11 +102,12 @@ module ActiveRecord
         def relation_class_for(klass, *args)
           if args.first.is_a?(Associations::Association) && !klass.respond_to?(:relation_delegate_class)
             relation_name = args.first.reflection.name
+            error_message = <<-MSG.squish
+              Rails could not find a valid model for the #{relation_name.inspect} association.
+              Please provide the :class_name option on the association declaration
+            MSG
 
-            raise ArgumentError.new(
-              "Rails could not find a valid model for the #{relation_name.inspect} association. " \
-              "Please provide the :class_name option on the association declaration"
-            )
+            raise ArgumentError.new(error_message)
           end
 
           klass.relation_delegate_class(self)
