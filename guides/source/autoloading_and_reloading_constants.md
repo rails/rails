@@ -1346,5 +1346,5 @@ On a development machine you can then have your tests running with whatever is f
 
 With the [Spring](https://github.com/rails/spring) pre-loader (included with new rails apps), you ideally keep `config.eager_load = false` as per development. Sometimes you may end up with a hybrid configuration (`config.eager_load = true`, `config.cache_classes = true` AND `config.enable_dependency_loading = true`), see [spring issue](https://github.com/rails/spring/issues/519#issuecomment-348324369). However it might be simpler to keep the same configuration as development, and work out whatever it is that is causing autoloading to fail (perhaps by the results of your CI test results). 
 
-Occasionally you may need to explictly eager_load by using `Rails
+Occasionally you may need to explicitly eager_load by using `Rails
 .application.eager_load!` in the setup of your tests -- this might occur if your [tests involve multithreading](https://stackoverflow.com/questions/25796409/in-rails-how-can-i-eager-load-all-code-before-a-specific-rspec-test). 
