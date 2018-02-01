@@ -510,16 +510,18 @@ module ActiveRecord
       # agnostic and should usually be avoided.
       #
       # Available options are (none of these exists by default):
-      # * <tt>:limit</tt> -
-      #   Requests a maximum column length. This is the number of characters for a <tt>:string</tt> column
-      #   and number of bytes for <tt>:text</tt>, <tt>:binary</tt> and <tt>:integer</tt> columns.
-      #   This option is ignored by some backends.
+      # * <tt>:limit</tt> - Maximum column length. Ignored by some backends.
+      #   * <tt>:string</tt> column - Number of characters
+      #   * <tt>:text</tt>, <tt>:binary</tt>, <tt>:integer</tt> - Number of bytes
+      #   * <tt>:datetime</tt> - Number of digits of fractional seconds
+      #     precision. Deprecated. Use `:precision` instead of `:limit`.
       # * <tt>:default</tt> -
       #   The column's default value. Use +nil+ for +NULL+.
       # * <tt>:null</tt> -
       #   Allows or disallows +NULL+ values in the column.
-      # * <tt>:precision</tt> -
-      #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      # * <tt>:precision</tt>
+      #   * <tt>:decimal</tt>, <tt>:numeric</tt> - Decimal precision
+      #   * <tt>:datetime</tt> - Number of digits of fractional seconds precision.
       # * <tt>:scale</tt> -
       #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:comment</tt> -
@@ -567,6 +569,19 @@ module ActiveRecord
       #  # probably wouldn't hurt to include it.
       #  add_column(:measurements, :huge_integer, :decimal, precision: 30)
       #  # ALTER TABLE "measurements" ADD "huge_integer" decimal(30)
+      #
+      #  # :datetime datatype and default fractional seconds precision are
+      #  # RDBMS-dependent. Postgres will use `timestamp without time zone` and
+      #  # "no explicit bound on precision"
+      #  # (https://www.postgresql.org/docs/9.6/static/datatype-datetime.html).
+      #  # MySQL will use `datetime` and "the default precision is 0"
+      #  # (https://dev.mysql.com/doc/refman/5.7/en/fractional-seconds.html)
+      #  add_column(:t, :when, :datetime)
+      #  # ALTER TABLE "t" ADD "when" timestamp without time zone
+      #
+      #  # Explicit fractional seconds precision
+      #  add_column(:t, :when, :datetime, precision: 6)
+      #  # ALTER TABLE "t" ADD "when" timestamp(6) without time zone
       #
       #  # Defines a column that stores an array of a type.
       #  add_column(:users, :skills, :text, array: true)
