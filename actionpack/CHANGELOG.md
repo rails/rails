@@ -1,3 +1,5 @@
+## Rails 5.1.5.rc1 (February 01, 2018) ##
+
 *   Fix optimized url helpers when using relative url root
 
     Fixes #31220.

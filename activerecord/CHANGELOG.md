@@ -1,3 +1,5 @@
+## Rails 5.1.5.rc1 (February 01, 2018) ##
+
 *   Fix `count(:all)` with eager loading and having an order other than the driving table.
 
     Fixes #31783.
