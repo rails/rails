@@ -62,6 +62,8 @@ export class DirectUploadController {
 
   directUploadWillStoreFileWithXHR(xhr) {
     this.dispatch("before-storage-request", { xhr })
-    xhr.upload.addEventListener("progress", event => this.uploadRequestDidProgress(event))
+    xhr.upload.addEventListener("progress", event =>
+      this.uploadRequestDidProgress(event)
+    )
   }
 }
