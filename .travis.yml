@@ -2,8 +2,8 @@ language: ruby
 sudo: false
 
 cache:
-  bundler: true
   directories:
+    - vendor/bundle
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
     - node_modules
