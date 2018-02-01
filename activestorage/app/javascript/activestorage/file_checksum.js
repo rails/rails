@@ -1,6 +1,7 @@
 import SparkMD5 from "spark-md5"
 
-const fileSlice = File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
+const fileSlice =
+  File.prototype.slice || File.prototype.mozSlice || File.prototype.webkitSlice
 
 export class FileChecksum {
   static create(file, callback) {
@@ -19,8 +20,12 @@ export class FileChecksum {
     this.callback = callback
     this.md5Buffer = new SparkMD5.ArrayBuffer
     this.fileReader = new FileReader
-    this.fileReader.addEventListener("load", event => this.fileReaderDidLoad(event))
-    this.fileReader.addEventListener("error", event => this.fileReaderDidError(event))
+    this.fileReader.addEventListener("load", event =>
+      this.fileReaderDidLoad(event)
+    )
+    this.fileReader.addEventListener("error", event =>
+      this.fileReaderDidError(event)
+    )
     this.readNextChunk()
   }
 

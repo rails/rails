@@ -6,7 +6,9 @@ const inputSelector = "input[type=file][data-direct-upload-url]:not([disabled])"
 export class DirectUploadsController {
   constructor(form) {
     this.form = form
-    this.inputs = findElements(form, inputSelector).filter(input => input.files.length)
+    this.inputs = findElements(form, inputSelector).filter(
+      input => input.files.length
+    )
   }
 
   start(callback) {

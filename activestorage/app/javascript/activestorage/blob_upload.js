@@ -30,6 +30,8 @@ export class BlobUpload {
   }
 
   requestDidError(event) {
-    this.callback(`Error storing "${this.file.name}". Status: ${this.xhr.status}`)
+    this.callback(
+      `Error storing "${this.file.name}". Status: ${this.xhr.status}`
+    )
   }
 }
