@@ -117,7 +117,7 @@ class ReflectionTest < ActiveRecord::TestCase
     reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, {}, Post)
 
     error = assert_raises(ArgumentError) do
-      reflection.compute_class('FakeKlass')
+      reflection.compute_class("FakeKlass")
     end
 
     expected_message = "FakeKlass is not an Active Record model"
