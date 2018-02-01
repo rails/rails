@@ -221,9 +221,15 @@ module ActiveModel
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")
 
-      attributes.fetch(:foo) # force materialized
-      attributes = Marshal.load(Marshal.dump(attributes))
+      attributes.instance_variable_get(:@attributes).instance_eval do
+        class << self
+          def marshal_dump
+            materialize
+          end
+        end
+      end
 
+      attributes = Marshal.load(Marshal.dump(attributes))
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 

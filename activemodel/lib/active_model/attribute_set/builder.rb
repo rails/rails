@@ -22,12 +22,12 @@ module ActiveModel
   class LazyAttributeHash # :nodoc:
     delegate :transform_values, :each_key, :each_value, :fetch, :except, to: :materialize
 
-    def initialize(types, values, additional_types, default_attributes)
+    def initialize(types, values, additional_types, default_attributes, delegate_hash = {})
       @types = types
       @values = values
       @additional_types = additional_types
       @materialized = false
-      @delegate_hash = {}
+      @delegate_hash = delegate_hash
       @default_attributes = default_attributes
     end
 
@@ -76,19 +76,13 @@ module ActiveModel
     end
 
     def marshal_dump
-      if @materialized
-        materialize
-      else
-        [@types, @values, @additional_types, @default_attributes]
-      end
+      [@types, @values, @additional_types, @default_attributes, @delegate_hash]
     end
 
     def marshal_load(values)
       if values.is_a?(Hash)
-        @delegate_hash = values
-        @types = {}
-        @values = {}
-        @additional_types = {}
+        empty_hash = {}.freeze
+        initialize(empty_hash, empty_hash, empty_hash, empty_hash, values)
         @materialized = true
       else
         initialize(*values)
