@@ -20,12 +20,12 @@ module ActiveRecord
   class LazyAttributeHash # :nodoc:
     delegate :transform_values, :each_key, :each_value, :fetch, :except, to: :materialize
 
-    def initialize(types, values, additional_types, default_attributes)
+    def initialize(types, values, additional_types, default_attributes, delegate_hash = {})
       @types = types
       @values = values
       @additional_types = additional_types
       @materialized = false
-      @delegate_hash = {}
+      @delegate_hash = delegate_hash
       @default_attributes = default_attributes
     end
 
@@ -74,15 +74,17 @@ module ActiveRecord
     end
 
     def marshal_dump
-      materialize
+      [@types, @values, @additional_types, @default_attributes, @delegate_hash]
     end
 
-    def marshal_load(delegate_hash)
-      @delegate_hash = delegate_hash
-      @types = {}
-      @values = {}
-      @additional_types = {}
-      @materialized = true
+    def marshal_load(values)
+      if values.is_a?(Hash)
+        empty_hash = {}.freeze
+        initialize(empty_hash, empty_hash, empty_hash, empty_hash, values)
+        @materialized = true
+      else
+        initialize(*values)
+      end
     end
 
     # TODO Change this to private once we've dropped Ruby 2.2 support.
