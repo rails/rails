@@ -113,6 +113,18 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
+  def test_invalid_relation_model_message
+    reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, {}, Post)
+
+    error = assert_raises(ArgumentError) do
+      reflection.compute_class('FakeKlass')
+    end
+
+    expected_message = "FakeKlass is not an Active Record model"
+
+    assert_equal expected_message, error.message
+  end
+
   def test_irregular_reflection_class_name
     ActiveSupport::Inflector.inflections do |inflect|
       inflect.irregular "plural_irregular", "plurales_irregulares"

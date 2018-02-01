@@ -293,13 +293,6 @@ end
 class SubConditionalStiPost < ConditionalStiPost
 end
 
-class PostWithInvalidRelation < Post
-  self.table_name = "posts"
-  has_many :plain_klasses
-end
-
-class PlainKlass; end
-
 class FakeKlass
   extend ActiveRecord::Delegation::DelegateCache
 

@@ -124,7 +124,6 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        raise_on_klass_not_supporting_delegation
         AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
       end
 
@@ -238,17 +237,6 @@ module ActiveRecord
                 "got #{record.inspect} which is an instance of #{record.class}(##{record.class.object_id})"
               raise ActiveRecord::AssociationTypeMismatch, message
             end
-          end
-        end
-
-        def raise_on_klass_not_supporting_delegation
-          if !(klass.singleton_class < Delegation::DelegateCache)
-            error_message = <<-MSG.squish
-              Rails could not find a valid model for the #{reflection.name.inspect} association.
-              Please provide the :class_name option on the association declaration
-            MSG
-
-            raise ArgumentError.new(error_message)
           end
         end
 
