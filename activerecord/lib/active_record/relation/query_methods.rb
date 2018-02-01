@@ -327,8 +327,8 @@ module ActiveRecord
     end
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
-                                     :limit, :offset, :joins, :includes, :from,
-                                     :readonly, :having])
+                                     :limit, :offset, :joins, :left_outer_joins,
+                                     :includes, :from, :readonly, :having])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -375,10 +375,11 @@ module ActiveRecord
       args.each do |scope|
         case scope
         when Symbol
+          scope = :left_outer_joins if scope == :left_joins
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          set_value(scope, nil)
+          set_value(scope, DEFAULT_VALUES[scope])
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -444,15 +445,13 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-
-      args.compact!
-      args.flatten!
-
       spawn.left_outer_joins!(*args)
     end
     alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
+      args.compact!
+      args.flatten!
       self.left_outer_joins_values += args
       self
     end
@@ -907,7 +906,7 @@ module ActiveRecord
     protected
       # Returns a relation value with a given name
       def get_value(name) # :nodoc:
-        @values[name] || default_value_for(name)
+        @values.fetch(name, DEFAULT_VALUES[name])
       end
 
       # Sets the relation value with the given name
@@ -980,6 +979,8 @@ module ActiveRecord
           case join
           when Hash, Symbol, Array
             :association_join
+          when ActiveRecord::Associations::JoinDependency
+            :stashed_join
           else
             raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
@@ -1015,7 +1016,7 @@ module ActiveRecord
         join_nodes                = buckets[:join_node].uniq
         string_joins              = buckets[:string_join].map(&:strip).uniq
 
-        join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
+        join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
         join_dependency = ActiveRecord::Associations::JoinDependency.new(
@@ -1030,7 +1031,7 @@ module ActiveRecord
         alias_tracker.aliases
       end
 
-      def convert_join_strings_to_ast(table, joins)
+      def convert_join_strings_to_ast(joins)
         joins
           .flatten
           .reject(&:blank?)
@@ -1040,8 +1041,8 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
-        elsif @klass.ignored_columns.any?
-          arel.project(*arel_columns(@klass.column_names))
+        elsif klass.ignored_columns.any?
+          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
         else
           arel.project(table[Arel.star])
         end
@@ -1121,7 +1122,7 @@ module ActiveRecord
 
       def preprocess_order_args(order_args)
         order_args.map! do |arg|
-          klass.send(:sanitize_sql_for_order, arg)
+          klass.sanitize_sql_for_order(arg)
         end
         order_args.flatten!
 
@@ -1192,7 +1193,6 @@ module ActiveRecord
 
       DEFAULT_VALUES = {
         create_with: FROZEN_EMPTY_HASH,
-        readonly: false,
         where: Relation::WhereClause.empty,
         having: Relation::WhereClause.empty,
         from: Relation::FromClause.empty
@@ -1200,16 +1200,6 @@ module ActiveRecord
 
       Relation::MULTI_VALUE_METHODS.each do |value|
         DEFAULT_VALUES[value] ||= FROZEN_EMPTY_ARRAY
-      end
-
-      Relation::SINGLE_VALUE_METHODS.each do |value|
-        DEFAULT_VALUES[value] = nil if DEFAULT_VALUES[value].nil?
-      end
-
-      def default_value_for(name)
-        DEFAULT_VALUES.fetch(name) do
-          raise ArgumentError, "unknown relation value #{name.inspect}"
-        end
       end
   end
 end

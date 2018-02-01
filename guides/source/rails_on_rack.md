@@ -126,6 +126,7 @@ use ActionDispatch::ContentSecurityPolicy::Middleware
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
+use Rack::TempfileReaper
 run MyApp::Application.routes
 ```
 
@@ -284,6 +285,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
+**`ActionDispatch::ContentSecurityPolicy::Middleware`**
+
+* Provides a DSL to configure a Content-Security-Policy header.
+
 **`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
@@ -295,6 +300,10 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 **`Rack::ETag`**
 
 * Adds ETag header on all String bodies. ETags are used to validate cache.
+
+**`Rack::TempfileReaper`**
+
+* Cleans up tempfiles used to buffer multipart requests.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 

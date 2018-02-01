@@ -130,46 +130,46 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
 
     # Abstract subclass of AR::Base.
-    assert LoosePerson.descends_from_active_record?
+    assert_predicate LoosePerson, :descends_from_active_record?
 
     # Concrete subclass of an abstract class.
-    assert LooseDescendant.descends_from_active_record?
+    assert_predicate LooseDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert TightPerson.descends_from_active_record?
+    assert_predicate TightPerson, :descends_from_active_record?
 
     # Concrete subclass of a concrete class but has no type column.
-    assert TightDescendant.descends_from_active_record?
+    assert_predicate TightDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert Post.descends_from_active_record?
+    assert_predicate Post, :descends_from_active_record?
 
     # Concrete subclasses of a concrete class which has a type column.
-    assert !StiPost.descends_from_active_record?
-    assert !SubStiPost.descends_from_active_record?
+    assert_not_predicate StiPost, :descends_from_active_record?
+    assert_not_predicate SubStiPost, :descends_from_active_record?
 
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !AbstractStiPost.descends_from_active_record?
+    assert_not_predicate AbstractStiPost, :descends_from_active_record?
 
     # Concrete subclass of an abstract class which has a type column.
-    assert !SubAbstractStiPost.descends_from_active_record?
+    assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"
     assert Company.descends_from_active_record?, "Company should descend from ActiveRecord::Base"
     assert !Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
   end
 
   def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
-    assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
+    assert_not_predicate ActiveRecord::Base, :abstract_class?
+    assert_predicate LoosePerson, :abstract_class?
+    assert_not_predicate LooseDescendant, :abstract_class?
   end
 
   def test_inheritance_base_class
@@ -280,6 +280,21 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_where_new_with_subclass
+    firm = Company.where(type: "Firm").new
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_with_subclass
+    firm = Company.where(type: "Firm").create(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_bang_with_subclass
+    firm = Company.where(type: "Firm").create!(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
@@ -300,6 +315,30 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_unrelated_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
+  end
+
+  def test_where_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
+  end
+
+  def test_where_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").new }
+  end
+
+  def test_where_create_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create }
+  end
+
+  def test_where_create_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create }
+  end
+
+  def test_where_create_bang_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create! }
+  end
+
+  def test_where_create_bang_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create! }
   end
 
   def test_new_with_unrelated_namespaced_type

@@ -353,10 +353,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(1) do
-      assert posts(:welcome).people.empty?
+      assert_empty posts(:welcome).people
     end
 
-    assert posts(:welcome).reload.people.reload.empty?
+    assert_empty posts(:welcome).reload.people.reload
   end
 
   def test_destroy_association
@@ -366,8 +366,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert posts(:welcome).reload.people.empty?
-    assert posts(:welcome).people.reload.empty?
+    assert_empty posts(:welcome).reload.people
+    assert_empty posts(:welcome).people.reload
   end
 
   def test_destroy_all
@@ -377,8 +377,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       end
     end
 
-    assert posts(:welcome).reload.people.empty?
-    assert posts(:welcome).people.reload.empty?
+    assert_empty posts(:welcome).reload.people
+    assert_empty posts(:welcome).people.reload
   end
 
   def test_should_raise_exception_for_destroying_mismatching_records
@@ -538,6 +538,16 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_counter_caches_on_destroy_with_indestructible_through_record
+    post = posts(:welcome)
+    tag  = post.indestructible_tags.create!(name: "doomed")
+    post.update_columns(indestructible_tags_count: post.indestructible_tags.count)
+
+    assert_no_difference "post.reload.indestructible_tags_count" do
+      posts(:welcome).indestructible_tags.destroy(tag)
+    end
+  end
+
   def test_replace_association
     assert_queries(4) { posts(:welcome);people(:david);people(:michael); posts(:welcome).people.reload }
 
@@ -675,10 +685,10 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     end
 
     assert_queries(0) do
-      assert posts(:welcome).people.empty?
+      assert_empty posts(:welcome).people
     end
 
-    assert posts(:welcome).reload.people.reload.empty?
+    assert_empty posts(:welcome).reload.people.reload
   end
 
   def test_association_callback_ordering
@@ -760,9 +770,9 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
   def test_get_ids_for_unloaded_associations_does_not_load_them
     person = people(:michael)
-    assert !person.posts.loaded?
+    assert_not_predicate person.posts, :loaded?
     assert_equal [posts(:welcome).id, posts(:authorless).id].sort, person.post_ids.sort
-    assert !person.posts.loaded?
+    assert_not_predicate person.posts, :loaded?
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
@@ -852,7 +862,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     category = author.named_categories.create(name: "Primary")
     author.named_categories.delete(category)
     assert !Categorization.exists?(author_id: author.id, named_category_name: category.name)
-    assert author.named_categories.reload.empty?
+    assert_empty author.named_categories.reload
   end
 
   def test_collection_singular_ids_getter_with_string_primary_keys
@@ -866,6 +876,14 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     dev = Developer.first
 
     company.developer_ids = [dev.id]
+    assert_equal [dev], company.developers
+  end
+
+  def test_collection_singular_ids_setter_with_required_type_cast
+    company = companies(:rails_core)
+    dev = Developer.first
+
+    company.developer_ids = [dev.id.to_s]
     assert_equal [dev], company.developers
   end
 
@@ -926,8 +944,8 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_through_association_readonly_should_be_false
-    assert !people(:michael).posts.first.readonly?
-    assert !people(:michael).posts.to_a.first.readonly?
+    assert_not_predicate people(:michael).posts.first, :readonly?
+    assert_not_predicate people(:michael).posts.to_a.first, :readonly?
   end
 
   def test_can_update_through_association
@@ -1016,12 +1034,12 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     post.author_categorizations
     proxy = post.send(:association_instance_get, :author_categorizations)
 
-    assert !proxy.stale_target?
+    assert_not_predicate proxy, :stale_target?
     assert_equal authors(:mary).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
 
     post.author_id = authors(:david).id
 
-    assert proxy.stale_target?
+    assert_predicate proxy, :stale_target?
     assert_equal authors(:david).categorizations.sort_by(&:id), post.author_categorizations.sort_by(&:id)
   end
 
@@ -1038,7 +1056,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
 
     assert_includes post.author_addresses, address
     post.author_addresses.delete(address)
-    assert post[:author_count].nil?
+    assert_predicate post[:author_count], :nil?
   end
 
   def test_primary_key_option_on_source
@@ -1298,6 +1316,70 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
         companies: [Company.create]
       )
     end
+  end
+
+  def test_has_many_through_update_ids_with_conditions
+    author = Author.create!(name: "Bill")
+    category = categories(:general)
+
+    author.update(
+      special_categories_with_condition_ids: [category.id],
+      nonspecial_categories_with_condition_ids: [category.id]
+    )
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [category.id], author.nonspecial_categories_with_condition_ids
+
+    author.update(nonspecial_categories_with_condition_ids: [])
+    author.reload
+
+    assert_equal [category.id], author.special_categories_with_condition_ids
+    assert_equal [], author.nonspecial_categories_with_condition_ids
+  end
+
+  def test_single_has_many_through_association_with_unpersisted_parent_instance
+    post_with_single_has_many_through = Class.new(Post) do
+      def self.name; "PostWithSingleHasManyThrough"; end
+      has_many :subscriptions, through: :author
+    end
+    post = post_with_single_has_many_through.new
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on single has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on single has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
+  end
+
+  def test_nested_has_many_through_association_with_unpersisted_parent_instance
+    post_with_nested_has_many_through = Class.new(Post) do
+      def self.name; "PostWithNestedHasManyThrough"; end
+      has_many :books, through: :author
+      has_many :subscriptions, through: :books
+    end
+    post = post_with_nested_has_many_through.new
+
+    post.author = authors(:mary)
+    book1 = Book.create!(name: "essays on nested has many through associations 1")
+    post.author.books << book1
+    subscription1 = Subscription.first
+    book1.subscriptions << subscription1
+    assert_equal [subscription1], post.subscriptions.to_a
+
+    post.author = authors(:bob)
+    book2 = Book.create!(name: "essays on nested has many through associations 2")
+    post.author.books << book2
+    subscription2 = Subscription.second
+    book2.subscriptions << subscription2
+    assert_equal [subscription2], post.subscriptions.to_a
   end
 
   private

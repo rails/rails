@@ -50,7 +50,7 @@ class ActiveStorage::Filename
     @filename.encode(Encoding::UTF_8, invalid: :replace, undef: :replace, replace: "�").strip.tr("\u{202E}%$|:;/\t\r\n\\", "-")
   end
 
-  def parameters
+  def parameters #:nodoc:
     Parameters.new self
   end
 

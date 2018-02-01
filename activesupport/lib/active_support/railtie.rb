@@ -10,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
-      if app.config.active_support.respond_to?(:use_authenticated_message_encryption)
-        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
-          app.config.active_support.use_authenticated_message_encryption
+      config.after_initialize do
+        unless app.config.active_support.use_authenticated_message_encryption.nil?
+          ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+            app.config.active_support.use_authenticated_message_encryption
+        end
       end
     end
 
@@ -64,6 +66,14 @@ module ActiveSupport
       app.config.active_support.each do |k, v|
         k = "#{k}="
         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
+      end
+    end
+
+    initializer "active_support.set_hash_digest_class" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_sha1_digests
+          ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+        end
       end
     end
   end

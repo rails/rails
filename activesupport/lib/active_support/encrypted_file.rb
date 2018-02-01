@@ -26,11 +26,11 @@ module ActiveSupport
     end
 
 
-    attr_reader :content_path, :key_path, :env_key
+    attr_reader :content_path, :key_path, :env_key, :raise_if_missing_key
 
-    def initialize(content_path:, key_path:, env_key:)
+    def initialize(content_path:, key_path:, env_key:, raise_if_missing_key:)
       @content_path, @key_path = Pathname.new(content_path), Pathname.new(key_path)
-      @env_key = env_key
+      @env_key, @raise_if_missing_key = env_key, raise_if_missing_key
     end
 
     def key
@@ -38,7 +38,7 @@ module ActiveSupport
     end
 
     def read
-      if content_path.exist?
+      if !key.nil? && content_path.exist?
         decrypt content_path.binread
       else
         raise MissingContentError, content_path
@@ -93,7 +93,7 @@ module ActiveSupport
       end
 
       def handle_missing_key
-        raise MissingKeyError, key_path: key_path, env_key: env_key
+        raise MissingKeyError, key_path: key_path, env_key: env_key if raise_if_missing_key
       end
   end
 end

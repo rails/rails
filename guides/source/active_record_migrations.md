@@ -353,8 +353,7 @@ create_table :products, options: "ENGINE=BLACKHOLE" do |t|
 end
 ```
 
-will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table
-(when using MySQL or MariaDB, the default is `ENGINE=InnoDB`).
+will append `ENGINE=BLACKHOLE` to the SQL statement used to create the table.
 
 Also you can pass the `:comment` option with any description for the table
 that will be stored in database itself and can be viewed with database administration

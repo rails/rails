@@ -58,6 +58,13 @@ class ExceptionsTest < ActiveJob::TestCase
     end
   end
 
+  test "custom handling of discarded job" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "CustomDiscardableError", 2
+      assert_equal "Dealt with a job that was discarded in a custom way", JobBuffer.last_value
+    end
+  end
+
   test "custom handling of job that exceeds retry attempts" do
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6

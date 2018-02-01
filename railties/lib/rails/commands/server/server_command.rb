@@ -27,7 +27,7 @@ module Rails
         app = super
         if app.is_a?(Class)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Use `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
+            Using `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
             Please change `run #{app}` to `run Rails.application` in config.ru.
           MSG
         end

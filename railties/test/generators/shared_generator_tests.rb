@@ -92,7 +92,9 @@ module SharedGeneratorTests
     end
 
     generator([destination_root], template: path).stub(:open, check_open, template) do
-      quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+      generator.stub :bundle_command, nil do
+        quietly { assert_match(/It works!/, capture(:stdout) { generator.invoke_all }) }
+      end
     end
   end
 
@@ -100,15 +102,6 @@ module SharedGeneratorTests
     assert_not_called(generator([destination_root], skip_gemfile: true), :bundle_command) do
       quietly { generator.invoke_all }
       assert_no_file "Gemfile"
-    end
-  end
-
-  def test_skip_bundle
-    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
-      quietly { generator.invoke_all }
-      # skip_bundle is only about running bundle install, ensure the Gemfile is still
-      # generated.
-      assert_file "Gemfile"
     end
   end
 
@@ -252,7 +245,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 
@@ -283,7 +275,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 

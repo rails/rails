@@ -95,11 +95,11 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
   end
 
   def test_beginning_of_week_in_calendar_reform
-    assert_equal Date.new(1582, 10, 1), Date.new(1582, 10, 15).beginning_of_week #friday
+    assert_equal Date.new(1582, 10, 1), Date.new(1582, 10, 15).beginning_of_week # friday
   end
 
   def test_end_of_week_in_calendar_reform
-    assert_equal Date.new(1582, 10, 17), Date.new(1582, 10, 4).end_of_week #thursday
+    assert_equal Date.new(1582, 10, 17), Date.new(1582, 10, 4).end_of_week # thursday
   end
 
   def test_end_of_year
@@ -144,7 +144,7 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     assert_equal Date.new(2012, 9, 28), Date.new(2005, 2, 28).advance(years: 7, months: 7)
     assert_equal Date.new(2013, 10, 3), Date.new(2005, 2, 28).advance(years: 7, months: 19, days: 5)
     assert_equal Date.new(2013, 10, 17), Date.new(2005, 2, 28).advance(years: 7, months: 19, weeks: 2, days: 5)
-    assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29).advance(years: 1) #leap day plus one year
+    assert_equal Date.new(2005, 2, 28), Date.new(2004, 2, 29).advance(years: 1) # leap day plus one year
   end
 
   def test_advance_does_first_years_and_then_days
@@ -386,11 +386,11 @@ end
 
 class DateExtBehaviorTest < ActiveSupport::TestCase
   def test_date_acts_like_date
-    assert Date.new.acts_like_date?
+    assert_predicate Date.new, :acts_like_date?
   end
 
   def test_blank?
-    assert_not Date.new.blank?
+    assert_not_predicate Date.new, :blank?
   end
 
   def test_freeze_doesnt_clobber_memoized_instance_methods

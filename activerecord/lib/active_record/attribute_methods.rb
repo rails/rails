@@ -456,7 +456,7 @@ module ActiveRecord
         arel_table = self.class.arel_table
 
         attribute_names.each do |name|
-          attrs[arel_table[name]] = typecasted_attribute_value(name)
+          attrs[arel_table[name]] = _read_attribute(name)
         end
         attrs
       end
@@ -482,10 +482,6 @@ module ActiveRecord
 
       def pk_attribute?(name)
         name == self.class.primary_key
-      end
-
-      def typecasted_attribute_value(name)
-        _read_attribute(name)
       end
   end
 end

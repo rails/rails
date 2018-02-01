@@ -97,7 +97,7 @@ module ActiveStorage
 
     # Returns a signed, temporary URL that a direct upload file can be PUT to on the +key+.
     # The URL will be valid for the amount of seconds specified in +expires_in+.
-    # You most also provide the +content_type+, +content_length+, and +checksum+ of the file
+    # You must also provide the +content_type+, +content_length+, and +checksum+ of the file
     # that will be uploaded. All these attributes will be validated by the service upon upload.
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       raise NotImplementedError

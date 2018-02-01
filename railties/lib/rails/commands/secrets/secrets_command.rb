@@ -56,7 +56,7 @@ module Rails
       private
         def deprecate_in_favor_of_credentials_and_exit
           say "Encrypted secrets is deprecated in favor of credentials. Run:"
-          say "bin/rails credentials --help"
+          say "bin/rails credentials:help"
 
           exit 1
         end

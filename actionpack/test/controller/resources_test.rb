@@ -307,7 +307,7 @@ class ResourcesTest < ActionController::TestCase
         set.draw do
           resources :messages do
             member do
-              match :mark  , via: method
+              match :mark, via: method
               match :unmark, via: method
             end
           end

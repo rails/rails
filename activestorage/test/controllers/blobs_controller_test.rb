@@ -8,6 +8,11 @@ class ActiveStorage::BlobsControllerTest < ActionDispatch::IntegrationTest
     @blob = create_file_blob filename: "racecar.jpg"
   end
 
+  test "showing blob with invalid signed ID" do
+    get rails_service_blob_url("invalid", "racecar.jpg")
+    assert_response :not_found
+  end
+
   test "showing blob utilizes browser caching" do
     get rails_blob_url(@blob)
 

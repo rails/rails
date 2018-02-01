@@ -6,6 +6,7 @@ require "capybara/dsl"
 require "capybara/minitest"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
+require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"
@@ -69,6 +70,9 @@ module ActionDispatch
   # size of the browser screen. These two options are not applicable for
   # headless drivers and will be silently ignored if passed.
   #
+  # Headless browsers such as headless Chrome and headless Firefox are also supported.
+  # You can use these browsers by setting the +:using+ argument to +:headless_chrome+ or +:headless_firefox+.
+  #
   # To use a headless driver, like Poltergeist, update your Gemfile to use
   # Poltergeist instead of Selenium and then declare the driver name in the
   # +application_system_test_case.rb+ file. In this case, you would leave out
@@ -121,11 +125,15 @@ module ActionDispatch
     #
     #   driven_by :poltergeist
     #
-    #   driven_by :selenium, using: :firefox
+    #   driven_by :selenium, screen_size: [800, 800]
+    #
+    #   driven_by :selenium, using: :chrome
     #
     #   driven_by :selenium, using: :headless_chrome
     #
-    #   driven_by :selenium, screen_size: [800, 800]
+    #   driven_by :selenium, using: :firefox
+    #
+    #   driven_by :selenium, using: :headless_firefox
     def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
       self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
     end

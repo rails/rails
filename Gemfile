@@ -19,6 +19,7 @@ gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
+gem "webmock"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)
@@ -51,6 +52,7 @@ end
 gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
+gem "connection_pool"
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
@@ -58,15 +60,15 @@ gem "bootsnap", ">= 1.1.0", require: false
 # Active Job.
 group :job do
   gem "resque", require: false
-  gem "resque-scheduler", github: "resque/resque-scheduler", require: false
+  gem "resque-scheduler", require: false
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
+  gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
-  #TODO: add qu after it support Rails 5.1
+  # TODO: add qu after it support Rails 5.1
   # gem 'qu-rails', github: "bkeepers/qu", branch: "master", require: false
   # gem "qu-redis", require: false
   gem "delayed_job_active_record", require: false
@@ -119,7 +121,7 @@ group :test do
 end
 
 platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
-  gem "nokogiri", ">= 1.6.8"
+  gem "nokogiri", ">= 1.8.1"
 
   # Needed for compiling the ActionDispatch::Journey parser.
   gem "racc", ">=1.4.6", require: false

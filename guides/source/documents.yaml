@@ -72,7 +72,7 @@
       url: active_support_core_extensions.html
       description: This guide documents the Ruby core extensions defined in Active Support.
     -
-      name: Rails Internationalization API
+      name: Rails Internationalization (I18n) API
       url: i18n.html
       description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
@@ -83,6 +83,10 @@
       name: Active Job Basics
       url: active_job_basics.html
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
+    -
+      name: Active Storage Overview
+      url: active_storage_overview.html
+      description: This guide covers how to attach files to your Active Record models.
     -
       name: Testing Rails Applications
       url: testing.html
@@ -104,7 +108,7 @@
       url: command_line.html
       description: This guide covers the command line tools provided by Rails.
     -
-      name: Asset Pipeline
+      name: The Asset Pipeline
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
     -
@@ -151,7 +155,7 @@
       url: rails_on_rack.html
       description: This guide covers Rails integration with Rack and interfacing with other Rack components.
     -
-      name: Creating and Customizing Rails Generators
+      name: Creating and Customizing Rails Generators & Templates
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
     -
@@ -183,7 +187,7 @@
   name: Maintenance Policy
   documents:
     -
-      name: Maintenance Policy
+      name: Maintenance Policy for Ruby on Rails
       url: maintenance_policy.html
       description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
 -

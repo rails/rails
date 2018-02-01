@@ -60,7 +60,7 @@ module ActiveRecord
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+        primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -101,7 +101,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         configure_connection
@@ -144,7 +144,7 @@ module ActiveRecord
       end
 
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -290,19 +290,18 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: https://www.sqlite.org/lang_altertable.html
-      # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_type?(type)
-        type.to_sym != :primary_key
+      def valid_alter_table_type?(type, options = {})
+        !invalid_alter_table_type?(type, options)
       end
+      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type)
-          super(table_name, column_name, type, options)
-        else
+        if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
           end
+        else
+          super
         end
       end
 
@@ -368,8 +367,22 @@ module ActiveRecord
       end
 
       def insert_fixtures(rows, table_name)
-        rows.each do |row|
-          insert_fixture(row, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
+      end
+
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+
+            fixture_set.each do |table_name, rows|
+              rows.each { |row| insert_fixture(row, table_name) }
+            end
+          end
         end
       end
 
@@ -385,6 +398,12 @@ module ActiveRecord
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+
+        # See: https://www.sqlite.org/lang_altertable.html
+        # SQLite has an additional restriction on the ALTER TABLE statement
+        def invalid_alter_table_type?(type, options)
+          type.to_sym == :primary_key || options[:primary_key]
+        end
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
@@ -407,18 +426,21 @@ module ActiveRecord
           options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
-            @definition.primary_key(from_primary_key) if from_primary_key.present?
+            if from_primary_key.is_a?(Array)
+              @definition.primary_keys from_primary_key
+            end
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 limit: column.limit, default: column.default,
                 precision: column.precision, scale: column.scale,
-                null: column.null, collation: column.collation)
+                null: column.null, collation: column.collation,
+                primary_key: column_name == from_primary_key
+              )
             end
             yield @definition if block_given?
           end
@@ -431,6 +453,9 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
+            # indexes sqlite creates for internal use start with `sqlite_` and
+            # don't need to be copied
+            next if name.starts_with?("sqlite_")
             if to == "a#{from}"
               name = "t#{name}"
             elsif from == "a#{to}"
@@ -446,6 +471,7 @@ module ActiveRecord
               # index name can't be the same
               opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
+              opts[:where] = index.where if index.where
               add_index(to, columns, opts)
             end
           end

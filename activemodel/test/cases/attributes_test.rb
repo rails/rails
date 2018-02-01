@@ -33,7 +33,7 @@ module ActiveModel
 
       assert_equal 2, data.integer_field
       assert_equal "Rails FTW", data.string_field
-      assert_equal BigDecimal.new("12.3"), data.decimal_field
+      assert_equal BigDecimal("12.3"), data.decimal_field
       assert_equal "default string", data.string_with_default
       assert_equal Date.new(2016, 1, 1), data.date_field
       assert_equal false, data.boolean_field
@@ -63,6 +63,15 @@ module ActiveModel
       data = GrandchildModelForAttributesTest.new(integer_field: "4.4")
 
       assert_equal "4.4", data.integer_field
+    end
+
+    test "attributes with proc defaults can be marshalled" do
+      data = ModelForAttributesTest.new
+      attributes = data.instance_variable_get(:@attributes)
+      round_tripped = Marshal.load(Marshal.dump(data))
+      new_attributes = round_tripped.instance_variable_get(:@attributes)
+
+      assert_equal attributes, new_attributes
     end
   end
 end

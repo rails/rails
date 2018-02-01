@@ -11,8 +11,9 @@ module ActiveSupport
     delegate :[], :fetch, to: :config
     delegate_missing_to :options
 
-    def initialize(config_path:, key_path:, env_key:)
-      super content_path: config_path, key_path: key_path, env_key: env_key
+    def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
+      super content_path: config_path, key_path: key_path,
+        env_key: env_key, raise_if_missing_key: raise_if_missing_key
     end
 
     # Allow a config to be started without a file present

@@ -9,7 +9,7 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
     end
   end
 
-  def test_response_has_default_headers
+  def test_response_does_not_have_default_headers
     original_default_headers = ActionDispatch::Response.default_headers
 
     ActionDispatch::Response.default_headers = {
@@ -23,9 +23,9 @@ class MetalControllerInstanceTests < ActiveSupport::TestCase
       "rack.input" => -> {}
     )[1]
 
-    refute response_headers.key?("X-Frame-Options")
-    refute response_headers.key?("X-Content-Type-Options")
-    refute response_headers.key?("X-XSS-Protection")
+    assert_not response_headers.key?("X-Frame-Options")
+    assert_not response_headers.key?("X-Content-Type-Options")
+    assert_not response_headers.key?("X-XSS-Protection")
   ensure
     ActionDispatch::Response.default_headers = original_default_headers
   end

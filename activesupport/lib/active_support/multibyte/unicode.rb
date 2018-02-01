@@ -276,7 +276,7 @@ module ActiveSupport
           reorder_characters(decompose(:compatibility, codepoints))
         when :kc
           compose(reorder_characters(decompose(:compatibility, codepoints)))
-          else
+        else
           raise ArgumentError, "#{form} is not a valid normalization variant", caller
         end.pack("U*".freeze)
       end

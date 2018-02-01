@@ -36,7 +36,7 @@ module ActiveRecord
       cloned = Topic.new
       clone = cloned.clone
       cloned.freeze
-      assert_not clone.frozen?
+      assert_not_predicate clone, :frozen?
     end
   end
 end

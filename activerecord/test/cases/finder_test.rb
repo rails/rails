@@ -270,27 +270,27 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_exists_with_includes_limit_and_empty_result
-    assert_equal false, Topic.includes(:replies).limit(0).exists?
-    assert_equal false, Topic.includes(:replies).limit(1).where("0 = 1").exists?
+    assert_no_queries { assert_equal false, Topic.includes(:replies).limit(0).exists? }
+    assert_queries(1) { assert_equal false, Topic.includes(:replies).limit(1).where("0 = 1").exists? }
   end
 
   def test_exists_with_distinct_association_includes_and_limit
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+    unique_categorized_posts = author.unique_categorized_posts.includes(:special_comments)
+    assert_no_queries { assert_equal false, unique_categorized_posts.limit(0).exists? }
+    assert_queries(1) { assert_equal true, unique_categorized_posts.limit(1).exists? }
   end
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(1).exists?
+    unique_categorized_posts = author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC")
+    assert_no_queries { assert_equal false, unique_categorized_posts.limit(0).exists? }
+    assert_queries(1) { assert_equal true, unique_categorized_posts.limit(1).exists? }
   end
 
   def test_exists_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
-    assert_nothing_raised do
-      developer = developers(:david)
-      developer.ratings.includes(comment: :post).where(posts: { id: 1 }).exists?
-    end
+    ratings = developers(:david).ratings.includes(comment: :post).where(posts: { id: 1 })
+    assert_queries(1) { assert_not_predicate ratings.limit(1), :exists? }
   end
 
   def test_exists_with_empty_table_and_no_args_given
@@ -565,7 +565,7 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(4).second_to_last
     assert_nil Topic.offset(5).second_to_last
 
-    #test with limit
+    # test with limit
     assert_nil Topic.limit(1).second
     assert_nil Topic.limit(1).second_to_last
   end
@@ -648,13 +648,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_with_integer_and_order_should_use_sql_limit
     relation = Topic.order("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_with_integer_and_reorder_should_use_sql_limit
     relation = Topic.reorder("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_on_loaded_relation_should_not_use_sql
@@ -679,10 +679,32 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
 
+    assert_equal comments.offset(2).to_a.last, comments.offset(2).last
+    assert_equal comments.offset(2).to_a.last(2), comments.offset(2).last(2)
+    assert_equal comments.offset(2).to_a.last(3), comments.offset(2).last(3)
+
     comments = comments.offset(1)
     assert_equal comments.limit(2).to_a.last, comments.limit(2).last
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
+  end
+
+  def test_first_on_relation_with_limit_and_offset
+    post = posts("sti_comments")
+
+    comments = post.comments.order(id: :asc)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+
+    assert_equal comments.offset(2).to_a.first, comments.offset(2).first
+    assert_equal comments.offset(2).to_a.first(2), comments.offset(2).first(2)
+    assert_equal comments.offset(2).to_a.first(3), comments.offset(2).first(3)
+
+    comments = comments.offset(1)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -844,6 +866,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, balance
     found_customer = Customer.where(balance: balance).first
     assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_three_mappings_array
+    david_address = customers(:david).address
+    zaphod_address = customers(:zaphod).address
+    barney_address = customers(:barney).address
+    assert_kind_of Address, david_address
+    assert_kind_of Address, zaphod_address
+    found_customers = Customer.where(address: [david_address, zaphod_address, barney_address])
+    assert_equal [customers(:david), customers(:zaphod), customers(:barney)], found_customers.sort_by(&:id)
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_array
+    david_balance = customers(:david).balance
+    zaphod_balance = customers(:zaphod).balance
+    assert_kind_of Money, david_balance
+    assert_kind_of Money, zaphod_balance
+    found_customers = Customer.where(balance: [david_balance, zaphod_balance])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
@@ -1051,14 +1092,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
   end
 
-  def test_find_last_with_offset
-    devs = Developer.order("id")
-
-    assert_equal devs[2], Developer.offset(2).first
-    assert_equal devs[-3], Developer.offset(2).last
-    assert_equal devs[-3], Developer.offset(2).order("id DESC").first
-  end
-
   def test_find_by_nil_attribute
     topic = Topic.find_by_last_read nil
     assert_not_nil topic
@@ -1238,7 +1271,7 @@ class FinderTest < ActiveRecord::TestCase
 
   test "find_by with associations" do
     assert_equal authors(:david), Post.find_by(author: authors(:david)).author
-    assert_equal authors(:mary) , Post.find_by(author: authors(:mary)).author
+    assert_equal authors(:mary), Post.find_by(author: authors(:mary)).author
   end
 
   test "find_by doesn't have implicit ordering" do
@@ -1303,12 +1336,12 @@ class FinderTest < ActiveRecord::TestCase
 
   test "#skip_query_cache! for #exists? with a limited eager load" do
     Topic.cache do
-      assert_queries(2) do
+      assert_queries(1) do
         Topic.eager_load(:replies).limit(1).exists?
         Topic.eager_load(:replies).limit(1).exists?
       end
 
-      assert_queries(4) do
+      assert_queries(2) do
         Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
         Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
       end

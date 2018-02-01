@@ -95,6 +95,7 @@ module ActiveRecord
             if options_sql = options[:options]
               create_sql << " #{options_sql}"
             end
+            create_sql
           end
 
           def column_options(o)

@@ -107,9 +107,9 @@ class ControllerInstanceTests < ActiveSupport::TestCase
   end
 
   def test_performed?
-    assert !@empty.performed?
+    assert_not_predicate @empty, :performed?
     @empty.response_body = ["sweet"]
-    assert @empty.performed?
+    assert_predicate @empty, :performed?
   end
 
   def test_action_methods

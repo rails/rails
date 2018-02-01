@@ -65,7 +65,9 @@ module ActionView
         yielder = lambda { |*name| view._layout_for(*name) }
 
         instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
+          outer_config = I18n.config
           fiber = Fiber.new do
+            I18n.config = outer_config
             if layout
               layout.render(view, locals, output, &yielder)
             else

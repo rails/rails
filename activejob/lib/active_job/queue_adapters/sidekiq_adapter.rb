@@ -18,7 +18,7 @@ module ActiveJob
     #   Rails.application.config.active_job.queue_adapter = :sidekiq
     class SidekiqAdapter
       def enqueue(job) #:nodoc:
-        #Sidekiq::Client does not support symbols as keys
+        # Sidekiq::Client does not support symbols as keys
         job.provider_job_id = Sidekiq::Client.push \
           "class"   => JobWrapper,
           "wrapped" => job.class.to_s,

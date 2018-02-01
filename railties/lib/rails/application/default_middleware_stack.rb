@@ -70,6 +70,7 @@ module Rails
           middleware.use ::Rack::Head
           middleware.use ::Rack::ConditionalGet
           middleware.use ::Rack::ETag, "no-cache"
+          middleware.use ::Rack::TempfileReaper
         end
       end
 

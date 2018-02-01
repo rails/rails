@@ -10,7 +10,7 @@ module ActiveRecord
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
     CLAUSE_METHODS = [:where, :having, :from]
-    INVALID_METHODS_FOR_DELETE_ALL = [:limit, :distinct, :offset, :group, :having]
+    INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
     VALUE_METHODS = MULTI_VALUE_METHODS + SINGLE_VALUE_METHODS + CLAUSE_METHODS
 
@@ -22,7 +22,7 @@ module ActiveRecord
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(klass, table, predicate_builder, values = {})
+    def initialize(klass, table: klass.arel_table, predicate_builder: klass.predicate_builder, values: {})
       @klass  = klass
       @table  = table
       @values = values
@@ -52,8 +52,8 @@ module ActiveRecord
     #
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
-    def new(*args, &block)
-      scoping { @klass.new(*args, &block) }
+    def new(attributes = nil, &block)
+      scoping { klass.new(scope_for_create(attributes), &block) }
     end
 
     alias build new
@@ -77,8 +77,12 @@ module ActiveRecord
     #
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
-    def create(*args, &block)
-      scoping { @klass.create(*args, &block) }
+    def create(attributes = nil, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create(attr, &block) }
+      else
+        scoping { klass.create(scope_for_create(attributes), &block) }
+      end
     end
 
     # Similar to #create, but calls
@@ -87,8 +91,12 @@ module ActiveRecord
     #
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
-    def create!(*args, &block)
-      scoping { @klass.create!(*args, &block) }
+    def create!(attributes = nil, &block)
+      if attributes.is_a?(Array)
+        attributes.collect { |attr| create!(attr, &block) }
+      else
+        scoping { klass.create!(scope_for_create(attributes), &block) }
+      end
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -306,10 +314,10 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
 
-      stmt.set Arel.sql(@klass.send(:sanitize_sql_for_assignment, updates))
+      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
       stmt.table(table)
 
-      if has_join_values?
+      if has_join_values? || offset_value
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
       else
         stmt.key = arel_attribute(primary_key)
@@ -357,8 +365,8 @@ module ActiveRecord
     #
     # If an invalid method is supplied, #delete_all raises an ActiveRecordError:
     #
-    #   Post.limit(100).delete_all
-    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support limit
+    #   Post.distinct.delete_all
+    #   # => ActiveRecord::ActiveRecordError: delete_all doesn't support distinct
     def delete_all
       invalid_methods = INVALID_METHODS_FOR_DELETE_ALL.select do |method|
         value = get_value(method)
@@ -376,7 +384,7 @@ module ActiveRecord
       stmt = Arel::DeleteManager.new
       stmt.from(table)
 
-      if has_join_values?
+      if has_join_values? || has_limit_or_offset?
         @klass.connection.join_to_delete(stmt, arel, arel_attribute(primary_key))
       else
         stmt.wheres = arel.constraints
@@ -422,7 +430,7 @@ module ActiveRecord
                     relation = self
 
                     if eager_loading?
-                      find_with_associations { |rel, _| relation = rel }
+                      apply_join_dependency { |rel, _| relation = rel }
                     end
 
                     conn = klass.connection
@@ -440,8 +448,10 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create
-      where_values_hash.merge!(create_with_value.stringify_keys)
+    def scope_for_create(attributes = nil)
+      scope = where_values_hash.merge!(create_with_value.stringify_keys)
+      scope.merge!(attributes) if attributes
+      scope
     end
 
     # Returns true if relation needs eager loading.
@@ -523,7 +533,7 @@ module ActiveRecord
         skip_query_cache_if_necessary do
           @records =
             if eager_loading?
-              find_with_associations do |relation, join_dependency|
+              apply_join_dependency do |relation, join_dependency|
                 if ActiveRecord::NullRelation === relation
                   []
                 else

@@ -29,11 +29,16 @@ module ApplicationTests
       server.app
 
       log = File.read(Rails.application.config.paths["log"].first)
-      assert_match(/DEPRECATION WARNING: Use `Rails::Application` subclass to start the server is deprecated/, log)
+      assert_match(/DEPRECATION WARNING: Using `Rails::Application` subclass to start the server is deprecated/, log)
     end
 
     test "restart rails server with custom pid file path" do
       skip "PTY unavailable" unless available_pty?
+
+      File.open("#{app_path}/config/boot.rb", "w") do |f|
+        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile.to_s}'"
+        f.puts "require 'bundler/setup'"
+      end
 
       master, slave = PTY.open
       pid = nil

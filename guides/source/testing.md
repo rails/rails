@@ -1,7 +1,7 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-A Guide to Testing Rails Applications
-=====================================
+Testing Rails Applications
+==========================
 
 This guide covers built-in mechanisms in Rails for testing your application.
 
@@ -319,6 +319,8 @@ specify to make your test failure messages clearer.
 | `assert_not_includes( collection, obj, [msg] )`                  | Ensures that `obj` is not in `collection`.|
 | `assert_in_delta( expected, actual, [delta], [msg] )`            | Ensures that the numbers `expected` and `actual` are within `delta` of each other.|
 | `assert_not_in_delta( expected, actual, [delta], [msg] )`        | Ensures that the numbers `expected` and `actual` are not within `delta` of each other.|
+| `assert_in_epsilon ( expected, actual, [epsilon], [msg] )`       | Ensures that the numbers `expected` and `actual` have a relative error less than `epsilon`.|
+| `assert_not_in_epsilon ( expected, actual, [epsilon], [msg] )`   | Ensures that the numbers `expected` and `actual` don't have a relative error less than `epsilon`.|
 | `assert_throws( symbol, [msg] ) { block }`                       | Ensures that the given block throws the symbol.|
 | `assert_raises( exception1, exception2, ... ) { block }`         | Ensures that the given block raises one of the given exceptions.|
 | `assert_instance_of( class, obj, [msg] )`                        | Ensures that `obj` is an instance of `class`.|
@@ -671,7 +673,8 @@ class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
 end
 ```
 
-If you want to use a headless browser, you could use Headless Chrome by adding `headless_chrome` in the `:using` argument.
+If you want to use a headless browser, you could use Headless Chrome or Headless Firefox by adding
+`headless_chrome` or `headless_firefox` in the `:using` argument.
 
 ```ruby
 require "test_helper"
@@ -775,7 +778,7 @@ Then the test will fill in the title and body of the article with the specified
 text. Once the fields are filled in, "Create Article" is clicked on which will
 send a POST request to create the new article in the database.
 
-We will be redirected back to the the articles index page and there we assert
+We will be redirected back to the articles index page and there we assert
 that the text from the new article's title is on the articles index page.
 
 #### Taking it further
@@ -1504,7 +1507,7 @@ Testing Jobs
 ------------
 
 Since your custom jobs can be queued at different levels inside your application,
-you'll need to test both, the jobs themselves (their behavior when they get enqueued)
+you'll need to test both the jobs themselves (their behavior when they get enqueued)
 and that other entities correctly enqueue them.
 
 ### A Basic Test Case

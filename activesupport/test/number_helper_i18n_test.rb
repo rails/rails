@@ -35,7 +35,7 @@ module ActiveSupport
               thousand: "t",
               million: "m",
               billion: "b",
-              trillion: "t" ,
+              trillion: "t",
               quadrillion: "q"
             }
           }
@@ -77,10 +77,10 @@ module ActiveSupport
     end
 
     def test_number_with_i18n_precision
-      #Delimiter was set to ""
+      # Delimiter was set to ""
       assert_equal("10000", number_to_rounded(10000, locale: "ts"))
 
-      #Precision inherited and significant was set
+      # Precision inherited and significant was set
       assert_equal("1.00", number_to_rounded(1.0, locale: "ts"))
     end
 
@@ -90,7 +90,7 @@ module ActiveSupport
     end
 
     def test_number_with_i18n_delimiter
-      #Delimiter "," and separator "."
+      # Delimiter "," and separator "."
       assert_equal("1,000,000.234", number_to_delimited(1000000.234, locale: "ts"))
     end
 
@@ -114,7 +114,7 @@ module ActiveSupport
     end
 
     def test_number_to_i18n_human_size
-      #b for bytes and k for kbytes
+      # b for bytes and k for kbytes
       assert_equal("2 k", number_to_human_size(2048, locale: "ts"))
       assert_equal("42 b", number_to_human_size(42, locale: "ts"))
     end
@@ -125,11 +125,11 @@ module ActiveSupport
     end
 
     def test_number_to_human_with_default_translation_scope
-      #Using t for thousand
+      # Using t for thousand
       assert_equal "2 t", number_to_human(2000, locale: "ts")
-      #Significant was set to true with precision 2, using b for billion
+      # Significant was set to true with precision 2, using b for billion
       assert_equal "1.2 b", number_to_human(1234567890, locale: "ts")
-      #Using pluralization (Ten/Tens and Tenth/Tenths)
+      # Using pluralization (Ten/Tens and Tenth/Tenths)
       assert_equal "1 Tenth", number_to_human(0.1, locale: "ts")
       assert_equal "1.3 Tenth", number_to_human(0.134, locale: "ts")
       assert_equal "2 Tenths", number_to_human(0.2, locale: "ts")
@@ -144,7 +144,7 @@ module ActiveSupport
     end
 
     def test_number_to_human_with_custom_translation_scope
-      #Significant was set to true with precision 2, with custom translated units
+      # Significant was set to true with precision 2, with custom translated units
       assert_equal "4.3 cm", number_to_human(0.0432, locale: "ts", units: :custom_units_for_number_to_human)
     end
   end

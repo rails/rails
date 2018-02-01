@@ -13,6 +13,7 @@ module ActiveRecord
 
     setup do
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
+      Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
 
       @connection = ActiveRecord::Base.connection
       @connection.clear_cache!
@@ -31,6 +32,7 @@ module ActiveRecord
       @connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
+      Thread.report_on_exception = @original_report_on_exception if Thread.respond_to?(:report_on_exception)
     end
 
     test "raises Deadlocked when a deadlock is encountered" do

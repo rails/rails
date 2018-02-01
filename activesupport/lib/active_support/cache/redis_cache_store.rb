@@ -47,9 +47,11 @@ module ActiveSupport
         reconnect_attempts: 0,
       }
 
-      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) {
-        logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{e.class}: #{e.message}" } if logger
-      }
+      DEFAULT_ERROR_HANDLER = -> (method:, returning:, exception:) do
+        if logger
+          logger.error { "RedisCacheStore: #{method} failed, returned #{returning.inspect}: #{exception.class}: #{exception.message}" }
+        end
+      end
 
       DELETE_GLOB_LUA = "for i, name in ipairs(redis.call('KEYS', ARGV[1])) do redis.call('DEL', name); end"
       private_constant :DELETE_GLOB_LUA
@@ -226,7 +228,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
         instrument :increment, name, amount: amount do
-          redis.incrby normalize_key(name, options), amount
+          failsafe :increment do
+            redis.incrby normalize_key(name, options), amount
+          end
         end
       end
 
@@ -240,7 +244,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
         instrument :decrement, name, amount: amount do
-          redis.decrby normalize_key(name, options), amount
+          failsafe :decrement do
+            redis.decrby normalize_key(name, options), amount
+          end
         end
       end
 
@@ -301,7 +307,10 @@ module ActiveSupport
           options = merged_options(options)
 
           keys = names.map { |name| normalize_key(name, options) }
-          values = redis.mget(*keys)
+
+          values = failsafe(:read_multi_mget, returning: {}) do
+            redis.mget(*keys)
+          end
 
           names.zip(values).each_with_object({}) do |(name, value), results|
             if value
@@ -326,7 +335,7 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          failsafe :write_entry do
+          failsafe :write_entry, returning: false do
             if unless_exist || expires_in
               modifiers = {}
               modifiers[:nx] = unless_exist
@@ -361,12 +370,12 @@ module ActiveSupport
 
         # Truncate keys that exceed 1kB.
         def normalize_key(key, options)
-          truncate_key super
+          truncate_key super.b
         end
 
         def truncate_key(key)
           if key.bytesize > max_key_bytesize
-            suffix = ":sha2:#{Digest::SHA2.hexdigest(key)}"
+            suffix = ":sha2:#{::Digest::SHA2.hexdigest(key)}"
             truncate_at = max_key_bytesize - suffix.bytesize
             "#{key.byteslice(0, truncate_at)}#{suffix}"
           else

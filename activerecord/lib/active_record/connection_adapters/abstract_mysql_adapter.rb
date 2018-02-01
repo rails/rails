@@ -117,11 +117,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
       end
 
       def native_database_types
@@ -249,7 +249,7 @@ module ActiveRecord
       #   create_database 'matt_development', charset: :big5
       def create_database(name, options = {})
         if options[:collation]
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')} COLLATE #{quote_table_name(options[:collation])}"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         else
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
         end
@@ -290,10 +290,6 @@ module ActiveRecord
           WHERE table_schema = #{scope[:schema]}
             AND table_name = #{scope[:name]}
         SQL
-      end
-
-      def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "ENGINE=InnoDB", **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
@@ -403,12 +399,13 @@ module ActiveRecord
                  fk.constraint_name AS 'name',
                  rc.update_rule AS 'on_update',
                  rc.delete_rule AS 'on_delete'
-          FROM information_schema.key_column_usage fk
-          JOIN information_schema.referential_constraints rc
+          FROM information_schema.referential_constraints rc
+          JOIN information_schema.key_column_usage fk
           USING (constraint_schema, constraint_name)
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{scope[:schema]}
             AND fk.table_name = #{scope[:name]}
+            AND rc.constraint_schema = #{scope[:schema]}
             AND rc.table_name = #{scope[:name]}
         SQL
 
@@ -529,23 +526,49 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures(*)
-        without_sql_mode("NO_AUTO_VALUE_ON_ZERO") { super }
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        with_multi_statements do
+          super { discard_remaining_results }
+        end
       end
 
       private
+        def combine_multi_statements(total_sql)
+          total_sql.each_with_object([]) do |sql, total_sql_chunks|
+            previous_packet = total_sql_chunks.last
+            sql << ";\n"
+            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
+              total_sql_chunks << sql
+            else
+              previous_packet << sql
+            end
+          end
+        end
 
-        def without_sql_mode(mode)
-          result = execute("SELECT @@SESSION.sql_mode")
-          current_mode = result.first[0]
-          return yield unless current_mode.include?(mode)
+        def max_allowed_packet_reached?(current_packet, previous_packet)
+          if current_packet.bytesize > max_allowed_packet
+            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
+          elsif previous_packet.nil?
+            false
+          else
+            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+          end
+        end
 
-          sql_mode = "REPLACE(@@sql_mode, '#{mode}', '')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+        def max_allowed_packet
+          bytes_margin = 2
+          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
+        end
+
+        def with_multi_statements
+          previous_flags = @config[:flags]
+          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+          reconnect!
+
           yield
         ensure
-          sql_mode = "CONCAT(@@sql_mode, ',#{mode}')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+          @config[:flags] = previous_flags
+          reconnect!
         end
 
         def initialize_type_map(m = type_map)
@@ -716,7 +739,8 @@ module ActiveRecord
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
           subselect.distinct unless select.limit || select.offset || select.orders.any?
 
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key.name))
+          key_name = quote_column_name(key.name)
+          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
         end
 
         def supports_rename_index?

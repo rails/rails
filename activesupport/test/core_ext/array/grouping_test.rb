@@ -116,7 +116,7 @@ class SplitTest < ActiveSupport::TestCase
   def test_split_with_block
     a = (1..10).to_a
     assert_equal [[1, 2], [4, 5], [7, 8], [10]], a.split { |i| i % 3 == 0 }
-    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9 , 10], a
+    assert_equal [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], a
   end
 
   def test_split_with_edge_values

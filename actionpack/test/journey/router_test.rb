@@ -30,7 +30,7 @@ module ActionDispatch
       def test_unicode
         get "/ほげ", to: "foo#bar"
 
-        #match the escaped version of /ほげ
+        # match the escaped version of /ほげ
         env = rails_env "PATH_INFO" => "/%E3%81%BB%E3%81%92"
         called = false
         router.recognize(env) do |r, params|

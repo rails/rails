@@ -355,6 +355,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
 
+*   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
+    ([Commit](https://github.com/rails/rails/pull/26746/commits/7093ceb480ad6a0a91b511832dad4c6a86981b93))
+
 ### Deprecations
 
 *   Deprecated `config.action_controller.raise_on_unfiltered_parameters`.

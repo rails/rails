@@ -5,7 +5,7 @@ require "abstract_unit"
 class TestController < ActionController::Base
 end
 
-class FiberedTest < ActiveSupport::TestCase
+class SetupFiberedBase < ActiveSupport::TestCase
   def setup
     view_paths = ActionController::Base.view_paths
     @assigns = { secret: "in the sauce", name: nil }
@@ -25,7 +25,9 @@ class FiberedTest < ActiveSupport::TestCase
     end
     string
   end
+end
 
+class FiberedTest < SetupFiberedBase
   def test_streaming_works
     content = []
     body = render_body(template: "test/hello_world", layout: "layouts/yield")
@@ -109,5 +111,22 @@ class FiberedTest < ActiveSupport::TestCase
   def test_render_with_streaming_and_capture
     assert_equal "Yes, \n this works\n like a charm.",
       buffered_render(template: "test/streaming", layout: "layouts/streaming_with_capture")
+  end
+end
+
+class FiberedWithLocaleTest < SetupFiberedBase
+  def setup
+    @old_locale = I18n.locale
+    I18n.locale = "da"
+    super
+  end
+
+  def teardown
+    I18n.locale = @old_locale
+  end
+
+  def test_render_with_streaming_and_locale
+    assert_equal "layout.locale: da\nview.locale: da\n\n",
+      buffered_render(template: "test/streaming_with_locale", layout: "layouts/streaming_with_locale")
   end
 end

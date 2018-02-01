@@ -194,7 +194,6 @@ module ActiveSupport
         end
 
         parts[:seconds] = remainder
-        parts.reject! { |k, v| v.zero? }
 
         new(value, parts)
       end
@@ -211,6 +210,7 @@ module ActiveSupport
     def initialize(value, parts) #:nodoc:
       @value, @parts = value, parts.to_h
       @parts.default = 0
+      @parts.reject! { |k, v| v.zero? }
     end
 
     def coerce(other) #:nodoc:
@@ -370,6 +370,8 @@ module ActiveSupport
     alias :before :ago
 
     def inspect #:nodoc:
+      return "0 seconds" if parts.empty?
+
       parts.
         reduce(::Hash.new(0)) { |h, (l, r)| h[l] += r; h }.
         sort_by { |unit,  _ | PARTS.index(unit) }.

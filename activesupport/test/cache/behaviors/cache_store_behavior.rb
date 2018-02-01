@@ -174,6 +174,18 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("foo")
   end
 
+  def test_unversioned_cache_key
+    obj = Object.new
+    def obj.cache_key
+      "foo"
+    end
+    def obj.cache_key_with_version
+      "foo-v1"
+    end
+    @cache.write(obj, "bar")
+    assert_equal "bar", @cache.read("foo")
+  end
+
   def test_array_as_cache_key
     @cache.write([:fu, "foo"], "bar")
     assert_equal "bar", @cache.read("fu/foo")
@@ -297,8 +309,7 @@ module CacheStoreBehavior
   end
 
   def test_really_long_keys
-    key = "".dup
-    900.times { key << "x" }
+    key = "x" * 2048
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
     assert_equal "bar", @cache.fetch(key)

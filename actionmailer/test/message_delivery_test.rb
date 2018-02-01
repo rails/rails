@@ -39,7 +39,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   end
 
   test "its message should be a Mail::Message" do
-    assert_equal Mail::Message , @mail.message.class
+    assert_equal Mail::Message, @mail.message.class
   end
 
   test "should respond to .deliver_later" do

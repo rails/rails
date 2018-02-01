@@ -203,7 +203,7 @@ module ApplicationTests
           rails "environment", "db:drop", "db:structure:load"
           assert_match expected_database, ActiveRecord::Base.connection_config[:database]
           require "#{app_path}/app/models/book"
-          #if structure is not loaded correctly, exception would be raised
+          # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
         end
       end
@@ -298,7 +298,7 @@ module ApplicationTests
           ActiveRecord::Base.configurations = Rails.application.config.database_configuration
           ActiveRecord::Base.establish_connection :test
           require "#{app_path}/app/models/book"
-          #if structure is not loaded correctly, exception would be raised
+          # if structure is not loaded correctly, exception would be raised
           assert_equal 0, Book.count
           assert_match ActiveRecord::Base.configurations["test"]["database"],
             ActiveRecord::Base.connection_config[:database]

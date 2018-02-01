@@ -2,7 +2,7 @@
 
 class Contract < ActiveRecord::Base
   belongs_to :company
-  belongs_to :developer
+  belongs_to :developer, primary_key: :id
   belongs_to :firm, foreign_key: "company_id"
 
   before_save :hi

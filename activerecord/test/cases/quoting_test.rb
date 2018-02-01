@@ -111,7 +111,7 @@ module ActiveRecord
       end
 
       def test_quote_bigdecimal
-        bigdec = BigDecimal.new((1 << 100).to_s)
+        bigdec = BigDecimal((1 << 100).to_s)
         assert_equal bigdec.to_s("F"), @quoter.quote(bigdec)
       end
 

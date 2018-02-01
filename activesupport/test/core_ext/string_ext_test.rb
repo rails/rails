@@ -259,8 +259,8 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_string_inquiry
-    assert "production".inquiry.production?
-    assert !"production".inquiry.development?
+    assert_predicate "production".inquiry, :production?
+    assert_not_predicate "production".inquiry, :development?
   end
 
   def test_truncate
@@ -317,7 +317,7 @@ class StringInflectionsTest < ActiveSupport::TestCase
   end
 
   def test_truncate_should_not_be_html_safe
-    assert !"Hello World!".truncate(12).html_safe?
+    assert_not_predicate "Hello World!".truncate(12), :html_safe?
   end
 
   def test_remove
@@ -639,7 +639,7 @@ end
 
 class StringBehaviourTest < ActiveSupport::TestCase
   def test_acts_like_string
-    assert "Bambi".acts_like_string?
+    assert_predicate "Bambi", :acts_like_string?
   end
 end
 
@@ -654,10 +654,10 @@ class CoreExtStringMultibyteTest < ActiveSupport::TestCase
   end
 
   def test_string_should_recognize_utf8_strings
-    assert UTF8_STRING.is_utf8?
-    assert ASCII_STRING.is_utf8?
-    assert !EUC_JP_STRING.is_utf8?
-    assert !INVALID_UTF8_STRING.is_utf8?
+    assert_predicate UTF8_STRING, :is_utf8?
+    assert_predicate ASCII_STRING, :is_utf8?
+    assert_not_predicate EUC_JP_STRING, :is_utf8?
+    assert_not_predicate INVALID_UTF8_STRING, :is_utf8?
   end
 
   def test_mb_chars_returns_instance_of_proxy_class
@@ -676,12 +676,12 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "A string is unsafe by default" do
-    assert !@string.html_safe?
+    assert_not_predicate @string, :html_safe?
   end
 
   test "A string can be marked safe" do
     string = @string.html_safe
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "Marking a string safe returns the string" do
@@ -689,15 +689,15 @@ class OutputSafetyTest < ActiveSupport::TestCase
   end
 
   test "An integer is safe by default" do
-    assert 5.html_safe?
+    assert_predicate 5, :html_safe?
   end
 
   test "a float is safe by default" do
-    assert 5.7.html_safe?
+    assert_predicate 5.7, :html_safe?
   end
 
   test "An object is unsafe by default" do
-    assert !@object.html_safe?
+    assert_not_predicate @object, :html_safe?
   end
 
   test "Adding an object to a safe string returns a safe string" do
@@ -705,7 +705,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string << @object
 
     assert_equal "helloother", string
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "Adding a safe string to another safe string returns a safe string" do
@@ -714,7 +714,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     @combination = @other_string + string
 
     assert_equal "otherhello", @combination
-    assert @combination.html_safe?
+    assert_predicate @combination, :html_safe?
   end
 
   test "Adding an unsafe string to a safe string escapes it and returns a safe string" do
@@ -725,20 +725,20 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_equal "other&lt;foo&gt;", @combination
     assert_equal "hello<foo>", @other_combination
 
-    assert @combination.html_safe?
-    assert !@other_combination.html_safe?
+    assert_predicate @combination, :html_safe?
+    assert_not_predicate @other_combination, :html_safe?
   end
 
   test "Prepending safe onto unsafe yields unsafe" do
     @string.prepend "other".html_safe
-    assert !@string.html_safe?
+    assert_not_predicate @string, :html_safe?
     assert_equal "otherhello", @string
   end
 
   test "Prepending unsafe onto safe yields escaped safe" do
     other = "other".html_safe
     other.prepend "<foo>"
-    assert other.html_safe?
+    assert_predicate other, :html_safe?
     assert_equal "&lt;foo&gt;other", other
   end
 
@@ -747,14 +747,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
     string = @string.html_safe
     @other_string.concat(string)
-    assert !@other_string.html_safe?
+    assert_not_predicate @other_string, :html_safe?
   end
 
   test "Concatting unsafe onto safe yields escaped safe" do
     @other_string = "other".html_safe
     string = @other_string.concat("<foo>")
     assert_equal "other&lt;foo&gt;", string
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "Concatting safe onto safe yields safe" do
@@ -762,7 +762,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string.concat(string)
-    assert @other_string.html_safe?
+    assert_predicate @other_string, :html_safe?
   end
 
   test "Concatting safe onto unsafe with << yields unsafe" do
@@ -770,14 +770,14 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string << string
-    assert !@other_string.html_safe?
+    assert_not_predicate @other_string, :html_safe?
   end
 
   test "Concatting unsafe onto safe with << yields escaped safe" do
     @other_string = "other".html_safe
     string = @other_string << "<foo>"
     assert_equal "other&lt;foo&gt;", string
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "Concatting safe onto safe with << yields safe" do
@@ -785,7 +785,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string << string
-    assert @other_string.html_safe?
+    assert_predicate @other_string, :html_safe?
   end
 
   test "Concatting safe onto unsafe with % yields unsafe" do
@@ -793,7 +793,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string = @other_string % string
-    assert !@other_string.html_safe?
+    assert_not_predicate @other_string, :html_safe?
   end
 
   test "Concatting unsafe onto safe with % yields escaped safe" do
@@ -801,7 +801,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @other_string % "<foo>"
 
     assert_equal "other&lt;foo&gt;", string
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "Concatting safe onto safe with % yields safe" do
@@ -809,7 +809,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
 
     @other_string = @other_string % string
-    assert @other_string.html_safe?
+    assert_predicate @other_string, :html_safe?
   end
 
   test "Concatting with % doesn't modify a string" do
@@ -823,7 +823,7 @@ class OutputSafetyTest < ActiveSupport::TestCase
     string = @string.html_safe
     string = string.concat(13)
     assert_equal "hello".dup.concat(13), string
-    assert string.html_safe?
+    assert_predicate string, :html_safe?
   end
 
   test "emits normal string yaml" do
@@ -832,8 +832,8 @@ class OutputSafetyTest < ActiveSupport::TestCase
 
   test "call to_param returns a normal string" do
     string = @string.html_safe
-    assert string.html_safe?
-    assert !string.to_param.html_safe?
+    assert_predicate string, :html_safe?
+    assert_not_predicate string.to_param, :html_safe?
   end
 
   test "ERB::Util.html_escape should escape unsafe characters" do

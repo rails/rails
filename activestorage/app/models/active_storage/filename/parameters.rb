@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-class ActiveStorage::Filename::Parameters
+class ActiveStorage::Filename::Parameters #:nodoc:
   attr_reader :filename
 
   def initialize(filename)

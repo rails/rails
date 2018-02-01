@@ -105,6 +105,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ::DEFAULT_APP_FILES
   end
 
+  def test_skip_bundle
+    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      # skip_bundle is only about running bundle install, ensure the Gemfile is still
+      # generated.
+      assert_file "Gemfile"
+    end
+  end
+
   def test_assets
     run_generator
 
@@ -304,21 +313,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
-  def test_active_storage_install
-    command_check = -> command, _ do
-      @binstub_called ||= 0
-      case command
-      when "active_storage:install"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
-      end
-    end
-
-    generator.stub :rails_command, command_check do
-      quietly { generator.invoke_all }
-    end
-  end
-
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
@@ -419,7 +413,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'~> 0.18'"
+      assert_gem "pg", "'>= 0.18', '< 2.0'"
     end
   end
 
@@ -746,15 +740,40 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_webpack_option
     command_check = -> command, *_ do
       @called ||= 0
-      @called += 1 if command == "webpacker:install"
-      assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+      if command == "webpacker:install"
+        @called += 1
+        assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+      end
     end
 
-    generator([destination_root], webpack: true).stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+    generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "webpacker"
+  end
+
+  def test_webpack_option_with_js_framework
+    command_check = -> command, *_ do
+      case command
+      when "webpacker:install"
+        @webpacker ||= 0
+        @webpacker += 1
+        assert_equal 1, @webpacker, "webpacker:install expected to be called once, but was called #{@webpacker} times."
+      when "webpacker:install:react"
+        @react ||= 0
+        @react += 1
+        assert_equal 1, @react, "webpacker:install:react expected to be called once, but was called #{@react} times."
+      end
+    end
+
+    generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
+    end
   end
 
   def test_generator_if_skip_turbolinks_is_given
@@ -768,6 +787,37 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
     assert_file "app/assets/javascripts/application.js" do |content|
       assert_no_match(/turbolinks/, content)
+    end
+  end
+
+  def test_bootsnap
+    run_generator
+
+    assert_gem "bootsnap"
+    assert_file "config/boot.rb" do |content|
+      assert_match(/require 'bootsnap\/setup'/, content)
+    end
+  end
+
+  def test_skip_bootsnap
+    run_generator [destination_root, "--skip-bootsnap"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/bootsnap/, content)
+    end
+    assert_file "config/boot.rb" do |content|
+      assert_no_match(/require 'bootsnap\/setup'/, content)
+    end
+  end
+
+  def test_bootsnap_with_dev_option
+    run_generator [destination_root, "--dev"]
+
+    assert_file "Gemfile" do |content|
+      assert_no_match(/bootsnap/, content)
+    end
+    assert_file "config/boot.rb" do |content|
+      assert_no_match(/require 'bootsnap\/setup'/, content)
     end
   end
 
@@ -833,7 +883,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -850,7 +900,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   def test_gitignore

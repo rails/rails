@@ -446,6 +446,19 @@ module RequestForgeryProtectionTests
     end
   end
 
+  def test_should_raise_for_post_with_null_origin
+    forgery_protection_origin_check do
+      session[:_csrf_token] = @token
+      @controller.stub :form_authenticity_token, @token do
+        exception = assert_raises(ActionController::InvalidAuthenticityToken) do
+          @request.set_header "HTTP_ORIGIN", "null"
+          post :index, params: { custom_authenticity_token: @token }
+        end
+        assert_match "The browser returned a 'null' origin for a request", exception.message
+      end
+    end
+  end
+
   def test_should_block_post_with_origin_checking_and_wrong_origin
     old_logger = ActionController::Base.logger
     logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
@@ -733,7 +746,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   test "should not emit a csrf-token meta tag" do
     SecureRandom.stub :base64, @token do
       get :meta
-      assert @response.body.blank?
+      assert_predicate @response.body, :blank?
     end
   end
 end

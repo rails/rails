@@ -34,7 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::Migrator.migrations(migration_root)
+      ActiveRecord::MigrationContext.new(migration_root).migrations
     end
 
     test "serving sprocket's assets" do
@@ -980,14 +980,14 @@ YAML
       boot_rails
 
       app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :mongoid  , app_generators[:orm]
-      assert_equal :liquid   , app_generators[:template_engine]
+      assert_equal :mongoid, app_generators[:orm]
+      assert_equal :liquid, app_generators[:template_engine]
       assert_equal :test_unit, app_generators[:test_framework]
 
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :data_mapper, generators[:orm]
-      assert_equal :haml      , generators[:template_engine]
-      assert_equal :rspec     , generators[:test_framework]
+      assert_equal :haml, generators[:template_engine]
+      assert_equal :rspec, generators[:test_framework]
     end
 
     test "engine should get default generators with ability to overwrite them" do
@@ -1003,10 +1003,10 @@ YAML
 
       generators = Bukkits::Engine.config.generators.options[:rails]
       assert_equal :active_record, generators[:orm]
-      assert_equal :rspec        , generators[:test_framework]
+      assert_equal :rspec, generators[:test_framework]
 
       app_generators = Rails.application.config.generators.options[:rails]
-      assert_equal :test_unit    , app_generators[:test_framework]
+      assert_equal :test_unit, app_generators[:test_framework]
     end
 
     test "do not create table_name_prefix method if it already exists" do
@@ -1477,6 +1477,21 @@ YAML
 
       get("/fruits/1/bukkits/posts")
       assert_equal "/fruits/2/bukkits/posts", last_response.body
+    end
+
+    test "active_storage:install task works within engine" do
+      @plugin.write "Rakefile", <<-RUBY
+        APP_RAKEFILE = '#{app_path}/Rakefile'
+        load 'rails/tasks/engine.rake'
+      RUBY
+
+      Dir.chdir(@plugin.path) do
+        output = `bundle exec rake app:active_storage:install`
+        assert $?.success?, output
+
+        active_storage_migration = migrations.detect { |migration| migration.name == "CreateActiveStorageTables" }
+        assert active_storage_migration
+      end
     end
 
   private

@@ -59,7 +59,7 @@ module ActiveRecord
     test "nonexistent attribute" do
       data = OverloadedType.new(non_existent_decimal: 1)
 
-      assert_equal BigDecimal.new(1), data.non_existent_decimal
+      assert_equal BigDecimal(1), data.non_existent_decimal
       assert_raise ActiveRecord::UnknownAttributeError do
         UnoverloadedType.new(non_existent_decimal: 1)
       end
@@ -211,7 +211,7 @@ module ActiveRecord
     end
 
     test "attributes not backed by database columns are not dirty when unchanged" do
-      refute OverloadedType.new.non_existent_decimal_changed?
+      assert_not_predicate OverloadedType.new, :non_existent_decimal_changed?
     end
 
     test "attributes not backed by database columns are always initialized" do
@@ -245,13 +245,13 @@ module ActiveRecord
 
       model.foo << "asdf"
       assert_equal "lolasdf", model.foo
-      assert model.foo_changed?
+      assert_predicate model, :foo_changed?
 
       model.reload
       assert_equal "lol", model.foo
 
       model.foo = "lol"
-      refute model.changed?
+      assert_not_predicate model, :changed?
     end
 
     test "attributes not backed by database columns appear in inspect" do

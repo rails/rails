@@ -569,6 +569,40 @@ module ApplicationTests
       assert_match "AccountTest#test_truth", output, "passing TEST= should run selected test"
     end
 
+    def test_running_with_ruby_gets_test_env_by_default
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
+      file = create_test_for_env("test")
+      results = Dir.chdir(app_path) {
+        `ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+      }
+      assert_equal 1, results.length
+      failures = results.first["failures"]
+      flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
+    end
+
+    def test_running_with_ruby_can_set_env_via_cmdline
+      # Subshells inherit `ENV`, so we need to ensure `RAILS_ENV` is set to
+      # nil before we run the tests in the test app.
+      re, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], nil
+
+      file = create_test_for_env("development")
+      results = Dir.chdir(app_path) {
+        `RAILS_ENV=development ruby -Ilib:test #{file}`.each_line.map { |line| JSON.parse line }
+      }
+      assert_equal 1, results.length
+      failures = results.first["failures"]
+      flunk(failures.first) unless failures.empty?
+
+    ensure
+      ENV["RAILS_ENV"] = re
+    end
+
     def test_rake_passes_multiple_TESTOPTS_to_minitest
       create_test_file :models, "account"
       output = Dir.chdir(app_path) { `bin/rake test TESTOPTS='-v --seed=1234'` }
@@ -725,6 +759,45 @@ module ApplicationTests
 
       def create_schema
         app_file "db/schema.rb", ""
+      end
+
+      def create_test_for_env(env)
+        app_file "test/models/environment_test.rb", <<-RUBY
+          require 'test_helper'
+          class JSONReporter < Minitest::AbstractReporter
+            def record(result)
+              puts JSON.dump(klass: result.class.name,
+                             name: result.name,
+                             failures: result.failures,
+                             assertions: result.assertions,
+                             time: result.time)
+            end
+          end
+
+          def Minitest.plugin_json_reporter_init(opts)
+            Minitest.reporter.reporters.clear
+            Minitest.reporter.reporters << JSONReporter.new
+          end
+
+          Minitest.extensions << "rails"
+          Minitest.extensions << "json_reporter"
+
+          # Minitest uses RubyGems to find plugins, and since RubyGems
+          # doesn't know about the Rails installation we're pointing at,
+          # Minitest won't require the Rails minitest plugin when we run
+          # these integration tests.  So we have to manually require the
+          # Minitest plugin here.
+          require 'minitest/rails_plugin'
+
+          class EnvironmentTest < ActiveSupport::TestCase
+            def test_environment
+              test_db = ActiveRecord::Base.configurations[#{env.dump}]["database"]
+              db_file = ActiveRecord::Base.connection_config[:database]
+              assert_match(test_db, db_file)
+              assert_equal #{env.dump}, ENV["RAILS_ENV"]
+            end
+          end
+        RUBY
       end
 
       def create_test_file(path = :unit, name = "test", pass: true)

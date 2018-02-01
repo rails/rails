@@ -380,10 +380,8 @@ class ForkingExecutor
   def initialize(size)
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
-    @url   = "drbunix://#{file}"
     @pool  = nil
-    DRb.start_service @url, @queue
+    @url = DRb.start_service("drbunix:", @queue).uri
   end
 
   def <<(work); @queue << work; end
@@ -452,4 +450,8 @@ end
 
 class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :headless_chrome
+end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
 end

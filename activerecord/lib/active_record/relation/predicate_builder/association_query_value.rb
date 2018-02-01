@@ -30,7 +30,7 @@ module ActiveRecord
         end
 
         def primary_key
-          associated_table.association_join_keys.key
+          associated_table.association_join_primary_key
         end
 
         def convert_to_id(value)

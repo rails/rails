@@ -52,11 +52,11 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_type = reflection.association_primary_key_type
+        primary_key = reflection.association_primary_key
+        pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
 
-        primary_key = reflection.association_primary_key
         records = klass.where(primary_key => ids).index_by do |r|
           r.public_send(primary_key)
         end.values_at(*ids).compact

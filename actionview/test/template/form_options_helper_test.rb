@@ -337,8 +337,24 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_option_groups_from_collection_for_select_with_callable_group_method
+    group_proc = Proc.new { |c| c.countries }
+    assert_dom_equal(
+      "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",
+      option_groups_from_collection_for_select(dummy_continents, group_proc, "continent_name", "country_id", "country_name", "dk")
+    )
+  end
+
+  def test_option_groups_from_collection_for_select_with_callable_group_label_method
+    label_proc = Proc.new { |c| c.continent_name }
+    assert_dom_equal(
+      "<optgroup label=\"&lt;Africa&gt;\"><option value=\"&lt;sa&gt;\">&lt;South Africa&gt;</option>\n<option value=\"so\">Somalia</option></optgroup><optgroup label=\"Europe\"><option value=\"dk\" selected=\"selected\">Denmark</option>\n<option value=\"ie\">Ireland</option></optgroup>",
+      option_groups_from_collection_for_select(dummy_continents, "countries", label_proc, "country_id", "country_name", "dk")
+    )
+  end
+
   def test_option_groups_from_collection_for_select_returns_html_safe_string
-    assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
+    assert_predicate option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk"), :html_safe?
   end
 
   def test_grouped_options_for_select_with_array
@@ -367,7 +383,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<optgroup label=\"----------\"><option value=\"US\">US</option>\n<option value=\"Canada\">Canada</option></optgroup><optgroup label=\"----------\"><option value=\"GB\">GB</option>\n<option value=\"Germany\">Germany</option></optgroup>",
 
-      grouped_options_for_select([["US", "Canada"] , ["GB", "Germany"]], nil, divider: "----------")
+      grouped_options_for_select([["US", "Canada"], ["GB", "Germany"]], nil, divider: "----------")
     )
   end
 
@@ -386,7 +402,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_grouped_options_for_select_returns_html_safe_string
-    assert grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]]).html_safe?
+    assert_predicate grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]]), :html_safe?
   end
 
   def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
@@ -476,7 +492,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_returns_html_safe_string
-    assert time_zone_options_for_select.html_safe?
+    assert_predicate time_zone_options_for_select, :html_safe?
   end
 
   def test_select

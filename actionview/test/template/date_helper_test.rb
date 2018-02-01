@@ -687,7 +687,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value=""></option>\n<option value="00">00</option>\n<option value="15">15</option>\n<option value="30">30</option>\n<option value="45">45</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), include_blank: true , minute_step: 15)
+    assert_dom_equal expected, select_minute(Time.mktime(2003, 8, 16, 8, 4, 18), include_blank: true, minute_step: 15)
   end
 
   def test_select_minute_nil_with_blank
@@ -703,7 +703,7 @@ class DateHelperTest < ActionView::TestCase
     expected << %(<option value=""></option>\n<option value="00">00</option>\n<option value="15">15</option>\n<option value="30">30</option>\n<option value="45">45</option>\n)
     expected << "</select>\n"
 
-    assert_dom_equal expected, select_minute(nil, include_blank: true , minute_step: 15)
+    assert_dom_equal expected, select_minute(nil, include_blank: true, minute_step: 15)
   end
 
   def test_select_minute_with_hidden
@@ -3593,25 +3593,25 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_html_safety
-    assert select_day(16).html_safe?
-    assert select_month(8).html_safe?
-    assert select_year(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
-    assert select_minute(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
-    assert select_second(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
+    assert_predicate select_day(16), :html_safe?
+    assert_predicate select_month(8), :html_safe?
+    assert_predicate select_year(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
+    assert_predicate select_minute(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
+    assert_predicate select_second(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
 
-    assert select_minute(8, use_hidden: true).html_safe?
-    assert select_month(8, prompt: "Choose month").html_safe?
+    assert_predicate select_minute(8, use_hidden: true), :html_safe?
+    assert_predicate select_month(8, prompt: "Choose month"), :html_safe?
 
-    assert select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, { class: "selector" }).html_safe?
-    assert select_date(Time.mktime(2003, 8, 16), date_separator: " / ", start_year: 2003, end_year: 2005, prefix: "date[first]").html_safe?
+    assert_predicate select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, { class: "selector" }), :html_safe?
+    assert_predicate select_date(Time.mktime(2003, 8, 16), date_separator: " / ", start_year: 2003, end_year: 2005, prefix: "date[first]"), :html_safe?
   end
 
   def test_object_select_html_safety
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
 
-    assert date_select("post", "written_on", default: Time.local(2006, 9, 19, 15, 16, 35), include_blank: true).html_safe?
-    assert time_select("post", "written_on", ignore_date: true).html_safe?
+    assert_predicate date_select("post", "written_on", default: Time.local(2006, 9, 19, 15, 16, 35), include_blank: true), :html_safe?
+    assert_predicate time_select("post", "written_on", ignore_date: true), :html_safe?
   end
 
   def test_time_tag_with_date

@@ -133,7 +133,7 @@ module ActionDispatch
         end
 
         def generate_strong_etag(validators)
-          %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
+          %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
         end
 
         def cache_control_segments

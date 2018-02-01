@@ -10,7 +10,7 @@
 # This is needed for recyclable cache keys.
 # Rails.application.config.active_record.cache_versioning = true
 
-# Use AES 256 GCM authenticated encryption for encrypted cookies.
+# Use AES-256-GCM authenticated encryption for encrypted cookies.
 # Existing cookies will be converted on read then written with the new scheme.
 # Rails.application.config.action_dispatch.use_authenticated_cookie_encryption = true
 
@@ -25,3 +25,6 @@
 # Store boolean values are in sqlite3 databases as 1 and 0 instead of 't' and
 # 'f' after migrating old data.
 # Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+
+# Use SHA-1 instead of MD5 to generate non-sensitive digests, such as the ETag header.
+# Rails.application.config.active_support.use_sha1_digests = true

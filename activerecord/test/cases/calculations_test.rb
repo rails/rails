@@ -21,7 +21,7 @@ require "models/comment"
 require "models/rating"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -234,6 +234,18 @@ class CalculationsTest < ActiveRecord::TestCase
       next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
+  end
+
+  def test_count_with_eager_loading_and_custom_order
+    posts = Post.includes(:comments).order("comments.id")
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_distinct_count_all_with_custom_select_and_order
+    accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
+    assert_queries(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries(1) { assert_equal 3, accounts.load.size }
   end
 
   def test_distinct_count_with_order_and_limit
@@ -680,6 +692,11 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_limit_and_empty_result
     assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
+  end
+
+  def test_pluck_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included

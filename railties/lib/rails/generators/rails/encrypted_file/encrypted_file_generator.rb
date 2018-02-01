@@ -24,7 +24,7 @@ module Rails
 
       def add_encrypted_file_silently(file_path, key_path, template = encrypted_file_template)
         unless File.exist?(file_path)
-          setup = { content_path: file_path, key_path: key_path, env_key: "RAILS_MASTER_KEY" }
+          setup = { content_path: file_path, key_path: key_path, env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true }
           ActiveSupport::EncryptedFile.new(setup).write(template)
         end
       end

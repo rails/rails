@@ -155,12 +155,12 @@ class CaptureHelperTest < ActionView::TestCase
     content_for :title do
       content_tag(:p, "title")
     end
-    assert content_for(:title).html_safe?
+    assert_predicate content_for(:title), :html_safe?
     content_for :title, "", flush: true
     content_for(:title) do
       content_tag(:p, "title")
     end
-    assert content_for(:title).html_safe?
+    assert_predicate content_for(:title), :html_safe?
   end
 
   def test_provide

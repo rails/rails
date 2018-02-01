@@ -32,6 +32,7 @@ module ApplicationTests
 
       logger = ActiveSupport::LogSubscriber::TestHelper::MockLogger.new
       ActiveRecord::Base.logger = logger
+      ActiveRecord::Base.verbose_query_logs = false
 
       # Mimic Active Record notifications
       instrument "sql.active_record", name: "SQL", sql: "SHOW tables"

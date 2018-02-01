@@ -715,7 +715,7 @@ module ActiveRecord
       #
       #   CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
-      # Note: MySQL doesn't yet support index order (it accepts the syntax but ignores it).
+      # Note: MySQL only supports index order from 8.0.1 onwards (earlier versions accepted the syntax but ignored it).
       #
       # ====== Creating a partial index
       #
@@ -1049,8 +1049,8 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
         migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
-        versions = ActiveRecord::Migrator.migration_files(migrations_paths).map do |file|
-          ActiveRecord::Migrator.parse_migration_filename(file).first.to_i
+        versions = migration_context.migration_files.map do |file|
+          migration_context.parse_migration_filename(file).first.to_i
         end
 
         unless migrated.include?(version)

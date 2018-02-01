@@ -3313,7 +3313,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/search"
-    assert !@request.params[:action].frozen?
+    assert_not_predicate @request.params[:action], :frozen?
   end
 
   def test_multiple_positional_args_with_the_same_name
@@ -4225,7 +4225,7 @@ class TestGlobRoutingMapper < ActionDispatch::IntegrationTest
     end
   end
 
-  #include Routes.url_helpers
+  # include Routes.url_helpers
   APP = build_app Routes
   def app; APP end
 
@@ -4267,7 +4267,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   def app; APP end
 
   test "enabled when not mounted and default_url_options is empty" do
-    assert Routes.url_helpers.optimize_routes_generation?
+    assert_predicate Routes.url_helpers, :optimize_routes_generation?
   end
 
   test "named route called as singleton method" do

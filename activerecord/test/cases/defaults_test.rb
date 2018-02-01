@@ -53,7 +53,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
 
   def test_default_decimal_number
     record = DefaultNumber.new
-    assert_equal BigDecimal.new("2.78"), record.decimal_number
+    assert_equal BigDecimal("2.78"), record.decimal_number
     assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end

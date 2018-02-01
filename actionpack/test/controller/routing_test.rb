@@ -213,7 +213,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
-  def test_regexp_precidence
+  def test_regexp_precedence
     rs.draw do
       get "/whois/:domain", constraints: {
         domain: /\w+\.[\w\.]+/ },
@@ -1687,7 +1687,7 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_routes_with_symbols
     set.draw do
       get "unnamed", controller: :pages, action: :show, name: :as_symbol
-      get "named"  , controller: :pages, action: :show, name: :as_symbol, as: :named
+      get "named", controller: :pages, action: :show, name: :as_symbol, as: :named
     end
     assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/unnamed"))
     assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/named"))
@@ -1893,7 +1893,7 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({ controller: "blog",  action: "show_date", year: "2006", month: "07", day: "28" }, controller.request.path_parameters)
     assert_equal("/blog/2006/07/25", controller.url_for(day: 25, only_path: true))
     assert_equal("/blog/2005",       controller.url_for(year: 2005, only_path: true))
-    assert_equal("/blog/show/123",   controller.url_for(action: "show" , id: 123, only_path: true))
+    assert_equal("/blog/show/123",   controller.url_for(action: "show", id: 123, only_path: true))
     assert_equal("/blog/2006",       controller.url_for(year: 2006, only_path: true))
     assert_equal("/blog/2006",       controller.url_for(year: 2006, month: nil, only_path: true))
   end

@@ -807,20 +807,22 @@ The core method of this helper, `form_for`, gives you the ability to create a fo
 The HTML generated for this would be:
 
 ```html
-<form action="/people/create" method="post">
-  <input id="person_first_name" name="person[first_name]" type="text" />
-  <input id="person_last_name" name="person[last_name]" type="text" />
-  <input name="commit" type="submit" value="Create" />
+<form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
+  <input name="utf8" type="hidden" value="&#x2713;" />
+  <input type="hidden" name="authenticity_token" value="lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==" />
+  <input type="text" name="person[first_name]" id="person_first_name" />
+  <input type="text" name="person[last_name]" id="person_last_name" />
+  <input type="submit" name="commit" value="Create" data-disable-with="Create" />
 </form>
 ```
 
 The params object created when this form is submitted would look like:
 
 ```ruby
-{ "action" => "create", "controller" => "people", "person" => { "first_name" => "William", "last_name" => "Smith" } }
+{"utf8" => "✓", "authenticity_token" => "lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==", "person" => {"first_name" => "William", "last_name" => "Smith"}, "commit" => "Create", "controller" => "people", "action" => "create"}
 ```
 
-The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
+The params hash has a nested person value, which can therefore be accessed with `params[:person]` in the controller.
 
 #### check_box
 

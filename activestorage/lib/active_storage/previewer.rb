@@ -42,20 +42,32 @@ module ActiveStorage
       #   end
       #
       # The output tempfile is opened in the directory returned by ActiveStorage::Downloading#tempdir.
-      def draw(*argv) # :doc:
-        Tempfile.open("ActiveStorage", tempdir) do |file|
-          capture(*argv, to: file)
-          yield file
+      def draw(*argv) #:doc:
+        ActiveSupport::Notifications.instrument("preview.active_storage") do
+          open_tempfile_for_drawing do |file|
+            capture(*argv, to: file)
+            yield file
+          end
+        end
+      end
+
+      def open_tempfile_for_drawing
+        tempfile = Tempfile.open("ActiveStorage", tempdir)
+
+        begin
+          yield tempfile
+        ensure
+          tempfile.close!
         end
       end
 
       def capture(*argv, to:)
         to.binmode
-        IO.popen(argv) { |out| IO.copy_stream(out, to) }
+        IO.popen(argv, err: File::NULL) { |out| IO.copy_stream(out, to) }
         to.rewind
       end
 
-      def logger
+      def logger #:doc:
         ActiveStorage.logger
       end
   end

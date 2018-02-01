@@ -38,12 +38,14 @@ object on how to write to and read from the database.
 
 ### Object Relational Mapping
 
-Object Relational Mapping, commonly referred to as its abbreviation ORM, is
+[Object Relational Mapping](https://en.wikipedia.org/wiki/Object-relational_mapping), commonly referred to as its abbreviation ORM, is
 a technique that connects the rich objects of an application to tables in
 a relational database management system. Using ORM, the properties and
 relationships of the objects in an application can be easily stored and
 retrieved from a database without writing SQL statements directly and with less
 overall database access code.
+
+NOTE: If you are not familiar enough with relational database management systems (RDBMS) or structured query language (SQL), please go through [this tutorial](https://www.w3schools.com/sql/default.asp) (or [this one](http://www.sqlcourse.com/)) or study them by other means. Understanding how relational databases work is crucial to understanding Active Records and Rails in general.
 
 ### Active Record as an ORM Framework
 
@@ -142,7 +144,7 @@ end
 This will create a `Product` model, mapped to a `products` table at the
 database. By doing this you'll also have the ability to map the columns of each
 row in that table with the attributes of the instances of your model. Suppose
-that the `products` table was created using an SQL statement like:
+that the `products` table was created using an SQL (or one of its extensions) statement like:
 
 ```sql
 CREATE TABLE products (
@@ -152,8 +154,9 @@ CREATE TABLE products (
 );
 ```
 
-Following the table schema above, you would be able to write code like the
-following:
+Schema above declares a table with two columns: `id` and `name`. Each row of
+this table represents a certain product with these two parameters. Thus, you
+would be able to write code like the following:
 
 ```ruby
 p = Product.new

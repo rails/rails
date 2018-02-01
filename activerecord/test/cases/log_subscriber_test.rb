@@ -33,8 +33,9 @@ class LogSubscriberTest < ActiveRecord::TestCase
       super
     end
 
-    def debug(message)
-      @debugs << message
+    def debug(progname = nil, &block)
+      @debugs << progname
+      super
     end
   end
 
@@ -169,6 +170,22 @@ class LogSubscriberTest < ActiveRecord::TestCase
     assert_equal 1, @logger.logged(:debug).size
     assert_match(/Developer Exists/, @logger.logged(:debug).last)
     assert_match(/SELECT .*?FROM .?developers.?/i, @logger.logged(:debug).last)
+  end
+
+  def test_vebose_query_logs
+    ActiveRecord::Base.verbose_query_logs = true
+
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0, sql: "hi mom!"))
+    assert_match(/↳/, @logger.logged(:debug).last)
+  ensure
+    ActiveRecord::Base.verbose_query_logs = false
+  end
+
+  def test_verbose_query_logs_disabled_by_default
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0, sql: "hi mom!"))
+    assert_no_match(/↳/, @logger.logged(:debug).last)
   end
 
   def test_cached_queries

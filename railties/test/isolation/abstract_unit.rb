@@ -82,22 +82,6 @@ module TestHelpers
       assert_match "charset=utf-8", resp[1]["Content-Type"]
       assert extract_body(resp).match(/Yay! You.*re on Rails!/)
     end
-
-    def assert_success(resp)
-      assert_equal 202, resp[0]
-    end
-
-    def assert_missing(resp)
-      assert_equal 404, resp[0]
-    end
-
-    def assert_header(key, value, resp)
-      assert_equal value, resp[1][key.to_s]
-    end
-
-    def assert_body(expected, resp)
-      assert_equal expected, extract_body(resp)
-    end
   end
 
   module Generation
@@ -358,10 +342,12 @@ module TestHelpers
     end
 
     def app_file(path, contents, mode = "w")
-      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", mode) do |f|
+      file_name = "#{app_path}/#{path}"
+      FileUtils.mkdir_p File.dirname(file_name)
+      File.open(file_name, mode) do |f|
         f.puts contents
       end
+      file_name
     end
 
     def remove_file(path)
@@ -404,6 +390,10 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end
 
 # Create a scope and build a fixture rails app

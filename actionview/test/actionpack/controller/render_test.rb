@@ -9,7 +9,7 @@ class ApplicationController < ActionController::Base
 end
 
 module Quiz
-  #Models
+  # Models
   Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion

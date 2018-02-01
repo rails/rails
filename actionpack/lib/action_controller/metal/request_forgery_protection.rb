@@ -3,6 +3,7 @@
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
+require "active_support/core_ext/string/strip"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -415,11 +416,21 @@ module ActionController #:nodoc:
         allow_forgery_protection
       end
 
+      NULL_ORIGIN_MESSAGE = <<-MSG.strip_heredoc
+        The browser returned a 'null' origin for a request with origin-based forgery protection turned on. This usually
+        means you have the 'no-referrer' Referrer-Policy header enabled, or that you the request came from a site that
+        refused to give its origin. This makes it impossible for Rails to verify the source of the requests. Likely the
+        best solution is to change your referrer policy to something less strict like same-origin or strict-same-origin.
+        If you cannot change the referrer policy, you can disable origin checking with the
+        Rails.application.config.action_controller.forgery_protection_origin_check setting.
+      MSG
+
       # Checks if the request originated from the same origin by looking at the
       # Origin header.
       def valid_request_origin? # :doc:
         if forgery_protection_origin_check
           # We accept blank origin headers because some user agents don't send it.
+          raise InvalidAuthenticityToken, NULL_ORIGIN_MESSAGE if request.origin == "null"
           request.origin.nil? || request.origin == request.base_url
         else
           true

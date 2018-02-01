@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_storage/downloading"
+
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -16,7 +18,7 @@
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
-#   <%= image_tag url_for(Current.user.avatar.variant(resize: "100x100")) %>
+#   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
 #
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
 # can then produce on-demand.
@@ -35,6 +37,10 @@
 #
 #   avatar.variant(resize: "100x100", monochrome: true, flip: "-90")
 class ActiveStorage::Variant
+  include ActiveStorage::Downloading
+
+  WEB_IMAGE_CONTENT_TYPES = %w( image/png image/jpeg image/jpg image/gif )
+
   attr_reader :blob, :variation
   delegate :service, to: :blob
 
@@ -62,7 +68,7 @@ class ActiveStorage::Variant
   # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +service_call+ method
   # for its redirection.
   def service_url(expires_in: service.url_expires_in, disposition: :inline)
-    service.url key, expires_in: expires_in, disposition: disposition, filename: blob.filename, content_type: blob.content_type
+    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 
   # Returns the receiving variant. Allows ActiveStorage::Variant and ActiveStorage::Preview instances to be used interchangeably.
@@ -76,11 +82,51 @@ class ActiveStorage::Variant
     end
 
     def process
-      service.upload key, transform(service.download(blob.key))
+      open_image do |image|
+        transform image
+        format image
+        upload image
+      end
     end
 
-    def transform(io)
+
+    def filename
+      if WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+        blob.filename
+      else
+        ActiveStorage::Filename.new("#{blob.filename.base}.png")
+      end
+    end
+
+    def content_type
+      blob.content_type.presence_in(WEB_IMAGE_CONTENT_TYPES) || "image/png"
+    end
+
+
+    def open_image(&block)
+      image = download_image
+
+      begin
+        yield image
+      ensure
+        image.destroy!
+      end
+    end
+
+    def download_image
       require "mini_magick"
-      File.open MiniMagick::Image.read(io).tap { |image| variation.transform(image) }.path
+      MiniMagick::Image.create { |file| download_blob_to(file) }
+    end
+
+    def transform(image)
+      variation.transform(image)
+    end
+
+    def format(image)
+      image.format("PNG") unless WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
+    end
+
+    def upload(image)
+      File.open(image.path, "r") { |file| service.upload(key, file) }
     end
 end

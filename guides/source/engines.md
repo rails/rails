@@ -1516,12 +1516,12 @@ To hook into the initialization process of one of the following classes use the 
 
 These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
 
-| Hook                   | Use Case                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `before_configuration` | First configurable block to run. Called before any initializers are run.              |
-| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.                |
-| `before_eager_load`    | Third configurable block to run. Does not run if `config.cache_classes` set to false. |
-| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                   |
+| Hook                   | Use Case                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `before_configuration` | First configurable block to run. Called before any initializers are run.           |
+| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
+| `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
+| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
 ### Example
 

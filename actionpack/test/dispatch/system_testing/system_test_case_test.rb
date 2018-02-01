@@ -28,6 +28,12 @@ class SetDriverToSeleniumHeadlessChromeTest < DrivenBySeleniumWithHeadlessChrome
   end
 end
 
+class SetDriverToSeleniumHeadlessFirefoxTest < DrivenBySeleniumWithHeadlessFirefox
+  test "uses selenium headless firefox" do
+    assert_equal :selenium, Capybara.current_driver
+  end
+end
+
 class SetHostTest < DrivenByRackTest
   test "sets default host" do
     assert_equal "http://127.0.0.1", Capybara.app_host
