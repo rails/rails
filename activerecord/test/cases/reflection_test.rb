@@ -113,7 +113,7 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_invalid_relation_model_message
+  def test_invalid_reflection_association_class
     reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, {}, Post)
 
     error = assert_raises(ArgumentError) do
