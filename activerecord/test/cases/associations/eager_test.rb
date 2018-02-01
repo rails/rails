@@ -1618,6 +1618,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
     end
   end
 
+  # Associations::Preloader#preloaders_on works with hash-like objects
+  test "preloading works with an object that responds to :to_hash" do
+    CustomHash = Class.new(Hash)
+
+    assert_nothing_raised do
+      Post.preload(CustomHash.new(comments: [{ author: :essays }])).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on works with string-like objects
+  test "preloading works with an object that responds to :to_str" do
+    CustomString = Class.new(String)
+
+    assert_nothing_raised do
+      Post.preload(CustomString.new("comments")).first
+    end
+  end
+
+  # Associations::Preloader#preloaders_on does not work with ranges
+  test "preloading fails when Range is passed" do
+    exception = assert_raises(ArgumentError) do
+      Post.preload(1..10).first
+    end
+    assert_equal("1..10 was not recognized for preload", exception.message)
+  end
+
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a
