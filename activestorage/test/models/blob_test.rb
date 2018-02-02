@@ -2,8 +2,11 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   test "create after upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
@@ -79,6 +82,23 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     freeze_time do
       assert_equal expected_url_for(blob), blob.service_url
       assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
+    end
+  end
+
+  test "urls allow for custom options" do
+    blob = create_blob(filename: "original.txt")
+
+    options = [
+      blob.key,
+      expires_in: blob.service.url_expires_in,
+      disposition: :inline,
+      content_type: blob.content_type,
+      filename: blob.filename,
+      thumb_size: "300x300",
+      thumb_mode: "crop"
+    ]
+    assert_called_with(blob.service, :url, options) do
+      blob.service_url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
 
