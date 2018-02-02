@@ -413,7 +413,11 @@ module ActiveRecord
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
         computed_class = active_record.send(:compute_type, name)
-        check_class_is_activerecord_model!(computed_class)
+
+        # When polymorphic, the computed class doesn't represent a model (eg.
+        # "Taggable", from :taggable)
+        check_class_is_activerecord_model!(computed_class) unless options[:polymorphic]
+
         computed_class
       end
 
