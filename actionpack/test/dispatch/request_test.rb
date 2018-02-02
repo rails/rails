@@ -1076,7 +1076,7 @@ class RequestParameterFilter < BaseRequestTest
 
       filter_words << "blah"
       filter_words << lambda { |key, value|
-        value.reverse! if key =~ /bargain/
+        key =~ /bargain/ ? value.reverse : value
       }
 
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
