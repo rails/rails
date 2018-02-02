@@ -66,6 +66,40 @@ module ActiveSupport
 
         parallelize_me!
       end
+
+      # Setup required for parallel testing. This can be used if you have multiple
+      # databases or any behavior that needs to be run after the process is forked
+      # but before the tests run.
+      #
+      # In your +test_helper.rb+ you can add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_setup do
+      #       # whatever needs to happen here
+      #     end
+      #   end
+      def parallelize_setup(&block)
+        ActiveSupport::Testing::Parallelization.after_fork_hook do |worker|
+          yield worker
+        end
+      end
+
+      # Cleanup required for parallel testing. This can be used to drop databases
+      # if you're app uses multiple write/read databases or other clean up before
+      # the tests finish. This runs before the forked process is closed.
+      #
+      # In your +test_helper.rb+ you can add the following:
+      #
+      #   class ActiveSupport::TestCase
+      #     parallelize_teardown do
+      #       # whatever needs to happen here
+      #     end
+      #   end
+      def parallelize_teardown(&block)
+        ActiveSupport::Testing::Parallelization.run_cleanup_hook do |worker|
+          yield worker
+        end
+      end
     end
 
     alias_method :method_name, :name
