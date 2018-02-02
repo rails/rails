@@ -7,11 +7,12 @@ module ActiveStorage
   # Wraps the Amazon Simple Storage Service (S3) as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::S3Service < Service
-    attr_reader :client, :bucket, :upload_options
+    attr_reader :client, :bucket, :upload_options, :prefix
 
-    def initialize(access_key_id:, secret_access_key:, region:, bucket:, upload: {}, **options)
+    def initialize(access_key_id:, secret_access_key:, region:, bucket:, prefix: '', upload: {}, **options)
       @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region, **options)
       @bucket = @client.bucket(bucket)
+      @prefix = prefix
 
       @upload_options = upload
     end
@@ -44,9 +45,9 @@ module ActiveStorage
       end
     end
 
-    def delete_prefixed(prefix)
-      instrument :delete_prefixed, prefix: prefix do
-        bucket.objects(prefix: prefix).batch_delete!
+    def delete_prefixed(relative_prefix)
+      instrument :delete_prefixed, prefix: add_prefix(relative_prefix) do
+        bucket.objects(prefix: add_prefix(relative_prefix)).batch_delete!
       end
     end
 
@@ -86,8 +87,14 @@ module ActiveStorage
     end
 
     private
+      def add_prefix(key)
+        return key if prefix.blank?
+        separator = prefix.end_with?("/") ? "" : "/"
+        [prefix, key].join
+      end
+
       def object_for(key)
-        bucket.object(key)
+        bucket.object(add_prefix(key))
       end
 
       # Reads the object for the given key in chunks, yielding each to the block.

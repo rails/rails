@@ -1,3 +1,9 @@
+*   Namespacing for S3 objects by specifying `prefix:` for
+    `ActiveStorage::Service::S3Service`. This is useful when there is only one
+    bucket available and the root namespace should not be cluttered.
+
+    *Halo*
+
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Preserve display aspect ratio when extracting width and height from videos
