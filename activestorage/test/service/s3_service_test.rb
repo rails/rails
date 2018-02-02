@@ -53,6 +53,82 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
         service.delete key
       end
     end
+
+    test "delete_prefixed" do
+      begin
+        relative_prefix = SecureRandom.base58(24)
+        key1  = relative_prefix + "/one"
+        key2  = relative_prefix + "/other"
+        data = "I am one of multiple files in a subdirectory"
+        @service.upload key1, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+        @service.upload key2, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+
+        assert @service.exist?(key1)
+        assert @service.exist?(key2)
+        @service.delete_prefixed(relative_prefix)
+        assert !@service.exist?(key1)
+        assert !@service.exist?(key2)
+      ensure
+        @service.delete key1
+        @service.delete key2
+      end
+    end
+
+    test "delete_prefixed with a global prefix" do
+      prefix  = SecureRandom.base58(24)
+      config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { prefix: prefix })
+      service = ActiveStorage::Service.configure(:s3, config)
+
+      begin
+        relative_prefix = SecureRandom.base58(24)
+        key1  = relative_prefix + "/one"
+        key2  = relative_prefix + "/other"
+        data = "I am one of multiple files in a subdirectory below a prefix"
+        service.upload key1, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+        service.upload key2, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+
+        assert service.exist?(key1)
+        assert service.exist?(key2)
+        service.delete_prefixed(relative_prefix)
+        assert !service.exist?(key1)
+        assert !service.exist?(key2)
+      ensure
+        service.delete key1
+        service.delete key2
+      end
+    end
+
+    test "upload and download with prefix" do
+      prefix  = SecureRandom.base58(24)
+      config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { prefix: prefix })
+      service = ActiveStorage::Service.configure(:s3, config)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "I will be placed into the custom prefix"
+        service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+
+        assert_equal data, service.download(key)
+      ensure
+        service.delete key
+      end
+    end
+
+    test "upload and download with prefix that has a trailing slash" do
+      prefix  = SecureRandom.base58(24) + '/'
+      config  = SERVICE_CONFIGURATIONS.deep_merge(s3: { prefix: prefix })
+      service = ActiveStorage::Service.configure(:s3, config)
+
+      begin
+        key  = SecureRandom.base58(24)
+        data = "I will be placed into the custom prefix"
+        service.upload key, StringIO.new(data), checksum: Digest::MD5.base64digest(data)
+
+        assert_equal data, service.download(key)
+      ensure
+        service.delete key
+      end
+    end
   end
 else
   puts "Skipping S3 Service tests because no S3 configuration was supplied"
