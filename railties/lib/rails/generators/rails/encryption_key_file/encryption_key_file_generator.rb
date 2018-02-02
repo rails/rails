@@ -6,7 +6,7 @@ require "active_support/encrypted_file"
 
 module Rails
   module Generators
-    class EncryptionKeyFileGenerator < Base
+    class EncryptionKeyFileGenerator < Base # :nodoc:
       def add_key_file(key_path)
         key_path = Pathname.new(key_path)
 
