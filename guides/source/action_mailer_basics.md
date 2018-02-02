@@ -20,9 +20,18 @@ Introduction
 ------------
 
 Action Mailer allows you to send emails from your application using mailer classes
-and views. Mailers work very similarly to controllers. They inherit from
-`ActionMailer::Base` and live in `app/mailers`, and they have associated views
-that appear in `app/views`.
+and views. 
+
+#### Mailers are similar to controllers
+They inherit from `ActionMailer::Base` and live in `app/mailers`. Mailers also work very similarly to controllers. Some examples of similarities are enumerated below. Mailers have:
+
+* actions, and also, associated views that appear in `app/views`.
+
+* instance variables that are accessible in views.
+
+* the ability to utilise layouts and partials.
+
+* the ability to access a params hash.
 
 Sending Emails
 --------------
@@ -60,8 +69,7 @@ end
 ```
 
 As you can see, you can generate mailers just like you use other generators with
-Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
-a directory for views, and a test.
+Rails. 
 
 If you didn't want to use a generator, you could create your own file inside of
 `app/mailers`, just make sure that it inherits from `ActionMailer::Base`:
@@ -73,10 +81,8 @@ end
 
 #### Edit the Mailer
 
-Mailers are very similar to Rails controllers. They also have methods called
-"actions" and use views to structure the content. Where a controller generates
-content like HTML to send back to the client, a Mailer creates a message to be
-delivered via email.
+Mailers have methods called "actions" and they use views to structure their content. Where a controller generates
+content like HTML to send back to the client, a Mailer creates a message to be delivered via email.
 
 `app/mailers/user_mailer.rb` contains an empty mailer:
 
@@ -109,9 +115,6 @@ this mailer. In this case we are setting the `:from` header to a value for all
 messages in this class. This can be overridden on a per-email basis.
 * `mail` - The actual email message, we are passing the `:to` and `:subject`
 headers in.
-
-Just like controllers, any instance variables we define in the method become
-available for use in the views.
 
 #### Create a Mailer View
 
