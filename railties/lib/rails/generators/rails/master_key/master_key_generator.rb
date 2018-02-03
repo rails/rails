@@ -7,7 +7,7 @@ require "active_support/encrypted_file"
 
 module Rails
   module Generators
-    class MasterKeyGenerator < Base
+    class MasterKeyGenerator < Base # :nodoc:
       MASTER_KEY_PATH = Pathname.new("config/master.key")
 
       def add_master_key_file
