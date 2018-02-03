@@ -188,6 +188,9 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
     assert_nil belongs_to_ref.inverse_of
+
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsor)
+    assert_nil belongs_to_ref.inverse_of
   end
 
   def test_this_inverse_stuff
