@@ -119,11 +119,11 @@ module ActiveRecord
         end
       end
 
-      def migrations_paths
+      def migrations_paths # :nodoc:
         @config[:migrations_paths] || Migrator.migrations_paths
       end
 
-      def migration_context
+      def migration_context # :nodoc:
         MigrationContext.new(migrations_paths)
       end
 
