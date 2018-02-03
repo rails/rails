@@ -469,12 +469,12 @@ default it contains:
 
 How files are autoloaded depends on `eager_load` and `cache_classes` config settings which typically vary in development, production, and test modes:
  
- * In **development**, you want quicker startup with incremental loading of application code.  So `eager_load` should be set to `false`, and rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
- * In **production**, however you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) rails loads all files in the `eager_load_paths`  and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems. 
- * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so rails follows development behaviour. 
+ * In **development**, you want quicker startup with incremental loading of application code.  So `eager_load` should be set to `false`, and Rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
+ * In **production**, however you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths`  and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems. 
+ * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour. 
 
-What is described above are the defaults with a newly generated rails app. There are multiple ways this can be configured differently (see [Configuring Rails Applications](configuring.html#rails-general-configuration).
-). But using `autoload_paths` on its own  in the past (pre-rails 5) developers might configure `autoload_paths` to add in extra locations (e.g. `lib` which used to be an autoload path list years ago, but no longer is).  However this is now discouraged for most purposes, as it is likely to lead to production-only errors. It is possible to add new locations to both `config.eager_load_paths` and `config.autoload_paths` but use at your own risk.
+What is described above are the defaults with a newly generated Rails app. There are multiple ways this can be configured differently (see [Configuring Rails Applications](configuring.html#rails-general-configuration).
+). But using `autoload_paths` on its own  in the past (before Rails 5) developers might configure `autoload_paths` to add in extra locations (e.g. `lib` which used to be an autoload path list years ago, but no longer is).  However this is now discouraged for most purposes, as it is likely to lead to production-only errors. It is possible to add new locations to both `config.eager_load_paths` and `config.autoload_paths` but use at your own risk.
 
 See also ([Autoloading in the Test Environment](#autoloading-in-the-test-environment).
 
@@ -1344,7 +1344,7 @@ For example it might be worth running your tests with an identical setup to prod
 
 On a development machine you can then have your tests running with whatever is fastest (ideally `config.eager_load = false`). 
 
-With the [Spring](https://github.com/rails/spring) pre-loader (included with new rails apps), you ideally keep `config.eager_load = false` as per development. Sometimes you may end up with a hybrid configuration (`config.eager_load = true`, `config.cache_classes = true` AND `config.enable_dependency_loading = true`), see [spring issue](https://github.com/rails/spring/issues/519#issuecomment-348324369). However it might be simpler to keep the same configuration as development, and work out whatever it is that is causing autoloading to fail (perhaps by the results of your CI test results). 
+With the [Spring](https://github.com/rails/spring) pre-loader (included with new Rails apps), you ideally keep `config.eager_load = false` as per development. Sometimes you may end up with a hybrid configuration (`config.eager_load = true`, `config.cache_classes = true` AND `config.enable_dependency_loading = true`), see [spring issue](https://github.com/rails/spring/issues/519#issuecomment-348324369). However it might be simpler to keep the same configuration as development, and work out whatever it is that is causing autoloading to fail (perhaps by the results of your CI test results). 
 
 Occasionally you may need to explicitly eager_load by using `Rails
 .application.eager_load!` in the setup of your tests -- this might occur if your [tests involve multithreading](https://stackoverflow.com/questions/25796409/in-rails-how-can-i-eager-load-all-code-before-a-specific-rspec-test). 
