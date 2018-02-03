@@ -21,10 +21,10 @@ module ActiveSupport
   #   h.girl # => 'Mary'
   #   h.dog  # => nil
   #
-  # To raise an exception when the value is blank, append a
+  # To raise an exception when the key can't be found, append a
   # bang to the key name, like:
   #
-  #   h.dog! # => raises KeyError: :dog is blank
+  #   h.dog! # => KeyError: key not found: :dog
   #
   class OrderedOptions < Hash
     alias_method :_get, :[] # preserve the original #[] method
