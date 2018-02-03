@@ -74,11 +74,12 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "keeps each tag in their own thread" do
     @logger.tagged("BCX") do
       Thread.new do
+        @logger.info "Dull story"
         @logger.tagged("OMG") { @logger.info "Cool story" }
       end.join
       @logger.info "Funky time"
     end
-    assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
+    assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
   test "keeps each tag in their own instance" do
