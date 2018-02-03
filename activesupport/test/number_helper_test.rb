@@ -43,6 +43,14 @@ module ActiveSupport
         petabytes(number) * 1024
       end
 
+      def zettabytes(number)
+        exabytes(number) * 1024
+      end
+
+      def yottabytes(number)
+        zettabytes(number) * 1024
+      end
+
       def test_number_to_phone
         [@instance_with_helpers, TestClassWithClassNumberHelpers, ActiveSupport::NumberHelper].each do |number_helper|
           assert_equal("555-1234", number_helper.number_to_phone(5551234))

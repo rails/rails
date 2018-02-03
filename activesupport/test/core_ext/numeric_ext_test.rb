@@ -110,6 +110,8 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 256.megabytes * 20 + 5.gigabytes, 10.gigabytes
     assert_equal 1.kilobyte**5, 1.petabyte
     assert_equal 1.kilobyte**6, 1.exabyte
+    assert_equal 1.kilobyte**7, 1.zettabyte
+    assert_equal 1.kilobyte**8, 1.yottabyte
   end
 
   def test_units_as_bytes_independently
@@ -125,6 +127,10 @@ class NumericExtSizeTest < ActiveSupport::TestCase
     assert_equal 3377699720527872, 3.petabyte
     assert_equal 3458764513820540928, 3.exabytes
     assert_equal 3458764513820540928, 3.exabyte
+    assert_equal 3541774862152233910272, 3.zettabytes
+    assert_equal 3541774862152233910272, 3.zettabyte
+    assert_equal 3626777458843887524118528, 3.yottabytes
+    assert_equal 3626777458843887524118528, 3.yottabyte
   end
 end
 
@@ -151,6 +157,14 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
 
   def exabytes(number)
     petabytes(number) * 1024
+  end
+
+  def zettabytes(number)
+    exabytes(number) * 1024
+  end
+
+  def yottabytes(number)
+    zettabytes(number) * 1024
   end
 
   def test_to_s__phone
