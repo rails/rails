@@ -6,7 +6,7 @@ require "active_support/encrypted_configuration"
 
 module Rails
   module Generators
-    class CredentialsGenerator < Base
+    class CredentialsGenerator < Base # :nodoc:
       def add_credentials_file
         unless credentials.content_path.exist?
           template = credentials_template
