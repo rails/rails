@@ -127,7 +127,7 @@ class ReflectionTest < ActiveRecord::TestCase
 
   # Make sure that the polymorphic computed class, if existing, is ignored.
   def test_polymorphic_belongs_to_reflection_ignores_association_class
-    reflection = ActiveRecord::Reflection.create(:belongs_to, nil, nil, {polymorphic: true}, Post)
+    reflection = ActiveRecord::Reflection.create(:belongs_to, nil, nil, { polymorphic: true }, Post)
 
     assert_nothing_raised do
       reflection.compute_class("FakeKlass")
