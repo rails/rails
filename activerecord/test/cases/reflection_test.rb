@@ -113,7 +113,28 @@ class ReflectionTest < ActiveRecord::TestCase
     end
   end
 
-  def test_invalid_reflection_association_class
+  def test_belongs_to_reflection_invalid_association_class
+    reflection = ActiveRecord::Reflection.create(:belongs_to, nil, nil, {}, Post)
+
+    error = assert_raises(ArgumentError) do
+      reflection.compute_class("FakeKlass")
+    end
+
+    expected_message = "FakeKlass is not an Active Record model"
+
+    assert_equal expected_message, error.message
+  end
+
+  # Make sure that the polymorphic computed class, if existing, is ignored.
+  def test_polymorphic_belongs_to_reflection_ignores_association_class
+    reflection = ActiveRecord::Reflection.create(:belongs_to, nil, nil, {polymorphic: true}, Post)
+
+    assert_nothing_raised do
+      reflection.compute_class("FakeKlass")
+    end
+  end
+
+  def test_has_many_reflection_invalid_association_class
     reflection = ActiveRecord::Reflection.create(:has_many, nil, nil, {}, Post)
 
     error = assert_raises(ArgumentError) do
