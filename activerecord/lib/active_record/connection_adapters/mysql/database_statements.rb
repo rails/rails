@@ -59,7 +59,7 @@ module ActiveRecord
           end
 
           def discard_remaining_results
-            @connection.next_result while @connection.more_results?
+            @connection.abandon_results!
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
