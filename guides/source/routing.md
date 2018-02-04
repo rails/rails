@@ -943,7 +943,7 @@ You can use the `:constraints` option to specify a required format on the implic
 resources :photos, constraints: { id: /[A-Z][A-Z][0-9]+/ }
 ```
 
-This declaration constrains the `:id` parameter to match the supplied regular expression. So, in this case, the router would no longer match `/photos/1` to this route. Instead, `/photos/RR27` would match.
+This declaration constraints the `:id` parameter to match the supplied regular expression. So, in this case, the router would no longer match `/photos/1` to this route. Instead, `/photos/RR27` would match.
 
 You can specify a single constraint to apply to a number of routes by using the block form:
 
