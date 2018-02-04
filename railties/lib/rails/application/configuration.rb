@@ -112,6 +112,9 @@ module Rails
           if respond_to?(:action_view)
             action_view.form_with_generates_ids = true
           end
+        when "6.0"
+          load_defaults "5.2"
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

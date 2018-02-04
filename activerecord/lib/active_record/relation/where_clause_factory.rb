@@ -14,7 +14,6 @@ module ActiveRecord
           parts = [klass.sanitize_sql(other.empty? ? opts : ([opts] + other))]
         when Hash
           attributes = predicate_builder.resolve_column_aliases(opts)
-          attributes = klass.send(:expand_hash_conditions_for_aggregates, attributes)
           attributes.stringify_keys!
 
           parts = predicate_builder.build_from_hash(attributes)

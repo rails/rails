@@ -209,16 +209,27 @@ module ActiveModel
       assert_equal "value from user", attributes.fetch_value(:foo)
     end
 
-    def attributes_with_uninitialized_key
-      builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
-      builder.build_from_database(foo: "1.1")
-    end
-
     test "freezing doesn't prevent the set from materializing" do
       builder = AttributeSet::Builder.new(foo: Type::String.new)
       attributes = builder.build_from_database(foo: "1")
 
       attributes.freeze
+      assert_equal({ foo: "1" }, attributes.to_hash)
+    end
+
+    test "marshaling dump/load legacy materialized attribute hash" do
+      builder = AttributeSet::Builder.new(foo: Type::String.new)
+      attributes = builder.build_from_database(foo: "1")
+
+      attributes.instance_variable_get(:@attributes).instance_eval do
+        class << self
+          def marshal_dump
+            materialize
+          end
+        end
+      end
+
+      attributes = Marshal.load(Marshal.dump(attributes))
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
@@ -253,5 +264,11 @@ module ActiveModel
       assert_equal attributes, attributes2
       assert_not_equal attributes2, attributes3
     end
+
+    private
+      def attributes_with_uninitialized_key
+        builder = AttributeSet::Builder.new(foo: Type::Integer.new, bar: Type::Float.new)
+        builder.build_from_database(foo: "1.1")
+      end
   end
 end
