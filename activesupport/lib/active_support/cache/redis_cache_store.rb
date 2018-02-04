@@ -17,6 +17,7 @@ end
 
 require "digest/sha2"
 require "active_support/core_ext/marshal"
+require "active_support/core_ext/hash/transform_values"
 
 module ActiveSupport
   module Cache
@@ -360,7 +361,13 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.mapped_mset(entries)
+                serialized_entries = if options[:raw]
+                  entries.transform_values { |e| e.value.to_s }
+                else
+                  entries.transform_values { |e| serialize_entry(e) }
+                end
+
+                redis.mapped_mset(serialized_entries)
               end
             else
               super
