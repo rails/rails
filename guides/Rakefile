@@ -21,7 +21,7 @@ namespace :guides do
     desc "Generate HTML guides"
     task html: :encoding do
       ENV["WARNINGS"] = "1" # authors can't disable this
-      ruby "rails_guides.rb"
+      ruby "-Eutf-8:utf-8", "rails_guides.rb"
     end
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
