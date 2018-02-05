@@ -307,6 +307,14 @@ module ActiveSupport
           end
         end
 
+        def read_multi_entries(names, _options)
+          if mget_capable?
+            read_multi_mget(*names)
+          else
+            super
+          end
+        end
+
         def read_multi_mget(*names)
           options = names.extract_options!
           options = merged_options(options)

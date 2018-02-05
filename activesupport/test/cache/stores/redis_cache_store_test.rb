@@ -109,6 +109,14 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheIncrementDecrementBehavior
     include CacheInstrumentationBehavior
     include AutoloadingCacheBehavior
+
+    def test_fetch_multi_uses_redis_mget
+      assert_called(@cache.redis, :mget, returns: []) do
+        @cache.fetch_multi("a", "b", "c") do |key|
+          key * 2
+        end
+      end
+    end
   end
 
   # Separate test class so we can omit the namespace which causes expected,
