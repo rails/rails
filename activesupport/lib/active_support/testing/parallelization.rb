@@ -55,7 +55,12 @@ module ActiveSupport
       end
 
       def file
-        File.join(Dir.tmpdir, Dir::Tmpname.make_tmpname("tests", "fd"))
+        File.join(Dir.tmpdir, tmpname)
+      end
+
+      def tmpname
+        time = Time.now.strftime("%Y%m%d")
+        "tests-#{time}-#{$$}-#{rand(0x100000000).to_s(36)}-fd"
       end
 
       def after_fork(worker)
