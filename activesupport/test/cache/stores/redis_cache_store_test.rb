@@ -107,6 +107,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
     include CacheStoreVersionBehavior
     include LocalCacheBehavior
     include CacheIncrementDecrementBehavior
+    include CacheInstrumentationBehavior
     include AutoloadingCacheBehavior
   end
 
