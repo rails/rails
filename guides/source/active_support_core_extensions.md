@@ -1775,6 +1775,8 @@ gigabytes
 terabytes
 petabytes
 exabytes
+zettabytes
+yottabytes
 ```
 
 They return the corresponding amount of bytes, using a conversion factor of 1024:
