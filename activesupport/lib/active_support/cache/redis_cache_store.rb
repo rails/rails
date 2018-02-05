@@ -187,7 +187,11 @@ module ActiveSupport
       # fetched values.
       def read_multi(*names)
         if mget_capable?
-          read_multi_mget(*names)
+          instrument(:read_multi, names, options) do |payload|
+            read_multi_mget(*names).tap do |results|
+              payload[:hits] = results.keys
+            end
+          end
         else
           super
         end
