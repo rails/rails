@@ -416,6 +416,9 @@ module ActiveRecord
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
+        if polymorphic?
+          raise ArgumentError, "Polymorphic association does not support to compute class."
+        end
         active_record.send(:compute_type, name)
       end
 
@@ -610,7 +613,7 @@ module ActiveRecord
 
             begin
               reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
+            rescue ArgumentError
               # Give up: we couldn't compute the klass type so we won't be able
               # to find any associations either.
               reflection = false
