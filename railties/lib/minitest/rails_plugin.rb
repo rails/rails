@@ -38,10 +38,19 @@ module Minitest
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
+    self.plugin_rails_replace_reporters(reporter, options)
+  end
+
+  def self.plugin_rails_replace_reporters(minitest_reporter, options)
+    return unless minitest_reporter.kind_of?(Minitest::CompositeReporter)
+
     # Replace progress reporter for colors.
-    reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
-    reporter << SuppressedSummaryReporter.new(options[:io], options)
-    reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    if minitest_reporter.reporters.reject! { |reporter| reporter.kind_of?(SummaryReporter) } != nil
+      minitest_reporter << SuppressedSummaryReporter.new(options[:io], options)
+    end
+    if minitest_reporter.reporters.reject! { |reporter| reporter.kind_of?(ProgressReporter) } != nil
+      minitest_reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    end
   end
 
   # Backwardscompatibility with Rails 5.0 generated plugin test scripts

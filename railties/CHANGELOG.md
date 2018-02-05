@@ -1,3 +1,5 @@
+*   Fix minitest rails plugin. The custom reporters are added only if needed. This will fix conflicts with others plugins. *Kevin Robatel*
+
 ## Rails 5.0.7.2 (March 11, 2019) ##
 
 *   Generate random development secrets
