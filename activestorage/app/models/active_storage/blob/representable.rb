@@ -46,7 +46,7 @@ module ActiveStorage::Blob::Representable
   #   blob.preview(resize: "100x100").processed.service_url
   #
   # Avoid processing previews synchronously in views. Instead, link to a controller action that processes them on demand.
-  # Active Storage provides one, but you may want to create your own (for example, if you need authentication). Here’s
+  # Active Storage provides one, but you may want to create your own (for example, if you need authentication). Here's
   # how to use the built-in version:
   #
   #   <%= image_tag video.preview(resize: "100x100") %>

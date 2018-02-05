@@ -596,7 +596,7 @@ class AddAuthorToBooks < ActiveRecord::Migration[5.0]
 end
 ```
 
-NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
+NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the 'reference' column declarations above.
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
