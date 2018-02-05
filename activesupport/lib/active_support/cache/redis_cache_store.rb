@@ -70,7 +70,7 @@ module ActiveSupport
 
           def write_entry(key, entry, options)
             if options[:raw] && local_cache
-              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry = Entry.new(serialize_entry(entry, raw: true))
               raw_entry.expires_at = entry.expires_at
               super(key, raw_entry, options)
             else
@@ -81,7 +81,7 @@ module ActiveSupport
           def write_multi_entries(entries, options)
             if options[:raw] && local_cache
               raw_entries = entries.map do |key, entry|
-                raw_entry = Entry.new(entry.value.to_s)
+                raw_entry = Entry.new(serialize_entry(entry, raw: true))
                 raw_entry.expires_at = entry.expires_at
               end.to_h
 
@@ -327,7 +327,7 @@ module ActiveSupport
         #
         # Requires Redis 2.6.12+ for extended SET options.
         def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          value = raw ? entry.value.to_s : serialize_entry(entry)
+          serialized_entry = serialize_entry(entry, raw: raw)
 
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
@@ -342,9 +342,9 @@ module ActiveSupport
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.set key, value, modifiers
+              redis.set key, serialized_entry, modifiers
             else
-              redis.set key, value
+              redis.set key, serialized_entry
             end
           end
         end
@@ -361,13 +361,7 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                serialized_entries = if options[:raw]
-                  entries.transform_values { |e| e.value.to_s }
-                else
-                  entries.transform_values { |e| serialize_entry(e) }
-                end
-
-                redis.mapped_mset(serialized_entries)
+                redis.mapped_mset(serialize_entries(entries, raw: options[:raw]))
               end
             else
               super
@@ -390,15 +384,25 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
+        def deserialize_entry(serialized_entry)
+          if serialized_entry
+            entry = Marshal.load(serialized_entry) rescue serialized_entry
             entry.is_a?(Entry) ? entry : Entry.new(entry)
           end
         end
 
-        def serialize_entry(entry)
-          Marshal.dump(entry)
+        def serialize_entry(entry, raw: false)
+          if raw
+            entry.value.to_s
+          else
+            Marshal.dump(entry)
+          end
+        end
+
+        def serialize_entries(entries, raw: false)
+          entries.transform_values do |entry|
+            serialize_entry entry, raw: raw
+          end
         end
 
         def failsafe(method, returning: nil)
