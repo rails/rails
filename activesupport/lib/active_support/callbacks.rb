@@ -806,28 +806,30 @@ module ActiveSupport
         def define_callbacks(*names)
           options = names.extract_options!
 
-          names.each do |name|
-            name = name.to_sym
+          ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+            names.each do |name|
+              name = name.to_sym
 
-            set_callbacks name, CallbackChain.new(name, options)
+              target.set_callbacks name, CallbackChain.new(name, options)
 
-            module_eval <<-RUBY, __FILE__, __LINE__ + 1
-              def _run_#{name}_callbacks(&block)
-                run_callbacks #{name.inspect}, &block
-              end
+              target.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+                def _run_#{name}_callbacks(&block)
+                  run_callbacks #{name.inspect}, &block
+                end
 
-              def self._#{name}_callbacks
-                get_callbacks(#{name.inspect})
-              end
+                def self._#{name}_callbacks
+                  get_callbacks(#{name.inspect})
+                end
 
-              def self._#{name}_callbacks=(value)
-                set_callbacks(#{name.inspect}, value)
-              end
+                def self._#{name}_callbacks=(value)
+                  set_callbacks(#{name.inspect}, value)
+                end
 
-              def _#{name}_callbacks
-                __callbacks[#{name.inspect}]
-              end
-            RUBY
+                def _#{name}_callbacks
+                  __callbacks[#{name.inspect}]
+                end
+              RUBY
+            end
           end
         end
 
