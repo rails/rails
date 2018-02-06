@@ -251,6 +251,13 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topics(:first).becomes(Reply).title
   end
 
+  def test_becomes_after_reload_schema_from_cache
+    Reply.define_attribute_methods
+    Reply.serialize(:content) # invoke reload_schema_from_cache
+    assert_kind_of Reply, topics(:first).becomes(Reply)
+    assert_equal "The First Topic", topics(:first).becomes(Reply).title
+  end
+
   def test_becomes_includes_errors
     company = Company.new(name: nil)
     assert_not_predicate company, :valid?
