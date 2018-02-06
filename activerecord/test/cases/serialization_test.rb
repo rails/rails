@@ -103,4 +103,8 @@ class SerializationTest < ActiveRecord::TestCase
 
     assert_equal 1, Author.joins(:serialized_posts).where(name: "David", serialized_posts: { title: "Hello" }).length
   end
+
+  def test_serializes_active_record_constant
+    assert_equal Author.name, Author.as_json
+  end
 end

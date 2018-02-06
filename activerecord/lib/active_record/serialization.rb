@@ -10,6 +10,12 @@ module ActiveRecord #:nodoc:
       self.include_root_in_json = false
     end
 
+    module ClassMethods
+      def as_json(*)
+        name
+      end
+    end
+
     def serializable_hash(options = nil)
       options = options.try(:dup) || {}
 
