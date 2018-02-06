@@ -78,6 +78,18 @@ module ActiveRecord
 
     alias extensions extending_values
 
+    def load_associations(arr, *args)
+      check_if_array_contains_base_elements!(arr)
+      check_if_method_has_arguments!(:load_associations, args)
+
+      preloader = build_preloader
+      args.each do |associations|
+        preloader.preload arr, associations
+      end
+
+      arr
+    end
+
     # Specify relationships to be included in the result set. For
     # example:
     #
@@ -1183,6 +1195,14 @@ module ActiveRecord
       def check_if_method_has_arguments!(method_name, args)
         if args.blank?
           raise ArgumentError, "The method .#{method_name}() must contain arguments."
+        end
+      end
+
+      def check_if_array_contains_base_elements!(records)
+        records.flatten.compact.each do |r|
+          unless r.is_a? self.klass
+            raise ArgumentError, "The method .load_associations() must be given an array of #{self.klass} elements."
+          end
         end
       end
 
