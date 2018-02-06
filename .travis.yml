@@ -24,6 +24,7 @@ addons:
       - ffmpeg
       - mupdf
       - mupdf-tools
+      - poppler-utils
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:

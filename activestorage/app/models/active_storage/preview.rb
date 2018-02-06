@@ -21,10 +21,9 @@
 #
 # Outside of a Rails application, modify +ActiveStorage.previewers+ instead.
 #
-# The built-in previewers rely on third-party system libraries:
-#
-# * {ffmpeg}[https://www.ffmpeg.org]
-# * {mupdf}[https://mupdf.com] (version 1.8 or newer)
+# The built-in previewers rely on third-party system libraries. Specifically, the built-in video previewer requires
+# {ffmpeg}[https://www.ffmpeg.org]. Two PDF previewers are provided: one requires {Poppler}[https://poppler.freedesktop.org],
+# and the other requires {mupdf}[https://mupdf.com] (version 1.8 or newer). To preview PDFs, install either Poppler or mupdf.
 #
 # These libraries are not provided by Rails. You must install them yourself to use the built-in previewers. Before you
 # install and use third-party software, make sure you understand the licensing implications of doing so.
