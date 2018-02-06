@@ -3,6 +3,7 @@
 require "rails"
 require "active_storage"
 
+require "active_storage/previewer/poppler_pdf_previewer"
 require "active_storage/previewer/pdf_previewer"
 require "active_storage/previewer/video_previewer"
 
@@ -14,7 +15,7 @@ module ActiveStorage
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
-    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
 
