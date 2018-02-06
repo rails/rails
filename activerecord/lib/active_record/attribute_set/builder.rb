@@ -3,35 +3,30 @@ require "active_record/attribute"
 module ActiveRecord
   class AttributeSet # :nodoc:
     class Builder # :nodoc:
-      attr_reader :types, :always_initialized, :default
+      attr_reader :types, :default_attributes
 
-      def initialize(types, always_initialized = nil, &default)
+      def initialize(types, default_attributes = {})
         @types = types
-        @always_initialized = always_initialized
-        @default = default
+        @default_attributes = default_attributes
       end
 
       def build_from_database(values = {}, additional_types = {})
-        if always_initialized && !values.key?(always_initialized)
-          values[always_initialized] = nil
-        end
-
-        attributes = LazyAttributeHash.new(types, values, additional_types, &default)
+        attributes = LazyAttributeHash.new(types, values, additional_types, default_attributes)
         AttributeSet.new(attributes)
       end
     end
   end
 
   class LazyAttributeHash # :nodoc:
-    delegate :transform_values, :each_key, :each_value, :fetch, to: :materialize
+    delegate :transform_values, :each_key, :each_value, :fetch, :except, to: :materialize
 
-    def initialize(types, values, additional_types, &default)
+    def initialize(types, values, additional_types, default_attributes, delegate_hash = {})
       @types = types
       @values = values
       @additional_types = additional_types
       @materialized = false
-      @delegate_hash = {}
-      @default = default || proc {}
+      @delegate_hash = delegate_hash
+      @default_attributes = default_attributes
     end
 
     def key?(key)
@@ -79,22 +74,24 @@ module ActiveRecord
     end
 
     def marshal_dump
-      materialize
+      [@types, @values, @additional_types, @default_attributes, @delegate_hash]
     end
 
-    def marshal_load(delegate_hash)
-      @delegate_hash = delegate_hash
-      @types = {}
-      @values = {}
-      @additional_types = {}
-      @materialized = true
+    def marshal_load(values)
+      if values.is_a?(Hash)
+        empty_hash = {}.freeze
+        initialize(empty_hash, empty_hash, empty_hash, empty_hash, values)
+        @materialized = true
+      else
+        initialize(*values)
+      end
     end
 
     # TODO Change this to private once we've dropped Ruby 2.2 support.
     # Workaround for Ruby 2.2 "private attribute?" warning.
     protected
 
-      attr_reader :types, :values, :additional_types, :delegate_hash, :default
+      attr_reader :types, :values, :additional_types, :delegate_hash, :default_attributes
 
       def materialize
         unless @materialized
@@ -117,7 +114,12 @@ module ActiveRecord
         if value_present
           delegate_hash[name] = Attribute.from_database(name, value, type)
         elsif types.key?(name)
-          delegate_hash[name] = default.call(name) || Attribute.uninitialized(name, type)
+          attr = default_attributes[name]
+          if attr
+            delegate_hash[name] = attr.dup
+          else
+            delegate_hash[name] = Attribute.uninitialized(name, type)
+          end
         end
       end
   end

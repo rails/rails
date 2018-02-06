@@ -160,7 +160,8 @@ module ActiveRecord
     end
 
     test "the primary_key is always initialized" do
-      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, :foo)
+      defaults = { foo: Attribute.from_user(:foo, nil, nil) }
+      builder = AttributeSet::Builder.new({ foo: Type::Integer.new }, defaults)
       attributes = builder.build_from_database
 
       assert attributes.key?(:foo)
@@ -215,6 +216,22 @@ module ActiveRecord
       attributes = builder.build_from_database(foo: "1")
 
       attributes.freeze
+      assert_equal({ foo: "1" }, attributes.to_hash)
+    end
+
+    test "marshaling dump/load legacy materialized attribute hash" do
+      builder = AttributeSet::Builder.new(foo: Type::String.new)
+      attributes = builder.build_from_database(foo: "1")
+
+      attributes.instance_variable_get(:@attributes).instance_eval do
+        class << self
+          def marshal_dump
+            materialize
+          end
+        end
+      end
+
+      attributes = Marshal.load(Marshal.dump(attributes))
       assert_equal({ foo: "1" }, attributes.to_hash)
     end
 
