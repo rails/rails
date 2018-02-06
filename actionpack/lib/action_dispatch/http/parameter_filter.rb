@@ -69,9 +69,10 @@ module ActionDispatch
             elsif value.is_a?(Array)
               value = value.map { |v| v.is_a?(Hash) ? call(v, parents) : v }
             elsif blocks.any?
-              key = key.dup if key.duplicable?
               value = value.dup if value.duplicable?
-              blocks.each { |b| b.call(key, value) }
+              value = blocks.reduce(value) do |current_value, block|
+                block.call(key, current_value) || current_value
+              end
             end
             parents.pop if deep_regexps
 
