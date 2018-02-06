@@ -379,6 +379,7 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
+        load_schema
         @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
