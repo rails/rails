@@ -781,6 +781,34 @@ send a POST request to create the new article in the database.
 We will be redirected back to the articles index page and there we assert
 that the text from the new article's title is on the articles index page.
 
+#### Testing for multiple screen sizes
+If you want to test for mobile sizes on top of testing for desktop,
+you can create another class that inherits from SystemTestCase and use in your
+test suite. In this example a file called `mobile_system_test_case.rb` is created
+in the `/test` directory with the following configuration.
+
+```ruby
+require "test_helper"
+
+class MobileSystemTestCase < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome, screen_size: [375, 667]
+end
+```
+To use this configuration, create a test inside `test/system` that inherits from `MobileSystemTestCase`.
+Now you can test your app using multiple different configurations.
+
+```ruby
+require "mobile_system_test_case"
+
+class PostsTest < MobileSystemTestCase
+
+  test "visiting the index" do
+    visit posts_url
+    assert_selector "h1", text: "Posts"
+  end
+end
+```
+
 #### Taking it further
 
 The beauty of system testing is that it is similar to integration testing in
