@@ -1,5 +1,12 @@
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
+*   Add source code to published npm package
+
+    This allows activestorage users to depend on the javascript source code
+    rather than the compiled code, which can produce smaller javascript bundles.
+
+    *Richard Macklin*
+
 *   Preserve display aspect ratio when extracting width and height from videos
     with rectangular samples in `ActiveStorage::Analyzer::VideoAnalyzer`.
 
