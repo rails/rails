@@ -1,3 +1,8 @@
+*   Caching: MemCache and Redis `read_multi` and `fetch_multi` speedup.
+    Read from the local in-memory cache before consulting the backend.
+
+    *Gabriel Sobrinho*
+
 *   Return all mappings for a timezone identifier in `country_zones`
 
     Some timezones like `Europe/London` have multiple mappings in
