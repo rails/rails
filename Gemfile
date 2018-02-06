@@ -42,7 +42,7 @@ gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", requi
 gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
 
 group :doc do
-  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
+  gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"

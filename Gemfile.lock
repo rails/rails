@@ -23,14 +23,6 @@ GIT
     queue_classic (3.2.0.RC1)
       pg (>= 0.17, < 2.0)
 
-GIT
-  remote: https://github.com/robin850/sdoc.git
-  revision: 0e340352f3ab2f196c8a8743f83c2ee286e4f71c
-  branch: upgrade
-  specs:
-    sdoc (1.0.0.rc2)
-      rdoc (~> 5.0)
-
 PATH
   remote: .
   specs:
@@ -376,7 +368,7 @@ GEM
       rake
     rake (12.2.1)
     rb-fsevent (0.10.2)
-    rdoc (5.1.0)
+    rdoc (6.0.1)
     redcarpet (3.2.3)
     redis (4.0.1)
     redis-namespace (1.6.0)
@@ -421,6 +413,8 @@ GEM
       sprockets (>= 2.8, < 4.0)
       sprockets-rails (>= 2.0, < 4.0)
       tilt (>= 1.1, < 3)
+    sdoc (1.0.0)
+      rdoc (>= 5.0)
     selenium-webdriver (3.5.1)
       childprocess (~> 0.5)
       rubyzip (~> 1.0)
@@ -557,7 +551,7 @@ DEPENDENCIES
   resque-scheduler
   rubocop (>= 0.47)
   sass-rails
-  sdoc!
+  sdoc (~> 1.0)
   sequel
   sidekiq
   sneakers
