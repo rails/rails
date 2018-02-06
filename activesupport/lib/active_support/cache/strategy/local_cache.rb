@@ -116,6 +116,19 @@ module ActiveSupport
             end
           end
 
+          def read_multi_entries(names, options)
+            return super unless local_cache
+
+            local_entries = Hash[names.map { |name| [name, local_cache.read_entry(name, options)] }.keep_if { |_name, value| value }]
+            missed_keys = names - local_entries.keys
+
+            if missed_keys.present?
+              local_entries.merge!(super(missed_keys, options))
+            else
+              local_entries
+            end
+          end
+
           def write_entry(key, entry, options)
             if options[:unless_exist]
               local_cache.delete_entry(key, options) if local_cache
