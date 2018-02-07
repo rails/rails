@@ -8,6 +8,14 @@
 #
 #   ActiveStorage::Variation.new(resize: "100x100", monochrome: true, trim: true, rotate: "-90")
 #
+# You can also combine multiple transformations in one step, e.g. for center-weighted cropping:
+#
+#   ActiveStorage::Variation.new(combine_options: {
+#     resize: "100x100^",
+#     gravity: "center",
+#     crop: "100x100+0+0",
+#   })
+#
 # A list of all possible transformations is available at https://www.imagemagick.org/script/mogrify.php.
 class ActiveStorage::Variation
   attr_reader :transformations
