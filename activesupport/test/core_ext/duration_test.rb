@@ -638,6 +638,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal time + d1, time + d2
   end
 
+  def test_durations_survive_yaml_serialization
+    d1 = YAML.load(YAML.dump(10.minutes))
+    assert_equal 600, d1.to_i
+    assert_equal 660, (d1 + 60).to_i
+  end
+
   private
     def eastern_time_zone
       if Gem.win_platform?
