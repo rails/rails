@@ -82,7 +82,11 @@ module ActiveRecord
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
           ActiveSupport.on_load(:active_record) do
-            filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
+            filename = if app.config.schema_cache_file
+              app.config.schema_cache_file
+            else
+              File.join(app.config.paths["db"].first, "schema_cache.yml")
+            end
 
             if File.file?(filename)
               cache = YAML.load(File.read(filename))
