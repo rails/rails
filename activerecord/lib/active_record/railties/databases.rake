@@ -253,16 +253,18 @@ db_namespace = namespace :db do
     end
 
     namespace :cache do
-      desc "Creates a db/schema_cache.yml file."
+      desc "Creates a db/schema_cache.yml file. Specify another file with SCHEMA_CACHE=db/my_schema_cache.yml"
       task dump: [:environment, :load_config] do
         conn = ActiveRecord::Base.connection
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+        filename = ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+
         ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(conn, filename)
       end
 
-      desc "Clears a db/schema_cache.yml file."
+      desc "Clears a db/schema_cache.yml file. Specify another file with SCHEMA_CACHE=db/my_schema_cache.yml"
       task clear: [:environment, :load_config] do
-        filename = File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+        filename = ENV["SCHEMA_CACHE"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema_cache.yml")
+
         rm_f filename, verbose: false
       end
     end
