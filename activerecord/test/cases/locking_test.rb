@@ -415,7 +415,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, car.lock_version
 
     previously_car_updated_at = car.updated_at
-    car.wheels.first.update(size: 42)
+    travel(1.day) do
+      car.wheels.first.update(size: 42)
+    end
 
     assert_equal 1, car.reload.wheels_count
     assert_not_equal previously_car_updated_at, car.updated_at
