@@ -334,6 +334,14 @@ module ActiveSupport
       to_i
     end
 
+    def init_with(coder) #:nodoc:
+      initialize(coder["value"], coder["parts"])
+    end
+
+    def encode_with(coder) #:nodoc:
+      coder.map = { "value" => @value, "parts" => @parts }
+    end
+
     # Build ISO 8601 Duration string for this duration.
     # The +precision+ parameter can be used to limit seconds' precision of duration.
     def iso8601(precision: nil)
