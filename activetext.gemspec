@@ -12,6 +12,7 @@ Gem::Specification.new do |s|
   s.add_dependency "rails", ">= 5.2.0"
   s.add_dependency "activerecord", ">= 5.2.0"
   s.add_dependency "activestorage", ">= 5.2.0"
+  s.add_dependency "nokogiri"
 
   s.add_development_dependency "bundler", "~> 1.15"
 
