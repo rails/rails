@@ -7,6 +7,7 @@ module ActiveText
 
   autoload :Attachable
   autoload :Attachment
+  autoload :Attribute
   autoload :Content
   autoload :Fragment
   autoload :HtmlConversion
