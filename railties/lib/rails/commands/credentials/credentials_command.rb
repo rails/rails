@@ -20,7 +20,7 @@ module Rails
         require_application_and_environment!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
-        ensure_master_key_has_been_added
+        ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
         ensure_credentials_have_been_added
 
         catch_editing_exceptions do
