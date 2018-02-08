@@ -16,8 +16,8 @@ module ActiveText
       end
 
       def plain_text_for_node_children(node)
-        node.children.each_with_index.map do |node, index|
-          plain_text_for_node(node, index)
+        node.children.each_with_index.map do |child, index|
+          plain_text_for_node(child, index)
         end.compact.join("")
       end
 
