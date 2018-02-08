@@ -343,6 +343,22 @@ Rails will also automatically set the `class` and `id` of the form appropriately
 
 WARNING: When you're using STI (single-table inheritance) with your models, you can't rely on record identification on a subclass if only their parent class is declared a resource. You will have to specify the model name, `:url`, and `:method` explicitly.
 
+#### Dealing with nested resources
+
+For nested resources
+
+```ruby
+resources :articles do
+  resources :comments
+end
+```
+
+Use array of objects for automated identification
+
+```ruby
+form_for [@article, @comment]
+```
+
 #### Dealing with Namespaces
 
 If you have created namespaced routes, `form_for` has a nifty shorthand for that too. If your application has an admin namespace then
