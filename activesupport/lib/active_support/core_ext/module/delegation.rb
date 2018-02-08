@@ -215,6 +215,32 @@ class Module
     end
   end
 
+
+  # Provides a +delegate_privately+ class method to easily expose contained objects'
+  # public methods as your own private methods.
+  #
+  #   class Greeter < ActiveRecord::Base
+  #     def hello
+  #       'hello'
+  #     end
+  #   end
+  #
+  #   class Foo < ActiveRecord::Base
+  #     belongs_to :greeter
+  #     delegate_privately :hello, to: :greeter
+  #
+  #     def public_hello
+  #       "#{hello} world"
+  #     end
+  #   end
+  #
+  #   Foo.new.hello # => NoMethodError: private method `goodbye' called for for #<Foo:0x1af30c>
+  #   Foo.new.public_hello   # => "hello world"
+  #
+  def delegate_privately(*methods, **options)
+    private *delegate(*methods, **options)
+  end
+
   # When building decorators, a common pattern may emerge:
   #
   #   class Partition

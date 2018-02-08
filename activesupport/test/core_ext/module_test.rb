@@ -440,4 +440,42 @@ class ModuleTest < ActiveSupport::TestCase
     assert_not_respond_to place, :the_city
     assert place.respond_to?(:the_city, true)
   end
+
+  def test_private_delegate_with_delegate_privately
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate_privately(:street, :city, to: :@place)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:street, true) # Asking for private method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_private_delegate_prefixed_with_delegate_privately
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate_privately(:street, :city, to: :@place, prefix: :the)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert_not_respond_to place, :the_street
+    assert place.respond_to?(:the_street, true)
+    assert_not_respond_to place, :the_city
+    assert place.respond_to?(:the_city, true)
+  end
 end
