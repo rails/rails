@@ -141,7 +141,21 @@ module ActionController
         @cv = new_cond
         @aborted = false
         @ignore_disconnect = false
-        super(response, SizedQueue.new(10))
+
+        # https://github.com/rails/rails/issues/31813:
+        #
+        # In a browser context, the browser consumes data as soon as it's
+        # generated, freeing up space in the SizedQueue. However, in a rack
+        # test context, this is not the case, as data is never consumed. This
+        # leads to a deadlock upon trying to insert the 11th element in the
+        # queue, since the queue is waiting for space to become available
+        # before inserting the element:
+        #
+        #   http://ruby-doc.org/stdlib-2.0.0/libdoc/thread/rdoc/SizedQueue.html#method-i-push
+        #
+        # Thus, use an infinite sized Queue in rack test contexts to work around
+        # the issue where data is never consumed from the queue.
+        super(response, Rails.env.test? ? Queue.new : SizedQueue.new(10))
       end
 
       def write(string)
