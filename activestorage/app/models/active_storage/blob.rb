@@ -109,7 +109,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-  def service_url(expires_in: service.url_expires_in, disposition: :inline, filename: self.filename, **options)
+  def service_url(expires_in: service.url_expires_in, disposition: :inline, filename: nil, **options)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
     service.url key, expires_in: expires_in, filename: filename, content_type: content_type,
       disposition: forcibly_serve_as_binary? ? :attachment : disposition, **options
   end

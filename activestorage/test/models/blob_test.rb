@@ -82,6 +82,8 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     freeze_time do
       assert_equal expected_url_for(blob), blob.service_url
       assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
+      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: "new.txt")
+      assert_equal expected_url_for(blob, filename: blob.filename), blob.service_url(filename: nil)
     end
   end
 
