@@ -1,2 +1,11 @@
-/node_modules
-
+.bundle/
+log/*.log
+node_modules/
+pkg/
+test/dummy/db/*.sqlite3
+test/dummy/db/*.sqlite3-journal
+test/dummy/log/*.log
+test/dummy/node_modules/
+test/dummy/yarn-error.log
+test/dummy/storage/
+test/dummy/tmp/
