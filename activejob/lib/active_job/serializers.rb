@@ -33,16 +33,31 @@ module ActiveJob
     autoload :ObjectSerializer
     autoload :StandardTypeSerializer
 
-    included do
-      class_attribute :_additional_serializers, instance_accessor: false, instance_predicate: false
-      self._additional_serializers = []
-    end
+    mattr_accessor :_additional_serializers
+    self._additional_serializers = []
 
-    # Includes the method to list known serializers and to add new ones
-    module ClassMethods
+    class << self
+      # Returns serialized representative of the passed object.
+      # Will look up through all known serializers.
+      # Raises `ActiveJob::SerializationError` if it can't find a proper serializer.
+      def serialize(argument)
+        serializer = serializers.detect { |s| s.serialize?(argument) }
+        raise SerializationError.new("Unsupported argument type: #{argument.class.name}") unless serializer
+        serializer.serialize(argument)
+      end
+
+      # Returns deserialized object.
+      # Will look up through all known serializers.
+      # If no serializers found will raise `ArgumentError`
+      def deserialize(argument)
+        serializer = serializers.detect { |s| s.deserialize?(argument) }
+        raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}" unless serializer
+        serializer.deserialize(argument)
+      end
+
       # Returns list of known serializers
       def serializers
-        self._additional_serializers + ActiveJob::Serializers::SERIALIZERS
+        self._additional_serializers
       end
 
       # Adds a new serializer to a list of known serializers
@@ -68,33 +83,10 @@ module ActiveJob
         end
     end
 
-    # :nodoc:
-    SERIALIZERS = [
-      ::ActiveJob::Serializers::GlobalIDSerializer,
-      ::ActiveJob::Serializers::StandardTypeSerializer,
-      ::ActiveJob::Serializers::HashWithIndifferentAccessSerializer,
-      ::ActiveJob::Serializers::HashSerializer,
-      ::ActiveJob::Serializers::ArraySerializer
-    ].freeze
-
-    class << self
-      # Returns serialized representative of the passed object.
-      # Will look up through all known serializers.
-      # Raises `ActiveJob::SerializationError` if it can't find a proper serializer.
-      def serialize(argument)
-        serializer = ::ActiveJob::Base.serializers.detect { |s| s.serialize?(argument) }
-        raise SerializationError.new("Unsupported argument type: #{argument.class.name}") unless serializer
-        serializer.serialize(argument)
-      end
-
-      # Returns deserialized object.
-      # Will look up through all known serializers.
-      # If no serializers found will raise `ArgumentError`
-      def deserialize(argument)
-        serializer = ::ActiveJob::Base.serializers.detect { |s| s.deserialize?(argument) }
-        raise ArgumentError, "Can only deserialize primitive arguments: #{argument.inspect}" unless serializer
-        serializer.deserialize(argument)
-      end
-    end
+    add_serializers GlobalIDSerializer,
+      StandardTypeSerializer,
+      HashWithIndifferentAccessSerializer,
+      HashSerializer,
+      ArraySerializer
   end
 end

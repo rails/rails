@@ -36,7 +36,11 @@ class SerializersTest < ActiveSupport::TestCase
 
   setup do
     @value_object = DummyValueObject.new 123
-    ActiveJob::Base._additional_serializers = []
+    @original_serializers = ActiveJob::Serializers.serializers
+  end
+
+  teardown do
+    ActiveJob::Serializers._additional_serializers = @original_serializers
   end
 
   test "can't serialize unknown object" do
@@ -51,14 +55,14 @@ class SerializersTest < ActiveSupport::TestCase
   end
 
   test "adds new serializer" do
-    ActiveJob::Base.add_serializers DummySerializer
-    assert ActiveJob::Base.serializers.include?(DummySerializer)
+    ActiveJob::Serializers.add_serializers DummySerializer
+    assert ActiveJob::Serializers.serializers.include?(DummySerializer)
   end
 
   test "can't add serializer with the same key twice" do
-    ActiveJob::Base.add_serializers DummySerializer
+    ActiveJob::Serializers.add_serializers DummySerializer
     assert_raises ArgumentError do
-      ActiveJob::Base.add_serializers DummySerializer
+      ActiveJob::Serializers.add_serializers DummySerializer
     end
   end
 end

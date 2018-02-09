@@ -38,7 +38,7 @@ module ActiveJob
         def serialize_hash_key(key)
           raise SerializationError.new("Only string and symbol hash keys may be serialized as job arguments, but #{key.inspect} is a #{key.class}") unless [String, Symbol].include?(key.class)
 
-          raise SerializationError.new("Can't serialize a Hash with reserved key #{key.inspect}") if ActiveJob::Base.reserved_serializers_keys.include?(key.to_s)
+          raise SerializationError.new("Can't serialize a Hash with reserved key #{key.inspect}") if ActiveJob::Serializers.reserved_serializers_keys.include?(key.to_s)
 
           key.to_s
         end
