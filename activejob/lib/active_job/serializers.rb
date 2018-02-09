@@ -34,6 +34,8 @@ module ActiveJob
     autoload :HashSerializer
     autoload :ObjectSerializer
     autoload :StandardTypeSerializer
+    autoload :SymbolSerializer
+    autoload :DurationSerializer
 
     mattr_accessor :_additional_serializers
     self._additional_serializers = Set.new
@@ -94,6 +96,8 @@ module ActiveJob
       StandardTypeSerializer,
       HashWithIndifferentAccessSerializer,
       HashSerializer,
-      ArraySerializer
+      ArraySerializer,
+      SymbolSerializer,
+      DurationSerializer
   end
 end

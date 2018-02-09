@@ -13,6 +13,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
     "a", true, false, BigDecimal.new(5),
+    :a, 1.day,
     [ 1, "a" ],
     { "a" => 1 }
   ].each do |arg|
@@ -21,7 +22,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  [ :a, Object.new, self, Person.find("5").to_gid ].each do |arg|
+  [ Object.new, self, Person.find("5").to_gid ].each do |arg|
     test "does not serialize #{arg.class}" do
       assert_raises ActiveJob::SerializationError do
         ActiveJob::Arguments.serialize [ arg ]
