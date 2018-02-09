@@ -7,9 +7,15 @@ module ActiveJob
   # = Active Job Railtie
   class Railtie < Rails::Railtie # :nodoc:
     config.active_job = ActiveSupport::OrderedOptions.new
+    config.active_job.custom_serializers = []
 
     initializer "active_job.logger" do
       ActiveSupport.on_load(:active_job) { self.logger = ::Rails.logger }
+    end
+
+    initializer "active_job.custom_serializers" do |app|
+      custom_serializers = app.config.active_job.delete(:custom_serializers)
+      ActiveJob::Serializers.add_serializers custom_serializers
     end
 
     initializer "active_job.set_configs" do |app|
