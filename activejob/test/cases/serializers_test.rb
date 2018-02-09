@@ -17,21 +17,19 @@ class SerializersTest < ActiveSupport::TestCase
   end
 
   class DummySerializer < ActiveJob::Serializers::ObjectSerializer
-    class << self
-      def serialize(object)
-        super({ "value" => object.value })
-      end
+    def serialize(object)
+      super({ "value" => object.value })
+    end
 
-      def deserialize(hash)
-        DummyValueObject.new(hash["value"])
-      end
+    def deserialize(hash)
+      DummyValueObject.new(hash["value"])
+    end
 
-      private
+    private
 
       def klass
         DummyValueObject
       end
-    end
   end
 
   setup do

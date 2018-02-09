@@ -4,26 +4,25 @@ module ActiveJob
   module Serializers
     # Provides methods to serialize and deserialize `Hash` (`{key: field, ...}`)
     # Only `String` or `Symbol` can be used as a key. Values will be serialized by known serializers
-    class HashSerializer < BaseSerializer
-      class << self
-        def serialize(hash)
-          symbol_keys = hash.each_key.grep(Symbol).map(&:to_s)
-          result = serialize_hash(hash)
-          result[key] = symbol_keys
-          result
-        end
+    class HashSerializer < BaseSerializer # :nodoc:
+      def serialize(hash)
+        symbol_keys = hash.each_key.grep(Symbol).map(&:to_s)
+        result = serialize_hash(hash)
+        result[key] = symbol_keys
+        result
+      end
 
-        def deserialize?(argument)
-          argument.is_a?(Hash) && argument[key]
-        end
+      def deserialize?(argument)
+        argument.is_a?(Hash) && argument[key]
+      end
 
-        def deserialize(hash)
-          result = hash.transform_values { |v| Serializers::deserialize(v) }
-          symbol_keys = result.delete(key)
-          transform_symbol_keys(result, symbol_keys)
-        end
+      def deserialize(hash)
+        result = hash.transform_values { |v| Serializers::deserialize(v) }
+        symbol_keys = result.delete(key)
+        transform_symbol_keys(result, symbol_keys)
+      end
 
-        private
+      private
 
         def key
           SYMBOL_KEYS_KEY
@@ -56,7 +55,6 @@ module ActiveJob
         def klass
           Hash
         end
-      end
     end
   end
 end

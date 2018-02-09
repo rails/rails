@@ -3,14 +3,12 @@
 module ActiveJob
   module Serializers
     class ObjectSerializer < BaseSerializer
-      class << self
-        def serialize(hash)
-          { OBJECT_SERIALIZER_KEY => self.name }.merge!(hash)
-        end
+      def serialize(hash)
+        { OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
+      end
 
-        def deserialize?(argument)
-          argument.is_a?(Hash) && argument[OBJECT_SERIALIZER_KEY] == self.name
-        end
+      def deserialize?(argument)
+        argument.is_a?(Hash) && argument[OBJECT_SERIALIZER_KEY] == self.class.name
       end
     end
   end
