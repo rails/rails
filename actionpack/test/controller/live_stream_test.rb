@@ -330,25 +330,27 @@ module ActionController
     end
 
     def test_abort_with_full_buffer
-      @controller.latch = Concurrent::CountDownLatch.new
-      @controller.error_latch = Concurrent::CountDownLatch.new
+      Rails.stub(:env, ActiveSupport::StringInquirer.new("production")) do
+        @controller.latch = Concurrent::CountDownLatch.new
+        @controller.error_latch = Concurrent::CountDownLatch.new
 
-      capture_log_output do |output|
-        get :overfill_buffer_and_die, format: "plain"
+        capture_log_output do |output|
+          get :overfill_buffer_and_die, format: "plain"
 
-        t = Thread.new(response) { |resp|
-          resp.await_commit
-          _, _, body = resp.to_a
-          body.each do
-            @controller.latch.wait
-            body.close
-            break
-          end
-        }
+          t = Thread.new(response) { |resp|
+            resp.await_commit
+            _, _, body = resp.to_a
+            body.each do
+              @controller.latch.wait
+              body.close
+              break
+            end
+          }
 
-        t.join
-        @controller.error_latch.wait
-        assert_match "Error while streaming", output.rewind && output.read
+          t.join
+          @controller.error_latch.wait
+          assert_match "Error while streaming", output.rewind && output.read
+        end
       end
     end
 
