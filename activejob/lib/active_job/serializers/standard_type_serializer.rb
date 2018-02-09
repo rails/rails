@@ -7,7 +7,7 @@ module ActiveJob
     class StandardTypeSerializer < BaseSerializer
       class << self
         def serialize?(argument)
-          ::ActiveJob::Arguments::TYPE_WHITELIST.include? argument.class
+          Arguments::TYPE_WHITELIST.include? argument.class
         end
 
         def serialize(argument)

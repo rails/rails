@@ -8,7 +8,7 @@ module ActiveJob
       class << self
         def serialize(hash)
           result = serialize_hash(hash)
-          result[key] = ::ActiveJob::Serializers.serialize(true)
+          result[key] = Serializers.serialize(true)
           result
         end
 
@@ -17,7 +17,7 @@ module ActiveJob
         end
 
         def deserialize(hash)
-          result = hash.transform_values { |v| ::ActiveJob::Serializers.deserialize(v) }
+          result = hash.transform_values { |v| Serializers.deserialize(v) }
           result.delete(key)
           result.with_indifferent_access
         end
@@ -29,7 +29,7 @@ module ActiveJob
         private
 
         def klass
-          ::ActiveSupport::HashWithIndifferentAccess
+          ActiveSupport::HashWithIndifferentAccess
         end
       end
     end

@@ -8,17 +8,17 @@ module ActiveJob
         alias_method :deserialize?, :serialize?
 
         def serialize(array)
-          array.map { |arg| ::ActiveJob::Serializers.serialize(arg) }
+          array.map { |arg| Serializers.serialize(arg) }
         end
 
         def deserialize(array)
-          array.map { |arg| ::ActiveJob::Serializers.deserialize(arg) }
+          array.map { |arg| Serializers.deserialize(arg) }
         end
 
         private
 
         def klass
-          ::Array
+          Array
         end
       end
     end

@@ -18,7 +18,7 @@ module ActiveJob
         end
 
         def deserialize(hash)
-          result = hash.transform_values { |v| ::ActiveJob::Serializers::deserialize(v) }
+          result = hash.transform_values { |v| Serializers::deserialize(v) }
           symbol_keys = result.delete(key)
           transform_symbol_keys(result, symbol_keys)
         end
@@ -31,7 +31,7 @@ module ActiveJob
 
         def serialize_hash(hash)
           hash.each_with_object({}) do |(key, value), result|
-            result[serialize_hash_key(key)] = ::ActiveJob::Serializers.serialize(value)
+            result[serialize_hash_key(key)] = Serializers.serialize(value)
           end
         end
 
@@ -54,7 +54,7 @@ module ActiveJob
         end
 
         def klass
-          ::Hash
+          Hash
         end
       end
     end

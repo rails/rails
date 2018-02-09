@@ -24,7 +24,7 @@ module ActiveJob
         private
 
         def klass
-          ::GlobalID::Identification
+          GlobalID::Identification
         end
       end
     end
