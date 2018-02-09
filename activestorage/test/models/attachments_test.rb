@@ -31,6 +31,18 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
+  test "attach new blob from a URI::HTTP" do
+    uri = URI.parse("http://rubyonrails.org/images/imagine.png")
+    @user.avatar.attach(uri)
+    assert_equal "imagine.png", @user.avatar.filename.to_s
+  end
+
+  test "attach new blob from url" do
+    url = "http://rubyonrails.org/images/imagine.png"
+    @user.avatar.attach(url)
+    assert_equal "imagine.png", @user.avatar.filename.to_s
+  end
+
   test "replace attached blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
 

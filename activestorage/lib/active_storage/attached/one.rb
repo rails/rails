@@ -17,8 +17,10 @@ module ActiveStorage
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    #   person.avatar.attach(params[:image_url])
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
+    #   person.avatar.attach(URI.parse("http://rubyonrails.org/images/imagine.png"))
     def attach(attachable)
       if attached? && dependent == :purge_later
         replace attachable

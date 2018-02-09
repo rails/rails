@@ -16,8 +16,10 @@ module ActiveStorage
     #
     #   document.images.attach(params[:images]) # Array of ActionDispatch::Http::UploadedFile objects
     #   document.images.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
+    #   document.images.attach(params[:image_urls]) # Array of image url
     #   document.images.attach(io: File.open("/path/to/racecar.jpg"), filename: "racecar.jpg", content_type: "image/jpg")
     #   document.images.attach([ first_blob, second_blob ])
+    #   document.images.attach(URI.parse("http://rubyonrails.org/images/imagine.png"))
     def attach(*attachables)
       attachables.flatten.collect do |attachable|
         if record.new_record?
