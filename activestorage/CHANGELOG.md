@@ -1,3 +1,7 @@
+*   Attachable from url or URI::HTTP or URI::HTTPS
+
+    *Yoshiyuki Hirano*
+
 *   Add source code to published npm package
 
     This allows activestorage users to depend on the javascript source code

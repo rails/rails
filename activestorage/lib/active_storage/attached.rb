@@ -24,10 +24,21 @@ module ActiveStorage
             io: attachable.open,
             filename: attachable.original_filename,
             content_type: attachable.content_type
+        when URI::HTTP, URI::HTTPS
+          io = attachable.open
+          ActiveStorage::Blob.create_after_upload! \
+            io: io,
+            filename: File.basename(attachable.path),
+            content_type: io.content_type
         when Hash
           ActiveStorage::Blob.create_after_upload!(attachable)
         when String
-          ActiveStorage::Blob.find_signed(attachable)
+          uri = URI.parse(attachable)
+          if uri.respond_to?(:open)
+            create_blob_from(uri)
+          else
+            ActiveStorage::Blob.find_signed(attachable)
+          end
         else
           nil
         end
