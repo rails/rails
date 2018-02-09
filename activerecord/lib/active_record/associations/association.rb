@@ -156,9 +156,9 @@ module ActiveRecord
         reset
       end
 
-      # We can't dump @reflection since it contains the scope proc
+      # We can't dump @reflection and @through_reflection since it contains the scope proc
       def marshal_dump
-        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
         [@reflection.name, ivars]
       end
 
