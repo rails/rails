@@ -793,9 +793,14 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_pick
+  def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
-    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+    assert_nil Topic.where("1=0").pick(:heading)
+  end
+
+  def test_pick_two
+    assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
+    assert_nil Topic.where("1=0").pick(:author_name, :author_email_address)
   end
 
   def test_grouped_calculation_with_polymorphic_relation
