@@ -793,6 +793,11 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_pick
+    assert_equal "The First Topic", Topic.order(:id).pick(:heading)
+    assert_nil Topic.where(id: 9999999999999999999).pick(:heading)
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
