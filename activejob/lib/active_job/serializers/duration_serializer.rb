@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveJob
   module Serializers
     class DurationSerializer < ObjectSerializer # :nodoc:

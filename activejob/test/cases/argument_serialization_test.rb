@@ -13,7 +13,9 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
     "a", true, false, BigDecimal.new(5),
-    :a, 1.day,
+    :a, 1.day, Date.new(2001, 2, 3), Time.new(2002, 10, 31, 2, 2, 2, "+02:00"),
+    DateTime.new(2001, 2, 3, 4, 5, 6, '+03:00'),
+    ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"]),
     [ 1, "a" ],
     { "a" => 1 }
   ].each do |arg|
