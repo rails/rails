@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "rails/generators/base"
+require "active_support/core_ext/string/strip"
 require "active_support/encrypted_file"
 
 module Rails
@@ -15,7 +16,12 @@ module Rails
 
       private
         def encrypted_file_template
-          "# aws:\n#  access_key_id: 123\n#  secret_access_key: 345\n\n"
+          <<-YAML.strip_heredoc
+          # aws:
+          #   access_key_id: 123
+          #   secret_access_key: 345
+
+          YAML
         end
     end
   end
