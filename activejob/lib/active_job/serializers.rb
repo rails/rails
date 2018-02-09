@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "set"
+
 module ActiveJob
   # Raised when an exception is raised during job arguments deserialization.
   #
@@ -34,7 +36,7 @@ module ActiveJob
     autoload :StandardTypeSerializer
 
     mattr_accessor :_additional_serializers
-    self._additional_serializers = []
+    self._additional_serializers = Set.new
 
     class << self
       # Returns serialized representative of the passed object.
@@ -62,26 +64,31 @@ module ActiveJob
 
       # Adds a new serializer to a list of known serializers
       def add_serializers(*new_serializers)
-        check_duplicate_serializer_keys!(new_serializers)
-
-        self._additional_serializers = new_serializers + self._additional_serializers
+        self._additional_serializers += new_serializers
       end
 
       # Returns a list of reserved keys, which cannot be used as keys for a hash
       def reserved_serializers_keys
-        serializers.select { |s| s.respond_to?(:key) }.map(&:key)
+        RESERVED_KEYS
       end
-
-      private
-
-        def check_duplicate_serializer_keys!(serializers)
-          keys_to_add = serializers.select { |s| s.respond_to?(:key) }.map(&:key)
-
-          duplicate_keys = reserved_serializers_keys & keys_to_add
-
-          raise ArgumentError.new("Can't add serializers because of keys duplication: #{duplicate_keys}") if duplicate_keys.any?
-        end
     end
+
+    # :nodoc:
+    GLOBALID_KEY = "_aj_globalid".freeze
+    # :nodoc:
+    SYMBOL_KEYS_KEY = "_aj_symbol_keys".freeze
+    # :nodoc:
+    WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access".freeze
+    # :nodoc:
+    OBJECT_SERIALIZER_KEY = "_aj_serialized"
+
+    # :nodoc:
+    RESERVED_KEYS = [
+      GLOBALID_KEY, GLOBALID_KEY.to_sym,
+      SYMBOL_KEYS_KEY, SYMBOL_KEYS_KEY.to_sym,
+      WITH_INDIFFERENT_ACCESS_KEY, WITH_INDIFFERENT_ACCESS_KEY.to_sym,
+    ]
+    private_constant :RESERVED_KEYS
 
     add_serializers GlobalIDSerializer,
       StandardTypeSerializer,

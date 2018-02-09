@@ -10,20 +10,20 @@ class SerializersTest < ActiveSupport::TestCase
     def initialize(value)
       @value = value
     end
+
+    def ==(other)
+      self.value == other.value
+    end
   end
 
   class DummySerializer < ActiveJob::Serializers::ObjectSerializer
     class << self
       def serialize(object)
-        { key => object.value }
+        super({ "value" => object.value })
       end
 
       def deserialize(hash)
-        DummyValueObject.new(hash[key])
-      end
-
-      def key
-        "_dummy_serializer"
+        DummyValueObject.new(hash["value"])
       end
 
       private
@@ -49,9 +49,24 @@ class SerializersTest < ActiveSupport::TestCase
     end
   end
 
+  test "will serialize objects with serializers registered" do
+    ActiveJob::Serializers.add_serializers DummySerializer
+
+    assert_equal(
+      { "_aj_serialized" => "SerializersTest::DummySerializer", "value" => 123 },
+      ActiveJob::Serializers.serialize(@value_object)
+    )
+  end
+
   test "won't deserialize unknown hash" do
     hash = { "_dummy_serializer" => 123, "_aj_symbol_keys" => [] }
-    assert ActiveJob::Serializers.deserialize(hash), hash.except("_aj_symbol_keys")
+    assert_equal({ "_dummy_serializer" => 123 }, ActiveJob::Serializers.deserialize(hash))
+  end
+
+  test "will deserialize know serialized objects" do
+    ActiveJob::Serializers.add_serializers DummySerializer
+    hash = { "_aj_serialized" => "SerializersTest::DummySerializer", "value" => 123 }
+    assert_equal DummyValueObject.new(123), ActiveJob::Serializers.deserialize(hash)
   end
 
   test "adds new serializer" do
@@ -61,7 +76,7 @@ class SerializersTest < ActiveSupport::TestCase
 
   test "can't add serializer with the same key twice" do
     ActiveJob::Serializers.add_serializers DummySerializer
-    assert_raises ArgumentError do
+    assert_no_difference(-> { ActiveJob::Serializers.serializers.size } ) do
       ActiveJob::Serializers.add_serializers DummySerializer
     end
   end

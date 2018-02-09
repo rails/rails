@@ -12,21 +12,17 @@ module ActiveJob
           result
         end
 
-        def deserialize?(argument)
-          argument.is_a?(Hash) && argument[key]
-        end
-
         def deserialize(hash)
           result = hash.transform_values { |v| Serializers.deserialize(v) }
           result.delete(key)
           result.with_indifferent_access
         end
 
-        def key
-          "_aj_hash_with_indifferent_access"
-        end
-
         private
+
+        def key
+          WITH_INDIFFERENT_ACCESS_KEY
+        end
 
         def klass
           ActiveSupport::HashWithIndifferentAccess

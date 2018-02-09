@@ -23,11 +23,11 @@ module ActiveJob
           transform_symbol_keys(result, symbol_keys)
         end
 
-        def key
-          "_aj_symbol_keys"
-        end
-
         private
+
+        def key
+          SYMBOL_KEYS_KEY
+        end
 
         def serialize_hash(hash)
           hash.each_with_object({}) do |(key, value), result|
