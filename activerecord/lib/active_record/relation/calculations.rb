@@ -201,7 +201,7 @@ module ActiveRecord
     end
 
     # Pick the value(s) from the named column(s) in the current relation.
-    # This is short-hand for `relation.limit(1).pluck(*column_names).first`, and is primarily useful
+    # This is short-hand for <tt>relation.limit(1).pluck(*column_names).first</tt>, and is primarily useful
     # when you have a relation that's already narrowed down to a single row.
     #
     # Just like #pluck, #pick will only load the actual value, not the entire record object, so it's also
