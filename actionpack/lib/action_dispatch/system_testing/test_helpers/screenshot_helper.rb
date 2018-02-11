@@ -23,7 +23,8 @@ module ActionDispatch
         #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
         def take_screenshot
           save_image
-          puts display_image
+          save_html
+          puts display_screenshot
         end
 
         # Takes a screenshot of the current page in the browser if the test
@@ -38,7 +39,7 @@ module ActionDispatch
         end
 
         private
-          def image_name
+          def screenshot_name
             failed? ? "failures_#{method_name}" : method_name
           end
 
@@ -46,12 +47,24 @@ module ActionDispatch
             @image_path ||= absolute_image_path.to_s
           end
 
+          def html_path
+            @html_path ||= absolute_html_path.to_s
+          end
+
           def absolute_image_path
-            Rails.root.join("tmp/screenshots/#{image_name}.png")
+            Rails.root.join("tmp/screenshots/#{screenshot_name}.png")
+          end
+
+          def absolute_html_path
+            Rails.root.join("tmp/screenshots/#{screenshot_name}.html")
           end
 
           def save_image
             page.save_screenshot(absolute_image_path)
+          end
+
+          def save_html
+            page.save_page(absolute_html_path)
           end
 
           def output_type
@@ -64,8 +77,9 @@ module ActionDispatch
             output_type
           end
 
-          def display_image
-            message = "[Screenshot]: #{image_path}\n".dup
+          def display_screenshot
+            message = "[Image screenshot]: #{image_path}\n".dup
+            message << "     [HTML screenshot]: #{html_path}\n"
 
             case output_type
             when "artifact"
