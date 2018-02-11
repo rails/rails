@@ -46,6 +46,11 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     Reader.create person_id: 0, post_id: 0
   end
 
+  def test_marshal_dump
+    preloaded = Post.includes(:first_blue_tags).first
+    assert_equal preloaded, Marshal.load(Marshal.dump(preloaded))
+  end
+
   def test_preload_sti_rhs_class
     developers = Developer.includes(:firms).all.to_a
     assert_no_queries do

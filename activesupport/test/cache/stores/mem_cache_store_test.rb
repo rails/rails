@@ -49,6 +49,7 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
   include ConnectionPoolBehavior

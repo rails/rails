@@ -200,6 +200,24 @@ module ActiveRecord
       end
     end
 
+    # Pick the value(s) from the named column(s) in the current relation.
+    # This is short-hand for <tt>relation.limit(1).pluck(*column_names).first</tt>, and is primarily useful
+    # when you have a relation that's already narrowed down to a single row.
+    #
+    # Just like #pluck, #pick will only load the actual value, not the entire record object, so it's also
+    # more efficient. The value is, again like with pluck, typecast by the column type.
+    #
+    #   Person.where(id: 1).pick(:name)
+    #   # SELECT people.name FROM people WHERE id = 1 LIMIT 1
+    #   # => 'David'
+    #
+    #   Person.where(id: 1).pick(:name, :email_address)
+    #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
+    #   # => [ 'David', 'david@loudthinking.com' ]
+    def pick(*column_names)
+      limit(1).pluck(*column_names).first
+    end
+
     # Pluck all the ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people

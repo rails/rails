@@ -33,6 +33,18 @@ class Rails::Command::EncryptedCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
+    Dir.chdir(app_path) do
+      key = IO.binread("config/master.key").strip
+      FileUtils.rm("config/master.key")
+
+      switch_env("RAILS_MASTER_KEY", key) do
+        run_edit_command("config/tokens.yml.enc")
+        assert_not File.exist?("config/master.key")
+      end
+    end
+  end
+
   test "edit encrypts file with custom key" do
     run_edit_command("config/tokens.yml.enc", key: "config/tokens.key")
 

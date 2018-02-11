@@ -30,6 +30,7 @@ class FileStoreTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
   include AutoloadingCacheBehavior
 
   def test_clear

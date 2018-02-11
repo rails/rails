@@ -2,7 +2,6 @@
 
 require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
-require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
@@ -855,7 +854,7 @@ module ActionDispatch
         recognize_path_with_request(req, path, extras)
       end
 
-      def recognize_path_with_request(req, path, extras)
+      def recognize_path_with_request(req, path, extras, raise_on_missing: true)
         @router.recognize(req) do |route, params|
           params.merge!(extras)
           params.each do |key, value|
@@ -875,12 +874,14 @@ module ActionDispatch
 
             return req.path_parameters
           elsif app.matches?(req) && app.engine?
-            path_parameters = app.rack_app.routes.recognize_path_with_request(req, path, extras)
-            return path_parameters
+            path_parameters = app.rack_app.routes.recognize_path_with_request(req, path, extras, raise_on_missing: false)
+            return path_parameters if path_parameters
           end
         end
 
-        raise ActionController::RoutingError, "No route matches #{path.inspect}"
+        if raise_on_missing
+          raise ActionController::RoutingError, "No route matches #{path.inspect}"
+        end
       end
     end
     # :startdoc:
