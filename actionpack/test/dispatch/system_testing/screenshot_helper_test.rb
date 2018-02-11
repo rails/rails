@@ -40,7 +40,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_equal "simple", new_test.send(:output_type)
   end
 
-  test "display_image return artifact format when specify RAILS_SYSTEM_TESTING_SCREENSHOT environment" do
+  test "display_image includes artifact protocol when RAILS_SYSTEM_TESTING_SCREENSHOT environment specified" do
     begin
       original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
@@ -50,9 +50,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       assert_equal "artifact", new_test.send(:output_type)
 
       Rails.stub :root, Pathname.getwd do
-        new_test.stub :passed?, false do
-          assert_match %r|url=artifact://.+?tmp/screenshots/failures_x\.png|, new_test.send(:display_image)
-        end
+        assert_match %r|url=artifact://.+?tmp/screenshots/x\.png|, new_test.send(:display_image)
       end
     ensure
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
