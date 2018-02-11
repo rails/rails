@@ -13,6 +13,10 @@ module ActiveStorage
       record.public_send("#{name}_attachment")
     end
 
+    def blank?
+      attachment.blank?
+    end
+
     # Associates a given attachment with the current record, saving it to the database.
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
