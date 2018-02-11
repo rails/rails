@@ -638,6 +638,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_empty output
   end
 
+  def test_force_option
+    run_generator [File.join(destination_root, "myapp")]
+    output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    assert_match(/force/, output)
+  end
+
   def test_application_name_with_spaces
     path = File.join(destination_root, "foo bar")
 
