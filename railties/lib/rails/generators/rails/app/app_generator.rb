@@ -167,7 +167,7 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/master_key/master_key_generator"
-      master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet])
+      master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet], force: options[:force])
       master_key_generator.add_master_key_file_silently
       master_key_generator.ignore_master_key_file_silently
     end
