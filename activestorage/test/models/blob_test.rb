@@ -7,6 +7,23 @@ require "active_support/testing/method_call_assertions"
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
+  test ".unattached scope returns not attached blobs" do
+    class UserWithHasOneAttachedDependentFalse < User
+      has_one_attached :avatar, dependent: false
+    end
+
+    ActiveStorage::Blob.delete_all
+    blob_1 = create_blob filename: "funky.jpg"
+    blob_2 = create_blob filename: "town.jpg"
+
+    user = UserWithHasOneAttachedDependentFalse.create!
+    user.avatar.attach blob_1
+
+    assert_equal [blob_2], ActiveStorage::Blob.unattached
+    user.destroy
+    assert_equal [blob_1, blob_2].map(&:id).sort, ActiveStorage::Blob.unattached.pluck(:id).sort
+  end
+
   test "create after upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
