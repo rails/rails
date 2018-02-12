@@ -46,7 +46,7 @@ module ActiveStorage
 
     # Directly purges each associated attachment (i.e. destroys the blobs and
     # attachments and deletes the files on the service).
-    def purge(args)
+    def purge(*args)
       if attached?
         if args.any?
           attachments.where(id: [args]).each(&:purge)
