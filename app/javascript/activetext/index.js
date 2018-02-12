@@ -25,9 +25,10 @@ addEventListener("trix-attachment-add", event => {
       console.warn("Failed to store file for attachment", attachment, error)
     } else {
       console.log("Created blob for attachment", attributes, attachment)
-      const { signed_id } = attributes
-      const url = `${blobsURL}/${signed_id}/${encodeURIComponent(attachment.file.name)}`
-      attachment.setAttributes({ url, signed_id })
+      attachment.setAttributes({
+        url: `${blobsURL}/${attributes.signed_id}/${encodeURIComponent(attachment.file.name)}`,
+        sgid: attributes.attachable_sgid
+      })
     }
   })
 })
