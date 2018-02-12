@@ -14,7 +14,8 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "trix": "^0.11.1"
+    "trix": "^0.11.1",
+    "activestorage": ">= 5.2.0-rc1"
   },
   "private": true
 }

@@ -56,9 +56,14 @@ acorn@^5.0.0:
   version "5.4.1"
   resolved "https://registry.yarnpkg.com/acorn/-/acorn-5.4.1.tgz#fdc58d9d17f4a4e98d102ded826a9b9759125102"
 
+"activestorage@>= 5.2.0-rc1":
+  version "5.2.0-rc1"
+  resolved "https://registry.yarnpkg.com/activestorage/-/activestorage-5.2.0-rc1.tgz#79898996eceb0f13575eff41fb109051fbfa49b0"
+
 "activetext@file:../..":
   version "0.1"
   dependencies:
+    activestorage ">= 5.2.0-rc1"
     trix "^0.11.1"
 
 ajv-keywords@^2.1.0:
