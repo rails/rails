@@ -49,11 +49,11 @@ module ActionDispatch
   #   require "test_helper"
   #
   #   class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
-  #     driven_by :selenium, using: :chrome, screen_size: [1400, 1400]
+  #     driven_by :selenium, using: :headless_chrome, screen_size: [1400, 1400]
   #   end
   #
   # By default, <tt>ActionDispatch::SystemTestCase</tt> is driven by the
-  # Selenium driver, with the Chrome browser, and a browser size of 1400x1400.
+  # Selenium driver, with the Headless Chrome browser, and a browser size of 1400x1400.
   #
   # Changing the driver configuration options is easy. Let's say you want to use
   # the Firefox browser instead of Chrome. In your +application_system_test_case.rb+
@@ -118,7 +118,7 @@ module ActionDispatch
 
     # System Test configuration options
     #
-    # The default settings are Selenium, using Chrome, with a screen size
+    # The default settings are Selenium, using Headless Chrome, with a screen size
     # of 1400x1400.
     #
     # Examples:
