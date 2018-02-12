@@ -19,6 +19,10 @@ module ActionDispatch
       @response_parser = RequestEncoder.parser(content_type)
     end
 
+    def unescaped_body
+      CGI.unescapeHTML(body)
+    end
+
     # Was the response successful?
     def success?
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
