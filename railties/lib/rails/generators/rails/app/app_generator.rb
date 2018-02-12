@@ -130,6 +130,8 @@ module Rails
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
 
+      @config_target_version = Rails.application.config.loaded_config_version || "5.0"
+
       config
 
       unless cookie_serializer_config_exist
@@ -232,6 +234,10 @@ module Rails
 
     def vendor
       empty_directory_with_keep_file "vendor"
+    end
+
+    def config_target_version
+      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
     end
   end
 
