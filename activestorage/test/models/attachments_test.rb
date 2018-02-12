@@ -418,4 +418,32 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     @user.destroy
     assert_not ActiveStorage::Attachment.exists?(record: @user, name: "vlogs")
   end
+
+  test "selectively purge one attached blob of many" do
+    first_blob  = create_blob(filename: "funky.jpg")
+    second_blob = create_blob(filename: "wonky.jpg")
+    attachments = @user.highlights.attach(first_blob, second_blob)
+
+    assert_difference -> { ActiveStorage::Blob.count }, -1 do
+      @user.highlights.where(id: attachments.first.id).purge
+    end
+
+    assert_not ActiveStorage::Blob.exists?(key: first_blob.key)
+    assert ActiveStorage::Blob.exists?(key: second_blob.key)
+  end
+
+  test "selectively purge one attached blob of many later" do
+    first_blob  = create_blob(filename: "funky.jpg")
+    second_blob = create_blob(filename: "wonky.jpg")
+    attachments = @user.highlights.attach(first_blob, second_blob)
+
+    perform_enqueued_jobs do
+      assert_difference -> { ActiveStorage::Blob.count }, -1 do
+        @user.highlights.where(id: attachments.first.id).purge_later
+      end
+    end
+
+    assert_not ActiveStorage::Blob.exists?(key: first_blob.key)
+    assert ActiveStorage::Blob.exists?(key: second_blob.key)
+  end
 end
