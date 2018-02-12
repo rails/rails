@@ -632,8 +632,8 @@ class UsersTest < ApplicationSystemTestCase
 end
 ```
 
-By default, system tests are run with the Selenium driver, using the Chrome
-browser, and a screen size of 1400x1400. The next section explains how to
+By default, system tests are run with the Selenium driver, using the Headless
+Chrome browser, and a screen size of 1400x1400. The next section explains how to
 change the default settings.
 
 ### Changing the default settings
