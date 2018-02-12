@@ -14,7 +14,9 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  include Analyzable, Identifiable, Representable
+  include ActiveStorage::Blob::Analyzable
+  include ActiveStorage::Blob::Identifiable
+  include ActiveStorage::Blob::Representable
 
   self.table_name = "active_storage_blobs"
 
