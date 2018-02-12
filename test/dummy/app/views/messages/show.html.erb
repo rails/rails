@@ -7,7 +7,7 @@
 
 <p>
   <strong>Content:</strong>
-  <%= @message.content %>
+  <%= raw @message.content %>
 </p>
 
 <%= link_to 'Edit', edit_message_path(@message) %> |
