@@ -513,7 +513,7 @@ module ActiveRecord
           s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-        [super, *order_columns].join(", ")
+        (order_columns << super).join(", ")
       end
 
       def strict_mode?

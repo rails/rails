@@ -23,5 +23,13 @@
 
     *DHH*
 
+*   Fix `#columsn_for_distinct` of MySQL and PostgreSQL to make
+    `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
+    even if `ORDER BY` columns include other table's primary key.
+
+    Fixes #28364.
+
+    *Takumi Kagiyama*
+
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.
