@@ -150,7 +150,7 @@ module ActiveSupport
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing <tt>cache: false</tt> or change the threshold by passing
+      # passing <tt>compress: false</tt> or change the threshold by passing
       # <tt>compress_threshold: 4.kilobytes</tt>.
       #
       # No expiry is set on cache entries by default. Redis is expected to
