@@ -58,7 +58,24 @@ class SerializersTest < ActiveSupport::TestCase
 
   test "won't deserialize unknown hash" do
     hash = { "_dummy_serializer" => 123, "_aj_symbol_keys" => [] }
-    assert_equal({ "_dummy_serializer" => 123 }, ActiveJob::Serializers.deserialize(hash))
+    error = assert_raises(ArgumentError) do
+      ActiveJob::Serializers.deserialize(hash)
+    end
+    assert_equal(
+      'Serializer name is not present in the argument: {"_dummy_serializer"=>123, "_aj_symbol_keys"=>[]}',
+      error.message
+    )
+  end
+
+  test "won't deserialize unknown serializer" do
+    hash = { "_aj_serialized" => "DoNotExist", "value" => 123 }
+    error = assert_raises(ArgumentError) do
+      ActiveJob::Serializers.deserialize(hash)
+    end
+    assert_equal(
+      "Serializer DoNotExist is not know",
+      error.message
+    )
   end
 
   test "will deserialize know serialized objects" do
@@ -74,7 +91,7 @@ class SerializersTest < ActiveSupport::TestCase
 
   test "can't add serializer with the same key twice" do
     ActiveJob::Serializers.add_serializers DummySerializer
-    assert_no_difference(-> { ActiveJob::Serializers.serializers.size } ) do
+    assert_no_difference(-> { ActiveJob::Serializers.serializers.size }) do
       ActiveJob::Serializers.add_serializers DummySerializer
     end
   end

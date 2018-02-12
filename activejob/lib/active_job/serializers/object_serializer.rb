@@ -21,14 +21,34 @@ module ActiveJob
     #           Money
     #         end
     #     end
-    class ObjectSerializer < BaseSerializer
-      def serialize(hash)
-        { OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
+    class ObjectSerializer
+      include Singleton
+
+      class << self
+        delegate :serialize?, :serialize, :deserialize, to: :instance
       end
 
-      def deserialize?(argument)
-        argument.is_a?(Hash) && argument[OBJECT_SERIALIZER_KEY] == self.class.name
+      # Determines if an argument should be serialized by a serializer.
+      def serialize?(argument)
+        argument.is_a?(klass)
       end
+
+      # Serializes an argument to a JSON primitive type.
+      def serialize(hash)
+        { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
+      end
+
+      # Deserilizes an argument form a JSON primiteve type.
+      def deserialize(_argument)
+        raise NotImplementedError
+      end
+
+      protected
+
+        # The class of the object that will be serialized.
+        def klass
+          raise NotImplementedError
+        end
     end
   end
 end

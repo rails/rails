@@ -404,12 +404,6 @@ class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
       )
     end
 
-    # Check if this serialized value be deserialized using this serializer.
-    # ActiveJob::Serializers::ObjectSerializer#deserialize? already take care of this.
-    def deserialize?(argument)
-      super
-    end
-
     # Convert serialized value into a proper object
     def deserialize(hash)
       Money.new hash["cents"], hash["currency"]
