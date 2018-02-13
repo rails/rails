@@ -46,7 +46,7 @@ module ActiveText
     end
 
     def to_html
-      fragment.to_html
+      render_attachments(&:to_html).to_html
     end
 
     def to_s
