@@ -49,7 +49,7 @@ module ActiveStorage
     def purge(*args)
       if attached?
         if args.any?
-          attachments.where(id: [args]).each(&:purge)
+          attachments.where(id: args).each(&:purge)
         else
           attachments.each(&:purge)
           attachments.reload
