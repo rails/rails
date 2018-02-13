@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   class ActionControllerError < StandardError #:nodoc:
   end
@@ -30,9 +32,6 @@ module ActionController
   end
 
   class NotImplemented < MethodNotAllowed #:nodoc:
-  end
-
-  class UnknownController < ActionControllerError #:nodoc:
   end
 
   class MissingFile < ActionControllerError #:nodoc:

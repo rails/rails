@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/person"
 require "models/topic"
@@ -35,7 +37,7 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_new
     topic = Topic.new
-    actual = ""
+    actual = "".dup
     PP.pp(topic, StringIO.new(actual))
     expected = <<-PRETTY.strip_heredoc
     #<Topic:0xXXXXXX
@@ -64,7 +66,7 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_persisted
     topic = topics(:first)
-    actual = ""
+    actual = "".dup
     PP.pp(topic, StringIO.new(actual))
     expected = <<-PRETTY.strip_heredoc
     #<Topic:0x\\w+
@@ -92,7 +94,7 @@ class CoreTest < ActiveRecord::TestCase
 
   def test_pretty_print_uninitialized
     topic = Topic.allocate
-    actual = ""
+    actual = "".dup
     PP.pp(topic, StringIO.new(actual))
     expected = "#<Topic:XXXXXX not initialized>\n"
     assert actual.start_with?(expected.split("XXXXXX").first)
@@ -105,7 +107,7 @@ class CoreTest < ActiveRecord::TestCase
         "inspecting topic"
       end
     end
-    actual = ""
+    actual = "".dup
     PP.pp(subtopic.new, StringIO.new(actual))
     assert_equal "inspecting topic\n", actual
   end

@@ -88,7 +88,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/bundler/bundler) which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: - [bundler homepage](http://bundler.io/)
+More information: - [bundler homepage](https://bundler.io/)
 
 ### Living on the Edge
 
@@ -213,7 +213,7 @@ Railties now deprecates:
 More information:
 
 * [Discovering Rails 3 generators](http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators)
-* [The Rails Module (in Rails 3)](http://litanyagainstfear.com/blog/2010/02/03/the-rails-module/)
+* [The Rails Module (in Rails 3)](http://quaran.to/blog/2010/02/03/the-rails-module/)
 
 Action Pack
 -----------

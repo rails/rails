@@ -1,6 +1,5 @@
 **DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
 
-
 Using Rails for API-only Applications
 =====================================
 
@@ -18,7 +17,7 @@ What is an API Application?
 
 Traditionally, when people said that they used Rails as an "API", they meant
 providing a programmatically accessible API alongside their web application.
-For example, GitHub provides [an API](http://developer.github.com) that you
+For example, GitHub provides [an API](https://developer.github.com) that you
 can use from your own custom clients.
 
 With the advent of client-side frameworks, more developers are using Rails to
@@ -66,9 +65,9 @@ Handled at the middleware layer:
   about the request environment, database queries, and basic performance
   information.
 - Security: Rails detects and thwarts [IP spoofing
-  attacks](http://en.wikipedia.org/wiki/IP_address_spoofing) and handles
+  attacks](https://en.wikipedia.org/wiki/IP_address_spoofing) and handles
   cryptographic signatures in a [timing
-  attack](http://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
+  attack](https://en.wikipedia.org/wiki/Timing_attack) aware way. Don't know what
   an IP spoofing attack or a timing attack is? Exactly.
 - Parameter Parsing: Want to specify your parameters as JSON instead of as a
   URL-encoded String? No problem. Rails will decode the JSON for you and make
@@ -94,7 +93,7 @@ Handled at the Action Pack layer:
   means not having to spend time thinking about how to model your API in terms
   of HTTP.
 - URL Generation: The flip side of routing is URL generation. A good API based
-  on HTTP includes URLs (see [the GitHub Gist API](http://developer.github.com/v3/gists/)
+  on HTTP includes URLs (see [the GitHub Gist API](https://developer.github.com/v3/gists/)
   for an example).
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
@@ -216,7 +215,6 @@ An API application comes with the following middleware by default:
 - `Rack::Head`
 - `Rack::ConditionalGet`
 - `Rack::ETag`
-- `MyApi::Application::Routes`
 
 See the [internal middleware](rails_on_rack.html#internal-middleware-stack)
 section of the Rack guide for further information on them.
@@ -415,8 +413,10 @@ Some common modules you might want to add:
 
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
-- `ActionController::HttpAuthentication::Basic` (or `Digest` or `Token`): Support
-  for basic, digest or token HTTP authentication.
+- Support for basic, digest or token HTTP authentication:
+  * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
+  * `ActionController::HttpAuthentication::Token::ControllerMethods`
 - `ActionView::Layouts`: Support for layouts when rendering.
 - `ActionController::MimeResponds`: Support for `respond_to`.
 - `ActionController::Cookies`: Support for `cookies`, which includes

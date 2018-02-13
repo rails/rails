@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/sqlite3/explain_pretty_printer"
@@ -55,11 +57,10 @@ module ActiveRecord
       ADAPTER_NAME = "SQLite".freeze
 
       include SQLite3::Quoting
-      include SQLite3::ColumnDumper
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+        primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -69,25 +70,38 @@ module ActiveRecord
         time:         { name: "time" },
         date:         { name: "date" },
         binary:       { name: "blob" },
-        boolean:      { name: "boolean" }
+        boolean:      { name: "boolean" },
+        json:         { name: "json" },
       }
 
-      class StatementPool < ConnectionAdapters::StatementPool
-        private
+      ##
+      # :singleton-method:
+      # Indicates whether boolean values are stored in sqlite3 databases as 1
+      # and 0 or 't' and 'f'. Leaving <tt>ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer</tt>
+      # set to false is deprecated. SQLite databases have used 't' and 'f' to
+      # serialize boolean values and must have old data converted to 1 and 0
+      # (its native boolean serialization) before setting this flag to true.
+      # Conversion can be accomplished by setting up a rake task which runs
+      #
+      #   ExampleModel.where("boolean_column = 't'").update_all(boolean_column: 1)
+      #   ExampleModel.where("boolean_column = 'f'").update_all(boolean_column: 0)
+      # for all models and all boolean columns, after which the flag must be set
+      # to true by adding the following to your <tt>application.rb</tt> file:
+      #
+      #   Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
+      class_attribute :represent_boolean_as_integer, default: false
 
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
+        private
           def dealloc(stmt)
             stmt[:stmt].close unless stmt[:stmt].closed?
           end
       end
 
-      def update_table_definition(table_name, base) # :nodoc:
-        SQLite3::Table.new(table_name, base)
-      end
-
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         configure_connection
@@ -121,12 +135,16 @@ module ActiveRecord
         true
       end
 
+      def supports_json?
+        true
+      end
+
       def supports_multi_insert?
         sqlite_version >= "3.7.11"
       end
 
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -169,7 +187,7 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = select_value("PRAGMA foreign_keys")
+        old = query_value("PRAGMA foreign_keys")
 
         begin
           execute("PRAGMA foreign_keys = OFF")
@@ -272,19 +290,18 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: http://www.sqlite.org/lang_altertable.html
-      # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_type?(type)
-        type.to_sym != :primary_key
+      def valid_alter_table_type?(type, options = {})
+        !invalid_alter_table_type?(type, options)
       end
+      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type)
-          super(table_name, column_name, type, options)
-        else
+        if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
           end
+        else
+          super
         end
       end
 
@@ -337,7 +354,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
 
       def foreign_keys(table_name)
-        fk_info = select_all("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
+        fk_info = exec_query("PRAGMA foreign_key_list(#{quote(table_name)})", "SCHEMA")
         fk_info.map do |row|
           options = {
             column: row["from"],
@@ -349,7 +366,31 @@ module ActiveRecord
         end
       end
 
+      def insert_fixtures(rows, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
+      end
+
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+
+            fixture_set.each do |table_name, rows|
+              rows.each { |row| insert_fixture(row, table_name) }
+            end
+          end
+        end
+      end
+
       private
+        def initialize_type_map(m = type_map)
+          super
+          register_class_with_limit m, %r(int)i, SQLite3Integer
+        end
 
         def table_structure(table_name)
           structure = exec_query("PRAGMA table_info(#{quote_table_name(table_name)})", "SCHEMA")
@@ -357,6 +398,12 @@ module ActiveRecord
           table_structure_with_collation(table_name, structure)
         end
         alias column_definitions table_structure
+
+        # See: https://www.sqlite.org/lang_altertable.html
+        # SQLite has an additional restriction on the ALTER TABLE statement
+        def invalid_alter_table_type?(type, options)
+          type.to_sym == :primary_key || options[:primary_key]
+        end
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
@@ -379,18 +426,21 @@ module ActiveRecord
           options[:id] = false
           create_table(to, options) do |definition|
             @definition = definition
-            @definition.primary_key(from_primary_key) if from_primary_key.present?
+            if from_primary_key.is_a?(Array)
+              @definition.primary_keys from_primary_key
+            end
             columns(from).each do |column|
               column_name = options[:rename] ?
                 (options[:rename][column.name] ||
                  options[:rename][column.name.to_sym] ||
                  column.name) : column.name
-              next if column_name == from_primary_key
 
               @definition.column(column_name, column.type,
                 limit: column.limit, default: column.default,
                 precision: column.precision, scale: column.scale,
-                null: column.null, collation: column.collation)
+                null: column.null, collation: column.collation,
+                primary_key: column_name == from_primary_key
+              )
             end
             yield @definition if block_given?
           end
@@ -403,6 +453,9 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
+            # indexes sqlite creates for internal use start with `sqlite_` and
+            # don't need to be copied
+            next if name.starts_with?("sqlite_")
             if to == "a#{from}"
               name = "t#{name}"
             elsif from == "a#{to}"
@@ -418,6 +471,7 @@ module ActiveRecord
               # index name can't be the same
               opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
+              opts[:where] = index.where if index.where
               add_index(to, columns, opts)
             end
           end
@@ -437,7 +491,7 @@ module ActiveRecord
         end
 
         def sqlite_version
-          @sqlite_version ||= SQLite3Adapter::Version.new(select_value("SELECT sqlite_version(*)"))
+          @sqlite_version ||= SQLite3Adapter::Version.new(query_value("SELECT sqlite_version(*)"))
         end
 
         def translate_exception(exception, message)
@@ -505,6 +559,18 @@ module ActiveRecord
         def configure_connection
           execute("PRAGMA foreign_keys = ON", "SCHEMA")
         end
+
+        class SQLite3Integer < Type::Integer # :nodoc:
+          private
+            def _limit
+              # INTEGER storage class can be stored 8 bytes value.
+              # See https://www.sqlite.org/datatype3.html#storage_classes_and_datatypes
+              limit || 8
+            end
+        end
+
+        ActiveRecord::Type.register(:integer, SQLite3Integer, adapter: :sqlite3)
     end
+    ActiveSupport.run_load_hooks(:active_record_sqlite3adapter, SQLite3Adapter)
   end
 end

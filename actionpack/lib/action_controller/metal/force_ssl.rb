@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 
@@ -37,7 +39,7 @@ module ActionController
       #     end
       #
       # ==== URL Options
-      # You can pass any of the following options to affect the redirect url
+      # You can pass any of the following options to affect the redirect URL
       # * <tt>host</tt>       - Redirect to a different host name
       # * <tt>subdomain</tt>  - Redirect to a different subdomain
       # * <tt>domain</tt>     - Redirect to a different domain
@@ -71,7 +73,7 @@ module ActionController
     # Redirect the existing request to use the HTTPS protocol.
     #
     # ==== Parameters
-    # * <tt>host_or_options</tt> - Either a host name or any of the url and
+    # * <tt>host_or_options</tt> - Either a host name or any of the URL and
     #   redirect options available to the <tt>force_ssl</tt> method.
     def force_ssl_redirect(host_or_options = nil)
       unless request.ssl?

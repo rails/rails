@@ -16,6 +16,7 @@ Style/AndOr:
 # method call.
 Style/BracesAroundHashParameters:
   Enabled: true
+  EnforcedStyle: context_dependent
 
 # Align `when` with `case`.
 Layout/CaseIndentation:
@@ -25,8 +26,10 @@ Layout/CaseIndentation:
 Layout/CommentIndentation:
   Enabled: true
 
-# No extra empty lines.
-Layout/EmptyLines:
+Layout/ElseAlignment:
+  Enabled: true
+
+Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
 # In a regular class definition, no empty lines around the body.
@@ -41,6 +44,9 @@ Layout/EmptyLinesAroundMethodBody:
 Layout/EmptyLinesAroundModuleBody:
   Enabled: true
 
+Layout/FirstParameterIndentation:
+  Enabled: true
+
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
   Enabled: true
@@ -53,6 +59,9 @@ Layout/IndentationConsistency:
 
 # Two spaces, no tabs (for indentation).
 Layout/IndentationWidth:
+  Enabled: true
+
+Layout/LeadingCommentSpace:
   Enabled: true
 
 Layout/SpaceAfterColon:
@@ -70,12 +79,28 @@ Layout/SpaceAroundKeyword:
 Layout/SpaceAroundOperators:
   Enabled: true
 
+Layout/SpaceBeforeComma:
+    Enabled: true
+
 Layout/SpaceBeforeFirstArg:
     Enabled: true
+
+Style/DefWithParentheses:
+  Enabled: true
 
 # Defining a method with parameters needs parentheses.
 Style/MethodDefParentheses:
   Enabled: true
+
+Style/FrozenStringLiteralComment:
+  Enabled: true
+  EnforcedStyle: always
+  Exclude:
+    - 'actionview/test/**/*.builder'
+    - 'actionview/test/**/*.ruby'
+    - 'actionpack/test/**/*.builder'
+    - 'actionpack/test/**/*.ruby'
+    - 'activestorage/db/migrate/**/*.rb'
 
 # Use `foo {}` not `foo{}`.
 Layout/SpaceBeforeBlockBraces:
@@ -118,7 +143,16 @@ Style/UnneededPercentQ:
 Lint/EndAlignment:
   Enabled: true
   EnforcedStyleAlignWith: variable
+  AutoCorrect: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
   Enabled: true
+
+Style/RedundantReturn:
+  Enabled: true
+  AllowMultipleReturnValues: true
+
+Style/Semicolon:
+  Enabled: true
+  AllowAsExpressionSeparator: true

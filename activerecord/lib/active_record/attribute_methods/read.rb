@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module AttributeMethods
     module Read
       extend ActiveSupport::Concern
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         private
 
           # We want to generate the methods via module_eval rather than
@@ -29,9 +31,11 @@ module ActiveRecord
             temp_method = "__temp__#{safe_name}"
 
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
+            sync_with_transaction_state = "sync_with_transaction_state" if name == primary_key
 
             generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
               def #{temp_method}
+                #{sync_with_transaction_state}
                 name = ::ActiveRecord::AttributeMethods::AttrNames::ATTR_#{safe_name}
                 _read_attribute(name) { |n| missing_attribute(n, caller) }
               end
@@ -54,7 +58,9 @@ module ActiveRecord
           attr_name.to_s
         end
 
-        name = self.class.primary_key if name == "id".freeze && self.class.primary_key
+        primary_key = self.class.primary_key
+        name = primary_key if name == "id".freeze && primary_key
+        sync_with_transaction_state if name == primary_key
         _read_attribute(name, &block)
       end
 

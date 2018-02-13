@@ -1,7 +1,8 @@
-require "thread"
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/object/duplicable"
 require "active_support/core_ext/string/filters"
+require "concurrent/map"
 
 module ActiveRecord
   module Core
@@ -15,6 +16,13 @@ module ActiveRecord
       # passed on to any new database connections made and which can be
       # retrieved on both a class and instance level by calling +logger+.
       mattr_accessor :logger, instance_writer: false
+
+      ##
+      # :singleton-method:
+      #
+      # Specifies if the methods calling database queries should be logged below
+      # their relevant queries. Defaults to false.
+      mattr_accessor :verbose_query_logs, instance_writer: false, default: false
 
       ##
       # Contains the database configuration - as is typically stored in config/database.yml -
@@ -56,8 +64,7 @@ module ActiveRecord
       # :singleton-method:
       # Determines whether to use Time.utc (using :utc) or Time.local (using :local) when pulling
       # dates and times from the database. This is set to :utc by default.
-      mattr_accessor :default_timezone, instance_writer: false
-      self.default_timezone = :utc
+      mattr_accessor :default_timezone, instance_writer: false, default: :utc
 
       ##
       # :singleton-method:
@@ -67,42 +74,27 @@ module ActiveRecord
       # ActiveRecord::Schema file which can be loaded into any database that
       # supports migrations. Use :ruby if you want to have different database
       # adapters for, e.g., your development and test environments.
-      mattr_accessor :schema_format, instance_writer: false
-      self.schema_format = :ruby
+      mattr_accessor :schema_format, instance_writer: false, default: :ruby
 
       ##
       # :singleton-method:
       # Specifies if an error should be raised if the query has an order being
       # ignored when doing batch queries. Useful in applications where the
       # scope being ignored is error-worthy, rather than a warning.
-      mattr_accessor :error_on_ignored_order, instance_writer: false
-      self.error_on_ignored_order = false
+      mattr_accessor :error_on_ignored_order, instance_writer: false, default: false
 
-      def self.error_on_ignored_order_or_limit
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The flag error_on_ignored_order_or_limit is deprecated. Limits are
-          now supported. Please use error_on_ignored_order instead.
-        MSG
-        error_on_ignored_order
-      end
-
-      def error_on_ignored_order_or_limit
-        self.class.error_on_ignored_order_or_limit
-      end
-
-      def self.error_on_ignored_order_or_limit=(value)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          The flag error_on_ignored_order_or_limit is deprecated. Limits are
-          now supported. Please use error_on_ignored_order= instead.
-        MSG
-        self.error_on_ignored_order = value
-      end
+      # :singleton-method:
+      # Specify the behavior for unsafe raw query methods. Values are as follows
+      #   deprecated - Warnings are logged when unsafe raw SQL is passed to
+      #                query methods.
+      #   disabled   - Unsafe raw SQL passed to query methods results in
+      #                UnknownAttributeReference exception.
+      mattr_accessor :allow_unsafe_raw_sql, instance_writer: false, default: :deprecated
 
       ##
       # :singleton-method:
       # Specify whether or not to use timestamps for migration versions
-      mattr_accessor :timestamped_migrations, instance_writer: false
-      self.timestamped_migrations = true
+      mattr_accessor :timestamped_migrations, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -110,8 +102,7 @@ module ActiveRecord
       # db:migrate rake task. This is true by default, which is useful for the
       # development environment. This should ideally be false in the production
       # environment where dumping schema is rarely needed.
-      mattr_accessor :dump_schema_after_migration, instance_writer: false
-      self.dump_schema_after_migration = true
+      mattr_accessor :dump_schema_after_migration, instance_writer: false, default: true
 
       ##
       # :singleton-method:
@@ -120,8 +111,7 @@ module ActiveRecord
       # schema_search_path are dumped. Use :all to dump all schemas regardless
       # of schema_search_path, or a string of comma separated schemas for a
       # custom list.
-      mattr_accessor :dump_schemas, instance_writer: false
-      self.dump_schemas = :schema_search_path
+      mattr_accessor :dump_schemas, instance_writer: false, default: :schema_search_path
 
       ##
       # :singleton-method:
@@ -130,7 +120,6 @@ module ActiveRecord
       # be used to identify queries which load thousands of records and
       # potentially cause memory bloat.
       mattr_accessor :warn_on_records_fetched_greater_than, instance_writer: false
-      self.warn_on_records_fetched_greater_than = nil
 
       mattr_accessor :maintain_test_schema, instance_accessor: false
 
@@ -149,14 +138,14 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods
+    module ClassMethods # :nodoc:
       def allocate
         define_attribute_methods
         super
       end
 
       def initialize_find_by_cache # :nodoc:
-        @find_by_statement_cache = { true => {}.extend(Mutex_m), false => {}.extend(Mutex_m) }
+        @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
 
       def inherited(child_class) # :nodoc:
@@ -175,8 +164,7 @@ module ActiveRecord
 
         id = ids.first
 
-        return super if id.kind_of?(Array) ||
-                         id.is_a?(ActiveRecord::Base)
+        return super if StatementCache.unsupported_value?(id)
 
         key = primary_key
 
@@ -184,7 +172,7 @@ module ActiveRecord
           where(key => params.bind).limit(1)
         }
 
-        record = statement.execute([id], self, connection).first
+        record = statement.execute([id], connection).first
         unless record
           raise RecordNotFound.new("Couldn't find #{name} with '#{primary_key}'=#{id}",
                                    name, primary_key, id)
@@ -201,7 +189,7 @@ module ActiveRecord
         hash = args.first
 
         return super if !(Hash === hash) || hash.values.any? { |v|
-          v.nil? || Array === v || Hash === v || Relation === v || Base === v
+          StatementCache.unsupported_value?(v)
         }
 
         # We can't cache Post.find_by(author: david) ...yet
@@ -216,7 +204,7 @@ module ActiveRecord
           where(wheres).limit(1)
         }
         begin
-          statement.execute(hash.values, self, connection).first
+          statement.execute(hash.values, connection).first
         rescue TypeError
           raise ActiveRecord::StatementInvalid
         rescue ::RangeError
@@ -258,7 +246,7 @@ module ActiveRecord
         end
       end
 
-      # Overwrite the default class equality method to provide support for association proxies.
+      # Overwrite the default class equality method to provide support for decorated models.
       def ===(object)
         object.is_a?(self)
       end
@@ -270,16 +258,6 @@ module ActiveRecord
       #   end
       def arel_table # :nodoc:
         @arel_table ||= Arel::Table.new(table_name, type_caster: type_caster)
-      end
-
-      # Returns the Arel engine.
-      def arel_engine # :nodoc:
-        @arel_engine ||=
-          if Base == self || connection_handler.retrieve_connection_pool(connection_specification_name)
-            self
-          else
-            superclass.arel_engine
-          end
       end
 
       def arel_attribute(name, table = arel_table) # :nodoc:
@@ -299,16 +277,15 @@ module ActiveRecord
 
         def cached_find_by_statement(key, &block)
           cache = @find_by_statement_cache[connection.prepared_statements]
-          cache[key] || cache.synchronize {
-            cache[key] ||= StatementCache.create(connection, &block)
-          }
+          cache.compute_if_absent(key) { StatementCache.create(connection, &block) }
         end
 
         def relation
-          relation = Relation.create(self, arel_table, predicate_builder)
+          relation = Relation.create(self)
 
           if finder_needs_type_condition? && !ignore_default_scope?
-            relation.where(type_condition).create_with(inheritance_column.to_s => sti_name)
+            relation.where!(type_condition)
+            relation.create_with!(inheritance_column.to_s => sti_name)
           else
             relation
           end
@@ -405,8 +382,10 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
-      @new_record  = true
-      @destroyed   = false
+      @new_record               = true
+      @destroyed                = false
+      @_start_transaction_state = {}
+      @transaction_state        = nil
 
       super
     end
@@ -548,7 +527,7 @@ module ActiveRecord
       #
       # So we can avoid the +method_missing+ hit by explicitly defining +#to_ary+ as +nil+ here.
       #
-      # See also http://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
+      # See also https://tenderlovemaking.com/2011/06/28/til-its-ok-to-return-nil-from-to_ary.html
       def to_ary
         nil
       end

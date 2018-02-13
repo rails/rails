@@ -122,10 +122,12 @@ use ActiveRecord::Migration::CheckPending
 use ActionDispatch::Cookies
 use ActionDispatch::Session::CookieStore
 use ActionDispatch::Flash
+use ActionDispatch::ContentSecurityPolicy::Middleware
 use Rack::Head
 use Rack::ConditionalGet
 use Rack::ETag
-run MyApp.application.routes
+use Rack::TempfileReaper
+run MyApp::Application.routes
 ```
 
 The default middlewares shown here (and some others) are each summarized in the [Internal Middlewares](#internal-middleware-stack) section, below.
@@ -249,7 +251,7 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 **`Rails::Rack::Logger`**
 
-* Notifies the logs that the request has began. After request is complete, flushes all the logs.
+* Notifies the logs that the request has begun. After the request is complete, flushes all the logs.
 
 **`ActionDispatch::ShowExceptions`**
 
@@ -283,17 +285,25 @@ Much of Action Controller's functionality is implemented as Middlewares. The fol
 
 * Sets up the flash keys. Only available if `config.action_controller.session_store` is set to a value.
 
+**`ActionDispatch::ContentSecurityPolicy::Middleware`**
+
+* Provides a DSL to configure a Content-Security-Policy header.
+
 **`Rack::Head`**
 
 * Converts HEAD requests to `GET` requests and serves them as so.
 
 **`Rack::ConditionalGet`**
 
-* Adds support for "Conditional `GET`" so that server responds with nothing if page wasn't changed.
+* Adds support for "Conditional `GET`" so that server responds with nothing if the page wasn't changed.
 
 **`Rack::ETag`**
 
 * Adds ETag header on all String bodies. ETags are used to validate cache.
+
+**`Rack::TempfileReaper`**
+
+* Cleans up tempfiles used to buffer multipart requests.
 
 TIP: It's possible to use any of the above middlewares in your custom Rack stack.
 
@@ -302,7 +312,7 @@ Resources
 
 ### Learning Rack
 
-* [Official Rack Website](http://rack.github.io)
+* [Official Rack Website](https://rack.github.io)
 * [Introducing Rack](http://chneukirchen.org/blog/archive/2007/02/introducing-rack.html)
 
 ### Understanding Middlewares

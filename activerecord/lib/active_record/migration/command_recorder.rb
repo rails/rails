@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
@@ -108,7 +110,7 @@ module ActiveRecord
 
       private
 
-        module StraightReversions
+        module StraightReversions # :nodoc:
           private
             { transaction:       :transaction,
               execute_block:     :execute_block,
@@ -159,8 +161,8 @@ module ActiveRecord
           table, columns, options = *args
           options ||= {}
 
-          index_name = options[:name]
-          options_hash = index_name ? { name: index_name } : { column: columns }
+          options_hash = options.slice(:name, :algorithm)
+          options_hash[:column] = columns if !options_hash[:name]
 
           [:remove_index, [table, options_hash]]
         end

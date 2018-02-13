@@ -7,7 +7,7 @@ After reading this guide, you will know:
 
 * What Action View is and how to use it with Rails.
 * How best to use templates, partials, and layouts.
-* What helpers are provided by Action View and how to make your own.
+* What helpers are provided by Action View.
 * How to use localized views.
 
 --------------------------------------------------------------------------------
@@ -149,10 +149,10 @@ end
 
 #### Jbuilder
 [Jbuilder](https://github.com/rails/jbuilder) is a gem that's
-maintained by the Rails team and included in the default Rails Gemfile.
+maintained by the Rails team and included in the default Rails `Gemfile`.
 It's similar to Builder, but is used to generate JSON, instead of XML.
 
-If you don't have it, you can add the following to your Gemfile:
+If you don't have it, you can add the following to your `Gemfile`:
 
 ```ruby
 gem 'jbuilder'
@@ -414,7 +414,7 @@ By default, Rails links to these assets on the current host in the public folder
 
 ```ruby
 config.action_controller.asset_host = "assets.example.com"
-image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" alt="Rails" />
+image_tag("rails.png") # => <img src="http://assets.example.com/images/rails.png" />
 ```
 
 #### auto_discovery_link_tag
@@ -453,7 +453,7 @@ image_url("edit.png") # => http://www.example.com/assets/edit.png
 Returns an HTML image tag for the source. The source can be a full path or a file that exists in your `app/assets/images` directory.
 
 ```ruby
-image_tag("icon.png") # => <img src="/assets/icon.png" alt="Icon" />
+image_tag("icon.png") # => <img src="/assets/icon.png" />
 ```
 
 #### javascript_include_tag
@@ -462,25 +462,6 @@ Returns an HTML script tag for each of the sources provided. You can pass in the
 
 ```ruby
 javascript_include_tag "common" # => <script src="/assets/common.js"></script>
-```
-
-If the application does not use the asset pipeline, to include the jQuery JavaScript library in your application, pass `:defaults` as the source. When using `:defaults`, if an `application.js` file exists in your `app/assets/javascripts` directory, it will be included as well.
-
-```ruby
-javascript_include_tag :defaults
-```
-
-You can also include all JavaScript files in the `app/assets/javascripts` directory using `:all` as the source.
-
-```ruby
-javascript_include_tag :all
-```
-
-You can also cache multiple JavaScript files into one file, which requires less HTTP connections to download and can better be compressed by gzip (leading to faster transfers). Caching will only happen if `ActionController::Base.perform_caching` is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-javascript_include_tag :all, cache: true # =>
-  <script src="/javascripts/all.js"></script>
 ```
 
 #### javascript_path
@@ -507,22 +488,9 @@ Returns a stylesheet link tag for the sources specified as arguments. If you don
 stylesheet_link_tag "application" # => <link href="/assets/application.css" media="screen" rel="stylesheet" />
 ```
 
-You can also include all styles in the stylesheet directory using `:all` as the source:
-
-```ruby
-stylesheet_link_tag :all
-```
-
-You can also cache multiple stylesheets into one file, which requires less HTTP connections and can better be compressed by gzip (leading to faster transfers). Caching will only happen if ActionController::Base.perform_caching is set to true (which is the case by default for the Rails production environment, but not for the development environment).
-
-```ruby
-stylesheet_link_tag :all, cache: true
-# => <link href="/assets/all.css" media="screen" rel="stylesheet" />
-```
-
 #### stylesheet_path
 
-Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by stylesheet_link_tag to build the stylesheet path.
+Computes the path to a stylesheet asset in the `app/assets/stylesheets` directory. If the source filename has no extension, `.css` will be appended. Full paths from the document root will be passed through. Used internally by `stylesheet_link_tag` to build the stylesheet path.
 
 ```ruby
 stylesheet_path "application" # => /assets/application.css
@@ -839,20 +807,22 @@ The core method of this helper, `form_for`, gives you the ability to create a fo
 The HTML generated for this would be:
 
 ```html
-<form action="/people/create" method="post">
-  <input id="person_first_name" name="person[first_name]" type="text" />
-  <input id="person_last_name" name="person[last_name]" type="text" />
-  <input name="commit" type="submit" value="Create" />
+<form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
+  <input name="utf8" type="hidden" value="&#x2713;" />
+  <input type="hidden" name="authenticity_token" value="lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==" />
+  <input type="text" name="person[first_name]" id="person_first_name" />
+  <input type="text" name="person[last_name]" id="person_last_name" />
+  <input type="submit" name="commit" value="Create" data-disable-with="Create" />
 </form>
 ```
 
 The params object created when this form is submitted would look like:
 
 ```ruby
-{ "action" => "create", "controller" => "people", "person" => { "first_name" => "William", "last_name" => "Smith" } }
+{"utf8" => "✓", "authenticity_token" => "lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==", "person" => {"first_name" => "William", "last_name" => "Smith"}, "commit" => "Create", "controller" => "people", "action" => "create"}
 ```
 
-The params hash has a nested person value, which can therefore be accessed with params[:person] in the controller.
+The params hash has a nested person value, which can therefore be accessed with `params[:person]` in the controller.
 
 #### check_box
 
@@ -1192,7 +1162,7 @@ Returns a string of option tags for pretty much any time zone in the world.
 Returns select and option tags for the given object and method, using `time_zone_options_for_select` to generate the list of option tags.
 
 ```ruby
-time_zone_select( "user", "time_zone")
+time_zone_select("user", "time_zone")
 ```
 
 #### date_field

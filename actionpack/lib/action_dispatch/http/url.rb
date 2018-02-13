@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -7,8 +9,7 @@ module ActionDispatch
       HOST_REGEXP     = /(^[^:]+:\/\/)?(\[[^\]]+\]|[^:]+)(?::(\d+$))?/
       PROTOCOL_REGEXP = /^([^:]+)(:)?(\/\/)?$/
 
-      mattr_accessor :tld_length
-      self.tld_length = 1
+      mattr_accessor :tld_length, default: 1
 
       class << self
         # Returns the domain part of a host given the domain level.
@@ -156,7 +157,7 @@ module ActionDispatch
           subdomain  = options.fetch :subdomain, true
           domain     = options[:domain]
 
-          host = ""
+          host = "".dup
           if subdomain == true
             return _host if domain.nil?
 
@@ -273,7 +274,7 @@ module ActionDispatch
       def standard_port
         case protocol
         when "https://" then 443
-          else 80
+        else 80
         end
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/logging_job"
 require "jobs/hello_job"
@@ -41,6 +43,13 @@ class QueuingTest < ActiveSupport::TestCase
       job = ::ProviderJidJob.perform_later
       assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
     end
+  end
+
+  test "should supply a wrapped class name to DelayedJob" do
+    skip unless adapter_is?(:delayed_job)
+    ::HelloJob.perform_later
+    job = Delayed::Job.first
+    assert_match(/HelloJob \[[0-9a-f-]+\] from DelayedJob\(default\) with arguments: \[\]/, job.name)
   end
 
   test "resque JobWrapper should have instance variable queue" do

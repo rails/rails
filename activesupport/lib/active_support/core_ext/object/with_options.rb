@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/option_merger"
 
 class Object
@@ -60,7 +62,7 @@ class Object
   #
   #   validates :content, length: { minimum: 50 }, if: -> { content.present? }
   #
-  # Hence the inherited default for `if` key is ignored.
+  # Hence the inherited default for +if+ key is ignored.
   #
   # NOTE: You cannot call class methods implicitly inside of with_options.
   # You can access these methods using the class name instead:

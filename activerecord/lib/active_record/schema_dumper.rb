@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "stringio"
 
 module ActiveRecord
@@ -13,12 +15,11 @@ module ActiveRecord
     # A list of tables which should not be dumped to the schema.
     # Acceptable values are strings as well as regexp if ActiveRecord::Base.schema_format == :ruby.
     # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
-    cattr_accessor :ignore_tables
-    @@ignore_tables = []
+    cattr_accessor :ignore_tables, default: []
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
-        new(connection, generate_options(config)).dump(stream)
+        connection.create_schema_dumper(generate_options(config)).dump(stream)
         stream
       end
 
@@ -43,7 +44,7 @@ module ActiveRecord
 
       def initialize(connection, options = {})
         @connection = connection
-        @version = Migrator::current_version rescue nil
+        @version = connection.migration_context.current_version rescue nil
         @options = options
       end
 
@@ -81,16 +82,8 @@ HEADER
         stream.puts "end"
       end
 
+      # extensions are only supported by PostgreSQL
       def extensions(stream)
-        return unless @connection.supports_extensions?
-        extensions = @connection.extensions
-        if extensions.any?
-          stream.puts "  # These are extensions that must be enabled in order to support this database"
-          extensions.each do |extension|
-            stream.puts "  enable_extension #{extension.inspect}"
-          end
-          stream.puts
-        end
       end
 
       def tables(stream)
@@ -122,7 +115,7 @@ HEADER
           when String
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
-            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            pkcolspec = column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
@@ -131,20 +124,19 @@ HEADER
           else
             tbl.print ", id: false"
           end
-          tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts " do |t|"
+          tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            type, colspec = @connection.column_spec(column)
+            type, colspec = column_spec(column)
             tbl.print "    t.#{type} #{column.name.inspect}"
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
@@ -162,8 +154,6 @@ HEADER
           stream.puts "#   #{e.message}"
           stream.puts
         end
-
-        stream
       end
 
       # Keep it for indexing materialized views
@@ -194,8 +184,9 @@ HEADER
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-        index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
-        index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
+        index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
+        index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
+        index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
@@ -241,8 +232,18 @@ HEADER
         options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
       end
 
+      def format_index_parts(options)
+        if options.is_a?(Hash)
+          "{ #{format_options(options)} }"
+        else
+          options.inspect
+        end
+      end
+
       def remove_prefix_and_suffix(table)
-        table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
+        prefix = Regexp.escape(@options[:table_name_prefix].to_s)
+        suffix = Regexp.escape(@options[:table_name_suffix].to_s)
+        table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
       def ignored?(table_name)

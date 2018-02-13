@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/engine"
 require "action_dispatch/routing/inspector"

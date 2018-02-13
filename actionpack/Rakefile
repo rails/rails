@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
 test_files = Dir.glob("test/**/*_test.rb")

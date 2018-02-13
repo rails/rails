@@ -300,7 +300,7 @@ asyncTest('clicking on the children of a disabled button should not trigger a co
   window.confirm = function(msg) { message = msg; return false }
 
   $('button[data-confirm][disabled]')
-    .html("<strong>Click me</strong>")
+    .html('<strong>Click me</strong>')
     .bindNative('confirm', function() {
       App.assertCallbackNotInvoked('confirm')
     })

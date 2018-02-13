@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -48,6 +50,12 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @twz.in_time_zone(Object.new) }
   end
 
+  def test_in_time_zone_with_ambiguous_time
+    with_env_tz "Europe/Moscow" do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), Time.local(2014, 10, 26, 1, 0, 0).in_time_zone("Moscow")
+    end
+  end
+
   def test_localtime
     assert_equal @twz.localtime, @twz.utc.getlocal
     assert_instance_of Time, @twz.localtime
@@ -76,7 +84,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_formatted_offset
     assert_equal "-05:00", @twz.formatted_offset
-    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset #dst
+    assert_equal "-04:00", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).formatted_offset # dst
   end
 
   def test_dst?
@@ -86,7 +94,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_zone
     assert_equal "EST", @twz.zone
-    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone #dst
+    assert_equal "EDT", ActiveSupport::TimeWithZone.new(Time.utc(2000, 6), @time_zone).zone # dst
   end
 
   def test_nsec
@@ -213,20 +221,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_compare_with_time
-    assert_equal  1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, @twz <=> Time.utc(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, @twz <=> Time.utc(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, @twz <=> Time.utc(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_datetime
-    assert_equal  1, @twz <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
-    assert_equal  0, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
+    assert_equal 1, @twz <=> DateTime.civil(1999, 12, 31, 23, 59, 59)
+    assert_equal 0, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 0)
     assert_equal(-1, @twz <=> DateTime.civil(2000, 1, 1, 0, 0, 1))
   end
 
   def test_compare_with_time_with_zone
-    assert_equal  1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
-    assert_equal  0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
+    assert_equal 1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"])
+    assert_equal 0, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0), ActiveSupport::TimeZone["UTC"])
     assert_equal(-1, @twz <=> ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 1), ActiveSupport::TimeZone["UTC"]))
   end
 
@@ -299,13 +307,13 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_integer
-    assert_equal Time.utc(1999, 12, 31, 19, 0 , 5), (@twz + 5).time
+    assert_equal Time.utc(1999, 12, 31, 19, 0, 5), (@twz + 5).time
   end
 
   def test_plus_with_integer_when_self_wraps_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-    assert_equal DateTime.civil(1999, 12, 31, 19, 0 , 5), (twz + 5).time
+    assert_equal DateTime.civil(1999, 12, 31, 19, 0, 5), (twz + 5).time
   end
 
   def test_plus_when_crossing_time_class_limit
@@ -314,31 +322,31 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_plus_with_duration
-    assert_equal Time.utc(2000, 1, 5, 19, 0 , 0), (@twz + 5.days).time
+    assert_equal Time.utc(2000, 1, 5, 19, 0, 0), (@twz + 5.days).time
   end
 
   def test_minus_with_integer
-    assert_equal Time.utc(1999, 12, 31, 18, 59 , 55), (@twz - 5).time
+    assert_equal Time.utc(1999, 12, 31, 18, 59, 55), (@twz - 5).time
   end
 
   def test_minus_with_integer_when_self_wraps_datetime
     datetime = DateTime.civil(2000, 1, 1, 0)
     twz = ActiveSupport::TimeWithZone.new(datetime, @time_zone)
-    assert_equal DateTime.civil(1999, 12, 31, 18, 59 , 55), (twz - 5).time
+    assert_equal DateTime.civil(1999, 12, 31, 18, 59, 55), (twz - 5).time
   end
 
   def test_minus_with_duration
-    assert_equal Time.utc(1999, 12, 26, 19, 0 , 0), (@twz - 5.days).time
+    assert_equal Time.utc(1999, 12, 26, 19, 0, 0), (@twz - 5.days).time
   end
 
   def test_minus_with_time
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 1)
   end
 
   def test_minus_with_time_precision
-    assert_equal  86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
-    assert_equal  86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
+    assert_equal 86_399.999999998,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["Hawaii"]) - Time.utc(2000, 1, 2, 0, 0, 0, Rational(1, 1000))
   end
 
   def test_minus_with_time_with_zone
@@ -350,20 +358,20 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   def test_minus_with_time_with_zone_precision
     twz1 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 0, 0, 0, Rational(1, 1000)), ActiveSupport::TimeZone["UTC"])
     twz2 = ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"])
-    assert_equal  86_399.999999998,  twz2 - twz1
+    assert_equal 86_399.999999998,  twz2 - twz1
   end
 
   def test_minus_with_datetime
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_datetime_precision
-    assert_equal  86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_399.999999999,  ActiveSupport::TimeWithZone.new(Time.utc(2000, 1, 1, 23, 59, 59, Rational(999999999, 1000)), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_minus_with_wrapped_datetime
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
-    assert_equal  86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - Time.utc(2000, 1, 1)
+    assert_equal 86_400.0,  ActiveSupport::TimeWithZone.new(DateTime.civil(2000, 1, 2), ActiveSupport::TimeZone["UTC"]) - DateTime.civil(2000, 1, 1)
   end
 
   def test_plus_and_minus_enforce_spring_dst_rules
@@ -473,7 +481,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_acts_like_time
-    assert @twz.acts_like_time?
+    assert_predicate @twz, :acts_like_time?
     assert @twz.acts_like?(:time)
     assert ActiveSupport::TimeWithZone.new(DateTime.civil(2000), @time_zone).acts_like?(:time)
   end
@@ -484,7 +492,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_blank?
-    assert_not @twz.blank?
+    assert_not_predicate @twz, :blank?
   end
 
   def test_is_a
@@ -499,17 +507,17 @@ class TimeWithZoneTest < ActiveSupport::TestCase
 
   def test_method_missing_with_time_return_value
     assert_instance_of ActiveSupport::TimeWithZone, @twz.months_since(1)
-    assert_equal Time.utc(2000, 1, 31, 19, 0 , 0), @twz.months_since(1).time
+    assert_equal Time.utc(2000, 1, 31, 19, 0, 0), @twz.months_since(1).time
   end
 
   def test_marshal_dump_and_load
     marshal_str = Marshal.dump(@twz)
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert mtime.utc.utc?
+    assert_predicate mtime.utc, :utc?
     assert_equal ActiveSupport::TimeZone["Eastern Time (US & Canada)"], mtime.time_zone
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert mtime.time.utc?
+    assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
   end
 
@@ -518,16 +526,16 @@ class TimeWithZoneTest < ActiveSupport::TestCase
     marshal_str = Marshal.dump(twz)
     mtime = Marshal.load(marshal_str)
     assert_equal Time.utc(2000, 1, 1, 0), mtime.utc
-    assert mtime.utc.utc?
+    assert_predicate mtime.utc, :utc?
     assert_equal "America/New_York", mtime.time_zone.name
     assert_equal Time.utc(1999, 12, 31, 19), mtime.time
-    assert mtime.time.utc?
+    assert_predicate mtime.time, :utc?
     assert_equal @twz.inspect, mtime.inspect
   end
 
   def test_freeze
     @twz.freeze
-    assert @twz.frozen?
+    assert_predicate @twz, :frozen?
   end
 
   def test_freeze_preloads_instance_variables
@@ -1027,8 +1035,8 @@ class TimeWithZoneMethodsForTimeAndDateTimeTest < ActiveSupport::TestCase
 
   def test_nil_time_zone
     Time.use_zone nil do
-      assert !@t.in_time_zone.respond_to?(:period), "no period method"
-      assert !@dt.in_time_zone.respond_to?(:period), "no period method"
+      assert_not_respond_to @t.in_time_zone, :period, "no period method"
+      assert_not_respond_to @dt.in_time_zone, :period, "no period method"
     end
   end
 
@@ -1216,7 +1224,7 @@ class TimeWithZoneMethodsForDate < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert !@d.in_time_zone.respond_to?(:period), "no period method"
+      assert_not_respond_to @d.in_time_zone, :period, "no period method"
     end
   end
 
@@ -1265,9 +1273,9 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
 
   def test_nil_time_zone
     with_tz_default nil do
-      assert !@s.in_time_zone.respond_to?(:period), "no period method"
-      assert !@u.in_time_zone.respond_to?(:period), "no period method"
-      assert !@z.in_time_zone.respond_to?(:period), "no period method"
+      assert_not_respond_to @s.in_time_zone, :period, "no period method"
+      assert_not_respond_to @u.in_time_zone, :period, "no period method"
+      assert_not_respond_to @z.in_time_zone, :period, "no period method"
     end
   end
 
@@ -1298,5 +1306,11 @@ class TimeWithZoneMethodsForString < ActiveSupport::TestCase
     assert_raise(ArgumentError) { @s.in_time_zone(Object.new) }
     assert_raise(ArgumentError) { @u.in_time_zone(Object.new) }
     assert_raise(ArgumentError) { @z.in_time_zone(Object.new) }
+  end
+
+  def test_in_time_zone_with_ambiguous_time
+    with_tz_default "Moscow" do
+      assert_equal Time.utc(2014, 10, 25, 22, 0, 0), "2014-10-26 01:00:00".in_time_zone
+    end
   end
 end

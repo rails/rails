@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_connection"
 require "stubs/room"
@@ -152,7 +154,7 @@ module ActionCable::StreamTests
         subscribe_to connection, identifiers: { id: 1 }
 
         connection.websocket.expects(:transmit)
-        @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
+        @server.broadcast "test_room_1", { foo: "bar" }, { coder: DummyEncoder }
         wait_for_async
         wait_for_executor connection.server.worker_pool.executor
       end
@@ -165,7 +167,7 @@ module ActionCable::StreamTests
 
         @server.broadcast "channel", {}
         wait_for_async
-        refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
+        assert_not Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 
@@ -190,10 +192,10 @@ module ActionCable::StreamTests
 
         Connection.new(@server, env).tap do |connection|
           connection.process
-          assert connection.websocket.possible?
+          assert_predicate connection.websocket, :possible?
 
           wait_for_async
-          assert connection.websocket.alive?
+          assert_predicate connection.websocket, :alive?
         end
       end
 

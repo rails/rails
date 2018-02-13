@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -17,7 +19,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_valid_uses_create_context_when_new
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert_not r.valid?
+    assert_not_predicate r, :valid?
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
@@ -137,7 +139,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_throw_away_typing
     d = Developer.new("name" => "David", "salary" => "100,000")
-    assert !d.valid?
+    assert_not_predicate d, :valid?
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end
@@ -164,7 +166,7 @@ class ValidationsTest < ActiveRecord::TestCase
     topic = klass.new(wibble: "123-4567")
     topic.wibble.gsub!("-", "")
 
-    assert topic.valid?
+    assert_predicate topic, :valid?
   end
 
   def test_numericality_validation_checks_against_raw_value
@@ -173,12 +175,12 @@ class ValidationsTest < ActiveRecord::TestCase
         ActiveModel::Name.new(self, nil, "Topic")
       end
       attribute :wibble, :decimal, scale: 2, precision: 9
-      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal.new("97.18")
+      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
     end
 
-    assert_not klass.new(wibble: "97.179").valid?
-    assert_not klass.new(wibble: 97.179).valid?
-    assert_not klass.new(wibble: BigDecimal.new("97.179")).valid?
+    assert_not_predicate klass.new(wibble: "97.179"), :valid?
+    assert_not_predicate klass.new(wibble: 97.179), :valid?
+    assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
   end
 
   def test_acceptance_validator_doesnt_require_db_connection

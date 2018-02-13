@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/contact"
 require "models/post"
@@ -160,10 +162,8 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_serializable_hash_should_not_modify_options_in_argument
-    options = { only: :name }
-    @contact.serializable_hash(options)
-
-    assert_nil options[:except]
+    options = { only: :name }.freeze
+    assert_nothing_raised { @contact.serializable_hash(options) }
   end
 end
 
@@ -252,7 +252,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     def @david.favorite_quote; "Constraints are liberating"; end
     json = @david.to_json(include: :posts, methods: :favorite_quote)
 
-    assert !@david.posts.first.respond_to?(:favorite_quote)
+    assert_not_respond_to @david.posts.first, :favorite_quote
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
     assert_equal 1, %r{"favorite_quote":}.match(json).size
   end

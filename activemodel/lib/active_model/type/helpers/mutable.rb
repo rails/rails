@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     module Helpers # :nodoc: all

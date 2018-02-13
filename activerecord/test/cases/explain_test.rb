@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/car"
 require "active_support/core_ext/string/strip"
@@ -47,7 +49,7 @@ if ActiveRecord::Base.connection.supports_explain?
 
     def test_exec_explain_with_binds
       sqls    = %w(foo bar)
-      binds   = [[bind_attribute("wadus", 1)], [bind_attribute("chaflan", 2)]]
+      binds   = [[bind_param("wadus", 1)], [bind_param("chaflan", 2)]]
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
@@ -78,6 +80,10 @@ if ActiveRecord::Base.connection.supports_explain?
         connection.stub(:explain, proc { explain_called += 1; query_plans[explain_called - 1] }) do
           yield
         end
+      end
+
+      def bind_param(name, value)
+        ActiveRecord::Relation::QueryAttribute.new(name, value, ActiveRecord::Type::Value.new)
       end
   end
 end

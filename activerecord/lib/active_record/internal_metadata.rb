@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/scoping/default"
 require "active_record/scoping/named"
 

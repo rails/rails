@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -90,11 +92,11 @@ module ActionDispatch
     end
 
     def test_empty?
-      assert @hash.empty?
+      assert_empty @hash
       @hash["zomg"] = "bears"
-      assert !@hash.empty?
+      assert_not_empty @hash
       @hash.clear
-      assert @hash.empty?
+      assert_empty @hash
     end
 
     def test_each

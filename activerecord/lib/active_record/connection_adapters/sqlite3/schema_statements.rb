@@ -1,17 +1,13 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
       module SchemaStatements # :nodoc:
         # Returns an array of indexes for the given table.
-        def indexes(table_name, name = nil)
-          if name
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
-              Passing name to #indexes is deprecated without replacement.
-            MSG
-          end
-
+        def indexes(table_name)
           exec_query("PRAGMA index_list(#{quote_table_name(table_name)})", "SCHEMA").map do |row|
-            index_sql = select_value(<<-SQL, "SCHEMA")
+            index_sql = query_value(<<-SQL, "SCHEMA")
               SELECT sql
               FROM sqlite_master
               WHERE name = #{quote(row['name'])} AND type = 'index'
@@ -27,14 +23,28 @@ module ActiveRecord
               col["name"]
             end
 
+            # Add info on sort order for columns (only desc order is explicitly specified, asc is
+            # the default)
+            orders = {}
+            if index_sql # index_sql can be null in case of primary key indexes
+              index_sql.scan(/"(\w+)" DESC/).flatten.each { |order_column|
+                orders[order_column] = :desc
+              }
+            end
+
             IndexDefinition.new(
               table_name,
               row["name"],
               row["unique"] != 0,
               columns,
-              where: where
+              where: where,
+              orders: orders
             )
           end
+        end
+
+        def create_schema_dumper(options)
+          SQLite3::SchemaDumper.create(self, options)
         end
 
         private
@@ -67,7 +77,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'table','view'"
 
-            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'"
+            sql = "SELECT name FROM sqlite_master WHERE name <> 'sqlite_sequence'".dup
             sql << " AND name = #{scope[:name]}" if scope[:name]
             sql << " AND type IN (#{scope[:type]})"
             sql

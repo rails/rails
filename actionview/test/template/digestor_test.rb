@@ -1,17 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "fileutils"
 require "action_view/dependency_tracker"
-
-class FixtureTemplate
-  attr_reader :source, :handler
-
-  def initialize(template_path)
-    @source = File.read(template_path)
-    @handler = ActionView::Template.handler_for_extension(:erb)
-  rescue Errno::ENOENT
-    raise ActionView::MissingTemplate.new([], "", [], true, [])
-  end
-end
 
 class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)

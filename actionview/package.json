@@ -1,6 +1,6 @@
 {
   "name": "rails-ujs",
-  "version": "5.2.0-alpha",
+  "version": "6.0.0-alpha",
   "description": "Ruby on Rails unobtrusive scripting adapter",
   "main": "lib/assets/compiled/rails-ujs.js",
   "files": [
@@ -12,7 +12,7 @@
   "scripts": {
     "build": "bundle exec blade build",
     "test": "echo \"See the README: https://github.com/rails/rails/blob/master/actionview/app/assets/javascripts#how-to-run-tests\" && exit 1",
-    "lint": "coffeelint app/assets/javascripts && eslint test/public/test"
+    "lint": "coffeelint app/assets/javascripts && eslint test/ujs/public/test"
   },
   "repository": {
     "type": "git",

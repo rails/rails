@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class NumberHelperTest < ActionView::TestCase
@@ -77,7 +79,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "1.23 &lt;b&gt;km3&lt;/b&gt;", number_to_human(1_234_567_000_000, units: volume)
     assert_equal "1.23 &lt;b&gt;Pl&lt;/b&gt;", number_to_human(1_234_567_000_000_000, units: volume)
 
-    #Including fractionals
+    # Including fractionals
     distance = { mili: "<b>mm</b>", centi: "<b>cm</b>", deci: "<b>dm</b>", unit: "<b>m</b>",
                  ten: "<b>dam</b>", hundred: "<b>hm</b>", thousand: "<b>km</b>",
                  micro: "<b>um</b>", nano: "<b>nm</b>", pico: "<b>pm</b>", femto: "<b>fm</b>" }
@@ -124,43 +126,43 @@ class NumberHelperTest < ActionView::TestCase
   end
 
   def test_number_helpers_outputs_are_html_safe
-    assert number_to_human(1).html_safe?
-    assert !number_to_human("<script></script>").html_safe?
-    assert number_to_human("asdf".html_safe).html_safe?
-    assert number_to_human("1".html_safe).html_safe?
+    assert_predicate number_to_human(1), :html_safe?
+    assert_not_predicate number_to_human("<script></script>"), :html_safe?
+    assert_predicate number_to_human("asdf".html_safe), :html_safe?
+    assert_predicate number_to_human("1".html_safe), :html_safe?
 
-    assert number_to_human_size(1).html_safe?
-    assert number_to_human_size(1000000).html_safe?
-    assert !number_to_human_size("<script></script>").html_safe?
-    assert number_to_human_size("asdf".html_safe).html_safe?
-    assert number_to_human_size("1".html_safe).html_safe?
+    assert_predicate number_to_human_size(1), :html_safe?
+    assert_predicate number_to_human_size(1000000), :html_safe?
+    assert_not_predicate number_to_human_size("<script></script>"), :html_safe?
+    assert_predicate number_to_human_size("asdf".html_safe), :html_safe?
+    assert_predicate number_to_human_size("1".html_safe), :html_safe?
 
-    assert number_with_precision(1, strip_insignificant_zeros: false).html_safe?
-    assert number_with_precision(1, strip_insignificant_zeros: true).html_safe?
-    assert !number_with_precision("<script></script>").html_safe?
-    assert number_with_precision("asdf".html_safe).html_safe?
-    assert number_with_precision("1".html_safe).html_safe?
+    assert_predicate number_with_precision(1, strip_insignificant_zeros: false), :html_safe?
+    assert_predicate number_with_precision(1, strip_insignificant_zeros: true), :html_safe?
+    assert_not_predicate number_with_precision("<script></script>"), :html_safe?
+    assert_predicate number_with_precision("asdf".html_safe), :html_safe?
+    assert_predicate number_with_precision("1".html_safe), :html_safe?
 
-    assert number_to_currency(1).html_safe?
-    assert !number_to_currency("<script></script>").html_safe?
-    assert number_to_currency("asdf".html_safe).html_safe?
-    assert number_to_currency("1".html_safe).html_safe?
+    assert_predicate number_to_currency(1), :html_safe?
+    assert_not_predicate number_to_currency("<script></script>"), :html_safe?
+    assert_predicate number_to_currency("asdf".html_safe), :html_safe?
+    assert_predicate number_to_currency("1".html_safe), :html_safe?
 
-    assert number_to_percentage(1).html_safe?
-    assert !number_to_percentage("<script></script>").html_safe?
-    assert number_to_percentage("asdf".html_safe).html_safe?
-    assert number_to_percentage("1".html_safe).html_safe?
+    assert_predicate number_to_percentage(1), :html_safe?
+    assert_not_predicate number_to_percentage("<script></script>"), :html_safe?
+    assert_predicate number_to_percentage("asdf".html_safe), :html_safe?
+    assert_predicate number_to_percentage("1".html_safe), :html_safe?
 
-    assert number_to_phone(1).html_safe?
+    assert_predicate number_to_phone(1), :html_safe?
     assert_equal "&lt;script&gt;&lt;/script&gt;", number_to_phone("<script></script>")
-    assert number_to_phone("<script></script>").html_safe?
-    assert number_to_phone("asdf".html_safe).html_safe?
-    assert number_to_phone("1".html_safe).html_safe?
+    assert_predicate number_to_phone("<script></script>"), :html_safe?
+    assert_predicate number_to_phone("asdf".html_safe), :html_safe?
+    assert_predicate number_to_phone("1".html_safe), :html_safe?
 
-    assert number_with_delimiter(1).html_safe?
-    assert !number_with_delimiter("<script></script>").html_safe?
-    assert number_with_delimiter("asdf".html_safe).html_safe?
-    assert number_with_delimiter("1".html_safe).html_safe?
+    assert_predicate number_with_delimiter(1), :html_safe?
+    assert_not_predicate number_with_delimiter("<script></script>"), :html_safe?
+    assert_predicate number_with_delimiter("asdf".html_safe), :html_safe?
+    assert_predicate number_with_delimiter("1".html_safe), :html_safe?
   end
 
   def test_number_helpers_should_raise_error_if_invalid_when_specified

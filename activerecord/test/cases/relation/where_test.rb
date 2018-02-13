@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/binary"
@@ -15,7 +17,7 @@ require "models/vertex"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
-    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates
+    fixtures :posts, :edges, :authors, :author_addresses, :binaries, :essays, :cars, :treasures, :price_estimates, :topics
 
     def test_where_copies_bind_params
       author = authors(:david)
@@ -46,6 +48,10 @@ module ActiveRecord
       chefs = Chef.where(employable: cake_designers)
 
       assert_equal [chef], chefs.to_a
+    end
+
+    def test_where_with_casted_value_is_nil
+      assert_equal 4, Topic.where(last_read: "").count
     end
 
     def test_rewhere_on_root
@@ -103,6 +109,15 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_polymorphic_shallow_where_not
+      treasure = treasures(:sapphire)
+
+      expected = [price_estimates(:diamond), price_estimates(:honda)]
+      actual   = PriceEstimate.where.not(estimate_of: treasure)
+
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
+    end
+
     def test_polymorphic_nested_array_where
       treasure = Treasure.new
       treasure.id = 1
@@ -115,13 +130,23 @@ module ActiveRecord
       assert_equal expected.to_sql, actual.to_sql
     end
 
+    def test_polymorphic_nested_array_where_not
+      treasure = treasures(:diamond)
+      car = cars(:honda)
+
+      expected = [price_estimates(:sapphire_1), price_estimates(:sapphire_2)]
+      actual   = PriceEstimate.where.not(estimate_of: [treasure, car])
+
+      assert_equal expected.sort_by(&:id), actual.sort_by(&:id)
+    end
+
     def test_polymorphic_array_where_multiple_types
       treasure_1 = treasures(:diamond)
       treasure_2 = treasures(:sapphire)
       car = cars(:honda)
 
       expected = [price_estimates(:diamond), price_estimates(:sapphire_1), price_estimates(:sapphire_2), price_estimates(:honda)].sort
-      actual   = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
+      actual = PriceEstimate.where(estimate_of: [treasure_1, treasure_2, car]).to_a.sort
 
       assert_equal expected, actual
     end
@@ -240,7 +265,7 @@ module ActiveRecord
     end
 
     def test_where_with_decimal_for_string_column
-      count = Post.where(title: BigDecimal.new(0)).count
+      count = Post.where(title: BigDecimal(0)).count
       assert_equal 0, count
     end
 
@@ -288,6 +313,20 @@ module ActiveRecord
 
       assert_equal essays(:david_modest_proposal), essay
     end
+
+    def test_where_with_relation_on_has_many_association
+      essay = essays(:david_modest_proposal)
+      author = Author.where(essays: Essay.where(id: essay.id)).first
+
+      assert_equal authors(:david), author
+    end
+
+    def test_where_with_relation_on_has_one_association
+      author = authors(:david)
+      author_address = AuthorAddress.where(author: Author.where(id: author.id)).first
+      assert_equal author_addresses(:david_address), author_address
+    end
+
 
     def test_where_on_association_with_select_relation
       essay = Essay.where(author: Author.where(name: "David").select(:name)).take

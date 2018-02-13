@@ -1,11 +1,11 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
-    cattr_accessor :rescue_responses
-    @@rescue_responses = Hash.new(:internal_server_error)
-    @@rescue_responses.merge!(
+    cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"               => :not_found,
       "AbstractController::ActionNotFound"           => :not_found,
       "ActionController::MethodNotAllowed"           => :method_not_allowed,
@@ -21,12 +21,11 @@ module ActionDispatch
       "Rack::QueryParser::InvalidParameterError"     => :bad_request
     )
 
-    cattr_accessor :rescue_templates
-    @@rescue_templates = Hash.new("diagnostics")
-    @@rescue_templates.merge!(
+    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
       "ActionView::MissingTemplate"         => "missing_template",
       "ActionController::RoutingError"      => "routing_error",
       "AbstractController::ActionNotFound"  => "unknown_action",
+      "ActiveRecord::StatementInvalid"      => "invalid_statement",
       "ActionView::Template::Error"         => "template_error"
     )
 

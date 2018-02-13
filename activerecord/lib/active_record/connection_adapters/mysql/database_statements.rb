@@ -1,25 +1,22 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
-        def select_all(arel, name = nil, binds = [], preparable: nil) # :nodoc:
+        def select_all(*) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
             unprepared_statement { super }
           else
             super
           end
-          @connection.next_result while @connection.more_results?
+          discard_remaining_results
           result
         end
 
-        # Returns an array of arrays containing the field values.
-        # Order is the same as that returned by +columns+.
-        def select_rows(arel, name = nil, binds = []) # :nodoc:
-          select_result(arel, name, binds) do |result|
-            @connection.next_result while @connection.more_results?
-            result.to_a
-          end
+        def query(sql, name = nil) # :nodoc:
+          execute(sql, name).to_a
         end
 
         # Executes the SQL statement in the context of this connection.
@@ -53,19 +50,16 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         private
+          def default_insert_value(column)
+            Arel.sql("DEFAULT") unless column.auto_increment?
+          end
 
           def last_inserted_id(result)
             @connection.last_id
           end
 
-          def select_result(arel, name, binds)
-            arel, binds = binds_from_relation(arel, binds)
-            sql = to_sql(arel, binds)
-            if without_prepared_statement?(binds)
-              execute_and_free(sql, name) { |result| yield result }
-            else
-              exec_stmt_and_free(sql, name, binds, cache_stmt: true) { |_, result| yield result }
-            end
+          def discard_remaining_results
+            @connection.abandon_results!
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)

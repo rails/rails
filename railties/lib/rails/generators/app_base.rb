@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "digest/md5"
 require "active_support/core_ext/string/strip"
@@ -24,75 +26,81 @@ module Rails
       end
 
       def self.add_shared_options_for(name)
-        class_option :template,           type: :string, aliases: "-m",
-                                          desc: "Path to some #{name} template (can be a filesystem path or URL)"
+        class_option :template,            type: :string, aliases: "-m",
+                                           desc: "Path to some #{name} template (can be a filesystem path or URL)"
 
-        class_option :database,           type: :string, aliases: "-d", default: "sqlite3",
-                                          desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
+        class_option :database,            type: :string, aliases: "-d", default: "sqlite3",
+                                           desc: "Preconfigure for selected database (options: #{DATABASES.join('/')})"
 
-        class_option :skip_yarn,          type: :boolean, default: false,
-                                          desc: "Don't use Yarn for managing JavaScript dependencies"
+        class_option :skip_yarn,           type: :boolean, default: false,
+                                           desc: "Don't use Yarn for managing JavaScript dependencies"
 
-        class_option :skip_gemfile,       type: :boolean, default: false,
-                                          desc: "Don't create a Gemfile"
+        class_option :skip_gemfile,        type: :boolean, default: false,
+                                           desc: "Don't create a Gemfile"
 
-        class_option :skip_git,           type: :boolean, aliases: "-G", default: false,
-                                          desc: "Skip .gitignore file"
+        class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
+                                           desc: "Skip .gitignore file"
 
-        class_option :skip_keeps,         type: :boolean, default: false,
-                                          desc: "Skip source control .keep files"
+        class_option :skip_keeps,          type: :boolean, default: false,
+                                           desc: "Skip source control .keep files"
 
-        class_option :skip_action_mailer, type: :boolean, aliases: "-M",
-                                          default: false,
-                                          desc: "Skip Action Mailer files"
+        class_option :skip_action_mailer,  type: :boolean, aliases: "-M",
+                                           default: false,
+                                           desc: "Skip Action Mailer files"
 
-        class_option :skip_active_record, type: :boolean, aliases: "-O", default: false,
-                                          desc: "Skip Active Record files"
+        class_option :skip_active_record,  type: :boolean, aliases: "-O", default: false,
+                                           desc: "Skip Active Record files"
 
-        class_option :skip_puma,          type: :boolean, aliases: "-P", default: false,
-                                          desc: "Skip Puma related files"
+        class_option :skip_active_storage, type: :boolean, default: false,
+                                           desc: "Skip Active Storage files"
 
-        class_option :skip_action_cable,  type: :boolean, aliases: "-C", default: false,
-                                          desc: "Skip Action Cable files"
+        class_option :skip_puma,           type: :boolean, aliases: "-P", default: false,
+                                           desc: "Skip Puma related files"
 
-        class_option :skip_sprockets,     type: :boolean, aliases: "-S", default: false,
-                                          desc: "Skip Sprockets files"
+        class_option :skip_action_cable,   type: :boolean, aliases: "-C", default: false,
+                                           desc: "Skip Action Cable files"
 
-        class_option :skip_spring,        type: :boolean, default: false,
-                                          desc: "Don't install Spring application preloader"
+        class_option :skip_sprockets,      type: :boolean, aliases: "-S", default: false,
+                                           desc: "Skip Sprockets files"
 
-        class_option :skip_listen,        type: :boolean, default: false,
-                                          desc: "Don't generate configuration that depends on the listen gem"
+        class_option :skip_spring,         type: :boolean, default: false,
+                                           desc: "Don't install Spring application preloader"
 
-        class_option :skip_coffee,        type: :boolean, default: false,
-                                          desc: "Don't use CoffeeScript"
+        class_option :skip_listen,         type: :boolean, default: false,
+                                           desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_javascript,    type: :boolean, aliases: "-J", default: false,
-                                          desc: "Skip JavaScript files"
+        class_option :skip_coffee,         type: :boolean, default: false,
+                                           desc: "Don't use CoffeeScript"
 
-        class_option :skip_turbolinks,    type: :boolean, default: false,
-                                          desc: "Skip turbolinks gem"
+        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: false,
+                                           desc: "Skip JavaScript files"
 
-        class_option :skip_test,          type: :boolean, aliases: "-T", default: false,
-                                          desc: "Skip test files"
+        class_option :skip_turbolinks,     type: :boolean, default: false,
+                                           desc: "Skip turbolinks gem"
 
-        class_option :skip_system_test,   type: :boolean, default: false,
-                                          desc: "Skip system test files"
+        class_option :skip_test,           type: :boolean, aliases: "-T", default: false,
+                                           desc: "Skip test files"
 
-        class_option :dev,                type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
+        class_option :skip_system_test,    type: :boolean, default: false,
+                                           desc: "Skip system test files"
 
-        class_option :edge,               type: :boolean, default: false,
-                                          desc: "Setup the #{name} with Gemfile pointing to Rails repository"
+        class_option :skip_bootsnap,       type: :boolean, default: false,
+                                           desc: "Skip bootsnap gem"
 
-        class_option :rc,                 type: :string, default: nil,
-                                          desc: "Path to file containing extra configuration options for rails command"
+        class_option :dev,                 type: :boolean, default: false,
+                                           desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
-        class_option :no_rc,              type: :boolean, default: false,
-                                          desc: "Skip loading of extra configuration options from .railsrc file"
+        class_option :edge,                type: :boolean, default: false,
+                                           desc: "Setup the #{name} with Gemfile pointing to Rails repository"
 
-        class_option :help,               type: :boolean, aliases: "-h", group: :rails,
-                                          desc: "Show this help message and quit"
+        class_option :rc,                  type: :string, default: nil,
+                                           desc: "Path to file containing extra configuration options for rails command"
+
+        class_option :no_rc,               type: :boolean, default: false,
+                                           desc: "Skip loading of extra configuration options from .railsrc file"
+
+        class_option :help,                type: :boolean, aliases: "-h", group: :rails,
+                                           desc: "Show this help message and quit"
       end
 
       def initialize(*args)
@@ -187,15 +195,33 @@ module Rails
       def webserver_gemfile_entry # :doc:
         return [] if options[:skip_puma]
         comment = "Use Puma as the app server"
-        GemfileEntry.new("puma", "~> 3.7", comment)
+        GemfileEntry.new("puma", "~> 3.11", comment)
       end
 
       def include_all_railties? # :doc:
-        options.values_at(:skip_active_record, :skip_action_mailer, :skip_test, :skip_sprockets, :skip_action_cable).none?
+        [
+          options.values_at(
+            :skip_active_record,
+            :skip_action_mailer,
+            :skip_test,
+            :skip_sprockets,
+            :skip_action_cable
+          ),
+          skip_active_storage?
+        ].flatten.none?
       end
 
       def comment_if(value) # :doc:
-        options[value] ? "# " : ""
+        question = "#{value}?"
+
+        comment =
+          if respond_to?(question, true)
+            send(question)
+          else
+            options[value]
+          end
+
+        comment ? "# " : ""
       end
 
       def keeps? # :doc:
@@ -204,6 +230,10 @@ module Rails
 
       def sqlite3? # :doc:
         !options[:skip_active_record] && options[:database] == "sqlite3"
+      end
+
+      def skip_active_storage? # :doc:
+        options[:skip_active_storage] || options[:skip_active_record]
       end
 
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
@@ -239,17 +269,14 @@ module Rails
       end
 
       def rails_gemfile_entry
-        dev_edge_common = [
-          GemfileEntry.github("arel", "rails/arel"),
-        ]
         if options.dev?
           [
             GemfileEntry.path("rails", Rails::Generators::RAILS_DEV_PATH)
-          ] + dev_edge_common
+          ]
         elsif options.edge?
           [
             GemfileEntry.github("rails", "rails/rails")
-          ] + dev_edge_common
+          ]
         else
           [GemfileEntry.version("rails",
                             rails_version_specifier,
@@ -273,8 +300,8 @@ module Rails
       def gem_for_database
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "mysql"          then ["mysql2", [">= 0.3.18", "< 0.5"]]
-        when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "mysql"          then ["mysql2", ["~> 0.4.4"]]
+        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
@@ -288,11 +315,13 @@ module Rails
 
       def convert_database_option_for_jruby
         if defined?(JRUBY_VERSION)
-          case options[:database]
-          when "postgresql" then options[:database].replace "jdbcpostgresql"
-          when "mysql"      then options[:database].replace "jdbcmysql"
-          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          opt = options.dup
+          case opt[:database]
+          when "postgresql" then opt[:database] = "jdbcpostgresql"
+          when "mysql"      then opt[:database] = "jdbcmysql"
+          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
           end
+          self.options = opt.freeze
         end
       end
 
@@ -348,6 +377,8 @@ module Rails
         comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
+        elsif RUBY_PLATFORM =~ /mingw|mswin/
+          GemfileEntry.version "duktape", nil, comment
         else
           GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
         end
@@ -365,7 +396,7 @@ module Rails
         return [] if options[:skip_action_cable]
         comment = "Use Redis adapter to run Action Cable in production"
         gems = []
-        gems << GemfileEntry.new("redis", "~> 3.0", comment, {}, true)
+        gems << GemfileEntry.new("redis", "~> 4.0", comment, {}, true)
         gems
       end
 
@@ -407,6 +438,10 @@ module Rails
 
       def depend_on_listen?
         !options[:skip_listen] && os_supports_listen_out_of_the_box?
+      end
+
+      def depend_on_bootsnap?
+        !options[:skip_bootsnap] && !options[:dev]
       end
 
       def os_supports_listen_out_of_the_box?

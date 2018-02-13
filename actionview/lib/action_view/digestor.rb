@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "action_view/dependency_tracker"
 require "monitor"
@@ -87,7 +89,7 @@ module ActionView
       end
 
       def digest(finder, stack = [])
-        Digest::MD5.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
+        ActiveSupport::Digest.hexdigest("#{template.source}-#{dependency_digest(finder, stack)}")
       end
 
       def dependency_digest(finder, stack)

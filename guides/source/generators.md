@@ -90,13 +90,15 @@ $ bin/rails generate generator initializer
       create  lib/generators/initializer/initializer_generator.rb
       create  lib/generators/initializer/USAGE
       create  lib/generators/initializer/templates
+      invoke  test_unit
+      create    test/lib/generators/initializer_generator_test.rb
 ```
 
 This is the generator just created:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("templates", __dir__)
+  source_root File.expand_path('templates', __dir__)
 end
 ```
 
@@ -122,7 +124,7 @@ And now let's change the generator to copy this template when invoked:
 
 ```ruby
 class InitializerGenerator < Rails::Generators::NamedBase
-  source_root File.expand_path("templates", __dir__)
+  source_root File.expand_path('templates', __dir__)
 
   def copy_initializer_file
     copy_file "initializer.rb", "config/initializers/#{file_name}.rb"
@@ -197,6 +199,9 @@ $ bin/rails generate scaffold User name:string
       invoke    jbuilder
       create      app/views/users/index.json.jbuilder
       create      app/views/users/show.json.jbuilder
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/users_test.rb
       invoke  assets
       invoke    coffee
       create      app/assets/javascripts/users.coffee
@@ -238,6 +243,8 @@ $ bin/rails generate generator rails/my_helper
       create  lib/generators/rails/my_helper/my_helper_generator.rb
       create  lib/generators/rails/my_helper/USAGE
       create  lib/generators/rails/my_helper/templates
+      invoke  test_unit
+      create    test/lib/generators/rails/my_helper_generator_test.rb
 ```
 
 After that, we can delete both the `templates` directory and the `source_root`
@@ -415,6 +422,9 @@ $ bin/rails generate scaffold Comment body:text
       invoke    jbuilder
       create      app/views/comments/index.json.jbuilder
       create      app/views/comments/show.json.jbuilder
+      invoke  test_unit
+      create    test/application_system_test_case.rb
+      create    test/system/comments_test.rb
       invoke  assets
       invoke    coffee
       create      app/assets/javascripts/comments.coffee
@@ -504,13 +514,13 @@ Available options are:
 Any additional options passed to this method are put on the end of the line:
 
 ```ruby
-gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
+gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
 ```
 
 The above code will put the following line into `Gemfile`:
 
 ```ruby
-gem "devise", git: "git://github.com/plataformatec/devise", branch: "master"
+gem "devise", git: "https://github.com/plataformatec/devise.git", branch: "master"
 ```
 
 ### `gem_group`
@@ -627,7 +637,7 @@ This method also takes a block:
 
 ```ruby
 lib "super_special.rb" do
-  puts "Super special!"
+  "puts 'Super special!'"
 end
 ```
 
@@ -636,7 +646,7 @@ end
 Creates a Rake file in the `lib/tasks` directory of the application.
 
 ```ruby
-rakefile "test.rake", "hello there"
+rakefile "test.rake", 'task(:hello) { puts "Hello, there" }'
 ```
 
 This method also takes a block:
@@ -688,14 +698,6 @@ Available options are:
 
 * `:env` - Specifies the environment in which to run this rake task.
 * `:sudo` - Whether or not to run this task using `sudo`. Defaults to `false`.
-
-### `capify!`
-
-Runs the `capify` command from Capistrano at the root of the application which generates Capistrano configuration.
-
-```ruby
-capify!
-```
 
 ### `route`
 

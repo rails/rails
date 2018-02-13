@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     module Cache
@@ -95,7 +97,7 @@ module ActionDispatch
         # support strong ETags and will ignore weak ETags entirely.
         #
         # Weak ETags are what we almost always need, so they're the default.
-        # Check out `#strong_etag=` to provide a strong ETag validator.
+        # Check out #strong_etag= to provide a strong ETag validator.
         def etag=(weak_validators)
           self.weak_etag = weak_validators
         end
@@ -131,7 +133,7 @@ module ActionDispatch
         end
 
         def generate_strong_etag(validators)
-          %("#{Digest::MD5.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
+          %("#{ActiveSupport::Digest.hexdigest(ActiveSupport::Cache.expand_cache_key(validators))}")
         end
 
         def cache_control_segments
@@ -164,19 +166,23 @@ module ActionDispatch
           @cache_control = cache_control_headers
         end
 
-        def handle_conditional_get!
-          if etag? || last_modified? || !@cache_control.empty?
-            set_conditional_cache_control!(@cache_control)
-          end
-        end
-
         DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
         NO_CACHE              = "no-cache".freeze
         PUBLIC                = "public".freeze
         PRIVATE               = "private".freeze
         MUST_REVALIDATE       = "must-revalidate".freeze
 
-        def set_conditional_cache_control!(cache_control)
+        def handle_conditional_get!
+          # Normally default cache control setting is handled by ETag
+          # middleware. But, if an etag is already set, the middleware
+          # defaults to `no-cache` unless a default `Cache-Control` value is
+          # previously set. So, set a default one here.
+          if (etag? || last_modified?) && !self._cache_control
+            self._cache_control = DEFAULT_CACHE_CONTROL
+          end
+        end
+
+        def merge_and_normalize_cache_control!(cache_control)
           control = {}
           cc_headers = cache_control_headers
           if extras = cc_headers.delete(:extras)
@@ -189,7 +195,7 @@ module ActionDispatch
           control.merge! cache_control
 
           if control.empty?
-            self._cache_control = DEFAULT_CACHE_CONTROL
+            # Let middleware handle default behavior
           elsif control[:no_cache]
             self._cache_control = NO_CACHE
             if control[:extras]

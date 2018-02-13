@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ActionController::Base
@@ -346,7 +348,7 @@ class FilterTest < ActionController::TestCase
   class AroundFilter
     def before(controller)
       @execution_log = "before"
-      controller.class.execution_log << " before aroundfilter " if controller.respond_to? :execution_log
+      controller.class.execution_log += " before aroundfilter " if controller.respond_to? :execution_log
       controller.instance_variable_set(:"@before_ran", true)
     end
 
@@ -817,7 +819,7 @@ class FilterTest < ActionController::TestCase
       response = test_process(RescuedController)
     end
 
-    assert response.successful?
+    assert_predicate response, :successful?
     assert_equal("I rescued this: #<FilterTest::ErrorToRescue: Something made the bad noise.>", response.body)
   end
 

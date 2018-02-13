@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/active_record"
 
 module ActiveRecord
@@ -26,7 +28,7 @@ module ActiveRecord
         def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name
-          when /^(add|remove)_.*_(?:to|from)_(.*)/
+          when /^(add)_.*_to_(.*)/, /^(remove)_.*?_from_(.*)/
             @migration_action = $1
             @table_name       = normalize_table_name($2)
           when /join_table/

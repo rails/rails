@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
@@ -19,10 +21,6 @@ class PostgresqlExtensionMigrationTest < ActiveRecord::PostgreSQLTestCase
     super
 
     @connection = ActiveRecord::Base.connection
-
-    unless @connection.supports_extensions?
-      return skip("no extension support")
-    end
 
     @old_schema_migration_table_name = ActiveRecord::SchemaMigration.table_name
     @old_table_name_prefix = ActiveRecord::Base.table_name_prefix

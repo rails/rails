@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveJob
   module QueuePriority
     extend ActiveSupport::Concern
 
     # Includes the ability to override the default queue priority.
     module ClassMethods
-      mattr_accessor(:default_priority)
+      mattr_accessor :default_priority
 
       # Specifies the priority of the queue to create the job with.
       #

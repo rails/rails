@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 require "action_dispatch/middleware/stack"
 require "action_dispatch/http/request"
@@ -228,18 +230,16 @@ module ActionController
 
     # Returns a Rack endpoint for the given action name.
     def self.action(name)
+      app = lambda { |env|
+        req = ActionDispatch::Request.new(env)
+        res = make_response! req
+        new.dispatch(name, req, res)
+      }
+
       if middleware_stack.any?
-        middleware_stack.build(name) do |env|
-          req = ActionDispatch::Request.new(env)
-          res = make_response! req
-          new.dispatch(name, req, res)
-        end
+        middleware_stack.build(name, app)
       else
-        lambda { |env|
-          req = ActionDispatch::Request.new(env)
-          res = make_response! req
-          new.dispatch(name, req, res)
-        }
+        app
       end
     end
 

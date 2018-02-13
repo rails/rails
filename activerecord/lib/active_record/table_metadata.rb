@@ -1,7 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, to: :association, prefix: true
-    delegate :association_primary_key, to: :association
+    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
     def initialize(klass, arel_table, association = nil)
       @klass = klass
@@ -29,7 +30,7 @@ module ActiveRecord
 
     def type(column_name)
       if klass
-        klass.type_for_attribute(column_name.to_s)
+        klass.type_for_attribute(column_name)
       else
         Type.default_value
       end
@@ -62,6 +63,14 @@ module ActiveRecord
 
     def polymorphic_association?
       association && association.polymorphic?
+    end
+
+    def aggregated_with?(aggregation_name)
+      klass && reflect_on_aggregation(aggregation_name)
+    end
+
+    def reflect_on_aggregation(aggregation_name)
+      klass.reflect_on_aggregation(aggregation_name)
     end
 
     # TODO Change this to private once we've dropped Ruby 2.2 support.

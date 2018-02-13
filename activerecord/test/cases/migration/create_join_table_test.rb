@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -67,7 +69,7 @@ module ActiveRecord
       def test_create_join_table_without_indexes
         connection.create_join_table :artists, :musics
 
-        assert connection.indexes(:artists_musics).blank?
+        assert_predicate connection.indexes(:artists_musics), :blank?
       end
 
       def test_create_join_table_with_index

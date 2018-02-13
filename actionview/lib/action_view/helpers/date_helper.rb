@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "date"
 require "action_view/helpers/tag_helper"
 require "active_support/core_ext/array/extract_options"
@@ -7,7 +9,7 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/object/with_options"
 
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     # = Action View Date Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
@@ -114,7 +116,7 @@ module ActionView
             when 10..19 then locale.t :less_than_x_seconds, count: 20
             when 20..39 then locale.t :half_a_minute
             when 40..59 then locale.t :less_than_x_minutes, count: 1
-              else             locale.t :x_minutes,           count: 1
+            else             locale.t :x_minutes,           count: 1
             end
 
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
@@ -129,7 +131,7 @@ module ActionView
           when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
             # 60 days up to 365 days
           when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
-            else
+          else
             from_year = from_time.year
             from_year += 1 if from_time.month >= 3
             to_year = to_time.year
@@ -1007,7 +1009,7 @@ module ActionView
           select_options[:disabled] = "disabled" if @options[:disabled]
           select_options[:class] = css_class_attribute(type, select_options[:class], @options[:with_css_classes]) if @options[:with_css_classes]
 
-          select_html = "\n"
+          select_html = "\n".dup
           select_html << content_tag("option".freeze, "", value: "") + "\n" if @options[:include_blank]
           select_html << prompt_option_tag(type, @options[:prompt]) + "\n" if @options[:prompt]
           select_html << select_options_as_html
@@ -1089,7 +1091,7 @@ module ActionView
         # Given an ordering of datetime components, create the selection HTML
         # and join them with their appropriate separators.
         def build_selects_from_types(order)
-          select = ""
+          select = "".dup
           first_visible = order.find { |type| !@options[:"discard_#{type}"] }
           order.reverse_each do |type|
             separator = separator(type) unless type == first_visible # don't add before first visible field

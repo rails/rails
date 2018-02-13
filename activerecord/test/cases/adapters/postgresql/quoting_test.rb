@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -9,11 +11,11 @@ module ActiveRecord
         end
 
         def test_type_cast_true
-          assert_equal "t", @conn.type_cast(true)
+          assert_equal true, @conn.type_cast(true)
         end
 
         def test_type_cast_false
-          assert_equal "f", @conn.type_cast(false)
+          assert_equal false, @conn.type_cast(false)
         end
 
         def test_quote_float_nan

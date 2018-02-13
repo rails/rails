@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view"
 require "rails"
 
@@ -20,8 +22,15 @@ module ActionView
     initializer "action_view.form_with_generates_remote_forms" do |app|
       ActiveSupport.on_load(:action_view) do
         form_with_generates_remote_forms = app.config.action_view.delete(:form_with_generates_remote_forms)
-        unless form_with_generates_remote_forms.nil?
-          ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
+        ActionView::Helpers::FormHelper.form_with_generates_remote_forms = form_with_generates_remote_forms
+      end
+    end
+
+    initializer "action_view.form_with_generates_ids" do |app|
+      ActiveSupport.on_load(:action_view) do
+        form_with_generates_ids = app.config.action_view.delete(:form_with_generates_ids)
+        unless form_with_generates_ids.nil?
+          ActionView::Helpers::FormHelper.form_with_generates_ids = form_with_generates_ids
         end
       end
     end

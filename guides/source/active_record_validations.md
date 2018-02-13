@@ -638,7 +638,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -892,7 +892,7 @@ Conditional Validation
 
 Sometimes it will make sense to validate an object only when a given predicate
 is satisfied. You can do that by using the `:if` and `:unless` options, which
-can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if`
+can take a symbol, a `Proc` or an `Array`. You may use the `:if`
 option when you want to specify when the validation **should** happen. If you
 want to specify when the validation **should not** happen, then you may use the
 `:unless` option.
@@ -953,7 +953,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?],
+                    if: [Proc.new { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```

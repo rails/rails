@@ -100,7 +100,7 @@ The latest version of Active Job can be installed with RubyGems:
   $ gem install activejob
 ```
 
-Source code can be downloaded as part of the Rails project on GitHub
+Source code can be downloaded as part of the Rails project on GitHub:
 
 * https://github.com/rails/rails/tree/master/activejob
 
@@ -108,7 +108,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 Active Job is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 ## Support
@@ -117,7 +117,7 @@ API documentation is at:
 
 * http://api.rubyonrails.org
 
-Bug reports can be filed for the Ruby on Rails project here:
+Bug reports for the Ruby on Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_controller/metal/exceptions"
 
 module ActionDispatch
@@ -48,7 +50,7 @@ module ActionDispatch
         unmatched_keys = (missing_keys || []) & constraints.keys
         missing_keys = (missing_keys || []) - unmatched_keys
 
-        message = "No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}"
+        message = "No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}".dup
         message << ", missing required keys: #{missing_keys.sort.inspect}" if missing_keys && !missing_keys.empty?
         message << ", possible unmatched constraints: #{unmatched_keys.sort.inspect}" if unmatched_keys && !unmatched_keys.empty?
 

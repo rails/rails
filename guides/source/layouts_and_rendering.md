@@ -71,23 +71,25 @@ If we want to display the properties of all the books in our view, we can do so 
 <h1>Listing Books</h1>
 
 <table>
-  <tr>
-    <th>Title</th>
-    <th>Summary</th>
-    <th></th>
-    <th></th>
-    <th></th>
-  </tr>
+  <thead>
+    <tr>
+      <th>Title</th>
+      <th>Content</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
 
-<% @books.each do |book| %>
-  <tr>
-    <td><%= book.title %></td>
-    <td><%= book.content %></td>
-    <td><%= link_to "Show", book %></td>
-    <td><%= link_to "Edit", edit_book_path(book) %></td>
-    <td><%= link_to "Remove", book, method: :delete, data: { confirm: "Are you sure?" } %></td>
-  </tr>
-<% end %>
+  <tbody>
+    <% @books.each do |book| %>
+      <tr>
+        <td><%= book.title %></td>
+        <td><%= book.content %></td>
+        <td><%= link_to "Show", book %></td>
+        <td><%= link_to "Edit", edit_book_path(book) %></td>
+        <td><%= link_to "Destroy", book, method: :delete, data: { confirm: "Are you sure?" } %></td>
+      </tr>
+    <% end %>
+  </tbody>
 </table>
 
 <br>
@@ -95,7 +97,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to "New book", new_book_path %>
 ```
 
-NOTE: The actual rendering is done by subclasses of `ActionView::TemplateHandlers`. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. Beginning with Rails 2, the standard extensions are `.erb` for ERB (HTML with embedded Ruby), and `.builder` for Builder (XML generator).
+NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](http://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
 
 ### Using `render`
 
@@ -221,7 +223,7 @@ service requests that are expecting something other than proper HTML.
 
 NOTE: By default, if you use the `:plain` option, the text is rendered without
 using the current layout. If you want Rails to put the text into the current
-layout, you need to add the `layout: true` option and use the `.txt.erb`
+layout, you need to add the `layout: true` option and use the `.text.erb`
 extension for the layout file.
 
 #### Rendering HTML
@@ -230,14 +232,14 @@ You can send an HTML string back to the browser by using the `:html` option to
 `render`:
 
 ```ruby
-render html: "<strong>Not Found</strong>".html_safe
+render html: helpers.tag.strong('Not Found')
 ```
 
 TIP: This is useful when you're rendering a small snippet of HTML code.
 However, you might want to consider moving it to a template file if the markup
 is complex.
 
-NOTE: When using `html:` option, HTML entities will be escaped if the string is not marked as HTML safe by using `html_safe` method.
+NOTE: When using `html:` option, HTML entities will be escaped if the string is not composed with `html_safe`-aware APIs.
 
 #### Rendering JSON
 
@@ -283,7 +285,7 @@ the response. Using `:plain` or `:html` might be more appropriate most of the
 time.
 
 NOTE: Unless overridden, your response returned from this render option will be
-`text/html`, as that is the default content type of Action Dispatch response.
+`text/plain`, as that is the default content type of Action Dispatch response.
 
 #### Options for `render`
 
@@ -379,6 +381,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 415              | :unsupported_media_type          |
 |                     | 416              | :range_not_satisfiable           |
 |                     | 417              | :expectation_failed              |
+|                     | 421              | :misdirected_request             |
 |                     | 422              | :unprocessable_entity            |
 |                     | 423              | :locked                          |
 |                     | 424              | :failed_dependency               |
@@ -386,6 +389,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 428              | :precondition_required           |
 |                     | 429              | :too_many_requests               |
 |                     | 431              | :request_header_fields_too_large |
+|                     | 451              | :unavailable_for_legal_reasons   |
 | **Server Error**    | 500              | :internal_server_error           |
 |                     | 501              | :not_implemented                 |
 |                     | 502              | :bad_gateway                     |
@@ -1171,7 +1175,7 @@ To pass a local variable to a partial in only specific cases use the `local_assi
 
 This way it is possible to use the partial without the need to declare all local variables.
 
-Every partial also has a local variable with the same name as the partial (minus the underscore). You can pass an object in to this local variable via the `:object` option:
+Every partial also has a local variable with the same name as the partial (minus the leading underscore). You can pass an object in to this local variable via the `:object` option:
 
 ```erb
 <%= render partial: "customer", object: @new_customer %>
@@ -1262,7 +1266,7 @@ You can also pass in arbitrary local variables to any partial you are rendering 
 
 In this case, the partial will have access to a local variable `title` with the value "Products Page".
 
-TIP: Rails also makes a counter variable available within a partial called by the collection, named after the member of the collection followed by `_counter`. For example, if you're rendering `@products`, within the partial you can refer to `product_counter` to tell you how many times the partial has been rendered. This does not work in conjunction with the `as: :value` option.
+TIP: Rails also makes a counter variable available within a partial called by the collection, named after the title of the partial followed by `_counter`. For example, when rendering a collection `@products` the partial `_product.html.erb` can access the variable `product_counter` which indexes the number of times it has been rendered within the enclosing view.
 
 You can also specify a second partial to be rendered between instances of the main partial by using the `:spacer_template` option:
 

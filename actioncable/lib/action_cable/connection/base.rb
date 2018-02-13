@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 
 module ActionCable
@@ -24,7 +26,7 @@ module ActionCable
     #
     #       private
     #         def find_verified_user
-    #           User.find_by_identity(cookies.signed[:identity_id]) ||
+    #           User.find_by_identity(cookies.encrypted[:identity_id]) ||
     #             reject_unauthorized_connection
     #         end
     #     end

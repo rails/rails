@@ -102,6 +102,7 @@ Please choose a generator below.
 
 Rails:
   assets
+  channel
   controller
   generator
   ...
@@ -241,6 +242,8 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
+    invoke  test_unit
+    create    test/system/high_scores_test.rb
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.coffee
@@ -262,12 +265,12 @@ $ bin/rails db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions 
-about code. In unit testing, we take a little part of code, say a method of a model, 
-and test its inputs and outputs. Unit tests are your friend. The sooner you make 
-peace with the fact that your quality of life will drastically increase when you unit 
-test your code, the better. Seriously. Please visit 
-[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth 
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions
+about code. In unit testing, we take a little part of code, say a method of a model,
+and test its inputs and outputs. Unit tests are your friend. The sooner you make
+peace with the fact that your quality of life will drastically increase when you unit
+test your code, the better. Seriously. Please visit
+[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth
 look at unit testing.
 
 Let's see the interface Rails created for us.
@@ -287,7 +290,7 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 You can specify the environment in which the `console` command should operate.
 
 ```bash
-$ bin/rails console staging
+$ bin/rails console -e staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
@@ -533,7 +536,8 @@ The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` 
 
 * `rails tmp:cache:clear` clears `tmp/cache`.
 * `rails tmp:sockets:clear` clears `tmp/sockets`.
-* `rails tmp:clear` clears all cache and sockets files.
+* `rails tmp:screenshots:clear` clears `tmp/screenshots`.
+* `rails tmp:clear` clears all cache, sockets and screenshot files.
 * `rails tmp:create` creates tmp directories for cache, sockets and pids.
 
 ### Miscellaneous
@@ -641,17 +645,20 @@ $ cat config/database.yml
 # Configure Using Gemfile
 # gem 'pg'
 #
-development:
+default: &default
   adapter: postgresql
   encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
   database: gitapp_development
-  pool: 5
-  username: gitapp
-  password:
 ...
 ...
 ```
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
+It also generated some lines in our `database.yml` configuration corresponding to our choice of PostgreSQL for database.
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.

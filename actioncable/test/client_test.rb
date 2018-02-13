@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "concurrent"
 
@@ -305,7 +307,7 @@ class ClientTest < ActionCable::TestCase
 
       ActionCable.server.restart
       c.wait_for_close
-      assert c.closed?
+      assert_predicate c, :closed?
     end
   end
 end

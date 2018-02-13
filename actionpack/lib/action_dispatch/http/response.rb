@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "action_dispatch/http/filter_redirect"
 require "action_dispatch/http/cache"
@@ -81,8 +83,8 @@ module ActionDispatch # :nodoc:
     LOCATION     = "Location".freeze
     NO_CONTENT_CODES = [100, 101, 102, 204, 205, 304]
 
-    cattr_accessor(:default_charset) { "utf-8" }
-    cattr_accessor(:default_headers)
+    cattr_accessor :default_charset, default: "utf-8"
+    cattr_accessor :default_headers
 
     include Rack::Response::Helpers
     # Aliasing these off because AD::Http::Cache::Response defines them.
@@ -103,7 +105,7 @@ module ActionDispatch # :nodoc:
 
       def body
         @str_body ||= begin
-          buf = ""
+          buf = "".dup
           each { |chunk| buf << chunk }
           buf
         end
@@ -252,16 +254,15 @@ module ActionDispatch # :nodoc:
     end
 
     # Sets the HTTP character set. In case of +nil+ parameter
-    # it sets the charset to utf-8.
+    # it sets the charset to +default_charset+.
     #
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      header_info = parsed_content_type_header
+      content_type = parsed_content_type_header.mime_type
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type
+        set_content_type content_type, nil
       else
-        content_type = header_info.mime_type
         set_content_type content_type, charset || self.class.default_charset
       end
     end
@@ -432,6 +433,7 @@ module ActionDispatch # :nodoc:
     def before_committed
       return if committed?
       assign_default_content_type_and_charset!
+      merge_and_normalize_cache_control!(@cache_control)
       handle_conditional_get!
       handle_no_content!
     end

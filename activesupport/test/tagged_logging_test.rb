@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/logger"
 require "active_support/tagged_logging"
@@ -19,7 +21,7 @@ class TaggedLoggingTest < ActiveSupport::TestCase
     assert_nil logger.formatter
     ActiveSupport::TaggedLogging.new(logger)
     assert_not_nil logger.formatter
-    assert logger.formatter.respond_to?(:tagged)
+    assert_respond_to logger.formatter, :tagged
   end
 
   test "tagged once" do
@@ -72,11 +74,12 @@ class TaggedLoggingTest < ActiveSupport::TestCase
   test "keeps each tag in their own thread" do
     @logger.tagged("BCX") do
       Thread.new do
+        @logger.info "Dull story"
         @logger.tagged("OMG") { @logger.info "Cool story" }
       end.join
       @logger.info "Funky time"
     end
-    assert_equal "[OMG] Cool story\n[BCX] Funky time\n", @output.string
+    assert_equal "Dull story\n[OMG] Cool story\n[BCX] Funky time\n", @output.string
   end
 
   test "keeps each tag in their own instance" do

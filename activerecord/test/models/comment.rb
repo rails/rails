@@ -1,3 +1,8 @@
+# frozen_string_literal: true
+
+# `counter_cache` requires association class before `attr_readonly`.
+class Post < ActiveRecord::Base; end
+
 class Comment < ActiveRecord::Base
   scope :limit_by, lambda { |l| limit(l) }
   scope :containing_the_letter_e, -> { where("comments.body LIKE '%e%'") }
@@ -9,7 +14,6 @@ class Comment < ActiveRecord::Base
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true
   belongs_to :resource, polymorphic: true
-  belongs_to :developer
 
   has_many :ratings
 
@@ -55,6 +59,11 @@ class Comment < ActiveRecord::Base
 end
 
 class SpecialComment < Comment
+  default_scope { where(deleted_at: nil) }
+
+  def self.what_are_you
+    "a special comment..."
+  end
 end
 
 class SubSpecialComment < SpecialComment
@@ -74,4 +83,10 @@ end
 class CommentWithDefaultScopeReferencesAssociation < Comment
   default_scope -> { includes(:developer).order("developers.name").references(:developer) }
   belongs_to :developer
+end
+
+class CommentWithAfterCreateUpdate < Comment
+  after_create do
+    update_attributes(body: "bar")
+  end
 end

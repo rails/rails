@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -16,6 +18,7 @@ module ActiveRecord
 
       class FakePool
         attr_reader :reaped
+        attr_reader :flushed
 
         def initialize
           @reaped = false
@@ -23,6 +26,10 @@ module ActiveRecord
 
         def reap
           @reaped = true
+        end
+
+        def flush
+          @flushed = true
         end
       end
 
@@ -45,6 +52,7 @@ module ActiveRecord
           Thread.pass
         end
         assert fp.reaped
+        assert fp.flushed
       end
 
       def test_pool_has_reaper
@@ -71,14 +79,14 @@ module ActiveRecord
         end
         Thread.pass while conn.nil?
 
-        assert conn.in_use?
+        assert_predicate conn, :in_use?
 
         child.terminate
 
         while conn.in_use?
           Thread.pass
         end
-        assert !conn.in_use?
+        assert_not_predicate conn, :in_use?
       end
     end
   end

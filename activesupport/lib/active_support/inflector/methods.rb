@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/inflections"
 require "active_support/core_ext/regexp"
 
@@ -69,7 +71,7 @@ module ActiveSupport
       if uppercase_first_letter
         string = string.sub(/^[a-z\d]*/) { |match| inflections.acronyms[match] || match.capitalize }
       else
-        string = string.sub(/^(?:#{inflections.acronym_regex}(?=\b|[A-Z_])|\w)/) { |match| match.downcase }
+        string = string.sub(inflections.acronyms_camelize_regex) { |match| match.downcase }
       end
       string.gsub!(/(?:_|(\/))([a-z\d]*)/i) { "#{$1}#{inflections.acronyms[$2] || $2.capitalize}" }
       string.gsub!("/".freeze, "::".freeze)
@@ -90,7 +92,7 @@ module ActiveSupport
     def underscore(camel_cased_word)
       return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::".freeze, "/".freeze)
-      word.gsub!(/(?:(?<=([A-Za-z\d]))|\b)(#{inflections.acronym_regex})(?=\b|[^a-z])/) { "#{$1 && '_'.freeze }#{$2.downcase}" }
+      word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_'.freeze }#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
       word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
       word.tr!("-".freeze, "_".freeze)
@@ -136,7 +138,7 @@ module ActiveSupport
       result.tr!("_".freeze, " ".freeze)
 
       result.gsub!(/([a-z\d]*)/i) do |match|
-        "#{inflections.acronyms[match] || match.downcase}"
+        "#{inflections.acronyms[match.downcase] || match.downcase}"
       end
 
       if capitalize
@@ -348,7 +350,7 @@ module ActiveSupport
         when 1; "st"
         when 2; "nd"
         when 3; "rd"
-          else    "th"
+        else    "th"
         end
       end
     end

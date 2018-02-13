@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -82,7 +84,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
 
         def test_create_table_with_array_column
@@ -93,7 +95,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
       end
 
@@ -262,17 +264,18 @@ module ActiveRecord
           t.column :foo, :timestamp
         end
 
-        klass = Class.new(ActiveRecord::Base)
-        klass.table_name = "testings"
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
 
-        assert_equal :datetime, klass.columns_hash["foo"].type
+        assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", klass.columns_hash["foo"].sql_type
+          assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_equal "timestamp", klass.columns_hash["foo"].sql_type
+          assert_equal "timestamp", column.sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal "TIMESTAMP(6)", column.sql_type
         else
-          assert_equal klass.connection.type_to_sql("datetime"), klass.columns_hash["foo"].sql_type
+          assert_equal connection.type_to_sql("datetime"), column.sql_type
         end
       end
 

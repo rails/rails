@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/face"
 require "models/interest"
@@ -11,8 +13,8 @@ class AbsenceValidationTest < ActiveRecord::TestCase
       validates_absence_of :name
     end
 
-    assert boy_klass.new.valid?
-    assert_not boy_klass.new(name: "Alex").valid?
+    assert_predicate boy_klass.new, :valid?
+    assert_not_predicate boy_klass.new(name: "Alex"), :valid?
   end
 
   def test_has_one_marked_for_destruction
@@ -42,7 +44,7 @@ class AbsenceValidationTest < ActiveRecord::TestCase
     assert_not boy.valid?, "should not be valid if has_many association is present"
 
     i2.mark_for_destruction
-    assert boy.valid?
+    assert_predicate boy, :valid?
   end
 
   def test_does_not_call_to_a_on_associations
@@ -63,11 +65,11 @@ class AbsenceValidationTest < ActiveRecord::TestCase
       Interest.validates_absence_of(:token)
 
       interest = Interest.create!(topic: "Thought Leadering")
-      assert interest.valid?
+      assert_predicate interest, :valid?
 
       interest.token = "tl"
 
-      assert interest.invalid?
+      assert_predicate interest, :invalid?
     end
   end
 end

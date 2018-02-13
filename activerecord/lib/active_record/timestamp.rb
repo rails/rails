@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \Timestamp
   #
@@ -86,7 +87,7 @@ module ActiveRecord
 
         all_timestamp_attributes_in_model.each do |column|
           if !attribute_present?(column)
-            write_attribute(column, current_time)
+            _write_attribute(column, current_time)
           end
         end
       end
@@ -100,7 +101,7 @@ module ActiveRecord
 
         timestamp_attributes_for_update_in_model.each do |column|
           next if will_save_change_to_attribute?(column)
-          write_attribute(column, current_time)
+          _write_attribute(column, current_time)
         end
       end
       super(*args)
@@ -126,7 +127,7 @@ module ActiveRecord
       self.class.send(:current_time_from_proper_timezone)
     end
 
-    def max_updated_column_timestamp(timestamp_names = self.class.send(:timestamp_attributes_for_update))
+    def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)
       timestamp_names
         .map { |attr| self[attr] }
         .compact

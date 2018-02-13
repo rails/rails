@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class CurrentAttributesTest < ActiveSupport::TestCase
@@ -28,7 +30,14 @@ class CurrentAttributesTest < ActiveSupport::TestCase
     end
   end
 
-  setup { Current.reset }
+  setup do
+    @original_time_zone = Time.zone
+    Current.reset
+  end
+
+  teardown do
+    Time.zone = @original_time_zone
+  end
 
   test "read and write attribute" do
     Current.world = "world/1"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/class/attribute"
 require "minitest"
 
@@ -62,16 +64,27 @@ module Rails
       end
 
       def format_line(result)
-        "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
+        klass = result.respond_to?(:klass) ? result.klass : result.class
+        "%s#%s = %.2f s = %s" % [klass, result.name, result.time, result.result_code]
       end
 
       def format_rerun_snippet(result)
-        location, line = result.method(result.name).source_location
+        location, line = if result.respond_to?(:source_location)
+          result.source_location
+        else
+          result.method(result.name).source_location
+        end
+
         "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root
-        @app_root ||= defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
+        @app_root ||=
+          if defined?(ENGINE_ROOT)
+            ENGINE_ROOT
+          elsif Rails.respond_to?(:root)
+            Rails.root
+          end
       end
 
       def colored_output?

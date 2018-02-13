@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TextHelperTest < ActionView::TestCase
@@ -11,18 +13,18 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_concat
-    self.output_buffer = "foo"
+    self.output_buffer = "foo".dup
     assert_equal "foobar", concat("bar")
     assert_equal "foobar", output_buffer
   end
 
   def test_simple_format_should_be_html_safe
-    assert simple_format("<b> test with html tags </b>").html_safe?
+    assert_predicate simple_format("<b> test with html tags </b>"), :html_safe?
   end
 
   def test_simple_format_included_in_isolation
     helper_klass = Class.new { include ActionView::Helpers::TextHelper }
-    assert helper_klass.new.simple_format("<b> test with html tags </b>").html_safe?
+    assert_predicate helper_klass.new.simple_format("<b> test with html tags </b>"), :html_safe?
   end
 
   def test_simple_format
@@ -48,19 +50,19 @@ class TextHelperTest < ActionView::TestCase
 
   def test_simple_format_should_sanitize_input_when_sanitize_option_is_true
     assert_equal "<p><b> test with unsafe string </b>code!</p>",
-      simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: true)
+      simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: true })
   end
 
   def test_simple_format_should_not_sanitize_input_when_sanitize_option_is_false
-    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, sanitize: false)
+    assert_equal "<p><b> test with unsafe string </b><script>code!</script></p>", simple_format("<b> test with unsafe string </b><script>code!</script>", {}, { sanitize: false })
   end
 
   def test_simple_format_with_custom_wrapper
-    assert_equal "<div></div>", simple_format(nil, {}, wrapper_tag: "div")
+    assert_equal "<div></div>", simple_format(nil, {}, { wrapper_tag: "div" })
   end
 
   def test_simple_format_with_custom_wrapper_and_multi_line_breaks
-    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, wrapper_tag: "div")
+    assert_equal "<div>We want to put a wrapper...</div>\n\n<div>...right there.</div>", simple_format("We want to put a wrapper...\n\n...right there.", {}, { wrapper_tag: "div" })
   end
 
   def test_simple_format_should_not_change_the_text_passed
@@ -104,8 +106,8 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_multibyte
-    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".force_encoding(Encoding::UTF_8),
-      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".force_encoding(Encoding::UTF_8), length: 10)
+    assert_equal "\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 ...".dup.force_encoding(Encoding::UTF_8),
+      truncate("\354\225\204\353\246\254\353\236\221 \354\225\204\353\246\254 \354\225\204\353\235\274\353\246\254\354\230\244".dup.force_encoding(Encoding::UTF_8), length: 10)
   end
 
   def test_truncate_does_not_modify_the_options_hash
@@ -121,7 +123,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_should_be_html_safe
-    assert truncate("Hello World!", length: 12).html_safe?
+    assert_predicate truncate("Hello World!", length: 12), :html_safe?
   end
 
   def test_truncate_should_escape_the_input
@@ -134,12 +136,12 @@ class TextHelperTest < ActionView::TestCase
 
   def test_truncate_with_escape_false_should_be_html_safe
     truncated = truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_be_html_safe
     truncated = truncate("Here's a long test and I need a continue to read link", length: 27) { link_to "Continue", "#" }
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_escape_the_input
@@ -154,7 +156,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_truncate_with_block_with_escape_false_should_be_html_safe
     truncated = truncate("<script>code!</script>Here's a long test and I need a continue to read link", length: 27, escape: false) { link_to "Continue", "#" }
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_escape_the_block
@@ -163,7 +165,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_should_be_html_safe
-    assert highlight("This is a beautiful morning", "beautiful").html_safe?
+    assert_predicate highlight("This is a beautiful morning", "beautiful"), :html_safe?
   end
 
   def test_highlight
@@ -295,7 +297,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_should_not_be_html_safe
-    assert !excerpt("This is a beautiful! morning", "beautiful", radius: 5).html_safe?
+    assert_not_predicate excerpt("This is a beautiful! morning", "beautiful", radius: 5), :html_safe?
   end
 
   def test_excerpt_in_borderline_cases
@@ -325,7 +327,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_with_utf8
-    assert_equal("...\357\254\203ciency could not be...".force_encoding(Encoding::UTF_8), excerpt("That's why e\357\254\203ciency could not be helped".force_encoding(Encoding::UTF_8), "could", radius: 8))
+    assert_equal("...\357\254\203ciency could not be...".dup.force_encoding(Encoding::UTF_8), excerpt("That's why e\357\254\203ciency could not be helped".dup.force_encoding(Encoding::UTF_8), "could", radius: 8))
   end
 
   def test_excerpt_does_not_modify_the_options_hash

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -140,8 +142,7 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
-      mattr_accessor :index_nested_attribute_errors, instance_writer: false
-      self.index_nested_attribute_errors = false
+      mattr_accessor :index_nested_attribute_errors, instance_writer: false, default: false
     end
 
     module ClassMethods # :nodoc:
@@ -435,6 +436,9 @@ module ActiveRecord
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
+                if inverse_reflection = reflection.inverse_of
+                  record.association(inverse_reflection.name).loaded!
+                end
               end
 
               saved = record.save(validate: !autosave)

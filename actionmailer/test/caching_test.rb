@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "mailers/base_mailer"
@@ -103,7 +105,7 @@ class FragmentCachingTest < BaseCachingTest
 
     html_safe = @mailer.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -196,7 +198,7 @@ end
 class CacheHelperOutputBufferTest < BaseCachingTest
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -212,9 +214,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -233,9 +235,9 @@ class CacheHelperOutputBufferTest < BaseCachingTest
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -260,7 +262,7 @@ class ViewCacheDependencyTest < BaseCachingTest
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesMailer.new.view_cache_dependencies.empty?
+    assert_empty NoDependenciesMailer.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

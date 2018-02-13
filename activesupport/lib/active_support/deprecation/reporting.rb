@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rbconfig"
 
 module ActiveSupport
@@ -59,7 +61,7 @@ module ActiveSupport
           case message
           when Symbol then "#{warning} (use #{message} instead)"
           when String then "#{warning} (#{message})"
-            else warning
+          else warning
           end
         end
 

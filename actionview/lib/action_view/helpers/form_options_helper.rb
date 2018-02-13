@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 require "erb"
 require "action_view/helpers/form_helper"
@@ -7,7 +9,7 @@ require "active_support/core_ext/array/wrap"
 
 module ActionView
   # = Action View Form Option Helpers
-  module Helpers
+  module Helpers #:nodoc:
     # Provides a number of methods for turning different kinds of containers into a set of option tags.
     #
     # The <tt>collection_select</tt>, <tt>select</tt> and <tt>time_zone_select</tt> methods take an <tt>options</tt> parameter, a hash:
@@ -212,9 +214,13 @@ module ActionView
       # * +method+ - The attribute of +object+ corresponding to the select tag
       # * +collection+ - An array of objects representing the <tt><optgroup></tt> tags.
       # * +group_method+ - The name of a method which, when called on a member of +collection+, returns an
-      #   array of child objects representing the <tt><option></tt> tags.
+      #   array of child objects representing the <tt><option></tt> tags. It can also be any object that responds
+      #   to +call+, such as a +proc+, that will be called for each member of the +collection+ to retrieve the
+      #   value.
       # * +group_label_method+ - The name of a method which, when called on a member of +collection+, returns a
-      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag.
+      #   string to be used as the +label+ attribute for its <tt><optgroup></tt> tag. It can also be any object
+      #   that responds to +call+, such as a +proc+, that will be called for each member of the +collection+ to
+      #   retrieve the label.
       # * +option_key_method+ - The name of a method which, when called on a child object of a member of
       #   +collection+, returns a value to be used as the +value+ attribute for its <tt><option></tt> tag.
       # * +option_value_method+ - The name of a method which, when called on a child object of a member of
@@ -277,17 +283,17 @@ module ActionView
       # Finally, this method supports a <tt>:default</tt> option, which selects
       # a default ActiveSupport::TimeZone if the object's time zone is +nil+.
       #
-      #   time_zone_select( "user", "time_zone", nil, include_blank: true)
+      #   time_zone_select("user", "time_zone", nil, include_blank: true)
       #
-      #   time_zone_select( "user", "time_zone", nil, default: "Pacific Time (US & Canada)" )
+      #   time_zone_select("user", "time_zone", nil, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
+      #   time_zone_select("user", 'time_zone', ActiveSupport::TimeZone.us_zones, default: "Pacific Time (US & Canada)")
       #
-      #   time_zone_select( "user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
+      #   time_zone_select("user", 'time_zone', [ ActiveSupport::TimeZone['Alaska'], ActiveSupport::TimeZone['Hawaii'] ])
       #
-      #   time_zone_select( "user", 'time_zone', /Australia/)
+      #   time_zone_select("user", 'time_zone', /Australia/)
       #
-      #   time_zone_select( "user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
+      #   time_zone_select("user", "time_zone", ActiveSupport::TimeZone.all.sort, model: ActiveSupport::TimeZone)
       def time_zone_select(object, method, priority_zones = nil, options = {}, html_options = {})
         Tags::TimeZoneSelect.new(object, method, self, priority_zones, options, html_options).render
       end
@@ -455,9 +461,9 @@ module ActionView
       def option_groups_from_collection_for_select(collection, group_method, group_label_method, option_key_method, option_value_method, selected_key = nil)
         collection.map do |group|
           option_tags = options_from_collection_for_select(
-            group.send(group_method), option_key_method, option_value_method, selected_key)
+            value_for_collection(group, group_method), option_key_method, option_value_method, selected_key)
 
-          content_tag("optgroup".freeze, option_tags, label: group.send(group_label_method))
+          content_tag("optgroup".freeze, option_tags, label: value_for_collection(group, group_label_method))
         end.join.html_safe
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -31,10 +33,8 @@ module ActiveRecord
         connection.add_index(table_name, [:foo], name: "old_idx")
         connection.rename_index(table_name, "old_idx", "new_idx")
 
-        assert_deprecated do
-          assert_not connection.index_name_exists?(table_name, "old_idx", false)
-          assert connection.index_name_exists?(table_name, "new_idx", true)
-        end
+        assert_not connection.index_name_exists?(table_name, "old_idx")
+        assert connection.index_name_exists?(table_name, "new_idx")
       end
 
       def test_rename_index_too_long

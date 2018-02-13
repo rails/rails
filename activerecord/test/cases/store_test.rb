@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/admin"
 require "models/admin/user"
@@ -43,7 +45,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store will mark it as changed" do
     @john.color = "red"
-    assert @john.settings_changed?
+    assert_predicate @john, :settings_changed?
   end
 
   test "updating the store populates the changed array correctly" do
@@ -54,7 +56,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store won't mark it as changed if an attribute isn't changed" do
     @john.color = @john.color
-    assert !@john.settings_changed?
+    assert_not_predicate @john, :settings_changed?
   end
 
   test "object initialization with not nullable column" do
@@ -135,7 +137,7 @@ class StoreTest < ActiveRecord::TestCase
 
   test "updating the store will mark it as changed encoded with JSON" do
     @john.height = "short"
-    assert @john.json_data_changed?
+    assert_predicate @john, :json_data_changed?
   end
 
   test "object initialization with not nullable column encoded with JSON" do

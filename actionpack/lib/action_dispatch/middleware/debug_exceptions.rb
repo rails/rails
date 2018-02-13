@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/request"
 require "action_dispatch/middleware/exception_wrapper"
 require "action_dispatch/routing/inspector"
@@ -21,7 +23,7 @@ module ActionDispatch
         if clean_params.empty?
           "None"
         else
-          PP.pp(clean_params, "", 200)
+          PP.pp(clean_params, "".dup, 200)
         end
       end
 

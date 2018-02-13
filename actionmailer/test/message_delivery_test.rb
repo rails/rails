@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_job"
 require "mailers/delayed_mailer"
@@ -12,7 +14,6 @@ class MessageDeliveryTest < ActiveSupport::TestCase
     ActionMailer::Base.deliver_later_queue_name = :test_queue
     ActionMailer::Base.delivery_method = :test
     ActiveJob::Base.logger = Logger.new(nil)
-    ActionMailer::Base.deliveries.clear
     ActiveJob::Base.queue_adapter.perform_enqueued_at_jobs = true
     ActiveJob::Base.queue_adapter.perform_enqueued_jobs = true
 
@@ -23,6 +24,8 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   end
 
   teardown do
+    ActionMailer::Base.deliveries.clear
+
     ActiveJob::Base.logger = @previous_logger
     ActionMailer::Base.delivery_method = @previous_delivery_method
     ActionMailer::Base.deliver_later_queue_name = @previous_deliver_later_queue_name
@@ -36,7 +39,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   end
 
   test "its message should be a Mail::Message" do
-    assert_equal Mail::Message , @mail.message.class
+    assert_equal Mail::Message, @mail.message.class
   end
 
   test "should respond to .deliver_later" do
@@ -58,8 +61,6 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   def test_should_enqueue_and_run_correctly_in_activejob
     @mail.deliver_later!
     assert_equal 1, ActionMailer::Base.deliveries.size
-  ensure
-    ActionMailer::Base.deliveries.clear
   end
 
   test "should enqueue the email with :deliver_now delivery method" do
@@ -94,6 +95,19 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       @mail.deliver_later
     end
   end
+
+  test "should enqueue the job with the correct delivery job" do
+    old_delivery_job = DelayedMailer.delivery_job
+    DelayedMailer.delivery_job = DummyJob
+
+    assert_performed_with(job: DummyJob, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3]) do
+      @mail.deliver_later
+    end
+
+    DelayedMailer.delivery_job = old_delivery_job
+  end
+
+  class DummyJob < ActionMailer::DeliveryJob; end
 
   test "can override the queue when enqueuing mail" do
     assert_performed_with(job: ActionMailer::DeliveryJob, args: ["DelayedMailer", "test_message", "deliver_now", 1, 2, 3], queue: "another_queue") do

@@ -47,7 +47,7 @@ get '/patients/:id', to: 'patients#show', as: 'patient'
 and your application contains this code in the controller:
 
 ```ruby
-@patient = Patient.find(17)
+@patient = Patient.find(params[:id])
 ```
 
 and this in the corresponding view:
@@ -418,7 +418,7 @@ resources :articles do
 end
 ```
 
-Also you can use them in any place that you want inside the routes, for example in a scope or namespace call:
+Also you can use them in any place that you want inside the routes, for example in a `scope` or `namespace` call:
 
 ```ruby
 namespace :articles do
@@ -484,7 +484,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `photo_preview_url` and `photo_preview_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
@@ -640,7 +640,7 @@ match 'photos', to: 'photos#show', via: :all
 
 NOTE: Routing both `GET` and `POST` requests to a single action has security implications. In general, you should avoid routing all verbs to an action unless you have a good reason to.
 
-NOTE: 'GET' in Rails won't check for CSRF token. You should never write to the database from 'GET' requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
+NOTE: `GET` in Rails won't check for CSRF token. You should never write to the database from `GET` requests, for more information see the [security guide](security.html#csrf-countermeasures) on CSRF countermeasures.
 
 ### Segment Constraints
 
@@ -808,14 +808,14 @@ NOTE: For the curious, `'articles#index'` actually expands out to `ArticlesContr
 
 If you specify a Rack application as the endpoint for a matcher, remember that
 the route will be unchanged in the receiving application. With the following
-route your Rack application should expect the route to be '/admin':
+route your Rack application should expect the route to be `/admin`:
 
 ```ruby
 match '/admin', to: AdminApp, via: :all
 ```
 
 If you would prefer to have your Rack application receive requests at the root
-path instead, use mount:
+path instead, use `mount`:
 
 ```ruby
 mount AdminApp, at: '/admin'
@@ -851,6 +851,49 @@ You can specify unicode character routes directly. For example:
 ```ruby
 get 'こんにちは', to: 'welcome#index'
 ```
+
+### Direct routes
+
+You can create custom URL helpers directly. For example:
+
+```ruby
+direct :homepage do
+  "http://www.rubyonrails.org"
+end
+
+# >> homepage_url
+# => "http://www.rubyonrails.org"
+```
+
+The return value of the block must be a valid argument for the `url_for` method. So, you can pass a valid string URL, Hash, Array, an Active Model instance, or an Active Model class.
+
+```ruby
+direct :commentable do |model|
+  [ model, anchor: model.dom_id ]
+end
+
+direct :main do
+  { controller: 'pages', action: 'index', subdomain: 'www' }
+end
+```
+
+### Using `resolve`
+
+The `resolve` method allows customizing polymorphic mapping of models. For example:
+
+``` ruby
+resource :basket
+
+resolve("Basket") { [:basket] }
+```
+
+``` erb
+<%= form_for @basket do |form| %>
+  <!-- basket form -->
+<% end %>
+```
+
+This will generate the singular URL `/basket` instead of the usual `/baskets/:id`.
 
 Customizing Resourceful Routes
 ------------------------------

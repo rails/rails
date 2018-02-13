@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/kernel/singleton_class"
@@ -22,15 +24,30 @@ module ActiveRecord
         # You can define a scope that applies to all finders using
         # {default_scope}[rdoc-ref:Scoping::Default::ClassMethods#default_scope].
         def all
+          current_scope = self.current_scope
+
           if current_scope
-            current_scope.clone
+            if self == current_scope.klass
+              current_scope.clone
+            else
+              relation.merge!(current_scope)
+            end
           else
             default_scoped
           end
         end
 
-        def default_scoped # :nodoc:
-          scope = relation
+        def scope_for_association(scope = relation) # :nodoc:
+          current_scope = self.current_scope
+
+          if current_scope && current_scope.empty_scope?
+            scope
+          else
+            default_scoped(scope)
+          end
+        end
+
+        def default_scoped(scope = relation) # :nodoc:
           build_default_scope(scope) || scope
         end
 
@@ -154,13 +171,19 @@ module ActiveRecord
               "a class method with the same name."
           end
 
+          if method_defined_within?(name, Relation)
+            raise ArgumentError, "You tried to define a scope named \"#{name}\" " \
+              "on the model \"#{self.name}\", but ActiveRecord::Relation already defined " \
+              "an instance method with the same name."
+          end
+
           valid_scope_name?(name)
           extension = Module.new(&block) if block
 
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
               scope = all
-              scope = scope.scoping { instance_exec(*args, &body) || scope }
+              scope = scope.instance_exec(*args, &body) || scope
               scope = scope.extending(extension) if extension
               scope
             end

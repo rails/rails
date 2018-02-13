@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module AbstractController
   # = Abstract Controller Callbacks
   #
@@ -29,12 +31,12 @@ module AbstractController
 
     included do
       define_callbacks :process_action,
-                       terminator: ->(controller, result_lambda) { result_lambda.call if result_lambda.is_a?(Proc); controller.performed? },
+                       terminator: ->(controller, result_lambda) { result_lambda.call; controller.performed? },
                        skip_after_callbacks_if_terminated: true
     end
 
-    # Override AbstractController::Base's process_action to run the
-    # process_action callbacks around the normal behavior.
+    # Override <tt>AbstractController::Base#process_action</tt> to run the
+    # <tt>process_action</tt> callbacks around the normal behavior.
     def process_action(*args)
       run_callbacks(:process_action) do
         super

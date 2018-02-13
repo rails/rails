@@ -1,20 +1,21 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has One Through Association
   module Associations
+    # = Active Record Has One Through Association
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
-      def replace(record)
-        create_through_record(record)
+      def replace(record, save = true)
+        create_through_record(record, save)
         self.target = record
       end
 
       private
-
-        def create_through_record(record)
+        def create_through_record(record, save)
           ensure_not_nested
 
-          through_proxy  = owner.association(through_reflection.name)
+          through_proxy  = through_association
           through_record = through_proxy.load_target
 
           if through_record && !record
@@ -28,7 +29,7 @@ module ActiveRecord
 
             if through_record
               through_record.update(attributes)
-            elsif owner.new_record?
+            elsif owner.new_record? || !save
               through_proxy.build(attributes)
             else
               through_proxy.create(attributes)

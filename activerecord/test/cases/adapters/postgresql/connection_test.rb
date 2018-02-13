@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -101,7 +103,7 @@ module ActiveRecord
     end
 
     def test_indexes_logs_name
-      assert_deprecated { @connection.indexes("items", "hello") }
+      @connection.indexes("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
@@ -133,8 +135,8 @@ module ActiveRecord
 
     if ActiveRecord::Base.connection.prepared_statements
       def test_statement_key_is_logged
-        binds = [bind_attribute(nil, 1)]
-        @connection.exec_query("SELECT $1::integer", "SQL", binds, prepare: true)
+        bind = Relation::QueryAttribute.new(nil, 1, Type::Value.new)
+        @connection.exec_query("SELECT $1::integer", "SQL", [bind], prepare: true)
         name = @subscriber.payloads.last[:statement_name]
         assert name
         res = @connection.exec_query("EXPLAIN (FORMAT JSON) EXECUTE #{name}(1)")
@@ -155,7 +157,7 @@ module ActiveRecord
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       if @connection.send(:postgresql_version) >= 90200
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
@@ -174,7 +176,7 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
@@ -215,6 +217,13 @@ module ActiveRecord
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+      end
+    end
+
+    def test_set_session_timezone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
+        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
       end
     end
 

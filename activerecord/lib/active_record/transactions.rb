@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
@@ -168,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
@@ -188,7 +190,7 @@ module ActiveRecord
     #
     # === Caveats
     #
-    # If you're on MySQL, then do not use Data Definition Language(DDL) operations in nested
+    # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
     # transactions blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
     # releases all savepoints upon executing a DDL operation. When +transaction+
@@ -283,7 +285,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if].unshift("transaction_include_any_action?(#{fire_on})")
+            options[:if].unshift(-> { transaction_include_any_action?(fire_on) })
           end
         end
 
@@ -430,8 +432,8 @@ module ActiveRecord
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
             pk = self.class.primary_key
-            if pk && read_attribute(pk) != restore_state[:id]
-              write_attribute(pk, restore_state[:id])
+            if pk && _read_attribute(pk) != restore_state[:id]
+              _write_attribute(pk, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end
@@ -470,7 +472,7 @@ module ActiveRecord
       # if it's associated with a transaction, then the state of the Active Record
       # object will be updated to reflect the current state of the transaction.
       #
-      # The +@transaction_state+ variable stores the states of the associated
+      # The <tt>@transaction_state</tt> variable stores the states of the associated
       # transaction. This relies on the fact that a transaction can only be in
       # one rollback or commit (otherwise a list of states would be required).
       # Each Active Record object inside of a transaction carries that transaction's
@@ -490,7 +492,7 @@ module ActiveRecord
       def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
           restore_transaction_record_state if transaction_state.rolledback?
-          clear_transaction_record_state
+          clear_transaction_record_state if transaction_state.fully_completed?
         end
       end
   end

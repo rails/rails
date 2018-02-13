@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_dispatch/middleware/session/abstract_store"
 
@@ -20,6 +22,7 @@ module ActionDispatch
         s["foo"] = "bar"
         assert_equal "bar", s["foo"]
         assert_equal({ "foo" => "bar" }, s.to_hash)
+        assert_equal({ "foo" => "bar" }, s.to_h)
       end
 
       def test_create_merges_old

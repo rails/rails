@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -42,7 +44,7 @@ module AbstractController
       def aroundz
         @aroundz = "FIRST"
         yield
-        @aroundz << "SECOND"
+        @aroundz += "SECOND"
       end
 
       def index

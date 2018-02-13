@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 require "pathname"
@@ -213,6 +215,31 @@ if current_adapter?(:SQLite3Adapter)
         FileUtils.rm_f(filename)
         FileUtils.rm_f(dbfile)
       end
+
+      def test_structure_dump_execution_fails
+        dbfile   = @database
+        filename = "awesome-file.sql"
+        Kernel.expects(:system).with("sqlite3", "--noop", "db_create.sqlite3", ".schema", out: "awesome-file.sql").returns(nil)
+
+        e = assert_raise(RuntimeError) do
+          with_structure_dump_flags(["--noop"]) do
+            quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
+          end
+        end
+        assert_match("failed to execute:", e.message)
+      ensure
+        FileUtils.rm_f(filename)
+        FileUtils.rm_f(dbfile)
+      end
+
+      private
+        def with_structure_dump_flags(flags)
+          old = ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = flags
+          yield
+        ensure
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump_flags = old
+        end
     end
 
     class SqliteStructureLoadTest < ActiveRecord::TestCase

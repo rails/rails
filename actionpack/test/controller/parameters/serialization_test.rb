@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 require "active_support/core_ext/string/strip"
@@ -25,7 +27,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     roundtripped = YAML.load(YAML.dump(params))
 
     assert_equal params, roundtripped
-    assert_not roundtripped.permitted?
+    assert_not_predicate roundtripped, :permitted?
   end
 
   test "yaml backwardscompatible with psych 2.0.8 format" do
@@ -35,7 +37,7 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     end_of_yaml
 
     assert_equal :value, params[:key]
-    assert_not params.permitted?
+    assert_not_predicate params, :permitted?
   end
 
   test "yaml backwardscompatible with psych 2.0.9+ format" do
@@ -48,6 +50,6 @@ class ParametersSerializationTest < ActiveSupport::TestCase
     end_of_yaml
 
     assert_equal :value, params[:key]
-    assert_not params.permitted?
+    assert_not_predicate params, :permitted?
   end
 end

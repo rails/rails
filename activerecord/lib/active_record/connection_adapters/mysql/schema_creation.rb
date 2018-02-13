@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
@@ -16,7 +18,7 @@ module ActiveRecord
           end
 
           def visit_ChangeColumnDefinition(o)
-            change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}"
+            change_column_sql = "CHANGE #{quote_column_name(o.name)} #{accept(o.column)}".dup
             add_column_position!(change_column_sql, column_options(o.column))
           end
 
@@ -28,7 +30,7 @@ module ActiveRecord
             # By default, TIMESTAMP columns are NOT NULL, cannot contain NULL values,
             # and assigning NULL assigns the current timestamp. To permit a TIMESTAMP
             # column to contain NULL, explicitly declare it with the NULL attribute.
-            # See http://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
+            # See https://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
             if /\Atimestamp\b/.match?(options[:column].sql_type) && !options[:primary_key]
               sql << " NULL" unless options[:null] == false || options_include_default?(options)
             end
@@ -63,7 +65,7 @@ module ActiveRecord
 
           def index_in_create(table_name, column_name, options)
             index_name, index_type, index_columns, _, _, index_using, comment = @conn.add_index_options(table_name, column_name, options)
-            add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})", comment)
+            add_sql_comment!("#{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})".dup, comment)
           end
       end
     end

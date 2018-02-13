@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_server"
 
@@ -65,9 +67,9 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       env = Rack::MockRequest.env_for "/test",
         "HTTP_CONNECTION" => "upgrade", "HTTP_UPGRADE" => "websocket",
         "HTTP_HOST" => "localhost", "HTTP_ORIGIN" => "http://rubyonrails.com"
-      io = \
+      io, client_io = \
         begin
-          Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0).first
+          Socket.pair(Socket::AF_UNIX, Socket::SOCK_STREAM, 0)
         rescue
           StringIO.new
         end
@@ -75,6 +77,14 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
 
       Connection.new(@server, env).tap do |connection|
         connection.process
+        if client_io
+          # Make sure server returns handshake response
+          Timeout.timeout(1) do
+            loop do
+              break if client_io.readline == "\r\n"
+            end
+          end
+        end
         connection.send :handle_open
         assert connection.connected
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class UrlHelperTest < ActiveSupport::TestCase
@@ -7,8 +9,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   # In those cases, we'll set up a simple mock
   attr_accessor :controller, :request
 
-  cattr_accessor :request_forgery
-  self.request_forgery = false
+  cattr_accessor :request_forgery, default: false
 
   routes = ActionDispatch::Routing::RouteSet.new
   routes.draw do
@@ -16,6 +17,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+
+    scope :engine do
+      get "/" => "foo#bar"
+    end
   end
 
   include ActionView::Helpers::UrlHelper
@@ -522,10 +527,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/?order=desc&page=1")
   end
 
-  def test_current_page_with_not_get_verb
-    @request = request_for_url("/events", method: :post)
+  def test_current_page_with_scope_that_match
+    @request = request_for_url("/engine/")
 
-    assert !current_page?("/events")
+    assert current_page?("/engine")
   end
 
   def test_current_page_with_escaped_params
@@ -536,7 +541,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
+    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".dup.force_encoding(Encoding::ASCII_8BIT)) do
       assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
@@ -552,6 +557,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", method: :post)
+
+    assert !current_page?("/events")
   end
 
   def test_link_unless_current
@@ -652,7 +663,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_mail_to_returns_html_safe_string
-    assert mail_to("david@loudthinking.com").html_safe?
+    assert_predicate mail_to("david@loudthinking.com"), :html_safe?
   end
 
   def test_mail_to_with_block

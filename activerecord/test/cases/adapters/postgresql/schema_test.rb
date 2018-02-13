@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/default"
 require "support/schema_dumping_helper"
@@ -169,17 +171,17 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_raise_wrapped_exception_on_bad_prepare
     assert_raises(ActiveRecord::StatementInvalid) do
-      @connection.exec_query "select * from developers where id = ?", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = ?", "sql", [bind_param(1)]
     end
   end
 
   if ActiveRecord::Base.connection.prepared_statements
     def test_schema_change_with_prepared_stmt
       altered = false
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
       @connection.exec_query "alter table developers add column zomg int", "sql", []
       altered = true
-      @connection.exec_query "select * from developers where id = $1", "sql", [bind_attribute("id", 1)]
+      @connection.exec_query "select * from developers where id = $1", "sql", [bind_param(1)]
     ensure
       # We are not using DROP COLUMN IF EXISTS because that syntax is only
       # supported by pg 9.X
@@ -457,7 +459,7 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
         assert_equal :btree, index_d.using
         assert_equal :gin,   index_e.using
 
-        assert_equal :desc,  index_d.orders[INDEX_D_COLUMN]
+        assert_equal :desc,  index_d.orders
       end
     end
 
@@ -466,6 +468,10 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
       assert_equal 1, this_index.columns.size
       assert_equal this_index_column, this_index.columns[0]
       assert_equal this_index_name, this_index.name
+    end
+
+    def bind_param(value)
+      ActiveRecord::Relation::QueryAttribute.new(nil, value, ActiveRecord::Type::Value.new)
     end
 end
 
@@ -491,6 +497,66 @@ class SchemaForeignKeyTest < ActiveRecord::PostgreSQLTestCase
     @connection.drop_table "wagons", if_exists: true
     @connection.drop_table "my_schema.trains", if_exists: true
     @connection.drop_schema "my_schema", if_exists: true
+  end
+end
+
+class SchemaIndexOpclassTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_string_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name text_pattern_ops, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: :text_pattern_ops/, output)
+  end
+
+  def test_non_default_opclass_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name, description text_pattern_ops)"
+
+    output = dump_table_schema "trains"
+
+    assert_match(/opclass: \{ description: :text_pattern_ops \}/, output)
+  end
+end
+
+class SchemaIndexNullsOrderTest < ActiveRecord::PostgreSQLTestCase
+  include SchemaDumpingHelper
+
+  setup do
+    @connection = ActiveRecord::Base.connection
+    @connection.create_table "trains" do |t|
+      t.string :name
+      t.text :description
+    end
+  end
+
+  teardown do
+    @connection.drop_table "trains", if_exists: true
+  end
+
+  def test_nulls_order_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_description ON trains USING btree(name NULLS FIRST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "NULLS FIRST" \}/, output)
+  end
+
+  def test_non_default_order_with_nulls_is_dumped
+    @connection.execute "CREATE INDEX trains_name_and_desc ON trains USING btree(name DESC NULLS LAST, description)"
+    output = dump_table_schema "trains"
+    assert_match(/order: \{ name: "DESC NULLS LAST" \}/, output)
   end
 end
 
@@ -528,7 +594,7 @@ class DefaultsUsingMultipleSchemasAndDomainTest < ActiveRecord::PostgreSQLTestCa
   end
 
   def test_decimal_defaults_in_new_schema_when_overriding_domain
-    assert_equal BigDecimal.new("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
+    assert_equal BigDecimal("3.14159265358979323846"), Default.new.decimal_col, "Default of decimal column was not correctly parsed"
   end
 
   def test_bpchar_defaults_in_new_schema_when_overriding_domain

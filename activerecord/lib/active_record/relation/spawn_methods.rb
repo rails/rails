@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/hash/slice"
 require "active_record/relation/merger"
@@ -67,7 +69,7 @@ module ActiveRecord
     private
 
       def relation_with(values)
-        result = Relation.create(klass, table, predicate_builder, values)
+        result = Relation.create(klass, values: values)
         result.extend(*extending_values) if extending_values.any?
         result
       end

@@ -1,4 +1,4 @@
-# frozen-string-literal: true
+# frozen_string_literal: true
 
 require "active_support/core_ext/string/output_safety"
 require "set"
@@ -166,7 +166,7 @@ module ActionView
       # This may come in handy when using jQuery's HTML5-aware <tt>.data()</tt>
       # from 1.4.3.
       #
-      #   tag.div data: { city_state: %w( Chigaco IL ) }
+      #   tag.div data: { city_state: %w( Chicago IL ) }
       #   # => <div data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]"></div>
       #
       # The generated attributes are escaped by default. This can be disabled using

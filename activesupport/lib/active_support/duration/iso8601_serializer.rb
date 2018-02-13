@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/hash/transform_values"
 
@@ -15,12 +17,12 @@ module ActiveSupport
         parts, sign = normalize
         return "PT0S".freeze if parts.empty?
 
-        output = "P"
+        output = "P".dup
         output << "#{parts[:years]}Y"   if parts.key?(:years)
         output << "#{parts[:months]}M"  if parts.key?(:months)
         output << "#{parts[:weeks]}W"   if parts.key?(:weeks)
         output << "#{parts[:days]}D"    if parts.key?(:days)
-        time = ""
+        time = "".dup
         time << "#{parts[:hours]}H"     if parts.key?(:hours)
         time << "#{parts[:minutes]}M"   if parts.key?(:minutes)
         if parts.key?(:seconds)

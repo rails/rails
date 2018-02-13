@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/json/decoding"
 require "rails/engine"
 
 class TestCaseTest < ActionController::TestCase
-  def self.fixture_path; end;
+  def self.fixture_path; end
 
   class TestController < ActionController::Base
     def no_op
@@ -390,9 +392,9 @@ XML
 
   def test_assert_generates
     assert_generates "controller/action/5", controller: "controller", action: "action", id: "5"
-    assert_generates "controller/action/7", { id: "7" }, controller: "controller", action: "action"
-    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, name: "bob"
-    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, name: "bob"
+    assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action" }
+    assert_generates "controller/action/5", { controller: "controller", action: "action", id: "5", name: "bob" }, {}, { name: "bob" }
+    assert_generates "controller/action/7", { id: "7", name: "bob" }, { controller: "controller", action: "action" }, { name: "bob" }
     assert_generates "controller/action/7", { id: "7" }, { controller: "controller", action: "action", name: "bob" }, {}
   end
 
@@ -403,7 +405,7 @@ XML
   def test_assert_routing_with_method
     with_routing do |set|
       set.draw { resources(:content) }
-      assert_routing({ method: "post", path: "content" }, controller: "content", action: "create")
+      assert_routing({ method: "post", path: "content" }, { controller: "content", action: "create" })
     end
   end
 
@@ -668,7 +670,7 @@ XML
     assert_equal "bar", @request.params[:foo]
 
     post :no_op
-    assert @request.params[:foo].blank?
+    assert_predicate @request.params[:foo], :blank?
   end
 
   def test_filtered_parameters_reset_between_requests
@@ -836,7 +838,7 @@ XML
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
     file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
-    assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
+    assert_respond_to file, :tempfile
   end
 
   def test_fixture_file_upload

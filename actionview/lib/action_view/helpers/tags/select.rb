@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -6,14 +8,14 @@ module ActionView
           @choices = block_given? ? template_object.capture { yield || "" } : choices
           @choices = @choices.to_a if @choices.is_a?(Range)
 
-          @html_options = html_options
+          @html_options = html_options.except(:skip_default_ids, :allow_method_names_outside_object)
 
           super(object_name, method_name, template_object, options)
         end
 
         def render
           option_tags_options = {
-            selected: @options.fetch(:selected) { value(@object) },
+            selected: @options.fetch(:selected) { value },
             disabled: @options[:disabled]
           }
 

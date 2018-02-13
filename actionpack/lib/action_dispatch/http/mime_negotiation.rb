@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module ActionDispatch
@@ -6,14 +8,10 @@ module ActionDispatch
       extend ActiveSupport::Concern
 
       included do
-        mattr_accessor :ignore_accept_header
-        self.ignore_accept_header = false
+        mattr_accessor :ignore_accept_header, default: false
       end
 
       # The MIME type of the HTTP request, such as Mime[:xml].
-      #
-      # For backward compatibility, the post \format is extracted from the
-      # X-Post-Data-Format HTTP header if present.
       def content_mime_type
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/

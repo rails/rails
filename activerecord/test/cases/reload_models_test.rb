@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "models/pet"
 
 class ReloadModelsTest < ActiveRecord::TestCase
+  include ActiveSupport::Testing::Isolation
+
   fixtures :pets, :owners
 
   def test_has_one_with_reload
@@ -19,4 +23,4 @@ class ReloadModelsTest < ActiveRecord::TestCase
     pet.owner = Owner.find_by_name("ashley")
     assert_equal pet.owner, Owner.find_by_name("ashley")
   end
-end
+end unless in_memory_db?

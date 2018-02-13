@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
@@ -19,6 +21,11 @@ Gem::Specification.new do |s|
   s.require_path = "lib"
 
   s.rdoc_options.concat ["--encoding",  "UTF-8"]
+
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/activesupport",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md"
+  }
 
   s.add_dependency "i18n",       "~> 0.7"
   s.add_dependency "tzinfo",     "~> 1.1"

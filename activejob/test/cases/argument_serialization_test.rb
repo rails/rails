@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "active_job/arguments"
 require "models/person"
@@ -10,7 +12,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
   end
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
-    "a", true, false, BigDecimal.new(5),
+    "a", true, false, BigDecimal(5),
     [ 1, "a" ],
     { "a" => 1 }
   ].each do |arg|

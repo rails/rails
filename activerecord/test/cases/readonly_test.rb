@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/post"
@@ -14,10 +16,10 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_cant_save_readonly_record
     dev = Developer.find(1)
-    assert !dev.readonly?
+    assert_not_predicate dev, :readonly?
 
     dev.readonly!
-    assert dev.readonly?
+    assert_predicate dev, :readonly?
 
     assert_nothing_raised do
       dev.name = "Luscious forbidden fruit."
@@ -52,7 +54,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
   def test_has_many_find_readonly
     post = Post.find(1)
-    assert !post.comments.empty?
+    assert_not_empty post.comments
     assert !post.comments.any?(&:readonly?)
     assert !post.comments.to_a.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
@@ -64,44 +66,44 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_by_id
-    assert !posts(:welcome).people.find(1).readonly?
+    assert_not_predicate posts(:welcome).people.find(1), :readonly?
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_first
-    assert !posts(:welcome).people.first.readonly?
+    assert_not_predicate posts(:welcome).people.first, :readonly?
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_last
-    assert !posts(:welcome).people.last.readonly?
+    assert_not_predicate posts(:welcome).people.last, :readonly?
   end
 
   def test_readonly_scoping
     Post.where("1=1").scoping do
-      assert !Post.find(1).readonly?
-      assert Post.readonly(true).find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      assert_not_predicate Post.find(1), :readonly?
+      assert_predicate Post.readonly(true).find(1), :readonly?
+      assert_not_predicate Post.readonly(false).find(1), :readonly?
     end
 
     Post.joins("   ").scoping do
-      assert !Post.find(1).readonly?
-      assert Post.readonly.find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      assert_not_predicate Post.find(1), :readonly?
+      assert_predicate Post.readonly.find(1), :readonly?
+      assert_not_predicate Post.readonly(false).find(1), :readonly?
     end
 
     # Oracle barfs on this because the join includes unqualified and
     # conflicting column names
     unless current_adapter?(:OracleAdapter)
       Post.joins(", developers").scoping do
-        assert_not Post.find(1).readonly?
-        assert Post.readonly.find(1).readonly?
-        assert !Post.readonly(false).find(1).readonly?
+        assert_not_predicate Post.find(1), :readonly?
+        assert_predicate Post.readonly.find(1), :readonly?
+        assert_not_predicate Post.readonly(false).find(1), :readonly?
       end
     end
 
     Post.readonly(true).scoping do
-      assert Post.find(1).readonly?
-      assert Post.readonly.find(1).readonly?
-      assert !Post.readonly(false).find(1).readonly?
+      assert_predicate Post.find(1), :readonly?
+      assert_predicate Post.readonly.find(1), :readonly?
+      assert_not_predicate Post.readonly(false).find(1), :readonly?
     end
   end
 
@@ -109,10 +111,10 @@ class ReadOnlyTest < ActiveRecord::TestCase
     developer = Developer.find(1)
     project   = Post.find(1)
 
-    assert !developer.projects.all_as_method.first.readonly?
-    assert !developer.projects.all_as_scope.first.readonly?
+    assert_not_predicate developer.projects.all_as_method.first, :readonly?
+    assert_not_predicate developer.projects.all_as_scope.first, :readonly?
 
-    assert !project.comments.all_as_method.first.readonly?
-    assert !project.comments.all_as_scope.first.readonly?
+    assert_not_predicate project.comments.all_as_method.first, :readonly?
+    assert_not_predicate project.comments.all_as_scope.first, :readonly?
   end
 end

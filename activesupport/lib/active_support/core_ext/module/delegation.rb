@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "active_support/core_ext/regexp"
 
@@ -113,11 +115,8 @@ class Module
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # If the target is +nil+ and does not respond to the delegated method a
-  # +Module::DelegationError+ is raised, as with any other value. Sometimes,
-  # however, it makes sense to be robust to that situation and that is the
-  # purpose of the <tt>:allow_nil</tt> option: If the target is not +nil+, or it
-  # is and responds to the method, everything works as usual. But if it is +nil+
-  # and does not respond to the delegated method, +nil+ is returned.
+  # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
+  # use the <tt>:allow_nil</tt> option.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
@@ -174,7 +173,7 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    methods.each do |method|
+    methods.map do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
@@ -272,7 +271,15 @@ class Module
         if #{target}.respond_to?(method)
           #{target}.public_send(method, *args, &block)
         else
-          super
+          begin
+            super
+          rescue NoMethodError
+            if #{target}.nil?
+              raise DelegationError, "\#{method} delegated to #{target}, but #{target} is nil"
+            else
+              raise
+            end
+          end
         end
       end
     RUBY

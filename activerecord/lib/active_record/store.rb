@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
@@ -133,7 +135,7 @@ module ActiveRecord
       end
 
       def store_accessor_for(store_attribute)
-        type_for_attribute(store_attribute.to_s).accessor
+        type_for_attribute(store_attribute).accessor
       end
 
       class HashAccessor # :nodoc:

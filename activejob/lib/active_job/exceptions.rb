@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/numeric/time"
 
 module ActiveJob
@@ -47,7 +49,7 @@ module ActiveJob
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
-              yield self, exception
+              yield self, error
             else
               logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error
@@ -59,18 +61,28 @@ module ActiveJob
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
+      # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
+      #
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
+      #    discard_on(CustomAppException) do |job, exception|
+      #      ExceptionNotifier.caught(exception)
+      #    end
       #
       #    def perform(record)
       #      # Will raise ActiveJob::DeserializationError if the record can't be deserialized
+      #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
       def discard_on(exception)
         rescue_from exception do |error|
-          logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+          if block_given?
+            yield self, exception
+          else
+            logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+          end
         end
       end
     end

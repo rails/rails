@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class MimeTypeTest < ActiveSupport::TestCase
@@ -28,21 +30,21 @@ class MimeTypeTest < ActiveSupport::TestCase
 
   test "parse text with trailing star at the beginning" do
     accept = "text/*, text/html, application/json, multipart/form-data"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json], Mime[:multipart_form]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star in the end" do
     accept = "text/html, application/json, multipart/form-data, text/*"
-    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml]]
+    expect = [Mime[:html], Mime[:json], Mime[:multipart_form], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml]]
     parsed = Mime::Type.parse(accept)
-    assert_equal expect, parsed
+    assert_equal expect.map(&:to_s), parsed.map(&:to_s)
   end
 
   test "parse text with trailing star" do
     accept = "text/*"
-    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:xml], Mime[:yaml], Mime[:json]]
+    expect = [Mime[:html], Mime[:text], Mime[:js], Mime[:css], Mime[:ics], Mime[:csv], Mime[:vcf], Mime[:vtt], Mime[:xml], Mime[:yaml], Mime[:json]]
     parsed = Mime::Type.parse(accept)
     assert_equal expect.map(&:to_s).sort!, parsed.map(&:to_s).sort!
   end
@@ -157,7 +159,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
     types.each do |type|
       mime = Mime[type]
-      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
+      assert_respond_to mime, "#{type}?"
       assert_equal type, mime.symbol, "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html)

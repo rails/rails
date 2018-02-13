@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveJob
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
@@ -80,6 +82,7 @@ module ActiveJob
       {
         "job_class"  => self.class.name,
         "job_id"     => job_id,
+        "provider_job_id" => provider_job_id,
         "queue_name" => queue_name,
         "priority"   => priority,
         "arguments"  => serialize_arguments(arguments),
@@ -94,17 +97,23 @@ module ActiveJob
     # ==== Examples
     #
     #    class DeliverWebhookJob < ActiveJob::Base
+    #      attr_writer :attempt_number
+    #
+    #      def attempt_number
+    #        @attempt_number ||= 0
+    #      end
+    #
     #      def serialize
-    #        super.merge('attempt_number' => (@attempt_number || 0) + 1)
+    #        super.merge('attempt_number' => attempt_number + 1)
     #      end
     #
     #      def deserialize(job_data)
     #        super
-    #        @attempt_number = job_data['attempt_number']
+    #        self.attempt_number = job_data['attempt_number']
     #      end
     #
-    #      rescue_from(TimeoutError) do |exception|
-    #        raise exception if @attempt_number > 5
+    #      rescue_from(Timeout::Error) do |exception|
+    #        raise exception if attempt_number > 5
     #        retry_job(wait: 10)
     #      end
     #    end

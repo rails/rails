@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -33,7 +35,7 @@ module ActiveRecord
             if value.is_a?(::Range)
               from = type_cast_single_for_database(value.begin)
               to = type_cast_single_for_database(value.end)
-              "[#{from},#{to}#{value.exclude_end? ? ')' : ']'}"
+              ::Range.new(from, to, value.exclude_end?)
             else
               super
             end
@@ -58,7 +60,7 @@ module ActiveRecord
             end
 
             def type_cast_single_for_database(value)
-              infinity?(value) ? "" : @subtype.serialize(value)
+              infinity?(value) ? value : @subtype.serialize(value)
             end
 
             def extract_bounds(value)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Http
     # Provides access to the request's HTTP headers from the environment.

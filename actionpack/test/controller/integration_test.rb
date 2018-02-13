@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
@@ -12,11 +14,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    assert_not_predicate @session, :https?
     @session.https!
-    assert @session.https?
+    assert_predicate @session, :https?
     @session.https! false
-    assert !@session.https?
+    assert_not_predicate @session, :https?
   end
 
   def test_host!
@@ -335,6 +337,18 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_reset_html_document
+    with_test_route_set do
+      get "/redirect"
+      previous_html_document = html_document
+
+      follow_redirect!
+
+      assert_response :ok
+      refute_same previous_html_document, html_document
+    end
+  end
+
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true
@@ -398,11 +412,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert request.env["rack.input"].string.empty?
+      assert_empty request.env["rack.input"].string
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert request.parameters["leaks"].nil?
+      assert_predicate request.parameters["leaks"], :nil?
     end
   end
 

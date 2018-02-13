@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActionView
   # = Action View Cache Helper
-  module Helpers
+  module Helpers #:nodoc:
     module CacheHelper
       # This helper exposes a method for caching fragments of a view
       # rather than an entire action or page. This technique is useful
@@ -109,9 +111,9 @@ module ActionView
       #   <%= render_categorizable_events @person.events %>
       #
       # This marks every template in the directory as a dependency. To find those
-      # templates, the wildcard path must be absolutely defined from app/views or paths
+      # templates, the wildcard path must be absolutely defined from <tt>app/views</tt> or paths
       # otherwise added with +prepend_view_path+ or +append_view_path+.
-      # This way the wildcard for `app/views/recordings/events` would be `recordings/events/*` etc.
+      # This way the wildcard for <tt>app/views/recordings/events</tt> would be <tt>recordings/events/*</tt> etc.
       #
       # The pattern used to match explicit dependencies is <tt>/# Template Dependency: (\S+)/</tt>,
       # so it's important that you type it out just so.
@@ -131,14 +133,14 @@ module ActionView
       #
       # === Collection Caching
       #
-      # When rendering a collection of objects that each use the same partial, a `cached`
+      # When rendering a collection of objects that each use the same partial, a <tt>:cached</tt>
       # option can be passed.
       #
       # For collections rendered such:
       #
       #   <%= render partial: 'projects/project', collection: @projects, cached: true %>
       #
-      # The `cached: true` will make Action View's rendering read several templates
+      # The <tt>cached: true</tt> will make Action View's rendering read several templates
       # from cache at once instead of one call per template.
       #
       # Templates in the collection not already cached are written to cache.
@@ -214,8 +216,6 @@ module ActionView
         end
       end
 
-      attr_reader :cache_hit # :nodoc:
-
     private
 
       def fragment_name_with_digest(name, virtual_path)
@@ -236,10 +236,10 @@ module ActionView
 
       def fragment_for(name = {}, options = nil, &block)
         if content = read_fragment_for(name, options)
-          @cache_hit = true
+          @view_renderer.cache_hits[@virtual_path] = :hit if defined?(@view_renderer)
           content
         else
-          @cache_hit = false
+          @view_renderer.cache_hits[@virtual_path] = :miss if defined?(@view_renderer)
           write_fragment_for(name, options, &block)
         end
       end

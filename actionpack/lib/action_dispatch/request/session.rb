@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 
 module ActionDispatch
@@ -128,6 +130,7 @@ module ActionDispatch
         load_for_read!
         @delegate.dup.delete_if { |_, v| v.nil? }
       end
+      alias :to_h :to_hash
 
       # Updates the session with given Hash.
       #

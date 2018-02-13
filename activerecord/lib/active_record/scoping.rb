@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/per_thread_registry"
 
 module ActiveRecord
@@ -9,23 +11,23 @@ module ActiveRecord
       include Named
     end
 
-    module ClassMethods
-      def current_scope #:nodoc:
-        ScopeRegistry.value_for(:current_scope, self)
+    module ClassMethods # :nodoc:
+      def current_scope(skip_inherited_scope = false)
+        ScopeRegistry.value_for(:current_scope, self, skip_inherited_scope)
       end
 
-      def current_scope=(scope) #:nodoc:
+      def current_scope=(scope)
         ScopeRegistry.set_value_for(:current_scope, self, scope)
       end
 
       # Collects attributes from scopes that should be applied when creating
       # an AR instance for the particular class this is called on.
-      def scope_attributes # :nodoc:
+      def scope_attributes
         all.scope_for_create
       end
 
       # Are there attributes associated with this scope?
-      def scope_attributes? # :nodoc:
+      def scope_attributes?
         current_scope
       end
     end
@@ -33,9 +35,8 @@ module ActiveRecord
     def populate_with_current_scope_attributes # :nodoc:
       return unless self.class.scope_attributes?
 
-      self.class.scope_attributes.each do |att, value|
-        send("#{att}=", value) if respond_to?("#{att}=")
-      end
+      attributes = self.class.scope_attributes
+      _assign_attributes(attributes) if attributes.any?
     end
 
     def initialize_internals_callback # :nodoc:
@@ -75,8 +76,9 @@ module ActiveRecord
       end
 
       # Obtains the value for a given +scope_type+ and +model+.
-      def value_for(scope_type, model)
+      def value_for(scope_type, model, skip_inherited_scope = false)
         raise_invalid_scope_type!(scope_type)
+        return @registry[scope_type][model.name] if skip_inherited_scope
         klass = model
         base = model.base_class
         while klass <= base

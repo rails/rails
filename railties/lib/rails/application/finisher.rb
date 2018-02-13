@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Application
     module Finisher
@@ -56,7 +58,7 @@ module Rails
       end
 
       # This needs to happen before eager load so it happens
-      # in exactly the same point regardless of config.cache_classes
+      # in exactly the same point regardless of config.eager_load
       initializer :run_prepare_callbacks do |app|
         app.reloader.prepare!
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   # Abstract super class that provides a thread-isolated attributes singleton, which resets automatically
   # before and after each request. This allows you to keep all the per-request attributes easily
@@ -31,7 +33,7 @@ module ActiveSupport
   #
   #     private
   #       def authenticate
-  #         if authenticated_user = User.find_by(id: cookies.signed[:user_id])
+  #         if authenticated_user = User.find_by(id: cookies.encrypted[:user_id])
   #           Current.user = authenticated_user
   #         else
   #           redirect_to new_session_url

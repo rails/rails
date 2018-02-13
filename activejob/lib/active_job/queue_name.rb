@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module ActiveJob
   module QueueName
     extend ActiveSupport::Concern
 
     # Includes the ability to override the default queue name and prefix.
     module ClassMethods
-      mattr_accessor(:queue_name_prefix)
-      mattr_accessor(:default_queue_name) { "default" }
+      mattr_accessor :queue_name_prefix
+      mattr_accessor :default_queue_name, default: "default"
 
       # Specifies the name of the queue to process the job on.
       #

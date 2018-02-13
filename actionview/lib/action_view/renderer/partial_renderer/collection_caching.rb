@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module CollectionCaching # :nodoc:
     extend ActiveSupport::Concern
@@ -5,7 +7,7 @@ module ActionView
     included do
       # Fallback cache store if Action View is used without Rails.
       # Otherwise overridden in Railtie to use Rails.cache.
-      mattr_accessor(:collection_cache) { ActiveSupport::Cache::MemoryStore.new }
+      mattr_accessor :collection_cache, default: ActiveSupport::Cache::MemoryStore.new
     end
 
     private

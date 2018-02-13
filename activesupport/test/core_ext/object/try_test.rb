@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object"
 
@@ -8,25 +10,25 @@ class ObjectTryTest < ActiveSupport::TestCase
 
   def test_nonexisting_method
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_nil @string.try(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_nil @string.try(method, "llo", "y")
   end
 
   def test_nonexisting_method_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_raise(NoMethodError) { @string.try!(method) }
   end
 
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_raise(NoMethodError) { @string.try!(method, "llo", "y") }
   end
 

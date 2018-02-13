@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 require "active_support/json"
@@ -60,10 +62,7 @@ module ApplicationTests
 
       add_to_env_config "development", "config.assets.digest = false"
 
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        require "#{app_path}/config/environment"
-      end
+      require "#{app_path}/config/environment"
 
       get "/assets/demo.js"
       assert_equal 'a = "/assets/rails.png";', last_response.body.strip
@@ -475,9 +474,9 @@ module ApplicationTests
 
       class ::PostsController < ActionController::Base; end
 
-      get "/posts", {}, "HTTPS" => "off"
+      get "/posts", {}, { "HTTPS" => "off" }
       assert_match('src="http://example.com/assets/application.self.js', last_response.body)
-      get "/posts", {}, "HTTPS" => "on"
+      get "/posts", {}, { "HTTPS" => "on" }
       assert_match('src="https://example.com/assets/application.self.js', last_response.body)
     end
 

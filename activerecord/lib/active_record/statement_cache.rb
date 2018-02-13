@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # Statement cache is used to cache a single statement in order to avoid creating the AST again.
   # Initializing the cache is done by passing the statement in the create block:
@@ -9,7 +11,7 @@ module ActiveRecord
   # The cached statement is executed by using the
   # {connection.execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute] method:
   #
-  #   cache.execute([], Book, Book.connection)
+  #   cache.execute([], Book.connection)
   #
   # The relation returned by the block is cached, and for each
   # {execute}[rdoc-ref:ConnectionAdapters::DatabaseStatements#execute]
@@ -24,7 +26,7 @@ module ActiveRecord
   #
   # And pass the bind values as the first argument of +execute+ call.
   #
-  #   cache.execute(["my book"], Book, Book.connection)
+  #   cache.execute(["my book"], Book.connection)
   class StatementCache # :nodoc:
     class Substitute; end # :nodoc:
 
@@ -85,27 +87,35 @@ module ActiveRecord
       end
     end
 
-    attr_reader :bind_map, :query_builder
-
     def self.create(connection, block = Proc.new)
-      relation      = block.call Params.new
-      bind_map      = BindMap.new relation.bound_attributes
-      query_builder = connection.cacheable_query(self, relation.arel)
-      new query_builder, bind_map
+      relation = block.call Params.new
+      query_builder, binds = connection.cacheable_query(self, relation.arel)
+      bind_map = BindMap.new(binds)
+      new(query_builder, bind_map, relation.klass)
     end
 
-    def initialize(query_builder, bind_map)
+    def initialize(query_builder, bind_map, klass)
       @query_builder = query_builder
-      @bind_map      = bind_map
+      @bind_map = bind_map
+      @klass = klass
     end
 
-    def execute(params, klass, connection, &block)
+    def execute(params, connection, &block)
       bind_values = bind_map.bind params
 
       sql = query_builder.sql_for bind_values, connection
 
       klass.find_by_sql(sql, bind_values, preparable: true, &block)
     end
-    alias :call :execute
+
+    def self.unsupported_value?(value)
+      case value
+      when NilClass, Array, Range, Hash, Relation, Base then true
+      end
+    end
+
+    protected
+
+      attr_reader :query_builder, :bind_map, :klass
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/hello_job"
 require "active_support/core_ext/numeric/time"

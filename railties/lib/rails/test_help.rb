@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 # Make double-sure the RAILS_ENV is not set to production,
 # so fixtures aren't loaded into that environment
 abort("Abort testing: Your Rails environment is running in production mode!") if Rails.env.production?
 
-require "rails/test_unit/minitest_plugin"
 require "active_support/test_case"
 require "action_controller"
 require "action_controller/test_case"
@@ -28,10 +29,6 @@ if defined?(ActiveRecord::Base)
   end
 
   ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
-
-  def create_fixtures(*fixture_set_names, &block)
-    FixtureSet.create_fixtures(ActiveSupport::TestCase.fixture_path, fixture_set_names, {}, &block)
-  end
 end
 
 # :enddoc:

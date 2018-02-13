@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionHandling
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
@@ -138,6 +140,6 @@ module ActiveRecord
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, to: :connection_handler
+      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
   end
 end

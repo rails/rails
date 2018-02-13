@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module TestFileUtils
@@ -176,7 +178,7 @@ class SendFileTest < ActionController::TestCase
       "image.jpg" => "image/jpeg",
       "image.tif" => "image/tiff",
       "image.gif" => "image/gif",
-      "movie.mpg" => "video/mpeg",
+      "movie.mp4" => "video/mp4",
       "file.zip" => "application/zip",
       "file.unk" => "application/octet-stream",
       "zip" => "application/octet-stream"

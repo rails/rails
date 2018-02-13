@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/object/json"
@@ -37,10 +39,10 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = open_connection
       connection.process
 
-      assert connection.websocket.possible?
+      assert_predicate connection.websocket, :possible?
 
       wait_for_async
-      assert connection.websocket.alive?
+      assert_predicate connection.websocket, :alive?
     end
   end
 
@@ -93,7 +95,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
       statistics = connection.statistics
 
-      assert statistics[:identifier].blank?
+      assert_predicate statistics[:identifier], :blank?
       assert_kind_of Time, statistics[:started_at]
       assert_equal [], statistics[:subscriptions]
     end

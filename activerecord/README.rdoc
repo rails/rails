@@ -26,7 +26,7 @@ The Product class is automatically mapped to the table named "products",
 which might look like this:
 
    CREATE TABLE products (
-     id int NOT NULL auto_increment,
+     id bigint NOT NULL auto_increment,
      name varchar(255),
      PRIMARY KEY  (id)
    );
@@ -162,7 +162,7 @@ This would also define the following accessors: <tt>Product#name</tt> and
 == Philosophy
 
 Active Record is an implementation of the object-relational mapping (ORM)
-pattern[http://www.martinfowler.com/eaaCatalog/activeRecord.html] by the same
+pattern[https://www.martinfowler.com/eaaCatalog/activeRecord.html] by the same
 name described by Martin Fowler:
 
   "An object that wraps a row in a database table or view,
@@ -199,7 +199,7 @@ Source code can be downloaded as part of the Rails project on GitHub:
 
 Active Record is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 == Support
@@ -208,7 +208,7 @@ API documentation is at:
 
 * http://api.rubyonrails.org
 
-Bug reports can be filed for the Ruby on Rails project here:
+Bug reports for the Ruby on Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

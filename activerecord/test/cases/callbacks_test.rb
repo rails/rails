@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -392,27 +394,27 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_create_throwing_abort
     someone = CallbackHaltedDeveloper.new
     someone.cancel_before_create = true
-    assert someone.valid?
+    assert_predicate someone, :valid?
     assert !someone.save
     assert_save_callbacks_not_called(someone)
   end
 
   def test_before_save_throwing_abort
     david = DeveloperWithCanceledCallbacks.find(1)
-    assert david.valid?
+    assert_predicate david, :valid?
     assert !david.save
     exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
     assert_equal david, exc.record
 
     david = DeveloperWithCanceledCallbacks.find(1)
     david.salary = 10_000_000
-    assert !david.valid?
+    assert_not_predicate david, :valid?
     assert !david.save
     assert_raise(ActiveRecord::RecordInvalid) { david.save! }
 
     someone = CallbackHaltedDeveloper.find(1)
     someone.cancel_before_save = true
-    assert someone.valid?
+    assert_predicate someone, :valid?
     assert !someone.save
     assert_save_callbacks_not_called(someone)
   end
@@ -420,7 +422,7 @@ class CallbacksTest < ActiveRecord::TestCase
   def test_before_update_throwing_abort
     someone = CallbackHaltedDeveloper.find(1)
     someone.cancel_before_update = true
-    assert someone.valid?
+    assert_predicate someone, :valid?
     assert !someone.save
     assert_save_callbacks_not_called(someone)
   end

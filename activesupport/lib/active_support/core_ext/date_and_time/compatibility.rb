@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 
 module DateAndTime
@@ -9,6 +11,6 @@ module DateAndTime
     # of the receiver. For backwards compatibility we're overriding
     # this behavior, but new apps will have an initializer that sets
     # this to true, because the new behavior is preferred.
-    mattr_accessor(:preserve_timezone, instance_writer: false) { false }
+    mattr_accessor :preserve_timezone, instance_writer: false, default: false
   end
 end

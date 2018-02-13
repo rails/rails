@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
@@ -107,7 +109,7 @@ module ActionDispatch
       end
 
       # Hook overridden in controller to add request information
-      # with `default_url_options`. Application logic should not
+      # with +default_url_options+. Application logic should not
       # go into url_options.
       def url_options
         default_url_options
@@ -153,7 +155,7 @@ module ActionDispatch
       # Missing routes keys may be filled in from the current request's parameters
       # (e.g. +:controller+, +:action+, +:id+ and any other parameters that are
       # placed in the path). Given that the current action has been reached
-      # through `GET /users/1`:
+      # through <tt>GET /users/1</tt>:
       #
       #   url_for(only_path: true)                        # => '/users/1'
       #   url_for(only_path: true, action: 'edit')        # => '/users/1/edit'

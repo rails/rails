@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "ipaddr"
 
 module ActionDispatch
@@ -10,7 +12,7 @@ module ActionDispatch
   # by @gingerlime. A more detailed explanation of the algorithm is given
   # at GetIp#calculate_ip.
   #
-  # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
+  # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
   # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like NGINX to HAProxy to Unicorn)
@@ -29,7 +31,7 @@ module ActionDispatch
     # The default trusted IPs list simply includes IP addresses that are
     # guaranteed by the IP specification to be private addresses. Those will
     # not be the ultimate client IP in production, and so are discarded. See
-    # http://en.wikipedia.org/wiki/Private_network for details.
+    # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
       "127.0.0.1",      # localhost IPv4
       "::1",            # localhost IPv6

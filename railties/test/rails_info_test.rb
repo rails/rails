@@ -1,19 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
-unless defined?(Rails) && defined?(Rails::Info)
-  module Rails
-    class Info; end
-  end
-end
-
-require "active_support/core_ext/kernel/reporting"
-
 class InfoTest < ActiveSupport::TestCase
-  def setup
-    Rails.send :remove_const, :Info
-    silence_warnings { load "rails/info.rb" }
-  end
-
   def test_property_with_block_swallows_exceptions_and_ignores_property
     assert_nothing_raised do
       Rails::Info.module_eval do

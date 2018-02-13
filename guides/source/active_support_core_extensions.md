@@ -135,9 +135,9 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except 
+In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except
 methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`, 
+`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`,
 and `Bignum` instances.
 
 ```ruby
@@ -634,7 +634,7 @@ NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
 #### `parent_name`
 
-The `parent_name` method on a nested named module returns the fully-qualified name of the module that contains its corresponding constant:
+The `parent_name` method on a nested named module returns the fully qualified name of the module that contains its corresponding constant:
 
 ```ruby
 module X
@@ -674,44 +674,6 @@ M.parents       # => [X::Y, X, Object]
 
 NOTE: Defined in `active_support/core_ext/module/introspection.rb`.
 
-### Reachable
-
-A named module is reachable if it is stored in its corresponding constant. It means you can reach the module object via the constant.
-
-That is what ordinarily happens, if a module is called "M", the `M` constant exists and holds it:
-
-```ruby
-module M
-end
-
-M.reachable? # => true
-```
-
-But since constants and modules are indeed kind of decoupled, module objects can become unreachable:
-
-```ruby
-module M
-end
-
-orphan = Object.send(:remove_const, :M)
-
-# The module object is orphan now but it still has a name.
-orphan.name # => "M"
-
-# You cannot reach it via the constant M because it does not even exist.
-orphan.reachable? # => false
-
-# Let's define a module called "M" again.
-module M
-end
-
-# The constant M exists now again, and it stores a module
-# object called "M", but it is a new instance.
-orphan.reachable? # => false
-```
-
-NOTE: Defined in `active_support/core_ext/module/reachable.rb`.
-
 ### Anonymous
 
 A module may or may not have a name:
@@ -745,7 +707,6 @@ end
 
 m = Object.send(:remove_const, :M)
 
-m.reachable? # => false
 m.anonymous? # => false
 ```
 
@@ -754,6 +715,8 @@ though an anonymous module is unreachable by definition.
 NOTE: Defined in `active_support/core_ext/module/anonymous.rb`.
 
 ### Method Delegation
+
+#### `delegate`
 
 The macro `delegate` offers an easy way to forward methods.
 
@@ -837,13 +800,36 @@ In the previous example the macro generates `avatar_size` rather than `size`.
 
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
+#### `delegate_missing_to`
+
+Imagine you would like to delegate everything missing from the `User` object,
+to the `Profile` one. The `delegate_missing_to` macro lets you implement this
+in a breeze:
+
+```ruby
+class User < ApplicationRecord
+  has_one :profile
+
+  delegate_missing_to :profile
+end
+```
+
+The target can be anything callable within the object, e.g. instance variables,
+methods, constants, etc. Only the public methods of the target are delegated.
+
+NOTE: Defined in `active_support/core_ext/module/delegation.rb`.
+
 ### Redefining Methods
 
 There are cases where you need to define a method with `define_method`, but don't know whether a method with that name already exists. If it does, a warning is issued if they are enabled. No big deal, but not clean either.
 
 The method `redefine_method` prevents such a potential warning, removing the existing method before if needed.
 
-NOTE: Defined in `active_support/core_ext/module/remove_method.rb`
+You can also use `silence_redefinition_of_method` if you need to define
+the replacement method yourself (because you're using `delegate`, for
+example).
+
+NOTE: Defined in `active_support/core_ext/module/redefine_method.rb`.
 
 Extensions to `Class`
 ---------------------
@@ -906,8 +892,7 @@ The generation of the writer instance method can be prevented by setting the opt
 ```ruby
 module ActiveRecord
   class Base
-    class_attribute :table_name_prefix, instance_writer: false
-    self.table_name_prefix = ""
+    class_attribute :table_name_prefix, instance_writer: false, default: "my"
   end
 end
 ```
@@ -931,7 +916,7 @@ When `:instance_reader` is `false`, the instance predicate returns a `NoMethodEr
 
 If you do not want the instance predicate, pass `instance_predicate: false` and it will not be defined.
 
-NOTE: Defined in `active_support/core_ext/class/attribute.rb`
+NOTE: Defined in `active_support/core_ext/class/attribute.rb`.
 
 #### `cattr_reader`, `cattr_writer`, and `cattr_accessor`
 
@@ -941,7 +926,15 @@ The macros `cattr_reader`, `cattr_writer`, and `cattr_accessor` are analogous to
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans.
   cattr_accessor :emulate_booleans
-  self.emulate_booleans = true
+end
+```
+
+Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
+
+```ruby
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans with default value of true.
+  cattr_accessor :emulate_booleans, default: true
 end
 ```
 
@@ -950,22 +943,12 @@ Instance methods are created as well for convenience, they are just proxies to t
 ```ruby
 module ActionView
   class Base
-    cattr_accessor :field_error_proc
-    @@field_error_proc = Proc.new{ ... }
+    cattr_accessor :field_error_proc, default: Proc.new { ... }
   end
 end
 ```
 
 we can access `field_error_proc` in views.
-
-Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
-
-```ruby
-class MysqlAdapter < AbstractAdapter
-  # Generates class methods to access @@emulate_booleans with default value of true.
-  cattr_accessor(:emulate_booleans) { true }
-end
-```
 
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
@@ -1691,7 +1674,7 @@ Specifically performs these transformations:
   * Capitalizes the first word.
 
 The capitalization of the first word can be turned off by setting the
-+:capitalize+ option to false (default is true).
+`:capitalize` option to false (default is true).
 
 ```ruby
 "name".humanize                         # => "Name"
@@ -1769,7 +1752,7 @@ The methods `to_date`, `to_time`, and `to_datetime` are basically convenience wr
 "2010-07-27 23:42:00".to_time(:local) # => 2010-07-27 23:42:00 +0200
 ```
 
-Default is `:utc`.
+Default is `:local`.
 
 Please refer to the documentation of `Date._parse` for further details.
 
@@ -1813,7 +1796,7 @@ NOTE: Defined in `active_support/core_ext/numeric/bytes.rb`.
 
 ### Time
 
-Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.years`.
+Enables the use of time calculations and declarations, like `45.minutes + 2.hours + 4.weeks`.
 
 These methods use Time#advance for precise date calculations when using from_now, ago, etc.
 as well as adding or subtracting their results from a Time object. For example:
@@ -1822,14 +1805,16 @@ as well as adding or subtracting their results from a Time object. For example:
 # equivalent to Time.current.advance(months: 1)
 1.month.from_now
 
-# equivalent to Time.current.advance(years: 2)
-2.years.from_now
+# equivalent to Time.current.advance(weeks: 2)
+2.weeks.from_now
 
-# equivalent to Time.current.advance(months: 4, years: 5)
-(4.months + 5.years).from_now
+# equivalent to Time.current.advance(months: 4, weeks: 5)
+(4.months + 5.weeks).from_now
 ```
 
-NOTE: Defined in `active_support/core_ext/numeric/time.rb`
+WARNING. For other durations please refer to the time extensions to `Integer`.
+
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
 ### Formatting
 
@@ -1964,6 +1949,28 @@ The method `ordinalize` returns the ordinal string corresponding to the receiver
 
 NOTE: Defined in `active_support/core_ext/integer/inflections.rb`.
 
+### Time
+
+Enables the use of time calculations and declarations, like `4.months + 5.years`.
+
+These methods use Time#advance for precise date calculations when using from_now, ago, etc.
+as well as adding or subtracting their results from a Time object. For example:
+
+```ruby
+# equivalent to Time.current.advance(months: 1)
+1.month.from_now
+
+# equivalent to Time.current.advance(years: 2)
+2.years.from_now
+
+# equivalent to Time.current.advance(months: 4, years: 5)
+(4.months + 5.years).from_now
+```
+
+WARNING. For other durations please refer to the time extensions to `Numeric`.
+
+NOTE: Defined in `active_support/core_ext/integer/time.rb`.
+
 Extensions to `BigDecimal`
 --------------------------
 ### `to_s`
@@ -1971,19 +1978,19 @@ Extensions to `BigDecimal`
 The method `to_s` provides a default specifier of "F". This means that a simple call to `to_s` will result in floating point representation instead of engineering notation:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s  # => "5.0"
+BigDecimal(5.00, 6).to_s       # => "5.0"
 ```
 
 and that symbol specifiers are also supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s(:db)  # => "5.0"
+BigDecimal(5.00, 6).to_s(:db)  # => "5.0"
 ```
 
 Engineering notation is still supported:
 
 ```ruby
-BigDecimal.new(5.00, 6).to_s("e")  # => "0.5E1"
+BigDecimal(5.00, 6).to_s("e")  # => "0.5E1"
 ```
 
 Extensions to `Enumerable`
@@ -2341,7 +2348,7 @@ This method is similar in purpose to `Kernel#Array`, but there are some differen
 
 * If the argument responds to `to_ary` the method is invoked. `Kernel#Array` moves on to try `to_a` if the returned value is `nil`, but `Array.wrap` returns an array with the argument as its single element right away.
 * If the returned value from `to_ary` is neither `nil` nor an `Array` object, `Kernel#Array` raises an exception, while `Array.wrap` does not, it just returns the value.
-* It does not call `to_a` on the argument, if the argument does not respond to +to_ary+ it returns an array with the argument as its single element.
+* It does not call `to_a` on the argument, if the argument does not respond to `to_ary` it returns an array with the argument as its single element.
 
 The last point is particularly worth comparing for some enumerables:
 
@@ -2963,6 +2970,32 @@ Extensions to `Date`
 
 NOTE: All the following methods are defined in `active_support/core_ext/date/calculations.rb`.
 
+```ruby
+yesterday
+tomorrow
+beginning_of_week (at_beginning_of_week)
+end_of_week (at_end_of_week)
+monday
+sunday
+weeks_ago
+prev_week (last_week)
+next_week
+months_ago
+months_since
+beginning_of_month (at_beginning_of_month)
+end_of_month (at_end_of_month)
+last_month
+beginning_of_quarter (at_beginning_of_quarter)
+end_of_quarter (at_end_of_quarter)
+beginning_of_year (at_beginning_of_year)
+end_of_year (at_end_of_year)
+years_ago
+years_since
+last_year
+on_weekday?
+on_weekend?
+```
+
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
 #### `Date.current`
@@ -2972,68 +3005,6 @@ Active Support defines `Date.current` to be today in the current time zone. That
 When making Date comparisons using methods which honor the user time zone, make sure to use `Date.current` and not `Date.today`. There are cases where the user time zone might be in the future compared to the system time zone, which `Date.today` uses by default. This means `Date.today` may equal `Date.yesterday`.
 
 #### Named dates
-
-##### `prev_year`, `next_year`
-
-In Ruby 1.9 `prev_year` and `next_year` return a date with the same day/month in the last or next year:
-
-```ruby
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.prev_year              # => Fri, 08 May 2009
-d.next_year              # => Sun, 08 May 2011
-```
-
-If date is the 29th of February of a leap year, you obtain the 28th:
-
-```ruby
-d = Date.new(2000, 2, 29) # => Tue, 29 Feb 2000
-d.prev_year               # => Sun, 28 Feb 1999
-d.next_year               # => Wed, 28 Feb 2001
-```
-
-`prev_year` is aliased to `last_year`.
-
-##### `prev_month`, `next_month`
-
-In Ruby 1.9 `prev_month` and `next_month` return the date with the same day in the last or next month:
-
-```ruby
-d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
-d.prev_month             # => Thu, 08 Apr 2010
-d.next_month             # => Tue, 08 Jun 2010
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Date.new(2000, 5, 31).prev_month # => Sun, 30 Apr 2000
-Date.new(2000, 3, 31).prev_month # => Tue, 29 Feb 2000
-Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
-Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
-```
-
-`prev_month` is aliased to `last_month`.
-
-##### `prev_quarter`, `next_quarter`
-
-Same as `prev_month` and `next_month`. It returns the date with the same day in the previous or next quarter:
-
-```ruby
-t = Time.local(2010, 5, 8) # => Sat, 08 May 2010
-t.prev_quarter             # => Mon, 08 Feb 2010
-t.next_quarter             # => Sun, 08 Aug 2010
-```
-
-If such a day does not exist, the last day of the corresponding month is returned:
-
-```ruby
-Time.local(2000, 7, 31).prev_quarter  # => Sun, 30 Apr 2000
-Time.local(2000, 5, 31).prev_quarter  # => Tue, 29 Feb 2000
-Time.local(2000, 10, 31).prev_quarter # => Mon, 30 Oct 2000
-Time.local(2000, 11, 31).next_quarter # => Wed, 28 Feb 2001
-```
-
-`prev_quarter` is aliased to `last_quarter`.
 
 ##### `beginning_of_week`, `end_of_week`
 
@@ -3152,6 +3123,8 @@ Date.new(2012, 2, 29).years_ago(3)     # => Sat, 28 Feb 2009
 Date.new(2012, 2, 29).years_since(3)   # => Sat, 28 Feb 2015
 ```
 
+`last_year` is short-hand for `#years_ago(1)`.
+
 ##### `months_ago`, `months_since`
 
 The methods `months_ago` and `months_since` work analogously for months:
@@ -3167,6 +3140,8 @@ If such a day does not exist, the last day of the corresponding month is returne
 Date.new(2010, 4, 30).months_ago(2)    # => Sun, 28 Feb 2010
 Date.new(2009, 12, 31).months_since(2) # => Sun, 28 Feb 2010
 ```
+
+`last_month` is short-hand for `#months_ago(1)`.
 
 ##### `weeks_ago`
 
@@ -3330,35 +3305,7 @@ WARNING: `DateTime` is not aware of DST rules and so some of these methods have 
 
 NOTE: All the following methods are defined in `active_support/core_ext/date_time/calculations.rb`.
 
-The class `DateTime` is a subclass of `Date` so by loading `active_support/core_ext/date/calculations.rb` you inherit these methods and their aliases, except that they will always return datetimes:
-
-```ruby
-yesterday
-tomorrow
-beginning_of_week (at_beginning_of_week)
-end_of_week (at_end_of_week)
-monday
-sunday
-weeks_ago
-prev_week (last_week)
-next_week
-months_ago
-months_since
-beginning_of_month (at_beginning_of_month)
-end_of_month (at_end_of_month)
-prev_month (last_month)
-next_month
-beginning_of_quarter (at_beginning_of_quarter)
-end_of_quarter (at_end_of_quarter)
-beginning_of_year (at_beginning_of_year)
-end_of_year (at_end_of_year)
-years_ago
-years_since
-prev_year (last_year)
-next_year
-on_weekday?
-on_weekend?
-```
+The class `DateTime` is a subclass of `Date` so by loading `active_support/core_ext/date/calculations.rb` you inherit these methods and their aliases, except that they will always return datetimes.
 
 The following methods are reimplemented so you do **not** need to load `active_support/core_ext/date/calculations.rb` for these ones:
 
@@ -3506,8 +3453,6 @@ Extensions to `Time`
 
 NOTE: All the following methods are defined in `active_support/core_ext/time/calculations.rb`.
 
-Active Support adds to `Time` many of the methods available for `DateTime`:
-
 ```ruby
 past?
 today?
@@ -3519,6 +3464,8 @@ change
 advance
 ago
 since (in)
+prev_day
+next_day
 beginning_of_day (midnight, at_midnight, at_beginning_of_day)
 end_of_day
 beginning_of_hour (at_beginning_of_hour)
@@ -3534,15 +3481,17 @@ months_ago
 months_since
 beginning_of_month (at_beginning_of_month)
 end_of_month (at_end_of_month)
-prev_month (last_month)
+prev_month
 next_month
+last_month
 beginning_of_quarter (at_beginning_of_quarter)
 end_of_quarter (at_end_of_quarter)
 beginning_of_year (at_beginning_of_year)
 end_of_year (at_end_of_year)
 years_ago
 years_since
-prev_year (last_year)
+prev_year
+last_year
 next_year
 on_weekday?
 on_weekend?
@@ -3600,6 +3549,74 @@ now.all_year
 # => Fri, 01 Jan 2010 00:00:00 UTC +00:00..Fri, 31 Dec 2010 23:59:59 UTC +00:00
 ```
 
+#### `prev_day`, `next_day`
+
+In Ruby 1.9 `prev_day` and `next_day` return the date in the last or next day:
+
+```ruby
+d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
+d.prev_day               # => Fri, 07 May 2010
+d.next_day               # => Sun, 09 May 2010
+```
+
+#### `prev_month`, `next_month`
+
+In Ruby 1.9 `prev_month` and `next_month` return the date with the same day in the last or next month:
+
+```ruby
+d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
+d.prev_month             # => Thu, 08 Apr 2010
+d.next_month             # => Tue, 08 Jun 2010
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Date.new(2000, 5, 31).prev_month # => Sun, 30 Apr 2000
+Date.new(2000, 3, 31).prev_month # => Tue, 29 Feb 2000
+Date.new(2000, 5, 31).next_month # => Fri, 30 Jun 2000
+Date.new(2000, 1, 31).next_month # => Tue, 29 Feb 2000
+```
+
+#### `prev_year`, `next_year`
+
+In Ruby 1.9 `prev_year` and `next_year` return a date with the same day/month in the last or next year:
+
+```ruby
+d = Date.new(2010, 5, 8) # => Sat, 08 May 2010
+d.prev_year              # => Fri, 08 May 2009
+d.next_year              # => Sun, 08 May 2011
+```
+
+If date is the 29th of February of a leap year, you obtain the 28th:
+
+```ruby
+d = Date.new(2000, 2, 29) # => Tue, 29 Feb 2000
+d.prev_year               # => Sun, 28 Feb 1999
+d.next_year               # => Wed, 28 Feb 2001
+```
+
+#### `prev_quarter`, `next_quarter`
+
+`prev_quarter` and `next_quarter` return the date with the same day in the previous or next quarter:
+
+```ruby
+t = Time.local(2010, 5, 8) # => 2010-05-08 00:00:00 +0300
+t.prev_quarter             # => 2010-02-08 00:00:00 +0200
+t.next_quarter             # => 2010-08-08 00:00:00 +0300
+```
+
+If such a day does not exist, the last day of the corresponding month is returned:
+
+```ruby
+Time.local(2000, 7, 31).prev_quarter  # => 2000-04-30 00:00:00 +0300
+Time.local(2000, 5, 31).prev_quarter  # => 2000-02-29 00:00:00 +0200
+Time.local(2000, 10, 31).prev_quarter # => 2000-07-31 00:00:00 +0300
+Time.local(2000, 11, 31).next_quarter # => 2001-03-01 00:00:00 +0200
+```
+
+`prev_quarter` is aliased to `last_quarter`.
+
 ### Time Constructors
 
 Active Support defines `Time.current` to be `Time.zone.now` if there's a user time zone defined, with fallback to `Time.now`:
@@ -3623,7 +3640,7 @@ Durations can be added to and subtracted from time objects:
 now = Time.current
 # => Mon, 09 Aug 2010 23:20:05 UTC +00:00
 now + 1.year
-#  => Tue, 09 Aug 2011 23:21:11 UTC +00:00
+# => Tue, 09 Aug 2011 23:21:11 UTC +00:00
 now - 1.week
 # => Mon, 02 Aug 2010 23:21:11 UTC +00:00
 ```
@@ -3686,9 +3703,9 @@ Extensions to `NameError`
 
 Active Support adds `missing_name?` to `NameError`, which tests whether the exception was raised because of the name passed as argument.
 
-The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully-qualified constant name.
+The name may be given as a symbol or string. A symbol is tested against the bare constant name, a string is against the fully qualified constant name.
 
-TIP: A symbol can represent a fully-qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
+TIP: A symbol can represent a fully qualified constant name as in `:"ActiveRecord::Base"`, so the behavior for symbols is defined for convenience, not because it has to be that way technically.
 
 For example, when an action of `ArticlesController` is called Rails tries optimistically to use `ArticlesHelper`. It is OK that the helper module does not exist, so if an exception for that constant name is raised it should be silenced. But it could be the case that `articles_helper.rb` raises a `NameError` due to an actual unknown constant. That should be reraised. The method `missing_name?` provides a way to distinguish both cases:
 

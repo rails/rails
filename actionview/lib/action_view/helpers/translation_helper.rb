@@ -1,18 +1,19 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/tag_helper"
 require "active_support/core_ext/string/access"
 require "i18n/exceptions"
 
 module ActionView
   # = Action View Translation Helpers
-  module Helpers
+  module Helpers #:nodoc:
     module TranslationHelper
       extend ActiveSupport::Concern
 
       include TagHelper
 
       included do
-        mattr_accessor :debug_missing_translation
-        self.debug_missing_translation = true
+        mattr_accessor :debug_missing_translation, default: true
       end
 
       # Delegates to <tt>I18n#translate</tt> but also performs three additional
@@ -96,7 +97,7 @@ module ActionView
           raise e if raise_error
 
           keys = I18n.normalize_keys(e.locale, e.key, e.options[:scope])
-          title = "translation missing: #{keys.join('.')}"
+          title = "translation missing: #{keys.join('.')}".dup
 
           interpolations = options.except(:default, :scope)
           if interpolations.any?

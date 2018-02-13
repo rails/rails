@@ -14,6 +14,7 @@ pkg
 /activerecord/sqlnet.log
 /activemodel/test/fixtures/fixture_database.sqlite3
 /activesupport/test/fixtures/isolation_test
+/activestorage/test/service/configurations.yml
 /railties/test/500.html
 /railties/test/fixtures/tmp
 /railties/test/initializer/root/log

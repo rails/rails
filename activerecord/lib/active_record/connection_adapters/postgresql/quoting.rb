@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -62,7 +64,7 @@ module ActiveRecord
         def quote_default_expression(value, column) # :nodoc:
           if value.is_a?(Proc)
             value.call
-          elsif column.type == :uuid && /\(\)/.match?(value)
+          elsif column.type == :uuid && value.is_a?(String) && /\(\)/.match?(value)
             value # Does not quote function default values for UUID columns
           elsif column.respond_to?(:array?)
             value = type_cast_from_column(column, value)
@@ -78,7 +80,7 @@ module ActiveRecord
 
         private
           def lookup_cast_type(sql_type)
-            super(select_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
+            super(query_value("SELECT #{quote(sql_type)}::regtype::oid", "SCHEMA").to_i)
           end
 
           def _quote(value)
@@ -99,6 +101,8 @@ module ActiveRecord
               end
             when OID::Array::Data
               _quote(encode_array(value))
+            when Range
+              _quote(encode_range(value))
             else
               super
             end
@@ -115,6 +119,8 @@ module ActiveRecord
               value.to_s
             when OID::Array::Data
               encode_array(value)
+            when Range
+              encode_range(value)
             else
               super
             end
@@ -131,6 +137,10 @@ module ActiveRecord
             result
           end
 
+          def encode_range(range)
+            "[#{type_cast_range_value(range.first)},#{type_cast_range_value(range.last)}#{range.exclude_end? ? ')' : ']'}"
+          end
+
           def determine_encoding_of_strings_in_array(value)
             case value
             when ::Array then determine_encoding_of_strings_in_array(value.first)
@@ -143,6 +153,14 @@ module ActiveRecord
             when ::Array then values.map { |item| type_cast_array(item) }
             else _type_cast(values)
             end
+          end
+
+          def type_cast_range_value(value)
+            infinity?(value) ? "" : type_cast(value)
+          end
+
+          def infinity?(value)
+            value.respond_to?(:infinite?) && value.infinite?
           end
       end
     end

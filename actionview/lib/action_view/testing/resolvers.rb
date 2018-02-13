@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view/template/resolver"
 
 module ActionView #:nodoc:
@@ -20,7 +22,7 @@ module ActionView #:nodoc:
     private
 
       def query(path, exts, _, _)
-        query = ""
+        query = "".dup
         EXTENSIONS.each_key do |ext|
           query << "(" << exts[ext].map { |e| e && Regexp.escape(".#{e}") }.join("|") << "|)"
         end

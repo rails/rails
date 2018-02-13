@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:

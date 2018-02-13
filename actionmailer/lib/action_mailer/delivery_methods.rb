@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tmpdir"
 
 module ActionMailer
@@ -8,14 +10,9 @@ module ActionMailer
 
     included do
       # Do not make this inheritable, because we always want it to propagate
-      cattr_accessor :raise_delivery_errors
-      self.raise_delivery_errors = true
-
-      cattr_accessor :perform_deliveries
-      self.perform_deliveries = true
-
-      cattr_accessor :deliver_later_queue_name
-      self.deliver_later_queue_name = :mailers
+      cattr_accessor :raise_delivery_errors, default: true
+      cattr_accessor :perform_deliveries, default: true
+      cattr_accessor :deliver_later_queue_name, default: :mailers
 
       class_attribute :delivery_methods, default: {}.freeze
       class_attribute :delivery_method, default: :smtp

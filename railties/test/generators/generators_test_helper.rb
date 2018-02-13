@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/remove_method"
 require "active_support/testing/stream"
@@ -41,9 +43,9 @@ module GeneratorsTestHelper
   end
 
   def copy_routes
-    routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb", __dir__)
+    routes = File.expand_path("../../lib/rails/generators/rails/app/templates/config/routes.rb.tt", __dir__)
     destination = File.join(destination_root, "config")
     FileUtils.mkdir_p(destination)
-    FileUtils.cp routes, destination
+    FileUtils.cp routes, File.join(destination, "routes.rb")
   end
 end
