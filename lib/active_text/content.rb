@@ -4,7 +4,7 @@ module ActiveText
 
     attr_reader :fragment
 
-    delegate :blank?, :empty?, :present?, to: :to_s
+    delegate :blank?, :empty?, :html_safe, :present?, to: :to_s
 
     def initialize(content = nil)
       @fragment = ActiveText::Attachment.fragment_by_canonicalizing_attachments(content)
