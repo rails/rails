@@ -27,6 +27,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   has_many :attachments
 
+  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
+
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.
     # This is particularly helpful for direct uploads where the client-side needs to refer to the blob
