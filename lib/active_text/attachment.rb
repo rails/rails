@@ -74,11 +74,7 @@ module ActiveText
     end
 
     def to_html
-      if attachable.respond_to?(:to_partial_path)
-        ApplicationController.render(self)
-      else
-        HtmlConversion.node_to_html(node)
-      end
+      HtmlConversion.node_to_html(node)
     end
 
     def to_s
