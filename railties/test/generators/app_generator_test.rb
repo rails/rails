@@ -653,10 +653,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_empty output
   end
 
-  def test_force_option
+  def test_force_option_overwrites_every_file_except_master_key
     run_generator [File.join(destination_root, "myapp")]
     output = run_generator [File.join(destination_root, "myapp"), "--force"]
     assert_match(/force/, output)
+    assert_no_match("force  config/master.key", output)
   end
 
   def test_application_name_with_spaces
