@@ -49,6 +49,49 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_arguments_roundtrip([a: 1, "b" => 2])
   end
 
+  test "serialize a hash" do
+    symbol_key = { a: 1 }
+    string_key = { "a" => 1 }
+    indifferent_access = { a: 1 }.with_indifferent_access
+
+    assert_equal(
+      { "a" => 1, "_aj_symbol_keys" => ["a"] },
+      ActiveJob::Arguments.serialize([symbol_key]).first
+    )
+    assert_equal(
+      { "a" => 1, "_aj_symbol_keys" => [] },
+      ActiveJob::Arguments.serialize([string_key]).first
+    )
+    assert_equal(
+      { "a" => 1, "_aj_hash_with_indifferent_access" => true },
+      ActiveJob::Arguments.serialize([indifferent_access]).first
+    )
+  end
+
+  test "deserialize a hash" do
+    symbol_key = { "a" => 1, "_aj_symbol_keys" => ["a"] }
+    string_key = { "a" => 1, "_aj_symbol_keys" => [] }
+    another_string_key = { "a" => 1 }
+    indifferent_access = { "a" => 1, "_aj_hash_with_indifferent_access" => true }
+
+    assert_equal(
+      { a: 1 },
+      ActiveJob::Arguments.deserialize([symbol_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([string_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([another_string_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([indifferent_access]).first
+    )
+  end
+
   test "should maintain hash with indifferent access" do
     symbol_key = { a: 1 }
     string_key = { "a" => 1 }
