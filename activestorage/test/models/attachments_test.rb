@@ -187,6 +187,14 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "selectively purge attached blob from has_many association" do
+    @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+
+    @user.highlights.purge(1)
+
+    assert_nothing_raised
+  end
+
   test "find with attached blob" do
     records = %w[alice bob].map do |name|
       User.create!(name: name).tap do |user|
