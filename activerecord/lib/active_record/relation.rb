@@ -147,18 +147,7 @@ module ActiveRecord
     # or processes there is a race condition between both calls and it could
     # be the case that you end up with two similar records.
     #
-    # Whether that is a problem or not depends on the logic of the
-    # application, but in the particular case in which rows have a UNIQUE
-    # constraint an exception may be raised, just retry:
-    #
-    #  begin
-    #    CreditAccount.transaction(requires_new: true) do
-    #      CreditAccount.find_or_create_by(user_id: user.id)
-    #    end
-    #  rescue ActiveRecord::RecordNotUnique
-    #    retry
-    #  end
-    #
+    # If this might be a problem for your application, please see #create_or_find_by.
     def find_or_create_by(attributes, &block)
       find_by(attributes) || create(attributes, &block)
     end
@@ -168,6 +157,41 @@ module ActiveRecord
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
       find_by(attributes) || create!(attributes, &block)
+    end
+
+    # Attempts to create a record with the given attributes in a table that has a unique constraint
+    # on one or several of its columns. If a row already exists with one or several of these
+    # unique constraints, the exception such an insertion would normally raise is caught, 
+    # and the existing record with those attributes is sought found using #find_by.
+    #
+    # This is similar to #find_or_create_by, but avoids the problem of stale reads, as that methods needs
+    # to first query the table, then attempt to insert a row if none is found. That leaves a timing gap
+    # between the SELECT and the INSERT statements that can cause problems in high throughput applications.
+    #
+    # There are several drawbacks to #create_or_find_by, though:
+    #
+    # * The underlying table must have the relevant columns defined with unique constraints.
+    # * A unique constraint violation may be triggered by only one, or at least less than all, 
+    #   of the given attributes. This means that the subsequent #find_by may fail to find a
+    #   matching record, which will then return nil, rather than a record will the given attributes.
+    # * It relies on exception handling to handle control flow, which may be marginally slower. And
+    #
+    # This method will always returns a record if all given attributes are covered by unique constraints,
+    # but if creation was attempted and failed due to validation errors it won't be persisted, you get what
+    # #create returns in such situation.
+    def create_or_find_by(attributes, &block)
+      create(attributes, &block)
+    rescue ActiveRecord::RecordNotUnique
+      find_by(attributes)
+    end
+
+    # Like #create_or_find_by, but calls
+    # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
+    # is raised if the created record is invalid.
+    def create_or_find_by!(attributes, &block)
+      create!(attributes, &block)
+    rescue ActiveRecord::RecordNotUnique
+      find_by(attributes)
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]

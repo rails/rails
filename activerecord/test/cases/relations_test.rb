@@ -1349,6 +1349,15 @@ class RelationTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::RecordInvalid) { Bird.find_or_create_by!(color: "green") }
   end
 
+  def test_create_or_find_by
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
+    assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
+  end
+
   def test_find_or_initialize_by
     assert_nil Bird.find_by(name: "bob")
 
