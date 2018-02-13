@@ -203,6 +203,25 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "still_here.jpg", @user.highlights.first.filename.to_s
   end
 
+  test "selectively purge single attached blob later" do
+    @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
+
+    perform_enqueued_jobs do
+      @user.highlights.purge_later(@user.highlights.first.id)
+    end
+
+    assert_equal "wonky.jpg", @user.highlights.first.filename.to_s
+  end
+
+  test "selectively purge multiple attached blobs later" do
+    @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg"), create_blob(filename: "still_here.jpg")
+
+    perform_enqueued_jobs do
+      @user.highlights.purge_later(@user.highlights.first.id, @user.highlights.second.id)
+    end
+    assert_equal "still_here.jpg", @user.highlights.first.filename.to_s
+  end
+
   test "find with attached blob" do
     records = %w[alice bob].map do |name|
       User.create!(name: name).tap do |user|
