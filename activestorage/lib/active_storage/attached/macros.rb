@@ -83,7 +83,24 @@ module ActiveStorage
         end
       CODE
 
-      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record
+      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record do
+        # Directly purges each associated attachment (i.e. destroys the blobs and
+        # attachments and deletes the files on the service).
+        def purge
+          if any?
+            each(&:purge)
+            reset
+          end
+        end
+
+        # Purges each associated attachment through the queuing system unless ID(s) given.
+        def purge_later
+          if any?
+            each(&:purge_later)
+            reset
+          end
+        end
+      end
       has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }

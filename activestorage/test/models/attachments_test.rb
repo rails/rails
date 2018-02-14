@@ -190,7 +190,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   test "selectively purge single attached blob" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
 
-    @user.highlights.purge(@user.highlights.first.id)
+    @user.highlights.where(id: @user.highlights.first.id).purge
 
     assert_equal "wonky.jpg", @user.highlights.first.filename.to_s
   end
@@ -198,7 +198,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   test "selectively purge multiple attached blobs" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg"), create_blob(filename: "still_here.jpg")
 
-    @user.highlights.purge(@user.highlights.first.id, @user.highlights.second.id)
+    @user.highlights.where(id: [@user.highlights.first.id, @user.highlights.second.id]).purge
 
     assert_equal "still_here.jpg", @user.highlights.first.filename.to_s
   end
@@ -207,7 +207,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg")
 
     perform_enqueued_jobs do
-      @user.highlights.purge_later(@user.highlights.first.id)
+      @user.highlights.where(id: @user.highlights.first.id).purge
     end
 
     assert_equal "wonky.jpg", @user.highlights.first.filename.to_s
@@ -217,7 +217,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "wonky.jpg"), create_blob(filename: "still_here.jpg")
 
     perform_enqueued_jobs do
-      @user.highlights.purge_later(@user.highlights.first.id, @user.highlights.second.id)
+      @user.highlights.where(id: [@user.highlights.first.id, @user.highlights.second.id]).purge
     end
     assert_equal "still_here.jpg", @user.highlights.first.filename.to_s
   end

@@ -43,30 +43,5 @@ module ActiveStorage
     def detach
       attachments.destroy_all if attached?
     end
-
-    # Directly purges each associated attachment (i.e. destroys the blobs and
-    # attachments and deletes the files on the service) unless ID(s) given.
-    def purge(*args)
-      if attached?
-        if args.any?
-          attachments.where(id: args).each(&:purge)
-        else
-          attachments.each(&:purge)
-          attachments.reload
-        end
-      end
-    end
-
-    # Purges each associated attachment through the queuing system unless ID(s) given.
-    def purge_later(*args)
-      if attached?
-        if args.any?
-          attachments.where(id: args).each(&:purge)
-        else
-          attachments.each(&:purge)
-          attachments.reload
-        end
-      end
-    end
   end
 end
