@@ -4,7 +4,11 @@ module ActiveText
 
     def active_text_field_tag(name, value = nil, options = {})
       options = options.symbolize_keys
+
       options[:input] ||= "trix_input_#{ActiveText::TagHelper.id += 1}"
+      options[:data] ||= {}
+      options[:data][:direct_upload_url] = rails_direct_uploads_url
+      options[:data][:blob_url_template] = rails_service_blob_url(":signed_id", ":filename")
 
       editor_tag = content_tag("trix-editor", "", options)
       input_tag = hidden_field_tag(name, value, id: options[:input])
@@ -16,15 +20,13 @@ end
 
 module ActionView::Helpers
   class Tags::ActiveText < Tags::Base
-    include ActiveText::TagHelper
-
     delegate :dom_id, to: ActionView::RecordIdentifier
 
     def render
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_"))
-      active_text_field_tag(options.delete("name"), editable_value, options)
+      @template_object.active_text_field_tag(options.delete("name"), editable_value, options)
     end
 
     def editable_value

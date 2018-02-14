@@ -1,13 +1,11 @@
 import * as Trix from "trix"
 import { DirectUpload } from "activestorage"
 
-// FIXME: Hard coded routes
-const directUploadsURL = "/rails/active_storage/direct_uploads"
-const blobsURL = "/rails/active_storage/blobs"
-
 addEventListener("trix-attachment-add", event => {
   const { attachment } = event
   if (!attachment.file) return
+
+  const { directUploadUrl, blobUrlTemplate } = event.target.dataset
 
   const delegate = {
     directUploadWillStoreFileWithXHR: (xhr) => {
@@ -18,17 +16,19 @@ addEventListener("trix-attachment-add", event => {
     }
   }
 
-  const directUpload = new DirectUpload(attachment.file, directUploadsURL, delegate)
+  const directUpload = new DirectUpload(attachment.file, directUploadUrl, delegate)
 
   directUpload.create((error, attributes) => {
     if (error) {
       console.warn("Failed to store file for attachment", attachment, error)
     } else {
-      console.log("Created blob for attachment", attributes, attachment)
-      attachment.setAttributes({
-        url: `${blobsURL}/${attributes.signed_id}/${encodeURIComponent(attachment.file.name)}`,
-        sgid: attributes.attachable_sgid
-      })
+      const sgid = attributes.attachable_sgid
+
+      const url = blobUrlTemplate
+        .replace(":signed_id", attributes.signed_id)
+        .replace(":filename", encodeURIComponent(attributes.filename))
+
+      attachment.setAttributes({ sgid, url })
     }
   })
 })
