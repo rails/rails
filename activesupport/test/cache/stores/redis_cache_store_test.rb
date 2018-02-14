@@ -5,6 +5,24 @@ require "active_support/cache"
 require "active_support/cache/redis_cache_store"
 require_relative "../behaviors"
 
+driver_name = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
+driver = Object.const_get("Redis::Connection::#{driver_name.camelize}")
+
+Redis::Connection.drivers.clear
+Redis::Connection.drivers.append(driver)
+
+# Emulates a latency on Redis's back-end for the key latency to facilitate
+# connection pool testing.
+class SlowRedis < Redis
+  def get(key, options = {})
+    if key =~ /latency/
+      sleep 3
+    else
+      super
+    end
+  end
+end
+
 module ActiveSupport::Cache::RedisCacheStoreTests
   DRIVER = %w[ ruby hiredis ].include?(ENV["REDIS_DRIVER"]) ? ENV["REDIS_DRIVER"] : "hiredis"
 
@@ -117,6 +135,33 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         end
       end
     end
+  end
+
+  class ConnectionPoolBehaviourTest < StoreTest
+    include ConnectionPoolBehavior
+
+    private
+
+      def store
+        :redis_cache_store
+      end
+
+      def emulating_latency
+        old_redis = Object.send(:remove_const, :Redis)
+        Object.const_set(:Redis, SlowRedis)
+
+        yield
+      ensure
+        Object.send(:remove_const, :Redis)
+        Object.const_set(:Redis, old_redis)
+      end
+  end
+
+  class RedisDistributedConnectionPoolBehaviourTest < ConnectionPoolBehaviourTest
+    private
+      def store_options
+        { url: %w[ redis://localhost:6379/0 redis://localhost:6379/0 ] }
+      end
   end
 
   # Separate test class so we can omit the namespace which causes expected,
