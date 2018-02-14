@@ -48,7 +48,7 @@ module ActiveText
     def to_html
       render_attachments do |attachment|
         attachment.node.tap do |node|
-          node.inner_html = ApplicationController.render(attachment)
+          node.inner_html = ActiveText.renderer.render(attachment)
         end
       end.to_html
     end

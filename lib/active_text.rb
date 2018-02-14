@@ -5,6 +5,8 @@ require "nokogiri"
 module ActiveText
   extend ActiveSupport::Autoload
 
+  mattr_accessor(:renderer)
+
   autoload :Attachable
   autoload :Attachment
   autoload :Attribute

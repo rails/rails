@@ -30,5 +30,11 @@ module ActiveText
         helper ActiveText::TagHelper
       end
     end
+
+    initializer "active_text.config" do
+      config.after_initialize do |app|
+        ActiveText.renderer ||= ApplicationController.renderer
+      end
+    end
   end
 end
