@@ -162,10 +162,10 @@ module ActiveRecord
     # Attempts to create a record with the given attributes in a table that has a unique constraint
     # on one or several of its columns. If a row already exists with one or several of these
     # unique constraints, the exception such an insertion would normally raise is caught, 
-    # and the existing record with those attributes is sought found using #find_by.
+    # and the existing record with those attributes is found using #find_by.
     #
     # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT 
-    # and the INSERT, as that methods needs to first query the table, then attempt to insert a row 
+    # and the INSERT, as that method needs to first query the table, then attempt to insert a row 
     # if none is found. 
     #
     # There are several drawbacks to #create_or_find_by, though:
@@ -173,8 +173,8 @@ module ActiveRecord
     # * The underlying table must have the relevant columns defined with unique constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all, 
     #   of the given attributes. This means that the subsequent #find_by may fail to find a
-    #   matching record, which will then raise an `ActiveRecord::NotFound` exception,
-    #   rather than a record will the given attributes.
+    #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
+    #   rather than a record with the given attributes.
     # * While we avoid the race condition between SELECT -> INSERT from #find_or_create_by,
     #   we actually have another race condition between INSERT -> SELECT, which can be triggered
     #   if a DELETE between those two statements is run by another client. But for most applications,
