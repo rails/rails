@@ -164,9 +164,9 @@ module ActiveRecord
     # unique constraints, the exception such an insertion would normally raise is caught, 
     # and the existing record with those attributes is sought found using #find_by.
     #
-    # This is similar to #find_or_create_by, but avoids the problem of stale reads, as that methods needs
-    # to first query the table, then attempt to insert a row if none is found. That leaves a timing gap
-    # between the SELECT and the INSERT statements that can cause problems in high throughput applications.
+    # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT 
+    # and the INSERT, as that methods needs to first query the table, then attempt to insert a row 
+    # if none is found. 
     #
     # There are several drawbacks to #create_or_find_by, though:
     #
@@ -175,11 +175,16 @@ module ActiveRecord
     #   of the given attributes. This means that the subsequent #find_by may fail to find a
     #   matching record, which will then raise an `ActiveRecord::NotFound` exception,
     #   rather than a record will the given attributes.
-    # * It relies on exception handling to handle control flow, which may be marginally slower. And
+    # * While we avoid the race condition between SELECT -> INSERT from #find_or_create_by,
+    #   we actually have another race condition between INSERT -> SELECT, which can be triggered
+    #   if a DELETE between those two statements is run by another client. But for most applications,
+    #   that's a significantly less likely condition to hit.
+    # * It relies on exception handling to handle control flow, which may be marginally slower.
     #
-    # This method will always returns a record if all given attributes are covered by unique constraints,
-    # but if creation was attempted and failed due to validation errors it won't be persisted, you get what
-    # #create returns in such situation.
+    # This method will return a record if all given attributes are covered by unique constraints 
+    # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
+    # and failed due to validation errors it won't be persisted, you get what #create returns in 
+    # such situation.
     def create_or_find_by(attributes, &block)
       create(attributes, &block)
     rescue ActiveRecord::RecordNotUnique
