@@ -105,6 +105,8 @@ module ActiveRecord
               raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 
+            @_trigger_update_callback = affected_rows > 0
+
             affected_rows
 
           # If something went wrong, revert the locking_column value.

@@ -28,6 +28,16 @@ class ReadonlyNameShip < Ship
   attr_readonly :name
 end
 
+class CommittedPerson < ActiveRecord::Base
+  self.table_name = :people
+
+  def history
+    @history ||= []
+  end
+
+  after_commit(on: :update) { |record| record.history << :update }
+end
+
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
@@ -459,6 +469,14 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t2 = YAML.load(YAML.dump(t1))
 
     assert_equal t1.attributes, t2.attributes
+  end
+
+  def test_after_commit_called_on_update
+    called = false
+    p = CommittedPerson.create(first_name: "Adelaide")
+    p.first_name = "Georgia"
+    p.save
+    assert_equal [:update], p.history
   end
 end
 
