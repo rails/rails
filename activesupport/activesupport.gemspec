@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md"
   }
 
-  s.add_dependency "i18n",       "~> 1.0"
+  s.add_dependency "i18n",       ">= 0.7", "< 2"
   s.add_dependency "tzinfo",     "~> 1.1"
   s.add_dependency "minitest",   "~> 5.1"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"
