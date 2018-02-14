@@ -1,3 +1,8 @@
+*   Matches behavior of `Hash#each` in `ActionController::Parameters#each`.
+
+    *Dominic Cleal*
+
+
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Add `Referrer-Policy` header to default headers set.
