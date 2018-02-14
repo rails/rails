@@ -1,7 +1,16 @@
-<h2>Engine <code>blob/_blob</code>:</h2>
+<figure class="attachment attachment--<%= blob.representable? ? "preview" : "file" %> attachment--<%= blob.filename.extension %>">
+  <% if blob.variable? %>
+    <%= image_tag blob.variant(resize: "1024x768>") %>
+  <% elsif blob.previewable? %>
+    <%= image_tag blob.preview(resize: "1024x768>") %>
+  <% end %>
 
-<%= debug blob %>
-
-<figure>
-  <%= image_tag rails_blob_path(blob) %>
+  <figcaption class="attachment__caption">
+    <% if caption = blob.try(:caption) %>
+      <%= caption %>
+    <% else %>
+      <span class="attachment__name"><%= blob.filename %></span>
+      <span class="attachment__size"><%= number_to_human_size blob.byte_size %></span>
+    <% end %>
+  </figcaption>
 </figure>
