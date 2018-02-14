@@ -1,3 +1,5 @@
+## Rails 5.1.5 (February 14, 2018) ##
+
 *   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
 
     *Jeremy Daer*
