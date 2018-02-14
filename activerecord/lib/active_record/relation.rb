@@ -161,17 +161,17 @@ module ActiveRecord
 
     # Attempts to create a record with the given attributes in a table that has a unique constraint
     # on one or several of its columns. If a row already exists with one or several of these
-    # unique constraints, the exception such an insertion would normally raise is caught, 
+    # unique constraints, the exception such an insertion would normally raise is caught,
     # and the existing record with those attributes is found using #find_by.
     #
-    # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT 
-    # and the INSERT, as that method needs to first query the table, then attempt to insert a row 
-    # if none is found. 
+    # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT
+    # and the INSERT, as that method needs to first query the table, then attempt to insert a row
+    # if none is found.
     #
     # There are several drawbacks to #create_or_find_by, though:
     #
     # * The underlying table must have the relevant columns defined with unique constraints.
-    # * A unique constraint violation may be triggered by only one, or at least less than all, 
+    # * A unique constraint violation may be triggered by only one, or at least less than all,
     #   of the given attributes. This means that the subsequent #find_by may fail to find a
     #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
     #   rather than a record with the given attributes.
@@ -181,9 +181,9 @@ module ActiveRecord
     #   that's a significantly less likely condition to hit.
     # * It relies on exception handling to handle control flow, which may be marginally slower.
     #
-    # This method will return a record if all given attributes are covered by unique constraints 
+    # This method will return a record if all given attributes are covered by unique constraints
     # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
-    # and failed due to validation errors it won't be persisted, you get what #create returns in 
+    # and failed due to validation errors it won't be persisted, you get what #create returns in
     # such situation.
     def create_or_find_by(attributes, &block)
       transaction(requires_new: true) { create(attributes, &block) }
