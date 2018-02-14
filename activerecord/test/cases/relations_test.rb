@@ -22,6 +22,7 @@ require "models/reader"
 require "models/category"
 require "models/categorization"
 require "models/edge"
+require "models/subscriber"
 
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
@@ -1363,6 +1364,17 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::RecordNotFound) do
       Subscriber.create_or_find_by(nick: "bob", name: "the cat")
+    end
+  end
+
+  def test_create_or_find_by_within_transaction
+    assert_nil Subscriber.find_by(nick: "bob")
+
+    subscriber = Subscriber.create!(nick: "bob")
+
+    Subscriber.transaction do
+      assert_equal subscriber, Subscriber.create_or_find_by(nick: "bob")
+      assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
     end
   end
 
