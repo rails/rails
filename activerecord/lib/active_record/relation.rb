@@ -142,7 +142,7 @@ module ActiveRecord
     # failed due to validation errors it won't be persisted, you get what
     # #create returns in such situation.
     #
-    # Please note *this method is not atomic*, it runs first a SELECT, and if
+    # Please note <b>this method is not atomic</b>, it runs first a SELECT, and if
     # there are no results an INSERT is attempted. If there are other threads
     # or processes there is a race condition between both calls and it could
     # be the case that you end up with two similar records.
