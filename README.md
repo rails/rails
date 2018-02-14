@@ -49,7 +49,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
       …
       <div class="field">
         <%= form.label :content %>
-       <%= form.active_text_field :content %>
+        <%= form.active_text_field :content %>
       </div>
       …
     <% end %>
