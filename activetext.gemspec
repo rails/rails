@@ -19,6 +19,7 @@ Gem::Specification.new do |s|
   s.add_dependency "nokogiri"
 
   s.add_development_dependency "bundler", "~> 1.15"
+  s.add_development_dependency "mini_magick"
   s.add_development_dependency "sqlite3"
   s.add_development_dependency "webpacker", "~> 3.2.2"
 
