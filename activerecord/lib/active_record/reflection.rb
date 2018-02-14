@@ -736,6 +736,10 @@ module ActiveRecord
         def calculate_constructable(macro, options)
           !polymorphic?
         end
+
+        def can_find_inverse_of_automatically?(reflection)
+          !polymorphic? && super
+        end
     end
 
     class HasAndBelongsToManyReflection < AssociationReflection # :nodoc:

@@ -814,6 +814,7 @@ ActiveRecord::Schema.define do
   create_table :sponsors, force: true do |t|
     t.integer :club_id
     t.references :sponsorable, polymorphic: true, index: false
+    t.references :sponsor, polymorphic: true, index: false
   end
 
   create_table :string_key_objects, id: false, force: true do |t|
