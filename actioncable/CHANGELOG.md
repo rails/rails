@@ -1,4 +1,4 @@
-## Rails 5.1.5.rc1 (February 01, 2018) ##
+## Rails 5.1.5 (February 14, 2018) ##
 
 *   No changes.
 
