@@ -5,10 +5,9 @@
   <%= @message.subject %>
 </p>
 
-<p>
-  <strong>Content:</strong>
+<div class="trix-content">
   <%= @message.content.html_safe %>
-</p>
+</div>
 
 <%= link_to 'Edit', edit_message_path(@message) %> |
 <%= link_to 'Back', messages_path %>
