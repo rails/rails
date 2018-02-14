@@ -1358,6 +1358,14 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_equal subscriber, Subscriber.create_or_find_by(nick: "cat")
   end
 
+  def test_create_or_find_by_with_non_unique_attributes
+    Subscriber.create!(nick: "bob", name: "the builder")
+
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Subscriber.create_or_find_by(nick: "bob", name: "the cat")
+    end
+  end
+
   def test_find_or_initialize_by
     assert_nil Bird.find_by(name: "bob")
 

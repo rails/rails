@@ -173,7 +173,8 @@ module ActiveRecord
     # * The underlying table must have the relevant columns defined with unique constraints.
     # * A unique constraint violation may be triggered by only one, or at least less than all, 
     #   of the given attributes. This means that the subsequent #find_by may fail to find a
-    #   matching record, which will then return nil, rather than a record will the given attributes.
+    #   matching record, which will then raise an `ActiveRecord::NotFound` exception,
+    #   rather than a record will the given attributes.
     # * It relies on exception handling to handle control flow, which may be marginally slower. And
     #
     # This method will always returns a record if all given attributes are covered by unique constraints,
@@ -182,7 +183,7 @@ module ActiveRecord
     def create_or_find_by(attributes, &block)
       create(attributes, &block)
     rescue ActiveRecord::RecordNotUnique
-      find_by(attributes)
+      find_by!(attributes)
     end
 
     # Like #create_or_find_by, but calls
@@ -191,7 +192,7 @@ module ActiveRecord
     def create_or_find_by!(attributes, &block)
       create!(attributes, &block)
     rescue ActiveRecord::RecordNotUnique
-      find_by(attributes)
+      find_by!(attributes)
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
