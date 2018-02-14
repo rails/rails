@@ -64,7 +64,7 @@ PATH
       marcel (~> 0.3.1)
     activesupport (6.0.0.alpha)
       concurrent-ruby (~> 1.0, >= 1.0.2)
-      i18n (~> 1.0)
+      i18n (>= 0.7, < 2)
       minitest (~> 5.1)
       tzinfo (~> 1.1)
     rails (6.0.0.alpha)
