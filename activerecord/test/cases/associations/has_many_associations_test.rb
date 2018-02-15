@@ -1211,20 +1211,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_update_attributes_on_id_changes_the_counter_cache
+  def test_calling_update_on_id_changes_the_counter_cache
     topic = Topic.order("id ASC").first
     original_count = topic.replies.to_a.size
     assert_equal original_count, topic.replies_count
 
     first_reply = topic.replies.first
-    first_reply.update_attributes(parent_id: nil)
+    first_reply.update(parent_id: nil)
     assert_equal original_count - 1, topic.reload.replies_count
 
-    first_reply.update_attributes(parent_id: topic.id)
+    first_reply.update(parent_id: topic.id)
     assert_equal original_count, topic.reload.replies_count
   end
 
-  def test_calling_update_attributes_changing_ids_doesnt_change_counter_cache
+  def test_calling_update_changing_ids_doesnt_change_counter_cache
     topic1 = Topic.find(1)
     topic2 = Topic.find(3)
     original_count1 = topic1.replies.to_a.size
@@ -1233,11 +1233,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply1 = topic1.replies.first
     reply2 = topic2.replies.first
 
-    reply1.update_attributes(parent_id: topic2.id)
+    reply1.update(parent_id: topic2.id)
     assert_equal original_count1 - 1, topic1.reload.replies_count
     assert_equal original_count2 + 1, topic2.reload.replies_count
 
-    reply2.update_attributes(parent_id: topic1.id)
+    reply2.update(parent_id: topic1.id)
     assert_equal original_count1, topic1.reload.replies_count
     assert_equal original_count2, topic2.reload.replies_count
   end

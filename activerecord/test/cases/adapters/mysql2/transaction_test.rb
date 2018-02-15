@@ -46,7 +46,7 @@ module ActiveRecord
           Sample.transaction do
             s1.lock!
             barrier.wait
-            s2.update_attributes value: 1
+            s2.update value: 1
           end
         end
 
@@ -54,7 +54,7 @@ module ActiveRecord
           Sample.transaction do
             s2.lock!
             barrier.wait
-            s1.update_attributes value: 2
+            s1.update value: 2
           end
         ensure
           thread.join

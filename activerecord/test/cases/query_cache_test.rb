@@ -366,7 +366,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     post = Post.first
 
     Post.transaction do
-      post.update_attributes(title: "rollback")
+      post.update(title: "rollback")
       assert_equal 1, Post.where(title: "rollback").to_a.count
       raise ActiveRecord::Rollback
     end
@@ -379,7 +379,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     begin
       Post.transaction do
-        post.update_attributes(title: "rollback")
+        post.update(title: "rollback")
         assert_equal 1, Post.where(title: "rollback").to_a.count
         raise "broken"
       end
