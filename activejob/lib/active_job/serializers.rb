@@ -49,7 +49,7 @@ module ActiveJob
 
       # Adds a new serializer to a list of known serializers
       def add_serializers(*new_serializers)
-        self._additional_serializers += new_serializers
+        self._additional_serializers += new_serializers.flatten
       end
     end
 

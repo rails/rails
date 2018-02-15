@@ -14,8 +14,10 @@ module ActiveJob
     end
 
     initializer "active_job.custom_serializers" do |app|
-      custom_serializers = app.config.active_job.delete(:custom_serializers)
-      ActiveJob::Serializers.add_serializers custom_serializers
+      config.after_initialize do
+        custom_serializers = app.config.active_job.delete(:custom_serializers)
+        ActiveJob::Serializers.add_serializers custom_serializers
+      end
     end
 
     initializer "active_job.set_configs" do |app|
@@ -23,7 +25,10 @@ module ActiveJob
       options.queue_adapter ||= :async
 
       ActiveSupport.on_load(:active_job) do
-        options.each { |k, v| send("#{k}=", v) }
+        options.each do  |k, v|
+          k = "#{k}="
+          send(k, v) if respond_to? k
+        end
       end
     end
 
