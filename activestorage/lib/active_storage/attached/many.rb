@@ -43,5 +43,27 @@ module ActiveStorage
     def detach
       attachments.destroy_all if attached?
     end
+
+    ##
+    # :method purge
+    #
+    # :call-seq: User.highlights.purge
+    #
+    # Directly purges each associated attachment (i.e. destroys the blobs and
+    # attachments and deletes the files on the service).
+    #
+    # Attachments can be selectively purged using queries
+    # e.g. User.highlights.where(id: []).purge
+
+    ##
+    # :method purge_later
+    #
+    # :call-seq: User.highlights.purge_later
+    #
+    # Purges each associated attachment through the queing system
+    #
+    # Attachments can be selectively purged later using queries
+    # e.g. User.highlights.where(id: []).purge_later
+
   end
 end
