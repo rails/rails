@@ -322,9 +322,9 @@ GEM
     multipart-post (2.0.0)
     mustache (1.0.5)
     mustermann (1.0.0)
-    mysql2 (0.4.9)
-    mysql2 (0.4.9-x64-mingw32)
-    mysql2 (0.4.9-x86-mingw32)
+    mysql2 (0.4.10)
+    mysql2 (0.4.10-x64-mingw32)
+    mysql2 (0.4.10-x86-mingw32)
     nio4r (2.2.0)
     nio4r (2.2.0-java)
     nokogiri (1.8.1)
@@ -531,7 +531,7 @@ DEPENDENCIES
   mini_magick
   minitest-bisect
   mocha
-  mysql2 (>= 0.4.4)
+  mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
   psych (~> 2.0)
