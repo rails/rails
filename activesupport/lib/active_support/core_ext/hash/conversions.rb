@@ -249,10 +249,16 @@ module ActiveSupport
       def process_content(value)
         content = value["__content__"]
         if parser = ActiveSupport::XmlMini::PARSING[value["type"]]
-          parser.arity == 1 ? parser.call(content) : parser.call(content, value)
+          process_content_with_parser(parser, content, value)
         else
           content
         end
+      end
+
+      def process_content_with_parser(parser, content, value)
+        parser.arity == 1 ? parser.call(content) : parser.call(content, value)
+      rescue ArgumentError
+        content
       end
 
       def process_array(value)

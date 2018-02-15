@@ -977,6 +977,20 @@ class HashToXmlTest < ActiveSupport::TestCase
     assert_equal expected_product_hash, Hash.from_xml(product_xml)["product"]
   end
 
+  def test_type_date_with_invalid_value
+    xml = <<-EOT
+    <table>
+      <field type="date">a invalid date</field>
+    </table>
+    EOT
+
+    expected_hash = {
+      field: "a invalid date"
+    }.stringify_keys
+
+    assert_equal expected_hash, Hash.from_xml(xml)["table"]
+  end
+
   def test_from_xml_raises_on_disallowed_type_attributes
     assert_raise ActiveSupport::XMLConverter::DisallowedType do
       Hash.from_xml '<product><name type="foo">value</name></product>', %w(foo)
