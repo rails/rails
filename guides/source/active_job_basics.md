@@ -345,7 +345,7 @@ Supported types for arguments
 ActiveJob supports the following types of arguments by default:
 
   - Basic types (`NilClass`, `String`, `Integer`, `Fixnum`, `Bignum`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
-  - `Symbol
+  - `Symbol`
   - `ActiveSupport::Duration`
   - `Date`
   - `Time`
@@ -389,25 +389,24 @@ You can extend list of supported types for arguments. You just need to define yo
 
 ```ruby
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-    # Check if this object should be serialized using this serializer.
-    def serialize?(argument)
-      argument.is_a? Money
-    end
+  # Check if this object should be serialized using this serializer.
+  def serialize?(argument)
+    argument.is_a? Money
+  end
 
-    # Convert an object to a simpler representative using supported object types.
-    # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
-    # You should call `super` to add the custom serializer type to the hash
-    def serialize(object)
-      super(
-        "cents" => object.cents,
-        "currency" => object.currency
-      )
-    end
+  # Convert an object to a simpler representative using supported object types.
+  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
+  # You should call `super` to add the custom serializer type to the hash
+  def serialize(object)
+    super(
+      "cents" => object.cents,
+      "currency" => object.currency
+    )
+  end
 
-    # Convert serialized value into a proper object
-    def deserialize(hash)
-      Money.new hash["cents"], hash["currency"]
-    end
+  # Convert serialized value into a proper object
+  def deserialize(hash)
+    Money.new hash["cents"], hash["currency"]
   end
 end
 ```
