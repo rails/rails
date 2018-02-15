@@ -24,6 +24,12 @@ GIT
       pg (>= 0.17, < 2.0)
 
 PATH
+  remote: ../faktory_worker_ruby
+  specs:
+    faktory_worker_ruby (0.6.1)
+      connection_pool (~> 2.2, >= 2.2.1)
+
+PATH
   remote: .
   specs:
     actioncable (6.0.0.alpha)
@@ -513,6 +519,7 @@ DEPENDENCIES
   dalli (= 2.7.6)
   delayed_job
   delayed_job_active_record
+  faktory_worker_ruby!
   google-cloud-storage (~> 1.8)
   hiredis
   json (>= 2.0.0)

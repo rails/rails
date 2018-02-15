@@ -16,6 +16,7 @@ module ActiveJob
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
+  # * {Faktory}[http://contribsys.com/faktory/]
   #
   # === Backends Features
   #
@@ -32,6 +33,7 @@ module ActiveJob
   #   | Sucker Punch      | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Async  | Yes   | Yes    | Yes        | No         | No      | No      |
   #   | Active Job Inline | No    | Yes    | N/A        | N/A        | N/A     | N/A     |
+  #   | Faktory           | Yes   | Yes    | Yes        | Yes        | Job     | Job     |
   #
   # ==== Async
   #
@@ -122,6 +124,7 @@ module ActiveJob
     autoload :SneakersAdapter
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
+    autoload :FaktoryAdapter
 
     ADAPTER = "Adapter".freeze
     private_constant :ADAPTER
