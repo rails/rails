@@ -22,8 +22,8 @@ module ActionCable
         websocket.transmit data
       end
 
-      def close
-        websocket.close
+      def close(code = nil, reason = nil)
+        websocket.close(code, reason)
       end
 
       def protocol
