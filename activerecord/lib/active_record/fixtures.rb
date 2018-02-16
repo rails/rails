@@ -874,6 +874,7 @@ module ActiveRecord
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures, default: false
       class_attribute :config, default: ActiveRecord::Base
+      class_attribute :lock_threads, default: true
     end
 
     module ClassMethods
@@ -973,7 +974,7 @@ module ActiveRecord
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
-          connection.pool.lock_thread = true
+          connection.pool.lock_thread = true if lock_threads
         end
 
         # When connections are established in the future, begin a transaction too
@@ -989,7 +990,7 @@ module ActiveRecord
 
             if connection && !@fixture_connections.include?(connection)
               connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
+              connection.pool.lock_thread = true if lock_threads
               @fixture_connections << connection
             end
           end
