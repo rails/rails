@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "WebSocket framework for Rails."
   s.description = "Structure many real-time application concerns into channels over a single WebSocket connection."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.3.0"
 
   s.license = "MIT"
 

@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rendering framework putting the V in MVC (part of Rails)."
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.3.0"
 
   s.license = "MIT"
 

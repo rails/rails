@@ -60,7 +60,6 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.9
   - 2.3.6
   - 2.4.3
   - 2.5.0
@@ -70,7 +69,7 @@ matrix:
   include:
     - rvm: 2.5.0
       env: "GEM=av:ujs"
-    - rvm: 2.2.9
+    - rvm: 2.3.6
       env: "GEM=aj:integration"
       services:
         - memcached

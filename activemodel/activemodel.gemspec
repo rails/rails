@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "A toolkit for building modeling frameworks (part of Rails)."
   s.description = "A toolkit for building modeling frameworks like Active Record. Rich support for attributes, callbacks, validations, serialization, internationalization, and testing."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.3.0"
 
   s.license = "MIT"
 

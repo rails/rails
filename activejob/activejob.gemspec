@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Job framework with pluggable queues."
   s.description = "Declare job classes that can be run by a variety of queueing backends."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.3.0"
 
   s.license = "MIT"
 
