@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "faktory_worker_ruby"
+require "byebug"
 
 module ActiveJob
   module QueueAdapters
@@ -16,8 +17,11 @@ module ActiveJob
     class FaktoryAdapter
       def enqueue(job) #:nodoc:
         # Faktory::Client does not support symbols as keys
-        job.provider_job_id = Faktory::Client.new.push \
-          "jid"     => SecureRandom.hex(12),
+        jid = SecureRandom.hex(12)
+        job.provider_job_id = jid
+        puts "job.queue_name = #{job.queue_name}....................................."
+        Faktory::Client.new.push \
+          "jid"     => jid,
           "jobtype" => JobWrapper,
           #"class"   => JobWrapper,
           "custom"  => {
@@ -28,8 +32,10 @@ module ActiveJob
       end
 
       def enqueue_at(job, timestamp) #:nodoc:
-        job.provider_job_id = Faktory::Client.new.push \
-          "jid"     => SecureRandom.hex(12),
+        jid = SecureRandom.hex(12)
+        job.provider_job_id = jid
+        Faktory::Client.new.push \
+          "jid"     => jid,
           "jobtype" => JobWrapper,
           #"class"   => JobWrapper,
           "custom"  => {
@@ -44,7 +50,7 @@ module ActiveJob
         include Faktory::Job
 
         def perform(job_data)
-          Base.execute job_data.merge("provider_job_id" => jid)
+          Base.execute job_data
         end
       end
     end

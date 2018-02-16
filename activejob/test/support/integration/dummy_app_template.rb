@@ -18,6 +18,7 @@ class TestJob < ActiveJob::Base
   queue_as :integration_tests
 
   def perform(x)
+    puts "calling perform with x = \#{x}"
     File.open(Rails.root.join("tmp/\#{x}.new"), "wb+") do |f|
       f.write Marshal.dump({
         "locale" => I18n.locale.to_s || "en",

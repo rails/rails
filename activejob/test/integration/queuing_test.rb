@@ -8,6 +8,7 @@ require "active_support/core_ext/numeric/time"
 
 class QueuingTest < ActiveSupport::TestCase
   test "should run jobs enqueued on a listening queue" do
+    puts "about to call perform_laster with @id = #{}"
     TestJob.perform_later @id
     wait_for_jobs_to_finish_for(5.seconds)
     assert job_executed
@@ -40,6 +41,24 @@ class QueuingTest < ActiveSupport::TestCase
   test "should access provider_job_id inside Sidekiq job" do
     skip unless adapter_is?(:sidekiq)
     Sidekiq::Testing.inline! do
+      job = ::ProviderJidJob.perform_later
+      assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
+    end
+  end
+
+  test "should supply a wrapped class name to Faktory" do
+    skip unless adapter_is?(:faktory)
+    Faktory::Testing.fake! do
+      ::HelloJob.perform_later
+      hash = ActiveJob::QueueAdapters::FaktoryAdapter::JobWrapper.jobs.first
+      assert_equal "ActiveJob::QueueAdapters::FaktoryAdapter::JobWrapper", hash["jobtype"]
+      assert_equal "HelloJob", hash["custom"]["wrapped"]
+    end
+  end
+
+  test "should access provider_job_id inside Faktory job" do
+    skip unless adapter_is?(:faktory)
+    Faktory::Testing.inline! do
       job = ::ProviderJidJob.perform_later
       assert_equal "Provider Job ID: #{job.provider_job_id}", JobBuffer.last_value
     end
@@ -82,13 +101,13 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should supply a provider_job_id when available for immediate jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :qu, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :qu, :que, :queue_classic, :faktory)
     test_job = TestJob.perform_later @id
     assert test_job.provider_job_id, "Provider job id should be set by provider"
   end
 
   test "should supply a provider_job_id when available for delayed jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic, :faktory)
     delayed_test_job = TestJob.set(wait: 1.minute).perform_later @id
     assert delayed_test_job.provider_job_id, "Provider job id should by set for delayed jobs by provider"
   end
@@ -127,7 +146,7 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should run job with higher priority first" do
-    skip unless adapter_is?(:delayed_job, :que)
+    skip unless adapter_is?(:delayed_job, :que, :faktory)
 
     wait_until = Time.now + 3.seconds
     TestJob.set(wait_until: wait_until, priority: 20).perform_later "#{@id}.1"
