@@ -12,9 +12,10 @@ module ActiveJob
     autoload :ObjectSerializer
     autoload :SymbolSerializer
     autoload :DurationSerializer
-    autoload :DateSerializer
-    autoload :TimeSerializer
     autoload :DateTimeSerializer
+    autoload :DateSerializer
+    autoload :TimeWithZoneSerializer
+    autoload :TimeSerializer
 
     mattr_accessor :_additional_serializers
     self._additional_serializers = Set.new
@@ -57,6 +58,7 @@ module ActiveJob
       DurationSerializer,
       DateTimeSerializer,
       DateSerializer,
+      TimeWithZoneSerializer,
       TimeSerializer
   end
 end

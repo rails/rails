@@ -102,6 +102,14 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, perform_round_trip([indifferent_access]).first
   end
 
+  test "should maintain time with zone" do
+    Time.use_zone "Alaska" do
+      time_with_zone = Time.new(2002, 10, 31, 2, 2, 2).in_time_zone
+      assert_instance_of ActiveSupport::TimeWithZone, perform_round_trip([time_with_zone]).first
+      assert_arguments_unchanged time_with_zone
+    end
+  end
+
   test "should disallow non-string/symbol hash keys" do
     assert_raises ActiveJob::SerializationError do
       ActiveJob::Arguments.serialize [ { 1 => 2 } ]
