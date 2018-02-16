@@ -95,8 +95,8 @@ module ActionCable
       end
 
       # Close the WebSocket connection.
-      def close
-        websocket.close
+      def close(code = nil, reason = nil)
+        websocket.close(code, reason)
       end
 
       # Invoke a method on the connection asynchronously through the pool of thread workers.
