@@ -556,6 +556,30 @@ config.active_job.queue_adapter = :inline
 config.active_storage.service = :local_test
 ```
 
+Discarding Files Stored During Integration Tests
+-------------------------------------------
+
+Similarly to System Tests, files uploaded during Integration Tests will not be
+automatically cleaned up. If you want to clear the files, you can do it in an
+`after_teardown` callback. Doing it here ensures that all connections created
+during the test are complete and you won't receive an error from Active Storage
+saying it can't find a file.
+
+```ruby
+module ActionDispatch
+  class IntegrationTest
+    def remove_uploaded_files
+      FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
+    end
+
+    def after_teardown
+      super
+      remove_uploaded_files
+    end
+  end
+end
+```
+
 Implementing Support for Other Cloud Services
 ---------------------------------------------
 
