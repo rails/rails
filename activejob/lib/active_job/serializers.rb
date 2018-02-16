@@ -38,7 +38,7 @@ module ActiveJob
         raise ArgumentError, "Serializer name is not present in the argument: #{argument.inspect}" unless serializer_name
 
         serializer = serializer_name.safe_constantize
-        raise ArgumentError, "Serializer #{serializer_name} is not know" unless serializer
+        raise ArgumentError, "Serializer #{serializer_name} is not known" unless serializer
 
         serializer.deserialize(argument)
       end
