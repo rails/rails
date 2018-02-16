@@ -64,6 +64,5 @@ module ActiveStorage
     #
     # Attachments can be selectively purged later using queries
     # e.g. User.highlights.where(id: []).purge_later
-
   end
 end
