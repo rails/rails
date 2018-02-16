@@ -346,12 +346,12 @@ ActiveJob supports the following types of arguments by default:
 
   - Basic types (`NilClass`, `String`, `Integer`, `Fixnum`, `Bignum`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
   - `Symbol`
-  - `ActiveSupport::Duration`
   - `Date`
   - `Time`
   - `DateTime`
   - `ActiveSupport::TimeWithZone`
-  - `Hash`. Keys should be of `String` or `Symbol` type
+  - `ActiveSupport::Duration`
+  - `Hash` (Keys should be of `String` or `Symbol` type)
   - `ActiveSupport::HashWithIndifferentAccess`
   - `Array`
 
@@ -385,38 +385,37 @@ by default has been mixed into Active Record classes.
 
 ### Serializers
 
-You can extend list of supported types for arguments. You just need to define your own serializer.
+You can extend the list of supported argument types. You just need to define your own serializer:
 
 ```ruby
 class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
-  # Check if this object should be serialized using this serializer.
+  # Checks if an argument should be serialized by this serializer.
   def serialize?(argument)
     argument.is_a? Money
   end
 
-  # Convert an object to a simpler representative using supported object types.
+  # Converts an object to a simpler representative using supported object types.
   # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
-  # You should call `super` to add the custom serializer type to the hash
-  def serialize(object)
+  # You should call `super` to add the custom serializer type to the hash.
+  def serialize(money)
     super(
-      "cents" => object.cents,
-      "currency" => object.currency
+      "amount" => money.amount,
+      "currency" => money.currency
     )
   end
 
-  # Convert serialized value into a proper object
+  # Converts serialized value into a proper object.
   def deserialize(hash)
-    Money.new hash["cents"], hash["currency"]
+    Money.new(hash["amount"], hash["currency"])
   end
 end
 ```
 
-And now you just need to add this serializer to a list:
+and add this serializer to the list:
 
 ```ruby
-Rails.application.config.active_job.custom_serializers << MySpecialSerializer
+Rails.application.config.active_job.custom_serializers << MoneySerializer
 ```
-
 
 Exceptions
 ----------
