@@ -1,7 +1,8 @@
+#= require ./csp
 #= require ./csrf
 #= require ./event
 
-{ CSRFProtection, fire } = Rails
+{ cspNonce, CSRFProtection, fire } = Rails
 
 AcceptHeaders =
   '*': '*/*'
@@ -65,6 +66,7 @@ processResponse = (response, type) ->
       try response = JSON.parse(response)
     else if type.match(/\b(?:java|ecma)script\b/)
       script = document.createElement('script')
+      script.nonce = cspNonce()
       script.text = response
       document.head.appendChild(script).parentNode.removeChild(script)
     else if type.match(/\b(xml|html|svg)\b/)

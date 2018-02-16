@@ -23,18 +23,30 @@ module UJS
     config.public_file_server.enabled = true
     config.logger = Logger.new(STDOUT)
     config.log_level = :error
+
+    config.content_security_policy do |policy|
+      policy.default_src :self, :https
+      policy.font_src    :self, :https, :data
+      policy.img_src     :self, :https, :data
+      policy.object_src  :none
+      policy.script_src  :self, :https
+      policy.style_src   :self, :https
+    end
+
+    config.content_security_policy_nonce_generator = ->(req) { SecureRandom.base64(16) }
   end
 end
 
 module TestsHelper
   def test_to(*names)
-    names = ["/vendor/qunit.js", "settings"] + names
-    names.map { |name| script_tag name }.join("\n").html_safe
-  end
+    names = names.map { |name| "/test/#{name}.js" }
+    names = %w[/vendor/qunit.js /test/settings.js] + names
 
-  def script_tag(src)
-    src = "/test/#{src}.js" unless src.index("/")
-    %(<script src="#{src}" type="text/javascript"></script>).html_safe
+    capture do
+      names.each do |name|
+        concat(javascript_include_tag(name))
+      end
+    end
   end
 end
 
@@ -56,7 +68,7 @@ class TestsController < ActionController::Base
     elsif params[:iframe]
       payload = JSON.generate(data).gsub("<", "&lt;").gsub(">", "&gt;")
       html = <<-HTML
-        <script>
+        <script nonce="#{request.content_security_policy_nonce}">
           if (window.top && window.top !== window)
             window.top.jQuery.event.trigger('iframe:loaded', #{payload})
         </script>
