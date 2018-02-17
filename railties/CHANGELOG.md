@@ -1,4 +1,8 @@
-*   Fix minitest rails plugin. The custom reporters are added only if needed. This will fix conflicts with others plugins. *Kevin Robatel*
+*   Fix minitest rails plugin.
+
+    The custom reporters are added only if needed.
+
+    This will fix conflicts with others plugins.
 
     *Kevin Robatel*
 
