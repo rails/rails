@@ -534,7 +534,6 @@ module ApplicationTests
       app_path("/test/test_helper.rb") do |file_name|
         file = File.read(file_name)
         file.sub!(/parallelize\(([^\)]*)\)/, "parallelize(\\1, with: :threads)")
-        puts file
         File.write(file_name, file)
       end
 
