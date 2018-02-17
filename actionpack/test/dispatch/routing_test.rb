@@ -4500,7 +4500,7 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
 
       get "/integer", to: ok, constraints: { port: 8080  }
       get "/string",  to: ok, constraints: { port: "8080" }
-      get "/array",   to: ok, constraints: { port: [8080] }
+      get "/array/:idx",   to: ok, constraints: { port: [8080], idx: %w[first last] }
       get "/regexp",  to: ok, constraints: { port: /8080/ }
     end
   end
@@ -4529,7 +4529,10 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
     get "http://www.example.com/array"
     assert_response :not_found
 
-    get "http://www.example.com:8080/array"
+    get "http://www.example.com:8080/array/middle"
+    assert_response :not_found
+
+    get "http://www.example.com:8080/array/first"
     assert_response :success
   end
 
