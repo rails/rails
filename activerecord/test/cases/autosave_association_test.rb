@@ -50,7 +50,7 @@ class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
     }
 
     u = person.create!(first_name: "cool")
-    u.update_attributes!(first_name: "nah") # still valid because validation only applies on 'create'
+    u.update!(first_name: "nah") # still valid because validation only applies on 'create'
     assert_predicate reference.create!(person: u), :persisted?
   end
 

@@ -62,7 +62,7 @@ class TopicWithAfterCreate < Topic
   after_create :set_author
 
   def set_author
-    update_attributes!(author_name: "#{title} #{id}")
+    update!(author_name: "#{title} #{id}")
   end
 end
 
