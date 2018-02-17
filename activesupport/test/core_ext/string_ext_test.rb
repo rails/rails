@@ -24,6 +24,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "", "".strip_heredoc
   end
 
+  def test_strip_heredoc_on_a_frozen_string
+    assert "".freeze.strip_heredoc.frozen?
+  end
+
   def test_strip_heredoc_on_a_string_with_no_lines
     assert_equal "x", "x".strip_heredoc
     assert_equal "x", "    x".strip_heredoc
