@@ -2,7 +2,6 @@
 
 require "isolation/abstract_unit"
 require "env_helpers"
-require "active_support/core_ext/string/strip"
 
 module ApplicationTests
   class RakeTest < ActiveSupport::TestCase
@@ -131,7 +130,7 @@ module ApplicationTests
       RUBY
 
       output = rails("routes")
-      assert_equal <<-MESSAGE.strip_heredoc, output
+      assert_equal <<~MESSAGE, output
                               Prefix Verb URI Pattern                                                                       Controller#Action
                                 cart GET  /cart(.:format)                                                                   cart#show
                   rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
@@ -173,7 +172,7 @@ module ApplicationTests
       RUBY
 
       output = rails("routes", "-g", "show")
-      assert_equal <<-MESSAGE.strip_heredoc, output
+      assert_equal <<~MESSAGE, output
                               Prefix Verb URI Pattern                                                                       Controller#Action
                                 cart GET  /cart(.:format)                                                                   cart#show
                   rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
@@ -183,7 +182,7 @@ module ApplicationTests
       MESSAGE
 
       output = rails("routes", "-g", "POST")
-      assert_equal <<-MESSAGE.strip_heredoc, output
+      assert_equal <<~MESSAGE, output
                               Prefix Verb URI Pattern                                    Controller#Action
                                      POST /cart(.:format)                                cart#create
                 rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format) active_storage/direct_uploads#create
@@ -242,7 +241,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert_equal <<-MESSAGE.strip_heredoc, rails("routes")
+      assert_equal <<~MESSAGE, rails("routes")
                               Prefix Verb URI Pattern                                                                       Controller#Action
                   rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
                 rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
@@ -262,7 +261,7 @@ module ApplicationTests
 
       output = Dir.chdir(app_path) { `bin/rake --rakefile Rakefile routes` }
 
-      assert_equal <<-MESSAGE.strip_heredoc, output
+      assert_equal <<~MESSAGE, output
                               Prefix Verb URI Pattern                                                                       Controller#Action
                                 cart GET  /cart(.:format)                                                                   cart#show
                   rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show

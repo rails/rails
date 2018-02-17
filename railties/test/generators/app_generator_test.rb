@@ -219,6 +219,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root]
     output = nil
 
+    assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
+
     Dir.chdir(app_root) do
       output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
     end
@@ -365,6 +367,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "#{app_root}/Gemfile" do |content|
       assert_no_match(/gem 'mini_magick'/, content)
     end
+  end
+
+  def test_app_update_does_not_change_config_target_version
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      content = File.read(config)
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
   end
 
   def test_application_names_are_not_singularized
@@ -636,6 +651,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_quiet_option
     output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
     assert_empty output
+  end
+
+  def test_force_option_overwrites_every_file_except_master_key
+    run_generator [File.join(destination_root, "myapp")]
+    output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    assert_match(/force/, output)
+    assert_no_match("force  config/master.key", output)
   end
 
   def test_application_name_with_spaces

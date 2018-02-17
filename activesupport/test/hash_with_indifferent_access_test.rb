@@ -404,6 +404,12 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal({ "aa" => 1, "bb" => 2 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys { |k| k.to_sym }
+
+    assert_equal(1, hash[:a])
+    assert_equal(1, hash["a"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_transform_keys_bang
@@ -411,6 +417,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     indifferent_strings.transform_keys! { |k| k * 2 }
 
     assert_equal({ "aa" => 1, "bb" => 2 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.transform_keys! { |k| k.to_sym }
+
+    assert_equal(1, indifferent_strings[:a])
+    assert_equal(1, indifferent_strings["a"])
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
@@ -562,7 +575,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_nested_dig_indifferent_access
-    skip if RUBY_VERSION < "2.3.0"
     data = { "this" => { "views" => 1234 } }.with_indifferent_access
     assert_equal 1234, data.dig(:this, :views)
   end

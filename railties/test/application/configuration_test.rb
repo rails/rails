@@ -1940,6 +1940,18 @@ module ApplicationTests
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
     end
 
+    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
+      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
+
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.custom_serializers << DummySerializer
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveJob::Serializers.serializers, DummySerializer
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.

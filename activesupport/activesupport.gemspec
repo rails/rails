@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework."
   s.description = "A toolkit of support libraries and Ruby core extensions extracted from the Rails framework. Rich support for multibyte strings, internationalization, time zones, and testing."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.3.0"
 
   s.license = "MIT"
 
@@ -27,7 +27,7 @@ Gem::Specification.new do |s|
     "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/activesupport/CHANGELOG.md"
   }
 
-  s.add_dependency "i18n",       "~> 0.7"
+  s.add_dependency "i18n",       ">= 0.7", "< 2"
   s.add_dependency "tzinfo",     "~> 1.1"
   s.add_dependency "minitest",   "~> 5.1"
   s.add_dependency "concurrent-ruby", "~> 1.0", ">= 1.0.2"

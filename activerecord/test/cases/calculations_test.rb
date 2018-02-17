@@ -795,11 +795,13 @@ class CalculationsTest < ActiveRecord::TestCase
 
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
+    assert_nil Topic.none.pick(:heading)
     assert_nil Topic.where("1=0").pick(:heading)
   end
 
   def test_pick_two
     assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
+    assert_nil Topic.none.pick(:author_name, :author_email_address)
     assert_nil Topic.where("1=0").pick(:author_name, :author_email_address)
   end
 

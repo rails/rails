@@ -14,7 +14,13 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  include Analyzable, Identifiable, Representable
+  require_dependency "active_storage/blob/analyzable"
+  require_dependency "active_storage/blob/identifiable"
+  require_dependency "active_storage/blob/representable"
+
+  include Analyzable
+  include Identifiable
+  include Representable
 
   self.table_name = "active_storage_blobs"
 
@@ -24,6 +30,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   class_attribute :service
 
   has_many :attachments
+
+  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
 
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.

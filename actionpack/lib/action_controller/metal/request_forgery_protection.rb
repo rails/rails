@@ -3,7 +3,6 @@
 require "rack/session/abstract/id"
 require "action_controller/metal/exceptions"
 require "active_support/security_utils"
-require "active_support/core_ext/string/strip"
 
 module ActionController #:nodoc:
   class InvalidAuthenticityToken < ActionControllerError #:nodoc:
@@ -416,7 +415,7 @@ module ActionController #:nodoc:
         allow_forgery_protection
       end
 
-      NULL_ORIGIN_MESSAGE = <<-MSG.strip_heredoc
+      NULL_ORIGIN_MESSAGE = <<~MSG
         The browser returned a 'null' origin for a request with origin-based forgery protection turned on. This usually
         means you have the 'no-referrer' Referrer-Policy header enabled, or that you the request came from a site that
         refused to give its origin. This makes it impossible for Rails to verify the source of the requests. Likely the

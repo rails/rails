@@ -63,21 +63,12 @@ module ActiveSupport
         addresses = addresses.flatten
         options = addresses.extract_options!
         addresses = ["localhost:11211"] if addresses.empty?
-
-        pool_options = {}
-        pool_options[:size] = options[:pool_size] if options[:pool_size]
-        pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+        pool_options = retrieve_pool_options(options)
 
         if pool_options.empty?
           Dalli::Client.new(addresses, options)
         else
-          begin
-            require "connection_pool"
-          rescue LoadError => e
-            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
-            raise e
-          end
-
+          ensure_connection_pool_added!
           ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
         end
       end

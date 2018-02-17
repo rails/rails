@@ -6,7 +6,7 @@ module ConnectionPoolBehavior
 
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store, pool_size: 2, pool_timeout: 1)
+        cache = ActiveSupport::Cache.lookup_store(store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
         cache.clear
 
         threads = []
@@ -33,7 +33,7 @@ module ConnectionPoolBehavior
   def test_no_connection_pool
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store)
+        cache = ActiveSupport::Cache.lookup_store(store, store_options)
         cache.clear
 
         threads = []
@@ -54,4 +54,7 @@ module ConnectionPoolBehavior
       end
     end
   end
+
+  private
+    def store_options; {}; end
 end

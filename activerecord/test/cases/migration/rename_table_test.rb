@@ -88,7 +88,7 @@ module ActiveRecord
           assert connection.table_exists? :felines
           assert_not connection.table_exists? :cats
 
-          primary_key_name = connection.select_values(<<-SQL.strip_heredoc, "SCHEMA")[0]
+          primary_key_name = connection.select_values(<<~SQL, "SCHEMA")[0]
             SELECT c.relname
               FROM pg_class c
               JOIN pg_index i

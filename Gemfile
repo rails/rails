@@ -38,9 +38,6 @@ gem "rubocop", ">= 0.47", require: false
 # https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
-# https://github.com/puma/puma/pull/1345
-gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
-
 group :doc do
   gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
@@ -52,7 +49,7 @@ end
 gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
-gem "connection_pool"
+gem "connection_pool", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
@@ -131,7 +128,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.4"
+    gem "mysql2", ">= 0.4.10"
   end
 end
 

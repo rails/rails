@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_support/core_ext/string/strip"
 require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
@@ -406,7 +405,7 @@ class ErrorsTest < ActiveModel::TestCase
   end
 
   test "errors are backward compatible with the Rails 4.2 format" do
-    yaml = <<-CODE.strip_heredoc
+    yaml = <<~CODE
     --- !ruby/object:ActiveModel::Errors
     base: &1 !ruby/object:ErrorsTest::Person
       errors: !ruby/object:ActiveModel::Errors

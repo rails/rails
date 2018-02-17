@@ -231,6 +231,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
+      fields.reject!(&:blank?)
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field

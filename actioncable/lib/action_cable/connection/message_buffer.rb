@@ -30,13 +30,10 @@ module ActionCable
         receive_buffered_messages
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
+      private
         attr_reader :connection
         attr_reader :buffered_messages
 
-      private
         def valid?(message)
           message.is_a?(String)
         end

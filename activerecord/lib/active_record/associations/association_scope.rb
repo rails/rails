@@ -46,13 +46,9 @@ module ActiveRecord
         binds
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :value_transformation
 
-      private
         def join(table, constraint)
           table.create_join(table, table.create_on(constraint))
         end

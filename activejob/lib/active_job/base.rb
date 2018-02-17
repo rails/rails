@@ -59,6 +59,7 @@ module ActiveJob #:nodoc:
   # * SerializationError - Error class for serialization errors.
   class Base
     include Core
+    include Serializers
     include QueueAdapter
     include QueueName
     include QueuePriority
