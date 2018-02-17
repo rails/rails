@@ -31,6 +31,10 @@ module Minitest
       options[:color] = value
     end
 
+    opts.on("--skip-rails-reporter", "Skip Rails' custom Minitest reporter") do |value|
+      options[:skip_reporter] = value
+    end
+
     options[:color] = true
     options[:output_inline] = true
   end
@@ -42,6 +46,8 @@ module Minitest
       # Plugin can run without Rails loaded, check before filtering.
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
+
+    return if options[:skip_reporter]
 
     # Replace progress reporter for colors.
     reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
