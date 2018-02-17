@@ -1,3 +1,12 @@
+*   Fix minitest rails plugin.
+
+    The custom reporters are added only if needed.
+
+    This will fix conflicts with others plugins.
+
+    *Kevin Robatel*
+
+
 ## Rails 5.1.5 (February 14, 2018) ##
 
 *   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
