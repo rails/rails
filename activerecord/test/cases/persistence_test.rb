@@ -934,22 +934,6 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.reload
     assert_not_predicate topic, :approved?
     assert_equal "The First Topic", topic.title
-  end
-
-  def test_update
-    topic = Topic.find(1)
-    assert_not_predicate topic, :approved?
-    assert_equal "The First Topic", topic.title
-
-    topic.update("approved" => true, "title" => "The First Topic Updated")
-    topic.reload
-    assert_predicate topic, :approved?
-    assert_equal "The First Topic Updated", topic.title
-
-    topic.update(approved: false, title: "The First Topic")
-    topic.reload
-    assert_not_predicate topic, :approved?
-    assert_equal "The First Topic", topic.title
 
     error = assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
       topic.update(id: 3, title: "Hm is it possible?")
@@ -960,6 +944,13 @@ class PersistenceTest < ActiveRecord::TestCase
     topic.update(id: 1234)
     assert_nothing_raised { topic.reload }
     assert_equal topic.title, Topic.find(1234).title
+  end
+
+  def test_update_attributes
+    topic = Topic.find(1)
+    assert_deprecated do
+      topic.update_attributes("title" => "The First Topic Updated")
+    end
   end
 
   def test_update_parameters
@@ -994,25 +985,11 @@ class PersistenceTest < ActiveRecord::TestCase
     Reply.clear_validators!
   end
 
-  def test_update!
-    Reply.validates_presence_of(:title)
+  def test_update_attributes!
     reply = Reply.find(2)
-    assert_equal "The Second Topic of the day", reply.title
-    assert_equal "Have a nice day", reply.content
-
-    reply.update!("title" => "The Second Topic of the day updated", "content" => "Have a nice evening")
-    reply.reload
-    assert_equal "The Second Topic of the day updated", reply.title
-    assert_equal "Have a nice evening", reply.content
-
-    reply.update!(title: "The Second Topic of the day", content: "Have a nice day")
-    reply.reload
-    assert_equal "The Second Topic of the day", reply.title
-    assert_equal "Have a nice day", reply.content
-
-    assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
-  ensure
-    Reply.clear_validators!
+    assert_deprecated do
+      reply.update_attributes!("title" => "The Second Topic of the day updated")
+    end
   end
 
   def test_destroyed_returns_boolean
