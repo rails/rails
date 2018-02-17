@@ -17,7 +17,6 @@ end
 
 require "digest/sha2"
 require "active_support/core_ext/marshal"
-require "active_support/core_ext/hash/transform_values"
 
 module ActiveSupport
   module Cache
