@@ -86,7 +86,7 @@ class FixturesTest < ActiveRecord::TestCase
 
       create_fixtures("bulbs", "authors", "computers")
 
-      expected_sql = <<-EOS.strip_heredoc.chop
+      expected_sql = <<~EOS
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("bulbs")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("authors")} .*
         INSERT INTO #{ActiveRecord::Base.connection.quote_table_name("computers")} .*

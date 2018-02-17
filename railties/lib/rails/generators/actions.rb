@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/strip"
+
 module Rails
   module Generators
     module Actions

@@ -3,7 +3,6 @@
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
-require "active_support/core_ext/string/strip"
 require "yaml"
 
 class TimeWithZoneTest < ActiveSupport::TestCase
@@ -163,7 +162,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_to_yaml
-    yaml = <<-EOF.strip_heredoc
+    yaml = <<~EOF
       --- !ruby/object:ActiveSupport::TimeWithZone
       utc: 2000-01-01 00:00:00.000000000 Z
       zone: !ruby/object:ActiveSupport::TimeZone
@@ -175,7 +174,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_ruby_to_yaml
-    yaml = <<-EOF.strip_heredoc
+    yaml = <<~EOF
       ---
       twz: !ruby/object:ActiveSupport::TimeWithZone
         utc: 2000-01-01 00:00:00.000000000 Z
@@ -188,7 +187,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_yaml_load
-    yaml = <<-EOF.strip_heredoc
+    yaml = <<~EOF
       --- !ruby/object:ActiveSupport::TimeWithZone
       utc: 2000-01-01 00:00:00.000000000 Z
       zone: !ruby/object:ActiveSupport::TimeZone
@@ -200,7 +199,7 @@ class TimeWithZoneTest < ActiveSupport::TestCase
   end
 
   def test_ruby_yaml_load
-    yaml = <<-EOF.strip_heredoc
+    yaml = <<~EOF
       ---
       twz: !ruby/object:ActiveSupport::TimeWithZone
         utc: 2000-01-01 00:00:00.000000000 Z

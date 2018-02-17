@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "active_support/core_ext/string/strip"
 require "env_helpers"
 
 module ApplicationTests
@@ -741,7 +740,7 @@ module ApplicationTests
       def create_model_with_fixture
         rails "generate", "model", "user", "name:string"
 
-        app_file "test/fixtures/users.yml", <<-YAML.strip_heredoc
+        app_file "test/fixtures/users.yml", <<~YAML
           vampire:
             id: 1
             name: Koyomi Araragi

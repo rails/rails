@@ -16,10 +16,10 @@ module Rails
 
       private
         def encrypted_file_template
-          <<-YAML.strip_heredoc
-          # aws:
-          #   access_key_id: 123
-          #   secret_access_key: 345
+          <<~YAML
+            # aws:
+            #   access_key_id: 123
+            #   secret_access_key: 345
 
           YAML
         end
