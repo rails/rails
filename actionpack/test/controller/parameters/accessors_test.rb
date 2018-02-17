@@ -273,23 +273,16 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_match(/permitted: true/, @params.inspect)
   end
 
-  if Hash.method_defined?(:dig)
-    test "#dig delegates the dig method to its values" do
-      assert_equal "David", @params.dig(:person, :name, :first)
-      assert_equal "Chicago", @params.dig(:person, :addresses, 0, :city)
-    end
+  test "#dig delegates the dig method to its values" do
+    assert_equal "David", @params.dig(:person, :name, :first)
+    assert_equal "Chicago", @params.dig(:person, :addresses, 0, :city)
+  end
 
-    test "#dig converts hashes to parameters" do
-      assert_kind_of ActionController::Parameters, @params.dig(:person)
-      assert_kind_of ActionController::Parameters, @params.dig(:person, :addresses, 0)
-      assert @params.dig(:person, :addresses).all? do |value|
-        value.is_a?(ActionController::Parameters)
-      end
-    end
-  else
-    test "ActionController::Parameters does not respond to #dig on Ruby 2.2" do
-      assert_not ActionController::Parameters.method_defined?(:dig)
-      assert_not_respond_to @params, :dig
+  test "#dig converts hashes to parameters" do
+    assert_kind_of ActionController::Parameters, @params.dig(:person)
+    assert_kind_of ActionController::Parameters, @params.dig(:person, :addresses, 0)
+    assert @params.dig(:person, :addresses).all? do |value|
+      value.is_a?(ActionController::Parameters)
     end
   end
 end
