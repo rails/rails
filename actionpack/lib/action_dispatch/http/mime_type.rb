@@ -279,13 +279,8 @@ module Mime
 
     def all?; false; end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
-
-      attr_reader :string, :synonyms
-
     private
+      attr_reader :string, :synonyms
 
       def to_ary; end
       def to_a; end

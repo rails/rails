@@ -75,12 +75,6 @@ matrix:
         - memcached
         - redis-server
         - rabbitmq
-    - rvm: 2.3.6
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
     - rvm: 2.4.3
       env: "GEM=aj:integration"
       services:

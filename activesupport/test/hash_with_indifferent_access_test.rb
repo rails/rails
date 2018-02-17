@@ -562,7 +562,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_nested_dig_indifferent_access
-    skip if RUBY_VERSION < "2.3.0"
     data = { "this" => { "views" => 1234 } }.with_indifferent_access
     assert_equal 1234, data.dig(:this, :views)
   end

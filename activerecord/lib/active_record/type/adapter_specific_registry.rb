@@ -52,12 +52,7 @@ module ActiveRecord
         priority <=> other.priority
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
-
-        attr_reader :name, :block, :adapter, :override
-
         def priority
           result = 0
           if adapter
@@ -74,6 +69,7 @@ module ActiveRecord
         end
 
       private
+        attr_reader :name, :block, :adapter, :override
 
         def matches_adapter?(adapter: nil, **)
           (self.adapter.nil? || adapter == self.adapter)
@@ -114,13 +110,8 @@ module ActiveRecord
         super | 4
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
-        attr_reader :options, :klass
-
       private
+        attr_reader :options, :klass
 
         def matches_options?(**kwargs)
           options.all? do |key, value|

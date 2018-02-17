@@ -432,7 +432,7 @@ INFO: You can also use `bin/rails -T`  to get the list of tasks.
 $ bin/rails about
 About your application's environment
 Rails version             5.1.0
-Ruby version              2.2.2 (x86_64-linux)
+Ruby version              2.5.0 (x86_64-linux)
 RubyGems version          2.4.6
 Rack version              2.0.1
 JavaScript Runtime        Node.js (V8)
