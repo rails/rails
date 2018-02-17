@@ -1,7 +1,14 @@
-* Adds parallel testing to Rails
+## Rails 6.0.0.alpha (Unreleased) ##
 
-  Parallelize your test suite with forked processes or threads.
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-  *Eileen M. Uchitelle*, *Aaron Patterson*
+    *Jeremy Daer*
+
+*   Adds parallel testing to Rails
+
+    Parallelize your test suite with forked processes or threads.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md) for previous changes.

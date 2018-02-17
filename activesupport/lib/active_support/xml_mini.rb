@@ -48,10 +48,6 @@ module ActiveSupport
         "Array"      => "array",
         "Hash"       => "hash"
       }
-
-      # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {

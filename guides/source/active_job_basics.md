@@ -344,7 +344,7 @@ Supported types for arguments
 
 ActiveJob supports the following types of arguments by default:
 
-  - Basic types (`NilClass`, `String`, `Integer`, `Fixnum`, `Bignum`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
+  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
   - `Symbol`
   - `ActiveSupport::Duration`
   - `Date`

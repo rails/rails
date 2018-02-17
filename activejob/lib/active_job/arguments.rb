@@ -14,8 +14,8 @@ module ActiveJob
   end
 
   # Raised when an unsupported argument type is set as a job argument. We
-  # currently support NilClass, Integer, Fixnum, Float, String, TrueClass, FalseClass,
-  # Bignum, BigDecimal, and objects that can be represented as GlobalIDs (ex: Active Record).
+  # currently support NilClass, Integer, Float, String, TrueClass, FalseClass,
+  # BigDecimal, and objects that can be represented as GlobalIDs (ex: Active Record).
   # Raised if you set the key for a Hash something else than a string or
   # a symbol. Also raised when trying to serialize an object which can't be
   # identified with a Global ID - such as an unpersisted Active Record model.
@@ -25,7 +25,6 @@ module ActiveJob
     extend self
     # :nodoc:
     TYPE_WHITELIST = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
-    TYPE_WHITELIST.push(Fixnum, Bignum) unless 1.class == Integer
 
     # Serializes a set of arguments. Whitelisted types are returned
     # as-is. Arrays/Hashes are serialized element by element.

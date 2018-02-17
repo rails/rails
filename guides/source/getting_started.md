@@ -87,10 +87,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.3.1p112
+ruby 2.5.0
 ```
 
-Rails requires Ruby version 2.3.0 or later. If the version number returned is
+Rails requires Ruby version 2.4.1 or later. If the version number returned is
 less than that number, you'll need to install a fresh copy of Ruby.
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
