@@ -508,7 +508,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_relations_update_all_should_not_affect_matching_records_in_other_batches
     Post.update_all(author_id: 0)
     person = Post.last
-    person.update_attributes(author_id: 1)
+    person.update(author_id: 1)
 
     Post.in_batches(of: 2) do |batch|
       batch.where("author_id >= 1").update_all("author_id = author_id + 1")

@@ -525,7 +525,7 @@ class PersistenceTest < ActiveRecord::TestCase
   def test_update_does_not_run_sql_if_record_has_not_changed
     topic = Topic.create(title: "Another New Topic")
     assert_queries(0) { assert topic.update(title: "Another New Topic") }
-    assert_queries(0) { assert topic.update_attributes(title: "Another New Topic") }
+    assert_queries(0) { assert topic.update(title: "Another New Topic") }
   end
 
   def test_delete
@@ -936,40 +936,40 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", topic.title
   end
 
-  def test_update_attributes
+  def test_update
     topic = Topic.find(1)
     assert_not_predicate topic, :approved?
     assert_equal "The First Topic", topic.title
 
-    topic.update_attributes("approved" => true, "title" => "The First Topic Updated")
+    topic.update("approved" => true, "title" => "The First Topic Updated")
     topic.reload
     assert_predicate topic, :approved?
     assert_equal "The First Topic Updated", topic.title
 
-    topic.update_attributes(approved: false, title: "The First Topic")
+    topic.update(approved: false, title: "The First Topic")
     topic.reload
     assert_not_predicate topic, :approved?
     assert_equal "The First Topic", topic.title
 
     error = assert_raise(ActiveRecord::RecordNotUnique, ActiveRecord::StatementInvalid) do
-      topic.update_attributes(id: 3, title: "Hm is it possible?")
+      topic.update(id: 3, title: "Hm is it possible?")
     end
     assert_not_nil error.cause
     assert_not_equal "Hm is it possible?", Topic.find(3).title
 
-    topic.update_attributes(id: 1234)
+    topic.update(id: 1234)
     assert_nothing_raised { topic.reload }
     assert_equal topic.title, Topic.find(1234).title
   end
 
-  def test_update_attributes_parameters
+  def test_update_parameters
     topic = Topic.find(1)
     assert_nothing_raised do
-      topic.update_attributes({})
+      topic.update({})
     end
 
     assert_raises(ArgumentError) do
-      topic.update_attributes(nil)
+      topic.update(nil)
     end
   end
 
@@ -994,23 +994,23 @@ class PersistenceTest < ActiveRecord::TestCase
     Reply.clear_validators!
   end
 
-  def test_update_attributes!
+  def test_update!
     Reply.validates_presence_of(:title)
     reply = Reply.find(2)
     assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
-    reply.update_attributes!("title" => "The Second Topic of the day updated", "content" => "Have a nice evening")
+    reply.update!("title" => "The Second Topic of the day updated", "content" => "Have a nice evening")
     reply.reload
     assert_equal "The Second Topic of the day updated", reply.title
     assert_equal "Have a nice evening", reply.content
 
-    reply.update_attributes!(title: "The Second Topic of the day", content: "Have a nice day")
+    reply.update!(title: "The Second Topic of the day", content: "Have a nice day")
     reply.reload
     assert_equal "The Second Topic of the day", reply.title
     assert_equal "Have a nice day", reply.content
 
-    assert_raise(ActiveRecord::RecordInvalid) { reply.update_attributes!(title: nil, content: "Have a nice evening") }
+    assert_raise(ActiveRecord::RecordInvalid) { reply.update!(title: nil, content: "Have a nice evening") }
   ensure
     Reply.clear_validators!
   end

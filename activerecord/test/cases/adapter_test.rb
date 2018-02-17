@@ -20,7 +20,7 @@ module ActiveRecord
         b = Book.create(name: "my \x00 book")
         b.reload
         assert_equal "my \x00 book", b.name
-        b.update_attributes(name: "my other \x00 book")
+        b.update(name: "my other \x00 book")
         b.reload
         assert_equal "my other \x00 book", b.name
       end
