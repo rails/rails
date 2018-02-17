@@ -469,7 +469,7 @@ Parallel testing allows you to parallelize your test suite. While forking proces
 default method, threading is supported as well. Running tests in parallel reduces the time it
 takes your entire test suite to run.
 
-## Parallel testing with processes
+### Parallel testing with processes
 
 The default parallelization method is to fork processes using Ruby's DRb system. The processes
 are forked based on the number of workers provided. The default is 2, but can be changed by the
@@ -522,7 +522,7 @@ end
 
 These methods are not needed or available when using parallel testing with threads.
 
-## Parallel testing with threads
+### Parallel testing with threads
 
 If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
 parallelizer is backed by Minitest's `Parallel::Executor`.
