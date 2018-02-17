@@ -64,7 +64,7 @@ module ActiveRecord
           end
 
           def visit_ForeignKeyDefinition(o)
-            sql = <<~SQL
+            sql = +<<~SQL
               CONSTRAINT #{quote_column_name(o.name)}
               FOREIGN KEY (#{quote_column_name(o.column)})
                 REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
