@@ -1,3 +1,8 @@
+*   Fix minitest rails plugin. The custom reporters are added only if needed. This will fix conflicts with others plugins. *Kevin Robatel*
+
+    *Kevin Robatel*
+
+
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   No changes.
