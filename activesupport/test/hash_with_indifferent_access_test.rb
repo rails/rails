@@ -169,8 +169,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_fetch_values
-    skip unless Hash.method_defined?(:fetch_values)
-
     @mixed = @mixed.with_indifferent_access
 
     assert_equal [1, 2], @mixed.fetch_values("a", "b")
