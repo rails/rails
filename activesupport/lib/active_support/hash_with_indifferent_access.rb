@@ -311,6 +311,14 @@ module ActiveSupport
       dup.tap { |hash| hash.transform_keys!(*args, &block) }
     end
 
+    def transform_keys!
+      return enum_for(:transform_keys!) { size } unless block_given?
+      keys.each do |key|
+        self[yield(key)] = delete(key)
+      end
+      self
+    end
+
     def slice(*keys)
       keys.map! { |key| convert_key(key) }
       self.class.new(super)
