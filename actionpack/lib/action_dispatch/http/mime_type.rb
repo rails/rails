@@ -279,8 +279,11 @@ module Mime
 
     def all?; false; end
 
-    private
+    protected
+
       attr_reader :string, :synonyms
+
+    private
 
       def to_ary; end
       def to_a; end

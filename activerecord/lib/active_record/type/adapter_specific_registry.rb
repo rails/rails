@@ -53,6 +53,9 @@ module ActiveRecord
       end
 
       protected
+
+        attr_reader :name, :block, :adapter, :override
+
         def priority
           result = 0
           if adapter
@@ -69,7 +72,6 @@ module ActiveRecord
         end
 
       private
-        attr_reader :name, :block, :adapter, :override
 
         def matches_adapter?(adapter: nil, **)
           (self.adapter.nil? || adapter == self.adapter)
