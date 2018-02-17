@@ -12,8 +12,7 @@ class Hash
   #   { a: 1, b: 2 }.transform_values.with_index { |v, i| [v, i].join.to_i } # => { a: 10, b: 21 }
   def transform_values
     return enum_for(:transform_values) { size } unless block_given?
-    return {} if empty?
-    result = self.class.new
+    result = {}
     each do |key, value|
       result[key] = yield(value)
     end

@@ -21,12 +21,20 @@ class TransformValuesTest < ActiveSupport::TestCase
     assert_same original, mapped
   end
 
-  test "indifferent access is still indifferent after mapping values" do
-    original = { a: "a", b: "b" }.with_indifferent_access
-    mapped = original.transform_values { |v| v + "!" }
+  test "transform_values returns a Hash instance when self is inherited from Hash" do
+    class HashDescendant < ::Hash
+      def initialize(elements = nil)
+        super(elements)
+        (elements || {}).each_pair { |key, value| self[key] = value }
+      end
+    end
 
-    assert_equal "a!", mapped[:a]
-    assert_equal "a!", mapped["a"]
+    original = HashDescendant.new(a: "a", b: "b")
+    mapped = original.transform_values { |v| v.to_sym }
+
+    assert_equal({ a: "a", b: "b" }, original)
+    assert_equal({ a: :a, b: :b }, mapped)
+    assert_equal(::Hash, mapped.class)
   end
 
   # This is to be consistent with the behavior of Ruby's built in methods
