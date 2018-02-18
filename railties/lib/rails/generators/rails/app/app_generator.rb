@@ -389,9 +389,13 @@ module Rails
         end
       end
 
-      def delete_application_layout_file_if_api_option
+      def delete_app_views_if_api_option
         if options[:api]
-          remove_file "app/views/layouts/application.html.erb"
+          if options[:skip_action_mailer]
+            remove_dir "app/views"
+          else
+            remove_file "app/views/layouts/application.html.erb"
+          end
         end
       end
 
