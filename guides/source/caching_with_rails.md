@@ -465,6 +465,10 @@ is often faster than waiting more than a second to retrieve it. Both read and
 write timeouts default to 1 second, but may be set lower if your network is
 consistently low latency.
 
+By default, the cache store will not attempt to reconnect to Redis if the
+connection fails during a request. If you experience frequent disconnects you
+may wish to enable reconnect attempts.
+
 Cache reads and writes never raise exceptions. They just return `nil` instead,
 behaving as if there was nothing in the cache. To gauge whether your cache is
 hitting exceptions, you may provide an `error_handler` to report to an
@@ -480,9 +484,10 @@ like this:
 cache_servers = %w[ "redis://cache-01:6379/0", "redis://cache-02:6379/0", … ],
 config.cache_store = :redis_cache_store, url: cache_servers,
 
-  connect_timeout: 30,  # Defaults to 20 seconds
-  read_timeout:    0.2, # Defaults to 1 second
-  write_timeout:   0.2, # Defaults to 1 second
+  connect_timeout:    30,  # Defaults to 20 seconds
+  read_timeout:       0.2, # Defaults to 1 second
+  write_timeout:      0.2, # Defaults to 1 second
+  reconnect_attempts: 1,   # Defaults to 0
 
   error_handler: -> (method:, returning:, exception:) {
     # Report errors to Sentry as warnings
