@@ -65,8 +65,8 @@ module ActiveSupport
       #
       #   parallelize(workers: 2, with: :threads)
       #
-      # The threaded parallelization uses Minitest's parallel exector directly.
-      # The processes paralleliztion uses a Ruby Drb server.
+      # The threaded parallelization uses Minitest's parallel executor directly.
+      # The processes parallelization uses a Ruby Drb server.
       def parallelize(workers: 2, with: :processes)
         workers = ENV["PARALLEL_WORKERS"].to_i if ENV["PARALLEL_WORKERS"]
 
@@ -78,7 +78,7 @@ module ActiveSupport
                    when :threads
                      Minitest::Parallel::Executor.new(workers)
                    else
-                     raise ArgumentError, "#{with} is not a supported parallelization exectutor."
+                     raise ArgumentError, "#{with} is not a supported parallelization executor."
         end
 
         self.lock_threads = false if defined?(self.lock_threads) && with == :threads
