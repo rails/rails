@@ -63,7 +63,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_generator_if_skip_action_cable_is_given
+  def test_generator_if_skip_action_mailer_is_given
     run_generator [destination_root, "--api", "--skip-action-mailer"]
     assert_file "config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
     assert_file "config/environments/development.rb" do |content|
