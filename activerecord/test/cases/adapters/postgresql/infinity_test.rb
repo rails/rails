@@ -13,6 +13,7 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
     @connection.create_table(:postgresql_infinities) do |t|
       t.float :float
       t.datetime :datetime
+      t.date :date
     end
   end
 
@@ -43,9 +44,23 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
   end
 
   test "type casting infinity on a datetime column" do
+    record = PostgresqlInfinity.create!(datetime: "infinity")
+    record.reload
+    assert_equal Float::INFINITY, record.datetime
+
     record = PostgresqlInfinity.create!(datetime: Float::INFINITY)
     record.reload
     assert_equal Float::INFINITY, record.datetime
+  end
+
+  test "type casting infinity on a date column" do
+    record = PostgresqlInfinity.create!(date: "infinity")
+    record.reload
+    assert_equal Float::INFINITY, record.date
+
+    record = PostgresqlInfinity.create!(date: Float::INFINITY)
+    record.reload
+    assert_equal Float::INFINITY, record.date
   end
 
   test "update_all with infinity on a datetime column" do
@@ -67,5 +82,29 @@ class PostgresqlInfinityTest < ActiveRecord::PostgreSQLTestCase
       # There is no way to do this automatically since it can be set on a superclass
       PostgresqlInfinity.reset_column_information
     end
+  end
+
+  test "where clause with infinite range on a datetime column" do
+    record = PostgresqlInfinity.create!(datetime: Time.current)
+
+    string = PostgresqlInfinity.where(datetime: "-infinity".."infinity")
+    assert_equal record, string.take
+
+    infinity = PostgresqlInfinity.where(datetime: -::Float::INFINITY..::Float::INFINITY)
+    assert_equal record, infinity.take
+
+    assert_equal infinity.to_sql, string.to_sql
+  end
+
+  test "where clause with infinite range on a date column" do
+    record = PostgresqlInfinity.create!(date: Date.current)
+
+    string = PostgresqlInfinity.where(date: "-infinity".."infinity")
+    assert_equal record, string.take
+
+    infinity = PostgresqlInfinity.where(date: -::Float::INFINITY..::Float::INFINITY)
+    assert_equal record, infinity.take
+
+    assert_equal infinity.to_sql, string.to_sql
   end
 end
