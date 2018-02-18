@@ -16,14 +16,19 @@ class Object
   end
 
   # Returns the receiver if it's included in the argument otherwise returns +nil+.
-  # Argument must be any object which responds to +#include?+. Usage:
+  # The first argument must be any object which responds to +#include?+. The second
+  # optional argument is the default to return if it's not present (defaults to nil).
+  # Usage:
   #
   #   params[:bucket_type].presence_in %w( project calendar )
   #
   # This will throw an +ArgumentError+ if the argument doesn't respond to +#include?+.
   #
+  # Aliased to if_present_in
+  #
   # @return [Object]
-  def presence_in(another_object)
-    in?(another_object) ? self : nil
+  def presence_in(another_object, default = nil)
+    in?(another_object) ? self : default
   end
+  alias_method :if_present_in, :presence_in
 end

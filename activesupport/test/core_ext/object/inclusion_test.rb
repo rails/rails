@@ -56,6 +56,14 @@ class InTest < ActiveSupport::TestCase
   def test_presence_in
     assert_equal "stuff", "stuff".presence_in(%w( lots of stuff ))
     assert_nil "stuff".presence_in(%w( lots of crap ))
+    assert_equal "stuff", "else".presence_in(%w( lots of stuff ), "stuff")
     assert_raise(ArgumentError) { 1.presence_in(1) }
+  end
+
+  def test_if_present_in
+    assert_equal "stuff", "stuff".if_present_in(%w( lots of stuff ))
+    assert_nil "stuff".if_present_in(%w( lots of crap ))
+    assert_equal "stuff", "else".if_present_in(%w( lots of stuff ), "stuff")
+    assert_raise(ArgumentError) { 1.if_present_in(1) }
   end
 end

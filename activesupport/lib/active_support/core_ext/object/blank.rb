@@ -42,10 +42,13 @@ class Object
   #
   #   region = params[:state].presence || params[:country].presence || 'US'
   #
+  # Aliased to if_present
+  #
   # @return [Object]
   def presence
     self if present?
   end
+  alias_method :if_present, :presence
 end
 
 class NilClass
