@@ -43,18 +43,14 @@ module Minitest
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
-    self.plugin_rails_replace_reporters(reporter, options)
-  end
-
-  def self.plugin_rails_replace_reporters(minitest_reporter, options)
-    return unless minitest_reporter.kind_of?(Minitest::CompositeReporter)
+    # Suppress summary reports when outputting inline rerun snippets.
+    if reporter.reporters.reject! { |reporter| reporter.kind_of?(SummaryReporter) }
+      reporter << SuppressedSummaryReporter.new(options[:io], options)
+    end
 
     # Replace progress reporter for colors.
-    if minitest_reporter.reporters.reject! { |reporter| reporter.kind_of?(SummaryReporter) } != nil
-      minitest_reporter << SuppressedSummaryReporter.new(options[:io], options)
-    end
-    if minitest_reporter.reporters.reject! { |reporter| reporter.kind_of?(ProgressReporter) } != nil
-      minitest_reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    if reporter.reporters.reject! { |reporter| reporter.kind_of?(ProgressReporter) }
+      reporter << ::Rails::TestUnitReporter.new(options[:io], options)
     end
   end
 
