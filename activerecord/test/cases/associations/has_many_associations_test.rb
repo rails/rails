@@ -1842,6 +1842,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
   end
 
+  def test_associations_order_should_be_priority_over_throughs_order
+    david = authors(:david)
+    expected = [12, 10, 9, 8, 7, 6, 5, 3, 2, 1]
+    assert_equal expected, david.comments_desc.map(&:id)
+    assert_equal expected, Author.includes(:comments_desc).find(david.id).comments_desc.map(&:id)
+  end
+
   def test_dynamic_find_should_respect_association_order_for_through
     assert_equal Comment.find(10), authors(:david).comments_desc.where("comments.type = 'SpecialComment'").first
     assert_equal Comment.find(10), authors(:david).comments_desc.find_by_type("SpecialComment")
