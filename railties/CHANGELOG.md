@@ -1,5 +1,23 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
+
+    Previously:
+
+        $ bin/rails server thin
+
+    There wasn't an explicit option for the Rack server to use, now we have the
+    `--using` option with the `-u` short switch.
+
+    Now:
+
+        $ bin/rails server -u thin
+
+    This change also improves the error message if a missing or mistyped rack
+    server is given.
+
+    *Genadi Samokovarov*
+
 *   Add "rails routes --expanded" option to output routes in expanded mode like
     "psql --expanded". Result looks like:
 
