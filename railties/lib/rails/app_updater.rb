@@ -22,7 +22,7 @@ module Rails
         def generator_options
           options = { api: !!Rails.application.config.api_only, update: true }
           options[:skip_active_record]  = !defined?(ActiveRecord::Railtie)
-          options[:skip_active_storage] = !defined?(ActiveStorage::Engine) || !defined?(ActiveRecord::Railtie)
+          options[:skip_active_storage] = !defined?(ActiveRecord::Railtie)
           options[:skip_action_mailer]  = !defined?(ActionMailer::Railtie)
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
