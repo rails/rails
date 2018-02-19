@@ -238,7 +238,11 @@ module Rails
       end
 
       def content_security_policy(&block)
-        @content_security_policy ||= ActionDispatch::ContentSecurityPolicy.new(&block)
+        if block_given?
+          @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
+        else
+          @content_security_policy
+        end
       end
 
       class Custom #:nodoc:

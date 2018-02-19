@@ -21,10 +21,7 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
-          built_policy = policy.build(request.controller_instance)
-          if built_policy
-            headers[header_name(request)] = built_policy
-          end
+          headers[header_name(request)] = policy.build(request.controller_instance)
         end
 
         response
@@ -175,12 +172,7 @@ module ActionDispatch #:nodoc:
     end
 
     def build(context = nil)
-      built_directives = build_directives(context).compact
-      if built_directives.empty?
-        nil
-      else
-        built_directives.join("; ") + ";"
-      end
+      build_directives(context).compact.join("; ")
     end
 
     private
