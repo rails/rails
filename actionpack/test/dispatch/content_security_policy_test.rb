@@ -136,7 +136,7 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.plugin_types "application/x-shockwave-flash"
     assert_match %r{plugin-types application/x-shockwave-flash;}, @policy.build
 
-    @policy.sandbox
+    @policy.sandbox true
     assert_match %r{sandbox;}, @policy.build
 
     @policy.sandbox "allow-scripts", "allow-modals"
@@ -172,7 +172,7 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.require_sri_for "script", "style"
     assert_match %r{require-sri-for script style;}, @policy.build
 
-    @policy.require_sri_for
+    @policy.require_sri_for false
     assert_no_match %r{require-sri-for}, @policy.build
 
     @policy.upgrade_insecure_requests
@@ -212,6 +212,29 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     end
 
     assert_equal "Invalid content security policy source: [:self]", exception.message
+  end
+
+  def test_accessors
+    @policy.sandbox true
+    assert_equal true, @policy.sandbox
+    @policy.script_src "I", "II"
+    assert_equal ["I", "II"], @policy.script_src
+  end
+
+  def test_accessors_do_not_delete
+    @policy.script_src "I", "II"
+    assert_equal "script-src I II;", @policy.build
+    @policy.script_src
+    assert_equal "script-src I II;", @policy.build
+    @policy.script_src nil
+    assert_equal "script-src I II;", @policy.build
+  end
+
+  def test_clear_directives
+    @policy.script_src "I", "II"
+    assert_equal "script-src I II;", @policy.build
+    @policy.script_src false
+    assert_equal ";", @policy.build
   end
 
   def test_missing_context_for_dynamic_source

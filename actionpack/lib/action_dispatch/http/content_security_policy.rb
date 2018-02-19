@@ -122,6 +122,8 @@ module ActionDispatch #:nodoc:
       define_method(name) do |*sources|
         if sources.first
           @directives[directive] = apply_mappings(sources)
+        elsif sources.first.nil?
+          @directives[directive]
         else
           @directives.delete(directive)
         end
@@ -131,6 +133,8 @@ module ActionDispatch #:nodoc:
     def block_all_mixed_content(enabled = true)
       if enabled
         @directives["block-all-mixed-content"] = true
+      elsif enabled.nil?
+        @directives["block-all-mixed-content"]
       else
         @directives.delete("block-all-mixed-content")
       end
@@ -139,6 +143,8 @@ module ActionDispatch #:nodoc:
     def plugin_types(*types)
       if types.first
         @directives["plugin-types"] = types
+      elsif types.first.nil?
+        @directives["plugin-types"]
       else
         @directives.delete("plugin-types")
       end
@@ -151,16 +157,20 @@ module ActionDispatch #:nodoc:
     def require_sri_for(*types)
       if types.first
         @directives["require-sri-for"] = types
+      elsif types.first.nil?
+        @directives["require-sri-for"]
       else
         @directives.delete("require-sri-for")
       end
     end
 
     def sandbox(*values)
-      if values.empty?
+      if true === values.first
         @directives["sandbox"] = true
       elsif values.first
         @directives["sandbox"] = values
+      elsif values.first.nil?
+        @directives["sandbox"]
       else
         @directives.delete("sandbox")
       end
@@ -169,6 +179,8 @@ module ActionDispatch #:nodoc:
     def upgrade_insecure_requests(enabled = true)
       if enabled
         @directives["upgrade-insecure-requests"] = true
+      elsif enabled.nil?
+        @directives["upgrade-insecure-requests"]
       else
         @directives.delete("upgrade-insecure-requests")
       end
