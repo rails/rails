@@ -151,4 +151,30 @@ class GeneratedAttributeTest < Rails::Generators::TestCase
     assert_predicate att, :has_index?
     assert_predicate att, :required?
   end
+
+  def test_parse_not_null_attribute
+    att = Rails::Generators::GeneratedAttribute.parse("name:string{null=false}")
+
+    assert_equal "name", att.name
+    assert_equal :string, att.type
+    refute att.attr_options[:null]
+  end
+
+  def test_parse_attribute_with_default
+    att = Rails::Generators::GeneratedAttribute.parse("count:integer{default=0}")
+
+    assert_equal "count", att.name
+    assert_equal :integer, att.type
+    assert_equal "0", att.attr_options[:default]
+  end
+
+  def test_parse_attribute_with_every_extra_option
+    att = Rails::Generators::GeneratedAttribute.parse("count:integer{1,default=0,null=false}:index")
+
+    assert_equal "count", att.name
+    assert_equal :integer, att.type
+    refute att.attr_options[:null]
+    assert_equal 1, att.attr_options[:limit]
+    assert_equal "0", att.attr_options[:default]
+  end
 end

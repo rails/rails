@@ -466,8 +466,6 @@ the first time (i.e. on the date the migration is applied).
 Some adapters may support additional options; see the adapter specific API docs
 for further information.
 
-NOTE: `null` and `default` cannot be specified via command line.
-
 ### Foreign Keys
 
 While it's not required you might want to add foreign key constraints to

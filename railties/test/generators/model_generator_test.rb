@@ -175,15 +175,25 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_add_migration_with_attributes_index_declaration_and_attribute_options
-    run_generator ["product", "title:string{40}:index", "content:string{255}", "price:decimal{5,2}:index", "discount:decimal{5,2}:uniq", "supplier:references{polymorphic}"]
+    columns = [
+      "title:string{40, null=false}:index",
+      "content:string{255}",
+      "price:decimal{5,2,default=0}:index",
+      "discount:decimal{5,2}:uniq",
+      "supplier:references{polymorphic}",
+      "manufacturer:belongs_to{required}"
+    ]
+
+    run_generator ["product", *columns]
 
     assert_migration "db/migrate/create_products.rb" do |content|
       assert_method :change, content do |up|
         assert_match(/create_table :products/, up)
-        assert_match(/t.string :title, limit: 40/, up)
+        assert_match(/t.string :title, limit: 40, null: false/, up)
         assert_match(/t.string :content, limit: 255/, up)
-        assert_match(/t.decimal :price, precision: 5, scale: 2/, up)
+        assert_match(/t.decimal :price, precision: 5, scale: 2, default: "0"/, up)
         assert_match(/t.references :supplier, polymorphic: true/, up)
+        assert_match(/t.belongs_to :manufacturer, null: false, foreign_key: true/, up)
       end
       assert_match(/add_index :products, :title/, content)
       assert_match(/add_index :products, :price/, content)
