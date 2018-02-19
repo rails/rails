@@ -33,7 +33,7 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
 
   private
     def with_reporter(reporter)
-      old_reporter, Minitest.reporter =  Minitest.reporter, reporter
+      old_reporter, Minitest.reporter = Minitest.reporter, reporter
 
       yield reporter
     ensure
