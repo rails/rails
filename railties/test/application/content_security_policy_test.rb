@@ -60,7 +60,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy ";"
+      assert_policy ""
     end
 
     test "global content security policy in an initializer" do
@@ -87,7 +87,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;"
+      assert_policy "default-src 'self' https:"
     end
 
     test "global report only content security policy in an initializer" do
@@ -116,7 +116,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;", report_only: true
+      assert_policy "default-src 'self' https:", report_only: true
     end
 
     test "override content security policy in a controller" do
@@ -147,7 +147,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src https://example.com;"
+      assert_policy "default-src https://example.com"
     end
 
     test "override content security policy to report only in a controller" do
@@ -176,7 +176,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;", report_only: true
+      assert_policy "default-src 'self' https:", report_only: true
     end
 
     test "global content security policy added to rack app" do
@@ -200,7 +200,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_policy "default-src 'self' https:;"
+      assert_policy "default-src 'self' https:"
     end
 
     private
