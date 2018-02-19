@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require "generators/generators_test_helper"
-require "rails/generators/rails/app/app_generator"
 require "generators/shared_generator_tests"
+require "rails/generators/rails/app/app_generator"
+require "rails/app_updater"
 
 DEFAULT_APP_FILES = %w(
   .gitignore
@@ -315,31 +316,29 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
-  def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
+  def test_app_update_generate_active_storage_contents_when_active_storage_does_not_defined
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
 
-    FileUtils.cd(app_root) do
-      quietly { system("bin/rails app:update") }
-    end
+    gen = Rails::AppUpdater.app_generator
+    gen.shell = @shell
+    gen.destination_root = app_root
+
+    quietly { gen.update_config_files }
 
     assert_file "#{app_root}/config/environments/development.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
+      assert_match(/config\.active_storage/, content)
     end
 
     assert_file "#{app_root}/config/environments/production.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
+      assert_match(/config\.active_storage/, content)
     end
 
     assert_file "#{app_root}/config/environments/test.rb" do |content|
-      assert_no_match(/config\.active_storage/, content)
+      assert_match(/config\.active_storage/, content)
     end
 
-    assert_no_file "#{app_root}/config/storage.yml"
-
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
-    end
+    assert_file "#{app_root}/config/storage.yml"
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
