@@ -34,7 +34,7 @@ module ApplicationTests
       app("development")
 
       get "/"
-      assert_not last_response.headers.key?("Content-Security-Policy")
+      assert_equal ";", last_response.headers["Content-Security-Policy"]
     end
 
     test "global content security policy in an initializer" do

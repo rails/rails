@@ -8,7 +8,7 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 
   def test_build
-    assert_nil @policy.build
+    assert_equal ";", @policy.build
 
     @policy.script_src :self
     assert_equal "script-src 'self';", @policy.build
@@ -271,10 +271,6 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
-    def empty_policy
-      head :ok
-    end
-
     private
       def condition?
         params[:condition] == "true"
@@ -288,14 +284,12 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/inline", to: "policy#inline"
       get "/conditional", to: "policy#conditional"
       get "/report-only", to: "policy#report_only"
-      get "/empty-policy", to: "policy#empty_policy"
     end
   end
 
   POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
     p.default_src :self
   end
-  EMPTY_POLICY = ActionDispatch::ContentSecurityPolicy.new
 
   class PolicyConfigMiddleware
     def initialize(app)
@@ -303,12 +297,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
     end
 
     def call(env)
-      env["action_dispatch.content_security_policy"] =
-        if env["PATH_INFO"] == "/empty-policy"
-          EMPTY_POLICY
-        else
-          POLICY
-        end
+      env["action_dispatch.content_security_policy"] = POLICY
       env["action_dispatch.content_security_policy_report_only"] = false
       env["action_dispatch.show_exceptions"] = false
 
@@ -346,13 +335,6 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_generates_report_only_content_security_policy
     get "/report-only"
     assert_policy "default-src 'self'; report-uri /violations;", report_only: true
-  end
-
-  def test_empty_policy
-    get "/empty-policy"
-    assert_response :success
-    assert_not response.headers.key?("Content-Security-Policy")
-    assert_not response.headers.key?("Content-Security-Policy-Report-Only")
   end
 
   private
