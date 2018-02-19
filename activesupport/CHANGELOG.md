@@ -1,3 +1,20 @@
+*   Return all mappings for a timezone identifier in `country_zones`
+
+    Some timezones like `Europe/London` have multiple mappings in
+    `ActiveSupport::TimeZone::MAPPING` so return all of them instead
+    of the first one found by using `Hash#value`. e.g:
+
+        # Before
+        ActiveSupport::TimeZone.country_zones("GB") # => ["Edinburgh"]
+
+        # After
+        ActiveSupport::TimeZone.country_zones("GB") # => ["Edinburgh", "London"]
+
+    Fixes #31668.
+
+    *Andrew White*
+
+
 ## Rails 5.0.6 (September 07, 2017) ##
 
 *   No changes.
