@@ -9,16 +9,11 @@ class ActiveStorage::Identification #:nodoc:
     @blob = blob
   end
 
-  def apply
-    blob.update!(content_type: content_type, identified: true) unless blob.identified?
+  def content_type
+    Marcel::MimeType.for(identifiable_chunk, name: filename, declared_type: declared_content_type)
   end
 
   private
-    def content_type
-      Marcel::MimeType.for(identifiable_chunk, name: filename, declared_type: declared_content_type)
-    end
-
-
     def identifiable_chunk
       Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |client|
         client.get(uri, "Range" => "bytes=0-4095").body
