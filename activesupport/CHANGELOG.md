@@ -1,5 +1,42 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Add `private: true` option to ActiveSupport's `delegate`.
+
+    In order to delegate methods as private methods:
+
+        class User < ActiveRecord::Base
+          has_one :profile
+          delegate :date_of_birth, to: :profile, private: true
+
+          def age
+            Date.today.year - date_of_birth.year
+          end
+        end
+
+        # User.new.age  # => 29
+        # User.new.date_of_birth
+        # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
+
+    More information in #31944.
+
+    *Tomas Valent*
+
+*   Return all mappings for a timezone identifier in `country_zones`
+
+    Some timezones like `Europe/London` have multiple mappings in
+    `ActiveSupport::TimeZone::MAPPING` so return all of them instead
+    of the first one found by using `Hash#value`. e.g:
+
+        # Before
+        ActiveSupport::TimeZone.country_zones("GB") # => ["Edinburgh"]
+
+        # After
+        ActiveSupport::TimeZone.country_zones("GB") # => ["Edinburgh", "London"]
+
+    Fixes #31668.
+
+    *Andrew White*
+
 *   `String#truncate_bytes` to truncate a string to a maximum bytesize without
     breaking multibyte characters or grapheme clusters like 👩‍👩‍👦‍👦.
 
