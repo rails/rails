@@ -113,6 +113,16 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
+  def test_fetch_multi_without_expires_in
+    @cache.write("foo", "bar")
+    @cache.write("fud", "biz")
+
+    values = @cache.fetch_multi("foo", "fu", "fud", expires_in: nil) { |value| value * 2 }
+
+    assert_equal({ "foo" => "bar", "fu" => "fufu", "fud" => "biz" }, values)
+    assert_equal("fufu", @cache.read("fu"))
+  end
+
   def test_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")

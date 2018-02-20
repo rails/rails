@@ -1,4 +1,4 @@
-<%= wrap_in_modules <<-rb.strip_heredoc
+<%= wrap_in_modules <<~rb
   class ApplicationMailer < ActionMailer::Base
     default from: 'from@example.com'
     layout 'mailer'

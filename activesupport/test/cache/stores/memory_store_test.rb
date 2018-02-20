@@ -14,6 +14,7 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheStoreVersionBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
 
   def test_prune_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)

@@ -291,7 +291,11 @@ module ActiveRecord
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
-        Relation.create(klass, table, predicate_builder)
+        Relation.create(
+          klass,
+          table: table,
+          predicate_builder: predicate_builder
+        )
       end
 
       def join_primary_key(*)
@@ -970,16 +974,14 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
-        attr_reader :delegate_reflection
-
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.actual_source_reflection
         end
 
       private
+        attr_reader :delegate_reflection
+
         def collect_join_reflections(seed)
           a = source_reflection.add_as_source seed
           if options[:source_type]

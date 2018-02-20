@@ -482,10 +482,9 @@ module CallbacksTest
         "block in run_callbacks",
         "tweedle_dum",
         "block in run_callbacks",
-        ("call" if RUBY_VERSION < "2.3"),
         "run_callbacks",
         "save"
-      ].compact, call_stack.map(&:label)
+      ], call_stack.map(&:label)
     end
 
     def test_short_call_stack

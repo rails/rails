@@ -2,9 +2,11 @@
 
 module ConnectionPoolBehavior
   def test_connection_pool
+    Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store, pool_size: 2, pool_timeout: 1)
+        cache = ActiveSupport::Cache.lookup_store(store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
         cache.clear
 
         threads = []
@@ -24,12 +26,14 @@ module ConnectionPoolBehavior
         threads.each(&:kill)
       end
     end
+  ensure
+    Thread.report_on_exception = original_report_on_exception if Thread.respond_to?(:report_on_exception)
   end
 
   def test_no_connection_pool
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store)
+        cache = ActiveSupport::Cache.lookup_store(store, store_options)
         cache.clear
 
         threads = []
@@ -50,4 +54,7 @@ module ConnectionPoolBehavior
       end
     end
   end
+
+  private
+    def store_options; {}; end
 end

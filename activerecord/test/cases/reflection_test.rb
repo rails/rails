@@ -66,6 +66,9 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_column_string_type_and_limit
     assert_equal :string, @first.column_for_attribute("title").type
+    assert_equal :string, @first.column_for_attribute(:title).type
+    assert_equal :string, @first.type_for_attribute("title").type
+    assert_equal :string, @first.type_for_attribute(:title).type
     assert_equal 250, @first.column_for_attribute("title").limit
   end
 
@@ -81,6 +84,9 @@ class ReflectionTest < ActiveRecord::TestCase
 
   def test_integer_columns
     assert_equal :integer, @first.column_for_attribute("id").type
+    assert_equal :integer, @first.column_for_attribute(:id).type
+    assert_equal :integer, @first.type_for_attribute("id").type
+    assert_equal :integer, @first.type_for_attribute(:id).type
   end
 
   def test_non_existent_columns_return_null_object
@@ -89,12 +95,20 @@ class ReflectionTest < ActiveRecord::TestCase
     assert_equal "attribute_that_doesnt_exist", column.name
     assert_nil column.sql_type
     assert_nil column.type
+
+    column = @first.column_for_attribute(:attribute_that_doesnt_exist)
+    assert_instance_of ActiveRecord::ConnectionAdapters::NullColumn, column
   end
 
   def test_non_existent_types_are_identity_types
     type = @first.type_for_attribute("attribute_that_doesnt_exist")
     object = Object.new
 
+    assert_equal object, type.deserialize(object)
+    assert_equal object, type.cast(object)
+    assert_equal object, type.serialize(object)
+
+    type = @first.type_for_attribute(:attribute_that_doesnt_exist)
     assert_equal object, type.deserialize(object)
     assert_equal object, type.cast(object)
     assert_equal object, type.serialize(object)
@@ -182,7 +196,7 @@ class ReflectionTest < ActiveRecord::TestCase
     expected = Pirate.reflect_on_all_associations.select { |r| r.options[:autosave] }
     received = Pirate.reflect_on_all_autosave_associations
 
-    assert !received.empty?
+    assert_not_empty received
     assert_not_equal Pirate.reflect_on_all_associations.length, received.length
     assert_equal expected, received
   end
@@ -334,12 +348,12 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_nested?
-    assert !Author.reflect_on_association(:comments).nested?
-    assert Author.reflect_on_association(:tags).nested?
+    assert_not_predicate Author.reflect_on_association(:comments), :nested?
+    assert_predicate Author.reflect_on_association(:tags), :nested?
 
     # Only goes :through once, but the through_reflection is a has_and_belongs_to_many, so this is
     # a nested through association
-    assert Category.reflect_on_association(:post_comments).nested?
+    assert_predicate Category.reflect_on_association(:post_comments), :nested?
   end
 
   def test_association_primary_key
@@ -387,36 +401,36 @@ class ReflectionTest < ActiveRecord::TestCase
   end
 
   def test_collection_association
-    assert Pirate.reflect_on_association(:birds).collection?
-    assert Pirate.reflect_on_association(:parrots).collection?
+    assert_predicate Pirate.reflect_on_association(:birds), :collection?
+    assert_predicate Pirate.reflect_on_association(:parrots), :collection?
 
-    assert !Pirate.reflect_on_association(:ship).collection?
-    assert !Ship.reflect_on_association(:pirate).collection?
+    assert_not_predicate Pirate.reflect_on_association(:ship), :collection?
+    assert_not_predicate Ship.reflect_on_association(:pirate), :collection?
   end
 
   def test_default_association_validation
-    assert ActiveRecord::Reflection.create(:has_many, :clients, nil, {}, Firm).validate?
+    assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, {}, Firm), :validate?
 
-    assert !ActiveRecord::Reflection.create(:has_one, :client, nil, {}, Firm).validate?
-    assert !ActiveRecord::Reflection.create(:belongs_to, :client, nil, {}, Firm).validate?
+    assert_not_predicate ActiveRecord::Reflection.create(:has_one, :client, nil, {}, Firm), :validate?
+    assert_not_predicate ActiveRecord::Reflection.create(:belongs_to, :client, nil, {}, Firm), :validate?
   end
 
   def test_always_validate_association_if_explicit
-    assert ActiveRecord::Reflection.create(:has_one, :client, nil, { validate: true }, Firm).validate?
-    assert ActiveRecord::Reflection.create(:belongs_to, :client, nil, { validate: true }, Firm).validate?
-    assert ActiveRecord::Reflection.create(:has_many, :clients, nil, { validate: true }, Firm).validate?
+    assert_predicate ActiveRecord::Reflection.create(:has_one, :client, nil, { validate: true }, Firm), :validate?
+    assert_predicate ActiveRecord::Reflection.create(:belongs_to, :client, nil, { validate: true }, Firm), :validate?
+    assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { validate: true }, Firm), :validate?
   end
 
   def test_validate_association_if_autosave
-    assert ActiveRecord::Reflection.create(:has_one, :client, nil, { autosave: true }, Firm).validate?
-    assert ActiveRecord::Reflection.create(:belongs_to, :client, nil, { autosave: true }, Firm).validate?
-    assert ActiveRecord::Reflection.create(:has_many, :clients, nil, { autosave: true }, Firm).validate?
+    assert_predicate ActiveRecord::Reflection.create(:has_one, :client, nil, { autosave: true }, Firm), :validate?
+    assert_predicate ActiveRecord::Reflection.create(:belongs_to, :client, nil, { autosave: true }, Firm), :validate?
+    assert_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { autosave: true }, Firm), :validate?
   end
 
   def test_never_validate_association_if_explicit
-    assert !ActiveRecord::Reflection.create(:has_one, :client, nil, { autosave: true, validate: false }, Firm).validate?
-    assert !ActiveRecord::Reflection.create(:belongs_to, :client, nil, { autosave: true, validate: false }, Firm).validate?
-    assert !ActiveRecord::Reflection.create(:has_many, :clients, nil, { autosave: true, validate: false }, Firm).validate?
+    assert_not_predicate ActiveRecord::Reflection.create(:has_one, :client, nil, { autosave: true, validate: false }, Firm), :validate?
+    assert_not_predicate ActiveRecord::Reflection.create(:belongs_to, :client, nil, { autosave: true, validate: false }, Firm), :validate?
+    assert_not_predicate ActiveRecord::Reflection.create(:has_many, :clients, nil, { autosave: true, validate: false }, Firm), :validate?
   end
 
   def test_foreign_key

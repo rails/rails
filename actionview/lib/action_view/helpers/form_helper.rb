@@ -1014,14 +1014,13 @@ module ActionView
       #   <%= fields :comment do |fields| %>
       #     <%= fields.text_field :body %>
       #   <% end %>
-      #   # => <input type="text" name="comment[body]>
+      #   # => <input type="text" name="comment[body]">
       #
       #   # Using a model infers the scope and assigns field values:
-      #   <%= fields model: Comment.new(body: "full bodied") do |fields| %<
+      #   <%= fields model: Comment.new(body: "full bodied") do |fields| %>
       #     <%= fields.text_field :body %>
       #   <% end %>
-      #   # =>
-      #   <input type="text" name="comment[body] value="full bodied">
+      #   # => <input type="text" name="comment[body]" value="full bodied">
       #
       #   # Using +fields+ with +form_with+:
       #   <%= form_with model: @post do |form| %>

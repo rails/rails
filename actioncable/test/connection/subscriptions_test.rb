@@ -45,7 +45,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       setup_connection
 
       @subscriptions.execute_command "command" => "subscribe"
-      assert @subscriptions.identifiers.empty?
+      assert_empty @subscriptions.identifiers
     end
   end
 
@@ -58,7 +58,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel.expects(:unsubscribe_from_channel)
 
       @subscriptions.execute_command "command" => "unsubscribe", "identifier" => @chat_identifier
-      assert @subscriptions.identifiers.empty?
+      assert_empty @subscriptions.identifiers
     end
   end
 
@@ -67,7 +67,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       setup_connection
 
       @subscriptions.execute_command "command" => "unsubscribe"
-      assert @subscriptions.identifiers.empty?
+      assert_empty @subscriptions.identifiers
     end
   end
 

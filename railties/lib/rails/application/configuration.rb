@@ -19,7 +19,7 @@ module Rails
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
                     :require_master_key
 
-      attr_reader :encoding, :api_only
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
@@ -58,6 +58,7 @@ module Rails
         @content_security_policy             = nil
         @content_security_policy_report_only = false
         @require_master_key                  = false
+        @loaded_config_version               = nil
       end
 
       def load_defaults(target_version)
@@ -112,9 +113,14 @@ module Rails
           if respond_to?(:action_view)
             action_view.form_with_generates_ids = true
           end
+        when "6.0"
+          load_defaults "5.2"
+
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
+
+        @loaded_config_version = target_version
       end
 
       def encoding=(value)
@@ -235,7 +241,11 @@ module Rails
       end
 
       def content_security_policy(&block)
-        @content_security_policy ||= ActionDispatch::ContentSecurityPolicy.new(&block)
+        if block_given?
+          @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
+        else
+          @content_security_policy
+        end
       end
 
       class Custom #:nodoc:

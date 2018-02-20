@@ -172,7 +172,7 @@ module ActionDispatch #:nodoc:
     end
 
     def build(context = nil)
-      build_directives(context).compact.join("; ") + ";"
+      build_directives(context).compact.join("; ")
     end
 
     private

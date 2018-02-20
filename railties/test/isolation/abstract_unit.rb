@@ -38,7 +38,12 @@ module TestHelpers
     end
 
     def app_path(*args)
-      tmp_path(*%w[app] + args)
+      path = tmp_path(*%w[app] + args)
+      if block_given?
+        yield path
+      else
+        path
+      end
     end
 
     def framework_path

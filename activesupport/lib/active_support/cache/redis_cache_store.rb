@@ -27,23 +27,7 @@ module ActiveSupport
     end
 
     ::Redis.include(ConnectionPoolLike)
-
-    class RedisDistributedWithConnectionPool < ::Redis::Distributed
-      def add_node(options)
-        pool_options = {}
-        pool_options[:size] = options[:pool_size] if options[:pool_size]
-        pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
-
-        if pool_options.empty?
-          super
-        else
-          options = { url: options } if options.is_a?(String)
-          options = @default_options.merge(options)
-          pool = ConnectionPool.new(pool_options) { ::Redis.new(options) }
-          @ring.add_node(pool)
-        end
-      end
-    end
+    ::Redis::Distributed.include(ConnectionPoolLike)
 
     # Redis cache store.
     #
@@ -94,7 +78,7 @@ module ActiveSupport
 
           def write_entry(key, entry, options)
             if options[:raw] && local_cache
-              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry = Entry.new(serialize_entry(entry, raw: true))
               raw_entry.expires_at = entry.expires_at
               super(key, raw_entry, options)
             else
@@ -105,7 +89,7 @@ module ActiveSupport
           def write_multi_entries(entries, options)
             if options[:raw] && local_cache
               raw_entries = entries.map do |key, entry|
-                raw_entry = Entry.new(entry.value.to_s)
+                raw_entry = Entry.new(serialize_entry(entry, raw: true))
                 raw_entry.expires_at = entry.expires_at
               end.to_h
 
@@ -147,7 +131,7 @@ module ActiveSupport
 
         private
           def build_redis_distributed_client(urls:, **redis_options)
-            RedisDistributedWithConnectionPool.new([], DEFAULT_REDIS_OPTIONS.merge(redis_options)).tap do |dist|
+            ::Redis::Distributed.new([], DEFAULT_REDIS_OPTIONS.merge(redis_options)).tap do |dist|
               urls.each { |u| dist.add_node url: u }
             end
           end
@@ -174,7 +158,7 @@ module ActiveSupport
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing <tt>cache: false</tt> or change the threshold by passing
+      # passing <tt>compress: false</tt> or change the threshold by passing
       # <tt>compress_threshold: 4.kilobytes</tt>.
       #
       # No expiry is set on cache entries by default. Redis is expected to
@@ -197,7 +181,16 @@ module ActiveSupport
       end
 
       def redis
-        @redis ||= wrap_in_connection_pool(self.class.build_redis(**redis_options))
+        @redis ||= begin
+          pool_options = self.class.send(:retrieve_pool_options, redis_options)
+
+          if pool_options.any?
+            self.class.send(:ensure_connection_pool_added!)
+            ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+          else
+            self.class.build_redis(**redis_options)
+          end
+        end
       end
 
       def inspect
@@ -211,7 +204,11 @@ module ActiveSupport
       # fetched values.
       def read_multi(*names)
         if mget_capable?
-          read_multi_mget(*names)
+          instrument(:read_multi, names, options) do |payload|
+            read_multi_mget(*names).tap do |results|
+              payload[:hits] = results.keys
+            end
+          end
         else
           super
         end
@@ -308,21 +305,6 @@ module ActiveSupport
       end
 
       private
-        def wrap_in_connection_pool(redis_connection)
-          if redis_connection.is_a?(::Redis)
-            pool_options = self.class.send(:retrieve_pool_options, redis_options)
-
-            if pool_options.empty?
-              redis_connection
-            else
-              self.class.send(:ensure_connection_pool_added!)
-              ConnectionPool.new(pool_options) { redis_connection }
-            end
-          else
-            redis_connection
-          end
-        end
-
         def set_redis_capabilities
           case redis
           when Redis::Distributed
@@ -339,6 +321,14 @@ module ActiveSupport
         def read_entry(key, options = nil)
           failsafe :read_entry do
             deserialize_entry redis.with { |c| c.get(key) }
+          end
+        end
+
+        def read_multi_entries(names, _options)
+          if mget_capable?
+            read_multi_mget(*names)
+          else
+            super
           end
         end
 
@@ -366,7 +356,7 @@ module ActiveSupport
         #
         # Requires Redis 2.6.12+ for extended SET options.
         def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          value = raw ? entry.value.to_s : serialize_entry(entry)
+          serialized_entry = serialize_entry(entry, raw: raw)
 
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
@@ -381,9 +371,9 @@ module ActiveSupport
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.with { |c| c.set key, value, modifiers }
+              redis.with { |c| c.set key, serialized_entry, modifiers }
             else
-              redis.with { |c| c.set key, value }
+              redis.with { |c| c.set key, serialized_entry }
             end
           end
         end
@@ -400,7 +390,7 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.with { |c| c.mapped_mset(entries) }
+                redis.with { |c| c.mapped_mset(serialize_entries(entries, raw: options[:raw])) }
               end
             else
               super
@@ -423,15 +413,25 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
+        def deserialize_entry(serialized_entry)
+          if serialized_entry
+            entry = Marshal.load(serialized_entry) rescue serialized_entry
             entry.is_a?(Entry) ? entry : Entry.new(entry)
           end
         end
 
-        def serialize_entry(entry)
-          Marshal.dump(entry)
+        def serialize_entry(entry, raw: false)
+          if raw
+            entry.value.to_s
+          else
+            Marshal.dump(entry)
+          end
+        end
+
+        def serialize_entries(entries, raw: false)
+          entries.transform_values do |entry|
+            serialize_entry entry, raw: raw
+          end
         end
 
         def failsafe(method, returning: nil)

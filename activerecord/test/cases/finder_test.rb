@@ -648,13 +648,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_with_integer_and_order_should_use_sql_limit
     relation = Topic.order("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_with_integer_and_reorder_should_use_sql_limit
     relation = Topic.reorder("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_on_loaded_relation_should_not_use_sql
@@ -866,6 +866,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, balance
     found_customer = Customer.where(balance: balance).first
     assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_three_mappings_array
+    david_address = customers(:david).address
+    zaphod_address = customers(:zaphod).address
+    barney_address = customers(:barney).address
+    assert_kind_of Address, david_address
+    assert_kind_of Address, zaphod_address
+    found_customers = Customer.where(address: [david_address, zaphod_address, barney_address])
+    assert_equal [customers(:david), customers(:zaphod), customers(:barney)], found_customers.sort_by(&:id)
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_array
+    david_balance = customers(:david).balance
+    zaphod_balance = customers(:zaphod).balance
+    assert_kind_of Money, david_balance
+    assert_kind_of Money, zaphod_balance
+    found_customers = Customer.where(balance: [david_balance, zaphod_balance])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate

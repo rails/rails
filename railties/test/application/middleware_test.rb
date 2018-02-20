@@ -45,7 +45,8 @@ module ApplicationTests
         "ActionDispatch::ContentSecurityPolicy::Middleware",
         "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag"
+        "Rack::ETag",
+        "Rack::TempfileReaper"
       ], middleware
     end
 

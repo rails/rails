@@ -117,9 +117,9 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).create
-        $stdout.puts "Created database '#{configuration['database']}'"
+        $stdout.puts "Created database '#{configuration['database']}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{configuration['database']}' already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -144,7 +144,7 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).drop
-        $stdout.puts "Dropped database '#{configuration['database']}'"
+        $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
@@ -163,10 +163,14 @@ module ActiveRecord
         }
       end
 
+      def verbose?
+        ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+      end
+
       def migrate
         check_target_version
 
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        verbose = verbose?
         scope = ENV["SCOPE"]
         verbose_was, Migration.verbose = Migration.verbose, verbose
         Base.connection.migration_context.migrate(target_version) do |migration|

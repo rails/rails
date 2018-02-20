@@ -38,6 +38,6 @@ class SanitizeHelperTest < ActionView::TestCase
   end
 
   def test_sanitize_is_marked_safe
-    assert sanitize("<html><script></script></html>").html_safe?
+    assert_predicate sanitize("<html><script></script></html>"), :html_safe?
   end
 end

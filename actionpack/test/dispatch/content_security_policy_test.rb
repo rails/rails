@@ -8,10 +8,10 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 
   def test_build
-    assert_equal ";", @policy.build
+    assert_equal "", @policy.build
 
     @policy.script_src :self
-    assert_equal "script-src 'self';", @policy.build
+    assert_equal "script-src 'self'", @policy.build
   end
 
   def test_dup
@@ -25,34 +25,34 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
   def test_mappings
     @policy.script_src :data
-    assert_equal "script-src data:;", @policy.build
+    assert_equal "script-src data:", @policy.build
 
     @policy.script_src :mediastream
-    assert_equal "script-src mediastream:;", @policy.build
+    assert_equal "script-src mediastream:", @policy.build
 
     @policy.script_src :blob
-    assert_equal "script-src blob:;", @policy.build
+    assert_equal "script-src blob:", @policy.build
 
     @policy.script_src :filesystem
-    assert_equal "script-src filesystem:;", @policy.build
+    assert_equal "script-src filesystem:", @policy.build
 
     @policy.script_src :self
-    assert_equal "script-src 'self';", @policy.build
+    assert_equal "script-src 'self'", @policy.build
 
     @policy.script_src :unsafe_inline
-    assert_equal "script-src 'unsafe-inline';", @policy.build
+    assert_equal "script-src 'unsafe-inline'", @policy.build
 
     @policy.script_src :unsafe_eval
-    assert_equal "script-src 'unsafe-eval';", @policy.build
+    assert_equal "script-src 'unsafe-eval'", @policy.build
 
     @policy.script_src :none
-    assert_equal "script-src 'none';", @policy.build
+    assert_equal "script-src 'none'", @policy.build
 
     @policy.script_src :strict_dynamic
-    assert_equal "script-src 'strict-dynamic';", @policy.build
+    assert_equal "script-src 'strict-dynamic'", @policy.build
 
     @policy.script_src :none, :report_sample
-    assert_equal "script-src 'none' 'report-sample';", @policy.build
+    assert_equal "script-src 'none' 'report-sample'", @policy.build
   end
 
   def test_fetch_directives
@@ -131,16 +131,16 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
   def test_document_directives
     @policy.base_uri "https://example.com"
-    assert_match %r{base-uri https://example\.com;}, @policy.build
+    assert_match %r{base-uri https://example\.com}, @policy.build
 
     @policy.plugin_types "application/x-shockwave-flash"
-    assert_match %r{plugin-types application/x-shockwave-flash;}, @policy.build
+    assert_match %r{plugin-types application/x-shockwave-flash}, @policy.build
 
     @policy.sandbox
-    assert_match %r{sandbox;}, @policy.build
+    assert_match %r{sandbox}, @policy.build
 
     @policy.sandbox "allow-scripts", "allow-modals"
-    assert_match %r{sandbox allow-scripts allow-modals;}, @policy.build
+    assert_match %r{sandbox allow-scripts allow-modals}, @policy.build
 
     @policy.sandbox false
     assert_no_match %r{sandbox}, @policy.build
@@ -148,35 +148,35 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
   def test_navigation_directives
     @policy.form_action :self
-    assert_match %r{form-action 'self';}, @policy.build
+    assert_match %r{form-action 'self'}, @policy.build
 
     @policy.frame_ancestors :self
-    assert_match %r{frame-ancestors 'self';}, @policy.build
+    assert_match %r{frame-ancestors 'self'}, @policy.build
   end
 
   def test_reporting_directives
     @policy.report_uri "/violations"
-    assert_match %r{report-uri /violations;}, @policy.build
+    assert_match %r{report-uri /violations}, @policy.build
   end
 
   def test_other_directives
     @policy.block_all_mixed_content
-    assert_match %r{block-all-mixed-content;}, @policy.build
+    assert_match %r{block-all-mixed-content}, @policy.build
 
     @policy.block_all_mixed_content false
     assert_no_match %r{block-all-mixed-content}, @policy.build
 
     @policy.require_sri_for :script, :style
-    assert_match %r{require-sri-for script style;}, @policy.build
+    assert_match %r{require-sri-for script style}, @policy.build
 
     @policy.require_sri_for "script", "style"
-    assert_match %r{require-sri-for script style;}, @policy.build
+    assert_match %r{require-sri-for script style}, @policy.build
 
     @policy.require_sri_for
     assert_no_match %r{require-sri-for}, @policy.build
 
     @policy.upgrade_insecure_requests
-    assert_match %r{upgrade-insecure-requests;}, @policy.build
+    assert_match %r{upgrade-insecure-requests}, @policy.build
 
     @policy.upgrade_insecure_requests false
     assert_no_match %r{upgrade-insecure-requests}, @policy.build
@@ -184,13 +184,13 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
   def test_multiple_sources
     @policy.script_src :self, :https
-    assert_equal "script-src 'self' https:;", @policy.build
+    assert_equal "script-src 'self' https:", @policy.build
   end
 
   def test_multiple_directives
     @policy.script_src :self, :https
     @policy.style_src :self, :https
-    assert_equal "script-src 'self' https:; style-src 'self' https:;", @policy.build
+    assert_equal "script-src 'self' https:; style-src 'self' https:", @policy.build
   end
 
   def test_dynamic_directives
@@ -198,12 +198,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     controller = Struct.new(:request).new(request)
 
     @policy.script_src -> { request.host }
-    assert_equal "script-src www.example.com;", @policy.build(controller)
+    assert_equal "script-src www.example.com", @policy.build(controller)
   end
 
   def test_mixed_static_and_dynamic_directives
     @policy.script_src :self, -> { "foo.com" }, "bar.com"
-    assert_equal "script-src 'self' foo.com bar.com;", @policy.build(Object.new)
+    assert_equal "script-src 'self' foo.com bar.com", @policy.build(Object.new)
   end
 
   def test_invalid_directive_source
@@ -316,25 +316,25 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
   def test_generates_content_security_policy_header
     get "/"
-    assert_policy "default-src 'self';"
+    assert_policy "default-src 'self'"
   end
 
   def test_generates_inline_content_security_policy
     get "/inline"
-    assert_policy "default-src https://example.com;"
+    assert_policy "default-src https://example.com"
   end
 
   def test_generates_conditional_content_security_policy
     get "/conditional", params: { condition: "true" }
-    assert_policy "default-src https://true.example.com;"
+    assert_policy "default-src https://true.example.com"
 
     get "/conditional", params: { condition: "false" }
-    assert_policy "default-src https://false.example.com;"
+    assert_policy "default-src https://false.example.com"
   end
 
   def test_generates_report_only_content_security_policy
     get "/report-only"
-    assert_policy "default-src 'self'; report-uri /violations;", report_only: true
+    assert_policy "default-src 'self'; report-uri /violations", report_only: true
   end
 
   private

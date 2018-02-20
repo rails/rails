@@ -281,7 +281,7 @@ module ActiveRecord
         end
 
         def relation
-          relation = Relation.create(self, arel_table, predicate_builder)
+          relation = Relation.create(self)
 
           if finder_needs_type_condition? && !ignore_default_scope?
             relation.where!(type_condition)
@@ -382,8 +382,10 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
-      @new_record  = true
-      @destroyed   = false
+      @new_record               = true
+      @destroyed                = false
+      @_start_transaction_state = {}
+      @transaction_state        = nil
 
       super
     end

@@ -418,6 +418,7 @@ module ActiveRecord
     end
 
     alias update_attributes update
+    deprecate :update_attributes
 
     # Updates its receiver just like #update but calls #save! instead
     # of +save+, so an exception is raised if the record is invalid and saving will fail.
@@ -431,6 +432,7 @@ module ActiveRecord
     end
 
     alias update_attributes! update!
+    deprecate :update_attributes!
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)

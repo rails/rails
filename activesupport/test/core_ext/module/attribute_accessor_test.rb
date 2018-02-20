@@ -65,18 +65,18 @@ class ModuleAttributeAccessorTest < ActiveSupport::TestCase
     assert_respond_to @module, :foo
     assert_respond_to @module, :foo=
     assert_respond_to @object, :bar
-    assert !@object.respond_to?(:bar=)
+    assert_not_respond_to @object, :bar=
   end
 
   def test_should_not_create_instance_reader
     assert_respond_to @module, :shaq
-    assert !@object.respond_to?(:shaq)
+    assert_not_respond_to @object, :shaq
   end
 
   def test_should_not_create_instance_accessors
     assert_respond_to @module, :camp
-    assert !@object.respond_to?(:camp)
-    assert !@object.respond_to?(:camp=)
+    assert_not_respond_to @object, :camp
+    assert_not_respond_to @object, :camp=
   end
 
   def test_should_raise_name_error_if_attribute_name_is_invalid

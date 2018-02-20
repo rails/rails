@@ -164,8 +164,8 @@ module ActiveSupport
         private
           def retrieve_pool_options(options)
             {}.tap do |pool_options|
-              pool_options[:size] = options[:pool_size] if options[:pool_size]
-              pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
+              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
             end
           end
 

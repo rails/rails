@@ -115,7 +115,7 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")].values_at(*indkey).compact
+              columns = Hash[query(<<~SQL, "SCHEMA")].values_at(*indkey).compact
                 SELECT a.attnum, a.attname
                 FROM pg_attribute a
                 WHERE a.attrelid = #{oid}
@@ -124,9 +124,13 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+              expressions.scan(/(?<column>\w+)\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
                 opclasses[column] = opclass.to_sym if opclass
-                orders[column] = :desc if desc
+                if nulls
+                  orders[column] = [desc, nulls].compact.join(" ")
+                else
+                  orders[column] = :desc if desc
+                end
               end
             end
 
@@ -154,7 +158,7 @@ module ActiveRecord
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
           if scope[:name]
-            query_value(<<-SQL.strip_heredoc, "SCHEMA")
+            query_value(<<~SQL, "SCHEMA")
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -349,7 +353,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<-SQL.strip_heredoc, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA")
             SELECT a.attname
               FROM (
                      SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
@@ -375,7 +379,7 @@ module ActiveRecord
             if respond_to?(method, true)
               sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
               sql_fragments << sqls
-              non_combinable_operations << procs if procs.present?
+              non_combinable_operations.concat(procs)
             else
               execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
               non_combinable_operations.each(&:call)
@@ -498,7 +502,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
+          fk_info = exec_query(<<~SQL, "SCHEMA")
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid

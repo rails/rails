@@ -64,5 +64,14 @@ module ActiveModel
 
       assert_equal "4.4", data.integer_field
     end
+
+    test "attributes with proc defaults can be marshalled" do
+      data = ModelForAttributesTest.new
+      attributes = data.instance_variable_get(:@attributes)
+      round_tripped = Marshal.load(Marshal.dump(data))
+      new_attributes = round_tripped.instance_variable_get(:@attributes)
+
+      assert_equal attributes, new_attributes
+    end
   end
 end
