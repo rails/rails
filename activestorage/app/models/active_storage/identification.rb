@@ -21,7 +21,7 @@ class ActiveStorage::Identification
 
     def identifiable_chunk
       Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |client|
-        client.get(uri, "Range" => "0-4096").body
+        client.get(uri, "Range" => "bytes=0-4095").body
       end
     end
 
