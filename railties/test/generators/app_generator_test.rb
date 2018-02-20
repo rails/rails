@@ -315,6 +315,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
+  def test_mini_magick_gem_when_skip_active_storage_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-storage"]
+
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
+    end
+  end
+
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-active-storage"]
@@ -336,10 +345,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
-
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
-    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
@@ -363,10 +368,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
-
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
-    end
   end
 
   def test_app_update_does_not_change_config_target_version
