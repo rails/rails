@@ -9,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Local and cloud file storage framework."
   s.description = "Attach cloud and local files in Rails applications."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 

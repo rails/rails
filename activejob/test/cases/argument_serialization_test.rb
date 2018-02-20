@@ -13,6 +13,9 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   [ nil, 1, 1.0, 1_000_000_000_000_000_000_000,
     "a", true, false, BigDecimal(5),
+    :a, 1.day, Date.new(2001, 2, 3), Time.new(2002, 10, 31, 2, 2, 2, "+02:00"),
+    DateTime.new(2001, 2, 3, 4, 5, 6, "+03:00"),
+    ActiveSupport::TimeWithZone.new(Time.utc(1999, 12, 31, 23, 59, 59), ActiveSupport::TimeZone["UTC"]),
     [ 1, "a" ],
     { "a" => 1 }
   ].each do |arg|
@@ -21,7 +24,7 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
     end
   end
 
-  [ :a, Object.new, self, Person.find("5").to_gid ].each do |arg|
+  [ Object.new, self, Person.find("5").to_gid ].each do |arg|
     test "does not serialize #{arg.class}" do
       assert_raises ActiveJob::SerializationError do
         ActiveJob::Arguments.serialize [ arg ]
@@ -44,6 +47,49 @@ class ArgumentSerializationTest < ActiveSupport::TestCase
 
   test "should maintain string and symbol keys" do
     assert_arguments_roundtrip([a: 1, "b" => 2])
+  end
+
+  test "serialize a hash" do
+    symbol_key = { a: 1 }
+    string_key = { "a" => 1 }
+    indifferent_access = { a: 1 }.with_indifferent_access
+
+    assert_equal(
+      { "a" => 1, "_aj_symbol_keys" => ["a"] },
+      ActiveJob::Arguments.serialize([symbol_key]).first
+    )
+    assert_equal(
+      { "a" => 1, "_aj_symbol_keys" => [] },
+      ActiveJob::Arguments.serialize([string_key]).first
+    )
+    assert_equal(
+      { "a" => 1, "_aj_hash_with_indifferent_access" => true },
+      ActiveJob::Arguments.serialize([indifferent_access]).first
+    )
+  end
+
+  test "deserialize a hash" do
+    symbol_key = { "a" => 1, "_aj_symbol_keys" => ["a"] }
+    string_key = { "a" => 1, "_aj_symbol_keys" => [] }
+    another_string_key = { "a" => 1 }
+    indifferent_access = { "a" => 1, "_aj_hash_with_indifferent_access" => true }
+
+    assert_equal(
+      { a: 1 },
+      ActiveJob::Arguments.deserialize([symbol_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([string_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([another_string_key]).first
+    )
+    assert_equal(
+      { "a" => 1 },
+      ActiveJob::Arguments.deserialize([indifferent_access]).first
+    )
   end
 
   test "should maintain hash with indifferent access" do

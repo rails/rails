@@ -11,8 +11,6 @@ require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
 
-require "active_support/core_ext/string/strip"
-
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
@@ -284,7 +282,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<-SQL.strip_heredoc, "SCHEMA").presence
+        query_value(<<~SQL, "SCHEMA").presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -392,7 +390,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
+        fk_info = exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -480,7 +478,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<-SQL.strip_heredoc, "SCHEMA")
+        query_values(<<~SQL, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'

@@ -9,9 +9,9 @@ require "constantize_test_cases"
 require "active_support/inflector"
 require "active_support/core_ext/string"
 require "active_support/time"
-require "active_support/core_ext/string/strip"
 require "active_support/core_ext/string/output_safety"
 require "active_support/core_ext/string/indent"
+require "active_support/core_ext/string/strip"
 require "time_zone_test_helpers"
 require "yaml"
 
@@ -22,6 +22,10 @@ class StringInflectionsTest < ActiveSupport::TestCase
 
   def test_strip_heredoc_on_an_empty_string
     assert_equal "", "".strip_heredoc
+  end
+
+  def test_strip_heredoc_on_a_frozen_string
+    assert "".freeze.strip_heredoc.frozen?
   end
 
   def test_strip_heredoc_on_a_string_with_no_lines
@@ -279,6 +283,68 @@ class StringInflectionsTest < ActiveSupport::TestCase
     assert_equal "Hello[...]", "Hello Big World!".truncate(13, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(14, omission: "[...]", separator: /\s/)
     assert_equal "Hello Big[...]", "Hello Big World!".truncate(15, omission: "[...]", separator: /\s/)
+  end
+
+  def test_truncate_bytes
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncate_bytes_preserves_codepoints
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: nil)
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: " ")
+    assert_equal "👍👍👍👍", "👍👍👍👍".truncate_bytes(16, omission: "🖖")
+
+    assert_equal "👍👍👍…", "👍👍👍👍".truncate_bytes(15)
+    assert_equal "👍👍👍", "👍👍👍👍".truncate_bytes(15, omission: nil)
+    assert_equal "👍👍👍 ", "👍👍👍👍".truncate_bytes(15, omission: " ")
+    assert_equal "👍👍🖖", "👍👍👍👍".truncate_bytes(15, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(5)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(5, omission: nil)
+    assert_equal "👍 ", "👍👍👍👍".truncate_bytes(5, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(5, omission: "🖖")
+
+    assert_equal "…", "👍👍👍👍".truncate_bytes(4)
+    assert_equal "👍", "👍👍👍👍".truncate_bytes(4, omission: nil)
+    assert_equal " ", "👍👍👍👍".truncate_bytes(4, omission: " ")
+    assert_equal "🖖", "👍👍👍👍".truncate_bytes(4, omission: "🖖")
+
+    assert_raise ArgumentError do
+      "👍👍👍👍".truncate_bytes(3, omission: "🖖")
+    end
+  end
+
+  def test_truncates_bytes_preserves_grapheme_clusters
+    assert_equal "a ", "a ❤️ b".truncate_bytes(2, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(3, omission: nil)
+    assert_equal "a ", "a ❤️ b".truncate_bytes(7, omission: nil)
+    assert_equal "a ❤️", "a ❤️ b".truncate_bytes(8, omission: nil)
+
+    assert_equal "a ", "a 👩‍❤️‍👩".truncate_bytes(13, omission: nil)
+    assert_equal "", "👩‍❤️‍👩".truncate_bytes(13, omission: nil)
   end
 
   def test_truncate_words

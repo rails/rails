@@ -46,13 +46,9 @@ module ActiveRecord
         binds
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :value_transformation
 
-      private
         def join(table, constraint)
           table.create_join(table, table.create_on(constraint))
         end
@@ -135,7 +131,7 @@ module ActiveRecord
               item = eval_scope(reflection, scope_chain_item, owner)
 
               if scope_chain_item == chain_head.scope
-                scope.merge! item.except(:where, :includes)
+                scope.merge! item.except(:where, :includes, :unscope, :order)
               end
 
               reflection.all_includes do
@@ -144,7 +140,7 @@ module ActiveRecord
 
               scope.unscope!(*item.unscope_values)
               scope.where_clause += item.where_clause
-              scope.order_values |= item.order_values
+              scope.order_values = item.order_values | scope.order_values
             end
           end
 

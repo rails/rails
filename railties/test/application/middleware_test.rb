@@ -70,8 +70,7 @@ module ApplicationTests
         "ActionDispatch::Callbacks",
         "Rack::Head",
         "Rack::ConditionalGet",
-        "Rack::ETag",
-        "Rack::TempfileReaper"
+        "Rack::ETag"
       ], middleware
     end
 

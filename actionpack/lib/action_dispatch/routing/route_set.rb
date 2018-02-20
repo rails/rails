@@ -153,13 +153,13 @@ module ActionDispatch
           url_name = :"#{name}_url"
 
           @path_helpers_module.module_eval do
-            define_method(path_name) do |*args|
+            redefine_method(path_name) do |*args|
               helper.call(self, args, true)
             end
           end
 
           @url_helpers_module.module_eval do
-            define_method(url_name) do |*args|
+            redefine_method(url_name) do |*args|
               helper.call(self, args, false)
             end
           end

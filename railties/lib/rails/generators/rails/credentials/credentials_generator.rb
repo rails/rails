@@ -2,7 +2,6 @@
 
 require "rails/generators/base"
 require "rails/generators/rails/master_key/master_key_generator"
-require "active_support/core_ext/string/strip"
 require "active_support/encrypted_configuration"
 
 module Rails
@@ -43,13 +42,13 @@ module Rails
         end
 
         def credentials_template
-          <<-YAML.strip_heredoc
-          # aws:
-          #   access_key_id: 123
-          #   secret_access_key: 345
+          <<~YAML
+            # aws:
+            #   access_key_id: 123
+            #   secret_access_key: 345
 
-          # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
-          secret_key_base: #{SecureRandom.hex(64)}
+            # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
+            secret_key_base: #{SecureRandom.hex(64)}
           YAML
         end
     end

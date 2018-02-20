@@ -85,7 +85,7 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+        raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
           This migration uses #{command}, which is not automatically reversible.
           To make the migration reversible you can either:
           1. Define #up and #down methods in place of the #change method.

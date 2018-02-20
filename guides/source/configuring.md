@@ -741,6 +741,8 @@ There are a few configuration options available in Active Support:
 
 * `config.active_job.logger` accepts a logger conforming to the interface of Log4r or the default Ruby Logger class, which is then used to log information from Active Job. You can retrieve this logger by calling `logger` on either an Active Job class or an Active Job instance. Set to `nil` to disable logging.
 
+* `config.active_job.custom_serializers` allows to set custom argument serializers. Defaults to `[]`.
+
 ### Configuring Action Cable
 
 * `config.action_cable.url` accepts a string for the URL for where

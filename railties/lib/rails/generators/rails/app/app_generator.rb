@@ -130,6 +130,8 @@ module Rails
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
 
+      @config_target_version = Rails.application.config.loaded_config_version || "5.0"
+
       config
 
       unless cookie_serializer_config_exist
@@ -233,6 +235,10 @@ module Rails
     def vendor
       empty_directory_with_keep_file "vendor"
     end
+
+    def config_target_version
+      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+    end
   end
 
   module Generators
@@ -242,7 +248,7 @@ module Rails
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
-      WEBPACKS = %w( react vue angular elm )
+      WEBPACKS = %w( react vue angular elm stimulus )
 
       add_shared_options_for "application"
 
@@ -383,9 +389,13 @@ module Rails
         end
       end
 
-      def delete_application_layout_file_if_api_option
+      def delete_app_views_if_api_option
         if options[:api]
-          remove_file "app/views/layouts/application.html.erb"
+          if options[:skip_action_mailer]
+            remove_dir "app/views"
+          else
+            remove_file "app/views/layouts/application.html.erb"
+          end
         end
       end
 

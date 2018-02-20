@@ -1211,20 +1211,20 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_calling_update_attributes_on_id_changes_the_counter_cache
+  def test_calling_update_on_id_changes_the_counter_cache
     topic = Topic.order("id ASC").first
     original_count = topic.replies.to_a.size
     assert_equal original_count, topic.replies_count
 
     first_reply = topic.replies.first
-    first_reply.update_attributes(parent_id: nil)
+    first_reply.update(parent_id: nil)
     assert_equal original_count - 1, topic.reload.replies_count
 
-    first_reply.update_attributes(parent_id: topic.id)
+    first_reply.update(parent_id: topic.id)
     assert_equal original_count, topic.reload.replies_count
   end
 
-  def test_calling_update_attributes_changing_ids_doesnt_change_counter_cache
+  def test_calling_update_changing_ids_doesnt_change_counter_cache
     topic1 = Topic.find(1)
     topic2 = Topic.find(3)
     original_count1 = topic1.replies.to_a.size
@@ -1233,11 +1233,11 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply1 = topic1.replies.first
     reply2 = topic2.replies.first
 
-    reply1.update_attributes(parent_id: topic2.id)
+    reply1.update(parent_id: topic2.id)
     assert_equal original_count1 - 1, topic1.reload.replies_count
     assert_equal original_count2 + 1, topic2.reload.replies_count
 
-    reply2.update_attributes(parent_id: topic1.id)
+    reply2.update(parent_id: topic1.id)
     assert_equal original_count1, topic1.reload.replies_count
     assert_equal original_count2, topic2.reload.replies_count
   end
@@ -1840,6 +1840,13 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       lambda { authors(:mary).comments << Comment.create!(body: "Yay", post_id: 424242) },
       lambda { authors(:mary).comments.delete(authors(:mary).comments.first) },
     ].each { |block| assert_raise(ActiveRecord::HasManyThroughCantAssociateThroughHasOneOrManyReflection, &block) }
+  end
+
+  def test_associations_order_should_be_priority_over_throughs_order
+    david = authors(:david)
+    expected = [12, 10, 9, 8, 7, 6, 5, 3, 2, 1]
+    assert_equal expected, david.comments_desc.map(&:id)
+    assert_equal expected, Author.includes(:comments_desc).find(david.id).comments_desc.map(&:id)
   end
 
   def test_dynamic_find_should_respect_association_order_for_through

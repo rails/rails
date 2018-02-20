@@ -662,7 +662,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     assert_includes developer.sym_special_projects, sp
   end
 
-  def test_update_attributes_after_push_without_duplicate_join_table_rows
+  def test_update_columns_after_push_without_duplicate_join_table_rows
     developer = Developer.new("name" => "Kano")
     project = SpecialProject.create("name" => "Special Project")
     assert developer.save

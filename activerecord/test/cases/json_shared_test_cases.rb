@@ -101,7 +101,7 @@ module JSONSharedTestCases
     x = klass.where(payload: nil).first
     assert_nil(x)
 
-    json.update_attributes(payload: nil)
+    json.update(payload: nil)
     x = klass.where(payload: nil).first
     assert_equal(json.reload, x)
   end

@@ -60,8 +60,6 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.9
-  - 2.3.6
   - 2.4.3
   - 2.5.0
   - ruby-head
@@ -70,18 +68,6 @@ matrix:
   include:
     - rvm: 2.5.0
       env: "GEM=av:ujs"
-    - rvm: 2.2.9
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.3.6
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
     - rvm: 2.4.3
       env: "GEM=aj:integration"
       services:
@@ -100,15 +86,15 @@ matrix:
         - memcached
         - redis-server
         - rabbitmq
-    - rvm: 2.3.6
+    - rvm: 2.5.0
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.2
-    - rvm: 2.3.6
+    - rvm: 2.5.0
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.3.6
+    - rvm: 2.5.0
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:

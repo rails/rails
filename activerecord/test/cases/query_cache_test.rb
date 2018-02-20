@@ -320,6 +320,17 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cache_is_available_when_connection_is_connected
+    conf = ActiveRecord::Base.configurations
+
+    ActiveRecord::Base.configurations = {}
+    Task.cache do
+      assert_queries(1) { Task.find(1); Task.find(1) }
+    end
+  ensure
+    ActiveRecord::Base.configurations = conf
+  end
+
   def test_cache_is_available_when_using_a_not_connected_connection
     skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
     with_temporary_connection_pool do
@@ -366,7 +377,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     post = Post.first
 
     Post.transaction do
-      post.update_attributes(title: "rollback")
+      post.update(title: "rollback")
       assert_equal 1, Post.where(title: "rollback").to_a.count
       raise ActiveRecord::Rollback
     end
@@ -379,7 +390,7 @@ class QueryCacheTest < ActiveRecord::TestCase
 
     begin
       Post.transaction do
-        post.update_attributes(title: "rollback")
+        post.update(title: "rollback")
         assert_equal 1, Post.where(title: "rollback").to_a.count
         raise "broken"
       end

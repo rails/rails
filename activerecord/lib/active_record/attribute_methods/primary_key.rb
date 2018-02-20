@@ -131,7 +131,7 @@ module ActiveRecord
             def suppress_composite_primary_key(pk)
               return pk unless pk.is_a?(Array)
 
-              warn <<-WARNING.strip_heredoc
+              warn <<~WARNING
                 WARNING: Active Record does not support composite primary key.
 
                 #{table_name} has composite primary key. Composite primary key is ignored.
