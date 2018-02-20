@@ -54,6 +54,10 @@ module ActiveSupport
             @data[key]
           end
 
+          def read_multi_entries(keys, options)
+            Hash[keys.map { |name| [name, read_entry(name, options)] }.keep_if { |_name, value| value }]
+          end
+
           def write_entry(key, value, options)
             @data[key] = value
             true
@@ -116,13 +120,13 @@ module ActiveSupport
             end
           end
 
-          def read_multi_entries(names, options)
+          def read_multi_entries(keys, options)
             return super unless local_cache
 
-            local_entries = Hash[names.map { |name| [name, local_cache.read_entry(name, options)] }.keep_if { |_name, value| value }]
-            missed_keys = names - local_entries.keys
+            local_entries = local_cache.read_multi_entries(keys, options)
+            missed_keys = keys - local_entries.keys
 
-            if missed_keys.present?
+            if missed_keys.any?
               local_entries.merge!(super(missed_keys, options))
             else
               local_entries
