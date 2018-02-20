@@ -315,16 +315,12 @@ module ActiveRecord
           environments << "test" if environment == "development"
 
           ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
-            next unless configuration["database"]
-
             yield configuration, configuration_environment
           end
         end
 
         def each_local_configuration
           ActiveRecord::Base.configurations.each_value do |configuration|
-            next unless configuration["database"]
-
             if local_database?(configuration)
               yield configuration
             else
