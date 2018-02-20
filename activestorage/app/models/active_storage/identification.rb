@@ -2,7 +2,7 @@
 
 require "net/http"
 
-class ActiveStorage::Identification
+class ActiveStorage::Identification #:nodoc:
   attr_reader :blob
 
   def initialize(blob)
