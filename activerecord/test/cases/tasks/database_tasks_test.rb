@@ -124,14 +124,6 @@ module ActiveRecord
       ActiveRecord::Base.connection_handler.stubs(:establish_connection)
     end
 
-    def test_ignores_configurations_without_databases
-      @configurations["development"].merge!("database" => nil)
-
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
-    end
-
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
@@ -248,14 +240,6 @@ module ActiveRecord
       @configurations = { development: { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
-    end
-
-    def test_ignores_configurations_without_databases
-      @configurations[:development].merge!("database" => nil)
-
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
     def test_ignores_remote_databases
