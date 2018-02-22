@@ -1501,7 +1501,7 @@ class BasicsTest < ActiveRecord::TestCase
     query = Developer.from("developers").to_sql
     quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
 
-    assert_match(/SELECT #{quoted_id}.* FROM developers/, query)
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
   end
 
   test "using table name qualified column names unless having SELECT list explicitly" do
