@@ -14,7 +14,7 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
     reporter << Minitest::ProgressReporter.new(@output, @options)
     reporter << Minitest::Reporter.new(@output, @options)
 
-    Minitest::plugin_rails_replace_reporters(reporter, {})
+    Minitest.plugin_rails_replace_reporters(reporter, {})
 
     assert_equal 3, reporter.reporters.count
     assert reporter.reporters.any? { |candidate| candidate.kind_of?(Minitest::SuppressedSummaryReporter) }
@@ -25,7 +25,7 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
   test "no custom reporters are added if nothing to replace" do
     reporter = Minitest::CompositeReporter.new
 
-    Minitest::plugin_rails_replace_reporters(reporter, {})
+    Minitest.plugin_rails_replace_reporters(reporter, {})
 
     assert_equal 0, reporter.reporters.count
   end
@@ -33,6 +33,6 @@ class Minitest::RailsPluginTest < ActiveSupport::TestCase
   test "handle the case when reporter is not CompositeReporter" do
     reporter = Minitest::Reporter.new
 
-    Minitest::plugin_rails_replace_reporters(reporter, {})
+    Minitest.plugin_rails_replace_reporters(reporter, {})
   end
 end

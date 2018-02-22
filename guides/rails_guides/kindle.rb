@@ -58,9 +58,9 @@ module Kindle
   end
 
   def generate_sections(html_pages)
-    FileUtils::rm_rf("sections/")
+    FileUtils.rm_rf("sections/")
     html_pages.each_with_index do |page, section_idx|
-      FileUtils::mkdir_p("sections/%03d" % section_idx)
+      FileUtils.mkdir_p("sections/%03d" % section_idx)
       doc = Nokogiri::HTML(File.open(page))
       title = doc.at("title").inner_text.gsub("Ruby on Rails Guides: ", "")
       title = page.capitalize.gsub(".html", "") if title.strip == ""
