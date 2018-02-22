@@ -511,6 +511,16 @@ class FormOptionsHelperTest < ActionView::TestCase
     )
   end
 
+  def test_required_select_with_default_and_selected_placeholder
+    assert_dom_equal(
+      ['<select required="required" name="post[category]" id="post_category"><option disabled="disabled" selected="selected" value="">Choose one</option>',
+      '<option value="lifestyle">lifestyle</option>',
+      '<option value="programming">programming</option>',
+      '<option value="spiritual">spiritual</option></select>'].join("\n"),
+      select(:post, :category, ["lifestyle", "programming", "spiritual"], { selected: "", disabled: "", prompt: "Choose one" }, { required: true })
+    )
+  end
+
   def test_select_with_grouped_collection_as_nested_array
     @post = Post.new
 

@@ -1,5 +1,26 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
+    field. Example:
+    
+        select :post, 
+               :category, 
+               ["lifestyle", "programming", "spiritual"], 
+               { selected: "", disabled: "", prompt: "Choose one" }, 
+               { required: true }
+    
+    Placeholder option would be selected and disabled. The HTML produced:
+    
+        <select required="required" name="post[category]" id="post_category">
+        <option disabled="disabled" selected="selected" value="">Choose one</option>
+        <option value="lifestyle">lifestyle</option>
+        <option value="programming">programming</option>
+        <option value="spiritual">spiritual</option></select>
+
+    For details see GH#32080
+ 
+    *Sergey Prikhodko*
+
 *   Don't enforce UTF-8 by default
 
     With the disabling of TLS 1.0 by most major websites, continuing to run
