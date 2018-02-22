@@ -5,7 +5,7 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      around_perform do |job, block, _|
+      around_perform do |job, block|
         Time.use_zone(job.timezone, &block)
       end
     end
