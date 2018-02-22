@@ -1,0 +1,12 @@
+Description:
+    Stubs out a new concern. Pass the concern name, either CamelCased
+    or under_scored.
+
+    To create a concern within a module, specify the concern name
+    as a path like 'parent_module/concern_name'.
+
+Example:
+    `rails generate concern Taggable`
+
+    Taggable concern.
+        Concern:     app/models/concerns/taggable.rb
