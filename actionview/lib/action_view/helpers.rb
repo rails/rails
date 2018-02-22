@@ -13,6 +13,7 @@ module ActionView #:nodoc:
     autoload :CacheHelper
     autoload :CaptureHelper
     autoload :ControllerHelper
+    autoload :CspHelper
     autoload :CsrfHelper
     autoload :DateHelper
     autoload :DebugHelper
@@ -46,6 +47,7 @@ module ActionView #:nodoc:
     include CacheHelper
     include CaptureHelper
     include ControllerHelper
+    include CspHelper
     include CsrfHelper
     include DateHelper
     include DebugHelper

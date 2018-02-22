@@ -253,6 +253,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       p.report_uri "/violations"
     end
 
+    content_security_policy only: :script_src do |p|
+      p.default_src false
+      p.script_src :self
+    end
+
     content_security_policy_report_only only: :report_only
 
     def index
@@ -271,6 +276,10 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       head :ok
     end
 
+    def script_src
+      head :ok
+    end
+
     private
       def condition?
         params[:condition] == "true"
@@ -284,6 +293,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
       get "/inline", to: "policy#inline"
       get "/conditional", to: "policy#conditional"
       get "/report-only", to: "policy#report_only"
+      get "/script-src", to: "policy#script_src"
     end
   end
 
@@ -298,6 +308,7 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
 
     def call(env)
       env["action_dispatch.content_security_policy"] = POLICY
+      env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
       env["action_dispatch.content_security_policy_report_only"] = false
       env["action_dispatch.show_exceptions"] = false
 
@@ -335,6 +346,11 @@ class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
   def test_generates_report_only_content_security_policy
     get "/report-only"
     assert_policy "default-src 'self'; report-uri /violations", report_only: true
+  end
+
+  def test_adds_nonce_to_script_src_content_security_policy
+    get "/script-src"
+    assert_policy "script-src 'self' 'nonce-iyhD0Yc0W+c='"
   end
 
   private
