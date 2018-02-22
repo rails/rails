@@ -179,7 +179,7 @@ module Rails
               values.reverse_merge!(shared)
             end
           end
-          loaded_yaml.reject! { |_, values| !values["database"] }
+          loaded_yaml.delete("default")
           Hash.new(shared).merge(loaded_yaml)
         elsif ENV["DATABASE_URL"]
           # Value from ENV['DATABASE_URL'] is set to default database connection
