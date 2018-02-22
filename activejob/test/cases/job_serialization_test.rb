@@ -47,6 +47,20 @@ class JobSerializationTest < ActiveSupport::TestCase
     assert_equal "en", job.locale
   end
 
+  test "serialize and deserialize job with scheduled_at" do
+    current_time = Time.now.to_f
+
+    job = HelloJob.new
+    job.scheduled_at = current_time
+    serialized_job = job.serialize
+    assert_equal current_time, serialized_job["scheduled_at"]
+
+    deserialized_job = HelloJob.new
+    deserialized_job.deserialize(serialized_job)
+    assert_equal current_time, deserialized_job.serialize["scheduled_at"]
+    assert_equal job.serialize, deserialized_job.serialize
+  end
+
   test "serialize stores provider_job_id" do
     job = HelloJob.new
     assert_nil job.serialize["provider_job_id"]
