@@ -812,6 +812,15 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1, 2, 6, 7, 8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_open_ended_range
+    assert_equal [1, 2, 3], Comment.where(id: Float::INFINITY..3).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_numeric_range_for_string
+    topic = Topic.create!(title: "12 Factor App")
+    assert_equal [topic], Topic.where(title: 10..2).to_a
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
