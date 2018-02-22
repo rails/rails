@@ -1,5 +1,21 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Introduced Model.where.any method
+    Designed to pass several conditions to where
+    that should be joined with OR predicate.
+    Only accepts a Hash now.
+
+    ``` ruby
+    User.where.any(name: 'Jon', id: 1)
+    # SELECT * FROM users WHERE name = 'Jon' OR id = 1
+    
+    User.joins(:manager).where.any(name: 'Jon', managers: {name: 'Bob'})
+    # SELECT * FROM users LEFT managers ON managers.id = users.manager_id 
+    #   WHERE name = 'Jon' OR managers.name = 'Bob'
+    ```
+
+    *Bogdan Gusiev*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*

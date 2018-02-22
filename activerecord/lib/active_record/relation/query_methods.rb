@@ -53,6 +53,26 @@ module ActiveRecord
         @scope.where_clause += where_clause.invert
         @scope
       end
+
+      # Returns a new relation expressing passed Hash is transformed into
+      # where conditions joined by OR predicate
+      #
+      # #any only accepts conditions as a Hash.
+      #
+      #    User.where.any(name: 'Jon', id: 1)
+      #    # SELECT * FROM users WHERE name = 'Jon' OR id = 1
+      #
+      #    User.joins(:manager).where.any(name: 'Jon', managers: {name: 'Bob'})
+      #    # SELECT * FROM users LEFT managers ON managers.id = users.manager_id WHERE name = 'Jon' OR managers.name = 'Bob'
+      def any(opts)
+        opts = sanitize_forbidden_attributes(opts)
+        raise ArgumentError unless Hash === opts
+
+        where_clause = @scope.send(:where_clause_factory).build(opts, [])
+        @scope.references!(PredicateBuilder.references(opts))
+        @scope.where_clause += where_clause.or_clause
+        @scope
+      end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze

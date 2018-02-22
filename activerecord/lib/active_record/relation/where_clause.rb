@@ -74,6 +74,14 @@ module ActiveRecord
         WhereClause.new(inverted_predicates)
       end
 
+      def or_clause
+        WhereClause.new([
+          predicates.reduce do |left, right|
+            Arel::Nodes::Or.new(left, right)
+          end
+        ])
+      end
+
       def self.empty
         @empty ||= new([])
       end

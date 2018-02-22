@@ -103,5 +103,21 @@ module ActiveRecord
 
       assert_equal Post.where(comments_count: 3..5), relation
     end
+
+    def test_where_any
+      relation = Post.where.any(author_id: 2, id: 1)
+      assert_equal Post.where("author_id = 2 OR id = 1").to_a, relation.to_a
+    end
+
+    def test_where_any_reference
+      relation = Post.joins(:author).where.any(id: 1, authors: {name: 'Mary'})
+      assert_equal Post.joins(:author).where("posts.id = 1 OR authors.name = 'Mary'").to_a, relation.to_a
+    end
+
+    def test_where_any_argument_error
+      assert_raise ArgumentError do
+        Post.where.any("created_at > 0")
+      end
+    end
   end
 end
