@@ -110,6 +110,22 @@ class QueuingTest < ActiveSupport::TestCase
     end
   end
 
+  test "current timezone is kept while running perform_later" do
+    skip if adapter_is?(:inline)
+
+    begin
+      current_zone = Time.zone
+      Time.zone = "Hawaii"
+
+      TestJob.perform_later @id
+      wait_for_jobs_to_finish_for(5.seconds)
+      assert job_executed
+      assert_equal "Hawaii", job_executed_in_timezone
+    ensure
+      Time.zone = current_zone
+    end
+  end
+
   test "should run job with higher priority first" do
     skip unless adapter_is?(:delayed_job, :que)
 
