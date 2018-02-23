@@ -26,8 +26,7 @@ module ActiveRecord
         WhereClause.new(parts)
       end
 
-      protected
-
+      private
         attr_reader :klass, :predicate_builder
     end
   end

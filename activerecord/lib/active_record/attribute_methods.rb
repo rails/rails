@@ -432,14 +432,11 @@ module ActiveRecord
       @attributes.accessed
     end
 
-    protected
-
-      def attribute_method?(attr_name) # :nodoc:
+    private
+      def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
       end
-
-    private
 
       def arel_attributes_with_values_for_create(attribute_names)
         arel_attributes_with_values(attributes_for_create(attribute_names))

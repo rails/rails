@@ -27,10 +27,9 @@ module ActiveRecord
           end
         end
 
-        protected
+        private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
-        private
           # The name of the key on the associated records
           def association_key_name
             reflection.join_primary_key(klass)

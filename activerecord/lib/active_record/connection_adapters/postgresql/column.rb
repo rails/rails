@@ -20,10 +20,9 @@ module ActiveRecord
         end
       end
 
-      protected
+      private
         attr_reader :max_identifier_length
 
-      private
         def sequence_name_from_parts(table_name, column_name, suffix)
           over_length = [table_name, column_name, suffix].map(&:length).sum + 2 - max_identifier_length
 
