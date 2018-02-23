@@ -82,11 +82,12 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generating_in_full_mode_with_almost_of_all_skip_options
-    run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T"]
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T", "--skip-active-storage"]
     assert_file "bin/rails" do |content|
       assert_no_match(/\s+require\s+["']rails\/all["']/, content)
     end
     assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
     assert_file "bin/rails", /#\s+require\s+["']action_cable\/engine["']/
     assert_file "bin/rails", /#\s+require\s+["']sprockets\/railtie["']/
@@ -217,11 +218,17 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
     assert_file "app/assets/javascripts/bukkits/application.js"
+    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
+      assert_match "javascript_include_tag", content
+    end
   end
 
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_file "app/assets/javascripts/bukkits/application.js"
+    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
+      assert_no_match "javascript_include_tag", content
+    end
   end
 
   def test_template_from_dir_pwd
@@ -320,8 +327,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
+      assert_match "<%= csrf_meta_tags %>", contents
+      assert_match "<%= csp_meta_tag %>", contents
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match "<%= yield %>", contents
     end
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
