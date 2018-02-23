@@ -217,7 +217,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits/application.js"
+    assert_file "app/assets/javascripts/bukkits/application.js" do |content|
+      assert_match "//= require rails-ujs", content
+      assert_match "//= require activestorage", content
+      assert_match "//= require_tree .", content
+    end
     assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
       assert_match "javascript_include_tag", content
     end
