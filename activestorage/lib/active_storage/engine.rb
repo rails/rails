@@ -18,7 +18,15 @@ module ActiveStorage
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
 
-    config.active_storage.variable_content_types = %w( image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop )
+    config.active_storage.variable_content_types = %w(
+      image/png
+      image/gif
+      image/jpg
+      image/jpeg
+      image/vnd.adobe.photoshop
+      image/vnd.microsoft.icon
+    )
+
     config.active_storage.content_types_to_serve_as_binary = %w(
       text/html
       text/javascript

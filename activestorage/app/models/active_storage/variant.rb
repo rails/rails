@@ -115,7 +115,7 @@ class ActiveStorage::Variant
 
     def download_image
       require "mini_magick"
-      MiniMagick::Image.create { |file| download_blob_to(file) }
+      MiniMagick::Image.create(blob.filename.extension_with_delimiter) { |file| download_blob_to(file) }
     end
 
     def transform(image)
