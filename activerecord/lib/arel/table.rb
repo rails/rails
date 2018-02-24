@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   class Table
     include Arel::Crud
     include Arel::FactoryMethods

@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Compatibility # :nodoc:
     class Wheres # :nodoc:
       include Enumerable

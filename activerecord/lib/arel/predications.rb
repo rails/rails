@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Predications
     def not_eq(other)
       Nodes::NotEqual.new self, quoted_node(other)

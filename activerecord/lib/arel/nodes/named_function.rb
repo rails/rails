@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Nodes
     class NamedFunction < Arel::Nodes::Function
       attr_accessor :name

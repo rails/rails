@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Collectors
     class SubstituteBinds
       def initialize(quoter, delegate_collector)

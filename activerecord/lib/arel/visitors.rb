@@ -14,7 +14,7 @@ require "arel/visitors/dot"
 require "arel/visitors/ibm_db"
 require "arel/visitors/informix"
 
-module Arel
+module Arel # :nodoc: all
   module Visitors
   end
 end

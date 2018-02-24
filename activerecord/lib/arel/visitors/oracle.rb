@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Visitors
     class Oracle < Arel::Visitors::ToSql
       private

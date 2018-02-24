@@ -25,7 +25,7 @@ require "arel/update_manager"
 require "arel/delete_manager"
 require "arel/nodes"
 
-module Arel
+module Arel # :nodoc: all
   VERSION = "10.0.0"
 
   def self.sql(raw_sql)

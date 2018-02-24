@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Attributes
     class Attribute < Struct.new :relation, :name
       include Arel::Expressions

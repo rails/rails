@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Math
     def *(other)
       Arel::Nodes::Multiplication.new(self, other)

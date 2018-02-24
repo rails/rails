@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
       attr_accessor :relation, :wheres, :values, :orders, :limit

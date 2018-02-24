@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   ###
   # FIXME hopefully we can remove this
   module Crud

@@ -2,7 +2,7 @@
 
 require "arel/attributes/attribute"
 
-module Arel
+module Arel # :nodoc: all
   module Attributes
     ###
     # Factory method to wrap a raw database +column+ to an Arel Attribute.

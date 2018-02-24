@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   module Nodes
     class SelectStatement < Arel::Nodes::NodeExpression
       attr_reader :cores

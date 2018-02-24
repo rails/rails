@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-module Arel
+module Arel # :nodoc: all
   class UpdateManager < Arel::TreeManager
     def initialize
       super
