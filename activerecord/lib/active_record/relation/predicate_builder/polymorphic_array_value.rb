@@ -17,12 +17,9 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
+      private
         attr_reader :associated_table, :values
 
-      private
         def type_to_ids_mapping
           default_hash = Hash.new { |hsh, key| hsh[key] = [] }
           values.each_with_object(default_hash) { |value, hash| hash[base_class(value).name] << convert_to_id(value) }

@@ -119,6 +119,16 @@ module LocalCacheBehavior
     end
   end
 
+  def test_local_cache_of_fetch_multi
+    @cache.with_local_cache do
+      @cache.fetch_multi("foo", "bar") { |_key| true }
+      @peek.delete("foo")
+      @peek.delete("bar")
+      assert_equal true, @cache.read("foo")
+      assert_equal true, @cache.read("bar")
+    end
+  end
+
   def test_middleware
     app = lambda { |env|
       result = @cache.write("foo", "bar")

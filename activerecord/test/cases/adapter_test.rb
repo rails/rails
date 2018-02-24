@@ -20,7 +20,7 @@ module ActiveRecord
         b = Book.create(name: "my \x00 book")
         b.reload
         assert_equal "my \x00 book", b.name
-        b.update_attributes(name: "my other \x00 book")
+        b.update(name: "my other \x00 book")
         b.reload
         assert_equal "my other \x00 book", b.name
       end
@@ -78,7 +78,7 @@ module ActiveRecord
       idx_name = "accounts_idx"
 
       indexes = @connection.indexes("accounts")
-      assert indexes.empty?
+      assert_empty indexes
 
       @connection.add_index :accounts, :firm_id, name: idx_name
       indexes = @connection.indexes("accounts")
@@ -368,16 +368,16 @@ module ActiveRecord
     unless in_memory_db?
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
-        assert @connection.transaction_open?
+        assert_predicate @connection, :transaction_open?
         @connection.reconnect!
-        assert !@connection.transaction_open?
+        assert_not_predicate @connection, :transaction_open?
       end
 
       test "transaction state is reset after a disconnect" do
         @connection.begin_transaction
-        assert @connection.transaction_open?
+        assert_predicate @connection, :transaction_open?
         @connection.disconnect!
-        assert !@connection.transaction_open?
+        assert_not_predicate @connection, :transaction_open?
       end
     end
 

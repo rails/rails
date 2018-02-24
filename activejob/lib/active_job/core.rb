@@ -31,6 +31,9 @@ module ActiveJob
 
       # I18n.locale to be used during the job.
       attr_accessor :locale
+
+      # Timezone to be used during the job.
+      attr_accessor :timezone
     end
 
     # These methods will be included into any Active Job object, adding
@@ -87,7 +90,8 @@ module ActiveJob
         "priority"   => priority,
         "arguments"  => serialize_arguments(arguments),
         "executions" => executions,
-        "locale"     => I18n.locale.to_s
+        "locale"     => I18n.locale.to_s,
+        "timezone"   => Time.zone.try(:name)
       }
     end
 
@@ -125,6 +129,7 @@ module ActiveJob
       self.serialized_arguments = job_data["arguments"]
       self.executions           = job_data["executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
+      self.timezone             = job_data["timezone"] || Time.zone.try(:name)
     end
 
     private

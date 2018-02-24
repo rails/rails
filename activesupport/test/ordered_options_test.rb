@@ -82,8 +82,8 @@ class OrderedOptionsTest < ActiveSupport::TestCase
 
   def test_introspection
     a = ActiveSupport::OrderedOptions.new
-    assert a.respond_to?(:blah)
-    assert a.respond_to?(:blah=)
+    assert_respond_to a, :blah
+    assert_respond_to a, :blah=
     assert_equal 42, a.method(:blah=).call(42)
     assert_equal 42, a.method(:blah).call
   end
@@ -91,7 +91,7 @@ class OrderedOptionsTest < ActiveSupport::TestCase
   def test_raises_with_bang
     a = ActiveSupport::OrderedOptions.new
     a[:foo] = :bar
-    assert a.respond_to?(:foo!)
+    assert_respond_to a, :foo!
 
     assert_nothing_raised { a.foo! }
     assert_equal a.foo, a.foo!

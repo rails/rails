@@ -13,9 +13,10 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activesupport", "5.1.0"
+  gem "activesupport", "5.2.0.rc1"
 end
 
+require "active_support"
 require "active_support/core_ext/object/blank"
 require "minitest/autorun"
 

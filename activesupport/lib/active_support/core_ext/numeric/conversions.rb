@@ -129,12 +129,6 @@ module ActiveSupport::NumericWithFormat
   end
 end
 
-# Ruby 2.4+ unifies Fixnum & Bignum into Integer.
-if 0.class == Integer
-  Integer.prepend ActiveSupport::NumericWithFormat
-else
-  Fixnum.prepend ActiveSupport::NumericWithFormat
-  Bignum.prepend ActiveSupport::NumericWithFormat
-end
+Integer.prepend ActiveSupport::NumericWithFormat
 Float.prepend ActiveSupport::NumericWithFormat
 BigDecimal.prepend ActiveSupport::NumericWithFormat

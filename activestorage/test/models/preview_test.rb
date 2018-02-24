@@ -8,7 +8,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "report.pdf", content_type: "application/pdf")
     preview = blob.preview(resize: "640x280").processed
 
-    assert preview.image.attached?
+    assert_predicate preview.image, :attached?
     assert_equal "report.png", preview.image.filename.to_s
     assert_equal "image/png", preview.image.content_type
 
@@ -21,7 +21,7 @@ class ActiveStorage::PreviewTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
     preview = blob.preview(resize: "640x280").processed
 
-    assert preview.image.attached?
+    assert_predicate preview.image, :attached?
     assert_equal "video.png", preview.image.filename.to_s
     assert_equal "image/png", preview.image.content_type
 

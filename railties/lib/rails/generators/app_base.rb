@@ -2,7 +2,6 @@
 
 require "fileutils"
 require "digest/md5"
-require "active_support/core_ext/string/strip"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
@@ -315,11 +314,13 @@ module Rails
 
       def convert_database_option_for_jruby
         if defined?(JRUBY_VERSION)
-          case options[:database]
-          when "postgresql" then options[:database].replace "jdbcpostgresql"
-          when "mysql"      then options[:database].replace "jdbcmysql"
-          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          opt = options.dup
+          case opt[:database]
+          when "postgresql" then opt[:database] = "jdbcpostgresql"
+          when "mysql"      then opt[:database] = "jdbcmysql"
+          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
           end
+          self.options = opt.freeze
         end
       end
 

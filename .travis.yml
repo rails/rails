@@ -2,8 +2,8 @@ language: ruby
 sudo: false
 
 cache:
-  bundler: true
   directories:
+    - vendor/bundle
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
     - node_modules
@@ -60,9 +60,7 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.8
-  - 2.3.5
-  - 2.4.2
+  - 2.4.3
   - 2.5.0
   - ruby-head
 
@@ -70,19 +68,7 @@ matrix:
   include:
     - rvm: 2.5.0
       env: "GEM=av:ujs"
-    - rvm: 2.2.8
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.3.5
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.4.2
+    - rvm: 2.4.3
       env: "GEM=aj:integration"
       services:
         - memcached
@@ -100,30 +86,30 @@ matrix:
         - memcached
         - redis-server
         - rabbitmq
-    - rvm: 2.3.5
+    - rvm: 2.5.0
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.2
-    - rvm: 2.3.5
+    - rvm: 2.5.0
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.3.5
+    - rvm: 2.5.0
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
     - env: "GEM=ac:integration"
   fast_finish: true
 

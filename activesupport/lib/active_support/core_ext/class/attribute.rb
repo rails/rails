@@ -98,7 +98,7 @@ class Class
       singleton_class.silence_redefinition_of_method("#{name}?")
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
-      ivar = "@#{name}"
+      ivar = "@#{name}".to_sym
 
       singleton_class.silence_redefinition_of_method("#{name}=")
       define_singleton_method("#{name}=") do |val|

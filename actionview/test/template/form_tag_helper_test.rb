@@ -142,14 +142,14 @@ class FormTagHelperTest < ActionView::TestCase
     actual = form_tag({}, { enforce_utf8: true })
     expected = whole_form("http://www.example.com", enforce_utf8: true)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
   end
 
   def test_form_tag_enforce_utf8_false
     actual = form_tag({}, { enforce_utf8: false })
     expected = whole_form("http://www.example.com", enforce_utf8: false)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
   end
 
   def test_form_tag_with_block_in_erb

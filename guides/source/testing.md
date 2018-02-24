@@ -462,6 +462,89 @@ Rails options:
     -c, --[no-]color                 Enable color in the output
 ```
 
+Parallel Testing
+----------------
+
+Parallel testing allows you to parallelize your test suite. While forking processes is the
+default method, threading is supported as well. Running tests in parallel reduces the time it
+takes your entire test suite to run.
+
+### Parallel testing with processes
+
+The default parallelization method is to fork processes using Ruby's DRb system. The processes
+are forked based on the number of workers provided. The default is 2, but can be changed by the
+number passed to the parallelize method. Active Record automatically handles creating and
+migrating a new database for each worker to use.
+
+To enable parallelization add the following to your `test_helper.rb`:
+
+```
+class ActiveSupport::TestCase
+  parallelize(workers: 2)
+end
+```
+
+The number of workers passed is the number of times the process will be forked. You may want to
+parallelize your local test suite differently from your CI, so an environment variable is provided
+to be able to easily change the number of workers a test run should use:
+
+```
+PARALLEL_WORKERS=15 bin/rails test
+```
+
+When parallelizing tests, Active Record automatically handles creating and migrating a database for each
+process. The databases will be suffixed with the number corresponding to the worker. For example, if you
+have 2 workers the tests will create `test-database-0` and `test-database-1` respectively.
+
+If the number of workers passed is 1 or fewer the processes will not be forked and the tests will not
+be parallelized and the tests will use the original `test-database` database.
+
+Two hooks are provided, one runs when the process is forked, and one runs before the processes are closed.
+These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
+workers.
+
+The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` metod
+is called right before the processes are closed.
+
+```
+class ActiveSupport::TestCase
+  parallelize_setup do |worker|
+    # setup databases
+  end
+
+  parallelize_teardown do |worker|
+    # cleanup database
+  end
+
+  parallelize(workers: 2)
+end
+```
+
+These methods are not needed or available when using parallel testing with threads.
+
+### Parallel testing with threads
+
+If you prefer using threads or are using JRuby, a threaded parallelization option is provided. The threaded
+parallelizer is backed by Minitest's `Parallel::Executor`.
+
+To change the parallelization method to use threads over forks put the following in your `test_helper.rb`
+
+```
+class ActiveSupport::TestCase
+  parallelize(workers: 2, with: :threads)
+end
+```
+
+Rails applications generated from JRuby will automatically include the `with: :threads` option.
+
+The number of workers passed to `parallelize` determines the number of threads the tests will use. You may
+want to parallelize your local test suite differently from your CI, so an environment variable is provided
+to be able to easily change the number of workers a test run should use:
+
+```
+PARALLEL_WORKERS=15 bin/rails test
+```
+
 The Test Database
 -----------------
 
@@ -780,6 +863,34 @@ send a POST request to create the new article in the database.
 
 We will be redirected back to the articles index page and there we assert
 that the text from the new article's title is on the articles index page.
+
+#### Testing for multiple screen sizes
+If you want to test for mobile sizes on top of testing for desktop,
+you can create another class that inherits from SystemTestCase and use in your
+test suite. In this example a file called `mobile_system_test_case.rb` is created
+in the `/test` directory with the following configuration.
+
+```ruby
+require "test_helper"
+
+class MobileSystemTestCase < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome, screen_size: [375, 667]
+end
+```
+To use this configuration, create a test inside `test/system` that inherits from `MobileSystemTestCase`.
+Now you can test your app using multiple different configurations.
+
+```ruby
+require "mobile_system_test_case"
+
+class PostsTest < MobileSystemTestCase
+
+  test "visiting the index" do
+    visit posts_url
+    assert_selector "h1", text: "Posts"
+  end
+end
+```
 
 #### Taking it further
 

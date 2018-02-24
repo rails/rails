@@ -506,8 +506,8 @@ class BaseTest < ActiveSupport::TestCase
   test "should respond to action methods" do
     assert_respond_to BaseMailer, :welcome
     assert_respond_to BaseMailer, :implicit_multipart
-    assert !BaseMailer.respond_to?(:mail)
-    assert !BaseMailer.respond_to?(:headers)
+    assert_not_respond_to BaseMailer, :mail
+    assert_not_respond_to BaseMailer, :headers
   end
 
   test "calling just the action should return the generated mail object" do
@@ -723,6 +723,15 @@ class BaseTest < ActiveSupport::TestCase
 
   test "default values which have to_proc (e.g. symbols) should not be considered procs" do
     assert(ProcMailer.welcome["x-has-to-proc"].to_s == "symbol")
+  end
+
+  test "proc default values can have arity of 1 where arg is a mailer instance" do
+    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s, "complex_value")
+    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s, "complex_value")
+  end
+
+  test "proc default values with fixed arity of 0 can be called" do
+    assert_equal("0", ProcMailer.welcome["X-Lambda-Arity-0"].to_s)
   end
 
   test "we can call other defined methods on the class as needed" do

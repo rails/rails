@@ -158,13 +158,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_only_call_after_commit_on_top_level_transactions
     @first.after_commit_block { |r| r.history << :after_commit }
-    assert @first.history.empty?
+    assert_empty @first.history
 
     @first.transaction do
       @first.transaction(requires_new: true) do
         @first.touch
       end
-      assert @first.history.empty?
+      assert_empty @first.history
     end
     assert_equal [:after_commit], @first.history
   end
@@ -518,7 +518,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.content = "foo"
       @topic.save!
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_commit_run_transactions_callbacks_with_explicit_enrollment
@@ -538,7 +538,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.save!
       raise ActiveRecord::Rollback
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_rollback_run_transactions_callbacks_with_explicit_enrollment

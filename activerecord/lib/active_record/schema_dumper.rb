@@ -44,7 +44,7 @@ module ActiveRecord
 
       def initialize(connection, options = {})
         @connection = connection
-        @version = Migrator::current_version rescue nil
+        @version = connection.migration_context.current_version rescue nil
         @options = options
       end
 

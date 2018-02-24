@@ -22,6 +22,7 @@ if defined?(ActiveRecord::Base)
 
   module ActiveSupport
     class TestCase
+      include ActiveRecord::TestDatabases
       include ActiveRecord::TestFixtures
       self.fixture_path = "#{Rails.root}/test/fixtures/"
       self.file_fixture_path = fixture_path + "files"

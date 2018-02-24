@@ -3,6 +3,7 @@
   <head>
     <title><%= camelized %></title>
     <%%= csrf_meta_tags %>
+    <%%= csp_meta_tag %>
 
     <%- if options[:skip_javascript] -%>
     <%%= stylesheet_link_tag    'application', media: 'all' %>

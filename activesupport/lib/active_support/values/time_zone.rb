@@ -2,7 +2,6 @@
 
 require "tzinfo"
 require "concurrent/map"
-require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
@@ -238,7 +237,7 @@ module ActiveSupport
         when Numeric, ActiveSupport::Duration
           arg *= 3600 if arg.abs <= 13
           all.find { |z| z.utc_offset == arg.to_i }
-          else
+        else
           raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
       end
@@ -268,11 +267,14 @@ module ActiveSupport
           country = TZInfo::Country.get(code)
           country.zone_identifiers.map do |tz_id|
             if MAPPING.value?(tz_id)
-              self[MAPPING.key(tz_id)]
+              MAPPING.inject([]) do |memo, (key, value)|
+                memo << self[key] if value == tz_id
+                memo
+              end
             else
               create(tz_id, nil, TZInfo::Timezone.new(tz_id))
             end
-          end.sort!
+          end.flatten(1).sort!
         end
 
         def zones_map

@@ -35,6 +35,10 @@ module ActiveModel
       end
     end
 
+    def changed_attribute_names
+      attr_names.select { |attr| changed?(attr) }
+    end
+
     def any_changes?
       attr_names.any? { |attr| changed?(attr) }
     end
@@ -65,13 +69,8 @@ module ActiveModel
       forced_changes << attr_name.to_s
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
-
-      attr_reader :attributes, :forced_changes
-
     private
+      attr_reader :attributes, :forced_changes
 
       def attr_names
         attributes.keys
@@ -108,9 +107,6 @@ module ActiveModel
     end
 
     def original_value(*)
-    end
-
-    def force_change(*)
     end
   end
 end

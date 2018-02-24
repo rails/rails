@@ -8,9 +8,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-
-        @through_records     = {}
-        @through_association = nil
+        @through_records = {}
       end
 
       def concat(*records)
@@ -50,11 +48,6 @@ module ActiveRecord
       end
 
       private
-
-        def through_association
-          @through_association ||= owner.association(through_reflection.name)
-        end
-
         # The through record (built with build_record) is temporarily cached
         # so that it may be reused if insert_record is subsequently called.
         #
@@ -145,7 +138,7 @@ module ActiveRecord
           case method
           when :destroy
             if scope.klass.primary_key
-              count = scope.destroy_all.length
+              count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
               count = scope.delete_all

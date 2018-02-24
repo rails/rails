@@ -6,13 +6,12 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   mirror_config = (1..3).map do |i|
     [ "mirror_#{i}",
       service: "Disk",
-      root: Dir.mktmpdir("active_storage_tests_mirror_#{i}"),
-      host: "http://localhost:3000" ]
+      root: Dir.mktmpdir("active_storage_tests_mirror_#{i}") ]
   end.to_h
 
   config = mirror_config.merge \
     mirror:  { service: "Mirror", primary: "primary", mirrors: mirror_config.keys },
-    primary: { service: "Disk", root: Dir.mktmpdir("active_storage_tests_primary"), host: "http://localhost:3000" }
+    primary: { service: "Disk", root: Dir.mktmpdir("active_storage_tests_primary") }
 
   SERVICE = ActiveStorage::Service.configure :mirror, config
 
@@ -20,11 +19,16 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
 
   test "uploading to all services" do
     begin
-      data = "Something else entirely!"
-      key  = upload(data, to: @service)
+      key      = SecureRandom.base58(24)
+      data     = "Something else entirely!"
+      io       = StringIO.new(data)
+      checksum = Digest::MD5.base64digest(data)
 
-      assert_equal data, SERVICE.primary.download(key)
-      SERVICE.mirrors.each do |mirror|
+      @service.upload key, io.tap(&:read), checksum: checksum
+      assert_predicate io, :eof?
+
+      assert_equal data, @service.primary.download(key)
+      @service.mirrors.each do |mirror|
         assert_equal data, mirror.download(key)
       end
     ensure
@@ -33,14 +37,18 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   end
 
   test "downloading from primary service" do
-    data = "Something else entirely!"
-    key  = upload(data, to: SERVICE.primary)
+    key      = SecureRandom.base58(24)
+    data     = "Something else entirely!"
+    checksum = Digest::MD5.base64digest(data)
+
+    @service.primary.upload key, StringIO.new(data), checksum: checksum
 
     assert_equal data, @service.download(key)
   end
 
   test "deleting from all services" do
     @service.delete FIXTURE_KEY
+
     assert_not SERVICE.primary.exist?(FIXTURE_KEY)
     SERVICE.mirrors.each do |mirror|
       assert_not mirror.exist?(FIXTURE_KEY)
@@ -51,17 +59,8 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     filename = ActiveStorage::Filename.new("test.txt")
 
     freeze_time do
-      assert_equal SERVICE.primary.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain"),
+      assert_equal @service.primary.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain"),
         @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain")
     end
   end
-
-  private
-    def upload(data, to:)
-      SecureRandom.base58(24).tap do |key|
-        io = StringIO.new(data).tap(&:read)
-        @service.upload key, io, checksum: Digest::MD5.base64digest(data)
-        assert io.eof?
-      end
-    end
 end

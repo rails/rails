@@ -58,7 +58,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked?
+    assert_predicate devs, :locked?
   end
 
   def test_relation_merging_with_preload
@@ -113,9 +113,9 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_merging_with_from_clause
     relation = Post.all
-    assert relation.from_clause.empty?
+    assert_empty relation.from_clause
     relation = relation.merge(Post.from("posts"))
-    refute relation.from_clause.empty?
+    assert_not_empty relation.from_clause
   end
 end
 

@@ -256,7 +256,7 @@ module ActionController
   #
   #   def test_create
   #     json = {book: { title: "Love Hina" }}.to_json
-  #     post :create, json
+  #     post :create, body: json
   #   end
   #
   # == Special instance variables

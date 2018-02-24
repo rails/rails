@@ -50,6 +50,6 @@ Run `bundle exec rake ujs:server` first, and then run the web tests by visiting 
 
 rails-ujs is released under the [MIT License](MIT-LICENSE).
 
-[data]: http://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-*-attributes "Embedding custom non-visible data with the data-* attributes"
+[data]: https://www.w3.org/TR/html5/dom.html#embedding-custom-non-visible-data-with-the-data-attributes "Embedding custom non-visible data with the data-* attributes"
 [validator]: http://validator.w3.org/
 [csrf]: http://api.rubyonrails.org/classes/ActionController/RequestForgeryProtection.html

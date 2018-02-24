@@ -447,6 +447,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
+      autoloaded_constants.uniq!
       mod
     end
 
@@ -670,7 +671,7 @@ module ActiveSupport #:nodoc:
       when Module
         desc.name ||
           raise(ArgumentError, "Anonymous modules have no name to be referenced by")
-        else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
+      else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 

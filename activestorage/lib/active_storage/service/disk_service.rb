@@ -11,7 +11,7 @@ module ActiveStorage
   class Service::DiskService < Service
     attr_reader :root, :host
 
-    def initialize(root:, host:)
+    def initialize(root:, host: "http://localhost:3000")
       @root, @host = root, host
     end
 

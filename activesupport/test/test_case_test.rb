@@ -115,6 +115,35 @@ class AssertDifferenceTest < ActiveSupport::TestCase
     end
   end
 
+  def test_hash_of_expressions
+    assert_difference "@object.num" => 1, "@object.num + 1" => 1 do
+      @object.increment
+    end
+  end
+
+  def test_hash_of_expressions_with_message
+    error = assert_raises Minitest::Assertion do
+      assert_difference({ "@object.num" => 0 }, "Object Changed") do
+        @object.increment
+      end
+    end
+    assert_equal "Object Changed.\n\"@object.num\" didn't change by 0.\nExpected: 0\n  Actual: 1", error.message
+  end
+
+  def test_hash_of_lambda_expressions
+    assert_difference -> { @object.num } => 1, -> { @object.num + 1 } => 1 do
+      @object.increment
+    end
+  end
+
+  def test_hash_of_expressions_identify_failure
+    assert_raises(Minitest::Assertion) do
+      assert_difference "@object.num" => 1, "1 + 1" => 1 do
+        @object.increment
+      end
+    end
+  end
+
   def test_assert_changes_pass
     assert_changes "@object.num" do
       @object.increment

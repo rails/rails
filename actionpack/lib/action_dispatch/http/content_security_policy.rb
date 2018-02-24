@@ -21,6 +21,12 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
+          if policy.directives["script-src"]
+            if nonce = request.content_security_policy_nonce
+              policy.directives["script-src"] << "'nonce-#{nonce}'"
+            end
+          end
+
           headers[header_name(request)] = policy.build(request.controller_instance)
         end
 
@@ -51,6 +57,8 @@ module ActionDispatch #:nodoc:
     module Request
       POLICY = "action_dispatch.content_security_policy".freeze
       POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only".freeze
+      NONCE_GENERATOR = "action_dispatch.content_security_policy_nonce_generator".freeze
+      NONCE = "action_dispatch.content_security_policy_nonce".freeze
 
       def content_security_policy
         get_header(POLICY)
@@ -67,6 +75,30 @@ module ActionDispatch #:nodoc:
       def content_security_policy_report_only=(value)
         set_header(POLICY_REPORT_ONLY, value)
       end
+
+      def content_security_policy_nonce_generator
+        get_header(NONCE_GENERATOR)
+      end
+
+      def content_security_policy_nonce_generator=(generator)
+        set_header(NONCE_GENERATOR, generator)
+      end
+
+      def content_security_policy_nonce
+        if content_security_policy_nonce_generator
+          if nonce = get_header(NONCE)
+            nonce
+          else
+            set_header(NONCE, generate_content_security_policy_nonce)
+          end
+        end
+      end
+
+      private
+
+        def generate_content_security_policy_nonce
+          content_security_policy_nonce_generator.call(self)
+        end
     end
 
     MAPPINGS = {
@@ -172,7 +204,7 @@ module ActionDispatch #:nodoc:
     end
 
     def build(context = nil)
-      build_directives(context).compact.join("; ") + ";"
+      build_directives(context).compact.join("; ")
     end
 
     private

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "delegate"
-require "active_support/core_ext/string/strip"
 
 module ActionDispatch
   module Routing
@@ -150,10 +149,10 @@ module ActionDispatch
       def no_routes(routes)
         @buffer <<
         if routes.none?
-          <<-MESSAGE.strip_heredoc
-          You don't have any routes defined!
+          <<~MESSAGE
+            You don't have any routes defined!
 
-          Please add some routes in config/routes.rb.
+            Please add some routes in config/routes.rb.
           MESSAGE
         else
           "No routes were found for this controller"
@@ -203,7 +202,7 @@ module ActionDispatch
       end
 
       def no_routes(*)
-        @buffer << <<-MESSAGE.strip_heredoc
+        @buffer << <<~MESSAGE
           <p>You don't have any routes defined!</p>
           <ul>
             <li>Please add some routes in <tt>config/routes.rb</tt>.</li>

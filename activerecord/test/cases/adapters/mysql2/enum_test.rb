@@ -13,11 +13,11 @@ class Mysql2EnumTest < ActiveRecord::Mysql2TestCase
 
   def test_should_not_be_unsigned
     column = EnumTest.columns_hash["enum_column"]
-    assert_not column.unsigned?
+    assert_not_predicate column, :unsigned?
   end
 
   def test_should_not_be_bigint
     column = EnumTest.columns_hash["enum_column"]
-    assert_not column.bigint?
+    assert_not_predicate column, :bigint?
   end
 end

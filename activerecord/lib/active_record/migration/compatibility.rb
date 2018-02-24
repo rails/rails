@@ -13,7 +13,10 @@ module ActiveRecord
         const_get(name)
       end
 
-      V5_2 = Current
+      V6_0 = Current
+
+      class V5_2 < V6_0
+      end
 
       class V5_1 < V5_2
         def change_column(table_name, column_name, type, options = {})

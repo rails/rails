@@ -34,8 +34,7 @@ module ActiveRecord
         array_predicates.inject(&:or)
       end
 
-      protected
-
+      private
         attr_reader :predicate_builder
 
         module NullPredicate # :nodoc:

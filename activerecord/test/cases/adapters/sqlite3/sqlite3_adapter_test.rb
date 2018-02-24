@@ -475,11 +475,11 @@ module ActiveRecord
       end
 
       def test_respond_to_enable_extension
-        assert @conn.respond_to?(:enable_extension)
+        assert_respond_to @conn, :enable_extension
       end
 
       def test_respond_to_disable_extension
-        assert @conn.respond_to?(:disable_extension)
+        assert_respond_to @conn, :disable_extension
       end
 
       def test_statement_closed

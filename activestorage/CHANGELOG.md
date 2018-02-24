@@ -1,26 +1,15 @@
-*   Use `after_destroy_commit` instead of `before_destroy` for purging
-    attachments when a record is destroyed.
+## Rails 6.0.0.alpha (Unreleased) ##
 
-    *Hiroki Zenigami*
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
+    *Jeremy Daer*
 
-*   Force `:attachment` disposition for specific, configurable content types.
-    This mitigates possible security issues such as XSS or phishing when
-    serving them inline. A list of such content types is included by default,
-    and can be configured via `content_types_to_serve_as_binary`.
+*   Add source code to published npm package
 
-    *Rosa Gutierrez*
+    This allows activestorage users to depend on the javascript source code
+    rather than the compiled code, which can produce smaller javascript bundles.
 
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   Fix the gem adding the migrations files to the package.
-
-    *Yuji Yaginuma*
+    *Richard Macklin*
 
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
-
-*   Added to Rails.
-
-    *DHH*
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activestorage/CHANGELOG.md) for previous changes.

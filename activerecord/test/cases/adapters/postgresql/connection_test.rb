@@ -157,7 +157,7 @@ module ActiveRecord
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       if @connection.send(:postgresql_version) >= 90200
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
@@ -176,7 +176,7 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.

@@ -73,7 +73,7 @@ class ConsoleTest < ActiveSupport::TestCase
     MODEL
 
     load_environment
-    assert User.new.respond_to?(:name)
+    assert_respond_to User.new, :name
 
     app_file "app/models/user.rb", <<-MODEL
       class User
@@ -81,9 +81,9 @@ class ConsoleTest < ActiveSupport::TestCase
       end
     MODEL
 
-    assert !User.new.respond_to?(:age)
+    assert_not_respond_to User.new, :age
     irb_context.reload!(false)
-    assert User.new.respond_to?(:age)
+    assert_respond_to User.new, :age
   end
 
   def test_access_to_helpers
