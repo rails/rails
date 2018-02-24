@@ -73,6 +73,14 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/Missing master key to decrypt credentials/, run_show_command)
   end
 
+  test "show all values when read_credential_per_env is specified" do
+    add_to_config <<-RUBY
+      config.read_credentials_per_env = true
+    RUBY
+
+    assert_match(/access_key_id: 123/, run_show_command)
+  end
+
   private
     def run_edit_command(editor: "cat")
       switch_env("EDITOR", editor) do

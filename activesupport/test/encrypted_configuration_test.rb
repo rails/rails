@@ -42,6 +42,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert @credentials.something[:good]
   end
 
+  test "reading configuration with specifying section" do
+    credentials = ActiveSupport::EncryptedConfiguration.new(
+      config_path: @credentials_config_path, key_path: @credentials_key_path,
+      env_key: "RAILS_MASTER_KEY", raise_if_missing_key: true, section: :development
+    )
+    credentials.write({ development: { something: { good: true } } }.to_yaml)
+
+    assert credentials.something[:good]
+  end
+
   test "change configuration by key file" do
     @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|

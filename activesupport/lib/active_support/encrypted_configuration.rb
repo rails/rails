@@ -11,9 +11,11 @@ module ActiveSupport
     delegate :[], :fetch, to: :config
     delegate_missing_to :options
 
-    def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:)
+    def initialize(config_path:, key_path:, env_key:, raise_if_missing_key:, section: nil)
       super content_path: config_path, key_path: key_path,
         env_key: env_key, raise_if_missing_key: raise_if_missing_key
+
+      @section = section
     end
 
     # Allow a config to be started without a file present
@@ -30,7 +32,10 @@ module ActiveSupport
     end
 
     def config
-      @config ||= deserialize(read).deep_symbolize_keys
+      @config ||= begin
+        config = deserialize(read).deep_symbolize_keys
+        @section ? config[@section.to_sym] : config
+      end
     end
 
     private
