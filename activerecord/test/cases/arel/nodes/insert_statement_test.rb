@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 describe Arel::Nodes::InsertStatement do
   describe "#clone" do
@@ -17,8 +18,8 @@ describe Arel::Nodes::InsertStatement do
     end
   end
 
-  describe 'equality' do
-    it 'is equal with equal ivars' do
+  describe "equality" do
+    it "is equal with equal ivars" do
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]
@@ -29,7 +30,7 @@ describe Arel::Nodes::InsertStatement do
       assert_equal 1, array.uniq.size
     end
 
-    it 'is not equal with different ivars' do
+    it "is not equal with different ivars" do
       statement1 = Arel::Nodes::InsertStatement.new
       statement1.columns = %w[a b c]
       statement1.values  = %w[x y z]

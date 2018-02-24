@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Nodes
@@ -25,7 +26,7 @@ module Arel
         core = Arel::Nodes::SelectCore.new
         core.set_quantifier = Arel::Nodes::Distinct.new
         viz = Arel::Visitors::ToSql.new Table.engine.connection_pool
-        assert_match 'DISTINCT', viz.accept(core, Collectors::SQLString.new).value
+        assert_match "DISTINCT", viz.accept(core, Collectors::SQLString.new).value
       end
 
       def test_equality_with_same_ivars

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative 'helper'
+
+require_relative "helper"
 
 module Arel
   module Nodes
@@ -24,12 +25,10 @@ module Arel
               eqeq_owner == hash_owner
         end
 
-        problem_msg = 'Some subclasses of Arel::Nodes::Node do not have a' \
-            ' #== or #eql? or #hash defined from the same class as the others'
+        problem_msg = "Some subclasses of Arel::Nodes::Node do not have a" \
+            " #== or #eql? or #hash defined from the same class as the others"
         assert_empty bad_node_descendants, problem_msg
       end
-
-
     end
   end
 end

@@ -1,11 +1,12 @@
 # frozen_string_literal: true
-require 'arel/attributes/attribute'
+
+require "arel/attributes/attribute"
 
 module Arel
   module Attributes
     ###
     # Factory method to wrap a raw database +column+ to an Arel Attribute.
-    def self.for column
+    def self.for(column)
       case column.type
       when :string, :text, :binary             then String
       when :integer                            then Integer

@@ -1,10 +1,11 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class Extract < Arel::Nodes::Unary
       attr_accessor :field
 
-      def initialize expr, field
+      def initialize(expr, field)
         super(expr)
         @field = field
       end
@@ -13,7 +14,7 @@ module Arel
         super ^ @field.hash
       end
 
-      def eql? other
+      def eql?(other)
         super &&
           self.field == other.field
       end

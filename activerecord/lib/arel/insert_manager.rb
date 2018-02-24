@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   class InsertManager < Arel::TreeManager
     def initialize
@@ -6,19 +7,19 @@ module Arel
       @ast = Nodes::InsertStatement.new
     end
 
-    def into table
+    def into(table)
       @ast.relation = table
       self
     end
 
     def columns; @ast.columns end
-    def values= val; @ast.values = val; end
+    def values=(val); @ast.values = val; end
 
-    def select select
+    def select(select)
       @ast.select = select
     end
 
-    def insert fields
+    def insert(fields)
       return if fields.empty?
 
       if String === fields
@@ -37,7 +38,7 @@ module Arel
       self
     end
 
-    def create_values values, columns
+    def create_values(values, columns)
       Nodes::Values.new values, columns
     end
 

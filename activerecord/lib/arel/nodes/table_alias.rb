@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class TableAlias < Arel::Nodes::Binary
@@ -6,7 +7,7 @@ module Arel
       alias :relation :left
       alias :table_alias :name
 
-      def [] name
+      def [](name)
         Attribute.new(self, name)
       end
 

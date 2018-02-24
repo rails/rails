@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     ###
@@ -7,7 +8,7 @@ module Arel
     #   http://www.sqlite.org/syntaxdiagrams.html#join-source
 
     class JoinSource < Arel::Nodes::Binary
-      def initialize single_source, joinop = []
+      def initialize(single_source, joinop = [])
         super
       end
 

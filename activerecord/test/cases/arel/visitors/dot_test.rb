@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Visitors
@@ -23,7 +24,7 @@ module Arel
       end
 
       def test_named_function
-        func = Nodes::NamedFunction.new 'omg', 'omg'
+        func = Nodes::NamedFunction.new "omg", "omg"
         @visitor.accept func, Collectors::PlainString.new
       end
 

@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class Values < Arel::Nodes::Binary
@@ -7,7 +8,7 @@ module Arel
       alias :columns :right
       alias :columns= :right=
 
-      def initialize exprs, columns = []
+      def initialize(exprs, columns = [])
         super
       end
     end

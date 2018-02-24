@@ -7,11 +7,11 @@ module Arel
         @binds = []
       end
 
-      def << str
+      def <<(str)
         self
       end
 
-      def add_bind bind
+      def add_bind(bind)
         @binds << bind
         self
       end

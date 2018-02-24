@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Nodes
@@ -13,10 +14,10 @@ module Arel
 
       def test_operation_alias
         operation = InfixOperation.new :+, 1, 2
-        aliaz = operation.as('zomg')
+        aliaz = operation.as("zomg")
         assert_kind_of As, aliaz
         assert_equal operation, aliaz.left
-        assert_equal 'zomg', aliaz.right
+        assert_equal "zomg", aliaz.right
       end
 
       def test_operation_ordering

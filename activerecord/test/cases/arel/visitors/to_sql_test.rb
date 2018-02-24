@@ -1,10 +1,11 @@
 # frozen_string_literal: true
-require_relative '../helper'
-require 'bigdecimal'
+
+require_relative "../helper"
+require "bigdecimal"
 
 module Arel
   module Visitors
-    describe 'the to_sql visitor' do
+    describe "the to_sql visitor" do
       before do
         @conn = FakeRecord::Base.new
         @visitor = ToSql.new @conn.connection
@@ -12,24 +13,24 @@ module Arel
         @attr = @table[:id]
       end
 
-      def compile node
+      def compile(node)
         @visitor.accept(node, Collectors::SQLString.new).value
       end
 
-      it 'works with BindParams' do
+      it "works with BindParams" do
         node = Nodes::BindParam.new(1)
         sql = compile node
-        sql.must_be_like '?'
+        sql.must_be_like "?"
       end
 
-      it 'does not quote BindParams used as part of a Values' do
+      it "does not quote BindParams used as part of a Values" do
         bp = Nodes::BindParam.new(1)
         values = Nodes::Values.new([bp])
         sql = compile values
-        sql.must_be_like 'VALUES (?)'
+        sql.must_be_like "VALUES (?)"
       end
 
-      it 'can define a dispatch method' do
+      it "can define a dispatch method" do
         visited = false
         viz = Class.new(Arel::Visitors::Visitor) {
           define_method(:hello) do |node, c|
@@ -37,117 +38,117 @@ module Arel
           end
 
           def dispatch
-            { Arel::Table => 'hello' }
+            { Arel::Table => "hello" }
           end
         }.new
 
         viz.accept(@table, Collectors::SQLString.new)
-        assert visited, 'hello method was called'
+        assert visited, "hello method was called"
       end
 
-      it 'should not quote sql literals' do
+      it "should not quote sql literals" do
         node = @table[Arel.star]
         sql = compile node
         sql.must_be_like '"users".*'
       end
 
-      it 'should visit named functions' do
-        function = Nodes::NamedFunction.new('omg', [Arel.star])
-        assert_equal 'omg(*)', compile(function)
+      it "should visit named functions" do
+        function = Nodes::NamedFunction.new("omg", [Arel.star])
+        assert_equal "omg(*)", compile(function)
       end
 
-      it 'should chain predications on named functions' do
-        function = Nodes::NamedFunction.new('omg', [Arel.star])
+      it "should chain predications on named functions" do
+        function = Nodes::NamedFunction.new("omg", [Arel.star])
         sql = compile(function.eq(2))
         sql.must_be_like %{ omg(*) = 2 }
       end
 
-      it 'should handle nil with named functions' do
-        function = Nodes::NamedFunction.new('omg', [Arel.star])
+      it "should handle nil with named functions" do
+        function = Nodes::NamedFunction.new("omg", [Arel.star])
         sql = compile(function.eq(nil))
         sql.must_be_like %{ omg(*) IS NULL }
       end
 
-      it 'should visit built-in functions' do
+      it "should visit built-in functions" do
         function = Nodes::Count.new([Arel.star])
-        assert_equal 'COUNT(*)', compile(function)
+        assert_equal "COUNT(*)", compile(function)
 
         function = Nodes::Sum.new([Arel.star])
-        assert_equal 'SUM(*)', compile(function)
+        assert_equal "SUM(*)", compile(function)
 
         function = Nodes::Max.new([Arel.star])
-        assert_equal 'MAX(*)', compile(function)
+        assert_equal "MAX(*)", compile(function)
 
         function = Nodes::Min.new([Arel.star])
-        assert_equal 'MIN(*)', compile(function)
+        assert_equal "MIN(*)", compile(function)
 
         function = Nodes::Avg.new([Arel.star])
-        assert_equal 'AVG(*)', compile(function)
+        assert_equal "AVG(*)", compile(function)
       end
 
-      it 'should visit built-in functions operating on distinct values' do
+      it "should visit built-in functions operating on distinct values" do
         function = Nodes::Count.new([Arel.star])
         function.distinct = true
-        assert_equal 'COUNT(DISTINCT *)', compile(function)
+        assert_equal "COUNT(DISTINCT *)", compile(function)
 
         function = Nodes::Sum.new([Arel.star])
         function.distinct = true
-        assert_equal 'SUM(DISTINCT *)', compile(function)
+        assert_equal "SUM(DISTINCT *)", compile(function)
 
         function = Nodes::Max.new([Arel.star])
         function.distinct = true
-        assert_equal 'MAX(DISTINCT *)', compile(function)
+        assert_equal "MAX(DISTINCT *)", compile(function)
 
         function = Nodes::Min.new([Arel.star])
         function.distinct = true
-        assert_equal 'MIN(DISTINCT *)', compile(function)
+        assert_equal "MIN(DISTINCT *)", compile(function)
 
         function = Nodes::Avg.new([Arel.star])
         function.distinct = true
-        assert_equal 'AVG(DISTINCT *)', compile(function)
+        assert_equal "AVG(DISTINCT *)", compile(function)
       end
 
-      it 'works with lists' do
-        function = Nodes::NamedFunction.new('omg', [Arel.star, Arel.star])
-        assert_equal 'omg(*, *)', compile(function)
+      it "works with lists" do
+        function = Nodes::NamedFunction.new("omg", [Arel.star, Arel.star])
+        assert_equal "omg(*, *)", compile(function)
       end
 
-      describe 'Nodes::Equality' do
+      describe "Nodes::Equality" do
         it "should escape strings" do
-          test = Table.new(:users)[:name].eq 'Aaron Patterson'
+          test = Table.new(:users)[:name].eq "Aaron Patterson"
           compile(test).must_be_like %{
             "users"."name" = 'Aaron Patterson'
           }
         end
 
-        it 'should handle false' do
+        it "should handle false" do
           table = Table.new(:users)
           val = Nodes.build_quoted(false, table[:active])
           sql = compile Nodes::Equality.new(val, val)
           sql.must_be_like %{ 'f' = 'f' }
         end
 
-        it 'should handle nil' do
+        it "should handle nil" do
           sql = compile Nodes::Equality.new(@table[:name], nil)
           sql.must_be_like %{ "users"."name" IS NULL }
         end
       end
 
-      describe 'Nodes::Grouping' do
-        it 'wraps nested groupings in brackets only once' do
-          sql = compile Nodes::Grouping.new(Nodes::Grouping.new(Nodes.build_quoted('foo')))
+      describe "Nodes::Grouping" do
+        it "wraps nested groupings in brackets only once" do
+          sql = compile Nodes::Grouping.new(Nodes::Grouping.new(Nodes.build_quoted("foo")))
           sql.must_equal "('foo')"
         end
       end
 
-      describe 'Nodes::NotEqual' do
-        it 'should handle false' do
+      describe "Nodes::NotEqual" do
+        it "should handle false" do
           val = Nodes.build_quoted(false, @table[:active])
           sql = compile Nodes::NotEqual.new(@table[:active], val)
           sql.must_be_like %{ "users"."active" != 'f' }
         end
 
-        it 'should handle nil' do
+        it "should handle nil" do
           val = Nodes.build_quoted(nil, @table[:active])
           sql = compile Nodes::NotEqual.new(@table[:name], val)
           sql.must_be_like %{ "users"."name" IS NOT NULL }
@@ -225,7 +226,7 @@ module Arel
       end
 
       it "should visit_Hash" do
-        compile(Nodes.build_quoted({:a => 1}))
+        compile(Nodes.build_quoted(a: 1))
       end
 
       it "should visit_Set" do
@@ -233,7 +234,7 @@ module Arel
       end
 
       it "should visit_BigDecimal" do
-        compile Nodes.build_quoted(BigDecimal('2.14'))
+        compile Nodes.build_quoted(BigDecimal("2.14"))
       end
 
       it "should visit_Date" do
@@ -296,21 +297,21 @@ module Arel
 
       describe "Nodes::Matches" do
         it "should know how to visit" do
-          node = @table[:name].matches('foo%')
+          node = @table[:name].matches("foo%")
           compile(node).must_be_like %{
             "users"."name" LIKE 'foo%'
           }
         end
 
         it "can handle ESCAPE" do
-          node = @table[:name].matches('foo!%', '!')
+          node = @table[:name].matches("foo!%", "!")
           compile(node).must_be_like %{
             "users"."name" LIKE 'foo!%' ESCAPE '!'
           }
         end
 
-        it 'can handle subqueries' do
-          subquery = @table.project(:id).where(@table[:name].matches('foo%'))
+        it "can handle subqueries" do
+          subquery = @table.project(:id).where(@table[:name].matches("foo%"))
           node = @attr.in subquery
           compile(node).must_be_like %{
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" LIKE 'foo%')
@@ -320,21 +321,21 @@ module Arel
 
       describe "Nodes::DoesNotMatch" do
         it "should know how to visit" do
-          node = @table[:name].does_not_match('foo%')
+          node = @table[:name].does_not_match("foo%")
           compile(node).must_be_like %{
             "users"."name" NOT LIKE 'foo%'
           }
         end
 
         it "can handle ESCAPE" do
-          node = @table[:name].does_not_match('foo!%', '!')
+          node = @table[:name].does_not_match("foo!%", "!")
           compile(node).must_be_like %{
             "users"."name" NOT LIKE 'foo!%' ESCAPE '!'
           }
         end
 
-        it 'can handle subqueries' do
-          subquery = @table.project(:id).where(@table[:name].does_not_match('foo%'))
+        it "can handle subqueries" do
+          subquery = @table.project(:id).where(@table[:name].does_not_match("foo%"))
           node = @attr.in subquery
           compile(node).must_be_like %{
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" NOT LIKE 'foo%')
@@ -361,24 +362,24 @@ module Arel
 
         it "should return 1=0 when empty right which is always false" do
           node = @attr.in []
-          compile(node).must_equal '1=0'
+          compile(node).must_equal "1=0"
         end
 
-        it 'can handle two dot ranges' do
+        it "can handle two dot ranges" do
           node = @attr.between 1..3
           compile(node).must_be_like %{
             "users"."id" BETWEEN 1 AND 3
           }
         end
 
-        it 'can handle three dot ranges' do
+        it "can handle three dot ranges" do
           node = @attr.between 1...3
           compile(node).must_be_like %{
             "users"."id" >= 1 AND "users"."id" < 3
           }
         end
 
-        it 'can handle ranges bounded by infinity' do
+        it "can handle ranges bounded by infinity" do
           node = @attr.between 1..Float::INFINITY
           compile(node).must_be_like %{
             "users"."id" >= 1
@@ -395,9 +396,9 @@ module Arel
           compile(node).must_be_like %{1=1}
         end
 
-        it 'can handle subqueries' do
+        it "can handle subqueries" do
           table = Table.new(:users)
-          subquery = table.project(:id).where(table[:name].eq('Aaron'))
+          subquery = table.project(:id).where(table[:name].eq("Aaron"))
           node = @attr.in subquery
           compile(node).must_be_like %{
             "users"."id" IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
@@ -459,7 +460,7 @@ module Arel
 
         it "should handle arbitrary operators" do
           node = Arel::Nodes::InfixOperation.new(
-            '&&',
+            "&&",
             Arel::Attributes::String.new(Table.new(:products), :name),
             Arel::Attributes::String.new(Table.new(:products), :name)
           )
@@ -474,7 +475,7 @@ module Arel
         end
 
         it "should handle arbitrary operators" do
-          node = Arel::Nodes::UnaryOperation.new('!', Arel::Attributes::String.new(Table.new(:products), :active))
+          node = Arel::Nodes::UnaryOperation.new("!", Arel::Attributes::String.new(Table.new(:products), :active))
           compile(node).must_equal %( ! "products"."active")
         end
       end
@@ -489,24 +490,24 @@ module Arel
 
         it "should return 1=1 when empty right which is always true" do
           node = @attr.not_in []
-          compile(node).must_equal '1=1'
+          compile(node).must_equal "1=1"
         end
 
-        it 'can handle two dot ranges' do
+        it "can handle two dot ranges" do
           node = @attr.not_between 1..3
           compile(node).must_equal(
             %{("users"."id" < 1 OR "users"."id" > 3)}
           )
         end
 
-        it 'can handle three dot ranges' do
+        it "can handle three dot ranges" do
           node = @attr.not_between 1...3
           compile(node).must_equal(
             %{("users"."id" < 1 OR "users"."id" >= 3)}
           )
         end
 
-        it 'can handle ranges bounded by infinity' do
+        it "can handle ranges bounded by infinity" do
           node = @attr.not_between 1..Float::INFINITY
           compile(node).must_be_like %{
             "users"."id" < 1
@@ -523,9 +524,9 @@ module Arel
           compile(node).must_be_like %{1=0}
         end
 
-        it 'can handle subqueries' do
+        it "can handle subqueries" do
           table = Table.new(:users)
-          subquery = table.project(:id).where(table[:name].eq('Aaron'))
+          subquery = table.project(:id).where(table[:name].eq("Aaron"))
           node = @attr.not_in subquery
           compile(node).must_be_like %{
             "users"."id" NOT IN (SELECT id FROM "users" WHERE "users"."name" = 'Aaron')
@@ -533,7 +534,7 @@ module Arel
         end
       end
 
-      describe 'Constants' do
+      describe "Constants" do
         it "should handle true" do
           test = Table.new(:users).create_true
           compile(test).must_be_like %{
@@ -549,19 +550,19 @@ module Arel
         end
       end
 
-      describe 'TableAlias' do
+      describe "TableAlias" do
         it "should use the underlying table for checking columns" do
-          test = Table.new(:users).alias('zomgusers')[:id].eq '3'
+          test = Table.new(:users).alias("zomgusers")[:id].eq "3"
           compile(test).must_be_like %{
             "zomgusers"."id" = '3'
           }
         end
       end
 
-      describe 'distinct on' do
-        it 'raises not implemented error' do
+      describe "distinct on" do
+        it "raises not implemented error" do
           core = Arel::Nodes::SelectCore.new
-          core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql('aaron'))
+          core.set_quantifier = Arel::Nodes::DistinctOn.new(Arel.sql("aaron"))
 
           assert_raises(NotImplementedError) do
             compile(core)
@@ -569,9 +570,9 @@ module Arel
         end
       end
 
-      describe 'Nodes::Regexp' do
-        it 'raises not implemented error' do
-          node = Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted('foo%'))
+      describe "Nodes::Regexp" do
+        it "raises not implemented error" do
+          node = Arel::Nodes::Regexp.new(@table[:name], Nodes.build_quoted("foo%"))
 
           assert_raises(NotImplementedError) do
             compile(node)
@@ -579,9 +580,9 @@ module Arel
         end
       end
 
-      describe 'Nodes::NotRegexp' do
-        it 'raises not implemented error' do
-          node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted('foo%'))
+      describe "Nodes::NotRegexp" do
+        it "raises not implemented error" do
+          node = Arel::Nodes::NotRegexp.new(@table[:name], Nodes.build_quoted("foo%"))
 
           assert_raises(NotImplementedError) do
             compile(node)
@@ -589,10 +590,10 @@ module Arel
         end
       end
 
-      describe 'Nodes::Case' do
-        it 'supports simple case expressions' do
+      describe "Nodes::Case" do
+        it "supports simple case expressions" do
           node = Arel::Nodes::Case.new(@table[:name])
-            .when('foo').then(1)
+            .when("foo").then(1)
             .else(0)
 
           compile(node).must_be_like %{
@@ -600,7 +601,7 @@ module Arel
           }
         end
 
-        it 'supports extended case expressions' do
+        it "supports extended case expressions" do
           node = Arel::Nodes::Case.new
             .when(@table[:name].in(%w(foo bar))).then(1)
             .else(0)
@@ -610,19 +611,19 @@ module Arel
           }
         end
 
-        it 'works without default branch' do
+        it "works without default branch" do
           node = Arel::Nodes::Case.new(@table[:name])
-            .when('foo').then(1)
+            .when("foo").then(1)
 
           compile(node).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 1 END
           }
         end
 
-        it 'allows chaining multiple conditions' do
+        it "allows chaining multiple conditions" do
           node = Arel::Nodes::Case.new(@table[:name])
-            .when('foo').then(1)
-            .when('bar').then(2)
+            .when("foo").then(1)
+            .when("bar").then(2)
             .else(0)
 
           compile(node).must_be_like %{
@@ -630,7 +631,7 @@ module Arel
           }
         end
 
-        it 'supports #when with two arguments and no #then' do
+        it "supports #when with two arguments and no #then" do
           node = Arel::Nodes::Case.new @table[:name]
 
           { foo: 1, bar: 0 }.reduce(node) { |_node, pair| _node.when(*pair) }
@@ -640,8 +641,8 @@ module Arel
           }
         end
 
-        it 'can be chained as a predicate' do
-          node = @table[:name].when('foo').then('bar').else('baz')
+        it "can be chained as a predicate" do
+          node = @table[:name].when("foo").then("bar").else("baz")
 
           compile(node).must_be_like %{
             CASE "users"."name" WHEN 'foo' THEN 'bar' ELSE 'baz' END

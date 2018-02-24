@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class Unary < Arel::Nodes::NodeExpression
       attr_accessor :expr
       alias :value :expr
 
-      def initialize expr
+      def initialize(expr)
         super()
         @expr = expr
       end
@@ -14,7 +15,7 @@ module Arel
         @expr.hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.expr == other.expr
       end

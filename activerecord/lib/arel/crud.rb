@@ -1,9 +1,10 @@
 # frozen_string_literal: true
+
 module Arel
   ###
   # FIXME hopefully we can remove this
   module Crud
-    def compile_update values, pk
+    def compile_update(values, pk)
       um = UpdateManager.new
 
       if Nodes::SqlLiteral === values
@@ -20,7 +21,7 @@ module Arel
       um
     end
 
-    def compile_insert values
+    def compile_insert(values)
       im = create_insert
       im.insert values
       im
@@ -37,6 +38,5 @@ module Arel
       dm.from @ctx.froms
       dm
     end
-
   end
 end

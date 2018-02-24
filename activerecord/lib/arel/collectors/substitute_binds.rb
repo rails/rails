@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Collectors
     class SubstituteBinds
@@ -7,12 +8,12 @@ module Arel
         @delegate = delegate_collector
       end
 
-      def << str
+      def <<(str)
         delegate << str
         self
       end
 
-      def add_bind bind
+      def add_bind(bind)
         self << quoter.quote(bind)
       end
 
@@ -22,7 +23,7 @@ module Arel
 
       protected
 
-      attr_reader :quoter, :delegate
+        attr_reader :quoter, :delegate
     end
   end
 end

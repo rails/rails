@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     ###
@@ -27,13 +28,13 @@ module Arel
       ###
       # Factory method to create a Nodes::Grouping node that has an Nodes::Or
       # node as a child.
-      def or right
+      def or(right)
         Nodes::Grouping.new Nodes::Or.new(self, right)
       end
 
       ###
       # Factory method to create an Nodes::And node.
-      def and right
+      def and(right)
         Nodes::And.new [self, right]
       end
 
@@ -42,14 +43,14 @@ module Arel
       # can find a node that has a "relation" member.
       #
       # Maybe we should just use `Table.engine`?  :'(
-      def to_sql engine = Table.engine
+      def to_sql(engine = Table.engine)
         collector = Arel::Collectors::SQLString.new
         collector = engine.connection.visitor.accept self, collector
         collector.value
       end
 
       # Iterate through AST, nodes will be yielded depth-first
-      def each &block
+      def each(&block)
         return enum_for(:each) unless block_given?
 
         ::Arel::Visitors::DepthFirst.new(block).accept self

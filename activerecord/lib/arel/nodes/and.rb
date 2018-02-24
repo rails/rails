@@ -1,10 +1,11 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class And < Arel::Nodes::Node
       attr_reader :children
 
-      def initialize children
+      def initialize(children)
         super()
         @children = children
       end
@@ -21,7 +22,7 @@ module Arel
         children.hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.children == other.children
       end

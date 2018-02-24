@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class Window < Arel::Nodes::Node
@@ -10,7 +11,7 @@ module Arel
         @framing = nil
       end
 
-      def order *expr
+      def order(*expr)
         # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
         @orders.concat expr.map { |x|
           String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
@@ -18,7 +19,7 @@ module Arel
         self
       end
 
-      def partition *expr
+      def partition(*expr)
         # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
         @partitions.concat expr.map { |x|
           String === x || Symbol === x ? Nodes::SqlLiteral.new(x.to_s) : x
@@ -46,7 +47,7 @@ module Arel
         end
       end
 
-      def initialize_copy other
+      def initialize_copy(other)
         super
         @orders = @orders.map { |x| x.clone }
       end
@@ -55,7 +56,7 @@ module Arel
         [@orders, @framing].hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.orders == other.orders &&
           self.framing == other.framing &&
@@ -67,12 +68,12 @@ module Arel
     class NamedWindow < Window
       attr_accessor :name
 
-      def initialize name
+      def initialize(name)
         super()
         @name = name
       end
 
-      def initialize_copy other
+      def initialize_copy(other)
         super
         @name = other.name.clone
       end
@@ -81,7 +82,7 @@ module Arel
         super ^ @name.hash
       end
 
-      def eql? other
+      def eql?(other)
         super && self.name == other.name
       end
       alias :== :eql?
@@ -104,7 +105,7 @@ module Arel
         self.class.hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class
       end
       alias :== :eql?

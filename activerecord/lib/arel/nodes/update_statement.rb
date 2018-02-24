@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class UpdateStatement < Arel::Nodes::Node
@@ -14,7 +15,7 @@ module Arel
         @key      = nil
       end
 
-      def initialize_copy other
+      def initialize_copy(other)
         super
         @wheres = @wheres.clone
         @values = @values.clone
@@ -24,7 +25,7 @@ module Arel
         [@relation, @wheres, @values, @orders, @limit, @key].hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.relation == other.relation &&
           self.wheres == other.wheres &&

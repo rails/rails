@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Visitors
@@ -9,79 +10,79 @@ module Arel
         @table = Table.new(:users)
       end
 
-      def compile node
+      def compile(node)
         @visitor.accept(node, Collectors::SQLString.new).value
       end
 
-      it 'modifies order when there is distinct and first value' do
+      it "modifies order when there is distinct and first value" do
         # *sigh*
         select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
         stmt = Nodes::SelectStatement.new
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
-        stmt.orders << Nodes::SqlLiteral.new('foo')
+        stmt.orders << Nodes::SqlLiteral.new("foo")
         sql = compile(stmt)
         sql.must_be_like %{
           SELECT #{select} ORDER BY alias_0__
         }
       end
 
-      it 'is idempotent with crazy query' do
+      it "is idempotent with crazy query" do
         # *sigh*
         select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
         stmt = Nodes::SelectStatement.new
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
-        stmt.orders << Nodes::SqlLiteral.new('foo')
+        stmt.orders << Nodes::SqlLiteral.new("foo")
 
         sql = compile(stmt)
         sql2 = compile(stmt)
         sql.must_equal sql2
       end
 
-      it 'splits orders with commas' do
+      it "splits orders with commas" do
         # *sigh*
         select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
         stmt = Nodes::SelectStatement.new
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
-        stmt.orders << Nodes::SqlLiteral.new('foo, bar')
+        stmt.orders << Nodes::SqlLiteral.new("foo, bar")
         sql = compile(stmt)
         sql.must_be_like %{
           SELECT #{select} ORDER BY alias_0__, alias_1__
         }
       end
 
-      it 'splits orders with commas and function calls' do
+      it "splits orders with commas and function calls" do
         # *sigh*
         select = "DISTINCT foo.id, FIRST_VALUE(projects.name) OVER (foo) AS alias_0__"
         stmt = Nodes::SelectStatement.new
         stmt.cores.first.projections << Nodes::SqlLiteral.new(select)
-        stmt.orders << Nodes::SqlLiteral.new('NVL(LOWER(bar, foo), foo) DESC, UPPER(baz)')
+        stmt.orders << Nodes::SqlLiteral.new("NVL(LOWER(bar, foo), foo) DESC, UPPER(baz)")
         sql = compile(stmt)
         sql.must_be_like %{
           SELECT #{select} ORDER BY alias_0__ DESC, alias_1__
         }
       end
 
-      describe 'Nodes::SelectStatement' do
-        describe 'limit' do
-          it 'adds a rownum clause' do
+      describe "Nodes::SelectStatement" do
+        describe "limit" do
+          it "adds a rownum clause" do
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
             sql.must_be_like %{ SELECT WHERE ROWNUM <= 10 }
           end
 
-          it 'is idempotent' do
+          it "is idempotent" do
             stmt = Nodes::SelectStatement.new
-            stmt.orders << Nodes::SqlLiteral.new('foo')
+            stmt.orders << Nodes::SqlLiteral.new("foo")
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
             sql2 = compile stmt
             sql.must_equal sql2
           end
 
-          it 'creates a subquery when there is order_by' do
+          it "creates a subquery when there is order_by" do
             stmt = Nodes::SelectStatement.new
-            stmt.orders << Nodes::SqlLiteral.new('foo')
+            stmt.orders << Nodes::SqlLiteral.new("foo")
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
             sql.must_be_like %{
@@ -89,9 +90,9 @@ module Arel
             }
           end
 
-          it 'creates a subquery when there is group by' do
+          it "creates a subquery when there is group by" do
             stmt = Nodes::SelectStatement.new
-            stmt.cores.first.groups << Nodes::SqlLiteral.new('foo')
+            stmt.cores.first.groups << Nodes::SqlLiteral.new("foo")
             stmt.limit = Nodes::Limit.new(10)
             sql = compile stmt
             sql.must_be_like %{
@@ -99,10 +100,10 @@ module Arel
             }
           end
 
-          it 'creates a subquery when there is DISTINCT' do
+          it "creates a subquery when there is DISTINCT" do
             stmt = Nodes::SelectStatement.new
             stmt.cores.first.set_quantifier = Arel::Nodes::Distinct.new
-            stmt.cores.first.projections << Nodes::SqlLiteral.new('id')
+            stmt.cores.first.projections << Nodes::SqlLiteral.new("id")
             stmt.limit = Arel::Nodes::Limit.new(10)
             sql = compile stmt
             sql.must_be_like %{
@@ -110,7 +111,7 @@ module Arel
             }
           end
 
-          it 'creates a different subquery when there is an offset' do
+          it "creates a different subquery when there is an offset" do
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
@@ -125,7 +126,7 @@ module Arel
             }
           end
 
-          it 'creates a subquery when there is limit and offset with BindParams' do
+          it "creates a subquery when there is limit and offset with BindParams" do
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(Nodes::BindParam.new(1))
             stmt.offset = Nodes::Offset.new(Nodes::BindParam.new(1))
@@ -140,7 +141,7 @@ module Arel
             }
           end
 
-          it 'is idempotent with different subquery' do
+          it "is idempotent with different subquery" do
             stmt = Nodes::SelectStatement.new
             stmt.limit = Nodes::Limit.new(10)
             stmt.offset = Nodes::Offset.new(10)
@@ -150,8 +151,8 @@ module Arel
           end
         end
 
-        describe 'only offset' do
-          it 'creates a select from subquery with rownum condition' do
+        describe "only offset" do
+          it "creates a select from subquery with rownum condition" do
             stmt = Nodes::SelectStatement.new
             stmt.offset = Nodes::Offset.new(10)
             sql = compile stmt
@@ -166,7 +167,7 @@ module Arel
         end
       end
 
-      it 'modified except to be minus' do
+      it "modified except to be minus" do
         left = Nodes::SqlLiteral.new("SELECT * FROM users WHERE age > 10")
         right = Nodes::SqlLiteral.new("SELECT * FROM users WHERE age > 20")
         sql = compile Nodes::Except.new(left, right)
@@ -175,9 +176,9 @@ module Arel
         }
       end
 
-      describe 'locking' do
-        it 'defaults to FOR UPDATE when locking' do
-          node = Nodes::Lock.new(Arel.sql('FOR UPDATE'))
+      describe "locking" do
+        it "defaults to FOR UPDATE when locking" do
+          node = Nodes::Lock.new(Arel.sql("FOR UPDATE"))
           compile(node).must_be_like "FOR UPDATE"
         end
       end

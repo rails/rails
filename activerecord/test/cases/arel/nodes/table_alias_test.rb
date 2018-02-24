@@ -1,11 +1,12 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Nodes
-    describe 'table alias' do
-      describe 'equality' do
-        it 'is equal with equal ivars' do
+    describe "table alias" do
+      describe "equality" do
+        it "is equal with equal ivars" do
           relation1 = Table.new(:users)
           node1     = TableAlias.new relation1, :foo
           relation2 = Table.new(:users)
@@ -14,7 +15,7 @@ module Arel
           assert_equal 1, array.uniq.size
         end
 
-        it 'is not equal with different ivars' do
+        it "is not equal with different ivars" do
           relation1 = Table.new(:users)
           node1     = TableAlias.new relation1, :foo
           relation2 = Table.new(:users)

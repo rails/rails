@@ -1,13 +1,14 @@
 # frozen_string_literal: true
-require 'rubygems'
-require 'minitest/autorun'
-require 'arel'
 
-require_relative 'support/fake_record'
+require "rubygems"
+require "minitest/autorun"
+require "arel"
+
+require_relative "support/fake_record"
 
 class Object
-  def must_be_like other
-    gsub(/\s+/, ' ').strip.must_equal other.gsub(/\s+/, ' ').strip
+  def must_be_like(other)
+    gsub(/\s+/, " ").strip.must_equal other.gsub(/\s+/, " ").strip
   end
 end
 
@@ -24,9 +25,9 @@ module Arel
       super
     end
 
-    def assert_like expected, actual
-      assert_equal expected.gsub(/\s+/, ' ').strip,
-                   actual.gsub(/\s+/, ' ').strip
+    def assert_like(expected, actual)
+      assert_equal expected.gsub(/\s+/, " ").strip,
+                   actual.gsub(/\s+/, " ").strip
     end
   end
 

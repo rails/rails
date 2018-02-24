@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Arel
   module Nodes
     class NodeExpression < Arel::Nodes::Node

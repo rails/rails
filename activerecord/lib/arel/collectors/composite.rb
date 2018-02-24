@@ -8,13 +8,13 @@ module Arel
         @right = right
       end
 
-      def << str
+      def <<(str)
         left << str
         right << str
         self
       end
 
-      def add_bind bind, &block
+      def add_bind(bind, &block)
         left.add_bind bind, &block
         right.add_bind bind, &block
         self
@@ -26,7 +26,7 @@ module Arel
 
       protected
 
-      attr_reader :left, :right
+        attr_reader :left, :right
     end
   end
 end

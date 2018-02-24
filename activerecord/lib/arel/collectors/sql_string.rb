@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'arel/collectors/plain_string'
+require "arel/collectors/plain_string"
 
 module Arel
   module Collectors
@@ -10,13 +10,13 @@ module Arel
         @bind_index = 1
       end
 
-      def add_bind bind
+      def add_bind(bind)
         self << yield(@bind_index)
         @bind_index += 1
         self
       end
 
-      def compile bvs
+      def compile(bvs)
         value
       end
     end

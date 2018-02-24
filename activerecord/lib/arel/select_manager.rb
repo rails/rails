@@ -1,18 +1,19 @@
 # frozen_string_literal: true
+
 module Arel
   class SelectManager < Arel::TreeManager
     include Arel::Crud
 
     STRING_OR_SYMBOL_CLASS = [Symbol, String]
 
-    def initialize table = nil
+    def initialize(table = nil)
       super()
-      @ast   = Nodes::SelectStatement.new
-      @ctx    = @ast.cores.last
+      @ast = Nodes::SelectStatement.new
+      @ctx = @ast.cores.last
       from table
     end
 
-    def initialize_copy other
+    def initialize_copy(other)
       super
       @ctx = @ast.cores.last
     end
@@ -30,7 +31,7 @@ module Arel
       @ast.offset && @ast.offset.expr
     end
 
-    def skip amount
+    def skip(amount)
       if amount
         @ast.offset = Nodes::Offset.new(amount)
       else
@@ -46,14 +47,14 @@ module Arel
       Arel::Nodes::Exists.new @ast
     end
 
-    def as other
+    def as(other)
       create_table_alias grouping(@ast), Nodes::SqlLiteral.new(other)
     end
 
-    def lock locking = Arel.sql('FOR UPDATE')
+    def lock(locking = Arel.sql("FOR UPDATE"))
       case locking
       when true
-        locking = Arel.sql('FOR UPDATE')
+        locking = Arel.sql("FOR UPDATE")
       when Arel::Nodes::SqlLiteral
       when String
         locking = Arel.sql locking
@@ -67,12 +68,12 @@ module Arel
       @ast.lock
     end
 
-    def on *exprs
+    def on(*exprs)
       @ctx.source.right.last.right = Nodes::On.new(collapse(exprs))
       self
     end
 
-    def group *columns
+    def group(*columns)
       columns.each do |column|
         # FIXME: backwards compat
         column = Nodes::SqlLiteral.new(column) if String === column
@@ -83,7 +84,7 @@ module Arel
       self
     end
 
-    def from table
+    def from(table)
       table = Nodes::SqlLiteral.new(table) if String === table
 
       case table
@@ -100,7 +101,7 @@ module Arel
       @ast.cores.map { |x| x.from }.compact
     end
 
-    def join relation, klass = Nodes::InnerJoin
+    def join(relation, klass = Nodes::InnerJoin)
       return self unless relation
 
       case relation
@@ -113,22 +114,22 @@ module Arel
       self
     end
 
-    def outer_join relation
+    def outer_join(relation)
       join(relation, Nodes::OuterJoin)
     end
 
-    def having expr
+    def having(expr)
       @ctx.havings << expr
       self
     end
 
-    def window name
+    def window(name)
       window = Nodes::NamedWindow.new(name)
       @ctx.windows.push window
       window
     end
 
-    def project *projections
+    def project(*projections)
       # FIXME: converting these to SQLLiterals is probably not good, but
       # rails tests require it.
       @ctx.projections.concat projections.map { |x|
@@ -141,7 +142,7 @@ module Arel
       @ctx.projections
     end
 
-    def projections= projections
+    def projections=(projections)
       @ctx.projections = projections
     end
 
@@ -163,7 +164,7 @@ module Arel
       self
     end
 
-    def order *expr
+    def order(*expr)
       # FIXME: We SHOULD NOT be converting these to SqlLiteral automatically
       @ast.orders.concat expr.map { |x|
         STRING_OR_SYMBOL_CLASS.include?(x.class) ? Nodes::SqlLiteral.new(x.to_s) : x
@@ -175,14 +176,14 @@ module Arel
       @ast.orders
     end
 
-    def where_sql engine = Table.engine
+    def where_sql(engine = Table.engine)
       return if @ctx.wheres.empty?
 
       viz = Visitors::WhereSql.new(engine.connection.visitor, engine.connection)
       Nodes::SqlLiteral.new viz.accept(@ctx, Collectors::SQLString.new).value
     end
 
-    def union operation, other = nil
+    def union(operation, other = nil)
       if other
         node_class = Nodes.const_get("Union#{operation.to_s.capitalize}")
       else
@@ -193,21 +194,21 @@ module Arel
       node_class.new self.ast, other.ast
     end
 
-    def intersect other
+    def intersect(other)
       Nodes::Intersect.new ast, other.ast
     end
 
-    def except other
+    def except(other)
       Nodes::Except.new ast, other.ast
     end
     alias :minus :except
 
-    def lateral table_name = nil
+    def lateral(table_name = nil)
       base = table_name.nil? ? ast : as(table_name)
       Nodes::Lateral.new(base)
     end
 
-    def with *subqueries
+    def with(*subqueries)
       if subqueries.first.is_a? Symbol
         node_class = Nodes.const_get("With#{subqueries.shift.to_s.capitalize}")
       else
@@ -218,7 +219,7 @@ module Arel
       self
     end
 
-    def take limit
+    def take(limit)
       if limit
         @ast.limit = Nodes::Limit.new(limit)
         @ctx.top   = Nodes::Top.new(limit)
@@ -240,7 +241,7 @@ module Arel
 
     class Row < Struct.new(:data) # :nodoc:
       def id
-        data['id']
+        data["id"]
       end
 
       def method_missing(name, *args)
@@ -251,22 +252,22 @@ module Arel
     end
 
     private
-    def collapse exprs, existing = nil
-      exprs = exprs.unshift(existing.expr) if existing
-      exprs = exprs.compact.map { |expr|
-        if String === expr
-          # FIXME: Don't do this automatically
-          Arel.sql(expr)
-        else
-          expr
-        end
-      }
+      def collapse(exprs, existing = nil)
+        exprs = exprs.unshift(existing.expr) if existing
+        exprs = exprs.compact.map { |expr|
+          if String === expr
+            # FIXME: Don't do this automatically
+            Arel.sql(expr)
+          else
+            expr
+          end
+        }
 
-      if exprs.length == 1
-        exprs.first
-      else
-        create_and exprs
+        if exprs.length == 1
+          exprs.first
+        else
+          create_and exprs
+        end
       end
-    end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
-require_relative '../helper'
-require 'concurrent'
+
+require_relative "../helper"
+require "concurrent"
 
 module Arel
   module Visitors
@@ -10,14 +11,14 @@ module Arel
         @barrier = Concurrent::CyclicBarrier.new(2)
       end
 
-      def visit_Arel_Visitors_DummySuperNode node
+      def visit_Arel_Visitors_DummySuperNode(node)
         42
       end
 
       # This is terrible, but it's the only way to reliably reproduce
       # the possible race where two threads attempt to correct the
       # dispatch hash at the same time.
-      def send *args
+      def send(*args)
         super
       rescue
         # Both threads try (and fail) to dispatch to the subclass's name
@@ -43,7 +44,7 @@ module Arel
         @table = Table.new(:users)
       end
 
-      it 'dispatches properly after failing upwards' do
+      it "dispatches properly after failing upwards" do
         node = Nodes::Union.new(Nodes::True.new, Nodes::False.new)
         assert_equal "( TRUE UNION FALSE )", node.to_sql
 
@@ -52,7 +53,7 @@ module Arel
         assert_equal "( TRUE UNION FALSE )", node.to_sql
       end
 
-      it 'is threadsafe when implementing superclass fallback' do
+      it "is threadsafe when implementing superclass fallback" do
         visitor = DummyVisitor.new
         main_thread_finished = Concurrent::Event.new
 
@@ -69,4 +70,3 @@ module Arel
     end
   end
 end
-

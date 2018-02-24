@@ -1,7 +1,8 @@
 # frozen_string_literal: true
-require_relative '../helper'
-require 'arel/collectors/substitute_binds'
-require 'arel/collectors/sql_string'
+
+require_relative "../helper"
+require "arel/collectors/substitute_binds"
+require "arel/collectors/sql_string"
 
 module Arel
   module Collectors

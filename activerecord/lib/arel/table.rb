@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   class Table
     include Arel::Crud
@@ -13,7 +14,7 @@ module Arel
     alias :table_name :name
 
     def initialize(name, as: nil, type_caster: nil)
-      @name    = name.to_s
+      @name = name.to_s
       @type_caster = type_caster
 
       # Sometime AR sends an :as parameter to table, to let the table know
@@ -25,7 +26,7 @@ module Arel
       @table_alias = as
     end
 
-    def alias name = "#{self.name}_2"
+    def alias(name = "#{self.name}_2")
       Nodes::TableAlias.new(self, name)
     end
 
@@ -33,7 +34,7 @@ module Arel
       SelectManager.new(self)
     end
 
-    def join relation, klass = Nodes::InnerJoin
+    def join(relation, klass = Nodes::InnerJoin)
       return from unless relation
 
       case relation
@@ -45,39 +46,39 @@ module Arel
       from.join(relation, klass)
     end
 
-    def outer_join relation
+    def outer_join(relation)
       join(relation, Nodes::OuterJoin)
     end
 
-    def group *columns
+    def group(*columns)
       from.group(*columns)
     end
 
-    def order *expr
+    def order(*expr)
       from.order(*expr)
     end
 
-    def where condition
+    def where(condition)
       from.where condition
     end
 
-    def project *things
+    def project(*things)
       from.project(*things)
     end
 
-    def take amount
+    def take(amount)
       from.take amount
     end
 
-    def skip amount
+    def skip(amount)
       from.skip amount
     end
 
-    def having expr
+    def having(expr)
       from.having expr
     end
 
-    def [] name
+    def [](name)
       ::Arel::Attribute.new self, name
     end
 
@@ -88,7 +89,7 @@ module Arel
       @name.hash
     end
 
-    def eql? other
+    def eql?(other)
       self.class == other.class &&
         self.name == other.name &&
         self.table_alias == other.table_alias
@@ -105,6 +106,6 @@ module Arel
 
     protected
 
-    attr_reader :type_caster
+      attr_reader :type_caster
   end
 end

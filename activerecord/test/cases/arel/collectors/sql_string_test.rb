@@ -1,5 +1,6 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Collectors
@@ -10,15 +11,15 @@ module Arel
         super
       end
 
-      def collect node
+      def collect(node)
         @visitor.accept(node, Collectors::SQLString.new)
       end
 
-      def compile node
+      def compile(node)
         collect(node).value
       end
 
-      def ast_with_binds bv
+      def ast_with_binds(bv)
         table = Table.new(:users)
         manager = Arel::SelectManager.new table
         manager.where(table[:age].eq(bv))

@@ -1,16 +1,17 @@
 # frozen_string_literal: true
-require_relative 'helper'
+
+require_relative "helper"
 
 module Arel
   class InsertManagerTest < Arel::Spec
-    describe 'new' do
-      it 'takes an engine' do
+    describe "new" do
+      it "takes an engine" do
         Arel::InsertManager.new
       end
     end
 
-    describe 'insert' do
-      it 'can create a Values node' do
+    describe "insert" do
+      it "can create a Values node" do
         manager = Arel::InsertManager.new
         values  = manager.create_values %w{ a b }, %w{ c d }
 
@@ -19,16 +20,16 @@ module Arel
         assert_equal %w{ c d }, values.right
       end
 
-      it 'allows sql literals' do
-        manager        = Arel::InsertManager.new
+      it "allows sql literals" do
+        manager = Arel::InsertManager.new
         manager.into Table.new(:users)
-        manager.values = manager.create_values [Arel.sql('*')], %w{ a }
+        manager.values = manager.create_values [Arel.sql("*")], %w{ a }
         manager.to_sql.must_be_like %{
           INSERT INTO \"users\" VALUES (*)
         }
       end
 
-      it 'works with multiple values' do
+      it "works with multiple values" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.into table
@@ -39,7 +40,7 @@ module Arel
         manager.values = manager.create_values_list([
           %w{1 david},
           %w{2 kir},
-          ["3", Arel.sql('DEFAULT')],
+          ["3", Arel.sql("DEFAULT")],
         ])
 
         manager.to_sql.must_be_like %{
@@ -47,7 +48,7 @@ module Arel
         }
       end
 
-      it 'literals in multiple values are not escaped' do
+      it "literals in multiple values are not escaped" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.into table
@@ -55,8 +56,8 @@ module Arel
         manager.columns << table[:name]
 
         manager.values = manager.create_values_list([
-          [Arel.sql('*')],
-          [Arel.sql('DEFAULT')],
+          [Arel.sql("*")],
+          [Arel.sql("DEFAULT")],
         ])
 
         manager.to_sql.must_be_like %{
@@ -64,7 +65,7 @@ module Arel
         }
       end
 
-      it 'works with multiple single values' do
+      it "works with multiple single values" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.into table
@@ -74,7 +75,7 @@ module Arel
         manager.values = manager.create_values_list([
           %w{david},
           %w{kir},
-          [Arel.sql('DEFAULT')],
+          [Arel.sql("DEFAULT")],
         ])
 
         manager.to_sql.must_be_like %{
@@ -114,26 +115,26 @@ module Arel
         }
       end
 
-      it 'takes a list of lists' do
+      it "takes a list of lists" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.into table
-        manager.insert [[table[:id], 1], [table[:name], 'aaron']]
+        manager.insert [[table[:id], 1], [table[:name], "aaron"]]
         manager.to_sql.must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
 
-      it 'defaults the table' do
+      it "defaults the table" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
-        manager.insert [[table[:id], 1], [table[:name], 'aaron']]
+        manager.insert [[table[:id], 1], [table[:name], "aaron"]]
         manager.to_sql.must_be_like %{
           INSERT INTO "users" ("id", "name") VALUES (1, 'aaron')
         }
       end
 
-      it 'noop for empty list' do
+      it "noop for empty list" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
         manager.insert [[table[:id], 1]]
@@ -143,21 +144,21 @@ module Arel
         }
       end
 
-      it 'is chainable' do
+      it "is chainable" do
         table = Table.new(:users)
         manager = Arel::InsertManager.new
-        insert_result = manager.insert [[table[:id],1]]
+        insert_result = manager.insert [[table[:id], 1]]
         assert_equal manager, insert_result
       end
     end
 
-    describe 'into' do
-      it 'takes a Table and chains' do
+    describe "into" do
+      it "takes a Table and chains" do
         manager = Arel::InsertManager.new
         manager.into(Table.new(:users)).must_equal manager
       end
 
-      it 'converts to sql' do
+      it "converts to sql" do
         table   = Table.new :users
         manager = Arel::InsertManager.new
         manager.into table
@@ -167,7 +168,7 @@ module Arel
       end
     end
 
-    describe 'columns' do
+    describe "columns" do
       it "converts to sql" do
         table   = Table.new :users
         manager = Arel::InsertManager.new
@@ -209,7 +210,7 @@ module Arel
         manager = Arel::InsertManager.new
         manager.into table
 
-        manager.values = Nodes::Values.new [1, 'aaron']
+        manager.values = Nodes::Values.new [1, "aaron"]
         manager.columns << table[:id]
         manager.columns << table[:name]
         manager.to_sql.must_be_like %{
@@ -227,7 +228,7 @@ module Arel
         manager.into table
 
         select = Arel::SelectManager.new
-        select.project Arel.sql('1')
+        select.project Arel.sql("1")
         select.project Arel.sql('"aaron"')
 
         manager.select select
@@ -239,6 +240,5 @@ module Arel
       end
 
     end
-
   end
 end

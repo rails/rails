@@ -1,16 +1,17 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class Binary < Arel::Nodes::NodeExpression
       attr_accessor :left, :right
 
-      def initialize left, right
+      def initialize(left, right)
         super()
         @left  = left
         @right = right
       end
 
-      def initialize_copy other
+      def initialize_copy(other)
         super
         @left  = @left.clone if @left
         @right = @right.clone if @right
@@ -20,7 +21,7 @@ module Arel
         [self.class, @left, @right].hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.left == other.left &&
           self.right == other.right

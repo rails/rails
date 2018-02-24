@@ -1,4 +1,5 @@
 # frozen_string_literal: true
+
 module Arel
   class TreeManager
     include Arel::FactoryMethods
@@ -15,18 +16,18 @@ module Arel
       collector.value
     end
 
-    def to_sql engine = Table.engine
+    def to_sql(engine = Table.engine)
       collector = Arel::Collectors::SQLString.new
       collector = engine.connection.visitor.accept @ast, collector
       collector.value
     end
 
-    def initialize_copy other
+    def initialize_copy(other)
       super
       @ast = @ast.clone
     end
 
-    def where expr
+    def where(expr)
       if Arel::TreeManager === expr
         expr = expr.ast
       end

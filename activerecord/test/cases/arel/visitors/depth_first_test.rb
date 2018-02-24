@@ -1,11 +1,12 @@
 # frozen_string_literal: true
-require_relative '../helper'
+
+require_relative "../helper"
 
 module Arel
   module Visitors
     class TestDepthFirst < Arel::Test
       Collector = Struct.new(:calls) do
-        def call object
+        def call(object)
           calls << object
         end
       end
@@ -164,7 +165,7 @@ module Arel
       def test_table
         relation = Arel::Table.new(:users)
         @visitor.accept relation
-        assert_equal ['users', relation], @collector.calls
+        assert_equal ["users", relation], @collector.calls
       end
 
       def test_array

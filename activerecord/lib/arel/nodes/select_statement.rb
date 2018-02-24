@@ -1,11 +1,12 @@
 # frozen_string_literal: true
+
 module Arel
   module Nodes
     class SelectStatement < Arel::Nodes::NodeExpression
       attr_reader :cores
       attr_accessor :limit, :orders, :lock, :offset, :with
 
-      def initialize cores = [SelectCore.new]
+      def initialize(cores = [SelectCore.new])
         super()
         @cores          = cores
         @orders         = []
@@ -15,7 +16,7 @@ module Arel
         @with           = nil
       end
 
-      def initialize_copy other
+      def initialize_copy(other)
         super
         @cores  = @cores.map { |x| x.clone }
         @orders = @orders.map { |x| x.clone }
@@ -25,7 +26,7 @@ module Arel
         [@cores, @orders, @limit, @lock, @offset, @with].hash
       end
 
-      def eql? other
+      def eql?(other)
         self.class == other.class &&
           self.cores == other.cores &&
           self.orders == other.orders &&
