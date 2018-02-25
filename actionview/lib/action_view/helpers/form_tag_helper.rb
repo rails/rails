@@ -866,7 +866,7 @@ module ActionView
               })
             end
 
-          if html_options.delete("enforce_utf8") { true }
+          if html_options.delete("enforce_utf8") { false }
             utf8_enforcer_tag + method_tag
           else
             method_tag

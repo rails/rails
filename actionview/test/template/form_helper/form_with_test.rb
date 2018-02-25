@@ -25,7 +25,7 @@ class FormWithActsLikeFormTagTest < FormWithTest
 
   def hidden_fields(options = {})
     method = options[:method]
-    skip_enforcing_utf8 = options.fetch(:skip_enforcing_utf8, false)
+    skip_enforcing_utf8 = options.fetch(:skip_enforcing_utf8, true)
 
     "".dup.tap do |txt|
       unless skip_enforcing_utf8
