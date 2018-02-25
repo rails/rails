@@ -808,7 +808,6 @@ The HTML generated for this would be:
 
 ```html
 <form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
-  <input name="utf8" type="hidden" value="&#x2713;" />
   <input type="hidden" name="authenticity_token" value="lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==" />
   <input type="text" name="person[first_name]" id="person_first_name" />
   <input type="text" name="person[last_name]" id="person_last_name" />
@@ -819,7 +818,7 @@ The HTML generated for this would be:
 The params object created when this form is submitted would look like:
 
 ```ruby
-{"utf8" => "✓", "authenticity_token" => "lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==", "person" => {"first_name" => "William", "last_name" => "Smith"}, "commit" => "Create", "controller" => "people", "action" => "create"}
+{"authenticity_token" => "lTuvBzs7ANygT0NFinXj98tfw3Emfm65wwYLbUvoWsK2pngccIQSUorM2C035M9dZswXgWTvKwFS8W5TVblpYw==", "person" => {"first_name" => "William", "last_name" => "Smith"}, "commit" => "Create", "controller" => "people", "action" => "create"}
 ```
 
 The params hash has a nested person value, which can therefore be accessed with `params[:person]` in the controller.
