@@ -68,7 +68,7 @@ module ActiveStorage
     end
 
     initializer "active_storage.services" do
-      config.to_prepare do
+      ActiveSupport.on_load(:active_storage_blob) do
         if config_choice = Rails.configuration.active_storage.service
           configs = Rails.configuration.active_storage.service_configurations ||= begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))

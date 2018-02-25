@@ -202,4 +202,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def forcibly_serve_as_binary?
       ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
     end
+
+    ActiveSupport.run_load_hooks(:active_storage_blob, self)
 end
