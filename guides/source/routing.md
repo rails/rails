@@ -1183,7 +1183,7 @@ $ bin/rails routes -c Comments
 $ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
 
 ### Testing Routes
 

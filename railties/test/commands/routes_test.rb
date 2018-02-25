@@ -119,6 +119,53 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     MESSAGE
   end
 
+  test "test rails routes with expanded option" do
+    app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          get '/cart', to: 'cart#show'
+        end
+    RUBY
+
+    output = rails("routes", "--expanded")
+    assert_equal <<~MESSAGE, output
+    --[ Route 1 ]------------------------------------------------------------
+    Prefix            | cart
+    Verb              | GET
+    URI               | /cart(.:format)
+    Controller#Action | cart#show
+    --[ Route 2 ]------------------------------------------------------------
+    Prefix            | rails_service_blob
+    Verb              | GET
+    URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
+    Controller#Action | active_storage/blobs#show
+    --[ Route 3 ]------------------------------------------------------------
+    Prefix            | rails_blob_variation
+    Verb              | GET
+    URI               | /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format)
+    Controller#Action | active_storage/variants#show
+    --[ Route 4 ]------------------------------------------------------------
+    Prefix            | rails_blob_preview
+    Verb              | GET
+    URI               | /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format)
+    Controller#Action | active_storage/previews#show
+    --[ Route 5 ]------------------------------------------------------------
+    Prefix            | rails_disk_service
+    Verb              | GET
+    URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
+    Controller#Action | active_storage/disk#show
+    --[ Route 6 ]------------------------------------------------------------
+    Prefix            | update_rails_disk_service
+    Verb              | PUT
+    URI               | /rails/active_storage/disk/:encoded_token(.:format)
+    Controller#Action | active_storage/disk#update
+    --[ Route 7 ]------------------------------------------------------------
+    Prefix            | rails_direct_uploads
+    Verb              | POST
+    URI               | /rails/active_storage/direct_uploads(.:format)
+    Controller#Action | active_storage/direct_uploads#create
+    MESSAGE
+  end
+
   private
 
     def run_routes_command(args = [])
