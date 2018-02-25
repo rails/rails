@@ -39,7 +39,6 @@ module ActionView
       #   support browsers without JavaScript.
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive JavaScript drivers to control the
       #   submit behavior. By default this behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name utf8 is not output.
       # * Any other key creates standard HTML attributes for the tag.
       #
       # ==== Examples
@@ -810,15 +809,6 @@ module ActionView
         number_field_tag(name, value, options.merge(type: :range))
       end
 
-      # Creates the hidden UTF8 enforcer tag. Override this method in a helper
-      # to customize the tag.
-      def utf8_enforcer_tag
-        # Use raw HTML to ensure the value is written as an HTML entity; it
-        # needs to be the right character regardless of which encoding the
-        # browser infers.
-        '<input name="utf8" type="hidden" value="&#x2713;" />'.html_safe
-      end
-
       private
         def html_options_for_form(url_for_options, options)
           options.stringify_keys.tap do |html_options|
@@ -866,11 +856,7 @@ module ActionView
               })
             end
 
-          if html_options.delete("enforce_utf8") { true }
-            utf8_enforcer_tag + method_tag
-          else
-            method_tag
-          end
+          method_tag
         end
 
         def form_tag_html(html_options)
