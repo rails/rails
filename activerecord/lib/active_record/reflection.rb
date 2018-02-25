@@ -193,7 +193,7 @@ module ActiveRecord
         klass_scope       = klass_join_scope(table, predicate_builder)
 
         if type
-          klass_scope.where!(type => foreign_klass.base_class.sti_name)
+          klass_scope.where!(type => foreign_klass.base_class.name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
