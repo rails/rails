@@ -44,8 +44,7 @@ module ActiveModel
         end
       end
 
-      protected
-
+      private
         attr_reader :user_provided_value
     end
   end
