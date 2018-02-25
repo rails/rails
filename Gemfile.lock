@@ -44,7 +44,7 @@ PATH
       activesupport (= 4.2.10)
       arel (~> 6.0)
     activesupport (4.2.10)
-      i18n (~> 0.7)
+      i18n (~> 0.7, < 2)
       minitest (~> 5.1)
       thread_safe (~> 0.3, >= 0.3.4)
       tzinfo (~> 1.1)
@@ -123,7 +123,8 @@ GEM
       activesupport (>= 4.2.0)
     hitimes (1.2.5)
     hitimes (1.2.5-x86-mingw32)
-    i18n (0.8.4)
+    i18n (0.9.5)
+      concurrent-ruby (~> 1.0)
     jquery-rails (4.3.1)
       rails-dom-testing (>= 1, < 3)
       railties (>= 4.2.0)
@@ -284,7 +285,7 @@ DEPENDENCIES
   rake (>= 10.3)
   redcarpet (~> 3.1.2)
   resque
-  resque-scheduler (<= 4.3.0)
+  resque-scheduler
   ruby-prof (~> 0.11.2)
   sdoc (~> 0.4.0)
   sequel
@@ -299,4 +300,4 @@ DEPENDENCIES
   w3c_validators
 
 BUNDLED WITH
-   1.15.3
+   1.16.1
