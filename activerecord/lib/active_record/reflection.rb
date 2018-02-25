@@ -416,6 +416,9 @@ module ActiveRecord
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
+        if polymorphic?
+          raise ArgumentError, "Polymorphic association does not support to compute class."
+        end
         active_record.send(:compute_type, name)
       end
 
@@ -608,13 +611,7 @@ module ActiveRecord
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
 
-            begin
-              reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
-              # Give up: we couldn't compute the klass type so we won't be able
-              # to find any associations either.
-              reflection = false
-            end
+            reflection = klass._reflect_on_association(inverse_name)
 
             if valid_inverse_reflection?(reflection)
               return inverse_name
@@ -626,9 +623,6 @@ module ActiveRecord
         # +automatic_inverse_of+ method is a valid reflection. We must
         # make sure that the reflection's active_record name matches up
         # with the current reflection's klass name.
-        #
-        # Note: klass will always be valid because when there's a NameError
-        # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
             klass <= reflection.active_record &&
@@ -732,6 +726,9 @@ module ActiveRecord
       end
 
       private
+        def can_find_inverse_of_automatically?(_)
+          !polymorphic? && super
+        end
 
         def calculate_constructable(macro, options)
           !polymorphic?

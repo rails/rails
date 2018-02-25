@@ -1,5 +1,11 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Make `reflection.klass` raise if `polymorphic?` not to be misused.
+
+    Fixes #31876.
+
+    *Ryuta Kamizono*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
