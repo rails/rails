@@ -190,6 +190,16 @@ class InverseAssociationTests < ActiveRecord::TestCase
     assert_nil belongs_to_ref.inverse_of
   end
 
+  def test_polymorphic_associations_dont_attempt_to_find_inverse_of
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsor)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
+    assert_nil belongs_to_ref.inverse_of
+
+    belongs_to_ref = Face.reflect_on_association(:human)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
+    assert_nil belongs_to_ref.inverse_of
+  end
+
   def test_this_inverse_stuff
     firm = Firm.create!(name: "Adequate Holdings")
     Project.create!(name: "Project 1", firm: firm)

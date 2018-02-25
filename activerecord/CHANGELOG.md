@@ -1,3 +1,10 @@
+*   Make `reflection.klass` raise if `polymorphic?` not to be misused.
+
+    Fixes #31876.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Deprecate `expand_hash_conditions_for_aggregates` without replacement.
