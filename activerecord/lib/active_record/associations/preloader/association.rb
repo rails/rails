@@ -118,7 +118,7 @@ module ActiveRecord
             scope = klass.scope_for_association
 
             if reflection.type
-              scope.where!(reflection.type => model.base_class.sti_name)
+              scope.where!(reflection.type => model.base_class.name)
             end
 
             scope.merge!(reflection_scope) if reflection.scope
