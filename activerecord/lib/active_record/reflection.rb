@@ -416,7 +416,13 @@ module ActiveRecord
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
-        active_record.send(:compute_type, name)
+        computed_class = active_record.send(:compute_type, name)
+
+        # When polymorphic, the computed class doesn't represent a model (eg.
+        # "Taggable", from :taggable)
+        check_class_is_activerecord_model!(computed_class) unless options[:polymorphic]
+
+        computed_class
       end
 
       attr_reader :type, :foreign_type
@@ -649,6 +655,12 @@ module ActiveRecord
             VALID_AUTOMATIC_INVERSE_MACROS.include?(reflection.macro) &&
             !INVALID_AUTOMATIC_INVERSE_OPTIONS.any? { |opt| reflection.options[opt] } &&
             !reflection.scope
+        end
+
+        def check_class_is_activerecord_model!(klass)
+          if !(klass < ActiveRecord::Base)
+            raise ArgumentError, "#{klass} is not an Active Record model"
+          end
         end
 
         def derive_class_name
