@@ -85,17 +85,13 @@ module ActiveStorage
 
       has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record do
         def purge
-          if any?
-            each(&:purge)
-            reset
-          end
+          each(&:purge)
+          reset
         end
 
         def purge_later
-          if any?
-            each(&:purge_later)
-            reset
-          end
+          each(&:purge_later)
+          reset
         end
       end
       has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
