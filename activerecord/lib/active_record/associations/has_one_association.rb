@@ -60,6 +60,7 @@ module ActiveRecord
           when :destroy
             target.destroyed_by_association = reflection
             target.destroy
+            throw(:abort) unless target.destroyed?
           when :nullify
             target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
