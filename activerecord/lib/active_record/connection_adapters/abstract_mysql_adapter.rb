@@ -799,7 +799,22 @@ module ActiveRecord
         end
 
         def column_definitions(table_name) # :nodoc:
-          execute_and_free("SHOW FULL FIELDS FROM #{quote_table_name(table_name)}", "SCHEMA") do |result|
+          query = <<-SQL
+            SELECT COLUMN_NAME AS Field,
+                   COLUMN_TYPE AS Type,
+                   COLLATION_NAME AS Collation,
+                   IS_NULLABLE AS `Null`,
+                   COLUMN_KEY AS `Key`,
+                   COLUMN_DEFAULT AS `Default`,
+                   EXTRA AS Extra,
+                   PRIVILEGES AS Priveleges,
+                   COLUMN_COMMENT AS Comment
+            FROM INFORMATION_SCHEMA.COLUMNS
+            WHERE TABLE_NAME = "#{table_name}"
+            ORDER BY ORDINAL_POSITION
+          SQL
+
+          execute_and_free(query, "SCHEMA") do |result|
             each_hash(result)
           end
         end

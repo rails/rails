@@ -64,6 +64,11 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
+  def test_schema_dump_columns_in_ordinal_position_order
+    output = dump_table_schema("birds")
+    assert_match %r{t.string "name".*t.string "color".*t.integer "pirate_id"}m, output
+  end
+
   def test_schema_dump_uses_force_cascade_on_create_table
     output = dump_table_schema "authors"
     assert_match %r{create_table "authors",.* force: :cascade}, output
