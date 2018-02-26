@@ -711,7 +711,10 @@ class DirtyTest < ActiveRecord::TestCase
       record = klass.new(first_name: "Sean")
       record.non_persisted_attribute_will_change!
 
-      assert_predicate record, :non_persisted_attribute_changed?
+      assert record.save
+
+      record.non_persisted_attribute_will_change!
+
       assert record.save
     ensure
       ActiveRecord::Base.partial_writes = original_partial_writes

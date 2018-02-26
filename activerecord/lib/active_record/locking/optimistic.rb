@@ -77,6 +77,7 @@ module ActiveRecord
         end
 
         def _update_record(attribute_names = self.attribute_names)
+          attribute_names &= self.class.column_names
           return super unless locking_enabled?
           return 0 if attribute_names.empty?
 
