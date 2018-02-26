@@ -62,7 +62,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         assert_equal checksum, details["checksum"]
         assert_equal "text/plain", details["content_type"]
         assert_match %r{storage\.googleapis\.com/#{@config[:bucket]}}, details["direct_upload"]["url"]
-        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum }, details["direct_upload"]["headers"])
+        assert_equal({ "Content-Type" => "", "Content-MD5" => checksum }, details["direct_upload"]["headers"])
       end
     end
   end
