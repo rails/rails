@@ -931,6 +931,30 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal error.message, "The :dependent option must be one of [:destroy, :delete], but is :nullify"
   end
 
+  class DestroyableBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "UndestroyableAuthor", dependent: :destroy
+  end
+
+  class UndestroyableAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "DestroyableBook", foreign_key: "author_id"
+    before_destroy :dont
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  def test_dependency_should_halt_parent_destruction
+    author = UndestroyableAuthor.create!(name: "Test")
+    book = DestroyableBook.create!(author: author)
+
+    assert_no_difference ["UndestroyableAuthor.count", "DestroyableBook.count"] do
+      assert_not book.destroy
+    end
+  end
+
   def test_attributes_are_being_set_when_initialized_from_belongs_to_association_with_where_clause
     new_firm = accounts(:signals37).build_firm(name: "Apple")
     assert_equal new_firm.name, "Apple"
