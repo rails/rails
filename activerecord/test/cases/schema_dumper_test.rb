@@ -64,6 +64,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
     assert_no_match %r{create_table "ar_internal_metadata"}, output
   end
 
+  def test_schema_dump_tables_in_alphabetical_order
+    output = standard_dump
+    assert_match %r{create_table "accounts"}, output
+    assert_match %r{create_table "memberships"}, output
+    assert_match %r{create_table "triangles"}, output
+    assert_match %r{create_table "zines"}, output
+  end
+
   def test_schema_dump_columns_in_ordinal_position_order
     output = dump_table_schema("birds")
     assert_match %r{t.string "name".*t.string "color".*t.integer "pirate_id"}m, output
