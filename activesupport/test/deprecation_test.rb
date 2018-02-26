@@ -158,7 +158,7 @@ class DeprecationTest < ActiveSupport::TestCase
     stderr_output = capture(:stderr) {
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
-    assert stderr_output.empty?
+    assert_empty stderr_output
   end
 
   def test_default_notify_behavior

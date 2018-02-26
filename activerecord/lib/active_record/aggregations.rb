@@ -35,7 +35,7 @@ module ActiveRecord
       # the database).
       #
       #   class Customer < ActiveRecord::Base
-      #     composed_of :balance, class_name: "Money", mapping: %w(amount currency)
+      #     composed_of :balance, class_name: "Money", mapping: %w(balance amount)
       #     composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
       #   end
       #
@@ -177,9 +177,9 @@ module ActiveRecord
       #
       # Once a #composed_of relationship is specified for a model, records can be loaded from the database
       # by specifying an instance of the value object in the conditions hash. The following example
-      # finds all customers with +balance_amount+ equal to 20 and +balance_currency+ equal to "USD":
+      # finds all customers with +address_street+ equal to "May Street" and +address_city+ equal to "Chicago":
       #
-      #   Customer.where(balance: Money.new(20, "USD"))
+      #   Customer.where(address: Address.new("May Street", "Chicago"))
       #
       module ClassMethods
         # Adds reader and writer methods for manipulating a value object:
@@ -212,8 +212,7 @@ module ActiveRecord
         #
         # Option examples:
         #   composed_of :temperature, mapping: %w(reading celsius)
-        #   composed_of :balance, class_name: "Money", mapping: %w(balance amount),
-        #                         converter: Proc.new { |balance| balance.to_money }
+        #   composed_of :balance, class_name: "Money", mapping: %w(balance amount)
         #   composed_of :address, mapping: [ %w(address_street street), %w(address_city city) ]
         #   composed_of :gps_location
         #   composed_of :gps_location, allow_nil: true

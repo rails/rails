@@ -296,7 +296,7 @@ module ApplicationTests
     test "mailer preview not found" do
       app("development")
       get "/rails/mailers/notifier"
-      assert last_response.not_found?
+      assert_predicate last_response, :not_found?
       assert_match "Mailer preview &#39;notifier&#39; not found", last_response.body
     end
 
@@ -326,7 +326,7 @@ module ApplicationTests
       app("development")
 
       get "/rails/mailers/notifier/bar"
-      assert last_response.not_found?
+      assert_predicate last_response, :not_found?
       assert_match "Email &#39;bar&#39; not found in NotifierPreview", last_response.body
     end
 
@@ -382,7 +382,7 @@ module ApplicationTests
       app("development")
 
       get "/rails/mailers/notifier/foo?part=text%2Fhtml"
-      assert last_response.not_found?
+      assert_predicate last_response, :not_found?
       assert_match "Email part &#39;text/html&#39; not found in NotifierPreview#foo", last_response.body
     end
 

@@ -193,7 +193,7 @@ module ActiveRecord
         klass_scope       = klass_join_scope(table, predicate_builder)
 
         if type
-          klass_scope.where!(type => foreign_klass.base_class.sti_name)
+          klass_scope.where!(type => foreign_klass.base_class.name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
@@ -291,7 +291,11 @@ module ActiveRecord
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
-        Relation.create(klass, table, predicate_builder)
+        Relation.create(
+          klass,
+          table: table,
+          predicate_builder: predicate_builder
+        )
       end
 
       def join_primary_key(*)
@@ -412,6 +416,9 @@ module ActiveRecord
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
+        if polymorphic?
+          raise ArgumentError, "Polymorphic association does not support to compute class."
+        end
         active_record.send(:compute_type, name)
       end
 
@@ -604,13 +611,7 @@ module ActiveRecord
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
 
-            begin
-              reflection = klass._reflect_on_association(inverse_name)
-            rescue NameError
-              # Give up: we couldn't compute the klass type so we won't be able
-              # to find any associations either.
-              reflection = false
-            end
+            reflection = klass._reflect_on_association(inverse_name)
 
             if valid_inverse_reflection?(reflection)
               return inverse_name
@@ -622,9 +623,6 @@ module ActiveRecord
         # +automatic_inverse_of+ method is a valid reflection. We must
         # make sure that the reflection's active_record name matches up
         # with the current reflection's klass name.
-        #
-        # Note: klass will always be valid because when there's a NameError
-        # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
             klass <= reflection.active_record &&
@@ -728,6 +726,9 @@ module ActiveRecord
       end
 
       private
+        def can_find_inverse_of_automatically?(_)
+          !polymorphic? && super
+        end
 
         def calculate_constructable(macro, options)
           !polymorphic?
@@ -958,16 +959,14 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
-        attr_reader :delegate_reflection
-
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.actual_source_reflection
         end
 
       private
+        attr_reader :delegate_reflection
+
         def collect_join_reflections(seed)
           a = source_reflection.add_as_source seed
           if options[:source_type]

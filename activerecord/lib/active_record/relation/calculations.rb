@@ -131,7 +131,14 @@ module ActiveRecord
     def calculate(operation, column_name)
       if has_include?(column_name)
         relation = apply_join_dependency
-        relation.distinct! if operation.to_s.downcase == "count"
+
+        if operation.to_s.downcase == "count" && !distinct_value
+          relation.distinct!
+          # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
+          if (column_name == :all || column_name.nil?) && select_values.empty?
+            relation.order_values = []
+          end
+        end
 
         relation.calculate(operation, column_name)
       else
@@ -193,6 +200,24 @@ module ActiveRecord
       end
     end
 
+    # Pick the value(s) from the named column(s) in the current relation.
+    # This is short-hand for <tt>relation.limit(1).pluck(*column_names).first</tt>, and is primarily useful
+    # when you have a relation that's already narrowed down to a single row.
+    #
+    # Just like #pluck, #pick will only load the actual value, not the entire record object, so it's also
+    # more efficient. The value is, again like with pluck, typecast by the column type.
+    #
+    #   Person.where(id: 1).pick(:name)
+    #   # SELECT people.name FROM people WHERE id = 1 LIMIT 1
+    #   # => 'David'
+    #
+    #   Person.where(id: 1).pick(:name, :email_address)
+    #   # SELECT people.name, people.email_address FROM people WHERE id = 1 LIMIT 1
+    #   # => [ 'David', 'david@loudthinking.com' ]
+    def pick(*column_names)
+      limit(1).pluck(*column_names).first
+    end
+
     # Pluck all the ID's for the relation using the table's primary key
     #
     #   Person.ids # SELECT people.id FROM people
@@ -235,7 +260,7 @@ module ActiveRecord
       def aggregate_column(column_name)
         return column_name if Arel::Expressions === column_name
 
-        if @klass.has_attribute?(column_name.to_s) || @klass.attribute_alias?(column_name.to_s)
+        if @klass.has_attribute?(column_name) || @klass.attribute_alias?(column_name)
           @klass.arel_attribute(column_name)
         else
           Arel.sql(column_name == :all ? "*" : column_name.to_s)

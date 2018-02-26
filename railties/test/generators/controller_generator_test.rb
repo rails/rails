@@ -109,4 +109,11 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
     end
   end
+
+  def test_does_not_add_routes_when_action_is_not_specified
+    run_generator ["admin/dashboard"]
+    assert_file "config/routes.rb" do |routes|
+      assert_no_match(/namespace :admin/, routes)
+    end
+  end
 end

@@ -133,7 +133,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          early_hints_links << "<#{href}>; rel=preload; as=stylesheet"
+          early_hints_links << "<#{href}>; rel=preload; as=style"
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",

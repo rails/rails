@@ -35,12 +35,12 @@ module ActiveRecord
 
       def test_checkout_after_close
         connection = pool.connection
-        assert connection.in_use?
+        assert_predicate connection, :in_use?
 
         connection.close
-        assert !connection.in_use?
+        assert_not_predicate connection, :in_use?
 
-        assert pool.connection.in_use?
+        assert_predicate pool.connection, :in_use?
       end
 
       def test_released_connection_moves_between_threads
@@ -80,14 +80,14 @@ module ActiveRecord
       end
 
       def test_active_connection_in_use
-        assert !pool.active_connection?
+        assert_not_predicate pool, :active_connection?
         main_thread = pool.connection
 
-        assert pool.active_connection?
+        assert_predicate pool, :active_connection?
 
         main_thread.close
 
-        assert !pool.active_connection?
+        assert_not_predicate pool, :active_connection?
       end
 
       def test_full_pool_exception
@@ -205,11 +205,11 @@ module ActiveRecord
 
       def test_remove_connection
         conn = @pool.checkout
-        assert conn.in_use?
+        assert_predicate conn, :in_use?
 
         length = @pool.connections.length
         @pool.remove conn
-        assert conn.in_use?
+        assert_predicate conn, :in_use?
         assert_equal(length - 1, @pool.connections.length)
       ensure
         conn.close
@@ -224,11 +224,11 @@ module ActiveRecord
       end
 
       def test_active_connection?
-        assert !@pool.active_connection?
+        assert_not_predicate @pool, :active_connection?
         assert @pool.connection
-        assert @pool.active_connection?
+        assert_predicate @pool, :active_connection?
         @pool.release_connection
-        assert !@pool.active_connection?
+        assert_not_predicate @pool, :active_connection?
       end
 
       def test_checkout_behaviour
@@ -496,7 +496,7 @@ module ActiveRecord
               assert_nil timed_join_result
 
               # assert that since this is within default timeout our connection hasn't been forcefully taken away from us
-              assert @pool.active_connection?
+              assert_predicate @pool, :active_connection?
             end
           ensure
             thread.join if thread && !timed_join_result # clean up the other thread
@@ -510,7 +510,7 @@ module ActiveRecord
           @pool.with_connection do |connection|
             Thread.new { @pool.send(group_action_method) }.join
             # assert connection has been forcefully taken away from us
-            assert_not @pool.active_connection?
+            assert_not_predicate @pool, :active_connection?
 
             # make a new connection for with_connection to clean up
             @pool.connection

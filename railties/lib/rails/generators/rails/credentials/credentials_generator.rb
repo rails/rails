@@ -6,7 +6,7 @@ require "active_support/encrypted_configuration"
 
 module Rails
   module Generators
-    class CredentialsGenerator < Base
+    class CredentialsGenerator < Base # :nodoc:
       def add_credentials_file
         unless credentials.content_path.exist?
           template = credentials_template
@@ -42,9 +42,14 @@ module Rails
         end
 
         def credentials_template
-          "# aws:\n#  access_key_id: 123\n#  secret_access_key: 345\n\n" +
-          "# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.\n" +
-          "secret_key_base: #{SecureRandom.hex(64)}"
+          <<~YAML
+            # aws:
+            #   access_key_id: 123
+            #   secret_access_key: 345
+
+            # Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
+            secret_key_base: #{SecureRandom.hex(64)}
+          YAML
         end
     end
   end

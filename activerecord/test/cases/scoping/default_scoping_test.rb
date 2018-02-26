@@ -302,8 +302,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_clause.empty?
-    assert !merged.where(name: "Jon").where_clause.empty?
+    assert_empty merged.where_clause
+    assert_not_empty merged.where(name: "Jon").where_clause
   end
 
   def test_order_in_default_scope_should_not_prevail

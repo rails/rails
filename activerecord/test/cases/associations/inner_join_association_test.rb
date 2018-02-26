@@ -115,19 +115,19 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
+    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
   def test_find_with_conditions_on_reflection
-    assert !posts(:welcome).comments.empty?
+    assert_not_empty posts(:welcome).comments
     assert Post.joins(:nonexistent_comments).where(id: posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
-    assert !posts(:welcome).tags.empty?
-    assert Post.joins(:misc_tags).where(id: posts(:welcome).id).empty?
+    assert_not_empty posts(:welcome).tags
+    assert_empty Post.joins(:misc_tags).where(id: posts(:welcome).id)
   end
 
   test "the default scope of the target is applied when joining associations" do

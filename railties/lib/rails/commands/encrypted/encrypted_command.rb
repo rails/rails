@@ -21,9 +21,10 @@ module Rails
 
       def edit(file_path)
         require_application_and_environment!
+        encrypted = Rails.application.encrypted(file_path, key_path: options[:key])
 
         ensure_editor_available(command: "bin/rails encrypted:edit") || (return)
-        ensure_encryption_key_has_been_added(options[:key])
+        ensure_encryption_key_has_been_added(options[:key]) if encrypted.key.nil?
         ensure_encrypted_file_has_been_added(file_path, options[:key])
 
         catch_editing_exceptions do

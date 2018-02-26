@@ -185,6 +185,61 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  # Regression see https://github.com/rails/rails/issues/31694
+  def test_included_constant_that_changes_to_have_exception_then_back_does_not_loop_forever
+    # This constant references a nested constant whose namespace will be auto-generated
+    parent_constant = <<-RUBY
+      class ConstantReloadError
+        AnotherConstant::ReloadError
+      end
+    RUBY
+
+    # This constant's namespace will be auto-generated,
+    # also, we'll edit it to contain an error at load-time
+    child_constant = <<-RUBY
+      class AnotherConstant::ReloadError
+        # no_such_method_as_this
+      end
+    RUBY
+
+    # Create a version which contains an error during loading
+    child_constant_with_error = child_constant.sub("# no_such_method_as_this", "no_such_method_as_this")
+
+    fixtures_path = File.join(__dir__, "autoloading_fixtures")
+    Dir.mktmpdir(nil, fixtures_path) do |tmpdir|
+      # Set up the file structure where constants will be loaded from
+      child_constant_path = "#{tmpdir}/another_constant/reload_error.rb"
+      File.write("#{tmpdir}/constant_reload_error.rb", parent_constant)
+      Dir.mkdir("#{tmpdir}/another_constant")
+      File.write(child_constant_path, child_constant_with_error)
+
+      tmpdir_name = tmpdir.split("/").last
+      with_loading("autoloading_fixtures/#{tmpdir_name}") do
+        # Load the file, with the error:
+        assert_raises(NameError) {
+          ConstantReloadError
+        }
+
+        Timeout.timeout(0.1) do
+          # Remove the constant, as if Rails development middleware is reloading changed files:
+          ActiveSupport::Dependencies.remove_unloadable_constants!
+          refute defined?(AnotherConstant::ReloadError)
+        end
+
+        # Change the file, so that it is **correct** this time:
+        File.write(child_constant_path, child_constant)
+
+        # Again: Remove the constant, as if Rails development middleware is reloading changed files:
+        ActiveSupport::Dependencies.remove_unloadable_constants!
+        refute defined?(AnotherConstant::ReloadError)
+
+        # Now, reload the _fixed_ constant:
+        assert ConstantReloadError
+        assert AnotherConstant::ReloadError
+      end
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
@@ -752,7 +807,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :C, Class.new { def self.before_remove_const; end }
     C.unloadable
     assert_called(C, :before_remove_const, times: 1) do
-      assert C.respond_to?(:before_remove_const)
+      assert_respond_to C, :before_remove_const
       ActiveSupport::Dependencies.clear
       assert !defined?(C)
     end

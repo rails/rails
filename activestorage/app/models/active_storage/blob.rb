@@ -14,16 +14,24 @@
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  include Analyzable, Identifiable, Representable
+  require_dependency "active_storage/blob/analyzable"
+  require_dependency "active_storage/blob/identifiable"
+  require_dependency "active_storage/blob/representable"
+
+  include Analyzable
+  include Identifiable
+  include Representable
 
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
-  store :metadata, accessors: [ :analyzed, :identified ], coder: JSON
+  store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :service
 
   has_many :attachments
+
+  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
 
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.
@@ -109,8 +117,11 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-  def service_url(expires_in: service.url_expires_in, disposition: :inline, filename: self.filename)
-    service.url key, expires_in: expires_in, disposition: forcibly_serve_as_binary? ? :attachment : disposition, filename: filename, content_type: content_type
+  def service_url(expires_in: service.url_expires_in, disposition: :inline, filename: nil, **options)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
+    service.url key, expires_in: expires_in, filename: filename, content_type: content_type,
+      disposition: forcibly_serve_as_binary? ? :attachment : disposition, **options
   end
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
@@ -191,4 +202,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
     def forcibly_serve_as_binary?
       ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
     end
+
+    ActiveSupport.run_load_hooks(:active_storage_blob, self)
 end

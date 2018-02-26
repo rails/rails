@@ -268,7 +268,8 @@ module Rails
           "action_dispatch.cookies_digest" => config.action_dispatch.cookies_digest,
           "action_dispatch.cookies_rotations" => config.action_dispatch.cookies_rotations,
           "action_dispatch.content_security_policy" => config.content_security_policy,
-          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only
+          "action_dispatch.content_security_policy_report_only" => config.content_security_policy_report_only,
+          "action_dispatch.content_security_policy_nonce_generator" => config.content_security_policy_nonce_generator
         )
       end
     end

@@ -9,7 +9,7 @@ module SharedGeneratorTests
     super
     Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
 
-    Kernel::silence_warnings do
+    Kernel.silence_warnings do
       Thor::Base.shell.send(:attr_accessor, :always_force)
       @shell = Thor::Base.shell.new
       @shell.send(:always_force=, true)

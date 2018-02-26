@@ -58,7 +58,7 @@ module ActiveRecord
           tables.first
         end
 
-        protected
+        private
           attr_reader :alias_tracker
       end
     end

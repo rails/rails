@@ -432,14 +432,11 @@ module ActiveRecord
       @attributes.accessed
     end
 
-    protected
-
-      def attribute_method?(attr_name) # :nodoc:
+    private
+      def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
       end
-
-    private
 
       def arel_attributes_with_values_for_create(attribute_names)
         arel_attributes_with_values(attributes_for_create(attribute_names))
@@ -456,7 +453,7 @@ module ActiveRecord
         arel_table = self.class.arel_table
 
         attribute_names.each do |name|
-          attrs[arel_table[name]] = typecasted_attribute_value(name)
+          attrs[arel_table[name]] = _read_attribute(name)
         end
         attrs
       end
@@ -482,10 +479,6 @@ module ActiveRecord
 
       def pk_attribute?(name)
         name == self.class.primary_key
-      end
-
-      def typecasted_attribute_value(name)
-        _read_attribute(name)
       end
   end
 end

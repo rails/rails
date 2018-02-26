@@ -237,13 +237,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :approved, less_than: 4, message: "smaller than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 10)
 
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["smaller than 4"], topic.errors[:approved]
 
     Topic.validates_numericality_of :approved, greater_than: 4, message: "greater than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 1)
 
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["greater than 4"], topic.errors[:approved]
   end
 
@@ -252,12 +252,12 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     p = Person.new
     p.karma = "Pix"
-    assert p.invalid?
+    assert_predicate p, :invalid?
 
     assert_equal ["is not a number"], p.errors[:karma]
 
     p.karma = "1234"
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end
@@ -268,7 +268,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     topic = Topic.new
     topic.approved = (base + 1).to_s
 
-    assert topic.invalid?
+    assert_predicate topic, :invalid?
   end
 
   def test_validates_numericality_with_invalid_args
