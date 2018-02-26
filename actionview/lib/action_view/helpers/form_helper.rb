@@ -187,8 +187,6 @@ module ActionView
       # * <tt>:remote</tt> - If set to true, will allow the Unobtrusive
       #   JavaScript drivers to control the submit behavior. By default this
       #   behavior is an ajax submit.
-      # * <tt>:enforce_utf8</tt> - If set to false, a hidden input with name
-      #   utf8 is not output.
       # * <tt>:html</tt> - Optional HTML attributes for the form tag.
       #
       # Also note that +form_for+ doesn't create an exclusive scope. It's still
@@ -445,7 +443,6 @@ module ActionView
         html_options[:data]   = options.delete(:data)   if options.has_key?(:data)
         html_options[:remote] = options.delete(:remote) if options.has_key?(:remote)
         html_options[:method] = options.delete(:method) if options.has_key?(:method)
-        html_options[:enforce_utf8] = options.delete(:enforce_utf8) if options.has_key?(:enforce_utf8)
         html_options[:authenticity_token] = options.delete(:authenticity_token)
 
         builder = instantiate_builder(object_name, object, options)
@@ -610,8 +607,6 @@ module ActionView
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - By default form submits are remote and unobtrusive XHRs.
       #   Disable remote submits with <tt>local: true</tt>.
-      # * <tt>:skip_enforcing_utf8</tt> - By default a hidden field named +utf8+
-      #   is output to enforce UTF-8 submits. Set to true to skip the field.
       # * <tt>:builder</tt> - Override the object used to build the form.
       # * <tt>:id</tt> - Optional HTML id attribute.
       # * <tt>:class</tt> - Optional HTML class attribute.
@@ -1519,10 +1514,9 @@ module ActionView
 
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
-          skip_enforcing_utf8: false, **options)
+          **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-          html_options[:enforce_utf8] = !skip_enforcing_utf8
 
           html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
 

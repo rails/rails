@@ -57,7 +57,7 @@ class FormHelperActiveRecordTest < ActionView::TestCase
   private
 
     def hidden_fields(method = nil)
-      txt = %{<input name="utf8" type="hidden" value="&#x2713;" />}.dup
+      txt = "".dup
 
       if method && !%w(get post).include?(method.to_s)
         txt << %{<input name="_method" type="hidden" value="#{method}" />}
