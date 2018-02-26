@@ -127,7 +127,7 @@ end
 
 module Enumerable
   def as_json(options = nil) #:nodoc:
-    to_a.as_json(options)
+    to_s.as_json(options)
   end
 end
 
