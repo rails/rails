@@ -9,7 +9,7 @@ module ActiveRecord
     include ActiveModel::AttributeMethods
 
     included do
-      initialize_generated_modules
+      _attribute_methods_builder
       include Read
       include Write
       include BeforeTypeCast
@@ -33,43 +33,35 @@ module ActiveRecord
 
     BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class GeneratedAttributeMethods < Module #:nodoc:
-      include Mutex_m
-    end
-
     module ClassMethods
+      def attribute_methods_builder_class
+        ActiveRecord::AttributeMethodsBuilder
+      end
+
       def inherited(child_class) #:nodoc:
-        child_class.initialize_generated_modules
+        if (self == Base || abstract_class?) && !child_class.abstract_class?
+          # When a non-abstract class inherits from ActiveRecord::Base or an
+          # abstract class, we duplicate its attributes methods builder and
+          # include it, in order to get any prefixes/suffixes/affixes that have
+          # been defined on it. We use _attribute_methods_builder here to avoid
+          # defining method_missing/respond_to on the inherited builder, which
+          # would be unnecessary since we define them on the duplicated module.
+          builder = _attribute_methods_builder.dup
+          child_class.attribute_methods_builders = [builder]
+          child_class.include builder
+        end
         super
       end
 
-      def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new
-        @attribute_methods_generated = false
-        include @generated_attribute_methods
-
-        super
-      end
-
-      # Generates all the attribute related methods for columns in the database
-      # accessors, mutators and query methods.
       def define_attribute_methods # :nodoc:
-        return false if @attribute_methods_generated
-        # Use a mutex; we don't want two threads simultaneously trying to define
-        # attribute methods.
-        generated_attribute_methods.synchronize do
-          return false if @attribute_methods_generated
-          superclass.define_attribute_methods unless self == base_class
-          super(attribute_names)
-          @attribute_methods_generated = true
-        end
+        return false if defined?(@attribute_methods_generated) && @attribute_methods_generated
+        super(attribute_names)
+        @attribute_methods_generated = true
       end
 
-      def undefine_attribute_methods # :nodoc:
-        generated_attribute_methods.synchronize do
-          super if defined?(@attribute_methods_generated) && @attribute_methods_generated
-          @attribute_methods_generated = false
-        end
+      def undefine_attribute_methods
+        super if defined?(@attribute_methods_generated) && @attribute_methods_generated
+        @attribute_methods_generated = false
       end
 
       # Raises an ActiveRecord::DangerousAttributeError exception when an
@@ -97,7 +89,7 @@ module ActiveRecord
           # If ThisClass < ... < SomeSuperClass < ... < Base and SomeSuperClass
           # defines its own attribute method, then we don't want to overwrite that.
           defined = method_defined_within?(method_name, superclass, Base) &&
-            ! superclass.instance_method(method_name).owner.is_a?(GeneratedAttributeMethods)
+            ! superclass.instance_method(method_name).owner.is_a?(attribute_methods_builder_class)
           defined || super
         end
       end

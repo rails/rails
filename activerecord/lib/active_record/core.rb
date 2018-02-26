@@ -151,6 +151,7 @@ module ActiveRecord
       def inherited(child_class) # :nodoc:
         # initialize cache at class definition for thread safety
         child_class.initialize_find_by_cache
+        child_class.initialize_generated_modules
         super
       end
 

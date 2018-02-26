@@ -100,9 +100,9 @@ class AttributeMethodsTest < ActiveModel::TestCase
     assert_raises(NoMethodError) { ModelWithoutAttributesMethod.new.foo }
   end
 
-  test "unrelated classes should not share attribute method matchers" do
-    assert_not_equal ModelWithAttributes.send(:attribute_method_matchers),
-                     ModelWithAttributes2.send(:attribute_method_matchers)
+  test "unrelated classes should not share attribute method builders" do
+    assert_not_equal ModelWithAttributes.send(:attribute_methods_builders),
+                     ModelWithAttributes2.send(:attribute_methods_builders)
   end
 
   test "#define_attribute_method generates attribute method" do
@@ -117,15 +117,19 @@ class AttributeMethodsTest < ActiveModel::TestCase
   end
 
   test "#define_attribute_method does not generate attribute method if already defined in attribute module" do
-    klass = Class.new(ModelWithAttributes)
-    klass.send(:generated_attribute_methods).module_eval do
-      def foo
-        "<3"
+    begin
+      klass = Class.new(ModelWithAttributes)
+      klass.send(:attribute_methods_builder).module_eval do
+        def foo
+          "<3"
+        end
       end
-    end
-    klass.define_attribute_method(:foo)
+      klass.define_attribute_method(:foo)
 
-    assert_equal "<3", klass.new.foo
+      assert_equal "<3", klass.new.foo
+    ensure
+      klass.undefine_attribute_methods
+    end
   end
 
   test "#define_attribute_method generates a method that is already defined on the host" do
