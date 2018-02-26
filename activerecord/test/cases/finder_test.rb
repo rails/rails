@@ -18,6 +18,7 @@ require "models/customer"
 require "models/toy"
 require "models/matey"
 require "models/dog"
+require "models/dog_lover"
 require "models/car"
 require "models/tyre"
 
