@@ -701,7 +701,8 @@ module ActiveRecord
 
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
-    def _update_record(attribute_names = self.attribute_names)
+    def _update_record(attribute_names = self.column_names)
+      attribute_names &= self.class.column_names
       attributes_values = arel_attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         rows_affected = 0
@@ -719,6 +720,7 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
+      attribute_names &= self.class.column_names
       attributes_values = arel_attributes_with_values_for_create(attribute_names)
 
       new_id = self.class._insert_record(attributes_values)
