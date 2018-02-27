@@ -736,6 +736,28 @@ class DirtyTest < ActiveRecord::TestCase
     assert record.save
   end
 
+  test "virtual attributes are not written with partial_writes off" do
+    original_partial_writes = ActiveRecord::Base.partial_writes
+    begin
+      ActiveRecord::Base.partial_writes = false
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "people"
+        attribute :non_persisted_attribute, :string
+      end
+
+      record = klass.new(first_name: "Sean")
+      record.non_persisted_attribute_will_change!
+
+      assert record.save
+
+      record.non_persisted_attribute_will_change!
+
+      assert record.save
+    ensure
+      ActiveRecord::Base.partial_writes = original_partial_writes
+    end
+  end
+
   test "mutating and then assigning doesn't remove the change" do
     pirate = Pirate.create!(catchphrase: "arrrr")
     pirate.catchphrase << " matey!"

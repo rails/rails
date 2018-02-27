@@ -2246,7 +2246,7 @@ module ActionView
         @template.button_tag(value, options, &block)
       end
 
-      def emitted_hidden_id?
+      def emitted_hidden_id? # :nodoc:
         @emitted_hidden_id ||= nil
       end
 

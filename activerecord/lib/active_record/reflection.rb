@@ -611,7 +611,13 @@ module ActiveRecord
           if can_find_inverse_of_automatically?(self)
             inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
 
-            reflection = klass._reflect_on_association(inverse_name)
+            begin
+              reflection = klass._reflect_on_association(inverse_name)
+            rescue NameError
+              # Give up: we couldn't compute the klass type so we won't be able
+              # to find any associations either.
+              reflection = false
+            end
 
             if valid_inverse_reflection?(reflection)
               return inverse_name
