@@ -1766,7 +1766,7 @@ module ApplicationTests
     test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       RUBY
 
@@ -1905,8 +1905,8 @@ module ApplicationTests
     test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
-      Rails.application.config.active_support.use_authenticated_message_encryption = true
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_authenticated_message_encryption = true
       RUBY
 
       app "development"
@@ -1931,8 +1931,8 @@ module ApplicationTests
     test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
-      Rails.application.config.active_support.use_sha1_digests = true
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_sha1_digests = true
       RUBY
 
       app "development"
@@ -1950,6 +1950,32 @@ module ApplicationTests
       app "development"
 
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
+      app "development"
+      assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is true in an upgraded app" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 can be configured via config.action_view.default_enforce_utf8" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.action_view.default_enforce_utf8 = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
     private
