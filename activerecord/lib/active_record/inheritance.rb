@@ -156,6 +156,10 @@ module ActiveRecord
         store_full_sti_class ? name : name.demodulize
       end
 
+      def polymorphic_name
+        base_class.name
+      end
+
       def inherited(subclass)
         subclass.instance_variable_set(:@_type_candidates_cache, Concurrent::Map.new)
         super
