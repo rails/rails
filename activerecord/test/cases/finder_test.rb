@@ -1189,6 +1189,11 @@ class FinderTest < ActiveRecord::TestCase
       order("author_addresses_authors.id DESC").limit(3).to_a.size
   end
 
+  def test_find_with_eager_loading_collection_and_ordering_by_collection_primary_key
+    assert_equal Post.first, Post.eager_load(comments: :ratings).
+      order("posts.id, ratings.id, comments.id").first
+  end
+
   def test_find_with_nil_inside_set_passed_for_one_attribute
     client_of = Company.
       where(client_of: [2, 1, nil],
