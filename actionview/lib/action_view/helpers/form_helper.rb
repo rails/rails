@@ -610,8 +610,8 @@ module ActionView
       #   unnecessary unless you support browsers without JavaScript.
       # * <tt>:local</tt> - By default form submits are remote and unobtrusive XHRs.
       #   Disable remote submits with <tt>local: true</tt>.
-      # * <tt>:skip_enforcing_utf8</tt> - By default a hidden field named +utf8+
-      #   is output to enforce UTF-8 submits. Set to true to skip the field.
+      # * <tt>:skip_enforcing_utf8</tt> - If set to true, a hidden input with name
+      #   utf8 is not output.
       # * <tt>:builder</tt> - Override the object used to build the form.
       # * <tt>:id</tt> - Optional HTML id attribute.
       # * <tt>:class</tt> - Optional HTML class attribute.
