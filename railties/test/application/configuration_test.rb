@@ -1952,6 +1952,17 @@ module ApplicationTests
       assert_includes ActiveJob::Serializers.serializers, DummySerializer
     end
 
+    test "credentials return only current env values when specified read_credentials_per_env" do
+      add_to_config <<-RUBY
+        config.read_credentials_per_env = true
+      RUBY
+
+      app "development"
+      app.credentials.write({ development: { api_key: 123 } }.to_yaml)
+
+      assert_equal 123, app.credentials.api_key
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.

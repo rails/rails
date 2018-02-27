@@ -439,7 +439,8 @@ module Rails
     # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
     # +config/master.key+.
     def credentials
-      @credentials ||= encrypted("config/credentials.yml.enc")
+      section = config.read_credentials_per_env ? Rails.env : nil
+      @credentials ||= encrypted("config/credentials.yml.enc", section: section)
     end
 
     # Shorthand to decrypt any encrypted configurations or files.
@@ -469,12 +470,13 @@ module Rails
     # Or to decrypt with a file, that should be version control ignored, relative to +Rails.root+:
     #
     #   Rails.application.encrypted("config/special_tokens.yml.enc", key_path: "config/special_tokens.key")
-    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY")
+    def encrypted(path, key_path: "config/master.key", env_key: "RAILS_MASTER_KEY", section: nil)
       ActiveSupport::EncryptedConfiguration.new(
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
         env_key: env_key,
-        raise_if_missing_key: config.require_master_key
+        raise_if_missing_key: config.require_master_key,
+        section: section
       )
     end
 
