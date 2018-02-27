@@ -132,7 +132,7 @@ module ActiveRecord
       if has_include?(column_name)
         relation = apply_join_dependency
 
-        if operation.to_s.downcase == "count" && !distinct_value
+        if operation.to_s.downcase == "count"
           relation.distinct!
           # PostgreSQL: ORDER BY expressions must appear in SELECT list when using DISTINCT
           if (column_name == :all || column_name.nil?) && select_values.empty?
