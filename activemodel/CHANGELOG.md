@@ -1,5 +1,9 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Do not lose all multiple `:includes` with options in serialization.
+
+    *Mike Mangino*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
