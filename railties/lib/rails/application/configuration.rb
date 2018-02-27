@@ -117,6 +117,9 @@ module Rails
         when "6.0"
           load_defaults "5.2"
 
+          if respond_to?(:action_view)
+            action_view.default_enforce_utf8 = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

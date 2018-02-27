@@ -459,7 +459,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_5_2.rb"
+          remove_file "config/initializers/new_framework_defaults_6_0.rb"
         end
       end
 

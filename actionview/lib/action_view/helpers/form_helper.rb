@@ -1519,10 +1519,10 @@ module ActionView
 
       private
         def html_options_for_form_with(url_for_options = nil, model = nil, html: {}, local: !form_with_generates_remote_forms,
-          skip_enforcing_utf8: false, **options)
+          skip_enforcing_utf8: nil, **options)
           html_options = options.slice(:id, :class, :multipart, :method, :data).merge(html)
           html_options[:method] ||= :patch if model.respond_to?(:persisted?) && model.persisted?
-          html_options[:enforce_utf8] = !skip_enforcing_utf8
+          html_options[:enforce_utf8] = !skip_enforcing_utf8 unless skip_enforcing_utf8.nil?
 
           html_options[:enctype] = "multipart/form-data" if html_options.delete(:multipart)
 

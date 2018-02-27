@@ -1995,6 +1995,34 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: false) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_form_for_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: true) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
@@ -3568,5 +3596,14 @@ class FormHelperTest < ActionView::TestCase
       yield
     ensure
       I18n.locale = old_locale
+    end
+
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end
