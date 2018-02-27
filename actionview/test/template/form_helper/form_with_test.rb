@@ -190,6 +190,9 @@ class FormWithActsLikeFormForTest < FormWithTest
           submit: "Save changes",
           another_post: {
             update: "Update your %{model}"
+          },
+          "blog/post": {
+            update: "Update your %{model}"
           }
         }
       }
@@ -962,13 +965,28 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_submit_with_object_and_nested_lookup
+  def test_submit_with_object_which_is_overwritten_by_scope_option
     with_locale :submit do
       form_with(model: @post, scope: :another_post) do |f|
         concat f.submit
       end
 
       expected = whole_form("/posts/123", method: "patch") do
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_with_object_which_is_namespaced
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    with_locale :submit do
+      form_with(model: blog_post) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form("/posts/44", method: "patch") do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
