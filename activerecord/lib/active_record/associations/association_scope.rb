@@ -35,12 +35,12 @@ module ActiveRecord
 
         binds << last_reflection.join_id_for(owner)
         if last_reflection.type
-          binds << owner.class.base_class.name
+          binds << owner.class.polymorphic_name
         end
 
         chain.each_cons(2).each do |reflection, next_reflection|
           if reflection.type
-            binds << next_reflection.klass.base_class.name
+            binds << next_reflection.klass.polymorphic_name
           end
         end
         binds
@@ -63,7 +63,7 @@ module ActiveRecord
           scope = apply_scope(scope, table, key, value)
 
           if reflection.type
-            polymorphic_type = transform_value(owner.class.base_class.name)
+            polymorphic_type = transform_value(owner.class.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, polymorphic_type)
           end
 
@@ -84,7 +84,7 @@ module ActiveRecord
           constraint = table[key].eq(foreign_table[foreign_key])
 
           if reflection.type
-            value = transform_value(next_reflection.klass.base_class.name)
+            value = transform_value(next_reflection.klass.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, value)
           end
 
