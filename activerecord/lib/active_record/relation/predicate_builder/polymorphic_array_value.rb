@@ -22,19 +22,21 @@ module ActiveRecord
 
         def type_to_ids_mapping
           default_hash = Hash.new { |hsh, key| hsh[key] = [] }
-          values.each_with_object(default_hash) { |value, hash| hash[base_class(value).name] << convert_to_id(value) }
+          values.each_with_object(default_hash) do |value, hash|
+            hash[klass(value).polymorphic_name] << convert_to_id(value)
+          end
         end
 
         def primary_key(value)
-          associated_table.association_join_primary_key(base_class(value))
+          associated_table.association_join_primary_key(klass(value))
         end
 
-        def base_class(value)
+        def klass(value)
           case value
           when Base
-            value.class.base_class
+            value.class
           when Relation
-            value.klass.base_class
+            value.klass
           end
         end
 
