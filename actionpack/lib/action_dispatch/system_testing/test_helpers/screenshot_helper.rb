@@ -43,7 +43,7 @@ module ActionDispatch
           end
 
           def image_path
-            @image_path ||= absolute_image_path.relative_path_from(Pathname.pwd).to_s
+            @image_path ||= absolute_image_path.to_s
           end
 
           def absolute_image_path
