@@ -151,7 +151,7 @@ module ActiveRecord
     end
 
     def lookup_connection_handler(handler_key) # :nodoc:
-      handler_key ||= ActiveRecord::Base.writing_role
+      handler_key ||= self.writing_role
       connection_handlers[handler_key] ||= ActiveRecord::ConnectionAdapters::ConnectionHandler.new
     end
 
@@ -162,7 +162,7 @@ module ActiveRecord
 
     # Clears the query cache for all connections associated with the current thread.
     def clear_query_caches_for_current_thread
-      ActiveRecord::Base.connection_handlers.each_value do |handler|
+      self.connection_handlers.each_value do |handler|
         handler.connection_pool_list.each do |pool|
           pool.connection.clear_query_cache if pool.active_connection?
         end
@@ -181,13 +181,13 @@ module ActiveRecord
     # Return the specification name from the current class or its parent.
     def connection_specification_name
       if !defined?(@connection_specification_name) || @connection_specification_name.nil?
-        return self == Base ? "primary" : superclass.connection_specification_name
+        return self.equal?(Base) ? "primary" : superclass.connection_specification_name
       end
       @connection_specification_name
     end
 
     def primary_class? # :nodoc:
-      self == Base || defined?(ApplicationRecord) && self == ApplicationRecord
+      self.equal?(Base) || defined?(ApplicationRecord) && self == ApplicationRecord
     end
 
     # Returns the configuration of the associated connection as a hash:
@@ -240,16 +240,16 @@ module ActiveRecord
         pool_name = primary_class? ? "primary" : name
         self.connection_specification_name = pool_name
 
-        db_config = Base.configurations.resolve(config_or_env, pool_name)
+        db_config = self.configurations.resolve(config_or_env, pool_name)
         db_config.configuration_hash[:name] = pool_name
         db_config
       end
 
       def swap_connection_handler(handler, &blk) # :nodoc:
-        old_handler, ActiveRecord::Base.connection_handler = ActiveRecord::Base.connection_handler, handler
+        old_handler, self.connection_handler = self.connection_handler, handler
         yield
       ensure
-        ActiveRecord::Base.connection_handler = old_handler
+        self.connection_handler = old_handler
       end
   end
 end
