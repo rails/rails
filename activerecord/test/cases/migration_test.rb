@@ -693,6 +693,25 @@ class MigrationTest < ActiveRecord::TestCase
       assert_no_column Person, :last_name,
         "without an advisory lock, the Migrator should not make any changes, but it did."
     end
+
+    def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
+        silence_stream($stderr) do
+          migrator.send(:with_advisory_lock) do
+            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+          end
+        end
+      end
+
+      assert_match(
+        /#{ActiveRecord::ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE}/,
+        e.message
+      )
+    end
   end
 
   private
