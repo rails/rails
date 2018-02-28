@@ -574,10 +574,6 @@
 
     *Ryuta Kamizono*
 
-*   Fix eager loading to respect `store_full_sti_class` setting.
-
-    *Ryuta Kamizono*
-
 *   Query cache was unavailable when entering the `ActiveRecord::Base.cache` block
     without being connected.
 
