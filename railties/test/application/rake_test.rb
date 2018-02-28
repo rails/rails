@@ -122,46 +122,6 @@ module ApplicationTests
         rails("stats")
     end
 
-    def test_rails_routes_calls_the_route_inspector
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-        end
-      RUBY
-
-      output = rails("routes")
-      assert_equal <<~MESSAGE, output
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                                cart GET  /cart(.:format)                                                                   cart#show
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-           update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
-      MESSAGE
-    end
-
-    def test_singular_resource_output_in_rake_routes
-      app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          resource :post
-        end
-      RUBY
-
-      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
-                         " new_post GET    /post/new(.:format)  posts#new",
-                         "edit_post GET    /post/edit(.:format) posts#edit",
-                         "     post GET    /post(.:format)      posts#show",
-                         "          PATCH  /post(.:format)      posts#update",
-                         "          PUT    /post(.:format)      posts#update",
-                         "          DELETE /post(.:format)      posts#destroy",
-                         "          POST   /post(.:format)      posts#create\n"].join("\n")
-
-      output = rails("routes", "-c", "PostController")
-      assert_equal expected_output, output
-    end
-
     def test_logger_is_flushed_when_exiting_production_rake_tasks
       add_to_config <<-RUBY
         rake_tasks do

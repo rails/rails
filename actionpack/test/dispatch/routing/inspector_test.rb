@@ -19,10 +19,10 @@ module ActionDispatch
         @set = ActionDispatch::Routing::RouteSet.new
       end
 
-      def draw(options = nil, &block)
+      def draw(options = nil, formater = ActionDispatch::Routing::ConsoleFormatter::Sheet.new, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
-        inspector.format(ActionDispatch::Routing::ConsoleFormatter.new, options).split("\n")
+        inspector.format(formater, options).split("\n")
       end
 
       def test_displaying_routes_for_engines
@@ -319,6 +319,70 @@ module ActionDispatch
                       "          PATCH  /posts/:id(.:format)      posts#update",
                       "          PUT    /posts/:id(.:format)      posts#update",
                       "          DELETE /posts/:id(.:format)      posts#destroy"], output
+      end
+
+      def test_routes_when_expanded
+        engine = Class.new(Rails::Engine) do
+          def self.inspect
+            "Blog::Engine"
+          end
+        end
+        engine.routes.draw do
+          get "/cart", to: "cart#show"
+        end
+
+        output = draw(nil, ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
+          get "/custom/assets", to: "custom_assets#show"
+          get "/custom/furnitures", to: "custom_furnitures#show"
+          mount engine => "/blog", :as => "blog"
+        end
+
+        assert_equal ["--[ Route 1 ]------------------------------------------------------------",
+                      "Prefix            | custom_assets",
+                      "Verb              | GET",
+                      "URI               | /custom/assets(.:format)",
+                      "Controller#Action | custom_assets#show",
+                      "--[ Route 2 ]------------------------------------------------------------",
+                      "Prefix            | custom_furnitures",
+                      "Verb              | GET",
+                      "URI               | /custom/furnitures(.:format)",
+                      "Controller#Action | custom_furnitures#show",
+                      "--[ Route 3 ]------------------------------------------------------------",
+                      "Prefix            | blog",
+                      "Verb              | ",
+                      "URI               | /blog",
+                      "Controller#Action | Blog::Engine",
+                      "",
+                      "[ Routes for Blog::Engine ]",
+                      "--[ Route 1 ]------------------------------------------------------------",
+                      "Prefix            | cart",
+                      "Verb              | GET",
+                      "URI               | /cart(.:format)",
+                      "Controller#Action | cart#show"], output
+      end
+
+
+      def test_no_routes_matched_filter_when_expanded
+        output = draw("rails/dummy", ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
+          get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
+        end
+
+        assert_equal [
+          "No routes were found for this controller",
+          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+        ], output
+      end
+
+      def test_not_routes_when_expanded
+        output = draw("rails/dummy", ActionDispatch::Routing::ConsoleFormatter::Expanded.new) {}
+
+        assert_equal [
+          "You don't have any routes defined!",
+          "",
+          "Please add some routes in config/routes.rb.",
+          "",
+          "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+        ], output
       end
 
       def test_routes_can_be_filtered_with_namespaced_controllers
