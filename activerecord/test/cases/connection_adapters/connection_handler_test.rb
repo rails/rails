@@ -409,6 +409,22 @@ module ActiveRecord
             file.unlink
           end
         end
+
+        def test_use_class_configurations
+          model = Class.new(ActiveRecord::Base) do
+            def self.configurations
+              { "specific" => { adapter: "sqlite3", database: "specific.sqlite3" } }
+            end
+
+            def self.name
+              "Model"
+            end
+          end
+
+          model.establish_connection(:specific)
+
+          assert_equal model.connection_config, model.configurations["specific"]
+        end
       end
     end
   end
