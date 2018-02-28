@@ -1,8 +1,7 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
-*   Add `private: true` option to ActiveSupport's `delegate`.
-
-    In order to delegate methods as private methods:
+*   Add `:private` option to ActiveSupport's `Module#delegate`
+    in order to delegate methods as private:
 
         class User < ActiveRecord::Base
           has_one :profile
@@ -16,8 +15,6 @@
         # User.new.age  # => 29
         # User.new.date_of_birth
         # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
-
-    More information in #31944.
 
     *Tomas Valent*
 

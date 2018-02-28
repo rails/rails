@@ -482,19 +482,29 @@ class ModuleTest < ActiveSupport::TestCase
       def initialize(place)
         @place = place
       end
+
+      delegate(:street, :city, to: :@place, prefix: :the, private: true)
     end
 
-    assert_equal %i(the_street the_city),
-      location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
-
     place = location.new(Somewhere.new("Such street", "Sad city"))
-
-    assert_not_respond_to place, :street
-    assert_not_respond_to place, :city
 
     assert_not_respond_to place, :the_street
     assert place.respond_to?(:the_street, true)
     assert_not_respond_to place, :the_city
     assert place.respond_to?(:the_city, true)
+  end
+
+  def test_delegate_with_private_option_returns_names_of_delegate_methods
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+    end
+
+    assert_equal [:street, :city],
+      location.delegate(:street, :city, to: :@place, private: true)
+
+    assert_equal [:the_street, :the_city],
+      location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
   end
 end

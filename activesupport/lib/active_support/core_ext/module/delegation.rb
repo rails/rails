@@ -114,7 +114,7 @@ class Module
   #   invoice.customer_name    # => 'John Doe'
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
-  # If you want the delegated method to be a private method,
+  # If you want the delegate methods to be a private,
   # use the <tt>:private</tt> option.
   #
   #   class User < ActiveRecord::Base
@@ -127,10 +127,10 @@ class Module
   #     end
   #   end
   #
-  #   User.new.age # 2
-  #   User.new.first_name # Tomas
-  #   User.new.date_of_birth # NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
-  #   User.new.religion # NoMethodError: private method `religion' called for #<User:0x00000008221340>
+  #   User.new.age # => 2
+  #   User.new.first_name # => "Tomas"
+  #   User.new.date_of_birth # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
+  #   User.new.religion # => NoMethodError: private method `religion' called for #<User:0x00000008221340>
   #
   # If the target is +nil+ and does not respond to the delegated method a
   # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
