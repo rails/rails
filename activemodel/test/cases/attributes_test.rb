@@ -47,6 +47,26 @@ module ActiveModel
       assert_equal true, data.boolean_field
     end
 
+    test "reading attributes" do
+      data = ModelForAttributesTest.new(
+        integer_field: 1.1,
+        string_field: 1.1,
+        decimal_field: 1.1,
+        boolean_field: 1.1
+      )
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal expected_attributes, data.attributes
+    end
+
     test "nonexistent attribute" do
       assert_raise ActiveModel::UnknownAttributeError do
         ModelForAttributesTest.new(nonexistent: "nonexistent")

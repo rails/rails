@@ -66,6 +66,10 @@ module ActiveModel
       super
     end
 
+    def attributes
+      @attributes.to_hash
+    end
+
     private
 
       def write_attribute(attr_name, value)
