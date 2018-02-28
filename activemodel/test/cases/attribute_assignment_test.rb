@@ -68,6 +68,14 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     assert_equal "world", model.description
   end
 
+  test "simple assignment alias" do
+    model = Model.new
+
+    model.attributes = { name: "hello", description: "world" }
+    assert_equal "hello", model.name
+    assert_equal "world", model.description
+  end
+
   test "assign non-existing attribute" do
     model = Model.new
     error = assert_raises(ActiveModel::UnknownAttributeError) do
