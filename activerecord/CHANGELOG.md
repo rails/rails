@@ -1,6 +1,6 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
-*   Fix `#columsn_for_distinct` of MySQL and PostgreSQL to make
+*   Fix `#columns_for_distinct` of MySQL and PostgreSQL to make
     `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
     even if `ORDER BY` columns include other table's primary key.
 
