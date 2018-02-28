@@ -34,10 +34,10 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "<p>A paragraph</p>\n\n<p>and another one!</p>", simple_format("A paragraph\n\nand another one!")
     assert_equal "<p>A paragraph\n<br /> With a newline</p>", simple_format("A paragraph\n With a newline")
 
-    text = "A\nB\nC\nD".freeze
+    text = "A\nB\nC\nD"
     assert_equal "<p>A\n<br />B\n<br />C\n<br />D</p>", simple_format(text)
 
-    text = "A\r\n  \nB\n\n\r\n\t\nC\nD".freeze
+    text = "A\r\n  \nB\n\n\r\n\t\nC\nD"
     assert_equal "<p>A\n<br />  \n<br />B</p>\n\n<p>\t\n<br />C\n<br />D</p>", simple_format(text)
 
     assert_equal '<p class="test">This is a classy test</p>', simple_format("This is a classy test", class: "test")

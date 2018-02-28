@@ -6,7 +6,7 @@ require "active_support/core_ext/array/extract"
 module ActionDispatch
   module Http
     class ParameterFilter
-      FILTERED = "[FILTERED]".freeze # :nodoc:
+      FILTERED = "[FILTERED]" # :nodoc:
 
       def initialize(filters = [])
         @filters = filters
@@ -39,11 +39,11 @@ module ActionDispatch
             end
           end
 
-          deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.".freeze) }
-          deep_strings = strings.extract! { |s| s.include?("\\.".freeze) }
+          deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.") }
+          deep_strings = strings.extract! { |s| s.include?("\\.") }
 
-          regexps << Regexp.new(strings.join("|".freeze), true) unless strings.empty?
-          deep_regexps << Regexp.new(deep_strings.join("|".freeze), true) unless deep_strings.empty?
+          regexps << Regexp.new(strings.join("|"), true) unless strings.empty?
+          deep_regexps << Regexp.new(deep_strings.join("|"), true) unless deep_strings.empty?
 
           new regexps, deep_regexps, blocks
         end

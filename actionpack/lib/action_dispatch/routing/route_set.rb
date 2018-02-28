@@ -377,7 +377,7 @@ module ActionDispatch
         @prepend                    = []
         @disable_clear_and_finalize = false
         @finalized                  = false
-        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
+        @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME"
         @url_helpers                = nil
         @deferred_classes           = []
 
@@ -767,7 +767,7 @@ module ActionDispatch
         # Remove leading slashes from controllers
         def normalize_controller!
           if controller
-            if controller.start_with?("/".freeze)
+            if controller.start_with?("/")
               @options[:controller] = controller[1..-1]
             else
               @options[:controller] = controller

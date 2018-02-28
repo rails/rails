@@ -19,10 +19,10 @@ module ActiveRecord
           def run(records)
             nodes = records.reject { |row| @store.key? row["oid"].to_i }
             mapped = nodes.extract! { |row| @store.key? row["typname"] }
-            ranges = nodes.extract! { |row| row["typtype"] == "r".freeze }
-            enums = nodes.extract! { |row| row["typtype"] == "e".freeze }
-            domains = nodes.extract! { |row| row["typtype"] == "d".freeze }
-            arrays = nodes.extract! { |row| row["typinput"] == "array_in".freeze }
+            ranges = nodes.extract! { |row| row["typtype"] == "r" }
+            enums = nodes.extract! { |row| row["typtype"] == "e" }
+            domains = nodes.extract! { |row| row["typtype"] == "d" }
+            arrays = nodes.extract! { |row| row["typinput"] == "array_in" }
             composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
