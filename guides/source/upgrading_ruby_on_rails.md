@@ -76,6 +76,17 @@ Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://githu
 The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
 otherwise change the `boot.rb` to not use bootsnap.
 
+### Expiry in signed or encrypted cookie is now embedded in the cookies values
+
+To improve security, Rails now embeds the expiry information also in encrypted or signed cookies value.
+
+This new embed information make those cookies incompatible with versions of Rails older than 5.2.
+
+If you require your cookies to be read by 5.1 and older, or you are still validating your 5.2 deploy and want
+to allow you to rollback set
+`Rails.application.config.action_dispatch.use_authenticated_cookie_encryption` to `false`.
+
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
