@@ -121,6 +121,22 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
   end
 
+  test "urls can be root-relative paths" do
+    begin
+      old_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = build_disk_service(host: nil)
+
+      blob = create_blob
+
+      freeze_time do
+        assert_equal expected_url_for(blob, host: nil), blob.service_url
+        assert_equal expected_url_for(blob, host: nil, disposition: :attachment), blob.service_url(disposition: :attachment)
+      end
+    ensure
+      ActiveStorage::Blob.service = old_service
+    end
+  end
+
   test "purge deletes file from external service" do
     blob = create_blob
 
@@ -137,9 +153,9 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   private
-    def expected_url_for(blob, disposition: :inline, filename: nil)
+    def expected_url_for(blob, disposition: :inline, filename: nil, host: "http://localhost:3000")
       filename ||= blob.filename
       query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
-      "http://localhost:3000/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
+      "#{host}/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

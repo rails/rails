@@ -34,7 +34,7 @@ rescue Errno::ENOENT
 end
 
 require "tmpdir"
-ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"))
+ActiveStorage::Blob.service = ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"), host: "http://localhost:3000")
 
 ActiveStorage.logger = ActiveSupport::Logger.new(nil)
 ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
@@ -59,6 +59,10 @@ class ActiveSupport::TestCase
 
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
+    end
+
+    def build_disk_service(host:)
+      ActiveStorage::Service::DiskService.new(root: Dir.mktmpdir("active_storage_tests"), host: host)
     end
 end
 
