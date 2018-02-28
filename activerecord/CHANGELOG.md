@@ -1,19 +1,5 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
-*   Fix `#columns_for_distinct` of MySQL and PostgreSQL to make
-    `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
-    even if `ORDER BY` columns include other table's primary key.
-
-    Fixes #28364.
-
-    *Takumi Kagiyama*
-
-*   Make `reflection.klass` raise if `polymorphic?` not to be misused.
-
-    Fixes #31876.
-
-    *Ryuta Kamizono*
-
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
