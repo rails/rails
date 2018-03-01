@@ -163,16 +163,11 @@ module ActiveRecord
         }
       end
 
-      def verbose?
-        ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
-      end
-
       def migrate
         check_target_version
 
-        verbose = verbose?
         scope = ENV["SCOPE"]
-        verbose_was, Migration.verbose = Migration.verbose, verbose
+        verbose_was, Migration.verbose = Migration.verbose, verbose?
         Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
@@ -301,6 +296,9 @@ module ActiveRecord
       end
 
       private
+        def verbose?
+          ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
 
         def class_for_adapter(adapter)
           _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
