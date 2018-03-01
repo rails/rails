@@ -67,9 +67,8 @@ module ActiveRecord
         end
       end
 
-      def initialize(base, table, associations, alias_tracker, eager_loading: true)
+      def initialize(base, table, associations, alias_tracker)
         @alias_tracker = alias_tracker
-        @eager_loading = eager_loading
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_root.children.each { |child| construct_tables! @join_root, child }
@@ -200,12 +199,11 @@ module ActiveRecord
             reflection.check_eager_loadable!
 
             if reflection.polymorphic?
-              next unless @eager_loading
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
             JoinAssociation.new(reflection, build(right, reflection.klass), alias_tracker)
-          end.compact
+          end
         end
 
         def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)
