@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "isolation/abstract_unit"
-require "env_helpers"
 require "rails/command"
 require "rails/commands/routes/routes_command"
 
@@ -9,7 +8,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   setup :build_app
   teardown :teardown_app
 
-  test "test singular resource output in rake routes" do
+  test "singular resource output in rails routes" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         resource :post
@@ -29,7 +28,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     assert_equal expected_output, output
   end
 
-  test "test rails routes with global search key" do
+  test "rails routes with global search key" do
     app_file "config/routes.rb", <<-RUBY
       Rails.application.routes.draw do
         get '/cart', to: 'cart#show'
@@ -60,7 +59,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
                  "basketballs GET  /basketballs(.:format) basketball#index\n", output
   end
 
-  test "test rails routes with controller search_key" do
+  test "rails routes with controller search key" do
     app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -78,7 +77,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
   end
 
-  test "test rails routes with namespaced controller search key" do
+  test "rails routes with namespaced controller search key" do
     app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           namespace :admin do
@@ -102,7 +101,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     assert_equal expected_output, output
   end
 
-  test "test rails routes displays message when no routes are defined" do
+  test "rails routes displays message when no routes are defined" do
     app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
         end
@@ -119,7 +118,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     MESSAGE
   end
 
-  test "test rails routes with expanded option" do
+  test "rails routes with expanded option" do
     app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
@@ -167,7 +166,6 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   end
 
   private
-
     def run_routes_command(args = [])
       rails "routes", args
     end
