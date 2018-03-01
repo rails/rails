@@ -406,7 +406,7 @@ module ActiveRecord
       #
       #   Defaults to false.
       #
-      #   Only supported on the MySQL adapter, ignored elsewhere.
+      #   Only supported on the MySQL and PostgreSQL adapter, ignored elsewhere.
       #
       # ====== Add a column
       #
