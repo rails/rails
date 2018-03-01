@@ -23,7 +23,7 @@ module ActionDispatch
         #                           artifact format (https://buildkite.github.io/terminal/inline-images/).
         def take_screenshot
           save_image
-          save_html
+          save_page
           puts display_screenshot
         end
 
@@ -47,15 +47,15 @@ module ActionDispatch
             @image_path ||= absolute_image_path.to_s
           end
 
-          def html_path
-            @html_path ||= absolute_html_path.to_s
+          def page_path
+            @page_path ||= absolute_page_path.to_s
           end
 
           def absolute_image_path
             Rails.root.join("tmp/screenshots/#{screenshot_name}.png")
           end
 
-          def absolute_html_path
+          def absolute_page_path
             Rails.root.join("tmp/screenshots/#{screenshot_name}.html")
           end
 
@@ -63,8 +63,8 @@ module ActionDispatch
             page.save_screenshot(absolute_image_path)
           end
 
-          def save_html
-            page.save_page(absolute_html_path)
+          def save_page
+            page.save_page(absolute_page_path)
           end
 
           def output_type
@@ -79,7 +79,7 @@ module ActionDispatch
 
           def display_screenshot
             message = "[Image screenshot]: file://#{image_path}\n".dup
-            message << "     [HTML screenshot]: file://#{html_path}\n"
+            message << "     [Page HTML]: file://#{page_path}\n"
 
             case output_type
             when "artifact"

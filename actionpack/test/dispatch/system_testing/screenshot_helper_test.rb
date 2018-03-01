@@ -5,7 +5,7 @@ require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "capybara/dsl"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
-  %w(image html).each do |format|
+  %w(image page).each do |format|
     ext = format == "image" ? "png" : "html"
 
     test "#{format} path is saved in tmp directory" do
