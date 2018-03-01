@@ -125,7 +125,7 @@ module ActionDispatch
         end
     end
 
-    class ConsoleFormatter
+    module ConsoleFormatter
       class Sheet
         def initialize
           @buffer = []
@@ -185,7 +185,7 @@ module ActionDispatch
           end
       end
 
-      class Expanded < ConsoleFormatter
+      class Expanded
         def initialize
           @buffer = []
         end
