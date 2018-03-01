@@ -68,6 +68,15 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
     end
   end
+
+  test "display_screenshot includes file protocol easily opening links" do
+    new_test = DrivenBySeleniumWithChrome.new("x")
+
+    Rails.stub :root, Pathname.getwd do
+      assert_match %r|file://.+?tmp/screenshots/x\.png|, new_test.send(:display_screenshot)
+      assert_match %r|file://.+?tmp/screenshots/x\.html|, new_test.send(:display_screenshot)
+    end
+  end
 end
 
 class RackTestScreenshotsTest < DrivenByRackTest

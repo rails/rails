@@ -78,8 +78,8 @@ module ActionDispatch
           end
 
           def display_screenshot
-            message = "[Image screenshot]: #{image_path}\n".dup
-            message << "     [HTML screenshot]: #{html_path}\n"
+            message = "[Image screenshot]: file://#{image_path}\n".dup
+            message << "     [HTML screenshot]: file://#{html_path}\n"
 
             case output_type
             when "artifact"
