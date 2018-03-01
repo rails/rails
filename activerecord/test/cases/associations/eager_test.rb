@@ -1501,8 +1501,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome), post
   end
 
-  test "eager-loading with a polymorphic association and using the existential predicate" do
-    assert_equal true, authors(:david).essays.eager_load(:writer).exists?
+  test "eager-loading with a polymorphic association won't work consistently" do
+    assert_raise(ActiveRecord::EagerLoadPolymorphicError) { authors(:david).essays.eager_load(:writer).to_a }
+    assert_raise(ActiveRecord::EagerLoadPolymorphicError) { authors(:david).essays.eager_load(:writer).count }
+    assert_raise(ActiveRecord::EagerLoadPolymorphicError) { authors(:david).essays.eager_load(:writer).exists? }
   end
 
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
