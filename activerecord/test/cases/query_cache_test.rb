@@ -302,6 +302,22 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cache_uses_base_configurations
+    skip "In-Memory DB can't test for using a not connected connection" if in_memory_db?
+
+    model = Class.new(Post) do
+      def self.configurations
+        nil
+      end
+    end
+
+    with_temporary_connection_pool do
+      model.cache do
+        assert_queries(1) { Task.find(1); Task.find(1) }
+      end
+    end
+  end
+
   def test_cache_does_not_wrap_results_in_arrays
     Task.cache do
       if current_adapter?(:SQLite3Adapter, :Mysql2Adapter, :PostgreSQLAdapter, :OracleAdapter)

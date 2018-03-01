@@ -7,7 +7,7 @@ module ActiveRecord
       # Enable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def cache(&block)
-        if connected? || !configurations.empty?
+        if connected? || !Base.configurations.empty?
           connection.cache(&block)
         else
           yield
@@ -17,7 +17,7 @@ module ActiveRecord
       # Disable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def uncached(&block)
-        if connected? || !configurations.empty?
+        if connected? || !Base.configurations.empty?
           connection.uncached(&block)
         else
           yield
