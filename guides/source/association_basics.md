@@ -109,7 +109,7 @@ class CreateBooks < ActiveRecord::Migration[5.0]
     end
 
     create_table :books do |t|
-      t.belongs_to :author, index: true
+      t.belongs_to :author
       t.datetime :published_at
       t.timestamps
     end
@@ -140,7 +140,7 @@ class CreateSuppliers < ActiveRecord::Migration[5.0]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier, index: true
+      t.belongs_to :supplier
       t.string :account_number
       t.timestamps
     end
@@ -184,7 +184,7 @@ class CreateAuthors < ActiveRecord::Migration[5.0]
     end
 
     create_table :books do |t|
-      t.belongs_to :author, index: true
+      t.belongs_to :author
       t.datetime :published_at
       t.timestamps
     end
@@ -231,8 +231,8 @@ class CreateAppointments < ActiveRecord::Migration[5.0]
     end
 
     create_table :appointments do |t|
-      t.belongs_to :physician, index: true
-      t.belongs_to :patient, index: true
+      t.belongs_to :physician
+      t.belongs_to :patient
       t.datetime :appointment_date
       t.timestamps
     end
@@ -312,13 +312,13 @@ class CreateAccountHistories < ActiveRecord::Migration[5.0]
     end
 
     create_table :accounts do |t|
-      t.belongs_to :supplier, index: true
+      t.belongs_to :supplier
       t.string :account_number
       t.timestamps
     end
 
     create_table :account_histories do |t|
-      t.belongs_to :account, index: true
+      t.belongs_to :account
       t.integer :credit_rating
       t.timestamps
     end
@@ -358,8 +358,8 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
     end
 
     create_table :assemblies_parts, id: false do |t|
-      t.belongs_to :assembly, index: true
-      t.belongs_to :part, index: true
+      t.belongs_to :assembly
+      t.belongs_to :part
     end
   end
 end
@@ -517,7 +517,7 @@ In your migrations/schema, you will add a references column to the model itself.
 class CreateEmployees < ActiveRecord::Migration[5.0]
   def change
     create_table :employees do |t|
-      t.references :manager, index: true
+      t.references :manager
       t.timestamps
     end
   end
