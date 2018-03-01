@@ -2,10 +2,15 @@
 
 module ActiveStorage::Blob::Identifiable
   def identify
-    ActiveStorage::Identification.new(self).apply
+    update!(content_type: identification.content_type, identified: true) unless identified?
   end
 
   def identified?
     identified
   end
+
+  private
+    def identification
+      ActiveStorage::Identification.new self
+    end
 end

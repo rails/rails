@@ -73,7 +73,7 @@ class SerializersTest < ActiveSupport::TestCase
       ActiveJob::Serializers.deserialize(hash)
     end
     assert_equal(
-      "Serializer DoNotExist is not know",
+      "Serializer DoNotExist is not known",
       error.message
     )
   end

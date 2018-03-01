@@ -5,6 +5,14 @@ module ActionController #:nodoc:
     # TODO: Documentation
     extend ActiveSupport::Concern
 
+    include AbstractController::Helpers
+    include AbstractController::Callbacks
+
+    included do
+      helper_method :content_security_policy?
+      helper_method :content_security_policy_nonce
+    end
+
     module ClassMethods
       def content_security_policy(**options, &block)
         before_action(options) do
@@ -22,5 +30,15 @@ module ActionController #:nodoc:
         end
       end
     end
+
+    private
+
+      def content_security_policy?
+        request.content_security_policy
+      end
+
+      def content_security_policy_nonce
+        request.content_security_policy_nonce
+      end
   end
 end

@@ -57,9 +57,6 @@ module ActiveRecord
     end
 
     protected
-
-      attr_reader :table
-
       def expand_from_hash(attributes)
         return ["1=0"] if attributes.empty?
 
@@ -109,6 +106,7 @@ module ActiveRecord
       end
 
     private
+      attr_reader :table
 
       def associated_predicate_builder(association_name)
         self.class.new(table.associated_table(association_name))

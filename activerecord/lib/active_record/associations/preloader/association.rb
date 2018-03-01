@@ -27,10 +27,9 @@ module ActiveRecord
           end
         end
 
-        protected
+        private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
-        private
           # The name of the key on the associated records
           def association_key_name
             reflection.join_primary_key(klass)
@@ -118,7 +117,7 @@ module ActiveRecord
             scope = klass.scope_for_association
 
             if reflection.type
-              scope.where!(reflection.type => model.base_class.sti_name)
+              scope.where!(reflection.type => model.base_class.name)
             end
 
             scope.merge!(reflection_scope) if reflection.scope

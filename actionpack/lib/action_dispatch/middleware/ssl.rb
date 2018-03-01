@@ -26,8 +26,8 @@ module ActionDispatch
   #    Set +config.ssl_options+ with <tt>hsts: { ... }</tt> to configure HSTS:
   #
   #    * +expires+: How long, in seconds, these settings will stick. The minimum
-  #      required to qualify for browser preload lists is 18 weeks. Defaults to
-  #      180 days (recommended).
+  #      required to qualify for browser preload lists is 1 year. Defaults to
+  #      1 year (recommended).
   #
   #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
   #      to all subdomains. This protects your cookies from interception by a
@@ -47,9 +47,8 @@ module ActionDispatch
   class SSL
     # :stopdoc:
 
-    # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
-    # and greater than the 18-week requirement for browser preload lists.
-    HSTS_EXPIRES_IN = 15552000
+    # Default to 1 year, the minimum for browser preload lists.
+    HSTS_EXPIRES_IN = 31536000
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }

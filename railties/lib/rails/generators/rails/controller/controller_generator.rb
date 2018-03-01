@@ -16,6 +16,7 @@ module Rails
 
       def add_routes
         return if options[:skip_routes]
+        return if actions.empty?
         route generate_routing_code
       end
 

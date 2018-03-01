@@ -588,6 +588,8 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.form_with_generates_ids` determines whether `form_with` generates ids on inputs. This defaults to `true`.
 
+* `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:

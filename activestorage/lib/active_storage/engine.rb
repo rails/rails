@@ -18,7 +18,15 @@ module ActiveStorage
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
 
-    config.active_storage.variable_content_types = %w( image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop )
+    config.active_storage.variable_content_types = %w(
+      image/png
+      image/gif
+      image/jpg
+      image/jpeg
+      image/vnd.adobe.photoshop
+      image/vnd.microsoft.icon
+    )
+
     config.active_storage.content_types_to_serve_as_binary = %w(
       text/html
       text/javascript
@@ -60,7 +68,7 @@ module ActiveStorage
     end
 
     initializer "active_storage.services" do
-      config.to_prepare do
+      ActiveSupport.on_load(:active_storage_blob) do
         if config_choice = Rails.configuration.active_storage.service
           configs = Rails.configuration.active_storage.service_configurations ||= begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))

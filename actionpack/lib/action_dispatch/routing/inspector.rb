@@ -126,61 +126,114 @@ module ActionDispatch
     end
 
     class ConsoleFormatter
-      def initialize
-        @buffer = []
-      end
+      class Sheet
+        def initialize
+          @buffer = []
+        end
 
-      def result
-        @buffer.join("\n")
-      end
+        def result
+          @buffer.join("\n")
+        end
 
-      def section_title(title)
-        @buffer << "\n#{title}:"
-      end
+        def section_title(title)
+          @buffer << "\n#{title}:"
+        end
 
-      def section(routes)
-        @buffer << draw_section(routes)
-      end
+        def section(routes)
+          @buffer << draw_section(routes)
+        end
 
-      def header(routes)
-        @buffer << draw_header(routes)
-      end
+        def header(routes)
+          @buffer << draw_header(routes)
+        end
 
-      def no_routes(routes)
-        @buffer <<
-        if routes.none?
-          <<~MESSAGE
+        def no_routes(routes)
+          @buffer <<
+          if routes.none?
+            <<~MESSAGE
             You don't have any routes defined!
 
             Please add some routes in config/routes.rb.
-          MESSAGE
-        else
-          "No routes were found for this controller"
+            MESSAGE
+          else
+            "No routes were found for this controller"
+          end
+          @buffer << "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         end
-        @buffer << "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
+
+        private
+
+          def draw_section(routes)
+            header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
+            name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
+
+            routes.map do |r|
+              "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+            end
+          end
+
+          def draw_header(routes)
+            name_width, verb_width, path_width = widths(routes)
+
+            "#{"Prefix".rjust(name_width)} #{"Verb".ljust(verb_width)} #{"URI Pattern".ljust(path_width)} Controller#Action"
+          end
+
+          def widths(routes)
+            [routes.map { |r| r[:name].length }.max || 0,
+             routes.map { |r| r[:verb].length }.max || 0,
+             routes.map { |r| r[:path].length }.max || 0]
+          end
       end
 
-      private
-        def draw_section(routes)
-          header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
-          name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
+      class Expanded < ConsoleFormatter
+        def initialize
+          @buffer = []
+        end
 
-          routes.map do |r|
-            "#{r[:name].rjust(name_width)} #{r[:verb].ljust(verb_width)} #{r[:path].ljust(path_width)} #{r[:reqs]}"
+        def result
+          @buffer.join("")
+        end
+
+        def section_title(title)
+          @buffer << "\n#{"[ #{title} ]"}\n"
+        end
+
+        def section(routes)
+          @buffer << draw_expanded_section(routes)
+        end
+
+        def header(routes)
+          @buffer
+        end
+
+        def no_routes(routes)
+          @buffer <<
+          if routes.none?
+            <<~MESSAGE
+            You don't have any routes defined!
+
+            Please add some routes in config/routes.rb.\n
+            MESSAGE
+          else
+            "No routes were found for this controller\n"
           end
+          @buffer << "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         end
 
-        def draw_header(routes)
-          name_width, verb_width, path_width = widths(routes)
+        private
 
-          "#{"Prefix".rjust(name_width)} #{"Verb".ljust(verb_width)} #{"URI Pattern".ljust(path_width)} Controller#Action"
-        end
-
-        def widths(routes)
-          [routes.map { |r| r[:name].length }.max || 0,
-           routes.map { |r| r[:verb].length }.max || 0,
-           routes.map { |r| r[:path].length }.max || 0]
-        end
+          def draw_expanded_section(routes)
+            routes.map.each_with_index do |r, i|
+              <<~MESSAGE
+              --[ Route #{i + 1} ]#{'-' * 60}
+              Prefix            | #{r[:name]}
+              Verb              | #{r[:verb]}
+              URI               | #{r[:path]}
+              Controller#Action | #{r[:reqs]}
+              MESSAGE
+            end
+          end
+      end
     end
 
     class HtmlTableFormatter

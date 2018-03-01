@@ -19,7 +19,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         uri = URI.parse url
         request = Net::HTTP::Put.new uri.request_uri
         request.body = data
-        request.add_field "Content-Type", "text/plain"
+        request.add_field "Content-Type", ""
         request.add_field "Content-MD5", checksum
         Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
           http.request request

@@ -50,6 +50,17 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_equal 20, image.height
   end
 
+  test "resized variation of ICO blob" do
+    blob = create_file_blob(filename: "favicon.ico", content_type: "image/vnd.microsoft.icon")
+    variant = blob.variant(resize: "20x20").processed
+    assert_match(/icon\.png/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal "PNG", image.type
+    assert_equal 20, image.width
+    assert_equal 20, image.height
+  end
+
   test "optimized variation of GIF blob" do
     blob = create_file_blob(filename: "image.gif", content_type: "image/gif")
 
