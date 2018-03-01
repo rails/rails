@@ -858,6 +858,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_version_control_initializes_git_repo
     run_generator [destination_root]
     assert_directory ".git"
+    assert_file ".git/config" do |content|
+      assert_match(/\[diff "rails_credentials"\]/, content)
+      assert_match(/textconv = bin\/rails credentials:show/, content)
+    end
   end
 
   def test_create_keeps
@@ -906,7 +910,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = [
+      "git init",
+      "git config diff.rails_credentials.textconv 'bin/rails credentials:show'",
+      "install",
+      "exec spring binstub --all",
+      "echo ran after_bundle"
+    ]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -923,15 +933,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
   end
 
-  def test_gitignore
+  def test_gitfiles
     run_generator
 
     assert_file ".gitignore" do |content|
       assert_match(/config\/master\.key/, content)
     end
+    assert_file ".gitattributes", "config/credentials.yml.enc diff=rails_credentials\n"
   end
 
   def test_system_tests_directory_generated

@@ -38,7 +38,7 @@ module Rails
                                            desc: "Don't create a Gemfile"
 
         class_option :skip_git,            type: :boolean, aliases: "-G", default: false,
-                                           desc: "Skip .gitignore file"
+                                           desc: "Skip Git files"
 
         class_option :skip_keeps,          type: :boolean, default: false,
                                            desc: "Skip source control .keep files"

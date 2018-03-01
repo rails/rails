@@ -73,6 +73,20 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/Missing master key to decrypt credentials/, run_show_command)
   end
 
+  test "show credentials when the path is specified" do
+    run_edit_command(editor: "eval echo api_key: abc >")
+
+    content = File.read("#{app_path}/config/credentials.yml.enc")
+    remove_file "config/credentials.yml.enc"
+
+    Tempfile.open(["", ".yml.enc"]) do |f|
+      f.write(content)
+      f.rewind
+
+      assert_match(/api_key: abc/, run_show_command(f.path))
+    end
+  end
+
   private
     def run_edit_command(editor: "cat")
       switch_env("EDITOR", editor) do
@@ -80,7 +94,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       end
     end
 
-    def run_show_command(**options)
-      rails "credentials:show", **options
+    def run_show_command(path = nil, **options)
+      rails "credentials:show", path, **options
     end
 end

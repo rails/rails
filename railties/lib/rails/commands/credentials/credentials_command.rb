@@ -30,10 +30,11 @@ module Rails
         say "New credentials encrypted and saved."
       end
 
-      def show
+      def show(path = nil, *)
         require_application_and_environment!
 
-        say Rails.application.credentials.read.presence || missing_credentials_message
+        credentials = path ? Rails.application.encrypted(path) : Rails.application.credentials
+        say credentials.read.presence || missing_credentials_message
       end
 
       private

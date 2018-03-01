@@ -63,13 +63,15 @@ module Rails
       template "config.ru"
     end
 
-    def gitignore
+    def gitfiles
       template "gitignore", ".gitignore"
+      template "gitattributes", ".gitattributes"
     end
 
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet]
+        run "git config diff.rails_credentials.textconv 'bin/rails credentials:show'", capture: options[:quiet]
       end
     end
 
@@ -287,7 +289,7 @@ module Rails
         build(:rakefile)
         build(:ruby_version)
         build(:configru)
-        build(:gitignore)   unless options[:skip_git]
+        build(:gitfiles)    unless options[:skip_git]
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_yarn]
