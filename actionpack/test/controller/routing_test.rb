@@ -23,7 +23,7 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
     end
 
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ ? # [ ])
-    hex = unsafe.map { |char| "%" + char.unpack("H2").first.upcase }
+    hex = unsafe.map { |char| "%" + char.unpack1("H2").upcase }
 
     @segment = "#{safe.join}#{unsafe.join}".freeze
     @escaped = "#{safe.join}#{hex.join}".freeze

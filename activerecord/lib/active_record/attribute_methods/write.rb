@@ -13,7 +13,7 @@ module ActiveRecord
         private
 
           def define_method_attribute=(name)
-            safe_name = name.unpack("h*".freeze).first
+            safe_name = name.unpack1("h*".freeze)
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
             sync_with_transaction_state = "sync_with_transaction_state" if name == primary_key
 
