@@ -169,12 +169,11 @@ module ActiveRecord
         primary_key_value = nil
 
         if primary_key && Hash === values
-          arel_primary_key = arel_attribute(primary_key)
-          primary_key_value = values[arel_primary_key]
+          primary_key_value = values[primary_key]
 
           if !primary_key_value && prefetch_primary_key?
             primary_key_value = next_sequence_value
-            values[arel_primary_key] = primary_key_value
+            values[primary_key] = primary_key_value
           end
         end
 
@@ -208,8 +207,9 @@ module ActiveRecord
         end
 
         def _substitute_values(values)
-          values.map do |attr, value|
-            bind = predicate_builder.build_bind_attribute(attr.name, value)
+          values.map do |name, value|
+            attr = arel_attribute(name)
+            bind = predicate_builder.build_bind_attribute(name, value)
             [attr, bind]
           end
         end
@@ -705,7 +705,7 @@ module ActiveRecord
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
       attribute_names &= self.class.column_names
-      attributes_values = arel_attributes_with_values_for_update(attribute_names)
+      attributes_values = attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
         rows_affected = 0
         @_trigger_update_callback = true
@@ -723,7 +723,7 @@ module ActiveRecord
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
       attribute_names &= self.class.column_names
-      attributes_values = arel_attributes_with_values_for_create(attribute_names)
+      attributes_values = attributes_with_values_for_create(attribute_names)
 
       new_id = self.class._insert_record(attributes_values)
       self.id ||= new_id if self.class.primary_key

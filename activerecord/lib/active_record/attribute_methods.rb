@@ -438,24 +438,18 @@ module ActiveRecord
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
-      def arel_attributes_with_values_for_create(attribute_names)
-        arel_attributes_with_values(attributes_for_create(attribute_names))
+      def attributes_with_values_for_create(attribute_names)
+        attributes_with_values(attributes_for_create(attribute_names))
       end
 
-      def arel_attributes_with_values_for_update(attribute_names)
-        arel_attributes_with_values(attributes_for_update(attribute_names))
+      def attributes_with_values_for_update(attribute_names)
+        attributes_with_values(attributes_for_update(attribute_names))
       end
 
-      # Returns a Hash of the Arel::Attributes and attribute values that have been
-      # typecasted for use in an Arel insert/update method.
-      def arel_attributes_with_values(attribute_names)
-        attrs = {}
-        arel_table = self.class.arel_table
-
-        attribute_names.each do |name|
-          attrs[arel_table[name]] = _read_attribute(name)
+      def attributes_with_values(attribute_names)
+        attribute_names.each_with_object({}) do |name, attrs|
+          attrs[name] = _read_attribute(name)
         end
-        attrs
       end
 
       # Filters the primary keys and readonly attributes from the attribute names.

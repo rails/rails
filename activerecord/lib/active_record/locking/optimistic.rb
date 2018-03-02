@@ -97,9 +97,7 @@ module ActiveRecord
               self.class.primary_key => id_in_database,
               lock_col => previous_lock_value
             ).update_all(
-              attributes_for_update(attribute_names).map do |name|
-                [name, _read_attribute(name)]
-              end.to_h
+              attributes_with_values_for_update(attribute_names)
             )
 
             unless affected_rows == 1
