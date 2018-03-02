@@ -2,7 +2,7 @@
 
 module ConnectionPoolBehavior
   def test_connection_pool
-    Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+    Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
 
     emulating_latency do
       begin
@@ -27,7 +27,7 @@ module ConnectionPoolBehavior
       end
     end
   ensure
-    Thread.report_on_exception = original_report_on_exception if Thread.respond_to?(:report_on_exception)
+    Thread.report_on_exception = original_report_on_exception
   end
 
   def test_no_connection_pool

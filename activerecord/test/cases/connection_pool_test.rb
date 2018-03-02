@@ -469,7 +469,7 @@ module ActiveRecord
       end
 
       def test_non_bang_disconnect_and_clear_reloadable_connections_throw_exception_if_threads_dont_return_their_conns
-        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+        Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
         @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         [:disconnect, :clear_reloadable_connections].each do |group_action_method|
           @pool.with_connection do |connection|
@@ -479,7 +479,7 @@ module ActiveRecord
           end
         end
       ensure
-        Thread.report_on_exception = original_report_on_exception if Thread.respond_to?(:report_on_exception)
+        Thread.report_on_exception = original_report_on_exception
       end
 
       def test_disconnect_and_clear_reloadable_connections_attempt_to_wait_for_threads_to_return_their_conns
