@@ -91,13 +91,10 @@ module ActiveRecord
 
             attribute_names.push(lock_col)
 
-            relation = self.class.unscoped
-
-            affected_rows = relation.where(
+            affected_rows = self.class._update_record(
+              attributes_with_values_for_update(attribute_names),
               self.class.primary_key => id_in_database,
               lock_col => previous_lock_value
-            ).update_all(
-              attributes_with_values_for_update(attribute_names)
             )
 
             unless affected_rows == 1
