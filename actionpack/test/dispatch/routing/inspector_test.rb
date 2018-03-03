@@ -3,6 +3,7 @@
 require "abstract_unit"
 require "rails/engine"
 require "action_dispatch/routing/inspector"
+require "io/console/size"
 
 class MountedRackApp
   def self.call(env)
@@ -322,6 +323,9 @@ module ActionDispatch
       end
 
       def test_routes_when_expanded
+        previous_console_winsize = IO.console.winsize
+        IO.console.winsize = [0, 23]
+
         engine = Class.new(Rails::Engine) do
           def self.inspect
             "Blog::Engine"
@@ -337,30 +341,31 @@ module ActionDispatch
           mount engine => "/blog", :as => "blog"
         end
 
-        assert_equal ["--[ Route 1 ]------------------------------------------------------------",
+        assert_equal ["--[ Route 1 ]----------",
                       "Prefix            | custom_assets",
                       "Verb              | GET",
                       "URI               | /custom/assets(.:format)",
                       "Controller#Action | custom_assets#show",
-                      "--[ Route 2 ]------------------------------------------------------------",
+                      "--[ Route 2 ]----------",
                       "Prefix            | custom_furnitures",
                       "Verb              | GET",
                       "URI               | /custom/furnitures(.:format)",
                       "Controller#Action | custom_furnitures#show",
-                      "--[ Route 3 ]------------------------------------------------------------",
+                      "--[ Route 3 ]----------",
                       "Prefix            | blog",
                       "Verb              | ",
                       "URI               | /blog",
                       "Controller#Action | Blog::Engine",
                       "",
                       "[ Routes for Blog::Engine ]",
-                      "--[ Route 1 ]------------------------------------------------------------",
+                      "--[ Route 1 ]----------",
                       "Prefix            | cart",
                       "Verb              | GET",
                       "URI               | /cart(.:format)",
                       "Controller#Action | cart#show"], output
+      ensure
+        IO.console.winsize = previous_console_winsize
       end
-
 
       def test_no_routes_matched_filter_when_expanded
         output = draw("rails/dummy", ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
