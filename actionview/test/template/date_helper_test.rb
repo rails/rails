@@ -141,10 +141,10 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_distance_in_words_doesnt_use_the_quotient_operator
-    rubinius_skip "Date is written in Ruby and relies on Fixnum#/"
-    jruby_skip "Date is written in Ruby and relies on Fixnum#/"
+    rubinius_skip "Date is written in Ruby and relies on Integer#/"
+    jruby_skip "Date is written in Ruby and relies on Integer#/"
 
-    # Make sure that we avoid {Integer,Fixnum}#/ (redefined by mathn)
+    # Make sure that we avoid Integer#/ (redefined by mathn)
     Integer.send :private, :/
 
     from = Time.utc(2004, 6, 6, 21, 45, 0)
