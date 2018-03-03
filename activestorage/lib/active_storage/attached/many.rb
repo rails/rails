@@ -46,8 +46,14 @@ module ActiveStorage
 
     ##
     # :method purge
+    #
+    # Directly purges each associated attachment (i.e. destroys the blobs and
+    # attachments and deletes the files on the service).
+
 
     ##
     # :method purge_later
+    #
+    # Purges each associated attachment through the queuing system.
   end
 end
