@@ -188,8 +188,8 @@ module ActiveRecord
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
       end
 
-      def _update_record(values, id, id_was) # :nodoc:
-        bind = predicate_builder.build_bind_attribute(primary_key, id_was || id)
+      def _update_record(values, id) # :nodoc:
+        bind = predicate_builder.build_bind_attribute(primary_key, id)
         um = arel_table.where(
           arel_attribute(primary_key).eq(bind)
         ).compile_update(_substitute_values(values), primary_key)
@@ -710,7 +710,7 @@ module ActiveRecord
         rows_affected = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class._update_record(attributes_values, id, id_in_database)
+        rows_affected = self.class._update_record(attributes_values, id_in_database)
         @_trigger_update_callback = rows_affected > 0
       end
 
