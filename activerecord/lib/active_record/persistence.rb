@@ -197,6 +197,16 @@ module ActiveRecord
         connection.update(um, "#{self} Update")
       end
 
+      def _delete_record(constraints) # :nodoc:
+        constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
+        dm = Arel::DeleteManager.new
+        dm.from(arel_table)
+        dm.wheres = constraints
+
+        connection.delete(dm, "#{self} Destroy")
+      end
+
       private
         # Called by +instantiate+ to decide which class to use for a new
         # record instance.
@@ -311,7 +321,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      _relation_for_itself.delete_all if persisted?
+      _delete_row if persisted?
       @destroyed = true
       freeze
     end
@@ -690,15 +700,11 @@ module ActiveRecord
     end
 
     def destroy_row
-      relation_for_destroy.delete_all
+      _delete_row
     end
 
-    def relation_for_destroy
-      _relation_for_itself
-    end
-
-    def _relation_for_itself
-      self.class.unscoped.where(self.class.primary_key => id_in_database)
+    def _delete_row
+      self.class._delete_record(self.class.primary_key => id_in_database)
     end
 
     def create_or_update(*args, &block)

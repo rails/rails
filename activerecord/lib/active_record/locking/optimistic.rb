@@ -112,24 +112,20 @@ module ActiveRecord
         end
 
         def destroy_row
-          affected_rows = super
+          return super unless locking_enabled?
 
-          if locking_enabled? && affected_rows != 1
+          locking_column = self.class.locking_column
+
+          affected_rows = self.class._delete_record(
+            self.class.primary_key => id_in_database,
+            locking_column => read_attribute_before_type_cast(locking_column)
+          )
+
+          if affected_rows != 1
             raise ActiveRecord::StaleObjectError.new(self, "destroy")
           end
 
           affected_rows
-        end
-
-        def relation_for_destroy
-          relation = super
-
-          if locking_enabled?
-            locking_column = self.class.locking_column
-            relation = relation.where(locking_column => read_attribute_before_type_cast(locking_column))
-          end
-
-          relation
         end
 
         module ClassMethods
