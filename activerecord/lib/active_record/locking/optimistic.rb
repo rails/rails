@@ -111,6 +111,37 @@ module ActiveRecord
           end
         end
 
+        def _update_row(attribute_names, attempted_action)
+          return super unless locking_enabled?
+
+          begin
+            locking_column = self.class.locking_column
+            previous_lock_value = read_attribute_before_type_cast(locking_column)
+            attribute_names << locking_column
+
+            self[locking_column] += 1
+
+            affected_rows = self.class._update_record(
+              attributes_with_values(attribute_names),
+              self.class.primary_key => id_in_database,
+              locking_column => previous_lock_value
+            )
+
+            if affected_rows != 1
+              raise ActiveRecord::StaleObjectError.new(self, attempted_action)
+            end
+
+            affected_rows
+
+          # If something went wrong, revert the locking_column value.
+          rescue Exception
+            self[locking_column] = previous_lock_value
+            raise
+          ensure
+            clear_attribute_change(locking_column)
+          end
+        end
+
         def destroy_row
           return super unless locking_enabled?
 
