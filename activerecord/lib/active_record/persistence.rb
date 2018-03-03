@@ -187,10 +187,11 @@ module ActiveRecord
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
       end
 
-      def _update_record(values, id) # :nodoc:
-        bind = predicate_builder.build_bind_attribute(primary_key, id)
+      def _update_record(values, constraints) # :nodoc:
+        constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
         um = arel_table.where(
-          arel_attribute(primary_key).eq(bind)
+          constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
 
         connection.update(um, "#{self} Update")
@@ -461,13 +462,16 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      updated_count = _relation_for_itself.update_all(attributes)
+      affected_rows = self.class._update_record(
+        attributes,
+        self.class.primary_key => id_in_database
+      )
 
       attributes.each do |k, v|
         write_attribute_without_type_cast(k, v)
       end
 
-      updated_count == 1
+      affected_rows == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
@@ -641,34 +645,37 @@ module ActiveRecord
       end
 
       time ||= current_time_from_proper_timezone
-      attributes = timestamp_attributes_for_update_in_model
-      attributes.concat(names)
+      attribute_names = timestamp_attributes_for_update_in_model
+      attribute_names.concat(names)
 
-      unless attributes.empty?
-        changes = {}
-
-        attributes.each do |column|
-          column = column.to_s
-          changes[column] = write_attribute(column, time)
+      unless attribute_names.empty?
+        attribute_names.each do |attr_name|
+          write_attribute(attr_name, time)
         end
 
-        scope = _relation_for_itself
+        constraints = { self.class.primary_key => id_in_database }
 
         if locking_enabled?
           locking_column = self.class.locking_column
-          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
-          changes[locking_column] = increment_lock
+          constraints[locking_column] = read_attribute_before_type_cast(locking_column)
+          attribute_names << locking_column
+          increment_lock
         end
 
-        clear_attribute_changes(changes.keys)
-        result = scope.update_all(changes) == 1
+        clear_attribute_changes(attribute_names)
+
+        affected_rows = self.class._update_record(
+          attributes_with_values_for_update(attribute_names),
+          constraints
+        )
+
+        result = affected_rows == 1
 
         if !result && locking_enabled?
           raise ActiveRecord::StaleObjectError.new(self, "touch")
         end
 
         @_trigger_update_callback = result
-        result
       else
         true
       end
@@ -705,16 +712,19 @@ module ActiveRecord
       attribute_names &= self.class.column_names
       attributes_values = attributes_with_values_for_update(attribute_names)
       if attributes_values.empty?
-        rows_affected = 0
+        affected_rows = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class._update_record(attributes_values, id_in_database)
-        @_trigger_update_callback = rows_affected > 0
+        affected_rows = self.class._update_record(
+          attributes_values,
+          self.class.primary_key => id_in_database
+        )
+        @_trigger_update_callback = affected_rows == 1
       end
 
       yield(self) if block_given?
 
-      rows_affected
+      affected_rows
     end
 
     # Creates a record with values matching those of the instance attributes
