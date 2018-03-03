@@ -4,3 +4,4 @@ require "support/que/inline"
 
 ActiveJob::Base.queue_adapter = :que
 Que.mode = :sync
+Que.queue_name = :integration_tests
