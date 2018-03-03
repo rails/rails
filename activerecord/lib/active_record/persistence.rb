@@ -506,35 +506,18 @@ module ActiveRecord
       end
 
       time ||= current_time_from_proper_timezone
-      attributes = timestamp_attributes_for_update_in_model
-      attributes.concat(names)
+      attribute_names = timestamp_attributes_for_update_in_model
+      attribute_names.concat(names)
 
-      unless attributes.empty?
-        changes = {}
-
-        attributes.each do |column|
-          column = column.to_s
-          changes[column] = write_attribute(column, time)
+      unless attribute_names.empty?
+        attribute_names.each do |attr_name|
+          write_attribute(attr_name, time)
+          clear_attribute_change(attr_name)
         end
 
-        primary_key = self.class.primary_key
-        scope = self.class.unscoped.where(primary_key => _read_attribute(primary_key))
+        affected_rows = _update_row(attribute_names, "touch")
 
-        if locking_enabled?
-          locking_column = self.class.locking_column
-          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
-          changes[locking_column] = increment_lock
-        end
-
-        clear_attribute_changes(changes.keys)
-        result = scope.update_all(changes) == 1
-
-        if !result && locking_enabled?
-          raise ActiveRecord::StaleObjectError.new(self, "touch")
-        end
-
-        @_trigger_update_callback = result
-        result
+        @_trigger_update_callback = affected_rows == 1
       else
         true
       end
@@ -554,6 +537,13 @@ module ActiveRecord
       self.class.unscoped.where(self.class.primary_key => id)
     end
 
+    def _update_row(attribute_names, attempted_action)
+      self.class.unscoped._update_record(
+        arel_attributes_with_values(attribute_names),
+        self.class.primary_key => id_in_database
+      )
+    end
+
     def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
       result = new_record? ? _create_record(&block) : _update_record(*args, &block)
@@ -564,18 +554,19 @@ module ActiveRecord
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
       attribute_names &= self.class.column_names
-      attributes_values = arel_attributes_with_values_for_update(attribute_names)
-      if attributes_values.empty?
-        rows_affected = 0
+      attribute_names = attributes_for_update(attribute_names)
+
+      if attribute_names.empty?
+        affected_rows = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class.unscoped._update_record(attributes_values, id_in_database)
-        @_trigger_update_callback = rows_affected > 0
+        affected_rows = _update_row(attribute_names, "update")
+        @_trigger_update_callback = affected_rows == 1
       end
 
       yield(self) if block_given?
 
-      rows_affected
+      affected_rows
     end
 
     # Creates a record with values matching those of the instance attributes
