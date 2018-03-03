@@ -1,5 +1,9 @@
 ## Rails 5.1.5 (February 14, 2018) ##
 
+*   PostgreSQL: Allow pg-1.0 gem to be used with ActiveRecord.
+
+    *Lars Kanis*
+
 *   Fix `count(:all)` with eager loading and having an order other than the driving table.
 
     Fixes #31783.
