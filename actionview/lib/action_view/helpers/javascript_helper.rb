@@ -65,7 +65,7 @@ module ActionView
       #   <% end -%>
       #
       # If you have a content security policy enabled then you can add an automatic
-      # nonce value by passing +nonce: true+ as part of +html_options+. Example:
+      # nonce value by passing <tt>nonce: true</tt> as part of +html_options+. Example:
       #
       #   <%= javascript_tag nonce: true do -%>
       #     alert('All is good')
