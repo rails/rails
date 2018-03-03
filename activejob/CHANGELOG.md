@@ -1,5 +1,9 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Add queue name support to `ActiveJob::QueueAdapters::QueAdapter`.
+
+    *Brad Nauta*
+
 *   Add support for timezones to Active Job
 
     Record what was the current timezone in effect when the job was
@@ -15,6 +19,5 @@
 *   Add support to define custom argument serializers.
 
     *Evgenii Pecherkin*, *Rafael Mendonça França*
-
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activejob/CHANGELOG.md) for previous changes.
