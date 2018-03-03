@@ -663,31 +663,12 @@ module ActiveRecord
       unless attribute_names.empty?
         attribute_names.each do |attr_name|
           write_attribute(attr_name, time)
+          clear_attribute_change(attr_name)
         end
 
-        constraints = { self.class.primary_key => id_in_database }
+        affected_rows = _update_row(attribute_names, "touch")
 
-        if locking_enabled?
-          locking_column = self.class.locking_column
-          constraints[locking_column] = read_attribute_before_type_cast(locking_column)
-          attribute_names << locking_column
-          increment_lock
-        end
-
-        clear_attribute_changes(attribute_names)
-
-        affected_rows = self.class._update_record(
-          attributes_with_values_for_update(attribute_names),
-          constraints
-        )
-
-        result = affected_rows == 1
-
-        if !result && locking_enabled?
-          raise ActiveRecord::StaleObjectError.new(self, "touch")
-        end
-
-        @_trigger_update_callback = result
+        @_trigger_update_callback = affected_rows == 1
       else
         true
       end
@@ -707,6 +688,13 @@ module ActiveRecord
       self.class._delete_record(self.class.primary_key => id_in_database)
     end
 
+    def _update_row(attribute_names, attempted_action)
+      self.class._update_record(
+        attributes_with_values(attribute_names),
+        self.class.primary_key => id_in_database
+      )
+    end
+
     def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
       return false if destroyed?
@@ -718,15 +706,13 @@ module ActiveRecord
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
       attribute_names &= self.class.column_names
-      attributes_values = attributes_with_values_for_update(attribute_names)
-      if attributes_values.empty?
+      attribute_names = attributes_for_update(attribute_names)
+
+      if attribute_names.empty?
         affected_rows = 0
         @_trigger_update_callback = true
       else
-        affected_rows = self.class._update_record(
-          attributes_values,
-          self.class.primary_key => id_in_database
-        )
+        affected_rows = _update_row(attribute_names, "update")
         @_trigger_update_callback = affected_rows == 1
       end
 
