@@ -84,7 +84,7 @@ Book.where("array_length(ratings, 1) >= 3")
 ### Hstore
 
 * [type definition](https://www.postgresql.org/docs/current/static/hstore.html)
-* [functions and operators](https://www.postgresql.org/docs/current/static/hstore.html#AEN179902)
+* [functions and operators](https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
@@ -290,7 +290,7 @@ SELECT n.nspname AS enum_schema,
 ### UUID
 
 * [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#AEN182570)
+* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#id-1.11.7.35.7)
 * [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
