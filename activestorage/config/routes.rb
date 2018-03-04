@@ -11,30 +11,18 @@ Rails.application.routes.draw do
   resolve("ActiveStorage::Attachment") { |attachment, options| route_for(:rails_blob, attachment.blob, options) }
 
 
-  get "/rails/active_storage/variants/:signed_blob_id/:variation_key/*filename" => "active_storage/variants#show", as: :rails_blob_variation
+  get "/rails/active_storage/representations/:signed_blob_id/:variation_key/*filename" => "active_storage/representations#show", as: :rails_blob_representation
 
-  direct :rails_variant do |variant, options|
-    signed_blob_id = variant.blob.signed_id
-    variation_key  = variant.variation.key
-    filename       = variant.blob.filename
+  direct :rails_representation do |representation, options|
+    signed_blob_id = representation.blob.signed_id
+    variation_key  = representation.variation.key
+    filename       = representation.blob.filename
 
-    route_for(:rails_blob_variation, signed_blob_id, variation_key, filename, options)
+    route_for(:rails_blob_representation, signed_blob_id, variation_key, filename, options)
   end
 
-  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_variant, variant, options) }
-
-
-  get "/rails/active_storage/previews/:signed_blob_id/:variation_key/*filename" => "active_storage/previews#show", as: :rails_blob_preview
-
-  direct :rails_preview do |preview, options|
-    signed_blob_id = preview.blob.signed_id
-    variation_key  = preview.variation.key
-    filename       = preview.blob.filename
-
-    route_for(:rails_blob_preview, signed_blob_id, variation_key, filename, options)
-  end
-
-  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_preview, preview, options) }
+  resolve("ActiveStorage::Variant") { |variant, options| route_for(:rails_representation, variant, options) }
+  resolve("ActiveStorage::Preview") { |preview, options| route_for(:rails_representation, preview, options) }
 
 
   get  "/rails/active_storage/disk/:encoded_key/*filename" => "active_storage/disk#show", as: :rails_disk_service
