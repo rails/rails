@@ -27,7 +27,7 @@ module ActiveStorage::Blob::Representable
   # variable, call ActiveStorage::Blob#variable?.
   def variant(transformations)
     if variable?
-      ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
+      ActiveStorage::Variant.new(self, transformations)
     else
       raise ActiveStorage::InvariableError
     end
@@ -55,7 +55,7 @@ module ActiveStorage::Blob::Representable
   # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
   def preview(transformations)
     if previewable?
-      ActiveStorage::Preview.new(self, ActiveStorage::Variation.wrap(transformations))
+      ActiveStorage::Preview.new(self, transformations)
     else
       raise ActiveStorage::UnpreviewableError
     end
