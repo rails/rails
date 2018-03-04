@@ -94,7 +94,7 @@ module ActiveRecord
             relation = self.class.unscoped
 
             affected_rows = relation.where(
-              self.class.primary_key => id,
+              self.class.primary_key => id_in_database,
               lock_col => previous_lock_value
             ).update_all(
               attributes_for_update(attribute_names).map do |name|

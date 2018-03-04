@@ -691,7 +691,7 @@ module ActiveRecord
     end
 
     def _relation_for_itself
-      self.class.unscoped.where(self.class.primary_key => id)
+      self.class.unscoped.where(self.class.primary_key => id_in_database)
     end
 
     def create_or_update(*args, &block)
