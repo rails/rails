@@ -61,13 +61,6 @@ module ActiveRecord
       end
 
       private
-
-        def increment_lock
-          lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col)
-          send("#{lock_col}=", previous_lock_value + 1)
-        end
-
         def _create_record(attribute_names = self.attribute_names, *)
           if locking_enabled?
             # We always want to persist the locking version, even if we don't detect
@@ -77,41 +70,13 @@ module ActiveRecord
           super
         end
 
-        def _update_record(attribute_names = self.attribute_names)
-          attribute_names &= self.class.column_names
-          return super unless locking_enabled?
-          return 0 if attribute_names.empty?
-
-          begin
-            lock_col = self.class.locking_column
-
-            previous_lock_value = read_attribute_before_type_cast(lock_col)
-
-            increment_lock
-
-            attribute_names.push(lock_col)
-
-            affected_rows = self.class._update_record(
-              attributes_with_values_for_update(attribute_names),
-              self.class.primary_key => id_in_database,
-              lock_col => previous_lock_value
-            )
-
-            unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError.new(self, "update")
-            end
-
-            affected_rows
-
-          # If something went wrong, revert the locking_column value.
-          rescue Exception
-            send("#{lock_col}=", previous_lock_value.to_i)
-
-            raise
-          end
+        def _touch_row(attribute_names, time)
+          super
+        ensure
+          clear_attribute_change(self.class.locking_column) if locking_enabled?
         end
 
-        def _update_row(attribute_names, attempted_action)
+        def _update_row(attribute_names, attempted_action = "update")
           return super unless locking_enabled?
 
           begin
@@ -135,10 +100,8 @@ module ActiveRecord
 
           # If something went wrong, revert the locking_column value.
           rescue Exception
-            self[locking_column] = previous_lock_value
+            self[locking_column] = previous_lock_value.to_i
             raise
-          ensure
-            clear_attribute_change(locking_column)
           end
         end
 
