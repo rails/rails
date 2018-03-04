@@ -1,3 +1,7 @@
+*   Fix that after commit callbacks on update does not triggered when optimistic locking is enabled.
+
+    *Ryuta Kamizono*
+
 *   `ActiveRecord::Persistence#touch` does not work well when optimistic locking enabled and
     `locking_column`, without default value, is null in the database.
 

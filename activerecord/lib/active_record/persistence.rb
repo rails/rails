@@ -505,18 +505,11 @@ module ActiveRecord
         MSG
       end
 
-      time ||= current_time_from_proper_timezone
       attribute_names = timestamp_attributes_for_update_in_model
       attribute_names.concat(names)
 
       unless attribute_names.empty?
-        attribute_names.each do |attr_name|
-          write_attribute(attr_name, time)
-          clear_attribute_change(attr_name)
-        end
-
-        affected_rows = _update_row(attribute_names, "touch")
-
+        affected_rows = _touch_row(attribute_names, time)
         @_trigger_update_callback = affected_rows == 1
       else
         true
@@ -537,7 +530,18 @@ module ActiveRecord
       self.class.unscoped.where(self.class.primary_key => id)
     end
 
-    def _update_row(attribute_names, attempted_action)
+    def _touch_row(attribute_names, time)
+      time ||= current_time_from_proper_timezone
+
+      attribute_names.each do |attr_name|
+        write_attribute(attr_name, time)
+        clear_attribute_change(attr_name)
+      end
+
+      _update_row(attribute_names, "touch")
+    end
+
+    def _update_row(attribute_names, attempted_action = "update")
       self.class.unscoped._update_record(
         arel_attributes_with_values(attribute_names),
         self.class.primary_key => id_in_database
@@ -560,7 +564,7 @@ module ActiveRecord
         affected_rows = 0
         @_trigger_update_callback = true
       else
-        affected_rows = _update_row(attribute_names, "update")
+        affected_rows = _update_row(attribute_names)
         @_trigger_update_callback = affected_rows == 1
       end
 
