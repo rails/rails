@@ -114,23 +114,22 @@ class Module
   #   invoice.customer_name    # => 'John Doe'
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
-  # If you want the delegate methods to be a private,
-  # use the <tt>:private</tt> option.
+  # The delegated methods are public by default.
+  # Pass <tt>private: true</tt> to change that.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
   #     delegate :first_name, to: :profile
-  #     delegate :date_of_birth, :religion, to: :profile, private: true
+  #     delegate :date_of_birth, to: :profile, private: true
   #
   #     def age
   #       Date.today.year - date_of_birth.year
   #     end
   #   end
   #
-  #   User.new.age # => 2
   #   User.new.first_name # => "Tomas"
   #   User.new.date_of_birth # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
-  #   User.new.religion # => NoMethodError: private method `religion' called for #<User:0x00000008221340>
+  #   User.new.age # => 2
   #
   # If the target is +nil+ and does not respond to the delegated method a
   # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
