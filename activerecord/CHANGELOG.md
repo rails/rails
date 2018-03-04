@@ -1,3 +1,7 @@
+*   Fix that after commit callbacks on update does not triggered when optimistic locking is enabled.
+
+    *Ryuta Kamizono*
+
 *   Fix `#columns_for_distinct` of MySQL and PostgreSQL to make
     `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
     even if `ORDER BY` columns include other table's primary key.
