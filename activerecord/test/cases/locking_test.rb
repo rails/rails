@@ -194,6 +194,45 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_with_dirty_primary_key
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      person = Person.find(1)
+      person.id = 2
+      person.save!
+    end
+
+    person = Person.find(1)
+    person.id = 42
+    person.save!
+
+    assert Person.find(42)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_delete_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.delete
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_destroy_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.destroy
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
   def test_explicit_update_lock_column_raise_error
     person = Person.find(1)
 
