@@ -70,7 +70,7 @@ module Rails
     end
 
     def served_url
-      "#{options[:SSLEnable] ? 'https' : 'http'}://#{host}:#{port}" unless use_puma?
+      "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
     end
 
     private
