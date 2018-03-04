@@ -68,6 +68,18 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "replaced attached blob with itself by signed ID" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    assert_no_changes -> { @user.reload.avatar.blob } do
+      assert_no_changes -> { @user.reload.avatar.attachment } do
+        assert_no_enqueued_jobs do
+          @user.avatar.attach @user.avatar.blob.signed_id
+        end
+      end
+    end
+  end
+
   test "attach blob to new record" do
     user = User.new(name: "Jason")
 

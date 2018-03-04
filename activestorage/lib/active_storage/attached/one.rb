@@ -64,20 +64,25 @@ module ActiveStorage
 
     private
       def replace(attachable)
-        unless attachable == blob
-          previous_blob = blob
+        blob_was = blob
+        blob = create_blob_from(attachable)
 
+        unless blob == blob_was
           transaction do
             detach
-            write_attachment build_attachment_from(attachable)
+            write_attachment build_attachment(blob: blob)
           end
 
-          previous_blob.purge_later
+          blob_was.purge_later
         end
       end
 
       def build_attachment_from(attachable)
-        ActiveStorage::Attachment.new(record: record, name: name, blob: create_blob_from(attachable))
+        build_attachment blob: create_blob_from(attachable)
+      end
+
+      def build_attachment(blob:)
+        ActiveStorage::Attachment.new(record: record, name: name, blob: blob)
       end
 
       def write_attachment(attachment)
