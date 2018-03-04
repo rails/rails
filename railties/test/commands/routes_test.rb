@@ -39,12 +39,11 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
 
     output = run_routes_command(["-g", "show"])
     assert_equal <<~MESSAGE, output
-                            Prefix Verb URI Pattern                                                                       Controller#Action
-                              cart GET  /cart(.:format)                                                                   cart#show
-                rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-              rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
+                                 Prefix Verb URI Pattern                                                                              Controller#Action
+                                   cart GET  /cart(.:format)                                                                          cart#show
+                     rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
+              rails_blob_representation GET  /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
+                     rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
     MESSAGE
 
     output = run_routes_command(["-g", "POST"])
@@ -108,13 +107,12 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     RUBY
 
     assert_equal <<~MESSAGE, run_routes_command
-                              Prefix Verb URI Pattern                                                                       Controller#Action
-                  rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                        active_storage/blobs#show
-                rails_blob_variation GET  /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format) active_storage/variants#show
-                  rails_blob_preview GET  /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format) active_storage/previews#show
-                  rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                       active_storage/disk#show
-           update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                               active_storage/disk#update
-                rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                    active_storage/direct_uploads#create
+                                   Prefix Verb URI Pattern                                                                              Controller#Action
+                       rails_service_blob GET  /rails/active_storage/blobs/:signed_id/*filename(.:format)                               active_storage/blobs#show
+                rails_blob_representation GET  /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format) active_storage/representations#show
+                       rails_disk_service GET  /rails/active_storage/disk/:encoded_key/*filename(.:format)                              active_storage/disk#show
+                update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:format)                                      active_storage/disk#update
+                     rails_direct_uploads POST /rails/active_storage/direct_uploads(.:format)                                           active_storage/direct_uploads#create
     MESSAGE
   end
 
@@ -138,26 +136,21 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
     Controller#Action | active_storage/blobs#show
     --[ Route 3 ]------------------------------------------------------------
-    Prefix            | rails_blob_variation
+    Prefix            | rails_blob_representation
     Verb              | GET
-    URI               | /rails/active_storage/variants/:signed_blob_id/:variation_key/*filename(.:format)
-    Controller#Action | active_storage/variants#show
+    URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
+    Controller#Action | active_storage/representations#show
     --[ Route 4 ]------------------------------------------------------------
-    Prefix            | rails_blob_preview
-    Verb              | GET
-    URI               | /rails/active_storage/previews/:signed_blob_id/:variation_key/*filename(.:format)
-    Controller#Action | active_storage/previews#show
-    --[ Route 5 ]------------------------------------------------------------
     Prefix            | rails_disk_service
     Verb              | GET
     URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
     Controller#Action | active_storage/disk#show
-    --[ Route 6 ]------------------------------------------------------------
+    --[ Route 5 ]------------------------------------------------------------
     Prefix            | update_rails_disk_service
     Verb              | PUT
     URI               | /rails/active_storage/disk/:encoded_token(.:format)
     Controller#Action | active_storage/disk#update
-    --[ Route 7 ]------------------------------------------------------------
+    --[ Route 6 ]------------------------------------------------------------
     Prefix            | rails_direct_uploads
     Verb              | POST
     URI               | /rails/active_storage/direct_uploads(.:format)
