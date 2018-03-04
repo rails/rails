@@ -64,12 +64,16 @@ module ActiveStorage
 
     private
       def replace(attachable)
-        blob.tap do
+        unless attachable == blob
+          previous_blob = blob
+
           transaction do
             detach
             write_attachment build_attachment_from(attachable)
           end
-        end.purge_later
+
+          previous_blob.purge_later
+        end
       end
 
       def build_attachment_from(attachable)
