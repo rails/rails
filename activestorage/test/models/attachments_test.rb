@@ -43,6 +43,20 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
+  test "replace attached with dependent: false" do
+    @user.other_avatar.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_difference -> { ActiveStorage::Blob.count }, 1 do
+        assert_no_difference -> { ActiveStorage::Attachment.count } do
+          @user.other_avatar.attach create_blob(filename: "town.jpg")
+        end
+      end
+    end
+
+    assert_equal "town.jpg", @user.other_avatar.filename.to_s
+  end
+
   test "replace attached blob unsuccessfully" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
 

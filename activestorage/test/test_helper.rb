@@ -65,5 +65,6 @@ ActiveRecord::Base.send :include, GlobalID::Identification
 
 class User < ActiveRecord::Base
   has_one_attached :avatar
+  has_one_attached :other_avatar, dependent: false
   has_many_attached :highlights
 end
