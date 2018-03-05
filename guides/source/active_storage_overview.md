@@ -93,7 +93,7 @@ local:
   root: <%= Rails.root.join("storage") %>
 ```
 
-Optionally specify a host for generating URLs (the default is `http://localhost:3000`):
+Optionally specify a host for generating URLs (the default is to use root-relative path URLs):
 
 ```yaml
 local:

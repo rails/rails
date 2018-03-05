@@ -9,10 +9,11 @@ module ActiveStorage
   # Wraps a local disk path as an Active Storage service. See ActiveStorage::Service for the generic API
   # documentation that applies to all services.
   class Service::DiskService < Service
-    attr_reader :root, :host
+    attr_reader :root, :host, :routes
 
-    def initialize(root:, host: "http://localhost:3000")
+    def initialize(root:, host: nil)
       @root, @host = root, host
+      @routes = Rails.application.routes.url_helpers
     end
 
     def upload(key, io, checksum: nil)
@@ -66,41 +67,32 @@ module ActiveStorage
 
     def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key: key do |payload|
-        verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
+        signed_key = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
-        generated_url =
-          Rails.application.routes.url_helpers.rails_disk_service_url(
-            verified_key_with_expiration,
-            filename: filename,
-            disposition: content_disposition_with(type: disposition, filename: filename),
-            content_type: content_type,
-            host: host
-          )
+        options = {
+          filename: filename,
+          disposition: content_disposition_with(type: disposition, filename: filename),
+          content_type: content_type
+        }
 
-        payload[:url] = generated_url
-
-        generated_url
+        payload[:url] = rails_disk_service_url(signed_key, options)
+        payload[:url]
       end
     end
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
-        verified_token_with_expiration = ActiveStorage.verifier.generate(
-          {
-            key: key,
-            content_type: content_type,
-            content_length: content_length,
-            checksum: checksum
-          },
-          { expires_in: expires_in,
-          purpose: :blob_token }
-        )
+        message = {
+          key: key,
+          content_type: content_type,
+          content_length: content_length,
+          checksum: checksum
+        }
 
-        generated_url = Rails.application.routes.url_helpers.update_rails_disk_service_url(verified_token_with_expiration, host: host)
+        signed_message = ActiveStorage.verifier.generate(message, expires_in: expires_in, purpose: :blob_token)
 
-        payload[:url] = generated_url
-
-        generated_url
+        payload[:url] = update_rails_disk_service_url(signed_message)
+        payload[:url]
       end
     end
 
@@ -109,6 +101,23 @@ module ActiveStorage
     end
 
     private
+      def rails_disk_service_url(signed_key, options)
+        if host
+          options[:host] = host
+          routes.rails_disk_service_url(signed_key, options)
+        else
+          routes.rails_disk_service_path(signed_key, options)
+        end
+      end
+
+      def update_rails_disk_service_url(signed_message)
+        if host
+          routes.update_rails_disk_service_url(signed_message, host: host)
+        else
+          routes.update_rails_disk_service_path(signed_message)
+        end
+      end
+
       def path_for(key)
         File.join root, folder_for(key), key
       end
