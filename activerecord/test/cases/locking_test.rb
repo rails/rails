@@ -28,6 +28,13 @@ class ReadonlyNameShip < Ship
   attr_readonly :name
 end
 
+class CallbackPerson < ActiveRecord::Base
+  self.table_name = "people"
+  attr_reader :after_commit_on_update_called
+
+  after_commit(on: :update) { @after_commit_on_update_called = true }
+end
+
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
@@ -498,6 +505,21 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     t2 = YAML.load(YAML.dump(t1))
 
     assert_equal t1.attributes, t2.attributes
+  end
+
+  def test_after_commit_on_update_with_lock_column
+    person = CallbackPerson.find(1)
+    assert !person.after_commit_on_update_called
+    person.first_name = "Michelle"
+    person.save
+    assert person.after_commit_on_update_called
+  end
+
+  def test_after_commit_on_update_with_no_changes_and_lock_column
+    person = CallbackPerson.find(1)
+    assert !person.after_commit_on_update_called
+    person.save
+    assert person.after_commit_on_update_called
   end
 end
 

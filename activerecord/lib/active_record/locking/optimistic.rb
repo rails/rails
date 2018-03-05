@@ -80,7 +80,10 @@ module ActiveRecord
         def _update_record(attribute_names = self.attribute_names)
           attribute_names &= self.class.column_names
           return super unless locking_enabled?
-          return 0 if attribute_names.empty?
+          if attribute_names.empty?
+            @_trigger_update_callback = true
+            return 0
+          end
 
           begin
             lock_col = self.class.locking_column
@@ -97,7 +100,9 @@ module ActiveRecord
               lock_col => previous_lock_value
             )
 
-            unless affected_rows == 1
+            if affected_rows == 1
+              @_trigger_update_callback = true
+            else
               raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 
