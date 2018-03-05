@@ -67,7 +67,7 @@ module ActiveRecord
         binds)
     end
 
-    def _update_record(values, id, id_was) # :nodoc:
+    def _update_record(values, constraints) # :nodoc:
       substitutes, binds = substitute_values values
 
       scope = @klass.unscoped
@@ -76,7 +76,7 @@ module ActiveRecord
         scope.unscope!(where: @klass.inheritance_column)
       end
 
-      relation = scope.where(@klass.primary_key => (id_was || id))
+      relation = scope.where(constraints)
       bvs = binds + relation.bound_attributes
       um = relation
         .arel

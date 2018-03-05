@@ -392,6 +392,28 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
 end
 
+class TransactionAfterCommitCallbacksWithOptimisticLockingTest < ActiveRecord::TestCase
+  class PersonWithCallbacks < ActiveRecord::Base
+    self.table_name = :people
+
+    after_create_commit { |record| record.history << :commit_on_create }
+    after_update_commit { |record| record.history << :commit_on_update }
+    after_destroy_commit { |record| record.history << :commit_on_destroy }
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def test_after_commit_callbacks_with_optimistic_locking
+    person = PersonWithCallbacks.create!(first_name: "first name")
+    person.update!(first_name: "another name")
+    person.destroy
+
+    assert_equal [:commit_on_create, :commit_on_update, :commit_on_destroy], person.history
+  end
+end
+
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
