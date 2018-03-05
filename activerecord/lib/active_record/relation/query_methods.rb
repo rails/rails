@@ -78,16 +78,19 @@ module ActiveRecord
 
     alias extensions extending_values
 
-    def load_associations(arr, *args)
-      check_if_array_contains_base_elements!(arr)
-      check_if_method_has_arguments!(:load_associations, args)
+    def load_associations(records, *associations)
+      if records.is_a?(ActiveRecord::Relation)
+        records.preload(associations.flatten)
+      else
+        check_if_array_contains_valid_elements!(records)
+        check_if_method_has_arguments!(:load_associations, associations)
 
-      preloader = build_preloader
-      args.each do |associations|
-        preloader.preload arr, associations
+        preloader = build_preloader
+        associations.each do |association|
+          preloader.preload records, association
+        end
+        records
       end
-
-      arr
     end
 
     # Specify relationships to be included in the result set. For
@@ -1198,9 +1201,9 @@ module ActiveRecord
         end
       end
 
-      def check_if_array_contains_base_elements!(records)
-        records.flatten.compact.each do |r|
-          unless r.is_a? self.klass
+      def check_if_array_contains_valid_elements!(records)
+        records.flatten.compact.each do |record|
+          unless record.is_a? self.klass
             raise ArgumentError, "The method .load_associations() must be given an array of #{self.klass} elements."
           end
         end

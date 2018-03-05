@@ -674,13 +674,12 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal Post.find(1).last_comment, post.last_comment
   end
 
-  def test_load_associations
+  def test_load_associations_with_array
     posts = Post.all
-    even_posts, odd_posts = posts.partition.each_with_index{ |p, i| i.even? }
+    even_posts, odd_posts = posts.partition.each_with_index { |p, i| i.even? }
 
     assert_queries(1) do
-      preloaded_posts = Post.load_associations(even_posts, :comments)
-      preloaded_posts.each { |p| p.comments }
+      Post.load_associations(even_posts, :comments).each { |p| p.comments }
     end
     assert_not odd_posts.first.comments.loaded?
 
@@ -689,26 +688,32 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_load_associations_with_relation
+    assert_queries(2) do
+      posts = Post.all
+      Post.load_associations(posts, :comments).each { |p| p.comments }
+    end
+  end
+
   def test_load_associations_with_invalid_array_elements
     posts = ["helloworld", "foo bar", "my first post"]
     assert_raises(ArgumentError) do
-      preloaded_posts = Post.load_associations(posts, :comments)
+      Post.load_associations(posts, :comments)
     end
   end
 
   def test_load_associations_with_empty_array
     assert_queries(0) do
-      preloaded_posts = Post.load_associations([], :comments)
-      assert_empty preloaded_posts
+      assert_empty Post.load_associations([], :comments)
     end
   end
 
   def test_load_associations_with_empty_args
     posts = Post.all
-    even_posts, odd_posts = posts.partition.each_with_index{ |p, i| i.even? }
+    even_posts = posts.partition.each_with_index { |p, i| i.even? }
 
     assert_raises(ArgumentError) do
-      preloaded_posts = Post.load_associations(even_posts)
+      Post.load_associations(even_posts)
     end
   end
 
