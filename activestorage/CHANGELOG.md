@@ -1,4 +1,10 @@
-*   Add source code to published npm package
+*   Generate root-relative paths in disk service URL methods.
+
+    Obviate the disk service's `:host` configuration option.
+
+    *George Claghorn*
+
+*   Add source code to published npm package.
 
     This allows activestorage users to depend on the javascript source code
     rather than the compiled code, which can produce smaller javascript bundles.
@@ -21,7 +27,6 @@
     attachments when a record is destroyed.
 
     *Hiroki Zenigami*
-
 
 *   Force `:attachment` disposition for specific, configurable content types.
     This mitigates possible security issues such as XSS or phishing when

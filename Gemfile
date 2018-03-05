@@ -19,7 +19,6 @@ gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
 gem "sass-rails"
 gem "turbolinks", "~> 5"
-gem "webmock"
 
 # require: false so bcrypt is loaded only when has_secure_password is used.
 # This is to avoid Active Model (and by extension the entire framework)

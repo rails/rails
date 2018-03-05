@@ -5,10 +5,8 @@ require "service/shared_service_tests"
 class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
   test "builds correct service instance based on service name" do
     service = ActiveStorage::Service::Configurator.build(:foo, foo: { service: "Disk", root: "path" })
-
     assert_instance_of ActiveStorage::Service::DiskService, service
     assert_equal "path", service.root
-    assert_equal "http://localhost:3000", service.host
   end
 
   test "raises error when passing non-existent service name" do

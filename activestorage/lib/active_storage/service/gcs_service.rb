@@ -3,7 +3,10 @@
 gem "google-cloud-storage", "~> 1.8"
 
 require "google/cloud/storage"
+require "net/http"
+
 require "active_support/core_ext/object/to_query"
+require "active_storage/filename"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -39,6 +42,16 @@ module ActiveStorage
           yield io.read
         else
           io.read
+        end
+      end
+    end
+
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        uri = URI(url(key, expires_in: 30.seconds, filename: ActiveStorage::Filename.new(""), content_type: "application/octet-stream", disposition: "inline"))
+
+        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |client|
+          client.get(uri, "Range" => "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body
         end
       end
     end
