@@ -97,7 +97,9 @@ module ActiveRecord
               lock_col => previous_lock_value
             )
 
-            unless affected_rows == 1
+            if affected_rows == 1
+              @_trigger_update_callback = true
+            else
               raise ActiveRecord::StaleObjectError.new(self, "update")
             end
 

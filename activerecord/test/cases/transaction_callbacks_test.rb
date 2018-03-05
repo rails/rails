@@ -84,6 +84,16 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
   end
 
+  class PersonWithOptimisticLockingAndAfterUpdateCommitCallback < ActiveRecord::Base
+    self.table_name = :people
+
+    after_update_commit { |record| record.history << :commit_on_update }
+
+    def history
+      @history ||= []
+    end
+  end
+
   def setup
     @first = TopicWithCallbacks.find(1)
   end
@@ -115,6 +125,14 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
     @first.save!
     assert_equal [:commit_on_update], @first.history
+  end
+
+  def test_call_after_commit_on_update_after_transaction_commits_for_record_with_optimistic_locking
+    person = PersonWithOptimisticLockingAndAfterUpdateCommitCallback.create!(first_name: "first name")
+    person.first_name = "another name"
+    person.save!
+
+    assert_equal [:commit_on_update], person.history
   end
 
   def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_record
