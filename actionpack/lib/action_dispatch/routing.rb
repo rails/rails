@@ -243,9 +243,9 @@ module ActionDispatch
   #
   #   rails routes
   #
-  # Target specific controllers by prefixing the command with <tt>-c</tt> option. Use
-  # <tt>--expanded</tt> to turn on the expanded table formatting mode.
-  #
+  # Target a specific controller with <tt>-c</tt>, or grep routes
+  # using <tt>-g</tt>. Useful in conjunction with <tt>--expanded</tt>
+  # which displays routes vertically.
   module Routing
     extend ActiveSupport::Autoload
 
