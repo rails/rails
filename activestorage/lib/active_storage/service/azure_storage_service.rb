@@ -41,6 +41,13 @@ module ActiveStorage
       end
     end
 
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
+        io.force_encoding(Encoding::BINARY)
+      end
+    end
+
     def delete(key)
       instrument :delete, key: key do
         begin

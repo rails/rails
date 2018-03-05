@@ -126,7 +126,6 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     blob = create_blob_before_direct_upload(filename: "racecar.jpg", content_type: "application/octet-stream", byte_size: 1124062, checksum: "7GjDDNEQb4mzMzsW+MS0JQ==")
     ActiveStorage::Blob.service.upload(blob.key, file_fixture("racecar.jpg").open)
 
-    stub_request(:get, %r{localhost:3000/rails/active_storage/disk/.*}).to_return(body: file_fixture("racecar.jpg"))
     @user.avatar.attach(blob)
 
     assert_equal "image/jpeg", @user.avatar.reload.content_type
