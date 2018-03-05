@@ -69,7 +69,7 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
     output = run_routes_command(["-c", "cart"])
     assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
-    output = run_routes_command(["routes", "-c", "Cart"])
+    output = run_routes_command(["-c", "Cart"])
     assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
 
     output = run_routes_command(["-c", "CartController"])
