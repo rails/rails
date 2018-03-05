@@ -247,6 +247,12 @@ task :announce do
 
     require "erb"
     template = File.read("../tasks/release_announcement_draft.erb")
-    puts ERB.new(template, nil, "<>").result(binding)
+
+    match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
+    if match && match[:version] >= "2.2.0" # Ruby 2.6+
+      puts ERB.new(template, trim_mode: "<>").result(binding)
+    else
+      puts ERB.new(template, nil, "<>").result(binding)
+    end
   end
 end
