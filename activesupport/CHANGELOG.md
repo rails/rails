@@ -1,5 +1,33 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   `ActiveSupport::Inflector#ordinal` and `ActiveSupport::Inflector#ordinalize` now support
+    translations through I18n.
+
+        # locale/fr.rb
+
+        {
+          fr: {
+            number: {
+              nth: {
+                ordinals: lambda do |_key, number:, **_options|
+                  if number.to_i.abs == 1
+                    'er'
+                  else
+                    'e'
+                  end
+                end,
+
+                ordinalized: lambda do |_key, number:, **_options|
+                  "#{number}#{ActiveSupport::Inflector.ordinal(number)}"
+                end
+              }
+            }
+          }
+        }
+
+
+    *Christian Blais*
+
 *   Add `:private` option to ActiveSupport's `Module#delegate`
     in order to delegate methods as private:
 
