@@ -83,7 +83,17 @@ module ActiveStorage
         end
       CODE
 
-      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record
+      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record do
+        def purge
+          each(&:purge)
+          reset
+        end
+
+        def purge_later
+          each(&:purge_later)
+          reset
+        end
+      end
       has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
