@@ -20,7 +20,7 @@ module ActionDispatch
         @set = ActionDispatch::Routing::RouteSet.new
       end
 
-      def draw(options = nil, formater = ActionDispatch::Routing::ConsoleFormatter::Sheet.new, &block)
+      def draw(options = {}, formater = ActionDispatch::Routing::ConsoleFormatter::Sheet.new, &block)
         @set.draw(&block)
         inspector = ActionDispatch::Routing::RoutesInspector.new(@set.routes)
         inspector.format(formater, options).split("\n")
@@ -306,7 +306,7 @@ module ActionDispatch
       end
 
       def test_routes_can_be_filtered
-        output = draw("posts") do
+        output = draw(grep_pattern: "posts") do
           resources :articles
           resources :posts
         end
@@ -335,7 +335,7 @@ module ActionDispatch
           get "/cart", to: "cart#show"
         end
 
-        output = draw(nil, ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
+        output = draw({}, ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
           get "/custom/assets", to: "custom_assets#show"
           get "/custom/furnitures", to: "custom_furnitures#show"
           mount engine => "/blog", :as => "blog"
@@ -368,18 +368,18 @@ module ActionDispatch
       end
 
       def test_no_routes_matched_filter_when_expanded
-        output = draw("rails/dummy", ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
+        output = draw({ grep_pattern: "rails/dummy" }, ActionDispatch::Routing::ConsoleFormatter::Expanded.new) do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
-          "No routes were found for this controller",
+          "No routes were found for this grep pattern.",
           "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_not_routes_when_expanded
-        output = draw("rails/dummy", ActionDispatch::Routing::ConsoleFormatter::Expanded.new) {}
+        output = draw({ grep_pattern: "rails/dummy" }, ActionDispatch::Routing::ConsoleFormatter::Expanded.new) {}
 
         assert_equal [
           "You don't have any routes defined!",
@@ -391,7 +391,7 @@ module ActionDispatch
       end
 
       def test_routes_can_be_filtered_with_namespaced_controllers
-        output = draw("admin/posts") do
+        output = draw(grep_pattern: "admin/posts") do
           resources :articles
           namespace :admin do
             resources :posts
@@ -439,24 +439,24 @@ module ActionDispatch
         end
 
         assert_equal [
-          "No routes were found for this controller",
+          "No routes were found for this controller.",
           "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_no_routes_matched_filter
-        output = draw("rails/dummy") do
+        output = draw(grep_pattern: "rails/dummy") do
           get "photos/:id" => "photos#show", :id => /[A-Z]\d{5}/
         end
 
         assert_equal [
-          "No routes were found for this controller",
+          "No routes were found for this grep pattern.",
           "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         ], output
       end
 
       def test_no_routes_were_defined
-        output = draw("Rails::DummyController") {}
+        output = draw(grep_pattern: "Rails::DummyController") {}
 
         assert_equal [
           "You don't have any routes defined!",
