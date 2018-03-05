@@ -4,6 +4,15 @@ class Rails::ApplicationController < ActionController::Base # :nodoc:
   self.view_paths = File.expand_path("templates", __dir__)
   layout "application"
 
+  before_action :disable_content_security_policy_nonce!
+
+  content_security_policy do |policy|
+    if policy
+      policy.script_src :unsafe_inline
+      policy.style_src :unsafe_inline
+    end
+  end
+
   private
 
     def require_local!
@@ -14,5 +23,9 @@ class Rails::ApplicationController < ActionController::Base # :nodoc:
 
     def local_request?
       Rails.application.config.consider_all_requests_local || request.local?
+    end
+
+    def disable_content_security_policy_nonce!
+      request.content_security_policy_nonce_generator = nil
     end
 end
