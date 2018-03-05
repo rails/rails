@@ -80,6 +80,20 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     end
   end
 
+  test "replace independent attached blob" do
+    @user.cover_photo.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_difference -> { ActiveStorage::Blob.count }, +1 do
+        assert_no_difference -> { ActiveStorage::Attachment.count } do
+          @user.cover_photo.attach create_blob(filename: "town.jpg")
+        end
+      end
+    end
+
+    assert_equal "town.jpg", @user.cover_photo.filename.to_s
+  end
+
   test "attach blob to new record" do
     user = User.new(name: "Jason")
 
