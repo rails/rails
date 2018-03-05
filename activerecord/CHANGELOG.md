@@ -15,6 +15,10 @@
 
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
+*   PostgreSQL: Allow pg-1.0 gem to be used with ActiveRecord.
+
+    *Lars Kanis*
+
 *   Deprecate `expand_hash_conditions_for_aggregates` without replacement.
     Using a `Relation` for performing queries is the prefered API.
 
