@@ -15,6 +15,7 @@ class Module
   DELEGATION_RESERVED_METHOD_NAMES = Set.new(
     RUBY_RESERVED_KEYWORDS + DELEGATION_RESERVED_KEYWORDS
   ).freeze
+  DELEGATION_VISIBILITIES = %i(public protected private).freeze
 
   # Provides a +delegate+ class method to easily expose contained objects'
   # public methods as your own.
@@ -115,12 +116,13 @@ class Module
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
   # The delegated methods are public by default.
-  # Pass <tt>private: true</tt> to change that.
+  # Pass <tt>visibility: :private</tt> or <tt>visibility: :protected</tt> to change that.
   #
   #   class User < ActiveRecord::Base
   #     has_one :profile
   #     delegate :first_name, to: :profile
-  #     delegate :date_of_birth, to: :profile, private: true
+  #     delegate :name, to: :profile, visibility: :protected
+  #     delegate :date_of_birth, to: :profile, visibility: :private
   #
   #     def age
   #       Date.today.year - date_of_birth.year
@@ -168,13 +170,17 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, visibility: :public)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
 
     if prefix == true && /^[^a-z_]/.match?(to)
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
+    end
+
+    unless DELEGATION_VISIBILITIES.include?(visibility)
+      raise ArgumentError, "Invalid visibility. Valid visibilities are #{DELEGATION_VISIBILITIES.join(', ')}"
     end
 
     method_prefix = \
@@ -231,7 +237,11 @@ class Module
       module_eval(method_def, file, line)
     end
 
-    private(*method_names) if private
+    case visibility
+    when :private then private(*method_names)
+    when :protected then protected(*method_names)
+    end
+
     method_names
   end
 

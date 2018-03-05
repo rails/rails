@@ -441,13 +441,13 @@ class ModuleTest < ActiveSupport::TestCase
     assert place.respond_to?(:the_city, true)
   end
 
-  def test_private_delegate_with_private_option
+  def test_private_delegate_with_visibility_option
     location = Class.new do
       def initialize(place)
         @place = place
       end
 
-      delegate(:street, :city, to: :@place, private: true)
+      delegate(:street, :city, to: :@place, visibility: :private)
     end
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
@@ -459,14 +459,14 @@ class ModuleTest < ActiveSupport::TestCase
     assert place.respond_to?(:city, true)
   end
 
-  def test_some_public_some_private_delegate_with_private_option
+  def test_some_public_some_private_delegate_with_visibility_option
     location = Class.new do
       def initialize(place)
         @place = place
       end
 
       delegate(:street, to: :@place)
-      delegate(:city, to: :@place, private: true)
+      delegate(:city, to: :@place, visibility: :private)
     end
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
@@ -477,13 +477,13 @@ class ModuleTest < ActiveSupport::TestCase
     assert place.respond_to?(:city, true) # Asking for private method
   end
 
-  def test_private_delegate_prefixed_with_private_option
+  def test_private_delegate_prefixed_with_visibility_option
     location = Class.new do
       def initialize(place)
         @place = place
       end
 
-      delegate(:street, :city, to: :@place, prefix: :the, private: true)
+      delegate(:street, :city, to: :@place, prefix: :the, visibility: :private)
     end
 
     place = location.new(Somewhere.new("Such street", "Sad city"))
@@ -494,7 +494,7 @@ class ModuleTest < ActiveSupport::TestCase
     assert place.respond_to?(:the_city, true)
   end
 
-  def test_delegate_with_private_option_returns_names_of_delegate_methods
+  def test_delegate_with_visibility_option_returns_names_of_delegate_methods
     location = Class.new do
       def initialize(place)
         @place = place
@@ -502,9 +502,114 @@ class ModuleTest < ActiveSupport::TestCase
     end
 
     assert_equal [:street, :city],
-      location.delegate(:street, :city, to: :@place, private: true)
+      location.delegate(:street, :city, to: :@place, visibility: :private)
 
     assert_equal [:the_street, :the_city],
-      location.delegate(:street, :city, to: :@place, prefix: :the, private: true)
+      location.delegate(:street, :city, to: :@place, prefix: :the, visibility: :private)
+  end
+
+  def test_protected_delegate
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      protected(*delegate(:street, :city, to: :@place))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:street, true) # Asking for protected method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_protected_delegate_prefixed
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      protected(*delegate(:street, :city, to: :@place, prefix: :the))
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert_not_respond_to place, :the_street
+    assert place.respond_to?(:the_street, true)
+    assert_not_respond_to place, :the_city
+    assert place.respond_to?(:the_city, true)
+  end
+
+  def test_protected_delegate_with_visibility_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, :city, to: :@place, visibility: :protected)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:street, true) # Asking for protected method
+    assert place.respond_to?(:city, true)
+  end
+
+  def test_some_public_some_protected_delegate_with_visibility_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, to: :@place)
+      delegate(:city, to: :@place, visibility: :protected)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_respond_to place, :street
+    assert_not_respond_to place, :city
+
+    assert place.respond_to?(:city, true) # Asking for protected method
+  end
+
+  def test_protected_delegate_prefixed_with_visibility_option
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+
+      delegate(:street, :city, to: :@place, prefix: :the, visibility: :protected)
+    end
+
+    place = location.new(Somewhere.new("Such street", "Sad city"))
+
+    assert_not_respond_to place, :the_street
+    assert place.respond_to?(:the_street, true)
+    assert_not_respond_to place, :the_city
+    assert place.respond_to?(:the_city, true)
+  end
+
+  def test_delegate_with_visibility_option_returns_names_of_delegate_methods
+    location = Class.new do
+      def initialize(place)
+        @place = place
+      end
+    end
+
+    assert_equal [:street, :city],
+      location.delegate(:street, :city, to: :@place, visibility: :protected)
+
+    assert_equal [:the_street, :the_city],
+      location.delegate(:street, :city, to: :@place, prefix: :the, visibility: :protected)
   end
 end
