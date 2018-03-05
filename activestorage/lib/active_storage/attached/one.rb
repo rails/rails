@@ -20,10 +20,16 @@ module ActiveStorage
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      if attached? && dependent == :purge_later
-        replace attachable
-      else
-        write_attachment build_attachment_from(attachable)
+      blob_was = blob if attached?
+      blob = create_blob_from(attachable)
+
+      unless blob == blob_was
+        transaction do
+          detach
+          write_attachment build_attachment(blob: blob)
+        end
+
+        blob_was.purge_later if blob_was && dependent == :purge_later
       end
     end
 
@@ -63,23 +69,7 @@ module ActiveStorage
     end
 
     private
-      def replace(attachable)
-        blob_was = blob
-        blob = create_blob_from(attachable)
-
-        unless blob == blob_was
-          transaction do
-            detach
-            write_attachment build_attachment(blob: blob)
-          end
-
-          blob_was.purge_later
-        end
-      end
-
-      def build_attachment_from(attachable)
-        build_attachment blob: create_blob_from(attachable)
-      end
+      delegate :transaction, to: :record
 
       def build_attachment(blob:)
         ActiveStorage::Attachment.new(record: record, name: name, blob: blob)

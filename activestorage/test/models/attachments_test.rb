@@ -217,11 +217,18 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     perform_enqueued_jobs do
-      @user.destroy
+      @user.reload.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: avatar_key)
       assert_not ActiveStorage::Blob.service.exist?(avatar_key)
     end
+  end
+
+  test "delete attachment for independent blob when record is destroyed" do
+    @user.cover_photo.attach create_blob(filename: "funky.jpg")
+
+    @user.destroy
+    assert_not ActiveStorage::Attachment.exists?(record: @user, name: "cover_photo")
   end
 
   test "find with attached blob" do
@@ -395,7 +402,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     perform_enqueued_jobs do
-      @user.destroy
+      @user.reload.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.first)
       assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
@@ -403,5 +410,12 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.second)
       assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
     end
+  end
+
+  test "delete attachments for independent blobs when the record is destroyed" do
+    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "wonky.mp4")
+
+    @user.destroy
+    assert_not ActiveStorage::Attachment.exists?(record: @user, name: "vlogs")
   end
 end
