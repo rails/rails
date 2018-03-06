@@ -504,7 +504,7 @@ DEPENDENCIES
   blade-sauce_labs_plugin
   bootsnap (>= 1.1.0)
   byebug
-  capybara (~> 2.15)
+  capybara (>= 2.15, < 4.0)
   chromedriver-helper
   coffee-rails
   connection_pool
