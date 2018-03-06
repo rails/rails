@@ -175,8 +175,12 @@ module ActiveRecord
       # Regexp whitelist. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+      #   "#{table_name}.#{column_name} NULLS LAST"
       #   "#{column_name}"
       #   "#{column_name} #{direction}"
+      #   "#{column_name} #{direction} NULLS FIRST"
+      #   "#{column_name} NULLS LAST"
       COLUMN_NAME_ORDER_WHITELIST = /
         \A
         (?:\w+\.)?
