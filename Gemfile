@@ -14,7 +14,7 @@ gem "rake", ">= 11.1"
 # be loaded after loading the test library.
 gem "mocha", "~> 0.14", require: false
 
-gem "capybara", "~> 2.13"
+gem "capybara", ">= 2.15", "< 4.0"
 
 gem "rack-cache", "~> 1.2"
 gem "jquery-rails"
