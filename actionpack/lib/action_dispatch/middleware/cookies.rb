@@ -490,10 +490,14 @@ module ActionDispatch
 
       private
         def expiry_options(options)
-          if options[:expires].respond_to?(:from_now)
-            { expires_in: options[:expires] }
+          if request.use_authenticated_cookie_encryption
+            if options[:expires].respond_to?(:from_now)
+              { expires_in: options[:expires] }
+            else
+              { expires_at: options[:expires] }
+            end
           else
-            { expires_at: options[:expires] }
+            {}
           end
         end
 
