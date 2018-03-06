@@ -32,7 +32,9 @@ module ActiveRecord
       # <tt>reload</tt> the record and clears changed attributes.
       def reload(*)
         super.tap do
+          @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_before_last_save = nil
+          @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
           @mutations_from_database = nil
         end
       end
@@ -112,12 +114,12 @@ module ActiveRecord
 
       # Alias for +changed+
       def changed_attribute_names_to_save
-        mutations_from_database.changed_attribute_names
+        changes_to_save.keys
       end
 
       # Alias for +changed_attributes+
       def attributes_in_database
-        mutations_from_database.changed_values
+        changes_to_save.transform_values(&:first)
       end
 
       private
