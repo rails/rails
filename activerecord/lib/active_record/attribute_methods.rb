@@ -177,7 +177,14 @@ module ActiveRecord
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{column_name}"
       #   "#{column_name} #{direction}"
-      COLUMN_NAME_ORDER_WHITELIST = /\A(?:\w+\.)?\w+(?:\s+asc|\s+desc)?\z/i
+      COLUMN_NAME_ORDER_WHITELIST = /
+        \A
+        (?:\w+\.)?
+        \w+
+        (?:\s+asc|\s+desc)?
+        (?:\s+nulls\s+(?:first|last))?
+        \z
+      /ix
 
       def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
         unexpected = args.reject do |arg|
