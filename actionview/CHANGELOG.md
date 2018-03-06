@@ -1,3 +1,19 @@
+*   Add `year_format` option to date_select tag. This option makes it possible to customize year
+    names. Lambda should be passed to use this option. Example:
+
+        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
+
+    The HTML produced: 
+
+        <select id="user_birthday__1i" name="user_birthday[(1i)]">
+        <option value="1998">Heisei 10</option>
+        <option value="1999">Heisei 11</option>
+        <option value="2000">Heisei 12</option>
+        </select>
+        /* The rest is omitted */
+
+    *Koki Ryu*
+
 *   Fix JavaScript views rendering does not work with Firefox when using
     Content Security Policy.
 
