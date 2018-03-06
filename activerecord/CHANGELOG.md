@@ -1,3 +1,7 @@
+*   Whitelist `NULLS FIRST` and `NULLS LAST` in order clauses too.
+
+    *Xavier Noria*
+
 *   Fix that after commit callbacks on update does not triggered when optimistic locking is enabled.
 
     *Ryuta Kamizono*
