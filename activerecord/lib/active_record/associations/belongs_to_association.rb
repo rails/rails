@@ -5,7 +5,15 @@ module ActiveRecord
     # = Active Record Belongs To Association
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def handle_dependency
-        target.send(options[:dependent]) if load_target
+        return unless load_target
+
+        case options[:dependent]
+        when :destroy
+          target.destroy
+          raise ActiveRecord::Rollback unless target.destroyed?
+        else
+          target.send(options[:dependent])
+        end
       end
 
       def replace(record)
