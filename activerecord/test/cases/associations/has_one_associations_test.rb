@@ -725,4 +725,28 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_not DestroyByParentBook.exists?(book.id)
   end
+
+  class UndestroyableBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyableAuthor"
+    before_destroy :dont
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class DestroyableAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "UndestroyableBook", foreign_key: "author_id", dependent: :destroy
+  end
+
+  def test_dependency_should_halt_parent_destruction
+    author = DestroyableAuthor.create!(name: "Test")
+    UndestroyableBook.create!(author: author)
+
+    assert_no_difference ["DestroyableAuthor.count", "UndestroyableBook.count"] do
+      assert_not author.destroy
+    end
+  end
 end

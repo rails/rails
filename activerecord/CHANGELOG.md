@@ -1,3 +1,10 @@
+*   Fix `dependent: :destroy` issue for has_one/belongs_to relationship where
+    the parent class was getting deleted when the child was not.
+
+    Fixes #32022.
+
+    *Fernando Gorodscy*
+
 *   Whitelist `NULLS FIRST` and `NULLS LAST` in order clauses too.
 
     *Xavier Noria*
