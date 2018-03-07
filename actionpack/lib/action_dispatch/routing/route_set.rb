@@ -15,7 +15,7 @@ module ActionDispatch
     class RouteSet
       # Since the router holds references to many parts of the system
       # like engines, controllers and the application itself, inspecting
-      # the route set can actually be really slow, therefore we default
+      # the route set can actually be really slow, therefore our default
       # alias inspect to to_s.
       alias inspect to_s
 
