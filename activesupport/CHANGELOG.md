@@ -1,5 +1,15 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
+
+        URI.unescape("\xe3\x83\x90")  # => "バ"
+        URI.unescape("%E3%83%90")  # => "バ"
+        URI.unescape("\xe3\x83\x90%E3%83%90")  # => Encoding::CompatibilityError
+
+    GH#32183
+
+    *Ashe Connor*, *Aaron Patterson*
+
 *   Add `:private` option to ActiveSupport's `Module#delegate`
     in order to delegate methods as private:
 
