@@ -1,5 +1,10 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
+*   Add `before?` and `after?` methods to `Date`, `DateTime`,
+    `Time`, and `TimeWithZone`.
+
+    *Nick Holden*
+
 *   Add `:private` option to ActiveSupport's `Module#delegate`
     in order to delegate methods as private:
 

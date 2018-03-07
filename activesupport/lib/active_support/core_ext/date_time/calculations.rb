@@ -208,4 +208,6 @@ class DateTime
       super
     end
   end
+  alias_method :before?, :<
+  alias_method :after?, :>
 end

@@ -360,6 +360,18 @@ class DateExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_before
+    assert_equal false, Date.new(2017, 3, 6).before?(Date.new(2017, 3, 5))
+    assert_equal false, Date.new(2017, 3, 6).before?(Date.new(2017, 3, 6))
+    assert_equal true, Date.new(2017, 3, 6).before?(Date.new(2017, 3, 7))
+  end
+
+  def test_after
+    assert_equal true, Date.new(2017, 3, 6).after?(Date.new(2017, 3, 5))
+    assert_equal false, Date.new(2017, 3, 6).after?(Date.new(2017, 3, 6))
+    assert_equal false, Date.new(2017, 3, 6).after?(Date.new(2017, 3, 7))
+  end
+
   def test_current_returns_date_today_when_zone_not_set
     with_env_tz "US/Central" do
       Time.stub(:now, Time.local(1999, 12, 31, 23)) do
