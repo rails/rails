@@ -1,3 +1,10 @@
+*   Always yield a CSP policy instance from `content_security_policy`
+
+    This allows a controller action to enable the policy individually
+    for a controller and/or specific actions.
+
+    *Andrew White*
+
 *   Add the ability to disable the global CSP in a controller, e.g:
 
         class LegacyPagesController < ApplicationController
