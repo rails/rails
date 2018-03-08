@@ -9,6 +9,21 @@ class DriverTest < ActiveSupport::TestCase
     assert_equal :selenium, driver.instance_variable_get(:@name)
   end
 
+  test "using driver provide proper session name with override session name" do
+    ActionDispatch::SystemTesting::Driver.new(:poltergeist, options: { session_name: :selenium_chrome_windows_10 }).use
+    assert_equal :selenium_chrome_windows_10, Capybara.session_name
+  end
+
+  test "using driver provide proper session name with driver and browser name" do
+    ActionDispatch::SystemTesting::Driver.new(:selenium, using: :headless_chrome).use
+    assert_equal :selenium_headless_chrome, Capybara.session_name
+  end
+
+  test "using driver provide proper session name with driver name" do
+    ActionDispatch::SystemTesting::Driver.new(:poltergeist).use
+    assert_equal :poltergeist, Capybara.session_name
+  end
+
   test "initializing the driver with a browser" do
     driver = ActionDispatch::SystemTesting::Driver.new(:selenium, using: :chrome, screen_size: [1400, 1400], options: { url: "http://example.com/wd/hub" })
     assert_equal :selenium, driver.instance_variable_get(:@name)

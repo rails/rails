@@ -35,6 +35,10 @@ module ActionDispatch
           @options.merge(options: @browser.options).compact
         end
 
+        def default_session_name
+          [@name, @browser.name].compact.join("_").to_sym
+        end
+
         def register_selenium(app)
           Capybara::Selenium::Driver.new(app, { browser: @browser.type }.merge(browser_options)).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
@@ -52,7 +56,12 @@ module ActionDispatch
         end
 
         def setup
+          Capybara.session_name = session_name
           Capybara.current_driver = @name
+        end
+
+        def session_name
+          @options.respond_to?(:[]) ? @options[:session_name] || default_session_name : default_session_name
         end
     end
   end
