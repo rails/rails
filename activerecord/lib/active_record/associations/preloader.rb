@@ -180,7 +180,7 @@ module ActiveRecord
         # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
         def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
+          if owners.all? { |o| o.association(reflection.name).loaded? }
             return AlreadyLoaded
           end
           reflection.check_preloadable!

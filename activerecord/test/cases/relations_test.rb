@@ -690,8 +690,7 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_load_associations_with_relation
     assert_queries(2) do
-      posts = Post.all
-      Post.load_associations(posts, :comments).each { |p| p.comments }
+      Post.load_associations(Post.all, :comments).each { |p| p.comments }
     end
   end
 
@@ -714,6 +713,34 @@ class RelationTest < ActiveRecord::TestCase
 
     assert_raises(ArgumentError) do
       Post.load_associations(even_posts)
+    end
+  end
+
+  def test_load_associations_with_first_record_loaded
+    posts = Post.all.to_a
+    posts.first.comments.to_a
+
+    assert_queries(1) do
+      Post.load_associations(posts, :comments)
+      posts.each { |p| assert p.comments.loaded? }
+    end
+  end
+
+  def test_load_associations_with_first_through_association_loaded
+    posts = Post.all.to_a
+    posts.first.author
+
+    assert_queries(2) do
+      Post.load_associations(posts, :author_categorizations)
+      posts.each { |p| assert p.author_categorizations.loaded? }
+    end
+  end
+
+  def test_load_associations_with_different_types
+    records = Author.all.to_a + Post.all.to_a
+    assert_queries(3) do
+      Author.load_associations(records, :comments)
+      records.each { |r| assert r.comments.loaded? }
     end
   end
 

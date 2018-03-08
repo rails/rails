@@ -1203,7 +1203,7 @@ module ActiveRecord
 
       def check_if_array_contains_valid_elements!(records)
         records.flatten.compact.each do |record|
-          unless record.is_a? self.klass
+          unless record.is_a? ActiveRecord::Base
             raise ArgumentError, "The method .load_associations() must be given an array of #{self.klass} elements."
           end
         end
