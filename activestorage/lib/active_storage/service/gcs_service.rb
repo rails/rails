@@ -38,11 +38,7 @@ module ActiveStorage
         io = file_for(key).download
         io.rewind
 
-        if block_given?
-          yield io.read
-        else
-          io.read
-        end
+        block_given? ? yield io.read : io.read
       end
     end
 

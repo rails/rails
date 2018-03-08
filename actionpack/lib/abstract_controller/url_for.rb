@@ -23,11 +23,7 @@ module AbstractController
 
       def action_methods
         @action_methods ||= begin
-          if _routes
-            super - _routes.named_routes.helper_names
-          else
-            super
-          end
+          _routes ? super - _routes.named_routes.helper_names : super 
         end
       end
     end

@@ -23,11 +23,7 @@ module ActiveModel
       private
 
         def cast_value(value)
-          if value == ""
-            nil
-          else
-            !FALSE_VALUES.include?(value)
-          end
+          value == "" ? nil : !FALSE_VALUES.include?(value)
         end
     end
   end
