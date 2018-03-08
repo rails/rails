@@ -1,3 +1,11 @@
+*   Add the ability to disable the global CSP in a controller, e.g:
+
+        class LegacyPagesController < ApplicationController
+          content_security_policy false, only: :index
+        end
+
+    *Andrew White*
+
 *   Add alias method `to_hash` to `to_h` for `cookies`.
     Add alias method `to_h` to `to_hash` for `session`.
 
