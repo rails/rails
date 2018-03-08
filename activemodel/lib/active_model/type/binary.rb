@@ -12,11 +12,7 @@ module ActiveModel
       end
 
       def cast(value)
-        if value.is_a?(Data)
-          value.to_s
-        else
-          super
-        end
+       value.is_a?(Data) ? value.to_s : super
       end
 
       def serialize(value)
