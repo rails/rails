@@ -146,7 +146,7 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).drop
         $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
-        $stderr.puts "Database '#{configuration['database']}' does not exist"
+        $stderr.puts "Database '#{configuration['database']}' does not exist" if verbose?
       rescue Exception => error
         $stderr.puts error
         $stderr.puts "Couldn't drop database '#{configuration['database']}'"
@@ -326,7 +326,7 @@ module ActiveRecord
             if local_database?(configuration)
               yield configuration
             else
-              $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host."
+              $stderr.puts "This task only modifies local databases. #{configuration['database']} is on a remote host." if verbose?
             end
           end
         end
