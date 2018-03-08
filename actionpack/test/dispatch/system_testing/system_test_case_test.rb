@@ -22,6 +22,23 @@ class SetDriverToSeleniumTest < DrivenBySeleniumWithChrome
   end
 end
 
+class ActiveSupport::TestCase
+  test "uses provided session name for Capybara session name" do
+    ActionDispatch::SystemTestCase.driven_by :poltergeist, options: { session_name: :selenium_chrome_windows_10 }
+    assert_equal :selenium_chrome_windows_10, Capybara.session_name
+  end
+
+  test "uses using and driver name" do
+    ActionDispatch::SystemTestCase.driven_by :selenium, using: :headless_chrome
+    assert_equal :selenium_headless_chrome, Capybara.session_name
+  end
+
+  test "uses only driver name if using is ommited" do
+    ActionDispatch::SystemTestCase.driven_by :poltergeist
+    assert_equal :poltergeist, Capybara.session_name
+  end
+end
+
 class SetDriverToSeleniumHeadlessChromeTest < DrivenBySeleniumWithHeadlessChrome
   test "uses selenium headless chrome" do
     assert_equal :selenium, Capybara.current_driver

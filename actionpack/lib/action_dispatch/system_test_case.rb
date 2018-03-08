@@ -134,8 +134,11 @@ module ActionDispatch
     #   driven_by :selenium, using: :firefox
     #
     #   driven_by :selenium, using: :headless_firefox
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
-      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
+    def self.driven_by(driver, using: nil, screen_size: [1400, 1400], options: {})
+      Capybara.session_name = options.fetch(:session_name) do 
+        [driver, using].compact.join('_').to_sym
+      end
+      self.driver = SystemTesting::Driver.new(driver, using: using || :chrome, screen_size: screen_size, options: options)
     end
 
     driven_by :selenium
