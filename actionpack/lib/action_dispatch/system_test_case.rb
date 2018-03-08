@@ -138,7 +138,7 @@ module ActionDispatch
       Capybara.session_name = options.fetch(:session_name) do 
         [driver, using].compact.join('_').to_sym
       end
-      self.driver = SystemTesting::Driver.new(driver, using: using || :chrome, screen_size: screen_size, options: options)
+      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
     end
 
     driven_by :selenium
