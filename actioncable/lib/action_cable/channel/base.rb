@@ -125,7 +125,7 @@ module ActionCable
         end
 
         private
-          # action_methods are cached and there is sometimes need to refresh
+          # action_methods are cached and sometimes there is need to refresh
           # them. ::clear_action_methods! allows you to do that, so next time
           # you run action_methods, they will be recalculated.
           def clear_action_methods! # :doc:
