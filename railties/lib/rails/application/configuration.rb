@@ -142,6 +142,10 @@ module Rails
             active_storage.queues.analysis = :active_storage_analysis
             active_storage.queues.purge    = :active_storage_purge
           end
+
+          if respond_to?(:action_controller) && %w(development test).include?(Rails.env)
+            action_controller.action_on_unpermitted_parameters = :raise
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end

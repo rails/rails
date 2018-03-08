@@ -31,3 +31,6 @@
 # MailDeliveryJob to ensure all delivery jobs are processed properly.
 # Make sure your entire app is migrated and stable on 6.0 before using this setting.
 # Rails.application.config.action_mailer.delivery_job = "ActionMailer::MailDeliveryJob"
+
+# Raise exception when unpermitted params are submitted in development and test
+# Rails.application.config.action_controller.action_on_unpermitted_parameters = :raise if %w(development test).include?(Rails.env)
