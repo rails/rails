@@ -811,6 +811,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_nil Topic.where("1=0").pick(:author_name, :author_email_address)
   end
 
+  def test_pick_delegate_to_all
+    cool_first = minivans(:cool_first)
+    assert_equal cool_first.color, Minivan.pick(:color)
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
