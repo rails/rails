@@ -619,59 +619,67 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "you can register and unregister an observer to the mail object that gets informed on email delivery" do
-    ActionMailer::Base.register_observer(MyObserver)
-    mail = BaseMailer.welcome
-    assert_called_with(MyObserver, :delivered_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_observer(MyObserver)
+      mail = BaseMailer.welcome
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_observer(MyObserver)
-    assert_not_called(MyObserver, :delivered_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_observer(MyObserver)
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister an observer using its stringified name to the mail object that gets informed on email delivery" do
-    ActionMailer::Base.register_observer("BaseTest::MyObserver")
-    mail = BaseMailer.welcome
-    assert_called_with(MyObserver, :delivered_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_observer("BaseTest::MyObserver")
+      mail = BaseMailer.welcome
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_observer("BaseTest::MyObserver")
-    assert_not_called(MyObserver, :delivered_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_observer("BaseTest::MyObserver")
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister an observer using its symbolized underscored name to the mail object that gets informed on email delivery" do
-    ActionMailer::Base.register_observer(:"base_test/my_observer")
-    mail = BaseMailer.welcome
-    assert_called_with(MyObserver, :delivered_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_observer(:"base_test/my_observer")
+      mail = BaseMailer.welcome
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_observer(:"base_test/my_observer")
-    assert_not_called(MyObserver, :delivered_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_observer(:"base_test/my_observer")
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister multiple observers to the mail object that both get informed on email delivery" do
-    ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
-    mail = BaseMailer.welcome
-    assert_called_with(MyObserver, :delivered_email, [mail]) do
-      assert_called_with(MySecondObserver, :delivered_email, [mail]) do
+    mail_side_effects do
+      ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
+      mail = BaseMailer.welcome
+      assert_called_with(MyObserver, :delivered_email, [mail]) do
+        assert_called_with(MySecondObserver, :delivered_email, [mail]) do
+          mail.deliver_now
+        end
+      end
+
+      ActionMailer::Base.unregister_observers("BaseTest::MyObserver", MySecondObserver)
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
         mail.deliver_now
       end
-    end
-
-    ActionMailer::Base.unregister_observers("BaseTest::MyObserver", MySecondObserver)
-    assert_not_called(MyObserver, :delivered_email, returns: mail) do
-      mail.deliver_now
-    end
-    assert_not_called(MySecondObserver, :delivered_email, returns: mail) do
-      mail.deliver_now
+      assert_not_called(MySecondObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -686,59 +694,67 @@ class BaseTest < ActiveSupport::TestCase
   end
 
   test "you can register and unregister an interceptor to the mail object that gets passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptor(MyInterceptor)
-    mail = BaseMailer.welcome
-    assert_called_with(MyInterceptor, :delivering_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor(MyInterceptor)
+      mail = BaseMailer.welcome
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_interceptor(MyInterceptor)
-    assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_interceptor(MyInterceptor)
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
-    mail = BaseMailer.welcome
-    assert_called_with(MyInterceptor, :delivering_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
+      mail = BaseMailer.welcome
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_interceptor("BaseTest::MyInterceptor")
-    assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_interceptor("BaseTest::MyInterceptor")
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
-    mail = BaseMailer.welcome
-    assert_called_with(MyInterceptor, :delivering_email, [mail]) do
-      mail.deliver_now
-    end
+    mail_side_effects do
+      ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
+      mail = BaseMailer.welcome
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        mail.deliver_now
+      end
 
-    ActionMailer::Base.unregister_interceptor(:"base_test/my_interceptor")
-    assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
-      mail.deliver_now
+      ActionMailer::Base.unregister_interceptor(:"base_test/my_interceptor")
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
   test "you can register and unregister multiple interceptors to the mail object that both get passed the mail object before delivery" do
-    ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
-    mail = BaseMailer.welcome
-    assert_called_with(MyInterceptor, :delivering_email, [mail]) do
-      assert_called_with(MySecondInterceptor, :delivering_email, [mail]) do
+    mail_side_effects do
+      ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+      mail = BaseMailer.welcome
+      assert_called_with(MyInterceptor, :delivering_email, [mail]) do
+        assert_called_with(MySecondInterceptor, :delivering_email, [mail]) do
+          mail.deliver_now
+        end
+      end
+
+      ActionMailer::Base.unregister_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
         mail.deliver_now
       end
-    end
-
-    ActionMailer::Base.unregister_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
-    assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
-      mail.deliver_now
-    end
-    assert_not_called(MySecondInterceptor, :delivering_email, returns: mail) do
-      mail.deliver_now
+      assert_not_called(MySecondInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
@@ -916,6 +932,15 @@ class BaseTest < ActiveSupport::TestCase
       yield
     ensure
       klass.default_params = old
+    end
+
+    def mail_side_effects
+      old_observers = Mail.class_variable_get(:@@delivery_notification_observers)
+      old_delivery_interceptors = Mail.class_variable_get(:@@delivery_interceptors)
+      yield
+    ensure
+      Mail.class_variable_set(:@@delivery_notification_observers, old_observers)
+      Mail.class_variable_set(:@@delivery_interceptors, old_delivery_interceptors)
     end
 
     def with_translation(locale, data)
