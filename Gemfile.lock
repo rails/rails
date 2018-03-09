@@ -340,7 +340,7 @@ GEM
     pg (1.0.0-x64-mingw32)
     pg (1.0.0-x86-mingw32)
     powerpack (0.1.1)
-    psych (2.2.4)
+    psych (3.0.2)
     public_suffix (3.0.1)
     puma (3.9.1)
     puma (3.9.1-java)
@@ -525,7 +525,7 @@ DEPENDENCIES
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
-  psych (~> 2.0)
+  psych (~> 3.0)
   puma
   que
   queue_classic!

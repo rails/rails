@@ -150,7 +150,7 @@ end
 platforms :rbx do
   # The rubysl-yaml gem doesn't ship with Psych by default as it needs
   # libyaml that isn't always available.
-  gem "psych", "~> 2.0"
+  gem "psych", "~> 3.0"
 end
 
 # Gems that are necessary for Active Record tests with Oracle.
