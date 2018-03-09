@@ -71,6 +71,54 @@ module ActiveRecord
         ENV["RAILS_ENV"] = previous_env
       end
 
+      unless in_memory_db?
+        def test_establish_connection_using_3_level_config_defaults_to_default_env_primary_db
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+            },
+            "another_env" => {
+              "primary"  => { "adapter" => "sqlite3", "database" => "db/another-primary.sqlite3" },
+              "readonly" => { "adapter" => "sqlite3", "database" => "db/another-readonly.sqlite3" }
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.establish_connection
+
+          assert_equal "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ENV["RAILS_ENV"] = previous_env
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+
+        def test_establish_connection_using_2_level_config_defaults_to_default_env_primary_db
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "adapter" => "sqlite3", "database" => "db/primary.sqlite3"
+            },
+            "another_env" => {
+              "adapter" => "sqlite3", "database" => "db/bad-primary.sqlite3"
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.establish_connection
+
+          assert_equal "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ENV["RAILS_ENV"] = previous_env
+          ActiveRecord::Base.establish_connection(:arunit)
+        end
+      end
+
       def test_establish_connection_using_two_level_configurations
         config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
