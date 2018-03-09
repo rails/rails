@@ -290,7 +290,7 @@ For example, you could send metrics for every job enqueued:
 
 ```ruby
 class ApplicationJob
-  before_enqueue { |job| $statsd.increment "#{job.name.underscore}.enqueue" }
+  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
 end
 ```
 
