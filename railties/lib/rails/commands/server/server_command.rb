@@ -43,15 +43,15 @@ module Rails
       ENV["RAILS_ENV"] ||= options[:environment]
     end
 
-    def start
+    def start(after_stop_callback = nil)
       trap(:INT) { exit }
       create_tmp_directories
       setup_dev_caching
       log_to_stdout if options[:log_stdout]
 
-      super
+      super()
     ensure
-      yield
+      after_stop_callback.call if after_stop_callback
     end
 
     def serveable? # :nodoc:
@@ -157,9 +157,8 @@ module Rails
 
           if server.serveable?
             print_boot_information(server.server, server.served_url)
-            server.start do
-              say "Exiting" unless options[:daemon]
-            end
+            after_stop_callback = -> { say "Exiting" unless options[:daemon] }
+            server.start(after_stop_callback)
           else
             say rack_server_suggestion(using)
           end
