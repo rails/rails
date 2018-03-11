@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "delegate"
+require "io/console/size"
 
 module ActionDispatch
   module Routing
@@ -225,13 +226,21 @@ module ActionDispatch
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
               <<~MESSAGE
-              --[ Route #{i + 1} ]#{'-' * 60}
+              #{route_header(index: i + 1)}
               Prefix            | #{r[:name]}
               Verb              | #{r[:verb]}
               URI               | #{r[:path]}
               Controller#Action | #{r[:reqs]}
               MESSAGE
             end
+          end
+
+          def route_header(index:)
+            console_width = IO.console_size.second
+            header_prefix = "--[ Route #{index} ]"
+            dash_remainder = [console_width - header_prefix.size, 0].max
+
+            "#{header_prefix}#{'-' * dash_remainder}"
           end
       end
     end

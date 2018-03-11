@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rails/command"
 require "rails/commands/routes/routes_command"
+require "io/console/size"
 
 class Rails::Command::RoutesTest < ActiveSupport::TestCase
   setup :build_app
@@ -117,45 +118,53 @@ class Rails::Command::RoutesTest < ActiveSupport::TestCase
   end
 
   test "rails routes with expanded option" do
-    app_file "config/routes.rb", <<-RUBY
-        Rails.application.routes.draw do
-          get '/cart', to: 'cart#show'
-        end
-    RUBY
+    begin
+      previous_console_winsize = IO.console.winsize
+      IO.console.winsize = [0, 27]
 
-    output = rails("routes", "--expanded")
-    assert_equal <<~MESSAGE, output
-    --[ Route 1 ]------------------------------------------------------------
-    Prefix            | cart
-    Verb              | GET
-    URI               | /cart(.:format)
-    Controller#Action | cart#show
-    --[ Route 2 ]------------------------------------------------------------
-    Prefix            | rails_service_blob
-    Verb              | GET
-    URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
-    Controller#Action | active_storage/blobs#show
-    --[ Route 3 ]------------------------------------------------------------
-    Prefix            | rails_blob_representation
-    Verb              | GET
-    URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
-    Controller#Action | active_storage/representations#show
-    --[ Route 4 ]------------------------------------------------------------
-    Prefix            | rails_disk_service
-    Verb              | GET
-    URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
-    Controller#Action | active_storage/disk#show
-    --[ Route 5 ]------------------------------------------------------------
-    Prefix            | update_rails_disk_service
-    Verb              | PUT
-    URI               | /rails/active_storage/disk/:encoded_token(.:format)
-    Controller#Action | active_storage/disk#update
-    --[ Route 6 ]------------------------------------------------------------
-    Prefix            | rails_direct_uploads
-    Verb              | POST
-    URI               | /rails/active_storage/direct_uploads(.:format)
-    Controller#Action | active_storage/direct_uploads#create
-    MESSAGE
+      app_file "config/routes.rb", <<-RUBY
+          Rails.application.routes.draw do
+            get '/cart', to: 'cart#show'
+          end
+      RUBY
+
+      output = run_routes_command(["--expanded"])
+
+      assert_equal <<~MESSAGE, output
+      --[ Route 1 ]--------------
+      Prefix            | cart
+      Verb              | GET
+      URI               | /cart(.:format)
+      Controller#Action | cart#show
+      --[ Route 2 ]--------------
+      Prefix            | rails_service_blob
+      Verb              | GET
+      URI               | /rails/active_storage/blobs/:signed_id/*filename(.:format)
+      Controller#Action | active_storage/blobs#show
+      --[ Route 3 ]--------------
+      Prefix            | rails_blob_representation
+      Verb              | GET
+      URI               | /rails/active_storage/representations/:signed_blob_id/:variation_key/*filename(.:format)
+      Controller#Action | active_storage/representations#show
+      --[ Route 4 ]--------------
+      Prefix            | rails_disk_service
+      Verb              | GET
+      URI               | /rails/active_storage/disk/:encoded_key/*filename(.:format)
+      Controller#Action | active_storage/disk#show
+      --[ Route 5 ]--------------
+      Prefix            | update_rails_disk_service
+      Verb              | PUT
+      URI               | /rails/active_storage/disk/:encoded_token(.:format)
+      Controller#Action | active_storage/disk#update
+      --[ Route 6 ]--------------
+      Prefix            | rails_direct_uploads
+      Verb              | POST
+      URI               | /rails/active_storage/direct_uploads(.:format)
+      Controller#Action | active_storage/direct_uploads#create
+      MESSAGE
+    ensure
+      IO.console.winsize = previous_console_winsize
+    end
   end
 
   private
