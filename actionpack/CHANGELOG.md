@@ -23,7 +23,7 @@
 
     *Grant Bourque*
 
-*   Add support for automatic nonce generation for Rails UJS
+*   Add support for automatic nonce generation for Rails UJS.
 
     Because the UJS library creates a script tag to process responses it
     normally requires the script-src attribute of the content security
@@ -92,7 +92,7 @@
 
     *Guillermo Iguaran*
 
-*   Fix optimized url helpers when using relative url root
+*   Fix optimized url helpers when using relative url root.
 
     Fixes #31220.
 
@@ -106,7 +106,7 @@
 
 ## Rails 5.2.0.beta1 (November 27, 2017) ##
 
-*   Add DSL for configuring Content-Security-Policy header
+*   Add DSL for configuring Content-Security-Policy header.
 
     The DSL allows you to configure a global Content-Security-Policy
     header and then override within a controller. For more information
@@ -158,7 +158,7 @@
 
         # controller override
         class PostsController < ApplicationController
-          self.content_security_policy_report_only = true
+          content_security_policy_report_only only: :index
         end
 
     Note that this feature does not validate the header for performance
@@ -166,7 +166,7 @@
 
     *Andrew White*
 
-*   Make `assert_recognizes` to traverse mounted engines
+*   Make `assert_recognizes` to traverse mounted engines.
 
     *Yuichiro Kaneko*
 

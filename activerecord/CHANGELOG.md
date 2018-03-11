@@ -151,7 +151,7 @@
 
     *Chris Salzberg*
 
-*   Log database query callers
+*   Log database query callers.
 
     Add `verbose_query_logs` configuration option to display the caller
     of database queries in the log to facilitate N+1 query resolution
@@ -386,7 +386,7 @@
 
     *Rafael Mendonça França*
 
-*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create  wrong
+*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create wrong
     ar_internal_metadata's data for a test database.
 
     Before:
@@ -478,7 +478,7 @@
 
     *Yuichiro Kaneko*
 
-*   Ensure `sum` honors `distinct` on `has_many :through` associations
+*   Ensure `sum` honors `distinct` on `has_many :through` associations.
 
     Fixes #16791.
 
@@ -514,7 +514,7 @@
 
     *Lisa Ugray*
 
-*   Fix `unscoped(where: [columns])` removing the wrong bind values
+*   Fix `unscoped(where: [columns])` removing the wrong bind values.
 
     When the `where` is called on a relation after a `or`, unscoping the column of that later `where` removed
     bind values used by the `or` instead. (possibly other cases too)
@@ -541,7 +541,7 @@
 
     *Sean Griffin*
 
-*   Change sqlite3 boolean serialization to use 1 and 0
+*   Change sqlite3 boolean serialization to use 1 and 0.
 
     SQLite natively recognizes 1 and 0 as true and false, but does not natively
     recognize 't' and 'f' as was previously serialized.
@@ -571,7 +571,7 @@
 
     *Ryuta Kamizono*
 
-*   Fix transactions to apply state to child transactions
+*   Fix transactions to apply state to child transactions.
 
     Previously, if you had a nested transaction and the outer transaction was rolledback, the record from the
     inner transaction would still be marked as persisted.
@@ -581,7 +581,7 @@
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
-*   Deprecate `set_state` method in `TransactionState`
+*   Deprecate `set_state` method in `TransactionState`.
 
     Deprecated the `set_state` method in favor of setting the state via specific methods. If you need to mark the
     state of the transaction you can now use `rollback!`, `commit!` or `nullify!` instead of
@@ -606,7 +606,9 @@
     *Tobias Kraze*
 
 *   Merging two relations representing nested joins no longer transforms the joins of
-    the merged relation into LEFT OUTER JOIN. Example to clarify:
+    the merged relation into LEFT OUTER JOIN.
+
+    Example:
 
     ```
     Author.joins(:posts).merge(Post.joins(:comments))
@@ -616,8 +618,6 @@
     # After the change:
     #=> SELECT ... FROM authors INNER JOIN posts ON ... INNER JOIN comments ON...
     ```
-
-    TODO: Add to the Rails 5.2 upgrade guide
 
     *Maxime Handfield Lapointe*
 
@@ -658,11 +658,11 @@
 
     *DHH*
 
-*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
+*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump.
 
     *Rusty Geldmacher*, *Guillermo Iguaran*
 
-*   Add type caster to `RuntimeReflection#alias_name`
+*   Add type caster to `RuntimeReflection#alias_name`.
 
     Fixes #28959.
 

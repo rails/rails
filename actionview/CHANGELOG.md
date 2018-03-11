@@ -8,7 +8,7 @@
 
     *Jérémie Bonal*
 
-*   Add `preload_link_tag` helper
+*   Add `preload_link_tag` helper.
 
     This helper that allows to the browser to initiate early fetch of resources
     (different to the specified in `javascript_include_tag` and `stylesheet_link_tag`).
@@ -68,7 +68,7 @@
 
     *Yuji Yaginuma*
 
-*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
+*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1).
 
     *Mike Gunderloy*
 
