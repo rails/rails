@@ -28,7 +28,7 @@ module ActiveModel
       private
 
         def cast_value(value)
-          return value unless value.is_a?(::String)
+          return apply_seconds_precision(value) unless value.is_a?(::String)
           return if value.empty?
 
           if value.start_with?("2000-01-01")
