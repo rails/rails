@@ -1,6 +1,6 @@
 ## Rails 6.0.0.alpha (Unreleased) ##
 
-*   Add support for timezones to Active Job
+*   Add support for timezones to Active Job.
 
     Record what was the current timezone in effect when the job was
     enqueued and then restore when the job is executed in same way

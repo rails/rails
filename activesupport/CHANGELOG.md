@@ -6,8 +6,6 @@
         URI.unescape("%E3%83%90")  # => "バ"
         URI.unescape("\xe3\x83\x90%E3%83%90")  # => Encoding::CompatibilityError
 
-    GH#32183
-
     *Ashe Connor*, *Aaron Patterson*
 
 *   Add `:private` option to ActiveSupport's `Module#delegate`
@@ -53,7 +51,7 @@
 
     *Jeremy Daer*
 
-*   Adds parallel testing to Rails
+*   Adds parallel testing to Rails.
 
     Parallelize your test suite with forked processes or threads.
 
