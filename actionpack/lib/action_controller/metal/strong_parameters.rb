@@ -580,19 +580,17 @@ module ActionController
       )
     end
 
-    if Hash.method_defined?(:dig)
-      # Extracts the nested parameter from the given +keys+ by calling +dig+
-      # at each step. Returns +nil+ if any intermediate step is +nil+.
-      #
-      #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
-      #   params.dig(:foo, :bar, :baz) # => 1
-      #   params.dig(:foo, :zot, :xyz) # => nil
-      #
-      #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      #   params2.dig(:foo, 1) # => 11
-      def dig(*keys)
-        convert_value_to_parameters(@parameters.dig(*keys))
-      end
+    # Extracts the nested parameter from the given +keys+ by calling +dig+
+    # at each step. Returns +nil+ if any intermediate step is +nil+.
+    #
+    #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+    #   params.dig(:foo, :bar, :baz) # => 1
+    #   params.dig(:foo, :zot, :xyz) # => nil
+    #
+    #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+    #   params2.dig(:foo, 1) # => 11
+    def dig(*keys)
+      convert_value_to_parameters(@parameters.dig(*keys))
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
