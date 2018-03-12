@@ -5,35 +5,26 @@ require "cases/helper"
 module ActiveModel
   module Type
     class BooleanTest < ActiveModel::TestCase
+      VALUES_FOR_CAST = [1, "1",
+                         true, "t", "true", "TRUE",
+                         "on", "ON",
+                         " ",
+                         "\u3000\r\n", "\u0000",
+                         "random string"]
+
       def test_type_cast_boolean
         type = Type::Boolean.new
         assert_predicate type.cast(""), :nil?
         assert_predicate type.cast(nil), :nil?
 
-        assert type.cast(true)
-        assert type.cast(1)
-        assert type.cast("1")
-        assert type.cast("t")
-        assert type.cast("T")
-        assert type.cast("true")
-        assert type.cast("TRUE")
-        assert type.cast("on")
-        assert type.cast("ON")
-        assert type.cast(" ")
-        assert type.cast("\u3000\r\n")
-        assert type.cast("\u0000")
-        assert type.cast("SOMETHING RANDOM")
+        VALUES_FOR_CAST.each do |value|
+          assert type.cast(value)
+        end
 
         # explicitly check for false vs nil
-        assert_equal false, type.cast(false)
-        assert_equal false, type.cast(0)
-        assert_equal false, type.cast("0")
-        assert_equal false, type.cast("f")
-        assert_equal false, type.cast("F")
-        assert_equal false, type.cast("false")
-        assert_equal false, type.cast("FALSE")
-        assert_equal false, type.cast("off")
-        assert_equal false, type.cast("OFF")
+        ::ActiveModel::Type::Boolean::FALSE_VALUES.each do |value|
+          assert_equal false, type.cast(value)
+        end
       end
     end
   end
