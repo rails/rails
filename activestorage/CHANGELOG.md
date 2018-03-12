@@ -1,3 +1,16 @@
+*   Remove path config option from Azure service.
+
+    The Active Storage service for Azure Storage has an option called `path`
+    that is ambiguous in meaning. It needs to be set to the primary blob
+    storage endpoint but that can be determined from the blobs client anyway.
+
+    To simplify the configuration, we've removed the `path` option and
+    now get the endpoint from the blobs client instead.
+
+    Closes #32225.
+
+    *Andrew White*
+
 *   Generate root-relative paths in disk service URL methods.
 
     Obviate the disk service's `:host` configuration option.

@@ -8,14 +8,13 @@ module ActiveStorage
   # Wraps the Microsoft Azure Storage Blob Service as an Active Storage service.
   # See ActiveStorage::Service for the generic API documentation that applies to all services.
   class Service::AzureStorageService < Service
-    attr_reader :client, :path, :blobs, :container, :signer
+    attr_reader :client, :blobs, :container, :signer
 
-    def initialize(path:, storage_account_name:, storage_access_key:, container:)
+    def initialize(storage_account_name:, storage_access_key:, container:)
       @client = Azure::Storage::Client.create(storage_account_name: storage_account_name, storage_access_key: storage_access_key)
       @signer = Azure::Storage::Core::Auth::SharedAccessSignature.new(storage_account_name, storage_access_key)
       @blobs = client.blob_client
       @container = container
-      @path = path
     end
 
     def upload(key, io, checksum: nil)
@@ -87,6 +86,7 @@ module ActiveStorage
         base_url = url_for(key)
         generated_url = signer.signed_uri(
           URI(base_url), false,
+          service: "b",
           permissions: "r",
           expiry: format_expiry(expires_in),
           content_disposition: content_disposition_with(type: disposition, filename: filename),
@@ -102,8 +102,12 @@ module ActiveStorage
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
         base_url = url_for(key)
-        generated_url = signer.signed_uri(URI(base_url), false, permissions: "rw",
-          expiry: format_expiry(expires_in)).to_s
+        generated_url = signer.signed_uri(
+          URI(base_url), false,
+          service: "b",
+          permissions: "rw",
+          expiry: format_expiry(expires_in)
+        ).to_s
 
         payload[:url] = generated_url
 
@@ -117,7 +121,7 @@ module ActiveStorage
 
     private
       def url_for(key)
-        "#{path}/#{container}/#{key}"
+        "#{blobs.host}/#{container}/#{key}"
       end
 
       def blob_for(key)
