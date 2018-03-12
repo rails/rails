@@ -855,7 +855,7 @@ If you want to set custom headers for a response then `response.headers` is the 
 response.headers["Content-Type"] = "application/pdf"
 ```
 
-Note: in the above case it would make more sense to use the `content_type` setter directly.
+NOTE: In the above case it would make more sense to use the `content_type` setter directly.
 
 HTTP Authentications
 --------------------

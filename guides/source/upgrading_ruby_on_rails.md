@@ -660,7 +660,7 @@ xhr :get, :index, format: :js
 
 to explicitly test an `XmlHttpRequest`.
 
-Note: Your own `<script>` tags are treated as cross-origin and blocked by
+NOTE: Your own `<script>` tags are treated as cross-origin and blocked by
 default, too. If you really mean to load JavaScript from `<script>` tags,
 you must now explicitly skip CSRF protection on those actions.
 

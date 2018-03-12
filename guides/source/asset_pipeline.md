@@ -917,7 +917,7 @@ config.action_controller.asset_host = ENV['CDN_HOST']
 
 
 
-Note: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
+NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.
 
 Once you have configured your server and your CDN when you serve a webpage that
