@@ -5,6 +5,14 @@
 #   region: ""
 #   bucket: ""
 #
+# spaces:
+#   service: S3
+#   access_key_id: ""
+#   secret_access_key: ""
+#   region: "nyc3"
+#   bucket: ""
+#   endpoint: "https://nyc3.digitaloceanspaces.com"
+#
 # gcs:
 #   service: GCS
 #   credentials: {
