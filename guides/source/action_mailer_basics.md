@@ -807,7 +807,7 @@ config.action_mailer.smtp_settings = {
   authentication:       'plain',
   enable_starttls_auto: true }
 ```
-Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
+NOTE: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
 use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.
