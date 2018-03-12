@@ -1102,7 +1102,7 @@ Possible output:
 </optgroup>
 ```
 
-Note: Only the `optgroup` and `option` tags are returned, so you still have to wrap the output in an appropriate `select` tag.
+NOTE: Only the `optgroup` and `option` tags are returned, so you still have to wrap the output in an appropriate `select` tag.
 
 #### options_for_select
 
@@ -1113,7 +1113,7 @@ options_for_select([ "VISA", "MasterCard" ])
 # => <option>VISA</option> <option>MasterCard</option>
 ```
 
-Note: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
+NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
 
 #### options_from_collection_for_select
 
@@ -1130,7 +1130,7 @@ options_from_collection_for_select(@project.people, "id", "name")
 # => <option value="#{person.id}">#{person.name}</option>
 ```
 
-Note: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
+NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
 
 #### select
 
