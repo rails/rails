@@ -54,4 +54,32 @@ module ActiveRecord
       Comment.all
     end
   end
+
+  class QueryingMethodsDelegationTest < ActiveRecord::TestCase
+    QUERYING_METHODS = [
+      :find, :take, :take!, :first, :first!, :last, :last!, :exists?, :any?, :many?, :none?, :one?,
+      :second, :second!, :third, :third!, :fourth, :fourth!, :fifth, :fifth!, :forty_two, :forty_two!, :third_to_last, :third_to_last!, :second_to_last, :second_to_last!,
+      :first_or_create, :first_or_create!, :first_or_initialize,
+      :find_or_create_by, :find_or_create_by!, :create_or_find_by, :create_or_find_by!, :find_or_initialize_by,
+      :find_by, :find_by!,
+      :destroy_all, :delete_all, :update_all,
+      :find_each, :find_in_batches, :in_batches,
+      :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
+      :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
+      :having, :create_with, :distinct, :references, :none, :unscope, :merge,
+      :count, :average, :minimum, :maximum, :sum, :calculate,
+      :pluck, :pick, :ids,
+    ]
+
+    def test_delegate_querying_methods
+      klass = Class.new(ActiveRecord::Base) do
+        self.table_name = "posts"
+      end
+
+      QUERYING_METHODS.each do |method|
+        assert_respond_to klass.all, method
+        assert_respond_to klass, method
+      end
+    end
+  end
 end
