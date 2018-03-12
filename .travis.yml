@@ -33,7 +33,7 @@ before_install:
   - "travis_retry gem install bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
-  - "[[ -z $encrypted_8a915ebdd931_key && -z $encrypted_8a915ebdd931_iv ]] || openssl aes-256-cbc -K $encrypted_8a915ebdd931_key -iv $encrypted_8a915ebdd931_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
+  - "[[ -z $encrypted_0fb9444d0374_key && -z $encrypted_0fb9444d0374_iv ]] || openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
