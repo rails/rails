@@ -58,6 +58,26 @@ and this in the corresponding view:
 
 then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
+### Configuring the Rails Router
+
+The routes for your application or engine live in the file `config/routes.rb` and typically looks like this:
+
+```ruby
+Rails.application.routes.draw do
+  resources :brands, only: [:index, :show]
+    resources :products, only: [:index, :show]
+  end
+
+  resource :basket, only: [:show, :update, :destroy]
+
+  resolve("Basket") { route_for(:basket) }
+end
+```
+
+Since this is a regular Ruby source file you can use all of its features to help you define your routes but be careful with variable names as they can clash with the DSL methods of the router.
+
+NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
+
 Resource Routing: the Rails Default
 -----------------------------------
 
