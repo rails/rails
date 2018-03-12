@@ -3,7 +3,7 @@
 
     *Gabriel Sobrinho*
 
-*   Return all mappings for a timezone identifier in `country_zones`
+*   Return all mappings for a timezone identifier in `country_zones`.
 
     Some timezones like `Europe/London` have multiple mappings in
     `ActiveSupport::TimeZone::MAPPING` so return all of them instead
@@ -85,7 +85,7 @@
 
     *Takumasa Ochi*
 
-*   Handle `TZInfo::AmbiguousTime` errors
+*   Handle `TZInfo::AmbiguousTime` errors.
 
     Make `ActiveSupport::TimeWithZone` match Ruby's handling of ambiguous
     times by choosing the later period, e.g.
@@ -164,7 +164,7 @@
 
     *Jeremy Daer*
 
-*   Allow `Range#include?` on TWZ ranges
+*   Allow `Range#include?` on TWZ ranges.
 
     In #11474 we prevented TWZ ranges being iterated over which matched
     Ruby's handling of Time ranges and as a consequence `include?`
@@ -177,7 +177,7 @@
 
     *Andrew White*
 
-*   Fix acronym support in `humanize`
+*   Fix acronym support in `humanize`.
 
     Acronym inflections are stored with lowercase keys in the hash but
     the match wasn't being lowercased before being looked up in the hash.
@@ -305,7 +305,7 @@
 
     *Yuji Yaginuma*
 
-*   Add key rotation support to `MessageEncryptor` and `MessageVerifier`
+*   Add key rotation support to `MessageEncryptor` and `MessageVerifier`.
 
     This change introduces a `rotate` method to both the `MessageEncryptor` and
     `MessageVerifier` classes. This method accepts the same arguments and
@@ -344,7 +344,7 @@
 
     *Anton Khamets*
 
-*   Update `String#camelize` to provide feedback when wrong option is passed
+*   Update `String#camelize` to provide feedback when wrong option is passed.
 
     `String#camelize` was returning nil without any feedback when an
     invalid option was passed as a parameter.
@@ -361,7 +361,7 @@
 
     *Ricardo Díaz*
 
-*   Fix modulo operations involving durations
+*   Fix modulo operations involving durations.
 
     Rails 5.1 introduced `ActiveSupport::Duration::Scalar` as a wrapper
     around numeric values as a way of ensuring a duration was the outcome of
@@ -383,7 +383,7 @@
 
     *Sayan Chakraborty*, *Andrew White*
 
-*   Fix division where a duration is the denominator
+*   Fix division where a duration is the denominator.
 
     PR #29163 introduced a change in behavior when a duration was the denominator
     in a calculation - this was incorrect as dividing by a duration should always
@@ -393,7 +393,7 @@
 
     *Andrew White*
 
-*   Add purpose and expiry support to `ActiveSupport::MessageVerifier` &
+*   Add purpose and expiry support to `ActiveSupport::MessageVerifier` and
    `ActiveSupport::MessageEncryptor`.
 
     For instance, to ensure a message is only usable for one intended purpose:
@@ -430,7 +430,7 @@
 
     *Assain Jaleel*
 
-*   Cache: `write_multi`
+*   Cache: `write_multi`.
 
         Rails.cache.write_multi foo: 'bar', baz: 'qux'
 
@@ -479,7 +479,7 @@
 
     *DHH*
 
-*   Fix implicit coercion calculations with scalars and durations
+*   Fix implicit coercion calculations with scalars and durations.
 
     Previously, calculations where the scalar is first would be converted to a duration
     of seconds, but this causes issues with dates being converted to times, e.g:
@@ -511,17 +511,17 @@
 
     *Willem van Bergen*
 
-*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`
+*   Add support for `:offset` and `:zone` to `ActiveSupport::TimeWithZone#change`.
 
     *Andrew White*
 
-*   Add support for `:offset` to `Time#change`
+*   Add support for `:offset` to `Time#change`.
 
     Fixes #28723.
 
     *Andrew White*
 
-*   Add `fetch_values` for `HashWithIndifferentAccess`
+*   Add `fetch_values` for `HashWithIndifferentAccess`.
 
     The method was originally added to `Hash` in Ruby 2.3.0.
 
