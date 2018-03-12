@@ -97,7 +97,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     test "instance of Redis uses given instance" do
       redis_instance = Redis.new
-      @cache = build(redis: redis_instance).redis
+      @cache = build(redis: redis_instance)
       assert_same @cache.redis, redis_instance
     end
 

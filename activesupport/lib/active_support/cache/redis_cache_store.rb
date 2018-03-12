@@ -118,7 +118,9 @@ module ActiveSupport
         def build_redis(redis: nil, url: nil, **redis_options) #:nodoc:
           urls = Array(url)
 
-          if redis.respond_to?(:call)
+          if redis.is_a?(Redis)
+            redis
+          elsif redis.respond_to?(:call)
             redis.call
           elsif redis
             redis
