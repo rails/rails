@@ -95,6 +95,12 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
 
+    test "instance of Redis uses given instance" do
+      redis_instance = Redis.new
+      @cache = build(redis: redis_instance)
+      assert_same @cache.redis, redis_instance
+    end
+
     private
       def build(**kwargs)
         ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap do |cache|
