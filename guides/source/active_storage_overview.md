@@ -121,7 +121,6 @@ Declare an Azure Storage service in `config/storage.yml`:
 ```yaml
 azure:
   service: AzureStorage
-  path: ""
   storage_account_name: ""
   storage_access_key: ""
   container: ""
