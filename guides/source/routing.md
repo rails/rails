@@ -64,7 +64,7 @@ The routes for your application or engine live in the file `config/routes.rb` an
 
 ```ruby
 Rails.application.routes.draw do
-  resources :brands, only: [:index, :show]
+  resources :brands, only: [:index, :show] do
     resources :products, only: [:index, :show]
   end
 
