@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 # The base class for all Active Storage controllers.
-class ActiveStorage::BaseController < ActionController::Base
+class ActiveStorage::BaseController < ActionController::API
+  include ActionController::RequestForgeryProtection
   include ActiveStorage::SetCurrent
 
-  protect_from_forgery with: :exception
+  protect_from_forgery with: :exception, if: :protect_against_forgery?
 
   private
     def stream(blob)
@@ -14,4 +15,8 @@ class ActiveStorage::BaseController < ActionController::Base
     ensure
       response.stream.close
     end
+
+  public
+
+  ActiveSupport.run_load_hooks :active_storage_base_controller, self
 end

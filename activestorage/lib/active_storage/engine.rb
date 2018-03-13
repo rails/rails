@@ -150,5 +150,11 @@ module ActiveStorage
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
+
+    initializer "active_storage.request_forgery_protection" do |app|
+      ActiveSupport.on_load(:active_storage_base_controller) do
+        self.allow_forgery_protection = app.config.action_controller.allow_forgery_protection
+      end
+    end
   end
 end
