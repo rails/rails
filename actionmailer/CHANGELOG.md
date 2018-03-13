@@ -1,4 +1,6 @@
-## Rails 6.0.0.alpha (Unreleased) ##
+*   Perform email jobs in `assert_emails`.
+
+    *Gannon McGibbon*
 
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
