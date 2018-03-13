@@ -14,7 +14,7 @@ module ActionMailer
     #     assert_emails 0
     #     ContactMailer.welcome.deliver_now
     #     assert_emails 1
-    #     ContactMailer.welcome.deliver_later
+    #     ContactMailer.welcome.deliver_now
     #     assert_emails 2
     #   end
     #
@@ -38,9 +38,7 @@ module ActionMailer
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
-        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob]) do
-          assert_equal number, ActionMailer::Base.deliveries.size
-        end
+        assert_equal number, ActionMailer::Base.deliveries.size
       end
     end
 
