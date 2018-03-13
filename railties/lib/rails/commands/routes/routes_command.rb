@@ -36,13 +36,7 @@ module Rails
       private
 
         def routes_filter
-          if options.has_key?("controller")
-            { controller: options["controller"] }
-          elsif options.has_key?("grep_pattern")
-            options["grep_pattern"]
-          else
-            nil
-          end
+          options.symbolize_keys.slice(:controller, :grep_pattern)
         end
     end
   end
