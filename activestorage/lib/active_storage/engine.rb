@@ -51,6 +51,12 @@ module ActiveStorage
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
+
+        if app.config.api_only
+          ActiveStorage.parent_controller = "::ActionController::API"
+        else
+          ActiveStorage.parent_controller = "::ActionController::Base"
+        end
       end
     end
 

@@ -1,4 +1,8 @@
 /src/
+/test/dummy_api/db/*.sqlite3
+/test/dummy_api/db/*.sqlite3-journal
+/test/dummy_api/log/*.log
+/test/dummy_api/tmp/
 /test/dummy/db/*.sqlite3
 /test/dummy/db/*.sqlite3-journal
 /test/dummy/log/*.log

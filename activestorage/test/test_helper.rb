@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
 ENV["RAILS_ENV"] ||= "test"
-require_relative "dummy/config/environment.rb"
+
+dummy_app = ENV["DUMMY_APP"] || "dummy"
+require_relative "#{dummy_app}/config/environment.rb"
 
 require "bundler/setup"
 require "active_support"

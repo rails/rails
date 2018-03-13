@@ -54,6 +54,7 @@ env:
     - "GEM=ap,ac"
     - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
+    - "GEM=ast DUMMY_APP=dummy_api"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"

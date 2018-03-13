@@ -48,4 +48,5 @@ module ActiveStorage
   mattr_accessor :paths, default: {}
   mattr_accessor :variable_content_types, default: []
   mattr_accessor :content_types_to_serve_as_binary, default: []
+  mattr_accessor :parent_controller, default: "::ActionController::Base"
 end
