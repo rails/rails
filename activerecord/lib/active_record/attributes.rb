@@ -131,7 +131,7 @@ module ActiveRecord
       #       end
       #     end
       #   end
-      # #
+      #
       #   # app/models/store_listing.rb
       #   class StoreListing < ActiveRecord::Base
       #     attribute :price_in_cents, MoneyType.new
