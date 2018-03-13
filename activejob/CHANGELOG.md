@@ -1,5 +1,3 @@
-## Rails 6.0.0.alpha (Unreleased) ##
-
 *   Add support for timezones to Active Job.
 
     Record what was the current timezone in effect when the job was

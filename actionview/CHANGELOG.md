@@ -1,5 +1,3 @@
-## Rails 6.0.0.alpha (Unreleased) ##
-
 *   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
     field. Example:
 

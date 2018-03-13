@@ -1,5 +1,3 @@
-## Rails 6.0.0.alpha (Unreleased) ##
-
 *   Deprecate passing Rack server name as a regular argument to `rails server`.
 
     Previously:

@@ -1,5 +1,3 @@
-## Rails 6.0.0.alpha (Unreleased) ##
-
 *   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
