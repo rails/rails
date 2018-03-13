@@ -83,9 +83,8 @@ module ActiveStorage
 
     def url(key, expires_in:, filename:, disposition:, content_type:)
       instrument :url, key: key do |payload|
-        base_url = url_for(key)
         generated_url = signer.signed_uri(
-          URI(base_url), false,
+          uri_for(key), false,
           service: "b",
           permissions: "r",
           expiry: format_expiry(expires_in),
@@ -101,9 +100,8 @@ module ActiveStorage
 
     def url_for_direct_upload(key, expires_in:, content_type:, content_length:, checksum:)
       instrument :url, key: key do |payload|
-        base_url = url_for(key)
         generated_url = signer.signed_uri(
-          URI(base_url), false,
+          uri_for(key), false,
           service: "b",
           permissions: "rw",
           expiry: format_expiry(expires_in)
@@ -120,8 +118,8 @@ module ActiveStorage
     end
 
     private
-      def url_for(key)
-        "#{blobs.host}/#{container}/#{key}"
+      def uri_for(key)
+        blobs.generate_uri("#{container}/#{key}")
       end
 
       def blob_for(key)
