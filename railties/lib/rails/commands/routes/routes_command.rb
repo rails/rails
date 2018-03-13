@@ -23,17 +23,21 @@ module Rails
         require_application_and_environment!
         require "action_dispatch/routing/inspector"
 
-        all_routes = Rails.application.routes.routes
-        inspector = ActionDispatch::Routing::RoutesInspector.new(all_routes)
-
-        if options.has_key?("expanded_format")
-          say inspector.format(ActionDispatch::Routing::ConsoleFormatter::Expanded.new, routes_filter)
-        else
-          say inspector.format(ActionDispatch::Routing::ConsoleFormatter::Sheet.new, routes_filter)
-        end
+        say inspector.format(formatter, routes_filter)
       end
 
       private
+        def inspector
+          ActionDispatch::Routing::RoutesInspector.new(Rails.application.routes.routes)
+        end
+
+        def formatter
+          if options.key?("expanded_format")
+            ActionDispatch::Routing::ConsoleFormatter::Expanded.new
+          else
+            ActionDispatch::Routing::ConsoleFormatter::Sheet.new
+          end
+        end
 
         def routes_filter
           options.symbolize_keys.slice(:controller, :grep_pattern)
