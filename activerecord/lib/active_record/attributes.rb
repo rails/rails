@@ -143,8 +143,8 @@ module ActiveRecord
       # For more details on creating custom types, see the documentation for
       # ActiveRecord::Type::Value.
       #
-      # Note that it is also possible to register a type, so that you can use a symbol instead of passing an
-      # instantiated type directly within attribute, ie.:
+      # It is also possible to register a type within an initializer. It is then possible to use a symbol to refer to
+      # the type rather than passing an instantiated type directly within attribute:
       #
       #   # config/initializers/types.rb
       #   require 'lib/money_type' # NB: don't use an autoloaded location from initializers
