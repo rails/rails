@@ -5,19 +5,9 @@ require "rails/command"
 module Rails
   module Command
     class RoutesCommand < Base # :nodoc:
-      class_option :controller, aliases: "-c", type: :string, desc: "Specifies the controller."
-      class_option :grep_pattern, aliases: "-g", type: :string, desc: "Specifies grep pattern."
-      class_option :expanded_format, aliases: "--expanded", type: :string, desc: "Turn on expanded format mode."
-
-      no_commands do
-        def help
-          say "Usage: Print out all defined routes in match order, with names."
-          say ""
-          say "Target specific controller with -c option, or grep routes using -g option"
-          say "Use expanded format with --expanded option"
-          say ""
-        end
-      end
+      class_option :controller, aliases: "-c", desc: "Filter by a specific controller, e.g. PostsController or Admin::PostsController."
+      class_option :grep, aliases: "-g", desc: "Grep routes by a specific pattern."
+      class_option :expanded, type: :boolean, aliases: "-E", desc: "Print routes expanded vertically with parts explained."
 
       def perform(*)
         require_application_and_environment!
@@ -32,7 +22,7 @@ module Rails
         end
 
         def formatter
-          if options.key?("expanded_format")
+          if options.key?("expanded")
             ActionDispatch::Routing::ConsoleFormatter::Expanded.new
           else
             ActionDispatch::Routing::ConsoleFormatter::Sheet.new
@@ -40,7 +30,7 @@ module Rails
         end
 
         def routes_filter
-          options.symbolize_keys.slice(:controller, :grep_pattern)
+          options.symbolize_keys.slice(:controller, :grep)
         end
     end
   end

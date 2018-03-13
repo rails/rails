@@ -81,18 +81,12 @@ module ActionDispatch
       end
 
       private
-
         def normalize_filter(filter)
           if filter[:controller]
             { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
-          elsif filter[:grep_pattern]
-            {
-              controller: /#{filter[:grep_pattern]}/,
-              action: /#{filter[:grep_pattern]}/,
-              verb: /#{filter[:grep_pattern]}/,
-              name: /#{filter[:grep_pattern]}/,
-              path: /#{filter[:grep_pattern]}/
-            }
+          elsif filter[:grep]
+            { controller: /#{filter[:grep]}/, action: /#{filter[:grep]}/,
+              verb: /#{filter[:grep]}/, name: /#{filter[:grep]}/, path: /#{filter[:grep]}/ }
           end
         end
 
@@ -153,17 +147,18 @@ module ActionDispatch
 
         def no_routes(routes, filter)
           @buffer <<
-          if routes.none?
-            <<~MESSAGE
-            You don't have any routes defined!
+            if routes.none?
+              <<~MESSAGE
+                You don't have any routes defined!
 
-            Please add some routes in config/routes.rb.
-            MESSAGE
-          elsif filter.has_key?(:controller)
-            "No routes were found for this controller."
-          elsif filter.has_key?(:grep_pattern)
-            "No routes were found for this grep pattern."
-          end
+                Please add some routes in config/routes.rb.
+              MESSAGE
+            elsif filter.key?(:controller)
+              "No routes were found for this controller."
+            elsif filter.key?(:grep)
+              "No routes were found for this grep pattern."
+            end
+
           @buffer << "For more information about routes, see the Rails guide: http://guides.rubyonrails.org/routing.html."
         end
       end
@@ -219,11 +214,11 @@ module ActionDispatch
           def draw_expanded_section(routes)
             routes.map.each_with_index do |r, i|
               <<~MESSAGE.chomp
-              #{route_header(index: i + 1)}
-              Prefix            | #{r[:name]}
-              Verb              | #{r[:verb]}
-              URI               | #{r[:path]}
-              Controller#Action | #{r[:reqs]}
+                #{route_header(index: i + 1)}
+                Prefix            | #{r[:name]}
+                Verb              | #{r[:verb]}
+                URI               | #{r[:path]}
+                Controller#Action | #{r[:reqs]}
               MESSAGE
             end
           end
@@ -266,7 +261,7 @@ module ActionDispatch
               <a href="http://guides.rubyonrails.org/routing.html">Rails Routing from the Outside In</a>.
             </li>
           </ul>
-          MESSAGE
+        MESSAGE
       end
 
       def result
