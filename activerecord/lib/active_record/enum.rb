@@ -3,8 +3,8 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database,
-  # but can be queried by name. Example:
+  # Declare an enum attribute where the values map to integers or strings in
+  # the database, but can be queried by name. Lets start with integer enums:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
@@ -76,6 +76,37 @@ module ActiveRecord
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
   #
+  # String enums on the other hand are mapped by default to their equivalent string
+  # value:
+  #
+  #   class Book < ApplicationRecord
+  #     enum cover: [ :hard, :soft ]
+  #   end
+  #
+  #   # book.update! cover: "hard"
+  #   book.hard!
+  #   book.hard? # => true
+  #   book.cover # => "hard"
+  #
+  #   # book.update! cover: "soft"
+  #   book.soft!
+  #   book.soft? # => true
+  #   book.cover # => "soft"
+  #
+  #   # book.cover = "hard"
+  #   book.cover = "hard"
+  #
+  #   book.cover = nil
+  #   book.cover.nil? # => true
+  #   book.cover      # => nil
+  #
+  # Of course you can also provide a hash to explicitly map the relation between
+  # attribute and database string:
+  #
+  #   class Book < ApplicationRecord
+  #     enum cover: { hard: "strong", soft: "weak" }
+  #   end
+  #
   # You can use the +:_prefix+ or +:_suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
   # are prefixed/suffixed with the name of the enum. It is also possible to
@@ -108,10 +139,11 @@ module ActiveRecord
     class EnumType < Type::Value # :nodoc:
       delegate :type, to: :subtype
 
-      def initialize(name, mapping, subtype)
+      def initialize(name, mapping, subtype, definition = nil)
         @name = name
         @mapping = mapping
         @subtype = subtype
+        @definition = definition
       end
 
       def cast(value)
@@ -128,10 +160,12 @@ module ActiveRecord
 
       def deserialize(value)
         return if value.nil?
+        return value if _collection_of_string_enums?
         mapping.key(subtype.deserialize(value))
       end
 
       def serialize(value)
+        return value if _collection_of_string_enums?
         mapping.fetch(value, value)
       end
 
@@ -143,6 +177,14 @@ module ActiveRecord
 
       private
         attr_reader :name, :mapping, :subtype
+
+        def _collection_of_string_enums?
+          @_string_enum ||= _defined_with_array? && type == :string
+        end
+
+        def _defined_with_array?
+          @definition.class == Array
+        end
     end
 
     def enum(definitions)
@@ -164,7 +206,7 @@ module ActiveRecord
 
         attr = attribute_alias?(name) ? attribute_alias(name) : name
         decorate_attribute_type(attr, :enum) do |subtype|
-          EnumType.new(attr, enum_values, subtype)
+          EnumType.new(attr, enum_values, subtype, values)
         end
 
         _enum_methods_module.module_eval do
@@ -182,7 +224,7 @@ module ActiveRecord
             end
 
             value_method_name = "#{prefix}#{label}#{suffix}"
-            enum_values[label] = value
+            enum_values[label] = value.is_a?(Symbol) ? value.to_s : value
             label = label.to_s
 
             # def active?() status == "active" end

@@ -508,4 +508,28 @@ class EnumTest < ActiveRecord::TestCase
   test "data type of Enum type" do
     assert_equal :integer, Book.type_for_attribute("status").type
   end
+
+  test "enum with string attribute defined as hash" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum cover: { hardcover: :hardcover, paperback: :paperback }
+    end
+
+    book = klass.hardcover.create!
+    assert_equal "hardcover", klass.last.cover
+  end
+
+  test "enum with string attribute defined as array of symbols" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum cover: %i[hardcover paperback]
+    end
+
+    book = klass.paperback.create!
+    assert_equal "paperback", klass.last.cover
+
+    assert_raise(ArgumentError, "'softcover' is not a valid cover") do
+      klass.create!(cover: :softcover)
+    end
+  end
 end
