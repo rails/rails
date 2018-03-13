@@ -189,9 +189,6 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Clear screenshot files in `tmp:clear` task.
     ([Pull Request](https://github.com/rails/rails/pull/29534))
 
-*   Allow mounting the same engine several times in different locations.
-    ([Pull Request](https://github.com/rails/rails/pull/29662))
-
 *   Load environment file in `dbconsole` command.
     ([Pull Request](https://github.com/rails/rails/pull/29725))
 
