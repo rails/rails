@@ -5,6 +5,50 @@ module ActiveSupport
     module Assertions
       UNTRACKED = Object.new # :nodoc:
 
+      # Asserts that a message matching <tt>regex</tt> was logged
+      # within the provided block. Passes if content logged in
+      # the block matches the regex provided.
+      #
+      #   assert_logs /an informational log message/ do
+      #     Rails.logger.info 'an informational log message'
+      #   end
+      def assert_logs(regex)
+        old_logger = Rails.logger
+        log = StringIO.new
+        Rails.logger = Logger.new(log)
+
+        begin
+          yield
+
+          log.rewind
+          assert_match message, log.read, message
+        ensure
+          Rails.logger = old_logger
+        end
+      end
+
+      # Asserts that no messages matching the provided regex
+      # were logged in the provided block. Passes if the content
+      # logged inside the block doesn't match the regex provided.
+      #
+      #   assert_no_logs /an informational log message/ do
+      #     Rails.logger.info 'not very informational'
+      #   end
+      def assert_no_logs(regex)
+        old_logger = Rails.logger
+        log = StringIO.new
+        Rails.logger = Logger.new(log)
+
+        begin
+          yield
+
+          log.rewind
+          assert_no_match message, log.read
+        ensure
+          Rails.logger = old_logger
+        end
+      end
+
       # Asserts that an expression is not truthy. Passes if <tt>object</tt> is
       # +nil+ or +false+. "Truthy" means "considered true in a conditional"
       # like <tt>if foo</tt>.
