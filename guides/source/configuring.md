@@ -502,6 +502,10 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.cookies_rotations` allows rotating
   secrets, ciphers, and digests for encrypted and signed cookies.
 
+* `config.action_dispatch.use_authenticated_cookie_encryption` controls whether
+  signed and encrypted cookies use the AES-256-GCM cipher or
+  the older AES-256-CBC cipher. It defaults to `true`.
+
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.
