@@ -714,11 +714,9 @@ module ActiveSupport
       # Creates a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
+        @value = value
+        if should_compress?(options)
+          compress!
         end
 
         @version    = options[:version]
@@ -783,27 +781,30 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if value && options.fetch(:compress, true)
+        def should_compress?(options)
+          if @value && options.fetch(:compress, true)
             compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+            serialized_value_size = (@value.is_a?(String) ? @value : marshaled_value).bytesize
 
-            return true if serialized_value_size >= compress_threshold
+            serialized_value_size >= compress_threshold
           end
-
-          false
         end
 
         def compressed?
           defined?(@compressed) ? @compressed : false
         end
 
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
+        def compress!
+          @value = Zlib::Deflate.deflate(marshaled_value)
+          @compressed = true
         end
 
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
+        end
+
+        def marshaled_value
+          @marshaled_value ||= Marshal.dump(@value)
         end
     end
   end
