@@ -551,7 +551,8 @@ module ActionView
       #   # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
+        skip_pipeline = options.delete("skip_pipeline")
+        tag :input, { "type" => "image", "src" => path_to_image(source, skip_pipeline: skip_pipeline) }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.
