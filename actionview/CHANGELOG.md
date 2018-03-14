@@ -1,3 +1,10 @@
+*   Pass the `:skip_pipeline` option in `image_submit_tag` when calling `path_to_image`.
+
+    Fixes #32248.
+
+    *Andrew White*
+
+
 ## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Allow the use of callable objects as group methods for grouped selects.
