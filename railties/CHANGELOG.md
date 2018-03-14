@@ -13,6 +13,7 @@
 
     *Jeremy Daer*
 
+
 ## Rails 5.1.4 (September 07, 2017) ##
 
 *   No changes.
