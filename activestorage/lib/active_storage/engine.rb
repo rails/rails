@@ -49,6 +49,10 @@ module ActiveStorage
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
         ActiveStorage.paths      = app.config.active_storage.paths || {}
 
+        unless app.config.active_storage.mount_path.nil?
+          ActiveStorage.mount_path = app.config.active_storage.mount_path
+        end
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
       end
