@@ -21,7 +21,7 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
       alias :to_io :tempfile
-      delegate :all, to: :tempfile
+      delegate :read, :open, :close, :path, :rewind, :size, :eof?, to: :tempfile
 
       # A string with the headers of the multipart request.
       attr_accessor :headers
