@@ -71,7 +71,7 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers if @secure_cookies
+          flag_cookies_as_secure! headers if @secure_cookies && !@exclude.call(request)
         end
       else
         return redirect_to_https request unless @exclude.call(request)
