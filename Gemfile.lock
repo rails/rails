@@ -510,7 +510,7 @@ DEPENDENCIES
   chromedriver-helper
   coffee-rails
   connection_pool
-  dalli (>= 2.2.1)
+  dalli (= 2.7.6)
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
