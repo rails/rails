@@ -21,6 +21,7 @@ module ActionDispatch
       # its interface is available directly.
       attr_accessor :tempfile
       alias :to_io :tempfile
+      delegate :read, :open, :close, :path, :rewind, :size, :eof?, to: :tempfile
 
       # A string with the headers of the multipart request.
       attr_accessor :headers
@@ -43,41 +44,6 @@ module ActionDispatch
 
         @content_type      = hash[:type]
         @headers           = hash[:head]
-      end
-
-      # Shortcut for +tempfile.read+.
-      def read(length = nil, buffer = nil)
-        @tempfile.read(length, buffer)
-      end
-
-      # Shortcut for +tempfile.open+.
-      def open
-        @tempfile.open
-      end
-
-      # Shortcut for +tempfile.close+.
-      def close(unlink_now = false)
-        @tempfile.close(unlink_now)
-      end
-
-      # Shortcut for +tempfile.path+.
-      def path
-        @tempfile.path
-      end
-
-      # Shortcut for +tempfile.rewind+.
-      def rewind
-        @tempfile.rewind
-      end
-
-      # Shortcut for +tempfile.size+.
-      def size
-        @tempfile.size
-      end
-
-      # Shortcut for +tempfile.eof?+.
-      def eof?
-        @tempfile.eof?
       end
     end
   end
