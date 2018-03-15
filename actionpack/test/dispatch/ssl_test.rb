@@ -208,6 +208,14 @@ class SecureCookiesTest < SSLTest
     assert_cookies(*DEFAULT.split("\n"))
   end
 
+  def test_cookies_as_not_secure_with_exclude
+    excluding = { exclude: -> request { request.domain =~ /example/ } }
+    get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
+
+    assert_cookies(*DEFAULT.split("\n"))
+    assert_response :ok
+  end
+
   def test_no_cookies
     get
     assert_nil response.headers["Set-Cookie"]

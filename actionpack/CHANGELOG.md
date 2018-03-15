@@ -1,3 +1,7 @@
+*   Check exclude before flagging cookies as secure.
+
+    *Catherine Khuu*
+
 *   Always yield a CSP policy instance from `content_security_policy`
 
     This allows a controller action to enable the policy individually
