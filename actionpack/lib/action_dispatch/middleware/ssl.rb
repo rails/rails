@@ -15,6 +15,8 @@ module ActionDispatch
   #
   #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   #
+  #    Cookies will not be flagged as secure for excluded requests.
+  #
   # 2. <b>Secure cookies</b>: Sets the +secure+ flag on cookies to tell browsers they
   #    must not be sent along with +http://+ requests. Enabled by default. Set
   #    +config.ssl_options+ with <tt>secure_cookies: false</tt> to disable this feature.
@@ -71,7 +73,7 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers if @secure_cookies
+          flag_cookies_as_secure! headers if @secure_cookies && !@exclude.call(request)
         end
       else
         return redirect_to_https request unless @exclude.call(request)
