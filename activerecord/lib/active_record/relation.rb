@@ -8,7 +8,8 @@ module ActiveRecord
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache,
+                            :skip_preloading]
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
@@ -546,6 +547,16 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
+    def preload_associations(records)
+      preload = preload_values
+      preload += includes_values unless eager_loading?
+      preloader = nil
+      preload.each do |associations|
+        preloader ||= build_preloader
+        preloader.preload records, associations
+      end
+    end
+
     protected
 
       def load_records(records)
@@ -575,13 +586,7 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload = preload_values
-          preload += includes_values unless eager_loading?
-          preloader = nil
-          preload.each do |associations|
-            preloader ||= build_preloader
-            preloader.preload @records, associations
-          end
+          preload_associations(@records) unless skip_preloading_value
 
           @records.each(&:readonly!) if readonly_value
 
