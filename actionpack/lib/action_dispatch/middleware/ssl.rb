@@ -9,6 +9,8 @@ module ActionDispatch
   #      (e.g. `redirect: { host: "secure.widgets.com", port: 8080 }`), or set
   #      `redirect: false` to disable this feature.
   #
+  #    Cookies will not be flagged as secure for excluded requests.
+  #
   #   2. Secure cookies: Sets the `secure` flag on cookies to tell browsers they
   #      mustn't be sent along with http:// requests. Enabled by default. Set
   #      `config.ssl_options` with `secure_cookies: false` to disable this feature.
@@ -65,7 +67,7 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers if @secure_cookies
+          flag_cookies_as_secure! headers if @secure_cookies && !@exclude.call(request)
         end
       else
         return redirect_to_https request unless @exclude.call(request)

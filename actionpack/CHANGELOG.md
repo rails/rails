@@ -1,3 +1,8 @@
+*   Check exclude before flagging cookies as secure.
+
+    *Catherine Khuu*
+
+
 ## Rails 5.1.5 (February 14, 2018) ##
 
 *   Fix optimized url helpers when using relative url root
