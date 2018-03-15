@@ -117,7 +117,7 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal 6, details["byte_size"]
       assert_equal checksum, details["checksum"]
       assert_equal "text/plain", details["content_type"]
-      assert_match(/rails\/active_storage\/disk/, details["direct_upload"]["url"])
+      assert_match(Regexp.new("#{Regexp.escape(ActiveStorage.mount_path)}/disk/"), details["direct_upload"]["url"])
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
   end

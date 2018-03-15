@@ -48,6 +48,7 @@ module ActiveStorage
         ActiveStorage.previewers = app.config.active_storage.previewers || []
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
         ActiveStorage.paths      = app.config.active_storage.paths || {}
+        ActiveStorage.mount_path = app.config.active_storage.mount_path || ActiveStorage::INTERNAL[:default_mount_path]
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
