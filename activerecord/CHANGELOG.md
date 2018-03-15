@@ -1,3 +1,30 @@
+*   Apply time column precision on assignment.
+
+    PR #20317 changed the behavior of datetime columns so that when they
+    have a specified precision then on assignment the value is rounded to
+    that precision. This behavior is now applied to time columns as well.
+
+    Fixes #30301.
+
+    *Andrew White*
+
+*   Normalize time column values for SQLite database.
+
+    For legacy reasons, time columns in SQLite are stored as full datetimes
+    because until #24542 the quoting for time columns didn't remove the date
+    component. To ensure that values are consistent we now normalize the
+    date component to 2001-01-01 on reading and writing.
+
+    *Andrew White*
+
+*   Ensure that the date component is removed when quoting times.
+
+    PR #24542 altered the quoting for time columns so that the date component
+    was removed however it only removed it when it was 2001-01-01. Now the
+    date component is removed irrespective of what the date is.
+
+    *Andrew White*
+
 *   Fix `dependent: :destroy` issue for has_one/belongs_to relationship where
     the parent class was getting deleted when the child was not.
 

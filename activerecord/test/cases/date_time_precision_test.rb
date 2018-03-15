@@ -27,6 +27,24 @@ if subsecond_precision_supported?
       assert_equal 5, Foo.columns_hash["updated_at"].precision
     end
 
+    def test_datetime_precision_is_truncated_on_assignment
+      @connection.create_table(:foos, force: true)
+      @connection.add_column :foos, :created_at,  :datetime, precision: 0
+      @connection.add_column :foos, :updated_at, :datetime, precision: 6
+
+      time = ::Time.now.change(nsec: 123456789)
+      foo = Foo.new(created_at: time, updated_at: time)
+
+      assert_equal 0, foo.created_at.nsec
+      assert_equal 123456000, foo.updated_at.nsec
+
+      foo.save!
+      foo.reload
+
+      assert_equal 0, foo.created_at.nsec
+      assert_equal 123456000, foo.updated_at.nsec
+    end
+
     def test_timestamps_helper_with_custom_precision
       @connection.create_table(:foos, force: true) do |t|
         t.timestamps precision: 4

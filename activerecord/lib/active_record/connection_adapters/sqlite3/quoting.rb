@@ -17,7 +17,7 @@ module ActiveRecord
         end
 
         def quoted_time(value)
-          quoted_date(value)
+          quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
         end
 
         def quoted_binary(value)
