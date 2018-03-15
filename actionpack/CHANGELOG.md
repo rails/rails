@@ -1,7 +1,3 @@
-*   Check exclude before flagging cookies as secure.
- 
-    *Catherine Khuu*
-
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
