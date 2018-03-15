@@ -35,10 +35,6 @@ require "marcel"
 module ActiveStorage
   extend ActiveSupport::Autoload
 
-  INTERNAL = {
-    default_mount_path: "/rails/active_storage",
-  }
-
   autoload :Attached
   autoload :Service
   autoload :Previewer
@@ -50,7 +46,7 @@ module ActiveStorage
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
   mattr_accessor :paths, default: {}
-  mattr_accessor :mount_path
+  mattr_accessor :mount_path, default: "/rails/active_storage"
   mattr_accessor :variable_content_types, default: []
   mattr_accessor :content_types_to_serve_as_binary, default: []
 end
