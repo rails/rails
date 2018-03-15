@@ -107,7 +107,7 @@ module ActiveRecord
             oid = row[4]
             comment = row[5]
 
-            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
+            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
             opclasses = {}
