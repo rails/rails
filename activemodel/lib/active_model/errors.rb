@@ -59,9 +59,6 @@ module ActiveModel
   class Errors
     include Enumerable
 
-    CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
-    MESSAGE_OPTIONS = [:message]
-
     class << self
       attr_accessor :i18n_customize_full_message # :nodoc:
     end
@@ -532,19 +529,6 @@ module ActiveModel
     end
 
   private
-    def normalize_message(attribute, message, options)
-      case message
-      when Symbol
-        generate_message(attribute, message, options.except(*CALLBACKS_OPTIONS))
-      else
-        message
-      end
-    end
-
-    def normalize_detail(message, options)
-      { error: message }.merge(options.except(*CALLBACKS_OPTIONS + MESSAGE_OPTIONS))
-    end
-
     def without_default_proc(hash)
       hash.dup.tap do |new_h|
         new_h.default_proc = nil
