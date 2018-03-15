@@ -147,7 +147,7 @@ class GuestsCleanupJob < ApplicationJob
   #....
 end
 
-# Now your job will use `resque` as it's backend queue adapter overriding what
+# Now your job will use `resque` as its backend queue adapter overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
 
