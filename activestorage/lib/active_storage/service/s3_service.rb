@@ -103,7 +103,7 @@ module ActiveStorage
       end
 
       def region(region)
-        region || ENV['AWS_REGION'] || ENV['AWS_DEFAULT_REGION'] || 'us-east-1'
+        region || ENV["AWS_REGION"] || ENV["AWS_DEFAULT_REGION"] || "us-east-1"
       end
 
       def object_for(key)
