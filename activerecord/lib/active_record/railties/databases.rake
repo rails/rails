@@ -22,6 +22,14 @@ db_namespace = namespace :db do
     task all: :load_config do
       ActiveRecord::Tasks::DatabaseTasks.create_all
     end
+
+    databases = Rails.application.config.database_configuration
+    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+      desc "Create #{spec_name} database for current environment"
+      task spec_name do
+        ActiveRecord::Tasks::DatabaseTasks.create(config)
+      end
+    end
   end
 
   desc "Creates the database from DATABASE_URL or config/database.yml for the current RAILS_ENV (use db:create:all to create all databases in the config). Without RAILS_ENV or when RAILS_ENV is development, it defaults to creating the development and test databases."
@@ -32,6 +40,14 @@ db_namespace = namespace :db do
   namespace :drop do
     task all: [:load_config, :check_protected_environments] do
       ActiveRecord::Tasks::DatabaseTasks.drop_all
+    end
+
+    databases = Rails.application.config.database_configuration
+    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+      desc "Drop #{spec_name} database for current environment"
+      task spec_name => :check_protected_environments do
+        ActiveRecord::Tasks::DatabaseTasks.drop(config)
+      end
     end
   end
 
@@ -77,6 +93,15 @@ db_namespace = namespace :db do
   end
 
   namespace :migrate do
+    databases = Rails.application.config.database_configuration
+    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+      desc "Migrate #{spec_name} database for current environment"
+      task spec_name do
+        ActiveRecord::Base.establish_connection(config)
+        ActiveRecord::Tasks::DatabaseTasks.migrate
+      end
+    end
+
     # desc  'Rollbacks the database one migration and re migrate up (options: STEP=x, VERSION=x).'
     task redo: :load_config do
       raise "Empty VERSION provided" if ENV["VERSION"] && ENV["VERSION"].empty?
