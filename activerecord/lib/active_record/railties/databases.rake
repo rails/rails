@@ -73,8 +73,11 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    ActiveRecord::Tasks::DatabaseTasks.migrate
-    db_namespace["_dump"].invoke
+    ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+      ActiveRecord::Base.establish_connection(config)
+      ActiveRecord::Tasks::DatabaseTasks.migrate
+      db_namespace["_dump"].invoke
+    end
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false

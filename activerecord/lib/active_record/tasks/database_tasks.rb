@@ -261,8 +261,8 @@ module ActiveRecord
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration, configuration_environment|
-          load_schema configuration, format, file, configuration_environment
+        each_current_configuration(environment) { |configuration, spec_name, env|
+          load_schema configuration, format, file, env
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
@@ -312,10 +312,10 @@ module ActiveRecord
           environments = [environment]
           environments << "test" if environment == "development"
 
-          ActiveRecord::Base.configurations.slice(*environments).each do |configuration_environment, configuration|
-            next unless configuration["database"]
-
-            yield configuration, configuration_environment
+          environments.each do |env|
+            ActiveRecord::Base.configs_for(env) do |spec_name, configuration|
+              yield configuration, spec_name, env
+            end
           end
         end
 
