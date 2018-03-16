@@ -69,7 +69,7 @@ module Rails
       end
 
       def format_rerun_snippet(result)
-        location, line = if result.respond_to?(:source_location)
+        location, line = if result.respond_to?(:source_location) && result.source_location
           result.source_location
         else
           result.method(result.name).source_location
