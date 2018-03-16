@@ -122,7 +122,7 @@ module ActiveRecord
             comment = row[5]
             opclass = row[6]
 
-            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
+            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
 
             if indkey.include?(0) || opclass > 0
               columns = expressions

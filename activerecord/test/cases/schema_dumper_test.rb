@@ -279,7 +279,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
+      assert_match %r{CASE.+lower\(\(name\)::text\)}i, index_definition
     end
 
     def test_schema_dump_interval_type
