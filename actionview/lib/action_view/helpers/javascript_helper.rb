@@ -83,7 +83,7 @@ module ActionView
           html_options[:nonce] = content_security_policy_nonce
         end
 
-        content_tag("script".freeze, javascript_cdata_section(content), html_options)
+        content_tag("script", javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

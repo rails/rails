@@ -17,7 +17,7 @@ module ActiveRecord
           delegate = Class.new(klass) {
             include ClassSpecificRelation
           }
-          mangled_name = klass.name.gsub("::".freeze, "_".freeze)
+          mangled_name = klass.name.gsub("::", "_")
           const_set mangled_name, delegate
           private_constant mangled_name
 

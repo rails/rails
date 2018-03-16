@@ -10,8 +10,8 @@ module ActionController #:nodoc:
 
     include ActionController::Rendering
 
-    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream".freeze #:nodoc:
-    DEFAULT_SEND_FILE_DISPOSITION = "attachment".freeze #:nodoc:
+    DEFAULT_SEND_FILE_TYPE        = "application/octet-stream" #:nodoc:
+    DEFAULT_SEND_FILE_DISPOSITION = "attachment" #:nodoc:
 
     private
       # Sends the file. This uses a server-appropriate method (such as X-Sendfile)

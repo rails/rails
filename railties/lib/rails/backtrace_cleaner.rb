@@ -6,13 +6,13 @@ module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     APP_DIRS_PATTERN = /^\/?(app|config|lib|test|\(\w*\))/
     RENDER_TEMPLATE_PATTERN = /:in `_render_template_\w*'/
-    EMPTY_STRING = "".freeze
-    SLASH        = "/".freeze
-    DOT_SLASH    = "./".freeze
+    EMPTY_STRING = ""
+    SLASH        = "/"
+    DOT_SLASH    = "./"
 
     def initialize
       super
-      @root = "#{Rails.root}/".freeze
+      @root = "#{Rails.root}/"
       add_filter { |line| line.sub(@root, EMPTY_STRING) }
       add_filter { |line| line.sub(RENDER_TEMPLATE_PATTERN, EMPTY_STRING) }
       add_filter { |line| line.sub(DOT_SLASH, SLASH) } # for tests
@@ -27,7 +27,7 @@ module Rails
         return if gems_paths.empty?
 
         gems_regexp = %r{(#{gems_paths.join('|')})/gems/([^/]+)-([\w.]+)/(.*)}
-        gems_result = '\2 (\3) \4'.freeze
+        gems_result = '\2 (\3) \4'
         add_filter { |line| line.sub(gems_regexp, gems_result) }
       end
   end

@@ -83,7 +83,7 @@ module ActionDispatch
 
     private
       def set_hsts_header!(headers)
-        headers["Strict-Transport-Security".freeze] ||= @hsts_header
+        headers["Strict-Transport-Security"] ||= @hsts_header
       end
 
       def normalize_hsts_options(options)
@@ -109,16 +109,16 @@ module ActionDispatch
       end
 
       def flag_cookies_as_secure!(headers)
-        if cookies = headers["Set-Cookie".freeze]
-          cookies = cookies.split("\n".freeze)
+        if cookies = headers["Set-Cookie"]
+          cookies = cookies.split("\n")
 
-          headers["Set-Cookie".freeze] = cookies.map { |cookie|
+          headers["Set-Cookie"] = cookies.map { |cookie|
             if cookie !~ /;\s*secure\s*(;|$)/i
               "#{cookie}; secure"
             else
               cookie
             end
-          }.join("\n".freeze)
+          }.join("\n")
         end
       end
 

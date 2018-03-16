@@ -126,7 +126,7 @@ module ActionController
 
       def authentication_request(controller, realm, message)
         message ||= "HTTP Basic: Access denied.\n"
-        controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.tr('"'.freeze, "".freeze)}")
+        controller.headers["WWW-Authenticate"] = %(Basic realm="#{realm.tr('"', "")}")
         controller.status = 401
         controller.response_body = message
       end
@@ -511,7 +511,7 @@ module ActionController
       # Returns nothing.
       def authentication_request(controller, realm, message = nil)
         message ||= "HTTP Token: Access denied.\n"
-        controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"'.freeze, "".freeze)}")
+        controller.headers["WWW-Authenticate"] = %(Token realm="#{realm.tr('"', "")}")
         controller.__send__ :render, plain: message, status: :unauthorized
       end
     end

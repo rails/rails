@@ -32,7 +32,7 @@ module ActionDispatch
       req = ActionDispatch::Request.new env
 
       if req.get?
-        path = req.path_info.chomp("/".freeze)
+        path = req.path_info.chomp("/")
         if path == @path
           return render_details(req)
         end

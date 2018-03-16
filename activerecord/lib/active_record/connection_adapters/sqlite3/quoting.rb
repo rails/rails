@@ -25,19 +25,19 @@ module ActiveRecord
         end
 
         def quoted_true
-          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "1".freeze : "'t'".freeze
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "1" : "'t'"
         end
 
         def unquoted_true
-          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 1 : "t".freeze
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 1 : "t"
         end
 
         def quoted_false
-          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "0".freeze : "'f'".freeze
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "0" : "'f'"
         end
 
         def unquoted_false
-          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 0 : "f".freeze
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 0 : "f"
         end
 
         private

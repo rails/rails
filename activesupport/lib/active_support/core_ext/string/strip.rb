@@ -20,8 +20,8 @@ class String
   # Technically, it looks for the least indented non-empty line
   # in the whole string, and removes that amount of leading whitespace.
   def strip_heredoc
-    gsub(/^#{scan(/^[ \t]*(?=\S)/).min}/, "".freeze).tap do |stripped|
-      stripped.freeze if frozen?
+    gsub(/^#{scan(/^[ \t]*(?=\S)/).min}/, "").tap do |stripped|
+      stripped if frozen?
     end
   end
 end

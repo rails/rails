@@ -25,7 +25,7 @@ module ActiveModel
             when false then "f"
             else value.to_s
             end
-          result.freeze
+          result
         end
     end
   end
