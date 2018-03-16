@@ -38,7 +38,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_plural_names_are_singularized
-    content = run_generator ["accounts".freeze]
+    content = run_generator ["accounts"]
     assert_file "app/models/account.rb", /class Account < ApplicationRecord/
     assert_file "test/models/account_test.rb", /class AccountTest/
     assert_match(/\[WARNING\] The model name 'accounts' was recognized as a plural, using the singular 'account' instead\. Override with --force-plural or setup custom inflection rules for this noun before running the generator\./, content)

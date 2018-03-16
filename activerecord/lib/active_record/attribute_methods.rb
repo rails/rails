@@ -261,9 +261,9 @@ module ActiveRecord
 
       case name
       when :to_partial_path
-        name = "to_partial_path".freeze
+        name = "to_partial_path"
       when :to_model
-        name = "to_model".freeze
+        name = "to_model"
       else
         name = name.to_s
       end

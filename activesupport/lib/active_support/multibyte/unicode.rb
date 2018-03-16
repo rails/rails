@@ -278,7 +278,7 @@ module ActiveSupport
           compose(reorder_characters(decompose(:compatibility, codepoints)))
           else
           raise ArgumentError, "#{form} is not a valid normalization variant", caller
-        end.pack("U*".freeze)
+        end.pack("U*")
       end
 
       def downcase(string)

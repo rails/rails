@@ -109,7 +109,7 @@ module Rails
   module Command
     class ServerCommand < Base # :nodoc:
       DEFAULT_PORT = 3000
-      DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
+      DEFAULT_PID_PATH = "tmp/pids/server.pid"
 
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port

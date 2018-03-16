@@ -5,9 +5,9 @@ require "active_support/core_ext/object/deep_dup"
 module ActionDispatch #:nodoc:
   class ContentSecurityPolicy
     class Middleware
-      CONTENT_TYPE = "Content-Type".freeze
-      POLICY = "Content-Security-Policy".freeze
-      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only".freeze
+      CONTENT_TYPE = "Content-Type"
+      POLICY = "Content-Security-Policy"
+      POLICY_REPORT_ONLY = "Content-Security-Policy-Report-Only"
 
       def initialize(app)
         @app = app
@@ -49,8 +49,8 @@ module ActionDispatch #:nodoc:
     end
 
     module Request
-      POLICY = "action_dispatch.content_security_policy".freeze
-      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only".freeze
+      POLICY = "action_dispatch.content_security_policy"
+      POLICY_REPORT_ONLY = "action_dispatch.content_security_policy_report_only"
 
       def content_security_policy
         get_header(POLICY)

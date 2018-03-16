@@ -15,7 +15,7 @@ module ActiveSupport
       # Builds and returns output string.
       def serialize
         parts, sign = normalize
-        return "PT0S".freeze if parts.empty?
+        return "PT0S" if parts.empty?
 
         output = "P".dup
         output << "#{parts[:years]}Y"   if parts.key?(:years)

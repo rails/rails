@@ -931,7 +931,7 @@ module ActiveRecord
         arel.having(having_clause.ast) unless having_clause.empty?
         if limit_value
           limit_attribute = ActiveModel::Attribute.with_cast_value(
-            "LIMIT".freeze,
+            "LIMIT",
             connection.sanitize_limit(limit_value),
             Type.default_value,
           )
@@ -939,7 +939,7 @@ module ActiveRecord
         end
         if offset_value
           offset_attribute = ActiveModel::Attribute.with_cast_value(
-            "OFFSET".freeze,
+            "OFFSET",
             offset_value.to_i,
             Type.default_value,
           )

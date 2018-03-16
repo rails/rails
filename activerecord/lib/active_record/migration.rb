@@ -139,7 +139,7 @@ module ActiveRecord
   end
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
-    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running.".freeze
+    DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
 
     def initialize(message = DEFAULT_MESSAGE)
       super

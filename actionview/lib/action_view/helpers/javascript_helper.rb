@@ -72,7 +72,7 @@ module ActionView
             content_or_options_with_block
           end
 
-        content_tag("script".freeze, javascript_cdata_section(content), html_options)
+        content_tag("script", javascript_cdata_section(content), html_options)
       end
 
       def javascript_cdata_section(content) #:nodoc:

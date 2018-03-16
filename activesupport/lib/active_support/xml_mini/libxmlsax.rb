@@ -13,8 +13,8 @@ module ActiveSupport
     class HashBuilder
       include LibXML::XML::SaxParser::Callbacks
 
-      CONTENT_KEY   = "__content__".freeze
-      HASH_SIZE_KEY = "__hash_size__".freeze
+      CONTENT_KEY   = "__content__"
+      HASH_SIZE_KEY = "__hash_size__"
 
       attr_reader :hash
 

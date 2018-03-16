@@ -65,7 +65,7 @@ module ActiveRecord
     # Most of the methods in the adapter are useful during migrations. Most
     # notably, the instance methods provided by SchemaStatements are very useful.
     class AbstractAdapter
-      ADAPTER_NAME = "Abstract".freeze
+      ADAPTER_NAME = "Abstract"
       include ActiveSupport::Callbacks
       define_callbacks :checkout, :checkin
 

@@ -45,11 +45,11 @@ module ActiveJob
 
     private
       # :nodoc:
-      GLOBALID_KEY = "_aj_globalid".freeze
+      GLOBALID_KEY = "_aj_globalid"
       # :nodoc:
-      SYMBOL_KEYS_KEY = "_aj_symbol_keys".freeze
+      SYMBOL_KEYS_KEY = "_aj_symbol_keys"
       # :nodoc:
-      WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access".freeze
+      WITH_INDIFFERENT_ACCESS_KEY = "_aj_hash_with_indifferent_access"
       private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)

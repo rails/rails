@@ -25,8 +25,8 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ ? # [ ])
     hex = unsafe.map { |char| "%" + char.unpack("H2").first.upcase }
 
-    @segment = "#{safe.join}#{unsafe.join}".freeze
-    @escaped = "#{safe.join}#{hex.join}".freeze
+    @segment = "#{safe.join}#{unsafe.join}"
+    @escaped = "#{safe.join}#{hex.join}"
   end
 
   def test_route_generation_escapes_unsafe_path_characters

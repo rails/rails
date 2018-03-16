@@ -19,7 +19,7 @@ module ActiveModel
         assert_equal false, type.cast(s).frozen?
         assert_equal false, s.frozen?
 
-        f = "foo".freeze
+        f = "foo"
         assert_equal false, type.cast(f).frozen?
         assert_equal true, f.frozen?
       end

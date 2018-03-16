@@ -182,8 +182,8 @@ module ActionDispatch
             CACHE[type].fetch(action) { build action, type }
           end
 
-          def self.url;  CACHE["url".freeze][nil]; end
-          def self.path; CACHE["path".freeze][nil]; end
+          def self.url;  CACHE["url"][nil]; end
+          def self.path; CACHE["path"][nil]; end
 
           def self.build(action, type)
             prefix = action ? "#{action}_" : ""

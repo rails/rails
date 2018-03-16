@@ -13,7 +13,7 @@ module ActiveRecord
         private
 
           def define_method_attribute=(name)
-            safe_name = name.unpack("h*".freeze).first
+            safe_name = name.unpack("h*").first
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
             sync_with_transaction_state = "sync_with_transaction_state" if name == primary_key
 
@@ -40,7 +40,7 @@ module ActiveRecord
         end
 
         primary_key = self.class.primary_key
-        name = primary_key if name == "id".freeze && primary_key
+        name = primary_key if name == "id" && primary_key
         sync_with_transaction_state if name == primary_key
         _write_attribute(name, value)
       end

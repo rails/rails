@@ -17,7 +17,7 @@ module ActiveSupport
         end
 
         rounded_number = NumberToRoundedConverter.convert(number, options)
-        format.gsub("%n".freeze, rounded_number).gsub("%u".freeze, options[:unit])
+        format.gsub("%n", rounded_number).gsub("%u", options[:unit])
       end
 
       private

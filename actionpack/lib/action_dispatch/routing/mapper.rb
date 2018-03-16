@@ -667,7 +667,7 @@ module ActionDispatch
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
-              prefix_options[:relative_url_root] = "".freeze
+              prefix_options[:relative_url_root] = ""
 
               if options[:_recall]
                 prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))

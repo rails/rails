@@ -86,11 +86,11 @@ module ActionView
 
         def tag_option(key, value, escape)
           if value.is_a?(Array)
-            value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
+            value = escape ? safe_join(value, " ") : value.join(" ")
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          %(#{key}="#{value.gsub('"'.freeze, '&quot;'.freeze)}")
+          %(#{key}="#{value.gsub('"', '&quot;')}")
         end
 
         private

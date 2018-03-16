@@ -80,7 +80,7 @@ module ActionDispatch
       end
 
       def content_type(path)
-        ::Rack::Mime.mime_type(::File.extname(path), "text/plain".freeze)
+        ::Rack::Mime.mime_type(::File.extname(path), "text/plain")
       end
 
       def gzip_encoding_accepted?(request)
@@ -117,7 +117,7 @@ module ActionDispatch
       req = Rack::Request.new env
 
       if req.get? || req.head?
-        path = req.path_info.chomp("/".freeze)
+        path = req.path_info.chomp("/")
         if match = @file_handler.match?(path)
           req.path_info = match
           return @file_handler.serve(req)

@@ -123,7 +123,7 @@ module ActiveJob
     autoload :SuckerPunchAdapter
     autoload :TestAdapter
 
-    ADAPTER = "Adapter".freeze
+    ADAPTER = "Adapter"
     private_constant :ADAPTER
 
     class << self
