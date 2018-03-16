@@ -210,7 +210,7 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index :name, name: "company_name_index", using: :btree
-    t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
+    t.index "(CASE WHEN rating > 0 THEN lower(name) END)", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
