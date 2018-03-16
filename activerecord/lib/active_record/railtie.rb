@@ -164,7 +164,6 @@ end_warning
       end
     end
 
-
     initializer "active_record.set_reloader_hooks" do
       ActiveSupport.on_load(:active_record) do
         ActiveSupport::Reloader.before_class_unload do
