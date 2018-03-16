@@ -32,7 +32,7 @@ module ActiveRecord
     class CollectionProxy < Relation
       def initialize(klass, association) #:nodoc:
         @association = association
-        super klass, klass.arel_table, klass.predicate_builder
+        super klass
 
         extensions = association.extensions
         extend(*extensions) if extensions.any?

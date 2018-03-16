@@ -94,7 +94,7 @@ module ApplicationTests
 
       with_rails_env "development" do
         app "development"
-        assert Rails.application.config.log_tags.blank?
+        assert_predicate Rails.application.config.log_tags, :blank?
       end
     end
 
@@ -1419,11 +1419,11 @@ module ApplicationTests
     test "Rails.application#env_config exists and include some existing parameters" do
       make_basic_app
 
-      assert_equal      app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
-      assert_equal      app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
-      assert_equal      app.env_config["action_dispatch.logger"],            Rails.logger
-      assert_equal      app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
-      assert_equal      app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
+      assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
+      assert_equal app.env_config["action_dispatch.show_exceptions"],   app.config.action_dispatch.show_exceptions
+      assert_equal app.env_config["action_dispatch.logger"],            Rails.logger
+      assert_equal app.env_config["action_dispatch.backtrace_cleaner"], Rails.backtrace_cleaner
+      assert_equal app.env_config["action_dispatch.key_generator"],     Rails.application.key_generator
     end
 
     test "config.colorize_logging default is true" do
@@ -1478,7 +1478,7 @@ module ApplicationTests
     test "respond_to? accepts include_private" do
       make_basic_app
 
-      assert_not Rails.configuration.respond_to?(:method_missing)
+      assert_not_respond_to Rails.configuration, :method_missing
       assert Rails.configuration.respond_to?(:method_missing, true)
     end
 
@@ -1739,9 +1739,7 @@ module ApplicationTests
 
     test "default SQLite3Adapter.represent_boolean_as_integer for 5.1 is false" do
       remove_from_config '.*config\.load_defaults.*\n'
-      add_to_top_of_config <<-RUBY
-        config.load_defaults 5.1
-      RUBY
+
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -1768,7 +1766,7 @@ module ApplicationTests
     test "represent_boolean_as_integer should be able to set via config.active_record.sqlite3.represent_boolean_as_integer" do
       remove_from_config '.*config\.load_defaults.*\n'
 
-      app_file "config/initializers/new_framework_defaults_5_2.rb", <<-RUBY
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
         Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
       RUBY
 
@@ -1833,7 +1831,7 @@ module ApplicationTests
 
     test "api_only is false by default" do
       app "development"
-      refute Rails.application.config.api_only
+      assert_not Rails.application.config.api_only
     end
 
     test "api_only generator config is set when api_only is set" do
@@ -1890,22 +1888,94 @@ module ApplicationTests
       assert_equal "https://example.org/", last_response.location
     end
 
-    test "config.active_support.hash_digest_class is Digest::MD5 by default" do
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is true by default for new apps" do
+      app "development"
+
+      assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
+    end
+
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption is false by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app "development"
+
+      assert_equal false, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
+    end
+
+    test "ActiveSupport::MessageEncryptor.use_authenticated_message_encryption can be configured via config.active_support.use_authenticated_message_encryption" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_authenticated_message_encryption = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActiveSupport::MessageEncryptor.use_authenticated_message_encryption
+    end
+
+    test "ActiveSupport::Digest.hash_digest_class is Digest::SHA1 by default for new apps" do
+      app "development"
+
+      assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+    end
+
+    test "ActiveSupport::Digest.hash_digest_class is Digest::MD5 by default for upgraded apps" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
       app "development"
 
       assert_equal Digest::MD5, ActiveSupport::Digest.hash_digest_class
     end
 
-    test "config.active_support.hash_digest_class can be configured" do
-      app_file "config/environments/development.rb", <<-RUBY
-      Rails.application.configure do
-        config.active_support.hash_digest_class = Digest::SHA1
-      end
+    test "ActiveSupport::Digest.hash_digest_class can be configured via config.active_support.use_sha1_digests" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.active_support.use_sha1_digests = true
       RUBY
 
       app "development"
 
       assert_equal Digest::SHA1, ActiveSupport::Digest.hash_digest_class
+    end
+
+    test "custom serializers should be able to set via config.active_job.custom_serializers in an initializer" do
+      class ::DummySerializer < ActiveJob::Serializers::ObjectSerializer; end
+
+      app_file "config/initializers/custom_serializers.rb", <<-RUBY
+      Rails.application.config.active_job.custom_serializers << DummySerializer
+      RUBY
+
+      app "development"
+
+      assert_includes ActiveJob::Serializers.serializers, DummySerializer
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is false by default" do
+      app "development"
+      assert_equal false, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 is true in an upgraded app" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      add_to_config 'config.load_defaults "5.2"'
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Helpers::FormTagHelper.default_enforce_utf8 can be configured via config.action_view.default_enforce_utf8" do
+      remove_from_config '.*config\.load_defaults.*\n'
+
+      app_file "config/initializers/new_framework_defaults_6_0.rb", <<-RUBY
+        Rails.application.config.action_view.default_enforce_utf8 = true
+      RUBY
+
+      app "development"
+
+      assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
     end
 
     private

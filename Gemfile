@@ -13,7 +13,7 @@ gem "rake", ">= 11.1"
 # be loaded after loading the test library.
 gem "mocha", require: false
 
-gem "capybara", "~> 2.15"
+gem "capybara", ">= 2.15", "< 4.0"
 
 gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
@@ -37,11 +37,8 @@ gem "rubocop", ">= 0.47", require: false
 # https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
-# https://github.com/puma/puma/pull/1345
-gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
-
 group :doc do
-  gem "sdoc", github: "robin850/sdoc", branch: "upgrade"
+  gem "sdoc", "~> 1.0"
   gem "redcarpet", "~> 3.2.3", platforms: :ruby
   gem "w3c_validators"
   gem "kindlerb", "~> 1.2.0"
@@ -51,6 +48,7 @@ end
 gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
+gem "connection_pool", require: false
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
@@ -62,7 +60,7 @@ group :job do
   gem "sidekiq", require: false
   gem "sucker_punch", require: false
   gem "delayed_job", require: false
-  gem "queue_classic", github: "QueueClassic/queue_classic", branch: "master", require: false, platforms: :ruby
+  gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
   gem "sneakers", require: false
   gem "que", require: false
   gem "backburner", require: false
@@ -108,7 +106,6 @@ local_gemfile = File.expand_path(".Gemfile", __dir__)
 instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
-  gem "minitest", "~> 5.10.0"
   gem "minitest-bisect"
 
   platforms :mri do
@@ -130,7 +127,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0"
-    gem "mysql2", ">= 0.4.4"
+    gem "mysql2", ">= 0.4.10"
   end
 end
 

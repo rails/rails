@@ -38,6 +38,15 @@ module ActiveStorage
       end
     end
 
+    def download_chunk(key, range)
+      instrument :download_chunk, key: key, range: range do
+        File.open(path_for(key), "rb") do |file|
+          file.seek range.begin
+          file.read range.size
+        end
+      end
+    end
+
     def delete(key)
       instrument :delete, key: key do
         begin
@@ -69,14 +78,12 @@ module ActiveStorage
         verified_key_with_expiration = ActiveStorage.verifier.generate(key, expires_in: expires_in, purpose: :blob_key)
 
         generated_url =
-          if defined?(Rails.application)
-            Rails.application.routes.url_helpers.rails_disk_service_path \
-              verified_key_with_expiration,
-              filename: filename, disposition: content_disposition_with(type: disposition, filename: filename), content_type: content_type
-          else
-            "/rails/active_storage/disk/#{verified_key_with_expiration}/#{filename}?content_type=#{content_type}" \
-              "&disposition=#{content_disposition_with(type: disposition, filename: filename)}"
-          end
+          url_helpers.rails_disk_service_path(
+            verified_key_with_expiration,
+            filename: filename,
+            disposition: content_disposition_with(type: disposition, filename: filename),
+            content_type: content_type
+          )
 
         payload[:url] = generated_url
 
@@ -97,12 +104,7 @@ module ActiveStorage
           purpose: :blob_token }
         )
 
-        generated_url =
-          if defined?(Rails.application)
-            Rails.application.routes.url_helpers.update_rails_disk_service_path verified_token_with_expiration
-          else
-            "/rails/active_storage/disk/#{verified_token_with_expiration}"
-          end
+        generated_url = url_helpers.update_rails_disk_service_path(verified_token_with_expiration)
 
         payload[:url] = generated_url
 
@@ -127,11 +129,17 @@ module ActiveStorage
         path_for(key).tap { |path| FileUtils.mkdir_p File.dirname(path) }
       end
 
+
       def ensure_integrity_of(key, checksum)
         unless Digest::MD5.file(path_for(key)).base64digest == checksum
           delete key
           raise ActiveStorage::IntegrityError
         end
+      end
+
+
+      def url_helpers
+        @url_helpers ||= Rails.application.routes.url_helpers
       end
   end
 end

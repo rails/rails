@@ -9,7 +9,7 @@ module SharedGeneratorTests
     super
     Rails::Generators::AppGenerator.instance_variable_set("@desc", nil)
 
-    Kernel::silence_warnings do
+    Kernel.silence_warnings do
       Thor::Base.shell.send(:attr_accessor, :always_force)
       @shell = Thor::Base.shell.new
       @shell.send(:always_force=, true)
@@ -245,7 +245,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 
@@ -276,7 +275,6 @@ module SharedGeneratorTests
     end
 
     assert_no_file "#{application_path}/config/storage.yml"
-    assert_no_directory "#{application_path}/db/migrate"
     assert_no_directory "#{application_path}/storage"
     assert_no_directory "#{application_path}/tmp/storage"
 

@@ -1,12 +1,20 @@
-## Rails 5.2.0.beta2 (November 28, 2017) ##
+## Rails 6.0.0.alpha (Unreleased) ##
 
-*   No changes.
+*   Add support for timezones to Active Job
 
+    Record what was the current timezone in effect when the job was
+    enqueued and then restore when the job is executed in same way
+    that the current locale is recorded and restored.
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
+    *Andrew White*
 
-*   Support redis-rb 4.0.
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activejob/CHANGELOG.md) for previous changes.
+*   Add support to define custom argument serializers.
+
+    *Evgenii Pecherkin*, *Rafael Mendonça França*
+
+
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activejob/CHANGELOG.md) for previous changes.

@@ -48,7 +48,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
 
     assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
     assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
-    assert_equal 7, ActiveRecord::Migrator::current_version
+    assert_equal 7, @connection.migration_context.current_version
   end
 
   def test_schema_define_w_table_name_prefix
@@ -64,7 +64,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         t.column :flavor, :string
       end
     end
-    assert_equal 7, ActiveRecord::Migrator::current_version
+    assert_equal 7, @connection.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
     ActiveRecord::SchemaMigration.table_name = table_name

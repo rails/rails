@@ -54,4 +54,11 @@ class JobSerializationTest < ActiveSupport::TestCase
     job.provider_job_id = "some value set by adapter"
     assert_equal job.provider_job_id, job.serialize["provider_job_id"]
   end
+
+  test "serialize stores the current timezone" do
+    Time.use_zone "Hawaii" do
+      job = HelloJob.new
+      assert_equal "Hawaii", job.serialize["timezone"]
+    end
+  end
 end

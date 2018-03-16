@@ -169,12 +169,11 @@ module ActiveRecord
         primary_key_value = nil
 
         if primary_key && Hash === values
-          arel_primary_key = arel_attribute(primary_key)
-          primary_key_value = values[arel_primary_key]
+          primary_key_value = values[primary_key]
 
           if !primary_key_value && prefetch_primary_key?
             primary_key_value = next_sequence_value
-            values[arel_primary_key] = primary_key_value
+            values[primary_key] = primary_key_value
           end
         end
 
@@ -188,13 +187,24 @@ module ActiveRecord
         connection.insert(im, "#{self} Create", primary_key || false, primary_key_value)
       end
 
-      def _update_record(values, id, id_was) # :nodoc:
-        bind = predicate_builder.build_bind_attribute(primary_key, id_was || id)
+      def _update_record(values, constraints) # :nodoc:
+        constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
         um = arel_table.where(
-          arel_attribute(primary_key).eq(bind)
+          constraints.reduce(&:and)
         ).compile_update(_substitute_values(values), primary_key)
 
         connection.update(um, "#{self} Update")
+      end
+
+      def _delete_record(constraints) # :nodoc:
+        constraints = _substitute_values(constraints).map { |attr, bind| attr.eq(bind) }
+
+        dm = Arel::DeleteManager.new
+        dm.from(arel_table)
+        dm.wheres = constraints
+
+        connection.delete(dm, "#{self} Destroy")
       end
 
       private
@@ -208,8 +218,9 @@ module ActiveRecord
         end
 
         def _substitute_values(values)
-          values.map do |attr, value|
-            bind = predicate_builder.build_bind_attribute(attr.name, value)
+          values.map do |name, value|
+            attr = arel_attribute(name)
+            bind = predicate_builder.build_bind_attribute(name, value)
             [attr, bind]
           end
         end
@@ -310,7 +321,7 @@ module ActiveRecord
     # callbacks or any <tt>:dependent</tt> association
     # options, use <tt>#destroy</tt>.
     def delete
-      _relation_for_itself.delete_all if persisted?
+      _delete_row if persisted?
       @destroyed = true
       freeze
     end
@@ -359,7 +370,8 @@ module ActiveRecord
     # Any change to the attributes on either instance will affect both instances.
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
-      became = klass.new
+      became = klass.allocate
+      became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
       became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
@@ -418,6 +430,7 @@ module ActiveRecord
     end
 
     alias update_attributes update
+    deprecate :update_attributes
 
     # Updates its receiver just like #update but calls #save! instead
     # of +save+, so an exception is raised if the record is invalid and saving will fail.
@@ -431,6 +444,7 @@ module ActiveRecord
     end
 
     alias update_attributes! update!
+    deprecate :update_attributes!
 
     # Equivalent to <code>update_columns(name => value)</code>.
     def update_column(name, value)
@@ -461,13 +475,16 @@ module ActiveRecord
         verify_readonly_attribute(key.to_s)
       end
 
-      updated_count = _relation_for_itself.update_all(attributes)
+      affected_rows = self.class._update_record(
+        attributes,
+        self.class.primary_key => id_in_database
+      )
 
       attributes.each do |k, v|
         write_attribute_without_type_cast(k, v)
       end
 
-      updated_count == 1
+      affected_rows == 1
     end
 
     # Initializes +attribute+ to zero if +nil+ and adds the value passed as +by+ (default is 1).
@@ -640,35 +657,12 @@ module ActiveRecord
         MSG
       end
 
-      time ||= current_time_from_proper_timezone
-      attributes = timestamp_attributes_for_update_in_model
-      attributes.concat(names)
+      attribute_names = timestamp_attributes_for_update_in_model
+      attribute_names.concat(names)
 
-      unless attributes.empty?
-        changes = {}
-
-        attributes.each do |column|
-          column = column.to_s
-          changes[column] = write_attribute(column, time)
-        end
-
-        scope = _relation_for_itself
-
-        if locking_enabled?
-          locking_column = self.class.locking_column
-          scope = scope.where(locking_column => read_attribute_before_type_cast(locking_column))
-          changes[locking_column] = increment_lock
-        end
-
-        clear_attribute_changes(changes.keys)
-        result = scope.update_all(changes) == 1
-
-        if !result && locking_enabled?
-          raise ActiveRecord::StaleObjectError.new(self, "touch")
-        end
-
-        @_trigger_update_callback = result
-        result
+      unless attribute_names.empty?
+        affected_rows = _touch_row(attribute_names, time)
+        @_trigger_update_callback = affected_rows == 1
       else
         true
       end
@@ -681,19 +675,34 @@ module ActiveRecord
     end
 
     def destroy_row
-      relation_for_destroy.delete_all
+      _delete_row
     end
 
-    def relation_for_destroy
-      _relation_for_itself
+    def _delete_row
+      self.class._delete_record(self.class.primary_key => id_in_database)
     end
 
-    def _relation_for_itself
-      self.class.unscoped.where(self.class.primary_key => id)
+    def _touch_row(attribute_names, time)
+      time ||= current_time_from_proper_timezone
+
+      attribute_names.each do |attr_name|
+        write_attribute(attr_name, time)
+        clear_attribute_change(attr_name)
+      end
+
+      _update_row(attribute_names, "touch")
+    end
+
+    def _update_row(attribute_names, attempted_action = "update")
+      self.class._update_record(
+        attributes_with_values(attribute_names),
+        self.class.primary_key => id_in_database
+      )
     end
 
     def create_or_update(*args, &block)
       _raise_readonly_record_error if readonly?
+      return false if destroyed?
       result = new_record? ? _create_record(&block) : _update_record(*args, &block)
       result != false
     end
@@ -701,24 +710,27 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
-      attributes_values = arel_attributes_with_values_for_update(attribute_names)
-      if attributes_values.empty?
-        rows_affected = 0
+      attribute_names &= self.class.column_names
+      attribute_names = attributes_for_update(attribute_names)
+
+      if attribute_names.empty?
+        affected_rows = 0
         @_trigger_update_callback = true
       else
-        rows_affected = self.class._update_record(attributes_values, id, id_in_database)
-        @_trigger_update_callback = rows_affected > 0
+        affected_rows = _update_row(attribute_names)
+        @_trigger_update_callback = affected_rows == 1
       end
 
       yield(self) if block_given?
 
-      rows_affected
+      affected_rows
     end
 
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
-      attributes_values = arel_attributes_with_values_for_create(attribute_names)
+      attribute_names &= self.class.column_names
+      attributes_values = attributes_with_values_for_create(attribute_names)
 
       new_id = self.class._insert_record(attributes_values)
       self.id ||= new_id if self.class.primary_key

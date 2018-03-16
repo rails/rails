@@ -8,6 +8,14 @@
 #
 #   ActiveStorage::Variation.new(resize: "100x100", monochrome: true, trim: true, rotate: "-90")
 #
+# You can also combine multiple transformations in one step, e.g. for center-weighted cropping:
+#
+#   ActiveStorage::Variation.new(combine_options: {
+#     resize: "100x100^",
+#     gravity: "center",
+#     crop: "100x100+0+0",
+#   })
+#
 # A list of all possible transformations is available at https://www.imagemagick.org/script/mogrify.php.
 class ActiveStorage::Variation
   attr_reader :transformations
@@ -46,14 +54,16 @@ class ActiveStorage::Variation
   # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
   # and performs the +transformations+ against it. The transformed image instance is then returned.
   def transform(image)
-    transformations.each do |name, argument_or_subtransformations|
-      image.mogrify do |command|
-        if name.to_s == "combine_options"
-          argument_or_subtransformations.each do |subtransformation_name, subtransformation_argument|
-            pass_transform_argument(command, subtransformation_name, subtransformation_argument)
+    ActiveSupport::Notifications.instrument("transform.active_storage") do
+      transformations.each do |name, argument_or_subtransformations|
+        image.mogrify do |command|
+          if name.to_s == "combine_options"
+            argument_or_subtransformations.each do |subtransformation_name, subtransformation_argument|
+              pass_transform_argument(command, subtransformation_name, subtransformation_argument)
+            end
+          else
+            pass_transform_argument(command, name, argument_or_subtransformations)
           end
-        else
-          pass_transform_argument(command, name, argument_or_subtransformations)
         end
       end
     end

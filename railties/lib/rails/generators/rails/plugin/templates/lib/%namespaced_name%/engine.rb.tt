@@ -1,4 +1,4 @@
-<%= wrap_in_modules <<-rb.strip_heredoc
+<%= wrap_in_modules <<~rb
   class Engine < ::Rails::Engine
   #{mountable? ? '  isolate_namespace ' + camelized_modules : ' '}
   #{api? ? "  config.generators.api_only = true" : ' '}

@@ -27,7 +27,7 @@ module ActiveRecord
           # Making it frozen means that it doesn't get duped when used to
           # key the @attributes in read_attribute.
           def define_method_attribute(name)
-            safe_name = name.unpack("h*").first
+            safe_name = name.unpack1("h*")
             temp_method = "__temp__#{safe_name}"
 
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name

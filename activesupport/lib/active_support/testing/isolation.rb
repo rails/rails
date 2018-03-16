@@ -45,7 +45,8 @@ module ActiveSupport
                   end
                 }
               end
-              result = Marshal.dump(dup)
+              test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
+              result = Marshal.dump(test_result)
             end
 
             write.puts [result].pack("m")
@@ -55,7 +56,7 @@ module ActiveSupport
           write.close
           result = read.read
           Process.wait2(pid)
-          result.unpack("m")[0]
+          result.unpack1("m")
         end
       end
 
@@ -69,8 +70,9 @@ module ActiveSupport
 
           if ENV["ISOLATION_TEST"]
             yield
+            test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(dup)].pack("m")
+              file.puts [Marshal.dump(test_result)].pack("m")
             end
             exit!
           else
@@ -96,7 +98,7 @@ module ActiveSupport
                 nil
               end
 
-              return tmpfile.read.unpack("m")[0]
+              return tmpfile.read.unpack1("m")
             end
           end
         end

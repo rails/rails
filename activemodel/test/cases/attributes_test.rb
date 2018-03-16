@@ -47,6 +47,26 @@ module ActiveModel
       assert_equal true, data.boolean_field
     end
 
+    test "reading attributes" do
+      data = ModelForAttributesTest.new(
+        integer_field: 1.1,
+        string_field: 1.1,
+        decimal_field: 1.1,
+        boolean_field: 1.1
+      )
+
+      expected_attributes = {
+        integer_field: 1,
+        string_field: "1.1",
+        decimal_field: BigDecimal("1.1"),
+        string_with_default: "default string",
+        date_field: Date.new(2016, 1, 1),
+        boolean_field: true
+      }.stringify_keys
+
+      assert_equal expected_attributes, data.attributes
+    end
+
     test "nonexistent attribute" do
       assert_raise ActiveModel::UnknownAttributeError do
         ModelForAttributesTest.new(nonexistent: "nonexistent")
@@ -63,6 +83,15 @@ module ActiveModel
       data = GrandchildModelForAttributesTest.new(integer_field: "4.4")
 
       assert_equal "4.4", data.integer_field
+    end
+
+    test "attributes with proc defaults can be marshalled" do
+      data = ModelForAttributesTest.new
+      attributes = data.instance_variable_get(:@attributes)
+      round_tripped = Marshal.load(Marshal.dump(data))
+      new_attributes = round_tripped.instance_variable_get(:@attributes)
+
+      assert_equal attributes, new_attributes
     end
   end
 end

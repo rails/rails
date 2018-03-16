@@ -11,19 +11,19 @@ module ActiveRecord
     fixtures :posts, :comments, :authors, :author_addresses, :ratings
 
     def test_construction
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass, table: :b)
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
       assert !relation.loaded, "relation is not loaded"
     end
 
     def test_responds_to_model_and_returns_klass
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       assert_equal FakeKlass, relation.model
     end
 
     def test_initialize_single_values
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       (Relation::SINGLE_VALUE_METHODS - [:create_with]).each do |method|
         assert_nil relation.send("#{method}_value"), method.to_s
       end
@@ -33,7 +33,7 @@ module ActiveRecord
     end
 
     def test_multi_value_initialize
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       Relation::MULTI_VALUE_METHODS.each do |method|
         values = relation.send("#{method}_values")
         assert_equal [], values, method.to_s
@@ -42,29 +42,29 @@ module ActiveRecord
     end
 
     def test_extensions
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       assert_equal [], relation.extensions
     end
 
     def test_empty_where_values_hash
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       assert_equal({}, relation.where_values_hash)
     end
 
     def test_has_values
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       relation.where!(id: 10)
       assert_equal({ "id" => 10 }, relation.where_values_hash)
     end
 
     def test_values_wrong_table
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       relation.where! Comment.arel_table[:id].eq(10)
       assert_equal({}, relation.where_values_hash)
     end
 
     def test_tree_is_not_traversed
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       left     = relation.table[:id].eq(10)
       right    = relation.table[:id].eq(10)
       combine  = left.or(right)
@@ -73,18 +73,18 @@ module ActiveRecord
     end
 
     def test_scope_for_create
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       assert_equal({}, relation.scope_for_create)
     end
 
     def test_create_with_value
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       relation.create_with_value = { hello: "world" }
       assert_equal({ "hello" => "world" }, relation.scope_for_create)
     end
 
     def test_create_with_value_with_wheres
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       assert_equal({}, relation.scope_for_create)
 
       relation.where!(id: 10)
@@ -95,11 +95,11 @@ module ActiveRecord
     end
 
     def test_empty_scope
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
-      assert relation.empty_scope?
+      relation = Relation.new(Post)
+      assert_predicate relation, :empty_scope?
 
       relation.merge!(relation)
-      assert relation.empty_scope?
+      assert_predicate relation, :empty_scope?
     end
 
     def test_bad_constants_raise_errors
@@ -109,31 +109,31 @@ module ActiveRecord
     end
 
     def test_empty_eager_loading?
-      relation = Relation.new(FakeKlass, :b, nil)
-      assert !relation.eager_loading?
+      relation = Relation.new(FakeKlass)
+      assert_not_predicate relation, :eager_loading?
     end
 
     def test_eager_load_values
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       relation.eager_load! :b
-      assert relation.eager_loading?
+      assert_predicate relation, :eager_loading?
     end
 
     def test_references_values
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       assert_equal [], relation.references_values
       relation = relation.references(:foo).references(:omg, :lol)
       assert_equal ["foo", "omg", "lol"], relation.references_values
     end
 
     def test_references_values_dont_duplicate
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       relation = relation.references(:foo).references(:foo)
       assert_equal ["foo"], relation.references_values
     end
 
     test "merging a hash into a relation" do
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder)
+      relation = Relation.new(Post)
       relation = relation.merge where: { name: :lol }, readonly: true
 
       assert_equal({ "name" => :lol }, relation.where_clause.to_h)
@@ -141,7 +141,7 @@ module ActiveRecord
     end
 
     test "merging an empty hash into a relation" do
-      assert_equal Relation::WhereClause.empty, Relation.new(FakeKlass, :b, nil).merge({}).where_clause
+      assert_equal Relation::WhereClause.empty, Relation.new(FakeKlass).merge({}).where_clause
     end
 
     test "merging a hash with unknown keys raises" do
@@ -149,7 +149,7 @@ module ActiveRecord
     end
 
     test "merging nil or false raises" do
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
 
       e = assert_raises(ArgumentError) do
         relation = relation.merge nil
@@ -165,7 +165,7 @@ module ActiveRecord
     end
 
     test "#values returns a dup of the values" do
-      relation = Relation.new(Post, Post.arel_table, Post.predicate_builder).where!(name: :foo)
+      relation = Relation.new(Post).where!(name: :foo)
       values   = relation.values
 
       values[:where] = nil
@@ -173,7 +173,7 @@ module ActiveRecord
     end
 
     test "relations can be created with a values hash" do
-      relation = Relation.new(FakeKlass, :b, nil, select: [:foo])
+      relation = Relation.new(FakeKlass, values: { select: [:foo] })
       assert_equal [:foo], relation.select_values
     end
 
@@ -185,13 +185,13 @@ module ActiveRecord
         end
       end
 
-      relation = Relation.new(klass, :b, nil)
+      relation = Relation.new(klass)
       relation.merge!(where: ["foo = ?", "bar"])
       assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
     end
 
     def test_merging_readonly_false
-      relation = Relation.new(FakeKlass, :b, nil)
+      relation = Relation.new(FakeKlass)
       readonly_false_relation = relation.readonly(false)
       # test merging in both directions
       assert_equal false, relation.merge(readonly_false_relation).readonly_value
@@ -235,17 +235,17 @@ module ActiveRecord
 
     def test_merge_raises_with_invalid_argument
       assert_raises ArgumentError do
-        relation = Relation.new(FakeKlass, :b, nil)
+        relation = Relation.new(FakeKlass)
         relation.merge(true)
       end
     end
 
     def test_respond_to_for_non_selected_element
       post = Post.select(:title).first
-      assert_equal false, post.respond_to?(:body), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :body, "post should not respond_to?(:body) since invoking it raises exception"
 
       silence_warnings { post = Post.select("'title' as post_title").first }
-      assert_equal false, post.respond_to?(:title), "post should not respond_to?(:body) since invoking it raises exception"
+      assert_not_respond_to post, :title, "post should not respond_to?(:body) since invoking it raises exception"
     end
 
     def test_select_quotes_when_using_from_clause

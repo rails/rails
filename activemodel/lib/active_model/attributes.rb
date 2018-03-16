@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/object/deep_dup"
 require "active_model/attribute_set"
 require "active_model/attribute/user_provided_default"
 
@@ -24,13 +23,13 @@ module ActiveModel
         end
         self.attribute_types = attribute_types.merge(name => type)
         define_default_attribute(name, options.fetch(:default, NO_DEFAULT_PROVIDED), type)
-        define_attribute_methods(name)
+        define_attribute_method(name)
       end
 
       private
 
         def define_method_attribute=(name)
-          safe_name = name.unpack("h*").first
+          safe_name = name.unpack1("h*")
           ActiveModel::AttributeMethods::AttrNames.set_name_cache safe_name, name
 
           generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
@@ -65,6 +64,10 @@ module ActiveModel
     def initialize(*)
       @attributes = self.class._default_attributes.deep_dup
       super
+    end
+
+    def attributes
+      @attributes.to_hash
     end
 
     private

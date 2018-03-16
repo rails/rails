@@ -6,6 +6,7 @@ class ActiveStorage::Service::ConfiguratorTest < ActiveSupport::TestCase
   test "builds correct service instance based on service name" do
     service = ActiveStorage::Service::Configurator.build(:foo, foo: { service: "Disk", root: "path" })
     assert_instance_of ActiveStorage::Service::DiskService, service
+    assert_equal "path", service.root
   end
 
   test "raises error when passing non-existent service name" do

@@ -211,13 +211,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_new_application_doesnt_need_defaults
-    assert_no_file "config/initializers/new_framework_defaults_5_2.rb"
+    assert_no_file "config/initializers/new_framework_defaults_6_0.rb"
   end
 
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     output = nil
+
+    assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
 
     Dir.chdir(app_root) do
       output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
@@ -257,14 +259,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
     end
   end
 
@@ -313,20 +315,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "Gemfile", /^# gem 'mini_magick'/
   end
 
-  def test_active_storage_install
-    command_check = -> command, _ do
-      @binstub_called ||= 0
-      case command
-      when "active_storage:install"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
-      end
-    end
+  def test_mini_magick_gem_when_skip_active_storage_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-active-storage"]
 
-    generator.stub :rails_command, command_check do
-      generator.stub :bundle_command, nil do
-        quietly { generator.invoke_all }
-      end
+    assert_file "#{app_root}/Gemfile" do |content|
+      assert_no_match(/gem 'mini_magick'/, content)
     end
   end
 
@@ -351,10 +345,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
-
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
-    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
@@ -378,10 +368,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
+  end
 
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
+  def test_app_update_does_not_change_config_target_version
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      content = File.read(config)
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      quietly { system("bin/rails app:update") }
     end
+
+    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
   end
 
   def test_application_names_are_not_singularized
@@ -430,7 +429,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'~> 0.18'"
+      assert_gem "pg", "'>= 0.18', '< 2.0'"
     end
   end
 
@@ -653,6 +652,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_quiet_option
     output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
     assert_empty output
+  end
+
+  def test_force_option_overwrites_every_file_except_master_key
+    run_generator [File.join(destination_root, "myapp")]
+    output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    assert_match(/force/, output)
+    assert_no_match("force  config/master.key", output)
   end
 
   def test_application_name_with_spaces
@@ -900,7 +906,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -917,7 +923,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   def test_gitignore

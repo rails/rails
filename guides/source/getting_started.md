@@ -87,10 +87,10 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.3.1p112
+ruby 2.5.0
 ```
 
-Rails requires Ruby version 2.2.2 or later. If the version number returned is
+Rails requires Ruby version 2.4.1 or later. If the version number returned is
 less than that number, you'll need to install a fresh copy of Ruby.
 
 TIP: A number of tools exist to help you quickly install Ruby and Ruby
@@ -100,7 +100,7 @@ For more installation methods for most Operating Systems take a look at
 [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
 If you are working on Windows, you should also install the
-[Ruby Installer Development Kit](http://rubyinstaller.org/downloads/).
+[Ruby Installer Development Kit](https://rubyinstaller.org/downloads/).
 
 You will also need an installation of the SQLite3 database.
 Many popular UNIX-like OSes ship with an acceptable version of SQLite3.
@@ -170,7 +170,7 @@ of the files and folders that Rails created by default:
 | File/Folder | Purpose |
 | ----------- | ------- |
 |app/|Contains the controllers, models, views, helpers, mailers, channels, jobs and assets for your application. You'll focus on this folder for the remainder of this guide.|
-|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy or run your application.|
+|bin/|Contains the rails script that starts your app and can contain other scripts you use to setup, update, deploy, or run your application.|
 |config/|Configure your application's routes, database, and more. This is covered in more detail in [Configuring Rails Applications](configuring.html).|
 |config.ru|Rack configuration for Rack based servers used to start the application. For more information about Rack, see the [Rack website](https://rack.github.io/).|
 |db/|Contains your current database schema, as well as the database migrations.|
@@ -346,9 +346,9 @@ Now that you've seen how to create a controller, an action and a view, let's
 create something with a bit more substance.
 
 In the Blog application, you will now create a new _resource_. A resource is the
-term used for a collection of similar objects, such as articles, people or
+term used for a collection of similar objects, such as articles, people, or
 animals.
-You can create, read, update and destroy items for a resource and these
+You can create, read, update, and destroy items for a resource and these
 operations are referred to as _CRUD_ operations.
 
 Rails provides a `resources` method which can be used to declare a standard REST
@@ -462,8 +462,7 @@ You're getting this error now because Rails expects plain actions like this one
 to have views associated with them to display their information. With no view
 available, Rails will raise an exception.
 
-In the above image, the bottom line has been truncated. Let's see what the full
-error message looks like:
+Let's look at the full error message again:
 
 >ArticlesController#new is missing a template for this request format and variant. request.formats: ["text/html"] request.variant: [] NOTE! For XHR/Ajax or API requests, this action would normally respond with 204 No Content: an empty white screen. Since you're loading it in a web browser, we assume that you expected to actually render a template, not… nothing, so we're showing an error to be extra-clear. If you expect 204 No Content, carry on. That's what you'll get from an XHR or API request. Give it a shot.
 
@@ -505,7 +504,7 @@ write this content in it:
 ```
 
 When you refresh <http://localhost:3000/articles/new> you'll now see that the
-page has a title. The route, controller, action and view are now working
+page has a title. The route, controller, action, and view are now working
 harmoniously! It's time to create the form for a new article.
 
 ### The first form
@@ -1123,7 +1122,7 @@ that otherwise `@article` would be `nil` in our view, and calling
 `@article.errors.any?` would throw an error.
 
 TIP: Rails automatically wraps fields that contain an error with a div
-with class `field_with_errors`. You can define a css rule to make them
+with class `field_with_errors`. You can define a CSS rule to make them
 standout.
 
 Now you'll get a nice error message when saving an article without title when
@@ -1205,10 +1204,10 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-Passing the article object to the method, will automagically create url for submitting the edited article form.
-This option tells Rails that we want this form to be submitted
-via the `PATCH` HTTP method which is the HTTP method you're expected to use to
-**update** resources according to the REST protocol.
+Passing the article object to the method will automatically set the URL for
+submitting the edited article form. This option tells Rails that we want this
+form to be submitted via the `PATCH` HTTP method, which is the HTTP method you're
+expected to use to **update** resources according to the REST protocol.
 
 The arguments to `form_with` could be model objects, say, `model: @article` which would
 cause the helper to fill in the form with the fields of the object. Passing in a
@@ -1507,7 +1506,7 @@ appear.
 TIP: Learn more about Unobtrusive JavaScript on
 [Working With JavaScript in Rails](working_with_javascript_in_rails.html) guide.
 
-Congratulations, you can now create, show, list, update and destroy
+Congratulations, you can now create, show, list, update, and destroy
 articles.
 
 TIP: In general, Rails encourages using resources objects instead of
@@ -2066,8 +2065,8 @@ getting up and running with Rails, feel free to consult these support
 resources:
 
 * The [Ruby on Rails Guides](index.html)
-* The [Ruby on Rails Tutorial](http://railstutorial.org/book)
-* The [Ruby on Rails mailing list](http://groups.google.com/group/rubyonrails-talk)
+* The [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
+* The [Ruby on Rails mailing list](https://groups.google.com/group/rubyonrails-talk)
 * The [#rubyonrails](irc://irc.freenode.net/#rubyonrails) channel on irc.freenode.net
 
 

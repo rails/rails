@@ -99,8 +99,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   end
 
   test "boolean attributes" do
-    assert !Topic.find(1).approved?
-    assert Topic.find(2).approved?
+    assert_not_predicate Topic.find(1), :approved?
+    assert_predicate Topic.find(2), :approved?
   end
 
   test "set attributes" do
@@ -142,16 +142,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_respond_to topic, :title=
     assert_respond_to topic, "author_name"
     assert_respond_to topic, "attribute_names"
-    assert !topic.respond_to?("nothingness")
-    assert !topic.respond_to?(:nothingness)
+    assert_not_respond_to topic, "nothingness"
+    assert_not_respond_to topic, :nothingness
   end
 
   test "respond_to? with a custom primary key" do
     keyboard = Keyboard.create
     assert_not_nil keyboard.key_number
     assert_equal keyboard.key_number, keyboard.id
-    assert keyboard.respond_to?("key_number")
-    assert keyboard.respond_to?("id")
+    assert_respond_to keyboard, "key_number"
+    assert_respond_to keyboard, "id"
   end
 
   test "id_before_type_cast with a custom primary key" do
@@ -170,8 +170,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
 
     topic = klass.allocate
-    assert !topic.respond_to?("nothingness")
-    assert !topic.respond_to?(:nothingness)
+    assert_not_respond_to topic, "nothingness"
+    assert_not_respond_to topic, :nothingness
     assert_respond_to topic, "title"
     assert_respond_to topic, :title
   end
@@ -457,30 +457,30 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     SQL
 
     assert_equal "Firm", object.string_value
-    assert object.string_value?
+    assert_predicate object, :string_value?
 
     object.string_value = "  "
-    assert !object.string_value?
+    assert_not_predicate object, :string_value?
 
     assert_equal 1, object.int_value.to_i
-    assert object.int_value?
+    assert_predicate object, :int_value?
 
     object.int_value = "0"
-    assert !object.int_value?
+    assert_not_predicate object, :int_value?
   end
 
   test "non-attribute read and write" do
     topic = Topic.new
-    assert !topic.respond_to?("mumbo")
+    assert_not_respond_to topic, "mumbo"
     assert_raise(NoMethodError) { topic.mumbo }
     assert_raise(NoMethodError) { topic.mumbo = 5 }
   end
 
   test "undeclared attribute method does not affect respond_to? and method_missing" do
     topic = @target.new(title: "Budget")
-    assert topic.respond_to?("title")
+    assert_respond_to topic, "title"
     assert_equal "Budget", topic.title
-    assert !topic.respond_to?("title_hello_world")
+    assert_not_respond_to topic, "title_hello_world"
     assert_raise(NoMethodError) { topic.title_hello_world }
   end
 
@@ -491,7 +491,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       @target.attribute_method_prefix prefix
 
       meth = "#{prefix}title"
-      assert topic.respond_to?(meth)
+      assert_respond_to topic, meth
       assert_equal ["title"], topic.send(meth)
       assert_equal ["title", "a"], topic.send(meth, "a")
       assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
@@ -505,7 +505,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       topic = @target.new(title: "Budget")
 
       meth = "title#{suffix}"
-      assert topic.respond_to?(meth)
+      assert_respond_to topic, meth
       assert_equal ["title"], topic.send(meth)
       assert_equal ["title", "a"], topic.send(meth, "a")
       assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
@@ -519,7 +519,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       topic = @target.new(title: "Budget")
 
       meth = "#{prefix}title#{suffix}"
-      assert topic.respond_to?(meth)
+      assert_respond_to topic, meth
       assert_equal ["title"], topic.send(meth)
       assert_equal ["title", "a"], topic.send(meth, "a")
       assert_equal ["title", 1, 2, 3], topic.send(meth, 1, 2, 3)
@@ -541,7 +541,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     else
       topic = Topic.all.merge!(select: "topics.*, 1=2 as is_test").first
     end
-    assert !topic.is_test?
+    assert_not_predicate topic, :is_test?
   end
 
   test "typecast attribute from select to true" do
@@ -552,7 +552,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     else
       topic = Topic.all.merge!(select: "topics.*, 2=2 as is_test").first
     end
-    assert topic.is_test?
+    assert_predicate topic, :is_test?
   end
 
   test "raises ActiveRecord::DangerousAttributeError when defining an AR method in a model" do
@@ -743,7 +743,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
         expected_time = Time.utc(2000, 01, 01, 10)
 
         assert_equal expected_time, record.bonus_time
-        assert record.bonus_time.utc?
+        assert_predicate record.bonus_time, :utc?
       end
     end
   end
@@ -767,7 +767,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title")
 
     topic = @target.new(title: "The pros and cons of programming naked.")
-    assert !topic.respond_to?(:title)
+    assert_not_respond_to topic, :title
     exception = assert_raise(NoMethodError) { topic.title }
     assert_includes exception.message, "private method"
     assert_equal "I'm private", topic.send(:title)
@@ -777,7 +777,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title=(value)")
 
     topic = @target.new
-    assert !topic.respond_to?(:title=)
+    assert_not_respond_to topic, :title=
     exception = assert_raise(NoMethodError) { topic.title = "Pants" }
     assert_includes exception.message, "private method"
     topic.send(:title=, "Very large pants")
@@ -787,7 +787,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     privatize("title?")
 
     topic = @target.new(title: "Isaac Newton's pants")
-    assert !topic.respond_to?(:title?)
+    assert_not_respond_to topic, :title?
     exception = assert_raise(NoMethodError) { topic.title? }
     assert_includes exception.message, "private method"
     assert topic.send(:title?)
@@ -979,9 +979,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "came_from_user?" do
     model = @target.first
 
-    assert_not model.id_came_from_user?
+    assert_not_predicate model, :id_came_from_user?
     model.id = "omg"
-    assert model.id_came_from_user?
+    assert_predicate model, :id_came_from_user?
   end
 
   test "accessed_fields" do

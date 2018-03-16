@@ -40,29 +40,29 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_no_automatic_reconnection_after_timeout
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
-    assert !@connection.active?
+    assert_not_predicate @connection, :active?
   ensure
     # Repair all fixture connections so other tests won't break.
     @fixture_connections.each(&:verify!)
   end
 
   def test_successful_reconnection_after_timeout_with_manual_reconnect
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.reconnect!
-    assert @connection.active?
+    assert_predicate @connection, :active?
   end
 
   def test_successful_reconnection_after_timeout_with_verify
-    assert @connection.active?
+    assert_predicate @connection, :active?
     @connection.update("set @@wait_timeout=1")
     sleep 2
     @connection.verify!
-    assert @connection.active?
+    assert_predicate @connection, :active?
   end
 
   def test_execute_after_disconnect

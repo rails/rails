@@ -243,7 +243,8 @@ module ActionDispatch
   #
   #   rails routes
   #
-  # Target specific controllers by prefixing the command with <tt>-c</tt> option.
+  # Target specific controllers by prefixing the command with <tt>-c</tt> option. Use
+  # <tt>--expanded</tt> to turn on the expanded table formatting mode.
   #
   module Routing
     extend ActiveSupport::Autoload

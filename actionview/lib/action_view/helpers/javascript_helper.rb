@@ -63,6 +63,13 @@ module ActionView
       #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
+      #
+      # If you have a content security policy enabled then you can add an automatic
+      # nonce value by passing <tt>nonce: true</tt> as part of +html_options+. Example:
+      #
+      #   <%= javascript_tag nonce: true do -%>
+      #     alert('All is good')
+      #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
         content =
           if block_given?
@@ -71,6 +78,10 @@ module ActionView
           else
             content_or_options_with_block
           end
+
+        if html_options[:nonce] == true
+          html_options[:nonce] = content_security_policy_nonce
+        end
 
         content_tag("script", javascript_cdata_section(content), html_options)
       end

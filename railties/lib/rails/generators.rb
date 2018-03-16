@@ -218,6 +218,9 @@ module Rails
         rails.delete("app")
         rails.delete("plugin")
         rails.delete("encrypted_secrets")
+        rails.delete("encrypted_file")
+        rails.delete("encryption_key_file")
+        rails.delete("master_key")
         rails.delete("credentials")
 
         hidden_namespaces.each { |n| groups.delete(n.to_s) }
@@ -273,7 +276,7 @@ module Rails
           klass.start(args, config)
         else
           options     = sorted_groups.flat_map(&:last)
-          suggestions = options.sort_by { |suggested| levenshtein_distance(namespace.to_s, suggested) }.first(3)
+          suggestions = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options, count: 3)
           suggestions.map! { |s| "'#{s}'" }
           msg =  "Could not find generator '#{namespace}'. ".dup
           msg << "Maybe you meant #{ suggestions[0...-1].join(', ')} or #{suggestions[-1]}\n"

@@ -26,7 +26,11 @@
 require "active_record"
 require "active_support"
 require "active_support/rails"
+
 require "active_storage/version"
+require "active_storage/errors"
+
+require "marcel"
 
 module ActiveStorage
   extend ActiveSupport::Autoload
@@ -43,4 +47,5 @@ module ActiveStorage
   mattr_accessor :analyzers, default: []
   mattr_accessor :paths, default: {}
   mattr_accessor :variable_content_types, default: []
+  mattr_accessor :content_types_to_serve_as_binary, default: []
 end

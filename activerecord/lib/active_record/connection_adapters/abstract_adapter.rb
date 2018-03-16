@@ -119,6 +119,14 @@ module ActiveRecord
         end
       end
 
+      def migrations_paths # :nodoc:
+        @config[:migrations_paths] || Migrator.migrations_paths
+      end
+
+      def migration_context # :nodoc:
+        MigrationContext.new(migrations_paths)
+      end
+
       class Version
         include Comparable
 
@@ -315,6 +323,11 @@ module ActiveRecord
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
+        false
+      end
+
+      # Does this adapter support foreign/external tables?
+      def supports_foreign_tables?
         false
       end
 
@@ -537,12 +550,7 @@ module ActiveRecord
         end
 
         def extract_limit(sql_type)
-          case sql_type
-          when /^bigint/i
-            8
-          when /\((.*)\)/
-            $1.to_i
-          end
+          $1.to_i if sql_type =~ /\((.*)\)/
         end
 
         def translate_exception_class(e, sql)

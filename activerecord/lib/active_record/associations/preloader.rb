@@ -83,7 +83,7 @@ module ActiveRecord
       #   { author: :avatar }
       #   [ :books, { author: :avatar } ]
       def preload(records, associations, preload_scope = nil)
-        records = records.compact
+        records = Array.wrap(records).compact
 
         if records.empty?
           []
@@ -169,7 +169,7 @@ module ActiveRecord
             owners.flat_map { |owner| owner.association(reflection.name).target }
           end
 
-          protected
+          private
             attr_reader :owners, :reflection
         end
 

@@ -2,7 +2,6 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/model/model_generator"
-require "active_support/core_ext/string/strip"
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -379,10 +378,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -390,10 +389,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_polymorphic_belongs_to_generages_correct_model
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, polymorphic: true, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -401,10 +400,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_and_polymorphic_are_order_independent
     run_generator ["account", "supplier:references{polymorphic.required}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, polymorphic: true, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -452,11 +451,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_token_option_adds_has_secure_token
     run_generator ["user", "token:token", "auth_token:token"]
-    expected_file = <<-FILE.strip_heredoc
-    class User < ApplicationRecord
-      has_secure_token
-      has_secure_token :auth_token
-    end
+    expected_file = <<~FILE
+      class User < ApplicationRecord
+        has_secure_token
+        has_secure_token :auth_token
+      end
     FILE
     assert_file "app/models/user.rb", expected_file
   end

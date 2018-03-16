@@ -54,25 +54,20 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
-      attr_reader :subscriber, :notifier, :namespace
-
       private
+        attr_reader :subscriber, :notifier, :namespace
 
-      def add_event_subscriber(event) # :doc:
-        return if %w{ start finish }.include?(event.to_s)
+        def add_event_subscriber(event) # :doc:
+          return if %w{ start finish }.include?(event.to_s)
 
-        pattern = "#{event}.#{namespace}"
+          pattern = "#{event}.#{namespace}"
 
-        # Don't add multiple subscribers (eg. if methods are redefined).
-        return if subscriber.patterns.include?(pattern)
+          # Don't add multiple subscribers (eg. if methods are redefined).
+          return if subscriber.patterns.include?(pattern)
 
-        subscriber.patterns << pattern
-        notifier.subscribe(pattern, subscriber)
-      end
+          subscriber.patterns << pattern
+          notifier.subscribe(pattern, subscriber)
+        end
     end
 
     attr_reader :patterns # :nodoc:

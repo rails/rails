@@ -670,7 +670,7 @@ XML
     assert_equal "bar", @request.params[:foo]
 
     post :no_op
-    assert @request.params[:foo].blank?
+    assert_predicate @request.params[:foo], :blank?
   end
 
   def test_filtered_parameters_reset_between_requests
@@ -838,7 +838,7 @@ XML
 
   def test_fixture_file_upload_should_be_able_access_to_tempfile
     file = fixture_file_upload(FILES_DIR + "/ruby_on_rails.jpg", "image/jpg")
-    assert file.respond_to?(:tempfile), "expected tempfile should respond on fixture file object, got nothing"
+    assert_respond_to file, :tempfile
   end
 
   def test_fixture_file_upload

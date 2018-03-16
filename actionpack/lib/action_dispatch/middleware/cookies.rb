@@ -338,6 +338,9 @@ module ActionDispatch
       end
       alias :has_key? :key?
 
+      # Returns the cookies as Hash.
+      alias :to_hash :to_h
+
       def update(other_hash)
         @cookies.update other_hash.stringify_keys
         self

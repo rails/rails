@@ -354,7 +354,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_option_groups_from_collection_for_select_returns_html_safe_string
-    assert option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk").html_safe?
+    assert_predicate option_groups_from_collection_for_select(dummy_continents, "countries", "continent_name", "country_id", "country_name", "dk"), :html_safe?
   end
 
   def test_grouped_options_for_select_with_array
@@ -402,7 +402,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_grouped_options_for_select_returns_html_safe_string
-    assert grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]]).html_safe?
+    assert_predicate grouped_options_for_select([["Hats", ["Baseball Cap", "Cowboy Hat"]]]), :html_safe?
   end
 
   def test_grouped_options_for_select_with_prompt_returns_html_escaped_string
@@ -492,7 +492,7 @@ class FormOptionsHelperTest < ActionView::TestCase
   end
 
   def test_time_zone_options_returns_html_safe_string
-    assert time_zone_options_for_select.html_safe?
+    assert_predicate time_zone_options_for_select, :html_safe?
   end
 
   def test_select
@@ -508,6 +508,16 @@ class FormOptionsHelperTest < ActionView::TestCase
     assert_dom_equal(
       "<select id=\"post_category\" name=\"post[category]\"></select>",
       select(:post, :category, "", {}, { multiple: false })
+    )
+  end
+
+  def test_required_select_with_default_and_selected_placeholder
+    assert_dom_equal(
+      ['<select required="required" name="post[category]" id="post_category"><option disabled="disabled" selected="selected" value="">Choose one</option>',
+      '<option value="lifestyle">lifestyle</option>',
+      '<option value="programming">programming</option>',
+      '<option value="spiritual">spiritual</option></select>'].join("\n"),
+      select(:post, :category, ["lifestyle", "programming", "spiritual"], { selected: "", disabled: "", prompt: "Choose one" }, { required: true })
     )
   end
 

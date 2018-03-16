@@ -32,7 +32,7 @@ module ActionDispatch
         end
 
         def name
-          left.tr "*:", ""
+          -left.tr("*:", "")
         end
 
         def type
@@ -82,7 +82,7 @@ module ActionDispatch
         def initialize(left)
           super
           @regexp = DEFAULT_EXP
-          @name = left.tr "*:", ""
+          @name = -left.tr("*:", "")
         end
 
         def default_regexp?

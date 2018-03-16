@@ -67,30 +67,8 @@ module ActiveRecord
         end
       end
 
-      # base is the base class on which operation is taking place.
-      # associations is the list of associations which are joined using hash, symbol or array.
-      # joins is the list of all string join commands and arel nodes.
-      #
-      #  Example :
-      #
-      #  class Physician < ActiveRecord::Base
-      #    has_many :appointments
-      #    has_many :patients, through: :appointments
-      #  end
-      #
-      #  If I execute `@physician.patients.to_a` then
-      #    base # => Physician
-      #    associations # => []
-      #    joins # =>  [#<Arel::Nodes::InnerJoin: ...]
-      #
-      #  However if I execute `Physician.joins(:appointments).to_a` then
-      #    base # => Physician
-      #    associations # => [:appointments]
-      #    joins # =>  []
-      #
-      def initialize(base, table, associations, alias_tracker, eager_loading: true)
+      def initialize(base, table, associations, alias_tracker)
         @alias_tracker = alias_tracker
-        @eager_loading = eager_loading
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
         @join_root.children.each { |child| construct_tables! @join_root, child }
@@ -221,12 +199,11 @@ module ActiveRecord
             reflection.check_eager_loadable!
 
             if reflection.polymorphic?
-              next unless @eager_loading
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
             JoinAssociation.new(reflection, build(right, reflection.klass), alias_tracker)
-          end.compact
+          end
         end
 
         def construct(ar_parent, parent, row, rs, seen, model_cache, aliases)

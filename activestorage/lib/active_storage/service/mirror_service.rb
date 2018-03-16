@@ -9,7 +9,7 @@ module ActiveStorage
   class Service::MirrorService < Service
     attr_reader :primary, :mirrors
 
-    delegate :download, :exist?, :url, to: :primary
+    delegate :download, :download_chunk, :exist?, :url, to: :primary
 
     # Stitch together from named services.
     def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:

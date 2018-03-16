@@ -23,7 +23,7 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
     end
 
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ ? # [ ])
-    hex = unsafe.map { |char| "%" + char.unpack("H2").first.upcase }
+    hex = unsafe.map { |char| "%" + char.unpack1("H2").upcase }
 
     @segment = "#{safe.join}#{unsafe.join}"
     @escaped = "#{safe.join}#{hex.join}"
@@ -676,7 +676,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     token = "\321\202\320\265\320\272\321\201\321\202".dup # 'text' in Russian
     token.force_encoding(Encoding::BINARY)
-    escaped_token = CGI::escape(token)
+    escaped_token = CGI.escape(token)
 
     assert_equal "/page/" + escaped_token, url_for(rs, controller: "content", action: "show_page", id: token)
     assert_equal({ controller: "content", action: "show_page", id: token }, rs.recognize_path("/page/#{escaped_token}"))

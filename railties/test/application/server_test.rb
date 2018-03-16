@@ -29,7 +29,7 @@ module ApplicationTests
       server.app
 
       log = File.read(Rails.application.config.paths["log"].first)
-      assert_match(/DEPRECATION WARNING: Use `Rails::Application` subclass to start the server is deprecated/, log)
+      assert_match(/DEPRECATION WARNING: Using `Rails::Application` subclass to start the server is deprecated/, log)
     end
 
     test "restart rails server with custom pid file path" do

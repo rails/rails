@@ -54,10 +54,10 @@ module ActiveRecord
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Migrator.current_environment
-          stored  = ActiveRecord::Migrator.last_stored_environment
+          current = ActiveRecord::Base.connection.migration_context.current_environment
+          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
-          if ActiveRecord::Migrator.protected_environment?
+          if ActiveRecord::Base.connection.migration_context.protected_environment?
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
@@ -117,9 +117,9 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).create
-        $stdout.puts "Created database '#{configuration['database']}'"
+        $stdout.puts "Created database '#{configuration['database']}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{configuration['database']}' already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -144,7 +144,7 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).drop
-        $stdout.puts "Dropped database '#{configuration['database']}'"
+        $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
@@ -166,10 +166,9 @@ module ActiveRecord
       def migrate
         check_target_version
 
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
         scope = ENV["SCOPE"]
-        verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, target_version) do |migration|
+        verbose_was, Migration.verbose = Migration.verbose, verbose?
+        Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
@@ -297,6 +296,9 @@ module ActiveRecord
       end
 
       private
+        def verbose?
+          ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
 
         def class_for_adapter(adapter)
           _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }

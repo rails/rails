@@ -276,7 +276,7 @@ class GuestsCleanupJob < ApplicationJob
   end
 
   private
-    def around_cleanup(job)
+    def around_cleanup
       # Do something before perform
       yield
       # Do something after perform
@@ -339,8 +339,23 @@ UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 
-GlobalID
---------
+Supported types for arguments
+----------------------------
+
+ActiveJob supports the following types of arguments by default:
+
+  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
+  - `Symbol`
+  - `Date`
+  - `Time`
+  - `DateTime`
+  - `ActiveSupport::TimeWithZone`
+  - `ActiveSupport::Duration`
+  - `Hash` (Keys should be of `String` or `Symbol` type)
+  - `ActiveSupport::HashWithIndifferentAccess`
+  - `Array`
+
+### GlobalID
 
 Active Job supports GlobalID for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
@@ -368,6 +383,39 @@ end
 This works with any class that mixes in `GlobalID::Identification`, which
 by default has been mixed into Active Record classes.
 
+### Serializers
+
+You can extend the list of supported argument types. You just need to define your own serializer:
+
+```ruby
+class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+  # Checks if an argument should be serialized by this serializer.
+  def serialize?(argument)
+    argument.is_a? Money
+  end
+
+  # Converts an object to a simpler representative using supported object types.
+  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
+  # You should call `super` to add the custom serializer type to the hash.
+  def serialize(money)
+    super(
+      "amount" => money.amount,
+      "currency" => money.currency
+    )
+  end
+
+  # Converts serialized value into a proper object.
+  def deserialize(hash)
+    Money.new(hash["amount"], hash["currency"])
+  end
+end
+```
+
+and add this serializer to the list:
+
+```ruby
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
 
 Exceptions
 ----------

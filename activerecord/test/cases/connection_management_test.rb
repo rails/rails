@@ -27,7 +27,7 @@ module ActiveRecord
 
         # make sure we have an active connection
         assert ActiveRecord::Base.connection
-        assert ActiveRecord::Base.connection_handler.active_connections?
+        assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
       end
 
       def test_app_delegation
@@ -47,14 +47,14 @@ module ActiveRecord
       def test_connections_are_cleared_after_body_close
         _, _, body = @management.call(@env)
         body.close
-        assert !ActiveRecord::Base.connection_handler.active_connections?
+        assert_not_predicate ActiveRecord::Base.connection_handler, :active_connections?
       end
 
       def test_active_connections_are_not_cleared_on_body_close_during_transaction
         ActiveRecord::Base.transaction do
           _, _, body = @management.call(@env)
           body.close
-          assert ActiveRecord::Base.connection_handler.active_connections?
+          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
         end
       end
 
@@ -62,7 +62,7 @@ module ActiveRecord
         app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
         explosive = middleware(app)
         assert_raises(NotImplementedError) { explosive.call(@env) }
-        assert !ActiveRecord::Base.connection_handler.active_connections?
+        assert_not_predicate ActiveRecord::Base.connection_handler, :active_connections?
       end
 
       def test_connections_not_closed_if_exception_inside_transaction
@@ -70,14 +70,14 @@ module ActiveRecord
           app               = Class.new(App) { def call(env); raise RuntimeError; end }.new
           explosive         = middleware(app)
           assert_raises(RuntimeError) { explosive.call(@env) }
-          assert ActiveRecord::Base.connection_handler.active_connections?
+          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
         end
       end
 
       test "doesn't clear active connections when running in a test case" do
         executor.wrap do
           @management.call(@env)
-          assert ActiveRecord::Base.connection_handler.active_connections?
+          assert_predicate ActiveRecord::Base.connection_handler, :active_connections?
         end
       end
 
@@ -85,7 +85,7 @@ module ActiveRecord
         body = Class.new(String) { def to_path; "/path"; end }.new
         app = lambda { |_| [200, {}, body] }
         response_body = middleware(app).call(@env)[2]
-        assert response_body.respond_to?(:to_path)
+        assert_respond_to response_body, :to_path
         assert_equal "/path", response_body.to_path
       end
 

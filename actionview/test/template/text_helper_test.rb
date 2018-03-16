@@ -19,12 +19,12 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_simple_format_should_be_html_safe
-    assert simple_format("<b> test with html tags </b>").html_safe?
+    assert_predicate simple_format("<b> test with html tags </b>"), :html_safe?
   end
 
   def test_simple_format_included_in_isolation
     helper_klass = Class.new { include ActionView::Helpers::TextHelper }
-    assert helper_klass.new.simple_format("<b> test with html tags </b>").html_safe?
+    assert_predicate helper_klass.new.simple_format("<b> test with html tags </b>"), :html_safe?
   end
 
   def test_simple_format
@@ -123,7 +123,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_truncate_should_be_html_safe
-    assert truncate("Hello World!", length: 12).html_safe?
+    assert_predicate truncate("Hello World!", length: 12), :html_safe?
   end
 
   def test_truncate_should_escape_the_input
@@ -136,12 +136,12 @@ class TextHelperTest < ActionView::TestCase
 
   def test_truncate_with_escape_false_should_be_html_safe
     truncated = truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_be_html_safe
     truncated = truncate("Here's a long test and I need a continue to read link", length: 27) { link_to "Continue", "#" }
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_escape_the_input
@@ -156,7 +156,7 @@ class TextHelperTest < ActionView::TestCase
 
   def test_truncate_with_block_with_escape_false_should_be_html_safe
     truncated = truncate("<script>code!</script>Here's a long test and I need a continue to read link", length: 27, escape: false) { link_to "Continue", "#" }
-    assert truncated.html_safe?
+    assert_predicate truncated, :html_safe?
   end
 
   def test_truncate_with_block_should_escape_the_block
@@ -165,7 +165,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_highlight_should_be_html_safe
-    assert highlight("This is a beautiful morning", "beautiful").html_safe?
+    assert_predicate highlight("This is a beautiful morning", "beautiful"), :html_safe?
   end
 
   def test_highlight
@@ -297,7 +297,7 @@ class TextHelperTest < ActionView::TestCase
   end
 
   def test_excerpt_should_not_be_html_safe
-    assert !excerpt("This is a beautiful! morning", "beautiful", radius: 5).html_safe?
+    assert_not_predicate excerpt("This is a beautiful! morning", "beautiful", radius: 5), :html_safe?
   end
 
   def test_excerpt_in_borderline_cases

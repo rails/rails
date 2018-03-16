@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.4
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -24,6 +24,9 @@ Layout/CaseIndentation:
 
 # Align comments with method definitions.
 Layout/CommentIndentation:
+  Enabled: true
+
+Layout/ElseAlignment:
   Enabled: true
 
 Layout/EmptyLineAfterMagicComment:
@@ -140,6 +143,7 @@ Style/UnneededPercentQ:
 Lint/EndAlignment:
   Enabled: true
   EnforcedStyleAlignWith: variable
+  AutoCorrect: true
 
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
@@ -152,3 +156,7 @@ Style/RedundantReturn:
 Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
+
+# Prefer Foo.method over Foo::method
+Style/ColonMethodCall:
+  Enabled: true

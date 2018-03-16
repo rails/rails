@@ -611,7 +611,7 @@ module ActionDispatch
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<-MSG.strip_heredoc unless path
+          raise ArgumentError, <<~MSG unless path
             Must be called with mount point
 
               mount SomeRackApp, at: "some_route"
@@ -1573,7 +1573,7 @@ module ActionDispatch
         # Matches a URL pattern to one or more routes.
         # For more information, see match[rdoc-ref:Base#match].
         #
-        #   match 'path' => 'controller#action', via: patch
+        #   match 'path' => 'controller#action', via: :patch
         #   match 'path', to: 'controller#action', via: :post
         #   match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest, &block)
@@ -2082,9 +2082,9 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
         #   end
         #
-        # In this instance the +params+ object comes from the context in which the the
+        # In this instance the +params+ object comes from the context in which the
         # block is executed, e.g. generating a URL inside a controller action or a view.
-        # If the block is executed where there isn't a params object such as this:
+        # If the block is executed where there isn't a +params+ object such as this:
         #
         #   Rails.application.routes.url_helpers.browse_path
         #

@@ -30,7 +30,7 @@ module ActionDispatch
     private
       def make_request_id(request_id)
         if request_id.presence
-          request_id.gsub(/[^\w\-]/, "").first(255)
+          request_id.gsub(/[^\w\-@]/, "").first(255)
         else
           internal_request_id
         end

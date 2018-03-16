@@ -3,7 +3,8 @@
 require "rails"
 require "active_storage"
 
-require "active_storage/previewer/pdf_previewer"
+require "active_storage/previewer/poppler_pdf_previewer"
+require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
@@ -14,10 +15,29 @@ module ActiveStorage
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
-    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
-    config.active_storage.variable_content_types = [ "image/png", "image/gif", "image/jpg", "image/jpeg", "image/vnd.adobe.photoshop" ]
+
+    config.active_storage.variable_content_types = %w(
+      image/png
+      image/gif
+      image/jpg
+      image/jpeg
+      image/vnd.adobe.photoshop
+      image/vnd.microsoft.icon
+    )
+
+    config.active_storage.content_types_to_serve_as_binary = %w(
+      text/html
+      text/javascript
+      image/svg+xml
+      application/postscript
+      application/x-shockwave-flash
+      text/xml
+      application/xml
+      application/xhtml+xml
+    )
 
     config.eager_load_namespaces << ActiveStorage
 
@@ -28,7 +48,9 @@ module ActiveStorage
         ActiveStorage.previewers = app.config.active_storage.previewers || []
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
         ActiveStorage.paths      = app.config.active_storage.paths || {}
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
       end
     end
 
@@ -47,7 +69,7 @@ module ActiveStorage
     end
 
     initializer "active_storage.services" do
-      config.to_prepare do
+      ActiveSupport.on_load(:active_storage_blob) do
         if config_choice = Rails.configuration.active_storage.service
           configs = Rails.configuration.active_storage.service_configurations ||= begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))

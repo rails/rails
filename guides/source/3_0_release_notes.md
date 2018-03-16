@@ -213,7 +213,7 @@ Railties now deprecates:
 More information:
 
 * [Discovering Rails 3 generators](http://blog.plataformatec.com.br/2010/01/discovering-rails-3-generators)
-* [The Rails Module (in Rails 3)](http://litanyagainstfear.com/blog/2010/02/03/the-rails-module/)
+* [The Rails Module (in Rails 3)](http://quaran.to/blog/2010/02/03/the-rails-module/)
 
 Action Pack
 -----------

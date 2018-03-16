@@ -158,13 +158,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_only_call_after_commit_on_top_level_transactions
     @first.after_commit_block { |r| r.history << :after_commit }
-    assert @first.history.empty?
+    assert_empty @first.history
 
     @first.transaction do
       @first.transaction(requires_new: true) do
         @first.touch
       end
-      assert @first.history.empty?
+      assert_empty @first.history
     end
     assert_equal [:after_commit], @first.history
   end
@@ -394,6 +394,28 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     end
 end
 
+class TransactionAfterCommitCallbacksWithOptimisticLockingTest < ActiveRecord::TestCase
+  class PersonWithCallbacks < ActiveRecord::Base
+    self.table_name = :people
+
+    after_create_commit { |record| record.history << :commit_on_create }
+    after_update_commit { |record| record.history << :commit_on_update }
+    after_destroy_commit { |record| record.history << :commit_on_destroy }
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def test_after_commit_callbacks_with_optimistic_locking
+    person = PersonWithCallbacks.create!(first_name: "first name")
+    person.update!(first_name: "another name")
+    person.destroy
+
+    assert_equal [:commit_on_create, :commit_on_update, :commit_on_destroy], person.history
+  end
+end
+
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false
 
@@ -518,7 +540,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.content = "foo"
       @topic.save!
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_commit_run_transactions_callbacks_with_explicit_enrollment
@@ -538,7 +560,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.save!
       raise ActiveRecord::Rollback
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_rollback_run_transactions_callbacks_with_explicit_enrollment

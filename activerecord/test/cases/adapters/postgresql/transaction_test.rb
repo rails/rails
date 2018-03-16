@@ -14,7 +14,7 @@ module ActiveRecord
 
     setup do
       @abort, Thread.abort_on_exception = Thread.abort_on_exception, false
-      Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception if Thread.respond_to?(:report_on_exception)
+      Thread.report_on_exception, @original_report_on_exception = false, Thread.report_on_exception
 
       @connection = ActiveRecord::Base.connection
 
@@ -32,7 +32,7 @@ module ActiveRecord
       @connection.drop_table "samples", if_exists: true
 
       Thread.abort_on_exception = @abort
-      Thread.report_on_exception = @original_report_on_exception if Thread.respond_to?(:report_on_exception)
+      Thread.report_on_exception = @original_report_on_exception
     end
 
     test "raises SerializationFailure when a serialization failure occurs" do
@@ -76,7 +76,7 @@ module ActiveRecord
             Sample.transaction do
               s1.lock!
               barrier.wait
-              s2.update_attributes value: 1
+              s2.update value: 1
             end
           end
 
@@ -84,7 +84,7 @@ module ActiveRecord
             Sample.transaction do
               s2.lock!
               barrier.wait
-              s1.update_attributes value: 2
+              s1.update value: 2
             end
           ensure
             thread.join

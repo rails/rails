@@ -113,6 +113,16 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
+  def test_fetch_multi_without_expires_in
+    @cache.write("foo", "bar")
+    @cache.write("fud", "biz")
+
+    values = @cache.fetch_multi("foo", "fu", "fud", expires_in: nil) { |value| value * 2 }
+
+    assert_equal({ "foo" => "bar", "fu" => "fufu", "fud" => "biz" }, values)
+    assert_equal("fufu", @cache.read("fu"))
+  end
+
   def test_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")
@@ -309,8 +319,7 @@ module CacheStoreBehavior
   end
 
   def test_really_long_keys
-    key = "".dup
-    900.times { key << "x" }
+    key = "x" * 2048
     assert @cache.write(key, "bar")
     assert_equal "bar", @cache.read(key)
     assert_equal "bar", @cache.fetch(key)

@@ -43,9 +43,21 @@ module ActiveStorage
       #
       # The output tempfile is opened in the directory returned by ActiveStorage::Downloading#tempdir.
       def draw(*argv) #:doc:
-        Tempfile.open("ActiveStorage", tempdir) do |file|
-          capture(*argv, to: file)
-          yield file
+        ActiveSupport::Notifications.instrument("preview.active_storage") do
+          open_tempfile_for_drawing do |file|
+            capture(*argv, to: file)
+            yield file
+          end
+        end
+      end
+
+      def open_tempfile_for_drawing
+        tempfile = Tempfile.open("ActiveStorage", tempdir)
+
+        begin
+          yield tempfile
+        ensure
+          tempfile.close!
         end
       end
 

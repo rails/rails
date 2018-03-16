@@ -140,6 +140,7 @@ module ActiveRecord
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running."
+    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock"
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -550,7 +551,7 @@ module ActiveRecord
       end
 
       def call(env)
-        mtime = ActiveRecord::Migrator.last_migration.mtime.to_i
+        mtime = ActiveRecord::Base.connection.migration_context.last_migration.mtime.to_i
         if @last_check < mtime
           ActiveRecord::Migration.check_pending!(connection)
           @last_check = mtime
@@ -575,11 +576,11 @@ module ActiveRecord
 
       # Raises <tt>ActiveRecord::PendingMigrationError</tt> error if any migrations are pending.
       def check_pending!(connection = Base.connection)
-        raise ActiveRecord::PendingMigrationError if ActiveRecord::Migrator.needs_migration?(connection)
+        raise ActiveRecord::PendingMigrationError if connection.migration_context.needs_migration?
       end
 
       def load_schema_if_pending!
-        if ActiveRecord::Migrator.needs_migration? || !ActiveRecord::Migrator.any_migrations?
+        if Base.connection.migration_context.needs_migration? || !Base.connection.migration_context.any_migrations?
           # Roundtrip to Rake to allow plugins to hook into database initialization.
           root = defined?(ENGINE_ROOT) ? ENGINE_ROOT : Rails.root
           FileUtils.cd(root) do
@@ -876,10 +877,10 @@ module ActiveRecord
 
       FileUtils.mkdir_p(destination) unless File.exist?(destination)
 
-      destination_migrations = ActiveRecord::Migrator.migrations(destination)
+      destination_migrations = ActiveRecord::MigrationContext.new(destination).migrations
       last = destination_migrations.last
       sources.each do |scope, path|
-        source_migrations = ActiveRecord::Migrator.migrations(path)
+        source_migrations = ActiveRecord::MigrationContext.new(path).migrations
 
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
@@ -997,132 +998,147 @@ module ActiveRecord
     end
   end
 
-  class Migrator#:nodoc:
-    class << self
-      attr_writer :migrations_paths
-      alias :migrations_path= :migrations_paths=
+  class MigrationContext # :nodoc:
+    attr_reader :migrations_paths
 
-      def migrate(migrations_paths, target_version = nil, &block)
-        case
-        when target_version.nil?
-          up(migrations_paths, target_version, &block)
-        when current_version == 0 && target_version == 0
-          []
-        when current_version > target_version
-          down(migrations_paths, target_version, &block)
-        else
-          up(migrations_paths, target_version, &block)
-        end
+    def initialize(migrations_paths)
+      @migrations_paths = migrations_paths
+    end
+
+    def migrate(target_version = nil, &block)
+      case
+      when target_version.nil?
+        up(target_version, &block)
+      when current_version == 0 && target_version == 0
+        []
+      when current_version > target_version
+        down(target_version, &block)
+      else
+        up(target_version, &block)
+      end
+    end
+
+    def rollback(steps = 1)
+      move(:down, steps)
+    end
+
+    def forward(steps = 1)
+      move(:up, steps)
+    end
+
+    def up(target_version = nil)
+      selected_migrations = if block_given?
+        migrations.select { |m| yield m }
+      else
+        migrations
       end
 
-      def rollback(migrations_paths, steps = 1)
-        move(:down, migrations_paths, steps)
+      Migrator.new(:up, selected_migrations, target_version).migrate
+    end
+
+    def down(target_version = nil)
+      selected_migrations = if block_given?
+        migrations.select { |m| yield m }
+      else
+        migrations
       end
 
-      def forward(migrations_paths, steps = 1)
-        move(:up, migrations_paths, steps)
+      Migrator.new(:down, selected_migrations, target_version).migrate
+    end
+
+    def run(direction, target_version)
+      Migrator.new(direction, migrations, target_version).run
+    end
+
+    def open
+      Migrator.new(:up, migrations, nil)
+    end
+
+    def get_all_versions
+      if SchemaMigration.table_exists?
+        SchemaMigration.all_versions.map(&:to_i)
+      else
+        []
+      end
+    end
+
+    def current_version
+      get_all_versions.max || 0
+    rescue ActiveRecord::NoDatabaseError
+    end
+
+    def needs_migration?
+      (migrations.collect(&:version) - get_all_versions).size > 0
+    end
+
+    def any_migrations?
+      migrations.any?
+    end
+
+    def last_migration #:nodoc:
+      migrations.last || NullMigration.new
+    end
+
+    def parse_migration_filename(filename) # :nodoc:
+      File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
+    end
+
+    def migrations
+      migrations = migration_files.map do |file|
+        version, name, scope = parse_migration_filename(file)
+        raise IllegalMigrationNameError.new(file) unless version
+        version = version.to_i
+        name = name.camelize
+
+        MigrationProxy.new(name, version, file, scope)
       end
 
-      def up(migrations_paths, target_version = nil)
-        migrations = migrations(migrations_paths)
-        migrations.select! { |m| yield m } if block_given?
+      migrations.sort_by(&:version)
+    end
 
-        new(:up, migrations, target_version).migrate
+    def migrations_status
+      db_list = ActiveRecord::SchemaMigration.normalized_versions
+
+      file_list = migration_files.map do |file|
+        version, name, scope = parse_migration_filename(file)
+        raise IllegalMigrationNameError.new(file) unless version
+        version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
+        status = db_list.delete(version) ? "up" : "down"
+        [status, version, (name + scope).humanize]
+      end.compact
+
+      db_list.map! do |version|
+        ["up", version, "********** NO FILE **********"]
       end
 
-      def down(migrations_paths, target_version = nil)
-        migrations = migrations(migrations_paths)
-        migrations.select! { |m| yield m } if block_given?
+      (db_list + file_list).sort_by { |_, version, _| version }
+    end
 
-        new(:down, migrations, target_version).migrate
-      end
+    def migration_files
+      paths = Array(migrations_paths)
+      Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
+    end
 
-      def run(direction, migrations_paths, target_version)
-        new(direction, migrations(migrations_paths), target_version).run
-      end
+    def current_environment
+      ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+    end
 
-      def open(migrations_paths)
-        new(:up, migrations(migrations_paths), nil)
-      end
+    def protected_environment?
+      ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
+    end
 
-      def get_all_versions
-        if SchemaMigration.table_exists?
-          SchemaMigration.all_versions.map(&:to_i)
-        else
-          []
-        end
-      end
+    def last_stored_environment
+      return nil if current_version == 0
+      raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
 
-      def current_version(connection = nil)
-        get_all_versions.max || 0
-      rescue ActiveRecord::NoDatabaseError
-      end
+      environment = ActiveRecord::InternalMetadata[:environment]
+      raise NoEnvironmentInSchemaError unless environment
+      environment
+    end
 
-      def needs_migration?(connection = nil)
-        (migrations(migrations_paths).collect(&:version) - get_all_versions).size > 0
-      end
-
-      def any_migrations?
-        migrations(migrations_paths).any?
-      end
-
-      def last_migration #:nodoc:
-        migrations(migrations_paths).last || NullMigration.new
-      end
-
-      def migrations_paths
-        @migrations_paths ||= ["db/migrate"]
-        # just to not break things if someone uses: migrations_path = some_string
-        Array(@migrations_paths)
-      end
-
-      def parse_migration_filename(filename) # :nodoc:
-        File.basename(filename).scan(Migration::MigrationFilenameRegexp).first
-      end
-
-      def migrations(paths)
-        paths = Array(paths)
-
-        migrations = migration_files(paths).map do |file|
-          version, name, scope = parse_migration_filename(file)
-          raise IllegalMigrationNameError.new(file) unless version
-          version = version.to_i
-          name = name.camelize
-
-          MigrationProxy.new(name, version, file, scope)
-        end
-
-        migrations.sort_by(&:version)
-      end
-
-      def migrations_status(paths)
-        paths = Array(paths)
-
-        db_list = ActiveRecord::SchemaMigration.normalized_versions
-
-        file_list = migration_files(paths).map do |file|
-          version, name, scope = parse_migration_filename(file)
-          raise IllegalMigrationNameError.new(file) unless version
-          version = ActiveRecord::SchemaMigration.normalize_migration_number(version)
-          status = db_list.delete(version) ? "up" : "down"
-          [status, version, (name + scope).humanize]
-        end.compact
-
-        db_list.map! do |version|
-          ["up", version, "********** NO FILE **********"]
-        end
-
-        (db_list + file_list).sort_by { |_, version, _| version }
-      end
-
-      def migration_files(paths)
-        Dir[*paths.flat_map { |path| "#{path}/**/[0-9]*_*.rb" }]
-      end
-
-      private
-
-      def move(direction, migrations_paths, steps)
-        migrator = new(direction, migrations(migrations_paths))
+    private
+      def move(direction, steps)
+        migrator = Migrator.new(direction, migrations)
 
         if current_version != 0 && !migrator.current_migration
           raise UnknownMigrationVersionError.new(current_version)
@@ -1137,9 +1153,28 @@ module ActiveRecord
 
         finish = migrator.migrations[start_index + steps]
         version = finish ? finish.version : 0
-        send(direction, migrations_paths, version)
+        send(direction, version)
+      end
+  end
+
+  class Migrator # :nodoc:
+    class << self
+      attr_accessor :migrations_paths
+
+      def migrations_path=(path)
+        ActiveSupport::Deprecation.warn \
+          "ActiveRecord::Migrator.migrations_paths= is now deprecated and will be removed in Rails 6.0." \
+          "You can set the `migrations_paths` on the `connection` instead through the `database.yml`."
+        self.migrations_paths = [path]
+      end
+
+      # For cases where a table doesn't exist like loading from schema cache
+      def current_version
+        MigrationContext.new(migrations_paths).current_version
       end
     end
+
+    self.migrations_paths = ["db/migrate"]
 
     def initialize(direction, migrations, target_version = nil)
       @direction         = direction
@@ -1203,7 +1238,7 @@ module ActiveRecord
     end
 
     def load_migrated
-      @migrated_versions = Set.new(self.class.get_all_versions)
+      @migrated_versions = Set.new(Base.connection.migration_context.get_all_versions)
     end
 
     private
@@ -1235,7 +1270,7 @@ module ActiveRecord
       # Stores the current environment in the database.
       def record_environment
         return if down?
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
+        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Base.connection.migration_context.current_environment
       end
 
       def ran?(migration)
@@ -1294,23 +1329,6 @@ module ActiveRecord
         end
       end
 
-      def self.last_stored_environment
-        return nil if current_version == 0
-        raise NoEnvironmentInSchemaError unless ActiveRecord::InternalMetadata.table_exists?
-
-        environment = ActiveRecord::InternalMetadata[:environment]
-        raise NoEnvironmentInSchemaError unless environment
-        environment
-      end
-
-      def self.current_environment
-        ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
-      end
-
-      def self.protected_environment?
-        ActiveRecord::Base.protected_environments.include?(last_stored_environment) if last_stored_environment
-      end
-
       def up?
         @direction == :up
       end
@@ -1338,12 +1356,17 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        got_lock = Base.connection.get_advisory_lock(lock_id)
+        connection = Base.connection
+        got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
         load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
         yield
       ensure
-        Base.connection.release_advisory_lock(lock_id) if got_lock
+        if got_lock && !connection.release_advisory_lock(lock_id)
+          raise ConcurrentMigrationError.new(
+            ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
+          )
+        end
       end
 
       MIGRATOR_SALT = 2053462845

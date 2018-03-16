@@ -350,7 +350,7 @@ module ActiveSupport
         when 1; "st"
         when 2; "nd"
         when 3; "rd"
-          else    "th"
+        else    "th"
         end
       end
     end

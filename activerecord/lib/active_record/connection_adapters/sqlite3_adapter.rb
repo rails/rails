@@ -101,7 +101,7 @@ module ActiveRecord
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
         configure_connection
@@ -144,7 +144,7 @@ module ActiveRecord
       end
 
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -367,8 +367,22 @@ module ActiveRecord
       end
 
       def insert_fixtures(rows, table_name)
-        rows.each do |row|
-          insert_fixture(row, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
+      end
+
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+
+            fixture_set.each do |table_name, rows|
+              rows.each { |row| insert_fixture(row, table_name) }
+            end
+          end
         end
       end
 
