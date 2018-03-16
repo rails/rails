@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "aws-sdk-core"
 require "aws-sdk-s3"
 require "active_support/core_ext/numeric/bytes"
 
@@ -9,8 +10,8 @@ module ActiveStorage
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
-    def initialize(access_key_id:, secret_access_key:, region:, bucket:, upload: {}, **options)
-      @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region, **options)
+    def initialize(access_key_id: nil, secret_access_key: nil, region:, bucket:, upload: {}, **options)
+      @client = Aws::S3::Resource.new(credentials: credentials(access_key_id, secret_access_key), region: region, **options)
       @bucket = @client.bucket(bucket)
 
       @upload_options = upload
@@ -92,6 +93,15 @@ module ActiveStorage
     end
 
     private
+
+      def credentials(access_key_id, secret_access_key)
+        if access_key_id && secret_access_key
+          Aws::Credentials.new(access_key_id, secret_access_key)
+        else
+          Aws::CredentialProviderChain.new.resolve
+        end
+      end
+
       def object_for(key)
         bucket.object(key)
       end
