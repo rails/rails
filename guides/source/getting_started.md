@@ -1125,7 +1125,7 @@ TIP: Rails automatically wraps fields that contain an error with a div
 with class `field_with_errors`. You can define a CSS rule to make them
 standout.
 
-Now you'll get a nice error message when saving an article without title when
+Now you'll get a nice error message when saving an article without a title when
 you attempt to do just that on the new article form
 <http://localhost:3000/articles/new>:
 
@@ -1522,7 +1522,7 @@ comments on articles.
 ### Generating a Model
 
 We're going to see the same generator that we used before when creating
-the `Article` model. This time we'll create a `Comment` model to hold
+the `Article` model. This time we'll create a `Comment` model to hold a
 reference to an article. Run this command in your terminal:
 
 ```bash
@@ -1857,7 +1857,7 @@ This will now render the partial in `app/views/comments/_comment.html.erb` once
 for each comment that is in the `@article.comments` collection. As the `render`
 method iterates over the `@article.comments` collection, it assigns each
 comment to a local variable named the same as the partial, in this case
-`comment` which is then available in the partial for us to show.
+`comment`, which is then available in the partial for us to show.
 
 ### Rendering a Partial Form
 
@@ -2060,7 +2060,7 @@ What's Next?
 Now that you've seen your first Rails application, you should feel free to
 update it and experiment on your own.
 
-Remember you don't have to do everything without help. As you need assistance
+Remember, you don't have to do everything without help. As you need assistance
 getting up and running with Rails, feel free to consult these support
 resources:
 
