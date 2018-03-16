@@ -274,10 +274,15 @@ db_namespace = namespace :db do
     desc "Creates a db/schema.rb file that is portable against any DB supported by Active Record"
     task dump: :load_config do
       require "active_record/schema_dumper"
-      filename = ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "schema.rb")
-      File.open(filename, "w:utf-8") do |file|
-        ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+
+      ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :ruby)
+        File.open(filename, "w:utf-8") do |file|
+          ActiveRecord::Base.establish_connection(config)
+          ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, file)
+        end
       end
+
       db_namespace["schema:dump"].reenable
     end
 
@@ -304,22 +309,25 @@ db_namespace = namespace :db do
         rm_f filename, verbose: false
       end
     end
-
   end
 
   namespace :structure do
     desc "Dumps the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
     task dump: :load_config do
-      filename = ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, "structure.sql")
-      current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
+      ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+        ActiveRecord::Base.establish_connection(config)
+        filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :sql)
+        current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
 
-      if ActiveRecord::SchemaMigration.table_exists?
-        File.open(filename, "a") do |f|
-          f.puts ActiveRecord::Base.connection.dump_schema_information
-          f.print "\n"
+        if ActiveRecord::SchemaMigration.table_exists?
+          File.open(filename, "a") do |f|
+            f.puts ActiveRecord::Base.connection.dump_schema_information
+            f.print "\n"
+          end
         end
       end
+
       db_namespace["structure:dump"].reenable
     end
 

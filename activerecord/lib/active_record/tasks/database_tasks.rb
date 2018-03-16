@@ -252,12 +252,26 @@ module ActiveRecord
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
+        File.join(db_dir, schema_file_type(format))
+      end
+
+      def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby
-          File.join(db_dir, "schema.rb")
+          "schema.rb"
         when :sql
-          File.join(db_dir, "structure.sql")
+          "structure.sql"
         end
+      end
+
+      def dump_filename(namespace, format = ActiveRecord::Base.schema_format)
+        filename = if namespace == "primary"
+          schema_file_type(format)
+        else
+          "#{namespace}_#{schema_file_type(format)}"
+        end
+
+        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
       end
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
