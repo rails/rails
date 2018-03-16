@@ -221,7 +221,76 @@ module ActiveRecord
       ENV["RAILS_ENV"] = old_env
     end
 
-    def test_establishes_connection_for_the_given_environment
+    def test_establishes_connection_for_the_given_environments
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+
+      ActiveRecord::Base.expects(:establish_connection).with(:development)
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("development")
+      )
+    end
+  end
+
+  class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
+        "production" => { "primary" => { "database" => "prod-db" }, "secondary" => { "database" => "secondary-prod-db" } }
+      }
+
+      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+    end
+
+    def test_creates_current_environment_database
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "prod-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "secondary-prod-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("production")
+      )
+    end
+
+    def test_creates_test_and_development_databases_when_env_was_not_specified
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "secondary-dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "test-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "secondary-test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("development")
+      )
+    end
+
+    def test_creates_test_and_development_databases_when_rails_env_is_development
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "secondary-dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "test-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("database" => "secondary-test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("development")
+      )
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+
+    def test_establishes_connection_for_the_given_environments_config
       ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
 
       ActiveRecord::Base.expects(:establish_connection).with(:development)
@@ -338,6 +407,64 @@ module ActiveRecord
         with("database" => "dev-db")
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
         with("database" => "test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new("development")
+      )
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
+  end
+
+  class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
+    def setup
+      @configurations = {
+        "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
+        "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
+        "production" => { "primary" => { "database" => "prod-db" }, "secondary" => { "database" => "secondary-prod-db" } }
+      }
+
+      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+    end
+
+    def test_drops_current_environment_database
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "prod-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "secondary-prod-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new("production")
+      )
+    end
+
+    def test_drops_test_and_development_databases_when_env_was_not_specified
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "secondary-dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "test-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "secondary-test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new("development")
+      )
+    end
+
+    def test_drops_testand_development_databases_when_rails_env_is_development
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "development"
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "secondary-dev-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "test-db")
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("database" => "secondary-test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("development")
