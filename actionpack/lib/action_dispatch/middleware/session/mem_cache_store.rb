@@ -19,6 +19,8 @@ module ActionDispatch
       include StaleSessionCheck
       include SessionObject
 
+      alias_method :generate_sid_super, :generate_sid
+
       def initialize(app, options = {})
         options[:expire_after] ||= options[:expires]
         super
