@@ -276,12 +276,11 @@ module Rails
           klass.start(args, config)
         else
           options     = sorted_groups.flat_map(&:last)
-          suggestions = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options, count: 3)
-          suggestions.map! { |s| "'#{s}'" }
-          msg =  "Could not find generator '#{namespace}'. ".dup
-          msg << "Maybe you meant #{ suggestions[0...-1].join(', ')} or #{suggestions[-1]}\n"
-          msg << "Run `rails generate --help` for more options."
-          puts msg
+          suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
+          puts <<~MSG
+            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?\n"
+            Run `rails generate --help` for more options."
+          MSG
         end
       end
 
