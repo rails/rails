@@ -736,6 +736,16 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_load_association_with_duplicated_records
+    posts = [Post.first]
+    posts.push(posts.first.dup.tap { |d| d.id = posts.first.id })
+
+    assert_queries(1) do
+      Post.load_associations(posts, :comments)
+      posts.each { |p| assert p.comments.loaded? }
+    end
+  end
+
   def test_load_associations_with_different_types
     records = Author.all.to_a + Post.all.to_a
     assert_queries(3) do

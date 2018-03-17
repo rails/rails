@@ -56,7 +56,7 @@ module ActiveRecord
 
           def owners_by_key
             unless defined?(@owners_by_key)
-              @owners_by_key = owners.each_with_object({}) do |owner, h|
+              @owners_by_key = owners.uniq.each_with_object({}) do |owner, h|
                 key = convert_key(owner[owner_key_name])
                 h[key] = owner if key
               end
