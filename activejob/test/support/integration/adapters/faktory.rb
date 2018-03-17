@@ -35,7 +35,6 @@ module FaktoryJobsManager
 
       logfile = Rails.root.join("log/faktory.log").to_s
       Faktory.logger = Logger.new(logfile)
-      #Faktory::Logging.initialize_logger(logfile)
 
       self_read, self_write = IO.pipe
       trap "TERM" do
@@ -52,7 +51,7 @@ module FaktoryJobsManager
 
       require "faktory/cli"
       require "faktory/launcher"
-      faktory = Faktory::Launcher.new(queues: ["blarf"],
+      faktory = Faktory::Launcher.new(queues: ["integration_tests"],
                                        environment: "test",
                                        concurrency: 1,
                                        timeout: 1)
