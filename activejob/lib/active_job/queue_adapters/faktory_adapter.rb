@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "faktory_worker_ruby"
-require "byebug"
 
 module ActiveJob
   module QueueAdapters
@@ -19,14 +18,13 @@ module ActiveJob
         # Faktory::Client does not support symbols as keys
         jid = SecureRandom.hex(12)
         job.provider_job_id = jid
-        puts "job.queue_name = #{job.queue_name}....................................."
         Faktory::Client.new.push \
           "jid"     => jid,
           "jobtype" => JobWrapper,
-          #"class"   => JobWrapper,
           "custom"  => {
             "wrapped" => job.class.to_s,
           },
+          "priority" => job.priority,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ]
       end
@@ -37,10 +35,10 @@ module ActiveJob
         Faktory::Client.new.push \
           "jid"     => jid,
           "jobtype" => JobWrapper,
-          #"class"   => JobWrapper,
           "custom"  => {
             "wrapped" => job.class.to_s
           },
+          "priority" => job.priority,
           "queue"   => job.queue_name,
           "args"    => [ job.serialize ],
           "at"      => Time.at(timestamp).utc.to_datetime.rfc3339(9)

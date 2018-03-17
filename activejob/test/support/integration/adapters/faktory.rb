@@ -2,9 +2,7 @@
 
 require "faktory_worker_ruby"
 require "faktory/testing"
-require "byebug"
 Faktory::Testing.disable!
-#Faktory.reset_pool
 
 module FaktoryJobsManager
   def setup
@@ -36,7 +34,6 @@ module FaktoryJobsManager
       $stderr.sync = true
 
       logfile = Rails.root.join("log/faktory.log").to_s
-      puts "logfile = #{logfile}"
       Faktory.logger = Logger.new(logfile)
       #Faktory::Logging.initialize_logger(logfile)
 
@@ -59,8 +56,6 @@ module FaktoryJobsManager
                                        environment: "test",
                                        concurrency: 1,
                                        timeout: 1)
-      #Faktory.average_scheduled_poll_interval = 0.5
-      #Faktory.options[:poll_interval_average] = 1
       begin
         faktory.run
         continue_write.puts "started"
@@ -71,7 +66,6 @@ module FaktoryJobsManager
       rescue Interrupt
       end
 
-      puts "about to call faktory.stop"
       faktory.stop
       exit!
     end
