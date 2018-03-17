@@ -25,7 +25,8 @@ task default: %w(test test:isolated)
   desc "Run #{task_name} task for all projects"
   task task_name do
     errors = []
-    FRAMEWORKS.each do |project|
+    FRAMEWORKS.shuffle.each do |project|
+      puts "Running #{project} tests"
       system(%(cd #{project} && #{$0} #{task_name} --trace)) || errors << project
     end
     fail("Errors in #{errors.join(', ')}") unless errors.empty?
