@@ -69,8 +69,8 @@ module ActiveRecord
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0)
 
-          expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getutc.to_s(:db).sub("2000-01-01 ", "")
+          expected = t.getutc.change(year: 2000, month: 1, day: 1)
+          expected = expected.to_s(:db).sub("2000-01-01 ", "")
 
           assert_equal expected, @quoter.quoted_time(t)
         end
