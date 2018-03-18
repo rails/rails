@@ -172,25 +172,15 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
-*   Namespace error pages' CSS selectors to stop the styles from bleeding
-    into other pages when using Turbolinks.
-    ([Pull Request](https://github.com/rails/rails/pull/28814))
-
 *   Added a shared section to `config/database.yml` that will be loaded for
     all environments.
     ([Pull Request](https://github.com/rails/rails/pull/28896))
-
-*   Allow irb options to be passed from `rails console` command.
-    ([Pull Request](https://github.com/rails/rails/pull/29010))
 
 *   Add `railtie.rb` to the plugin generator.
     ([Pull Request](https://github.com/rails/rails/pull/29576))
 
 *   Clear screenshot files in `tmp:clear` task.
     ([Pull Request](https://github.com/rails/rails/pull/29534))
-
-*   Load environment file in `dbconsole` command.
-    ([Pull Request](https://github.com/rails/rails/pull/29725))
 
 *   Skip unused components when running `bin/rails app:update`.
     If the initial app generation skipped Action Cable, Active Record etc.,
@@ -246,18 +236,10 @@ Please refer to the [Changelog][railties] for detailed changes.
 *   Add `mini_magick` to default `Gemfile` as comment.
     ([Pull Request](https://github.com/rails/rails/pull/30633))
 
-*   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
-    ([Pull Request](https://github.com/rails/rails/pull/30748))
-
 *   `rails new` and `rails plugin new` get `Active Storage` by default.
      Add ability to skip `Active Storage` with `--skip-active-storage`
      and do so automatically when `--skip-active-record` is used.
     ([Pull Request](https://github.com/rails/rails/pull/30101))
-
-*   Fix minitest rails plugin.
-    The custom reporters are added only if needed.
-    This will fix conflicts with others plugins.
-    ([Commit](https://github.com/rails/rails/commit/ac99916fcf7bf27bb1519d4f7387c6b4c5f0463d))
 
 Action Cable
 ------------
@@ -277,9 +259,6 @@ Please refer to the [Changelog][action-cable] for detailed changes.
 *   Hash long stream identifiers when using PostgreSQL adapter.
     ([Pull Request](https://github.com/rails/rails/pull/29297))
 
-*   Add support for compatibility with redis-rb gem for 4.0 version.
-    ([Pull Request](https://github.com/rails/rails/pull/30748))
-
 Action Pack
 -----------
 
@@ -298,10 +277,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 
 ### Notable changes
 
-*   Add `action_controller_api` and `action_controller_base` load hooks to be
-    called in `ActiveSupport.on_load`.
-    ([Pull Request](https://github.com/rails/rails/pull/28402))
-
 *   Add support for recyclable cache keys with fragment caching.
     ([Pull Request](https://github.com/rails/rails/pull/29092))
 
@@ -312,17 +287,8 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   AEAD encrypted cookies and sessions with GCM.
     ([Pull Request](https://github.com/rails/rails/pull/28132))
 
-*   `driven_by` now registers poltergeist and capybara-webkit.
-    ([Pull Request](https://github.com/rails/rails/pull/29315))
-
-*   Fallback `ActionController::Parameters#to_s` to `Hash#to_s`.
-    ([Pull Request](https://github.com/rails/rails/pull/29630))
-
 *   Protect from forgery by default.
     ([Pull Request](https://github.com/rails/rails/pull/29742))
-
-*   Make `take_failed_screenshot` work within engine.
-    ([Pull Request](https://github.com/rails/rails/pull/30421))
 
 *   Enforce signed/encrypted cookie expiry server side.
     ([Pull Request](https://github.com/rails/rails/pull/30121))
@@ -352,9 +318,6 @@ Please refer to the [Changelog][action-pack] for detailed changes.
     ([Pull Request](https://github.com/rails/rails/pull/31162),
     [Commit](https://github.com/rails/rails/commit/619b1b6353a65e1635d10b8f8c6630723a5a6f1a),
     [Commit](https://github.com/rails/rails/commit/4ec8bf68ff92f35e79232fbd605012ce1f4e1e6e))
-
-*   Fix optimized url helpers when using relative url root.
-    ([Pull Request](https://github.com/rails/rails/pull/31261))
 
 *   Register most popular audio/video/font mime types supported by modern
     browsers.
@@ -409,20 +372,9 @@ Please refer to the [Changelog][action-view] for detailed changes.
 
 ### Notable changes
 
-*   Update `distance_of_time_in_words` helper to display better error messages
-    for bad input.
-    ([Pull Request](https://github.com/rails/rails/pull/20701))
-
 *   Add `:json` type to `auto_discovery_link_tag` to support
     [JSON Feeds](https://jsonfeed.org/version/1).
     ([Pull Request](https://github.com/rails/rails/pull/29158))
-
-*   Generate field ids in `collection_check_boxes` and
-    `collection_radio_buttons`.
-    ([Pull Request](https://github.com/rails/rails/pull/29412))
-
-*   Fix issues with scopes and engine on `current_page?` method.
-    ([Pull Request](https://github.com/rails/rails/pull/29503))
 
 *   Add `srcset` option to `image_tag` helper.
     ([Pull Request](https://github.com/rails/rails/pull/29349))
@@ -452,10 +404,6 @@ Please refer to the [Changelog][action-mailer] for detailed changes.
 
 *   Add `assert_enqueued_email_with` test helper.
     ([Pull Request](https://github.com/rails/rails/pull/30695))
-
-*   Bring back proc with arity of 1 in `ActionMailer::Base.default` proc
-    since it was supported in Rails 5.0 but not deprecated.
-    ([Pull Request](https://github.com/rails/rails/pull/30391))
 
 Active Record
 -------------
@@ -546,9 +494,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
     when the current migration does not exist.
     ([Commit](https://github.com/rails/rails/commit/bb9d6eb094f29bb94ef1f26aa44f145f17b973fe))
 
-*   Add type caster to `RuntimeReflection#alias_name`.
-    ([Pull Request](https://github.com/rails/rails/pull/28961))
-
 *   Respect `SchemaDumper.ignore_tables` in rake tasks for
     databases structure dump.
     ([Pull Request](https://github.com/rails/rails/pull/29077))
@@ -559,38 +504,15 @@ Please refer to the [Changelog][active-record] for detailed changes.
     does not include a timestamp any more.
     ([Pull Request](https://github.com/rails/rails/pull/29092))
 
-*   Loading model schema from database is now thread-safe.
-    ([Pull Request](https://github.com/rails/rails/pull/29216))
-
 *   Prevent creation of bind param if casted value is nil.
     ([Pull Request](https://github.com/rails/rails/pull/29282))
 
 *   Use bulk INSERT to insert fixtures for better performance.
     ([Pull Request](https://github.com/rails/rails/pull/29504))
 
-*   Fix destroying existing object does not work well when optimistic locking
-    enabled and `locking_column` is null in the database.
-    ([Pull Request](https://github.com/rails/rails/pull/28926))
-
-*   `ActiveRecord::Persistence#touch` does not work well
-    when optimistic locking enabled and `locking_column`,
-    without default value, is null in the database.
-    ([Pull Request](https://github.com/rails/rails/pull/28914))
-
 *   Merging two relations representing nested joins no longer transforms
     the joins of the merged relation into LEFT OUTER JOIN.
     ([Pull Request](https://github.com/rails/rails/pull/27063))
-
-*   Previously, when building records using a `has_many :through` association,
-    if the child records were deleted before the parent was saved,
-    they would still be persisted. Now, if child records are deleted
-    before the parent is saved on a `has_many :through` association,
-    the child records will not be persisted.
-    ([Pull Request](https://github.com/rails/rails/pull/29593))
-
-*   Query cache was unavailable when entering the `ActiveRecord::Base.cache`
-    block without being connected.
-    ([Pull Request](https://github.com/rails/rails/pull/29609))
 
 *   Fix transactions to apply state to child transactions.
     Previously, if you had a nested transaction and the outer transaction was
@@ -617,25 +539,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
     recognize 't' and 'f' as was previously serialized.
     ([Pull Request](https://github.com/rails/rails/pull/29699))
 
-*   `Relation#joins` is no longer affected by the target model's
-    `current_scope`, with the exception of `unscoped`.
-    ([Commit](https://github.com/rails/rails/commit/5c71000d086cc42516934415b79380c2224e1614))
-
 *   Values constructed using multi-parameter assignment will now use the
     post-type-cast value for rendering in single-field form inputs.
     ([Commit](https://github.com/rails/rails/commit/1519e976b224871c7f7dd476351930d5d0d7faf6))
-
-*   Fix `unscoped(where: [columns])` removing the wrong bind values.
-    ([Pull Request](https://github.com/rails/rails/pull/29780))
-
-*   When a `has_one` association is destroyed by `dependent: destroy`,
-    `destroyed_by_association` will now be set to the reflection, matching the
-    behaviour of `has_many` associations.
-    ([Pull Request](https://github.com/rails/rails/pull/29855))
-
-*   Fix `COUNT(DISTINCT ...)` with `ORDER BY` and `LIMIT`
-    to keep the existing select list.
-    ([Pull Request](https://github.com/rails/rails/pull/29848))
 
 *   `ApplicationRecord` is no longer generated when generating models. If you
     need to generate it, it can be created with `rails g application_record`.
@@ -651,9 +557,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Add `binary` fixture helper method.
     ([Pull Request](https://github.com/rails/rails/pull/30073))
-
-*   Ensure `sum` honors `distinct` on `has_many :through` associations.
-    ([Commit](https://github.com/rails/rails/commit/566f1fd068711dfe557bef63406f8dd6d41d473d))
 
 *   Automatically guess the inverse associations for STI.
     ([Pull Request](https://github.com/rails/rails/pull/23425))
@@ -675,19 +578,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   PostgreSQL `tsrange` now preserves subsecond precision.
     ([Pull Request](https://github.com/rails/rails/pull/30725))
-
-*   Fix `COUNT(DISTINCT ...)` for `GROUP BY` with `ORDER BY` and `LIMIT`.
-    ([Commit](https://github.com/rails/rails/commit/5668dc6b1863ef43be8f8ef0fb1d5db913085fb3))
-
-*   MySQL: Don't lose `auto_increment: true` in the `db/schema.rb`.
-    ([Commit](https://github.com/rails/rails/commit/9493d4553569118b2a85da84fd3a8ba2b5b2de76))
-
-*   Fix longer sequence name detection for serial columns.
-    ([Pull Request](https://github.com/rails/rails/pull/28339))
-
-*   Fix `bin/rails db:setup` and `bin/rails db:test:prepare` create wrong
-    ar_internal_metadata's data for a test database.
-    ([Pull Request](https://github.com/rails/rails/pull/30579))
 
 *   Raises when calling `lock!` in a dirty record.
     ([Commit](https://github.com/rails/rails/commit/63cf15877bae859ff7b4ebaf05186f3ca79c1863))
@@ -732,9 +622,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Add support for PostgreSQL operator classes to `add_index`.
     ([Pull Request](https://github.com/rails/rails/pull/19090))
 
-*   Fix conflicts `counter_cache` with `touch: true` by optimistic locking.
-    ([Pull Request](https://github.com/rails/rails/pull/31405))
-
 *   Log database query callers.
     ([Pull Request](https://github.com/rails/rails/pull/26815),
     [Pull Request](https://github.com/rails/rails/pull/31519),
@@ -745,16 +632,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Using subselect for `delete_all` with `limit` or `offset`.
     ([Commit](https://github.com/rails/rails/commit/9e7260da1bdc0770cf4ac547120c85ab93ff3d48))
-
-*   Fix `count(:all)` to correctly work `distinct` with custom SELECT list.
-    ([Commit](https://github.com/rails/rails/commit/c6cd9a59f200863ccfe8ad1d9c5a8876c39b9c5c))
-
-*   Fix to invoke callbacks when using `update_attribute`.
-    ([Commit](https://github.com/rails/rails/commit/732aa34b6e6459ad66a3d3ad107cfff75cc45160))
-
-*   Use `count(:all)` in `HasManyAssociation#count_records` to prevent invalid
-    SQL queries for association counting.
-    ([Pull Request](https://github.com/rails/rails/pull/27561))
 
 *   Fixed inconsistency with `first(n)` when used with `limit()`.
     The `first(n)` finder now respects the `limit()`, making it consistent
@@ -779,16 +656,9 @@ Please refer to the [Changelog][active-record] for detailed changes.
 *   Clear the transaction state when an Active Record object is duped.
     ([Pull Request](https://github.com/rails/rails/pull/31751))
 
-*   Fix `count(:all)` with eager loading and having an order other than
-    the driving table.
-    ([Commit](https://github.com/rails/rails/commit/ebc09ed9ad9a04338138739226a1a92c7a2707ee))
-
 *   Fix not expanded problem when passing an Array object as argument
     to the where method using `composed_of` column.
     ([Pull Request](https://github.com/rails/rails/pull/31724))
-
-*   PostgreSQL: Allow pg-1.0 gem to be used with Active Record.
-    ([Pull Request](https://github.com/rails/rails/pull/31671))
 
 *   Make `reflection.klass` raise if `polymorphic?` not to be misused.
     ([Commit](https://github.com/rails/rails/commit/63fc1100ce054e3e11c04a547cdb9387cd79571a))
@@ -797,10 +667,6 @@ Please refer to the [Changelog][active-record] for detailed changes.
     `ActiveRecord::FinderMethods#limited_ids_for` use correct primary key values
     even if `ORDER BY` columns include other table's primary key.
     ([Commit](https://github.com/rails/rails/commit/851618c15750979a75635530200665b543561a44))
-
-*   Fix that after commit callbacks on update does not triggered
-    when optimistic locking is enabled.
-    ([Commit](https://github.com/rails/rails/commit/7f9bd034c485c2425ae0164ff5d6374834e3aa1d))
 
 *   Fix `dependent: :destroy` issue for has_one/belongs_to relationship where
     the parent class was getting deleted when the child was not.
@@ -818,10 +684,6 @@ Please refer to the [Changelog][active-model] for detailed changes.
     Change `#values` to only return the not empty values.
     ([Pull Request](https://github.com/rails/rails/pull/28584))
 
-*   Fix regression in numericality validator when comparing Decimal and Float
-    input values with more scale than the schema.
-    ([Pull Request](https://github.com/rails/rails/pull/28584))
-
 *   Add method `#merge!` for `ActiveModel::Errors`.
     ([Pull Request](https://github.com/rails/rails/pull/29714))
 
@@ -831,9 +693,6 @@ Please refer to the [Changelog][active-model] for detailed changes.
 *   Execute `ConfirmationValidator` validation when `_confirmation`'s value
     is `false`.
     ([Pull Request](https://github.com/rails/rails/pull/31058))
-
-*   Fix to working before/after validation callbacks on multiple contexts.
-    ([Pull Request](https://github.com/rails/rails/pull/31483))
 
 *   Models using the attributes API with a proc default can now be marshalled.
     ([Commit](https://github.com/rails/rails/commit/0af36c62a5710e023402e37b019ad9982e69de4b))
@@ -883,10 +742,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
     in Active Record and its use in Action Pack's fragment caching.
     ([Pull Request](https://github.com/rails/rails/pull/29092))
 
-*   Fix implicit coercion calculations with scalars and durations.
-    ([Pull Request](https://github.com/rails/rails/pull/29163),
-    [Pull Request](https://github.com/rails/rails/pull/29971))
-
 *   Add `ActiveSupport::CurrentAttributes` to provide a thread-isolated
     attributes singleton. Primary use case is keeping all the per-request
     attributes easily available to the whole system.
@@ -922,9 +777,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
 *   Add purpose and expiry support to `ActiveSupport::MessageVerifier` and
     `ActiveSupport::MessageEncryptor`.
     ([Pull Request](https://github.com/rails/rails/pull/29892))
-
-*   Fix modulo operations involving durations.
-    ([Commit](https://github.com/rails/rails/commit/a54e13bd2e8fb4d6aa0aebe59271699a2d62567b))
 
 *   Update `String#camelize` to provide feedback when wrong option is passed.
     ([Pull Request](https://github.com/rails/rails/pull/30039))
@@ -1016,9 +868,6 @@ Please refer to the [Changelog][active-support] for detailed changes.
     This allows to specify multiple numeric differences in the same assertion.
     ([Pull Request](https://github.com/rails/rails/pull/31600))
 
-*   Return all mappings for a timezone identifier in `country_zones`.
-    ([Commit](https://github.com/rails/rails/commit/cdce6a709e1cbc98fff009effc3b1b3ce4c7e8db))
-
 *   Caching: MemCache and Redis `read_multi` and `fetch_multi` speedup.
     Read from the local in-memory cache before consulting the backend.
     ([Commit](https://github.com/rails/rails/commit/a2b97e4ffef971607a1be8fc7909f099b6840f36))
@@ -1029,9 +878,6 @@ Active Job
 Please refer to the [Changelog][active-job] for detailed changes.
 
 ### Notable changes
-
-*   Add support for compatibility with redis-rb gem for 4.0 version.
-    ([Pull Request](https://github.com/rails/rails/pull/30748))
 
 *   Allow block to be passed to `ActiveJob::Base.discard_on` to allow custom
     handling of discard jobs.
