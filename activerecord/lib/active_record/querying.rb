@@ -11,7 +11,7 @@ module ActiveRecord
     delegate :find_each, :find_in_batches, :in_batches, to: :all
     delegate :select, :group, :order, :except, :reorder, :limit, :offset, :joins, :left_joins, :left_outer_joins, :or,
              :where, :rewhere, :preload, :eager_load, :includes, :from, :lock, :readonly, :extending,
-             :having, :create_with, :distinct, :references, :none, :unscope, :load_associations, :merge, to: :all
+             :having, :create_with, :distinct, :references, :none, :unscope, :load_associations, :preload_associations, :merge, to: :all
     delegate :count, :average, :minimum, :maximum, :sum, :calculate, to: :all
     delegate :pluck, :pick, :ids, to: :all
 

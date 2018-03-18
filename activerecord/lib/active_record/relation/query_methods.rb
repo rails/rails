@@ -78,6 +78,17 @@ module ActiveRecord
 
     alias extensions extending_values
 
+    # Allows preloading of associations on a relation or array of records,
+    # in the same way that #preload does. Mutates the +records+ argument.
+    # For example:
+    #
+    #   users = User.all.to_a
+    #   User.load_associations(users, :posts)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
+    #
+    #   users.each do |user|
+    #     user.posts
+    #   end
     def load_associations(records, *associations)
       if records.is_a?(ActiveRecord::Relation)
         records.preload(associations.flatten)
@@ -92,6 +103,7 @@ module ActiveRecord
         records
       end
     end
+    alias_method :preload_associations, :load_associations
 
     # Specify relationships to be included in the result set. For
     # example:

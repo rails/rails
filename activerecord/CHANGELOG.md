@@ -1,3 +1,8 @@
+*   Add `Relation#load_associations` to publicly expose `Preloader.preload`.
+    Supports relations and arrays of records.
+
+    *Dinah Shi*
+
 *   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
 
     *Gannon McGibbon*
