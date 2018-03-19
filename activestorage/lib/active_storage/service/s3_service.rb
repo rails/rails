@@ -9,8 +9,8 @@ module ActiveStorage
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
-    def initialize(access_key_id:, secret_access_key:, region:, bucket:, upload: {}, **options)
-      @client = Aws::S3::Resource.new(access_key_id: access_key_id, secret_access_key: secret_access_key, region: region, **options)
+    def initialize(bucket:, upload: {}, **options)
+      @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
       @upload_options = upload
