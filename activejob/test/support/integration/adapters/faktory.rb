@@ -15,7 +15,7 @@ module FaktoryJobsManager
   end
 
   def clear_jobs
-    Faktory.server{|s| s.flush }
+    Faktory.server { |s| s.flush }
   end
 
   def start_workers
