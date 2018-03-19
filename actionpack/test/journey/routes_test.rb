@@ -39,6 +39,11 @@ module ActionDispatch
         assert_not_equal sim, routes.simulator
       end
 
+      def test_simulator_works_with_empty_routes
+        routes.clear
+        assert_nothing_raised { routes.simulator }
+      end
+
       def test_partition_route
         mapper.get "/foo(/:id)", to: "foo#bar", as: "aaron"
 
