@@ -281,6 +281,27 @@ class CookiesTest < ActionController::TestCase
       head :ok
     end
 
+    def delete_and_set_cookie_with_same_name_different_domain
+      cookies.delete(:user_name, domain: :all)
+      cookies[:user_name] = { value: "shayonj", expires: 1.year.from_now, domain: "foo.bar.com" }
+
+      head :ok
+    end
+
+    def delete_and_set_cookie_with_same_name_and_domain
+      cookies.delete(:user_name, domain: ".bar.com")
+      cookies[:user_name] = { value: "shayonj", expires: 1.year.from_now, domain: ".bar.com" }
+
+      head :ok
+    end
+
+    def delete_and_set_cookie_with_same_name_and_domain_with_ip
+      cookies.delete(:user_name, domain: "10.1.1.1.1")
+      cookies[:user_name] = { value: "shayonj", expires: 1.year.from_now, domain: "10.1.1.1.1" }
+
+      head :ok
+    end
+
     def encrypted_cookie
       cookies.encrypted["foo"]
     end
@@ -690,9 +711,40 @@ class CookiesTest < ActionController::TestCase
     assert_equal 100, @controller.send(:cookies).signed[:remember_me]
   end
 
+  def test_deleting_cookie_and_setting_new_one_with_same_name_but_different_domain
+    @request.host = "foo.bar.com"
+    cookies[:user_name] = { value: "shayonOld", expires: 1.year.from_now, domain: "bar.com" }
+
+    response = get :delete_and_set_cookie_with_same_name_different_domain
+
+    assert_match(%r(user_name=; domain=.bar.com;), response.headers["Set-Cookie"])
+    assert_match(%r(user_name=shayonj; domain=foo.bar.com;), response.headers["Set-Cookie"])
+  end
+
+  def test_deleting_cookie_and_setting_new_one_with_same_name_and_same_domain
+    @request.host = "bar.com"
+    cookies[:user_name] = { value: "shayonOld", expires: 1.year.from_now, domain: "bar.com" }
+
+    response = get :delete_and_set_cookie_with_same_name_and_domain
+
+    assert_no_match(%r(user_name=; domain=.bar.com;), response.headers["Set-Cookie"])
+    assert_match(%r(user_name=shayonj; domain=.bar.com;), response.headers["Set-Cookie"])
+  end
+
+  def test_deleting_cookie_and_setting_new_one_with_same_name_and_domain_with_ip
+    @request.host = "10.1.1.1.1"
+    cookies[:user_name] = { value: "shayonOld", expires: 1.year.from_now, domain: "10.1.1.1.1" }
+
+    response = get :delete_and_set_cookie_with_same_name_and_domain_with_ip
+
+    assert_no_match(%r(user_name=;), response.headers["Set-Cookie"])
+    assert_match(%r(user_name=shayonj; domain=10.1.1.1.1;), response.headers["Set-Cookie"])
+  end
+
   def test_delete_and_set_cookie
     request.cookies[:user_name] = "Joe"
     get :delete_and_set_cookie
+    assert_no_match(%r(user_name=;), @response.headers["Set-Cookie"])
     assert_cookie_header "user_name=david; path=/; expires=Mon, 10 Oct 2005 05:00:00 -0000"
     assert_equal({ "user_name" => "david" }, @response.cookies)
   end

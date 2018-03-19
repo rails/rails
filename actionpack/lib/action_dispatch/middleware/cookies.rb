@@ -395,7 +395,7 @@ module ActionDispatch
         if @cookies[name.to_s] != value || options[:expires]
           @cookies[name.to_s] = value
           @set_cookies[name.to_s] = options
-          @delete_cookies.delete(name.to_s)
+          @delete_cookies.delete(name.to_s) if same_domain_or_no_domain?(name.to_s)
         end
 
         value
@@ -458,6 +458,16 @@ module ActionDispatch
 
         def write_cookie?(cookie)
           request.ssl? || !cookie[:secure] || always_write_cookie
+        end
+
+        def same_domain_or_no_domain?(name)
+          delete_cookie = @delete_cookies[name]
+          return true if delete_cookie.blank?
+
+          set_cookie = @set_cookies[name]
+          return true if set_cookie.blank?
+
+          set_cookie[:domain] == delete_cookie[:domain]
         end
     end
 
