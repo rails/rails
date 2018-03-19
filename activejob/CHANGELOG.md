@@ -1,3 +1,11 @@
+*   Remove support for Qu gem.
+
+    Reasons are that the Qu gem wasn't compatible since Rails 5.1,
+    gem development was stopped in 2014 and maintainers have
+    confirmed its demise. See issue #32273
+
+    *Alberto Almagro*
+
 *   Add support for timezones to Active Job.
 
     Record what was the current timezone in effect when the job was
