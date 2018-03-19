@@ -210,7 +210,7 @@ HEADER
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.name !~ /^fk_rails_[0-9a-f]{10}$/
+            if foreign_key.export_name_on_schema_dump?
               parts << "name: #{foreign_key.name.inspect}"
             end
 
