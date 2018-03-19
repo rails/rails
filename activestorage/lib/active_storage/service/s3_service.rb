@@ -10,8 +10,8 @@ module ActiveStorage
   class Service::S3Service < Service
     attr_reader :client, :bucket, :upload_options
 
-    def initialize(access_key_id: nil, secret_access_key: nil, region: nil, bucket:, upload: {}, **options)
-      @client = Aws::S3::Resource.new(credentials: credentials(access_key_id, secret_access_key), region: region(region), **options)
+    def initialize(bucket:, upload: {}, **options)
+      @client = Aws::S3::Resource.new(**options)
       @bucket = @client.bucket(bucket)
 
       @upload_options = upload
@@ -93,18 +93,6 @@ module ActiveStorage
     end
 
     private
-      def credentials(access_key_id, secret_access_key)
-        if access_key_id && secret_access_key
-          Aws::Credentials.new(access_key_id, secret_access_key)
-        else
-          Aws::CredentialProviderChain.new.resolve
-        end
-      end
-
-      def region(region)
-        region || ENV["AWS_REGION"] || ENV["AWS_DEFAULT_REGION"] || "us-east-1"
-      end
-
       def object_for(key)
         bucket.object(key)
       end
