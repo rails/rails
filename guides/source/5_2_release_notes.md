@@ -85,69 +85,9 @@ Rails 5.2 ships with a new DSL that allows you to configure a
 for your application. You can configure a global default policy and then
 override it on a per-resource basis and even use lambdas to inject per-request
 values into the header such as account subdomains in a multi-tenant application.
-
-Example global policy:
-
-```ruby
-# config/initializers/content_security_policy.rb
-Rails.application.config.content_security_policy do |policy|
-  policy.default_src :self, :https
-  policy.font_src    :self, :https, :data
-  policy.img_src     :self, :https, :data
-  policy.object_src  :none
-  policy.script_src  :self, :https
-  policy.style_src   :self, :https
-
-  # Specify URI for violation reports
-  policy.report_uri "/csp-violation-report-endpoint"
-end
-```
-
-Example controller overrides:
-
-```ruby
-# Override policy inline
-class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.upgrade_insecure_requests true
-  end
-end
-
-# Using literal values
-class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri "https://www.example.com"
-  end
-end
-
-# Using mixed static and dynamic values
-class PostsController < ApplicationController
-  content_security_policy do |p|
-    p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
-  end
-end
-
-# Disabling the global CSP
-class LegacyPagesController < ApplicationController
-  content_security_policy false, only: :index
-end
-```
-
-To report only content violations for migrating
-legacy content using the `content_security_policy_report_only`
-configuration attribute:
-
-```ruby
-# config/initializers/content_security_policy.rb
-Rails.application.config.content_security_policy_report_only = true
-```
-
-```ruby
-# Controller override
-class PostsController < ApplicationController
-  content_security_policy_report_only only: :index
-end
-```
+You can read more about this in the
+[Securing Rails Applications](security.html#content-security-policy)
+guide.
 
 Railties
 --------
