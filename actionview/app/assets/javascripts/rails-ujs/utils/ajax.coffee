@@ -69,7 +69,7 @@ processResponse = (response, type) ->
       script.nonce = cspNonce()
       script.text = response
       document.head.appendChild(script).parentNode.removeChild(script)
-    else if type.match(/\b(xml|html|svg)\b/)
+    else if type.match(/\bxml\b/)
       parser = new DOMParser()
       type = type.replace(/;.+/, '') # remove something like ';charset=utf-8'
       try response = parser.parseFromString(response, type)
