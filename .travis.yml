@@ -12,6 +12,7 @@ cache:
 services:
   - memcached
   - redis-server
+  - docker
 
 addons:
   postgresql: "9.6"
@@ -37,6 +38,8 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "docker pull contribsys/faktory"
+  - "docker run --detach --rm -it -p 127.0.0.1:7419:7419 -p 127.0.0.1:7420:7420 contribsys/faktory:latest"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.

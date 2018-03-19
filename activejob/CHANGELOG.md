@@ -1,3 +1,11 @@
+*   Add an adapter for using `faktory_worker_ruby`.
+
+    To use Faktory set the queue_adapter like this:
+
+    `config.active_job.queue_adapter = :faktory`
+
+    *Jeremy Green*
+
 *   Add support for timezones to Active Job.
 
     Record what was the current timezone in effect when the job was

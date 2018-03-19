@@ -214,6 +214,8 @@ GEM
     event_emitter (0.2.6)
     eventmachine (1.2.5)
     execjs (2.7.0)
+    faktory_worker_ruby (0.7.0)
+      connection_pool (~> 2.2, >= 2.2.1)
     faraday (0.13.1)
       multipart-post (>= 1.2, < 3)
     faraday_middleware (0.12.2)
@@ -513,6 +515,7 @@ DEPENDENCIES
   dalli (= 2.7.6)
   delayed_job
   delayed_job_active_record
+  faktory_worker_ruby (~> 0.7.0)
   google-cloud-storage (~> 1.8)
   hiredis
   json (>= 2.0.0)
