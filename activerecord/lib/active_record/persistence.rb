@@ -32,9 +32,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| create(attr, &block) }
         else
-          object = new(attributes, &block)
-          object.save
-          object
+          new(attributes, &block).tap(&:save)
         end
       end
 
@@ -49,9 +47,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| create!(attr, &block) }
         else
-          object = new(attributes, &block)
-          object.save!
-          object
+          new(attributes, &block).tap(&:save!)
         end
       end
 
@@ -110,9 +106,7 @@ module ActiveRecord
               "You are passing an instance of ActiveRecord::Base to `update`. " \
               "Please pass the id of the object by calling `.id`."
           end
-          object = find(id)
-          object.update(attributes)
-          object
+          find(id).tap { |object| object.update(attributes) }
         end
       end
 
