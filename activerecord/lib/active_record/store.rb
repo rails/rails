@@ -17,8 +17,8 @@ module ActiveRecord
   # You can set custom coder to encode/decode your serialized attributes to/from different formats.
   # JSON, YAML, Marshal are supported out of the box. Generally it can be any wrapper that provides +load+ and +dump+.
   #
-  # NOTE: If you are using PostgreSQL specific columns like +hstore+ or +json+ there is no need for
-  # the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
+  # NOTE: If you are using structured database data types (eg. PostgreSQL +hstore+/+json+, or MySQL 5.7+
+  # +json+) there is no need for the serialization provided by {.store}[rdoc-ref:rdoc-ref:ClassMethods#store].
   # Simply use {.store_accessor}[rdoc-ref:ClassMethods#store_accessor] instead to generate
   # the accessor methods. Be aware that these columns use a string keyed hash and do not allow access
   # using a symbol.
