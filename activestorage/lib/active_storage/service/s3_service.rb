@@ -93,7 +93,6 @@ module ActiveStorage
     end
 
     private
-
       def credentials(access_key_id, secret_access_key)
         if access_key_id && secret_access_key
           Aws::Credentials.new(access_key_id, secret_access_key)
