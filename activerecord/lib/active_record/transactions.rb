@@ -340,11 +340,16 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      if should_run_callbacks && destroyed? || persisted?
+      @_committed_create ||= false
+
+      if should_run_callbacks && destroyed? || (persisted? && !@_committed_create)
+        @_committed_create = persisted? && transaction_record_state(:new_record)
+
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
       end
     ensure
+      @_committed_create = false
       force_clear_transaction_record_state
     end
 
