@@ -92,16 +92,19 @@ class Class
     default_value      = options.fetch(:default, nil)
 
     attrs.each do |name|
+      boolean_method = "#{name}?"
+      writer_method = "#{name}="
+
       singleton_class.silence_redefinition_of_method(name)
       define_singleton_method(name) { nil }
 
-      singleton_class.silence_redefinition_of_method("#{name}?")
-      define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
+      singleton_class.silence_redefinition_of_method(boolean_method)
+      define_singleton_method(boolean_method) { !!public_send(name) } if instance_predicate
 
       ivar = "@#{name}".to_sym
 
-      singleton_class.silence_redefinition_of_method("#{name}=")
-      define_singleton_method("#{name}=") do |val|
+      singleton_class.silence_redefinition_of_method(writer_method)
+      define_singleton_method(writer_method) do |val|
         singleton_class.class_eval do
           redefine_method(name) { val }
         end
@@ -129,17 +132,17 @@ class Class
           end
         end
 
-        redefine_method("#{name}?") { !!public_send(name) } if instance_predicate
+        redefine_method(boolean_method) { !!public_send(name) } if instance_predicate
       end
 
       if instance_writer
-        redefine_method("#{name}=") do |val|
+        redefine_method(writer_method) do |val|
           instance_variable_set ivar, val
         end
       end
 
       unless default_value.nil?
-        self.send("#{name}=", default_value)
+        self.send(writer_method, default_value)
       end
     end
   end
