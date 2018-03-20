@@ -261,7 +261,7 @@ DEPENDENCIES
   bcrypt (~> 3.1.10)
   benchmark-ips
   coffee-rails (~> 4.1.0)
-  dalli (>= 2.2.1)
+  dalli (< 2.7.7)
   delayed_job
   delayed_job_active_record
   execjs (< 2.5)
