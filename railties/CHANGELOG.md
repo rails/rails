@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Fix minitest rails plugin.
 
     The custom reporters are added only if needed.

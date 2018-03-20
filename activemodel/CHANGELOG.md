@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Do not lose all multiple `:includes` with options in serialization.
 
     *Mike Mangino*

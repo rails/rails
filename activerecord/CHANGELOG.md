@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Apply time column precision on assignment.
 
     PR #20317 changed the behavior of datetime columns so that when they

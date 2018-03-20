@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Check exclude before flagging cookies as secure.
 
     *Catherine Khuu*

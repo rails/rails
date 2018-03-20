@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Pass the `:skip_pipeline` option in `image_submit_tag` when calling `path_to_image`.
 
     Fixes #32248.

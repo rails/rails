@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Caching: MemCache and Redis `read_multi` and `fetch_multi` speedup.
     Read from the local in-memory cache before consulting the backend.
 

@@ -1,3 +1,5 @@
+## Rails 5.2.0.rc2 (March 20, 2018) ##
+
 *   Allow full use of the AWS S3 SDK options for authentication. If an
     explicit AWS key pair and/or region is not provided in `storage.yml`,
     attempt to use environment variables, shared credentials, or IAM
