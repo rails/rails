@@ -8,7 +8,7 @@ module ActiveModel
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
-    def initialize(base, attribute, type, **options)
+    def initialize(base, attribute, type = :invalid, **options)
       @base = base
       @attribute = attribute
       @raw_type = type
@@ -55,6 +55,12 @@ module ActiveModel
       end
 
       true
+    end
+
+    def strict_match?(attribute, type, **options)
+      return false unless match?(attribute, type, **options)
+
+      full_message == Error.new(@base, attribute, type, **options).full_message
     end
   end
 end
