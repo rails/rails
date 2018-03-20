@@ -304,6 +304,26 @@ module ApplicationTests
             ActiveRecord::Base.connection_config[:database]
         end
       end
+      
+      test "db:schema:load after db:drop db:create" do
+        Dir.chdir(app_path) do
+          app_file 'db/migrate/1_migration.rb', <<-RUBY
+            # dummy file
+          RUBY
+          app_file 'db/schema.rb', <<-RUBY
+            ActiveRecord::Schema.define(version: 20140423102712) do
+              create_table("comments") do |t|
+                t.string :name
+              end
+            end
+          RUBY
+
+          `bin/rails db:drop db:create db:schema:load`
+
+          tables = `bin/rails runner 'p ActiveRecord::Base.connection.tables'`.strip
+          assert_match(/"comments"/, tables)
+        end
+      end
 
       test "db:test:load_structure without database_url" do
         require "#{app_path}/config/environment"
