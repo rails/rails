@@ -323,6 +323,7 @@ GEM
     mysql2 (0.4.9-x64-mingw32)
     mysql2 (0.4.9-x86-mingw32)
     nio4r (2.2.0)
+    nio4r (2.2.0-java)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
     nokogiri (1.8.1-java)
@@ -481,6 +482,8 @@ GEM
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
+    websocket-driver (0.6.5-java)
+      websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
     xpath (2.1.0)
       nokogiri (~> 1.3)
@@ -508,7 +511,7 @@ DEPENDENCIES
   chromedriver-helper
   coffee-rails
   connection_pool
-  dalli (>= 2.2.1)
+  dalli (>= 2.2.1, < 2.7.7)
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
