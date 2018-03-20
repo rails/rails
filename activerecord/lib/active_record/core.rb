@@ -125,6 +125,10 @@ module ActiveRecord
 
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
 
+      ##
+      # :singleton-method:
+      # Specify a custom regular expression matching foreign keys which name
+      # should not be dumped to db/schema.rb.
       mattr_accessor :fk_ignore_pattern, instance_accessor: false
 
       class_attribute :default_connection_handler, instance_writer: false

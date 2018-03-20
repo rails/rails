@@ -374,6 +374,12 @@ All these configuration options are delegated to the `I18n` library.
   having to send a query to the database to get this information.
   Defaults to `true`.
 
+* `config.active_record.fk_ignore_pattern` allows setting a different regular
+  expression that will be used to decide whether a foreign key's name should be
+  dumped to db/schema.rb or not. By default, foreign key names starting with
+  `fk_rails_` are not exported to the database schema dump.
+  Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
+
 The MySQL adapter adds one additional configuration option:
 
 * `ActiveRecord::ConnectionAdapters::Mysql2Adapter.emulate_booleans` controls whether Active Record will consider all `tinyint(1)` columns as booleans. Defaults to `true`.
