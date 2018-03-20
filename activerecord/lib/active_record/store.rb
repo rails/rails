@@ -31,10 +31,14 @@ module ActiveRecord
   #
   #   class User < ActiveRecord::Base
   #     store :settings, accessors: [ :color, :homepage ], coder: JSON
+  #     store :parent, accessors: [ :name ], coder: JSON, prefix: true
+  #     store :spouse, accessors: [ :name ], coder: JSON, prefix: :partner
   #   end
   #
-  #   u = User.new(color: 'black', homepage: '37signals.com')
+  #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
   #   u.color                          # Accessor stored attribute
+  #   u.parent_name                    # Accessor stored attribute with prefix
+  #   u.partner_name                   # Accessor stored attribute with custom prefix
   #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
   #
   #   # There is no difference between strings and symbols for accessing custom attributes
@@ -44,6 +48,7 @@ module ActiveRecord
   #   # Add additional accessors to an existing store through store_accessor
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
+  #     store_accessor :parent, :birthday, prefix: true
   #   end
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
@@ -81,19 +86,29 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
-        store_accessor(store_attribute, options[:accessors]) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], prefix: options[:prefix]) if options.has_key? :accessors
       end
 
-      def store_accessor(store_attribute, *keys)
+      def store_accessor(store_attribute, *keys, prefix: nil)
         keys = keys.flatten
+
+        accessor_prefix =
+          case prefix
+          when String, Symbol
+            "#{prefix}_"
+          when TrueClass
+            "#{store_attribute}_"
+          else
+            ""
+          end
 
         _store_accessors_module.module_eval do
           keys.each do |key|
-            define_method("#{key}=") do |value|
+            define_method("#{accessor_prefix}#{key}=") do |value|
               write_store_attribute(store_attribute, key, value)
             end
 
-            define_method(key) do
+            define_method("#{accessor_prefix}#{key}") do
               read_store_attribute(store_attribute, key)
             end
           end

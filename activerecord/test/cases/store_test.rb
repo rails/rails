@@ -8,7 +8,12 @@ class StoreTest < ActiveRecord::TestCase
   fixtures :'admin/users'
 
   setup do
-    @john = Admin::User.create!(name: "John Doe", color: "black", remember_login: true, height: "tall", is_a_good_guy: true)
+    @john = Admin::User.create!(
+      name: "John Doe", color: "black", remember_login: true,
+      height: "tall", is_a_good_guy: true,
+      parent_name: "Quinn", partner_name: "Dallas",
+      partner_birthday: "1997-11-1"
+    )
   end
 
   test "reading store attributes through accessors" do
@@ -22,6 +27,21 @@ class StoreTest < ActiveRecord::TestCase
 
     assert_equal "red", @john.color
     assert_equal "37signals.com", @john.homepage
+  end
+
+  test "reading store attributes through accessors with prefix" do
+    assert_equal "Quinn", @john.parent_name
+    assert_nil @john.parent_birthday
+    assert_equal "Dallas", @john.partner_name
+    assert_equal "1997-11-1", @john.partner_birthday
+  end
+
+  test "writing store attributes through accessors with prefix" do
+    @john.partner_name = "River"
+    @john.partner_birthday = "1999-2-11"
+
+    assert_equal "River", @john.partner_name
+    assert_equal "1999-2-11", @john.partner_birthday
   end
 
   test "accessing attributes not exposed by accessors" do
