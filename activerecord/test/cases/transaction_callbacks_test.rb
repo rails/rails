@@ -143,6 +143,8 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     r = ReplyWithCallbacks.new(content: "foo")
     r.save_on_after_create = true
     r.save!
+    assert_equal [:commit_on_create], r.history
+
     r.content = "bar"
     r.save!
     r.save!
@@ -573,6 +575,31 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history
+  end
+end
+
+class SaveFromAfterCommitBlockTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class TopicWithSaveInCallback < ActiveRecord::Base
+    self.table_name = :topics
+    after_commit :cache_topic, on: :create
+    attr_accessor :cached
+
+    def cache_topic
+      unless cached
+        self.cached = true
+        self.save
+      else
+        self.cached = false
+      end
+    end
+  end
+
+  def test_after_commit_in_save
+    topic = TopicWithSaveInCallback.new
+    topic.save
+    assert_equal true, topic.cached
   end
 end
 
