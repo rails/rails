@@ -122,9 +122,12 @@ module ActionView
 
       private
         def scope_key_by_partial(key)
-          if key.to_s.first == "."
+          stringified_key = key.to_s
+          if stringified_key.first == "."
             if @virtual_path
-              @virtual_path.gsub(%r{/_?}, ".") + key.to_s
+              @_scope_key_by_partial_cache ||= {}
+              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
+              "#{@_scope_key_by_partial_cache[@virtual_path]}#{stringified_key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end
