@@ -134,6 +134,13 @@ module ActiveRecord
         end
       end
 
+      def for_each
+        databases = Rails.application.config.load_database_yaml
+        ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases) do |spec_name, _|
+          yield spec_name
+        end
+      end
+
       def create_current(environment = env)
         each_current_configuration(environment) { |configuration|
           create configuration
@@ -327,7 +334,7 @@ module ActiveRecord
           environments << "test" if environment == "development"
 
           environments.each do |env|
-            ActiveRecord::Base.configs_for(env) do |spec_name, configuration|
+            ActiveRecord::DatabaseConfigurations.configs_for(env) do |spec_name, configuration|
               yield configuration, spec_name, env
             end
           end

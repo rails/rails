@@ -23,11 +23,11 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.create_all
     end
 
-    databases = Rails.application.config.database_configuration
-    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
       desc "Create #{spec_name} database for current environment"
-      task spec_name do
-        ActiveRecord::Tasks::DatabaseTasks.create(config)
+      task spec_name => :load_config do
+        db_config = ActiveRecord::DatabaseConfigurations.config_for_env_and_spec(Rails.env, spec_name)
+        ActiveRecord::Tasks::DatabaseTasks.create(db_config.config)
       end
     end
   end
@@ -42,11 +42,11 @@ db_namespace = namespace :db do
       ActiveRecord::Tasks::DatabaseTasks.drop_all
     end
 
-    databases = Rails.application.config.database_configuration
-    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
       desc "Drop #{spec_name} database for current environment"
-      task spec_name => :check_protected_environments do
-        ActiveRecord::Tasks::DatabaseTasks.drop(config)
+      task spec_name => [:load_config, :check_protected_environments] do
+        db_config = ActiveRecord::DatabaseConfigurations.config_for_env_and_spec(Rails.env, spec_name)
+        ActiveRecord::Tasks::DatabaseTasks.drop(db_config.config)
       end
     end
   end
@@ -73,11 +73,11 @@ db_namespace = namespace :db do
 
   desc "Migrate the database (options: VERSION=x, VERBOSE=false, SCOPE=blog)."
   task migrate: :load_config do
-    ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+    ActiveRecord::DatabaseConfigurations.configs_for(Rails.env) do |spec_name, config|
       ActiveRecord::Base.establish_connection(config)
       ActiveRecord::Tasks::DatabaseTasks.migrate
-      db_namespace["_dump"].invoke
     end
+    db_namespace["_dump"].invoke
   end
 
   # IMPORTANT: This task won't dump the schema if ActiveRecord::Base.dump_schema_after_migration is set to false
@@ -96,11 +96,11 @@ db_namespace = namespace :db do
   end
 
   namespace :migrate do
-    databases = Rails.application.config.database_configuration
-    ActiveRecord::Base.configs_for(Rails.env, databases) do |spec_name, config|
+    ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
       desc "Migrate #{spec_name} database for current environment"
-      task spec_name do
-        ActiveRecord::Base.establish_connection(config)
+      task spec_name => :load_config do
+        db_config = ActiveRecord::DatabaseConfigurations.config_for_env_and_spec(Rails.env, spec_name)
+        ActiveRecord::Base.establish_connection(db_config.config)
         ActiveRecord::Tasks::DatabaseTasks.migrate
       end
     end
@@ -275,7 +275,7 @@ db_namespace = namespace :db do
     task dump: :load_config do
       require "active_record/schema_dumper"
 
-      ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+      ActiveRecord::DatabaseConfigurations.configs_for(Rails.env) do |spec_name, config|
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :ruby)
         File.open(filename, "w:utf-8") do |file|
           ActiveRecord::Base.establish_connection(config)
@@ -314,7 +314,7 @@ db_namespace = namespace :db do
   namespace :structure do
     desc "Dumps the database structure to db/structure.sql. Specify another file with SCHEMA=db/my_structure.sql"
     task dump: :load_config do
-      ActiveRecord::Base.configs_for(Rails.env) do |spec_name, config|
+      ActiveRecord::DatabaseConfigurations.configs_for(Rails.env) do |spec_name, config|
         ActiveRecord::Base.establish_connection(config)
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :sql)
         current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
