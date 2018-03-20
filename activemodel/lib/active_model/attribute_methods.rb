@@ -372,7 +372,7 @@ module ActiveModel
           extra = (extra.map!(&:inspect) << "*args").join(", ".freeze)
 
           target = if CALL_COMPILABLE_REGEXP.match?(send)
-            "#{"self." unless include_private}#{send}(#{extra})"
+            "#{include_private ? "" : "self."}#{send}(#{extra})"
           else
             "send(:'#{send}', #{extra})"
           end
