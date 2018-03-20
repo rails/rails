@@ -109,11 +109,11 @@ module ActionView
             # a little duplication to construct less strings
             case
             when @object_name.empty?
-              "#{sanitized_method_name}#{"[]" if multiple}"
+              "#{sanitized_method_name}#{multiple ? "[]" : ""}"
             when index
-              "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
+              "#{@object_name}[#{index}][#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             else
-              "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+              "#{@object_name}[#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             end
           end
 
