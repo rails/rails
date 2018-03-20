@@ -40,7 +40,7 @@ group :doc do
 end
 
 # Active Support.
-gem 'dalli', '>= 2.2.1'
+gem 'dalli', '< 2.7.7'
 gem 'listen', '~> 3.0.5', require: false
 
 # Active Job.

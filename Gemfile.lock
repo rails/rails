@@ -337,7 +337,7 @@ DEPENDENCIES
   blade (~> 0.5.5)
   byebug
   coffee-rails (~> 4.2)
-  dalli (>= 2.2.1)
+  dalli (< 2.7.7)
   delayed_job
   delayed_job_active_record
   em-hiredis
