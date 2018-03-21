@@ -1,3 +1,7 @@
+*   MySQL: Support mysql2 0.5.x.
+
+    *Aaron Stone*
+
 *   Apply time column precision on assignment.
 
     PR #20317 changed the behavior of datetime columns so that when they
