@@ -55,7 +55,14 @@ module ActiveSupport
           end
 
           def read_multi_entries(keys, options)
-            Hash[keys.map { |name| [name, read_entry(name, options)] }.keep_if { |_name, value| value }]
+            values = {}
+
+            keys.each do |name|
+              entry = read_entry(name, options)
+              values[name] = entry.value if entry
+            end
+
+            values
           end
 
           def write_entry(key, value, options)
