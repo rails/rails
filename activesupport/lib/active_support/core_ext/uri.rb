@@ -6,7 +6,7 @@ parser = URI::Parser.new
 
 needs_monkeypatch =
   begin
-    str + str != parser.unescape(str + parser.escape(str).force_encoding(Encoding::UTF_8))
+    RUBY_VERSION >= "2.6.0" || str + str != parser.unescape(str + parser.escape(str).force_encoding(Encoding::UTF_8))
   rescue Encoding::CompatibilityError
     true
   end
