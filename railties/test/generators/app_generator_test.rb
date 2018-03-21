@@ -265,13 +265,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_config_another_database
+  def test_config_mysql_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'>= 0.3.18', '< 0.5'"
+      assert_gem "mysql2", "'>= 0.3.18', '< 0.6.0'"
     end
   end
 
