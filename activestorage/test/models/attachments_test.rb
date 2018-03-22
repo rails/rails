@@ -136,14 +136,24 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   end
 
   test "identify newly-attached, directly-uploaded blob" do
-    # Simulate a direct upload.
-    blob = create_blob_before_direct_upload(filename: "racecar.jpg", content_type: "application/octet-stream", byte_size: 1124062, checksum: "7GjDDNEQb4mzMzsW+MS0JQ==")
-    ActiveStorage::Blob.service.upload(blob.key, file_fixture("racecar.jpg").open)
+    blob = directly_upload_file_blob(content_type: "application/octet-stream")
 
     @user.avatar.attach(blob)
 
     assert_equal "image/jpeg", @user.avatar.reload.content_type
     assert_predicate @user.avatar, :identified?
+  end
+
+  test "identify and analyze newly-attached, directly-uploaded blob" do
+    blob = directly_upload_file_blob(content_type: "application/octet-stream")
+
+    perform_enqueued_jobs do
+      @user.avatar.attach blob
+    end
+
+    assert_equal true, @user.avatar.reload.metadata[:identified]
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
   end
 
   test "identify newly-attached blob only once" do

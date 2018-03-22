@@ -54,6 +54,16 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
     end
 
+    def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+      file = file_fixture(filename)
+      byte_size = file.size
+      checksum = Digest::MD5.file(file).base64digest
+
+      create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type).tap do |blob|
+        ActiveStorage::Blob.service.upload(blob.key, file.open)
+      end
+    end
+
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
     end
