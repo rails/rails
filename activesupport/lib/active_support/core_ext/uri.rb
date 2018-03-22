@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
 require "uri"
-str = "\xE6\x97\xA5\xE6\x9C\xAC\xE8\xAA\x9E" # Ni-ho-nn-go in UTF-8, means Japanese.
-parser = URI::Parser.new
-
-unless str == parser.unescape(parser.escape(str))
+if RUBY_VERSION < "2.6.0"
   require "active_support/core_ext/module/redefine_method"
   URI::Parser.class_eval do
     silence_redefinition_of_method :unescape
