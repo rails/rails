@@ -1,5 +1,12 @@
 # frozen_string_literal: true
 
+require "active_support/deprecation"
+
+# Remove this deprecated class in the next minor version
+#:nodoc:
+SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
+  new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
+
 module Rails
   # Implements the logic behind the rake tasks for annotations like
   #
