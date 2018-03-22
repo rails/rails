@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "uri"
-str = "\xE6\x97\xA5"
 
 if RUBY_VERSION < "2.6.0"
   require "active_support/core_ext/module/redefine_method"
