@@ -307,11 +307,14 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         end
 
         def test_schema_dumping_with_custom_fk_ignore_pattern
-          ActiveRecord::Base.fk_ignore_pattern = /^ignored_/
+          original_pattern = ActiveRecord::SchemaDumper.fk_ignore_pattern
+          ActiveRecord::SchemaDumper.fk_ignore_pattern = /^ignored_/
           @connection.add_foreign_key :astronauts, :rockets, name: :ignored_fk_astronauts_rockets
 
           output = dump_table_schema "astronauts"
           assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
+
+          ActiveRecord::SchemaDumper.fk_ignore_pattern = original_pattern
         end
 
         def test_schema_dumping_on_delete_and_on_update_options

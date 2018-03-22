@@ -17,6 +17,12 @@ module ActiveRecord
     # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching foreign keys which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :fk_ignore_pattern, default: ActiveRecord::ForeignKeys::DEFAULT_IGNORE_PATTERN
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)

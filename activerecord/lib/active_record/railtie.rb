@@ -27,7 +27,6 @@ module ActiveRecord
 
     config.active_record.use_schema_cache_dump = true
     config.active_record.maintain_test_schema = true
-    config.active_record.fk_ignore_pattern = ActiveRecord::ForeignKeys::DEFAULT_IGNORE_PATTERN
 
     config.active_record.sqlite3 = ActiveSupport::OrderedOptions.new
     config.active_record.sqlite3.represent_boolean_as_integer = nil
