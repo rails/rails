@@ -2,16 +2,8 @@
 
 require "uri"
 str = "\xE6\x97\xA5"
-parser = URI::Parser.new
 
-needs_monkeypatch =
-  begin
-    str + str != parser.unescape(str + parser.escape(str).force_encoding(Encoding::UTF_8))
-  rescue Encoding::CompatibilityError
-    true
-  end
-
-if needs_monkeypatch
+if RUBY_VERSION < "2.6.0"
   require "active_support/core_ext/module/redefine_method"
   URI::Parser.class_eval do
     silence_redefinition_of_method :unescape
