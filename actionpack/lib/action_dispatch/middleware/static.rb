@@ -90,8 +90,8 @@ module ActionDispatch
       def gzip_file_path(path)
         can_gzip_mime = content_type(path) =~ /\A(?:text\/|application\/javascript)/
         gzip_path     = "#{path}.gz"
-        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path)))
-          gzip_path
+        if can_gzip_mime && File.exist?(File.join(@root, ::Rack::Utils.unescape_path(gzip_path).b))
+          gzip_path.b
         else
           false
         end
