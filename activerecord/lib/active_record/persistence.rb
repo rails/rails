@@ -658,7 +658,7 @@ module ActiveRecord
       end
 
       attribute_names = timestamp_attributes_for_update_in_model
-      attribute_names.concat(names)
+      attribute_names |= names.map(&:to_s)
 
       unless attribute_names.empty?
         affected_rows = _touch_row(attribute_names, time)
