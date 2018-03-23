@@ -96,6 +96,16 @@ class TimestampTest < ActiveRecord::TestCase
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 
+  def test_touching_update_at_attribute_as_symbol_updates_timestamp
+    travel(1.second) do
+      @developer.touch(:updated_at)
+    end
+
+    assert_not @developer.updated_at_changed?
+    assert_not @developer.changed?
+    assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
   def test_touching_an_attribute_updates_it
     task = Task.first
     previous_value = task.ending
