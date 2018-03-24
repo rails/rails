@@ -121,9 +121,7 @@ module ActiveModel
         end
       end
 
-      def password_confirmation=(unencrypted_password)
-        @password_confirmation = unencrypted_password
-      end
+      attr_writer :password_confirmation
     end
   end
 end

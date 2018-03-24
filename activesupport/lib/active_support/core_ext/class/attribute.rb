@@ -89,7 +89,7 @@ class Class
     instance_reader    = options.fetch(:instance_accessor, true) && options.fetch(:instance_reader, true)
     instance_writer    = options.fetch(:instance_accessor, true) && options.fetch(:instance_writer, true)
     instance_predicate = options.fetch(:instance_predicate, true)
-    default_value      = options.fetch(:default, nil)
+    default_value      = options.dig(:default)
 
     attrs.each do |name|
       singleton_class.silence_redefinition_of_method(name)

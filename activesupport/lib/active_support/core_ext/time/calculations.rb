@@ -130,7 +130,7 @@ class Time
       raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
       new_usec = Rational(new_nsec, 1000)
     else
-      new_usec = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
+      new_usec = options.fetch(:usec) { (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000) }
     end
 
     raise ArgumentError, "argument out of range" if new_usec >= 1000000

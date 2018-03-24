@@ -1859,7 +1859,7 @@ module ActionDispatch
             options_constraints = options.delete(:constraints) || {}
 
             path_types = paths.group_by(&:class)
-            path_types.fetch(String, []).each do |_path|
+            path_types.fetch(String) { [] }.each do |_path|
               route_options = options.dup
               if _path && option_path
                 raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
@@ -1868,7 +1868,7 @@ module ActionDispatch
               decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
             end
 
-            path_types.fetch(Symbol, []).each do |action|
+            path_types.fetch(Symbol) { [] }.each do |action|
               route_options = options.dup
               decomposed_match(action, controller, route_options, option_path, to, via, formatted, anchor, options_constraints)
             end

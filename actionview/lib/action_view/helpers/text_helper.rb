@@ -175,7 +175,7 @@ module ActionView
       def excerpt(text, phrase, options = {})
         return unless text && phrase
 
-        separator = options.fetch(:separator, nil) || ""
+        separator = options.dig(:separator) || ""
         case phrase
         when Regexp
           regex = phrase

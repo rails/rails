@@ -578,9 +578,7 @@ module ActiveRecord
         stale_connections = synchronize do
           @connections.select do |conn|
             conn.in_use? && !conn.owner.alive?
-          end.each do |conn|
-            conn.steal!
-          end
+          end.each(&:steal!)
         end
 
         stale_connections.each do |conn|

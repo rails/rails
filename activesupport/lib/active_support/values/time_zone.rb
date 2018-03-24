@@ -265,7 +265,7 @@ module ActiveSupport
       private
         def load_country_zones(code)
           country = TZInfo::Country.get(code)
-          country.zone_identifiers.map do |tz_id|
+          country.zone_identifiers.flat_map do |tz_id|
             if MAPPING.value?(tz_id)
               MAPPING.inject([]) do |memo, (key, value)|
                 memo << self[key] if value == tz_id
@@ -274,7 +274,7 @@ module ActiveSupport
             else
               create(tz_id, nil, TZInfo::Timezone.new(tz_id))
             end
-          end.flatten(1).sort!
+          end.sort!
         end
 
         def zones_map

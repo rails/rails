@@ -49,7 +49,7 @@ module ActiveJob
     def after_teardown # :nodoc:
       super
 
-      queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
+      queue_adapter_changed_jobs.each(&:disable_test_adapter)
     end
 
     # Specifies the queue adapter to use with all active job test helpers.

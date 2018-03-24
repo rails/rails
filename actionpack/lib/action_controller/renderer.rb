@@ -107,7 +107,7 @@ module ActionController
       }
 
       def rack_key_for(key)
-        RACK_KEY_TRANSLATION.fetch(key, key.to_s)
+        RACK_KEY_TRANSLATION.fetch(key) { key.to_s }
       end
 
       def rack_value_for(key, value)
