@@ -38,12 +38,19 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
   end
 
-  def test_from_integer_to_map
-    assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-28800] # PST
+  (-14..12).each do |offset|
+    define_method("test_from_integer_#{offset}_to_map") do
+      assert_equal ActiveSupport::TimeZone[offset], ActiveSupport::TimeZone.new("Etc/GMT%+d" % offset)
+    end
+
+    offset_seconds = offset * 3600
+    define_method("test_from_integer_#{offset_seconds}_to_map") do
+      assert_equal ActiveSupport::TimeZone[offset_seconds], ActiveSupport::TimeZone.new("Etc/GMT%+d" % offset)
+    end
   end
 
   def test_from_duration_to_map
-    assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-480.minutes] # PST
+    assert_equal ActiveSupport::TimeZone["Etc/GMT-8"], ActiveSupport::TimeZone[-480.minutes]
   end
 
   ActiveSupport::TimeZone.all.each do |zone|
