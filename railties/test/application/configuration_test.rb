@@ -1607,6 +1607,13 @@ module ApplicationTests
       assert_not_nil Rails::SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
     end
 
+    test "config.default_log_file returns a File instance" do
+      app "development"
+
+      assert_instance_of File, app.config.default_log_file
+      assert_equal Rails.application.config.paths["log"].first, app.config.default_log_file.path
+    end
+
     test "rake_tasks block works at instance level" do
       app_file "config/environments/development.rb", <<-RUBY
         Rails.application.configure do

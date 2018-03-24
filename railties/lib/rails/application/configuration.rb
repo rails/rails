@@ -311,6 +311,18 @@ module Rails
         end
       end
 
+      def default_log_file
+        path = paths["log"].first
+        unless File.exist? File.dirname path
+          FileUtils.mkdir_p File.dirname path
+        end
+
+        f = File.open path, "a"
+        f.binmode
+        f.sync = autoflush_log # if true make sure every write flushes
+        f
+      end
+
       class Custom #:nodoc:
         def initialize
           @configurations = Hash.new
