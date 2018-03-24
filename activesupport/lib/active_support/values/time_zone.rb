@@ -222,24 +222,23 @@ module ActiveSupport
       end
 
       # Locate a specific time zone object. If the argument is a string, it
-      # is interpreted to mean the name of the timezone to locate. If it is a
-      # numeric value it is either the hour offset, or the second offset, of the
-      # timezone to find. (The first one with that offset will be returned.)
+      # is interpreted to mean the name of the timezone to locate. If the argument is
+      # numeric value, it is interpreted as fixed offset hours or seconds from UTC,
+      # whici is rounded down to hours, and corresponding Etc/GMT based timezone is returned.
       # Returns +nil+ if no such time zone is known to the system.
       def [](arg)
         case arg
         when String
-          begin
-            @lazy_zones_map[arg] ||= create(arg)
-          rescue TZInfo::InvalidTimezoneIdentifier
-            nil
-          end
+          zone = arg
         when Numeric, ActiveSupport::Duration
-          arg *= 3600 if arg.abs <= 13
-          all.find { |z| z.utc_offset == arg.to_i }
+          zone = offset_to_gmt_based_zone(arg)
         else
           raise ArgumentError, "invalid argument to TimeZone[]: #{arg.inspect}"
         end
+
+        @lazy_zones_map[arg] ||= create(zone)
+      rescue TZInfo::InvalidTimezoneIdentifier
+        nil
       end
 
       # A convenience method for returning a collection of TimeZone objects
@@ -263,6 +262,11 @@ module ActiveSupport
       end
 
       private
+        def offset_to_gmt_based_zone(offset)
+          offset = (offset / 3600) if offset < -14 || offset > 12
+          "Etc/GMT%+d" % offset.floor
+        end
+
         def load_country_zones(code)
           country = TZInfo::Country.get(code)
           country.zone_identifiers.map do |tz_id|
