@@ -590,7 +590,8 @@ module ActionController
     #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
     #   params2.dig(:foo, 1) # => 11
     def dig(*keys)
-      convert_value_to_parameters(@parameters.dig(*keys))
+      convert_hashes_to_parameters(keys.first, @parameters[keys.first])
+      @parameters.dig(*keys)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
