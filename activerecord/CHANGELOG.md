@@ -1,3 +1,7 @@
+*   Add custom prefix option to ActiveRecord::Store.store_accessor.
+
+    *Tan Huynh*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
