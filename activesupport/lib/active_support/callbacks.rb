@@ -497,9 +497,7 @@ module ActiveSupport
           arg.halted || !@user_conditions.all? { |c| c.call(arg.target, arg.value) }
         end
 
-        def nested
-          @nested
-        end
+        attr_reader :nested
 
         def final?
           !@call_template
@@ -578,7 +576,7 @@ module ActiveSupport
         end
 
         protected
-          def chain; @chain; end
+          attr_reader :chain
 
         private
 

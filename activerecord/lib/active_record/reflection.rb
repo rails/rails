@@ -35,7 +35,9 @@ module ActiveRecord
     def self.add_reflection(ar, name, reflection)
       ar.clear_reflections_cache
       name = name.to_s
-      ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+      ar._reflections = ar._reflections.except(name).tap do |o|
+        o[name] = reflection
+      end
     end
 
     def self.add_aggregate_reflection(ar, name, reflection)

@@ -359,7 +359,7 @@ module ActiveRecord
         Hash[calculated_data.map do |row|
           key = group_columns.map { |aliaz, col_name|
             type = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz, Type.default_value)
+              calculated_data.column_types.fetch(aliaz) { Type.default_value }
             end
             type_cast_calculated_value(row[aliaz], type)
           }

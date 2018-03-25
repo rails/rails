@@ -30,7 +30,9 @@ module ActiveModel
         end
 
         def record_error(record, attribute, name, value)
-          record.errors.add(attribute, :invalid, options.except(name).merge!(value: value))
+          record.errors.add(
+            attribute, :invalid, options.except(name).tap { |o| o[:value] = value }
+          )
         end
 
         def check_options_validity(name)

@@ -703,7 +703,7 @@ module ActiveRecord
           # Use standard-conforming strings so we don't have to do the E'...' dance.
           set_standard_conforming_strings
 
-          variables = @config.fetch(:variables, {}).stringify_keys
+          variables = @config.fetch(:variables) { {} }.stringify_keys
 
           # If using Active Record's time zone support configure the connection to return
           # TIMESTAMP WITH ZONE types in UTC.

@@ -70,7 +70,7 @@ module ActionCable
         end
 
         def stop_periodic_timers
-          active_periodic_timers.each { |timer| timer.shutdown }
+          active_periodic_timers.each(&:shutdown)
           active_periodic_timers.clear
         end
     end

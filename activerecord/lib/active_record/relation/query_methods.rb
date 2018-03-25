@@ -912,7 +912,7 @@ module ActiveRecord
     protected
       # Returns a relation value with a given name
       def get_value(name) # :nodoc:
-        @values.fetch(name, DEFAULT_VALUES[name])
+        @values.fetch(name) { DEFAULT_VALUES[name] }
       end
 
       # Sets the relation value with the given name

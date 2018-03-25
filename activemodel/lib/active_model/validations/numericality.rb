@@ -59,7 +59,11 @@ module ActiveModel
             end
 
             unless value.send(CHECKS[option], option_value)
-              record.errors.add(attr_name, option, filtered_options(value).merge!(count: option_value))
+              record.errors.add(
+                attr_name,
+                option,
+                filtered_options(value).tap { |o| o[:count] = option_value }
+              )
             end
           end
         end
