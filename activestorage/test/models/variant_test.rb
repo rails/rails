@@ -2,8 +2,11 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   test "resized variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(resize: "100x100").processed
@@ -79,5 +82,23 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(font: "a" * 10_000).processed
     assert_operator variant.service_url.length, :<, 525
+  end
+
+  test "urls allow for custom options" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize: "600x600")
+
+    options = [
+      variant.key,
+      expires_in: blob.service.url_expires_in,
+      disposition: :inline,
+      content_type: blob.content_type,
+      filename: blob.filename,
+      thumb_size: "300x300",
+      thumb_mode: "crop"
+    ]
+    assert_called_with(blob.service, :url, options) do
+      variant.service_url(thumb_size: "300x300", thumb_mode: "crop")
+    end
   end
 end
