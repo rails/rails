@@ -139,25 +139,17 @@ module ActiveSupport
         define_acronym_regex_patterns
       end
 
-      # Specifies a new pluralization rule and its replacement. The rule can
-      # either be a string or a regular expression. The replacement should
+      # Specifies a new singularization or pluralization rule and its replacement.
+      # The rule can either be a string or a regular expression. The replacement should
       # always be a string that may include references to the matched data from
       # the rule.
-      def plural(rule, replacement)
-        @uncountables.delete(rule) if rule.is_a?(String)
-        @uncountables.delete(replacement)
-        @plurals.prepend([rule, replacement])
-      end
-
-      # Specifies a new singularization rule and its replacement. The rule can
-      # either be a string or a regular expression. The replacement should
-      # always be a string that may include references to the matched data from
-      # the rule.
+      #
+      #   plural /^(ox)$/i, '\1en'
+      #   singular /^(ox)en/i, '\1'
       def singular(rule, replacement)
-        @uncountables.delete(rule) if rule.is_a?(String)
-        @uncountables.delete(replacement)
-        @singulars.prepend([rule, replacement])
+        update_singulars_or_plurals(__callee__, rule, replacement)
       end
+      alias :plural :singular
 
       # Specifies a new irregular that applies to both pluralization and
       # singularization at the same time. This can only be used for strings, not
@@ -238,6 +230,15 @@ module ActiveSupport
           @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
           @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/
           @acronyms_underscore_regex = /(?:(?<=([A-Za-z\d]))|\b)(#{@acronym_regex})(?=\b|[^a-z])/
+        end
+
+        # Specifies new rules for singulars or plurals instance variables.
+        def update_singulars_or_plurals(variable_name, rule, replacement)
+          @uncountables.delete(rule) if rule.is_a?(String)
+          @uncountables.delete(replacement)
+          singulars_or_plurals = instance_variable_get("@#{variable_name}s")
+
+          singulars_or_plurals.prepend([rule, replacement])
         end
     end
 
