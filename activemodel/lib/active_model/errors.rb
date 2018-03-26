@@ -292,18 +292,9 @@ module ActiveModel
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       hash = {}
-      @errors.each do |error|
-        if full_messages
-          message = error.full_message
-        else
-          message = error.message
-        end
-
-        if hash.has_key?(error.attribute)
-          hash[error.attribute] << message
-        else
-          hash[error.attribute] = [message]
-        end
+      message_method = full_messages ? :full_message : :message
+      group_by_attribute.each do |attribute, errors|
+        hash[attribute] = errors.map(&message_method)
       end
       hash
     end
@@ -311,16 +302,14 @@ module ActiveModel
 
     def details
       hash = {}
-      @errors.each do |error|
-        detail = error.detail
-
-        if hash.has_key?(error.attribute)
-          hash[error.attribute] << detail
-        else
-          hash[error.attribute] = [detail]
-        end
+      group_by_attribute.each do |attribute, errors|
+        hash[attribute] = errors.map(&:detail)
       end
       hash
+    end
+
+    def group_by_attribute
+      group_by(&:attribute)
     end
 
     # Adds +message+ to the error messages and used validator type to +details+ on +attribute+.

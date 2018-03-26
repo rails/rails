@@ -494,6 +494,14 @@ class ErrorsTest < ActiveModel::TestCase
     assert_equal({ name: [{ error: :invalid }] }, person.errors.details)
   end
 
+  test "group_by_attribute" do
+    person = Person.new
+    error = person.errors.add(:name, :invalid, message: "is bad")
+    hash = person.errors.group_by_attribute
+
+    assert_equal({ name: [error] }, hash)
+  end
+
   test "dup duplicates details" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
