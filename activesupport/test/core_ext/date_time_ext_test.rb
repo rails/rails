@@ -285,6 +285,18 @@ class DateTimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_before
+    assert_equal false, DateTime.civil(2017, 3, 6, 12, 0, 0).before?(DateTime.civil(2017, 3, 6, 11, 59, 59))
+    assert_equal false, DateTime.civil(2017, 3, 6, 12, 0, 0).before?(DateTime.civil(2017, 3, 6, 12, 0, 0))
+    assert_equal true, DateTime.civil(2017, 3, 6, 12, 0, 0).before?(DateTime.civil(2017, 3, 6, 12, 00, 1))
+  end
+
+  def test_after
+    assert_equal true, DateTime.civil(2017, 3, 6, 12, 0, 0).after?(DateTime.civil(2017, 3, 6, 11, 59, 59))
+    assert_equal false, DateTime.civil(2017, 3, 6, 12, 0, 0).after?(DateTime.civil(2017, 3, 6, 12, 0, 0))
+    assert_equal false, DateTime.civil(2017, 3, 6, 12, 0, 0).after?(DateTime.civil(2017, 3, 6, 12, 00, 1))
+  end
+
   def test_current_returns_date_today_when_zone_is_not_set
     with_env_tz "US/Eastern" do
       Time.stub(:now, Time.local(1999, 12, 31, 23, 59, 59)) do

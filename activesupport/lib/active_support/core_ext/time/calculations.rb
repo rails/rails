@@ -302,6 +302,8 @@ class Time
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion
+  alias_method :before?, :<
+  alias_method :after?, :>
 
   # Layers additional behavior on Time#eql? so that ActiveSupport::TimeWithZone instances
   # can be eql? to an equivalent Time
