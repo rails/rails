@@ -40,11 +40,11 @@ class I18nValidationTest < ActiveRecord::TestCase
   COMMON_CASES = [
     # [ case,                              validation_options,            generate_message_options]
     [ "given no options",                  {},                            {}],
-    [ "given custom message",              { message: "custom" },        { message: "custom" }],
-    [ "given if condition",                { if: lambda { true } },  {}],
-    [ "given unless condition",            { unless: lambda { false } }, {}],
-    [ "given option that is not reserved", { format: "jpg" },            { format: "jpg" }],
-    [ "given on condition",                { on: [:create, :update] },     {}]
+    [ "given custom message",              { message: "custom" },         { message: "custom" }],
+    [ "given if condition",                { if: lambda { true } },       {}],
+    [ "given unless condition",            { unless: lambda { false } },  {}],
+    [ "given option that is not reserved", { format: "jpg" },             { format: "jpg" }],
+    [ "given on condition",                { on: [:create, :update] },    {}]
   ]
 
   COMMON_CASES.each do |name, validation_options, generate_message_options|
