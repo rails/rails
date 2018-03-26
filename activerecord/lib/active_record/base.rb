@@ -290,6 +290,7 @@ module ActiveRecord #:nodoc:
     extend CollectionCacheKey
 
     include Core
+    include DatabaseConfigurations
     include Persistence
     include ReadonlyAttributes
     include ModelSchema

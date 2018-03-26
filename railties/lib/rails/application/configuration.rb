@@ -166,6 +166,18 @@ module Rails
         end
       end
 
+      # Loads the database YAML without evaluating ERB.  People seem to
+      # write ERB that makes the database configuration depend on
+      # Rails configuration.  But we want Rails configuration (specifically
+      # `rake` and `rails` tasks) to be generated based on information in
+      # the database yaml, so we need a method that loads the database
+      # yaml *without* the context of the Rails application.
+      def load_database_yaml # :nodoc:
+        path = paths["config/database"].existent.first
+        return {} unless path
+        YAML.load_file(path.to_s)
+      end
+
       # Loads and returns the entire raw configuration of database from
       # values stored in <tt>config/database.yml</tt>.
       def database_configuration
