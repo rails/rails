@@ -101,6 +101,10 @@ module ActiveRecord
       end
       alias validated? validate?
 
+      def export_name_on_schema_dump?
+        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+      end
+
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
         if to_table_ord
           self.to_table == to_table_ord.to_s

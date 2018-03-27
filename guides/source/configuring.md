@@ -400,9 +400,15 @@ by adding the following to your `application.rb` file:
     Rails.application.config.active_record.sqlite3.represent_boolean_as_integer = true
     ```
 
-The schema dumper adds one additional configuration option:
+The schema dumper adds two additional configuration options:
 
 * `ActiveRecord::SchemaDumper.ignore_tables` accepts an array of tables that should _not_ be included in any generated schema file.
+
+* `ActiveRecord::SchemaDumper.fk_ignore_pattern` allows setting a different regular
+  expression that will be used to decide whether a foreign key's name should be
+  dumped to db/schema.rb or not. By default, foreign key names starting with
+  `fk_rails_` are not exported to the database schema dump.
+  Defaults to `/^fk_rails_[0-9a-f]{10}$/`.
 
 ### Configuring Action Controller
 

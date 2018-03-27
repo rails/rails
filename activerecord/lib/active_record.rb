@@ -43,6 +43,7 @@ module ActiveRecord
   autoload :DatabaseConfigurations
   autoload :DynamicMatchers
   autoload :Enum
+  autoload :ForeignKeys
   autoload :InternalMetadata
   autoload :Explain
   autoload :Inheritance
