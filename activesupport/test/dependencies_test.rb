@@ -240,6 +240,44 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  def test_explicit_unloadable_constants_can_be_unloaded_and_reloaded
+    with_loading "autoloading_fixtures/explicit_unloadable" do
+      # autoload this constant:
+      assert UnloadableExample
+
+      # Assert that AS::D's internal state matches Ruby's state:
+      assert defined?(UnloadableExample)
+      assert_equal ["UnloadableExample"], ActiveSupport::Dependencies.autoloaded_constants
+      assert_equal 1, ActiveSupport::Dependencies.explicitly_unloadable_constants.size
+      assert_equal 1, ActiveSupport::Dependencies.loaded.size
+      # Now cleanly unload the constant
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+
+      # Since the constant was properly unloaded, it can be reloaded:
+      assert UnloadableExample
+    end
+  end
+
+  def test_explicit_unloadable_constants_can_are_cleanly_unloaded
+    with_loading "autoloading_fixtures/explicit_unloadable" do
+      # autoload this constant:
+      assert UnloadableExample
+
+      # Assert that AS::D's internal state matches Ruby's state:
+      assert defined?(UnloadableExample)
+      assert_equal ["UnloadableExample"], ActiveSupport::Dependencies.explicitly_unloadable_constants
+      assert_equal ["UnloadableExample"], ActiveSupport::Dependencies.autoloaded_constants
+      assert_equal 1, ActiveSupport::Dependencies.loaded.size
+
+      # Unload it, and do a reality check that Ruby's state and AS::D's state match
+      ActiveSupport::Dependencies.remove_unloadable_constants!
+      refute defined?(UnloadableExample), "The constant was actually removed"
+      assert_equal ["UnloadableExample"], ActiveSupport::Dependencies.explicitly_unloadable_constants, "This array stays the same"
+      assert_equal [], ActiveSupport::Dependencies.autoloaded_constants, "AS::D also knows there are no constants"
+      assert_equal 0, ActiveSupport::Dependencies.loaded.size, "No files were loaded"
+    end
+  end
+
   def test_module_loading
     with_autoloading_fixtures do
       assert_kind_of Module, A
