@@ -1,10 +1,12 @@
 test:
   service: Disk
   root: <%%= Rails.root.join("tmp/storage") %>
+  host: http://localhost:3000
 
 local:
   service: Disk
   root: <%%= Rails.root.join("storage") %>
+  host: http://localhost:3000
 
 # Use rails credentials:edit to set the AWS secrets (as aws:access_key_id|secret_access_key)
 # amazon:
