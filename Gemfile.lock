@@ -354,7 +354,7 @@ GEM
       rack (>= 0.4)
     rack-protection (2.0.1)
       rack
-    rack-test (0.8.0)
+    rack-test (1.0.0)
       rack (>= 1.0, < 3)
     rails-dom-testing (2.0.3)
       activesupport (>= 4.2.0)
