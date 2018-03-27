@@ -318,7 +318,7 @@ db_namespace = namespace :db do
         ActiveRecord::Base.establish_connection(config)
         filename = ActiveRecord::Tasks::DatabaseTasks.dump_filename(spec_name, :sql)
         current_config = ActiveRecord::Tasks::DatabaseTasks.current_config
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(config, filename)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump(current_config, filename)
 
         if ActiveRecord::SchemaMigration.table_exists?
           File.open(filename, "a") do |f|
