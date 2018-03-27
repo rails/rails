@@ -12,8 +12,15 @@ class Topic < ActiveRecord::Base
 
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_lifo, -> { where(author_name: "lifo") }
+  scope :by_lifo, -> { where(author_name: author_name) }
   scope :replied, -> { where "replies_count > 0" }
+
+  class << self
+    private
+      def author_name
+        "lifo"
+      end
+  end
 
   scope "approved_as_string", -> { where(approved: true) }
   scope :anonymous_extension, -> {} do
