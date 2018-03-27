@@ -83,6 +83,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_file "app/views/product_lines/#{view}.html.erb", /render 'form', product_line: @product_line/
     end
 
+    assert_file "app/views/product_lines/_product_line.html.erb"
+
     assert_file "app/views/product_lines/_form.html.erb" do |test|
       assert_match "product_line", test
       assert_no_match "@product_line", test
