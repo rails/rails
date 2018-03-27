@@ -15,6 +15,7 @@ module Erb # :nodoc:
       end
 
       def copy_view_files
+        template "_member_partial.html.erb", File.join("app/views", controller_file_path, "_#{file_name}.html.erb")
         available_views.each do |view|
           formats.each do |format|
             filename = filename_with_extensions(view, format)
