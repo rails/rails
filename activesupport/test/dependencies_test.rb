@@ -240,6 +240,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  # Regression see https://github.com/rails/rails/issues/32359
   def test_explicit_unloadable_constants_can_be_unloaded_and_reloaded
     with_loading "autoloading_fixtures/explicit_unloadable" do
       # autoload this constant:
@@ -258,6 +259,7 @@ class DependenciesTest < ActiveSupport::TestCase
     end
   end
 
+  # Regression see https://github.com/rails/rails/issues/32359
   def test_explicit_unloadable_constants_can_are_cleanly_unloaded
     with_loading "autoloading_fixtures/explicit_unloadable" do
       # autoload this constant:
