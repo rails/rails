@@ -10,6 +10,7 @@ module ActiveRecord
     def spawn #:nodoc:
       clone
     end
+    alias :all :spawn
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
