@@ -1,3 +1,8 @@
+Fix check for minimum Ruby version to correctly identify Ruby 2.2.10.
+
+*shia*
+
+
 ## Rails 5.0.6 (September 07, 2017) ##
 
 *   No changes.
