@@ -1,6 +1,6 @@
 {
   "name": "actioncable",
-  "version": "5.0.6",
+  "version": "5.0.7",
   "description": "WebSocket framework for Ruby on Rails.",
   "main": "lib/assets/compiled/action_cable.js",
   "files": [

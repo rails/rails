@@ -1,3 +1,5 @@
+## Rails 5.0.7 (March 29, 2018) ##
+
 *   Remove deprecation on `ActionController::Parameters#to_hash` when the instance is
     permitted.
 

@@ -1,3 +1,5 @@
+## Rails 5.0.7 (March 29, 2018) ##
+
 *   Return all mappings for a timezone identifier in `country_zones`
 
     Some timezones like `Europe/London` have multiple mappings in
