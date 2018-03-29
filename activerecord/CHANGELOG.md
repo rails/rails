@@ -1,3 +1,5 @@
+## Rails 5.1.6 (March 29, 2018) ##
+
 *   MySQL: Support mysql2 0.5.x.
 
     *Aaron Stone*
