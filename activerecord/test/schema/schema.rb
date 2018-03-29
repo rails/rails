@@ -294,6 +294,7 @@ ActiveRecord::Schema.define do
   end
 
   create_table :dog_lovers, force: true do |t|
+    t.string  :name
     t.integer :trained_dogs_count, default: 0
     t.integer :bred_dogs_count, default: 0
     t.integer :dogs_count, default: 0
