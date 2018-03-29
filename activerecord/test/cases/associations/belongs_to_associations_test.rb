@@ -25,6 +25,7 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/category"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -38,10 +39,12 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assigning_belongs_to_on_destroyed_object
-    client = Client.create!(name: "Client")
+    firm = Firm.create!(name: "Firm")
+    client = Client.create!(name: "Client", firm: firm)
     client.destroy!
     assert_raise(frozen_error_class) { client.firm = nil }
-    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
+    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "New Firm") }
+    assert_nothing_raised { client.firm = firm }
   end
 
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
@@ -1213,6 +1216,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "associations on destroyed models can be preloaded" do
+    post = posts(:welcome)
+    SelfDestructingComment.create!(post_id: post.id, body: "body")
+
+    comment = SelfDestructingComment.preload(:post).first
+    assert_equal post, comment.post
+  end
+end
+
+class SelfDestructingComment < ActiveRecord::Base
+  self.table_name = :comments
+  self.inheritance_column = nil
+
+  belongs_to :post
+
+  after_find { destroy! }
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
