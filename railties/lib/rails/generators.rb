@@ -278,8 +278,8 @@ module Rails
           options     = sorted_groups.flat_map(&:last)
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
           puts <<~MSG
-            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?\n"
-            Run `rails generate --help` for more options."
+            Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?
+            Run `rails generate --help` for more options.
           MSG
         end
       end
