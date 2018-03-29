@@ -273,7 +273,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       # Unload it, and do a reality check that Ruby's state and AS::D's state match
       ActiveSupport::Dependencies.remove_unloadable_constants!
-      refute defined?(UnloadableExample), "The constant was actually removed"
+      assert_not defined?(UnloadableExample), "The constant was actually removed"
       assert_equal ["UnloadableExample"], ActiveSupport::Dependencies.explicitly_unloadable_constants, "This array stays the same"
       assert_equal [], ActiveSupport::Dependencies.autoloaded_constants, "AS::D also knows there are no constants"
       assert_equal 0, ActiveSupport::Dependencies.loaded.size, "No files were loaded"

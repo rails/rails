@@ -723,10 +723,10 @@ module ActiveSupport #:nodoc:
       # call from a class or module that were not autoloaded, as in the
       # example above with Object, accessing to that constant must err.
       unless parent.autoload?(to_remove)
-        # Don't try to unload a non-existent constant
-        if !parent.const_defined?(to_remove)
-          return
-        end
+        # Don't try to unload a non-existent constant,
+        # `const_get` below may trigger an ActiveSupport autoload
+        # if the constant isn't defined
+        return unless parent.const_defined?(to_remove)
         begin
           constantized = parent.const_get(to_remove, false)
         rescue NameError
