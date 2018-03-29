@@ -1,3 +1,7 @@
+*   Fix check for minimum Ruby version to correctly identify Ruby 2.2.10.
+
+    *shia*
+
 *   Fix minitest rails plugin.
 
     The custom reporters are added only if needed.
