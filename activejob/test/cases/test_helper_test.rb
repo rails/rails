@@ -482,6 +482,17 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_nil queue_adapter.reject
   end
 
+  def test_performed_enqueue_jobs_still_enqueue_unfiltered_jobs
+    perform_enqueued_jobs only: HelloJob do
+      HelloJob.perform_later("jeremy")
+      LoggingJob.perform_later("stewie")
+      RescueJob.perform_later("david")
+
+      assert_enqueued_jobs 2
+      assert_performed_jobs 1
+    end
+  end
+
   def test_assert_performed_jobs
     assert_nothing_raised do
       assert_performed_jobs 1 do
