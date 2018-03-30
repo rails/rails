@@ -1,0 +1,27 @@
+/* Clearing
+--------------------------------------- */
+
+.clearfix:after {
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+}
+
+.clearfix {display: inline-block;}
+* html .clearfix {height: 1%;}
+.clearfix {display: block;}
+.clear { clear:both; }
+
+/* Same bottom margin for special boxes than for regular paragraphs, this way
+intermediate whitespace looks uniform. */
+div.code_container, div.important, div.caution, div.warning, div.note, div.info {
+  margin-bottom: 1.5em;
+}
+
+/* Remove bottom margin of paragraphs in special boxes, otherwise they get a
+spurious blank area below with the box background. */
+div.important p, div.caution p, div.warning p, div.note p, div.info p {
+  margin-bottom: 1em;
+}

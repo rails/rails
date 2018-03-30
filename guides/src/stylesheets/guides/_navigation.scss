@@ -1,0 +1,130 @@
+/* Navigation
+--------------------------------------- */
+
+.nav {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  float: right;
+  margin-top: 1.5em;
+  font-size: 1.2857em;
+}
+
+.nav .nav-item {color: #FFF; text-decoration: none;}
+.nav .nav-item:hover {text-decoration: underline;}
+
+.guides-index-large, .guides-index-small .guides-index-item {
+  padding: 0.5em 1.5em;
+  border-radius: 1em;
+  -webkit-border-radius: 1em;
+  -moz-border-radius: 1em;
+  background: #980905;
+  position: relative;
+  color: white;
+}
+
+.guides-index .guides-index-item {
+  background: #980905 url(../images/nav_arrow.gif) no-repeat right top;
+  padding-right: 1em;
+  position: relative;
+  z-index: 15;
+  padding-bottom: 0.125em;
+}
+
+.guides-index:hover .guides-index-item, .guides-index .guides-index-item:hover {
+  background-position: right -81px;
+  text-decoration: underline !important;
+}
+
+@media screen and (min-width: 481px) {
+  .nav {
+    float: right;
+    margin-top: 1.5em;
+    font-size: 1.2857em;
+  }
+  .nav>li {
+    display: inline;
+    margin-left: 0.5em;
+  }
+  .guides-index.guides-index-small {
+    display: none;
+  }
+}
+
+@media screen and (max-width: 480px) {
+  .nav {
+    float: none;
+    width: 100%;
+    text-align: center;
+  }
+  .nav .nav-item {
+    display: block;
+    margin: 0;
+    width: 100%;
+    background-color: #980905;
+    border: solid 1px #620c04;
+    border-top: 0;
+    padding: 15px 0;
+    text-align: center;
+  }
+  .nav .nav-item, .nav-item.guides-index-item {
+    text-transform: uppercase;
+  }
+  .nav .nav-item:first-child, .nav-item.guides-index-small {
+    border-top: solid 1px #620c04;
+  }
+  .guides-index.guides-index-small {
+    display: block;
+    margin-top: 1.5em;
+  }
+  .guides-index.guides-index-large {
+    display: none;
+  }
+  .guides-index-small .guides-index-item {
+    font: inherit;
+    padding-left: .75em;
+    font-size: .95em;
+    background-position: 96% 16px;
+    -webkit-appearance: none;
+  }
+  .guides-index-small .guides-index-item:hover{
+    background-position: 96% -65px;
+  }
+}
+
+#guides {
+  width: 27em;
+  display: block;
+  background: #980905;
+  border-radius: 1em;
+  -webkit-border-radius: 1em;
+  -moz-border-radius: 1em;
+  -webkit-box-shadow: 0.25em 0.25em 1em rgba(0,0,0,0.25);
+  -moz-box-shadow: rgba(0,0,0,0.25) 0.25em 0.25em 1em;
+  color: #f1938c;
+  padding: 1.5em 2em;
+  position: absolute;
+  z-index: 10;
+  top: -0.25em;
+  right: 0;
+  padding-top: 2em;
+}
+
+#guides dt, #guides dd {
+  font-weight: normal;
+  font-size: 0.722em;
+  margin: 0;
+  padding: 0;
+}
+#guides dt {padding:0; margin: 0.5em 0 0;}
+#guides a {color: #FFF; background: none !important; text-decoration: none;}
+#guides a:hover {text-decoration: underline;}
+#guides .L, #guides .R {float: left; width: 50%; margin: 0; padding: 0;}
+#guides .R {float: right;}
+#guides hr {
+  display: block;
+  border: none;
+  height: 1px;
+  color: #f1938c;
+  background: #f1938c;
+}
