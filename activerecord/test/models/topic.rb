@@ -12,12 +12,13 @@ class Topic < ActiveRecord::Base
 
   scope :scope_with_lambda, lambda { all }
 
-  scope :by_lifo, -> { where(author_name: author_name) }
+  scope :by_private_lifo, -> { where(author_name: private_lifo) }
+  scope :by_lifo, -> { where(author_name: "lifo") }
   scope :replied, -> { where "replies_count > 0" }
 
   class << self
     private
-      def author_name
+      def private_lifo
         "lifo"
       end
   end
