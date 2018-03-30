@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/module/attribute_accessors"
 require "active_support/message_verifier"
 require "active_support/messages/metadata"
 
