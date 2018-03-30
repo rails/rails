@@ -1418,6 +1418,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/user?format=html", user_path(format: "html")
   end
 
+  def test_scoped_with_optional_param_and_defaults_and_with_route_with_dynamic_segment
+    draw do
+      scope "(:locale)", locale: /en|ua/, defaults: { locale: :ua } do
+        get "/projects/:id" => "projects#index", as: :project
+      end
+    end
+
+    assert_equal "/projects/1", project_path(id: 1)
+    assert_equal "/projects/1", project_path(id: 1, locale: :ua)
+    assert_equal "/en/projects/1", project_path(id: 1, locale: :en)
+  end
+
   def test_index
     draw do
       get "/info" => "projects#info", :as => "info"
