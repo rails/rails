@@ -1,3 +1,8 @@
+*   Controller level `force_ssl` has been deprecated in favor of
+    `config.force_ssl`.
+
+    *Derek Prior*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*

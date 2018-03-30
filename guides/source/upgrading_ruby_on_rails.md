@@ -66,6 +66,17 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.2 to Rails 6.0
+-------------------------------------
+
+### Force SSL
+
+The `force_ssl` method on controllers has been deprecated and will be removed in
+Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
+connections throughout your application. If you need to exempt certain endpoints
+from redirection, you can use `config.ssl_options` to configure that behavior.
+
+
 Upgrading from Rails 5.1 to Rails 5.2
 -------------------------------------
 
