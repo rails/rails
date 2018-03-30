@@ -46,8 +46,8 @@ module ActiveRecord
       if config["database"] || env_name == "default"
         DatabaseConfig.new(env_name, spec_name, config)
       else
-        config.each_pair.map do |spec_name, sub_config|
-          walk_configs(env_name, spec_name, sub_config)
+        config.each_pair.map do |sub_spec_name, sub_config|
+          walk_configs(env_name, sub_spec_name, sub_config)
         end
       end
     end
