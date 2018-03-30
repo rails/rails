@@ -600,6 +600,13 @@ Defaults to `'signed cookie'`.
 
 * `config.action_view.default_enforce_utf8` determines whether forms are generated with a hidden tag that forces older versions of Internet Explorer to submit forms encoded in UTF-8. This defaults to `false`.
 
+* `config.action_view.finalize_compiled_template_methods` determines
+  whether the methods on `ActionView::CompiledTemplates` that templates
+  compile themselves to are removed when template instances are
+  destroyed by the garbage collector. This helps prevent memory leaks in
+  development mode, but for large test suites, disabling this option in
+  the test environment can improve performance. This defaults to `true`.
+
 ### Configuring Action Mailer
 
 There are a number of settings available on `config.action_mailer`:

@@ -9,6 +9,9 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
+    mattr_accessor :finalize_compiled_template_methods
+    self.finalize_compiled_template_methods = true
+
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -307,7 +310,9 @@ module ActionView
         end
 
         mod.module_eval(source, identifier, 0)
-        ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        if finalize_compiled_template_methods
+          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        end
       end
 
       def handle_render_error(view, e)

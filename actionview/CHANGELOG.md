@@ -1,3 +1,12 @@
+*   Disable `ActionView::Template` finalizers in test environment
+
+    Template finalization can be expensive in large view test suites.
+    Add a configuration option,
+    `action_view.finalize_compiled_template_methods`, and turn it off in
+    the test environment.
+
+    *Simon Coffey*
+
 *   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
     Example :
         Rails.confirm = function(message, element) {
