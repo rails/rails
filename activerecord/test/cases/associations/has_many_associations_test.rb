@@ -497,8 +497,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     person.first_name = "Naruto"
     person.references << Reference.new
-    person.id = 10
-    person.references
     person.save!
     assert_equal 1, person.references.update_all(favourite: true)
   end
@@ -507,8 +505,6 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     person = Person.new
     person.first_name = "Sasuke"
     person.references << Reference.new
-    person.id = 10
-    person.references
     person.save!
     assert_predicate person.references, :exists?
   end
