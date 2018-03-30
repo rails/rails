@@ -1218,6 +1218,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     client = assert_queries(2) { Client.preload(:firm).find(c.id) }
     assert_no_queries { assert_nil client.firm }
+    assert_equal c.client_of, client.client_of
   end
 
   def test_preloading_empty_belongs_to_polymorphic
@@ -1225,6 +1226,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
     tagging = assert_queries(2) { Tagging.preload(:taggable).find(t.id) }
     assert_no_queries { assert_nil tagging.taggable }
+    assert_equal t.taggable_id, tagging.taggable_id
   end
 
   def test_preloading_through_empty_belongs_to
