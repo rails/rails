@@ -117,7 +117,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.query_options.merge!(as: :array)
+          @connection.query_options[:as] = :array
           super
         end
 

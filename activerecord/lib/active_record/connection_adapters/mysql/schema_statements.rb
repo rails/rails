@@ -36,7 +36,7 @@ module ActiveRecord
               end
 
               indexes.last[-2] << row[:Column_name]
-              indexes.last[-1][:lengths].merge!(row[:Column_name] => row[:Sub_part].to_i) if row[:Sub_part]
+              indexes.last[-1][:lengths][row[:Column_name]] = row[:Sub_part].to_i if row[:Sub_part]
               indexes.last[-1][:orders].merge!(row[:Column_name] => :desc) if row[:Collation] == "D"
             end
           end

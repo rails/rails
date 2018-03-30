@@ -146,9 +146,7 @@ module Rails
         @debug_exception_response_format || :default
       end
 
-      def debug_exception_response_format=(value)
-        @debug_exception_response_format = value
-      end
+      attr_writer :debug_exception_response_format
 
       def paths
         @paths ||= begin
