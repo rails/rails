@@ -105,7 +105,7 @@ platforms :ruby do
 
   group :db do
     gem 'pg', '>= 0.15.0'
-    gem 'mysql2', '>= 0.4.0'
+    gem 'mysql2', RUBY_VERSION < '2.0' ? '~> 0.4.0' : '>= 0.4.0'
   end
 end
 
