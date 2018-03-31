@@ -179,7 +179,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+        "production"  => { "url" => "prod-db-url" }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -188,7 +188,16 @@ module ActiveRecord
 
     def test_creates_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "prod-db")
+        with("database" => "test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("test")
+      )
+    end
+
+    def test_creates_current_environment_database_with_url
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("url" => "prod-db-url")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("production")
@@ -237,7 +246,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "database" => "prod-db" }, "secondary" => { "database" => "secondary-prod-db" } }
+        "production" => { "primary" => { "url" => "prod-db-url" }, "secondary" => { "url" => "secondary-prod-db-url" } }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -246,10 +255,22 @@ module ActiveRecord
 
     def test_creates_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "prod-db")
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "secondary-prod-db")
+        with("database" => "secondary-test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.create_current(
+        ActiveSupport::StringInquirer.new("test")
+      )
+    end
+
+    def test_creates_current_environment_database_with_url
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("url" => "prod-db-url")
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
+        with("url" => "secondary-prod-db-url")
 
       ActiveRecord::Tasks::DatabaseTasks.create_current(
         ActiveSupport::StringInquirer.new("production")
@@ -374,7 +395,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "database" => "prod-db" }
+        "production"  => { "url" => "prod-db-url" }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -382,7 +403,16 @@ module ActiveRecord
 
     def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "prod-db")
+        with("database" => "test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new("test")
+      )
+    end
+
+    def test_drops_current_environment_database_with_url
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("url" => "prod-db-url")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("production")
@@ -421,7 +451,7 @@ module ActiveRecord
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "database" => "prod-db" }, "secondary" => { "database" => "secondary-prod-db" } }
+        "production" => { "primary" => { "url" => "prod-db-url" }, "secondary" => { "url" => "secondary-prod-db-url" } }
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
@@ -429,10 +459,22 @@ module ActiveRecord
 
     def test_drops_current_environment_database
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "prod-db")
+        with("database" => "test-db")
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
-        with("database" => "secondary-prod-db")
+        with("database" => "secondary-test-db")
+
+      ActiveRecord::Tasks::DatabaseTasks.drop_current(
+        ActiveSupport::StringInquirer.new("test")
+      )
+    end
+
+    def test_drops_current_environment_database_with_url
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("url" => "prod-db-url")
+
+      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).
+        with("url" => "secondary-prod-db-url")
 
       ActiveRecord::Tasks::DatabaseTasks.drop_current(
         ActiveSupport::StringInquirer.new("production")
