@@ -39,7 +39,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   def test_include?
     errors = ActiveModel::Errors.new(Person.new)
-    errors[:foo] << "omg"
+    assert_deprecated { errors[:foo] << "omg" }
     assert_includes errors, :foo, "errors should include :foo"
     assert_includes errors, "foo", "errors should include 'foo' as :foo"
   end
@@ -93,8 +93,8 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "values returns an array of messages" do
     errors = ActiveModel::Errors.new(Person.new)
-    errors.messages[:foo] = "omg"
-    errors.messages[:baz] = "zomg"
+    assert_deprecated { errors.messages[:foo] = "omg" }
+    assert_deprecated { errors.messages[:baz] = "zomg" }
 
     assert_deprecated do
       assert_equal ["omg", "zomg"], errors.values
@@ -113,11 +113,11 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "keys returns the error keys" do
     errors = ActiveModel::Errors.new(Person.new)
-    errors.add(:name)
-    errors.add(:age)
+    assert_deprecated { errors.messages[:foo] << "omg" }
+    assert_deprecated { errors.messages[:baz] << "zomg" }
 
     assert_deprecated do
-      assert_equal [:name, :age], errors.keys
+      assert_equal [:foo, :baz], errors.keys
     end
   end
 
@@ -151,6 +151,32 @@ class ErrorsTest < ActiveModel::TestCase
     person.validate!
     assert_equal ["name cannot be nil"], person.errors.full_messages
     assert_equal ["cannot be nil"], person.errors[:name]
+  end
+
+  test "add an error message on a specific attribute (deprecated)" do
+    person = Person.new
+    person.errors.add(:name, "cannot be blank")
+    assert_equal ["cannot be blank"], person.errors[:name]
+  end
+
+  test "add an error message on a specific attribute with a defined type (deprecated)" do
+    person = Person.new
+    person.errors.add(:name, :blank, message: "cannot be blank")
+    assert_equal ["cannot be blank"], person.errors[:name]
+  end
+
+  test "add an error with a symbol (deprecated)" do
+    person = Person.new
+    person.errors.add(:name, :blank)
+    message = person.errors.generate_message(:name, :blank)
+    assert_equal [message], person.errors[:name]
+  end
+
+  test "add an error with a proc (deprecated)" do
+    person = Person.new
+    message = Proc.new { "cannot be blank" }
+    person.errors.add(:name, message)
+    assert_equal ["cannot be blank"], person.errors[:name]
   end
 
   test "add creates an error object and returns it" do
@@ -532,6 +558,16 @@ class ErrorsTest < ActiveModel::TestCase
     assert_empty person.errors.details
   end
 
+  test "copy errors (deprecated)" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+    person = Person.new
+    person.errors.copy!(errors)
+
+    assert_equal [:name], person.errors.messages.keys
+    assert_equal [:name], person.errors.details.keys
+  end
+
   test "copy errors" do
     errors = ActiveModel::Errors.new(Person.new)
     errors.add(:name, :invalid)
@@ -542,6 +578,18 @@ class ErrorsTest < ActiveModel::TestCase
     person.errors.each do |error|
       assert_same person, error.base
     end
+  end
+
+  test "merge errors (deprecated)" do
+    errors = ActiveModel::Errors.new(Person.new)
+    errors.add(:name, :invalid)
+
+    person = Person.new
+    person.errors.add(:name, :blank)
+    person.errors.merge!(errors)
+
+    assert_equal({ name: ["can't be blank", "is invalid"] }, person.errors.messages)
+    assert_equal({ name: [{ error: :blank }, { error: :invalid }] }, person.errors.details)
   end
 
   test "merge errors" do

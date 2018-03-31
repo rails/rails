@@ -664,7 +664,7 @@ This helper passes the record to a separate class for validation.
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if record.first_name == "Evil"
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -692,7 +692,7 @@ validator class as `options`:
 class GoodnessValidator < ActiveModel::Validator
   def validate(record)
     if options[:fields].any?{|field| record.send(field) == "Evil" }
-      record.errors[:base] << "This person is evil"
+      record.errors.add :base, "This person is evil"
     end
   end
 end
@@ -723,7 +723,7 @@ class GoodnessValidator
 
   def validate
     if some_complex_condition_involving_ivars_and_private_methods?
-      @person.errors[:base] << "This person is evil"
+      @person.errors.add :base, "This person is evil"
     end
   end
 
@@ -1004,7 +1004,7 @@ and performs the validation on it. The custom validator is called using the
 class MyValidator < ActiveModel::Validator
   def validate(record)
     unless record.name.starts_with? 'X'
-      record.errors[:name] << 'Need a name starting with X please!'
+      record.errors.add :name, "Need a name starting with X please!"
     end
   end
 end
@@ -1026,7 +1026,7 @@ instance.
 class EmailValidator < ActiveModel::EachValidator
   def validate_each(record, attribute, value)
     unless value =~ /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i
-      record.errors[attribute] << (options[:message] || "is not an email")
+      record.errors.add attribute, (options[:message] || "is not an email")
     end
   end
 end
@@ -1203,7 +1203,7 @@ You can add error messages that are related to the object's state as a whole, in
 ```ruby
 class Person < ApplicationRecord
   def a_method_used_for_validation_purposes
-    errors[:base] << "This person is invalid because ..."
+    errors.add :base, "This person is invalid because ..."
   end
 end
 ```

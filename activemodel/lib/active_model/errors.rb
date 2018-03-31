@@ -302,11 +302,11 @@ module ActiveModel
     #   person.errors.to_hash(true) # => {:name=>["name cannot be nil"]}
     def to_hash(full_messages = false)
       hash = {}
-      message_method = full_messages ? :full_message : :message
+      message_method = full_messages ? :full_messages_for : :messages_for
       group_by_attribute.each do |attribute, errors|
-        hash[attribute] = errors.map(&message_method)
+        hash[attribute] = public_send(message_method, attribute)
       end
-      hash
+      DeprecationHandlingMessageHash.new(hash, self)
     end
     alias :messages :to_hash
 
@@ -458,7 +458,7 @@ module ActiveModel
     end
 
     def messages_for(attribute)
-      where(attribute).map(&:message).freeze
+      DeprecationHandlingMessageArray.new(where(attribute).map(&:message).freeze, self, attribute)
     end
 
     # Returns a full message for a given attribute.
@@ -618,6 +618,48 @@ module ActiveModel
         ActiveSupport::Deprecation.warn("ActiveModel::Errors##{old_method_name} is deprecated. Please call ##{new_method_name} instead.")
       end
   end
+
+  class DeprecationHandlingMessageHash < SimpleDelegator
+    def initialize(content, errors)
+      @errors = errors
+      super(content)
+    end
+
+    def []=(attribute, value)
+      ActiveSupport::Deprecation.warn("Calling `[]=` to an ActiveModel::Errors is deprecated. Please call `ActiveModel::Errors#add` instead.")
+
+      Array(value).each do |message|
+        @errors.add(attribute, message)
+      end
+      __setobj__ @errors.messages
+      value
+    end
+
+    def [](attribute)
+      messages = super(attribute)
+
+      return messages if messages
+
+      __getobj__[attribute]= DeprecationHandlingMessageArray.new([], @errors, attribute)
+    end
+  end
+
+  class DeprecationHandlingMessageArray < SimpleDelegator
+    def initialize(content, errors, attribute)
+      @errors = errors
+      @attribute = attribute
+      super(content)
+    end
+
+    def <<(message)
+      ActiveSupport::Deprecation.warn("Calling `<<` to an ActiveModel::Errors message array in order to add an error is deprecated. Please call `ActiveModel::Errors#add` instead.")
+
+      @errors.add(@attribute, message)
+      __setobj__ @errors[@attribute]
+      self
+    end
+  end
+
 
   # Raised when a validation cannot be corrected by end users and are considered
   # exceptional.
