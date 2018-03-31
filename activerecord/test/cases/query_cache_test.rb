@@ -441,8 +441,9 @@ class QueryCacheTest < ActiveRecord::TestCase
       assert_not ActiveRecord::Base.connection_handler.active_connections? # sanity check
 
       middleware {
-        assert ActiveRecord::Base.connection.query_cache_enabled, "QueryCache did not get lazily enabled"
+        assert_predicate ActiveRecord::Base.connection, :query_cache_enabled
       }.call({})
+      assert_not_predicate ActiveRecord::Base.connection, :query_cache_enabled
     end
   end
 
