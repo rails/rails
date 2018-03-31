@@ -10,7 +10,7 @@ end
 gemspec
 
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
-gem 'rake', '>= 10.3'
+gem 'rake', '>= 10.3', '< 12.3'
 
 # This needs to be with require false as it is
 # loaded after loading the test library to
