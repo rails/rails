@@ -70,7 +70,7 @@ table {
 }
 
 table th, table td {
-  padding: 0.25em 1em;
+  padding: 9px 10px;
   border: 1px solid #CCC;
   border-collapse: collapse;
 }
@@ -79,7 +79,6 @@ table th {
   border-bottom: 2px solid #CCC;
   background: #EEE;
   font-weight: bold;
-  padding: 0.5em 1em;
 }
 
 img {
@@ -264,8 +263,6 @@ body {
     padding-right: 1.25em;
   }
 }
-
-#extraCol {display: none;}
 
 #footer {
   padding: 2em 0;
@@ -555,8 +552,6 @@ h6 {
   font-size: 1.2857em;
   padding: 0.125em 0 0.25em 0;
   margin-bottom: 0;
-  /*background: url(../images/book_icon.gif) no-repeat left top;
-  padding: 0.125em 0 0.25em 28px;*/
 }
 
 @media screen and (max-width: 480px) {
@@ -665,10 +660,8 @@ div.code_container {
   visibility: hidden;
 }
 
-.clearfix {display: inline-block;}
 * html .clearfix {height: 1%;}
 .clearfix {display: block;}
-.clear { clear:both; }
 
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
@@ -695,9 +688,6 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
 
 /* Foundation v2.1.4 http://foundation.zurb.com */
 /* Artfully masterminded by ZURB  */
-
-table th { font-weight: bold; }
-table td, table th { padding: 9px 10px; text-align: left; }
 
 /* Mobile */
 @media only screen and (max-width: 767px) {
