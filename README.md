@@ -1,41 +1,40 @@
 # Welcome to Rails
 
-Rails is a web-application framework that includes everything needed to
-create database-backed web applications according to the
+Rails as a web-application framework includes everything needed to
+create database-backed web applications with the
 [Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
-application into three layers, each with a specific responsibility.
+application into three layers: Model, View, and Controller, each with a specific responsibility.
 
-The _Model layer_ represents your domain model (such as Account, Product,
-Person, Post, etc.) and encapsulates the business logic that is specific to
+The _Model layer_ represents the domain model (such as Account, Product,
+Person, Post, etc.) and encapsulates the business logic specific to
 your application. In Rails, database-backed model classes are derived from
-`ActiveRecord::Base`. Active Record allows you to present the data from
+`ActiveRecord::Base`. Active Record allows to present the data from
 database rows as objects and embellish these data objects with business logic
-methods. You can read more about Active Record in its [README](activerecord/README.rdoc).
-Although most Rails models are backed by a database, models can also be ordinary
-Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the Active Model module. You can read more about Active Model in its [README](activemodel/README.rdoc).
+methods. Read more about Active Record in its [README](activerecord/README.rdoc).
+Although most Rails models are backed by a database, models can be ordinary
+Ruby classes or Ruby classes with a set of interfaces provided by
+the Active Model module. Read more about Active Model in its [README](activemodel/README.rdoc).
 
-The _Controller layer_ is responsible for handling incoming HTTP requests and
-providing a suitable response. Usually this means returning HTML, but Rails controllers
+The _Controller layer_ handles incoming HTTP requests and
+provides suitable responses. Usually this means returning HTML, but Rails controllers
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
-manipulate models, and render view templates in order to generate the appropriate HTTP response.
+manipulate models, and render view templates to generate appropriate HTTP responses.
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from `ActionController::Base`. Action Dispatch and Action Controller
-are bundled together in Action Pack. You can read more about Action Pack in its
+are bundled together in Action Pack. Read more about Action Pack in its
 [README](actionpack/README.rdoc).
 
-The _View layer_ is composed of "templates" that are responsible for providing
-appropriate representations of your application's resources. Templates can
-come in a variety of formats, but most view templates are HTML with embedded
-Ruby code (ERB files). Views are typically rendered to generate a controller response,
-or to generate the body of an email. In Rails, View generation is handled by Action View.
-You can read more about Action View in its [README](actionview/README.rdoc).
+The _View layer_ is composed of "templates" that can privide
+appropriate representations of the application's resources. View templates come in various formats, but most templates are HTML with embedded
+Ruby code (ERB files). Views are rendered to generate a controller response
+or the body of an email. In Rails, View generation is handled by Action View.
+Read more about Action View in its [README](actionview/README.rdoc).
 
 Active Record, Active Model, Action Pack, and Action View can each be used independently outside Rails.
-In addition to that, Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
+ Rails also comes with Action Mailer ([README](actionmailer/README.rdoc)), a library
 to generate and send emails; Active Job ([README](activejob/README.md)), a
 framework for declaring jobs and making them run on a variety of queueing
 backends; Action Cable ([README](actioncable/README.md)), a framework to
@@ -43,7 +42,7 @@ integrate WebSockets with a Rails application;
 Active Storage ([README](activestorage/README.md)), a library to attach cloud
 and local files to Rails applications;
 and Active Support ([README](activesupport/README.rdoc)), a collection
-of utility classes and standard library extensions that are useful for Rails,
+of useful utility classes and standard library extensions,
 and may also be used independently outside Rails.
 
 ## Getting Started
@@ -65,7 +64,7 @@ and may also be used independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Using a browser, go to `http://localhost:3000` and you'll see:
+4. Go to `http://localhost:3000` with a browser and you'll see:
 "Yay! You’re on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find
