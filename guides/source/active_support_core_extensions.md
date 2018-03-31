@@ -29,7 +29,7 @@ Thus, after a simple require like:
 require 'active_support'
 ```
 
-objects do not even respond to `blank?`. Let's see how to load its definition.
+Objects do not even respond to `blank?`. Let's see how to load its definition.
 
 #### Cherry-picking a Definition
 
