@@ -1,0 +1,81 @@
+/* General
+--------------------------------------- */
+
+.left {float: left; margin-right: 1em;}
+.right {float: right; margin-left: 1em;}
+@media screen and (max-width: 480px) {
+  .left, .right { float: none; }
+}
+.small {font-size: smaller;}
+.large {font-size: larger;}
+.hide {display: none;}
+
+ul, ol { margin: 0 1.5em 1.5em 1.5em; }
+
+ul { list-style-type: disc; }
+ol { list-style-type: decimal; }
+
+dl { margin: 0 0 1.5em 0; }
+dl dt { font-weight: bold; }
+dd { margin-left: 1.5em;}
+
+pre, code {
+  font-size: 1em;
+  font-family: "Anonymous Pro", "Inconsolata", "Menlo", "Consolas", "Bitstream Vera Sans Mono", "Courier New", monospace;
+  line-height: 1.5;
+  margin: 1.5em 0;
+  overflow: auto;
+  color: #222;
+}
+pre, tt, code {
+ white-space: pre-wrap;       /* css-3 */
+ white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
+ white-space: -pre-wrap;      /* Opera 4-6 */
+ white-space: -o-pre-wrap;    /* Opera 7 */
+ word-wrap: break-word;       /* Internet Explorer 5.5+ */
+}
+
+abbr, acronym { border-bottom: 1px dotted #666; }
+address { margin: 0 0 1.5em; font-style: italic; }
+del { color:#666; }
+
+blockquote { margin: 1.5em; color: #666; font-style: italic; }
+strong { font-weight: bold; }
+em, dfn { font-style: italic; }
+dfn { font-weight: bold; }
+sup, sub { line-height: 0; }
+p {margin: 0 0 1.5em;}
+
+label { font-weight: bold; }
+fieldset { padding:1.4em; margin: 0 0 1.5em 0; border: 1px solid #ccc; }
+legend { font-weight: bold; font-size:1.2em; }
+
+input.text, input.title,
+textarea, select {
+  margin:0.5em 0;
+  border:1px solid #bbb;
+}
+
+table {
+  margin: 0 0 1.5em;
+  border: 2px solid #CCC;
+  background: #FFF;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  padding: 0.25em 1em;
+  border: 1px solid #CCC;
+  border-collapse: collapse;
+}
+
+table th {
+  border-bottom: 2px solid #CCC;
+  background: #EEE;
+  font-weight: bold;
+  padding: 0.5em 1em;
+}
+
+img {
+  max-width: 100%;
+}

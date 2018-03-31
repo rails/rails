@@ -1,0 +1,61 @@
+/* Headings
+--------------------------------------- */
+
+h1 {
+  font-size: 2.5em;
+  line-height: 1em;
+  margin: 0.6em 0 .2em;
+  font-weight: bold;
+}
+
+h2 {
+  font-size: 2.1428em;
+  line-height: 1em;
+  margin: 0.7em 0 .2333em;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 480px) {
+  h2 {
+    font-size: 1.45em;
+  }
+}
+
+h3 {
+  font-size: 1.7142em;
+  line-height: 1.286em;
+  margin: 0.875em 0 0.2916em;
+  font-weight: bold;
+}
+
+@media screen and (max-width: 480px) {
+  h3 {
+    font-size: 1.45em;
+  }
+}
+
+h4 {
+  font-size: 1.2857em;
+  line-height: 1.2em;
+  margin: 1.6667em 0 .3887em;
+  font-weight: bold;
+}
+
+h5 {
+  font-size: 1em;
+  line-height: 1.5em;
+  margin: 1em 0 .5em;
+  font-weight: bold;
+}
+
+h6 {
+  font-size: 1em;
+  line-height: 1.5em;
+  margin: 1em 0 .5em;
+  font-weight: normal;
+}
+
+.section {
+  padding-bottom: 0.25em;
+  border-bottom: 1px solid #999;
+}

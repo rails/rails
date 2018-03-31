@@ -10,6 +10,7 @@
 /dist/
 /doc/
 /guides/output/
+/guides/node_modules/
 debug.log
 node_modules/
 package-lock.json

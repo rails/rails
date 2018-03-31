@@ -6,13 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1"/>
 
 <title><%= yield(:page_title) || 'Ruby on Rails Guides' %></title>
-<link rel="stylesheet" type="text/css" href="stylesheets/style.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/print.css" media="print" />
-
-<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shCore.css" />
-<link rel="stylesheet" type="text/css" href="stylesheets/syntaxhighlighter/shThemeRailsGuides.css" />
-
-<link rel="stylesheet" type="text/css" href="stylesheets/fixes.css" />
+<link rel="stylesheet" type="text/css" href="packs/style.css" />
 
 <link href="images/favicon.ico" rel="shortcut icon" type="image/x-icon" />
 </head>
@@ -124,15 +118,11 @@
     </div>
   </div>
 
-  <script type="text/javascript" src="javascripts/jquery.min.js"></script>
-  <script type="text/javascript" src="javascripts/responsive-tables.js"></script>
-  <script type="text/javascript" src="javascripts/guides.js"></script>
-  <script type="text/javascript" src="javascripts/syntaxhighlighter.js"></script>
+  <script type="text/javascript" src="packs/main.js"></script>
   <script type="text/javascript">
     syntaxhighlighterConfig = {
       autoLinks: false,
     };
-    $(guidesIndex.bind);
   </script>
 </body>
 </html>
