@@ -142,6 +142,4 @@ class Date
   end
   alias_method :compare_without_coercion, :<=>
   alias_method :<=>, :compare_with_coercion
-  alias_method :before?, :<
-  alias_method :after?, :>
 end

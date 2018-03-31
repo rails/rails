@@ -736,18 +736,6 @@ class TimeExtCalculationsTest < ActiveSupport::TestCase
     end
   end
 
-  def test_before
-    assert_equal false, Time.utc(2017, 3, 6, 12, 0, 0).before?(Time.utc(2017, 3, 6, 11, 59, 59))
-    assert_equal false, Time.utc(2017, 3, 6, 12, 0, 0).before?(Time.utc(2017, 3, 6, 12, 0, 0))
-    assert_equal true, Time.utc(2017, 3, 6, 12, 0, 0).before?(Time.utc(2017, 3, 6, 12, 00, 1))
-  end
-
-  def test_after
-    assert_equal true, Time.utc(2017, 3, 6, 12, 0, 0).after?(Time.utc(2017, 3, 6, 11, 59, 59))
-    assert_equal false, Time.utc(2017, 3, 6, 12, 0, 0).after?(Time.utc(2017, 3, 6, 12, 0, 0))
-    assert_equal false, Time.utc(2017, 3, 6, 12, 0, 0).after?(Time.utc(2017, 3, 6, 12, 00, 1))
-  end
-
   def test_acts_like_time
     assert_predicate Time.new, :acts_like_time?
   end
