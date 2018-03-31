@@ -38,7 +38,7 @@ matrix:
       env: "GEM=ar:mysql"
     - env: "GEM=aj:integration"
   exclude:
-    - rvm: 2.4.1
+    - rvm: 2.4.4
       env: "GEM=ar:mysql"
   fast_finish: true
 notifications:
