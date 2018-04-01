@@ -27,7 +27,7 @@ controller classes are derived from `ActionController::Base`. Action Dispatch an
 are bundled together in Action Pack. Read more about Action Pack in its
 [README](actionpack/README.rdoc).
 
-The _View layer_ is composed of "templates" that can privide
+The _View layer_ is composed of "templates" that are responsible for providing
 appropriate representations of the application's resources. View templates come in various formats, but most templates are HTML with embedded
 Ruby code (ERB files). Views are typically rendered to generate a controller response
 or the body of an email. In Rails, View generation is handled by Action View.
