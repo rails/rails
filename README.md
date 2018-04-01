@@ -1,6 +1,6 @@
 # Welcome to Rails
 
-Rails as a web-application framework includes everything needed to
+Rails is a web-application framework that includes everything needed to
 create database-backed web applications with the
 [Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
@@ -18,8 +18,8 @@ Although most Rails models are backed by a database, models can be ordinary
 Ruby classes or Ruby classes with a set of interfaces provided by
 the Active Model module. Read more about Active Model in its [README](activemodel/README.rdoc).
 
-The _Controller layer_ handles incoming HTTP requests and
-provides suitable responses. Usually this means returning HTML, but Rails controllers
+The _Controller layer_ is responsible for handling incoming HTTP requests and
+providing suitable responses. Usually this means returning HTML, but Rails controllers
 can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers load and
 manipulate models, and render view templates to generate appropriate HTTP responses.
 In Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
@@ -29,7 +29,7 @@ are bundled together in Action Pack. Read more about Action Pack in its
 
 The _View layer_ is composed of "templates" that can privide
 appropriate representations of the application's resources. View templates come in various formats, but most templates are HTML with embedded
-Ruby code (ERB files). Views are rendered to generate a controller response
+Ruby code (ERB files). Views are typically rendered to generate a controller response
 or the body of an email. In Rails, View generation is handled by Action View.
 Read more about Action View in its [README](actionview/README.rdoc).
 
