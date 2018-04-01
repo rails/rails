@@ -143,6 +143,8 @@ namespace :all do
   task push: FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
+    sh "find . -name .DS_Store -delete"
+
     unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
