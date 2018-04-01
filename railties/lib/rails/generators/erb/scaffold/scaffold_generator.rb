@@ -10,24 +10,27 @@ module Erb # :nodoc:
 
       argument :attributes, type: :array, default: [], banner: "field:type field:type"
 
-      def create_root_folder
-        empty_directory File.join("app/views", controller_file_path)
+      def create_root_directory
+        empty_directory base_path
       end
 
-      def copy_view_files
+      def create_view_files
         available_views.each do |view|
           formats.each do |format|
             filename = filename_with_extensions(view, format)
-            template filename, File.join("app/views", controller_file_path, filename)
+            template filename, File.join(base_path, filename)
           end
         end
       end
 
-    private
+      private
+        def base_path
+          File.join("app/views", controller_file_path)
+        end
 
-      def available_views
-        %w(index edit show new _form)
-      end
+        def available_views
+          %w(index edit show new _form)
+        end
     end
   end
 end
