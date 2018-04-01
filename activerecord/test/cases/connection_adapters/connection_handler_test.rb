@@ -94,6 +94,7 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.establish_connection(:arunit)
+          FileUtils.rm_rf "db"
         end
 
         def test_establish_connection_using_2_level_config_defaults_to_default_env_primary_db
@@ -116,6 +117,7 @@ module ActiveRecord
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
           ActiveRecord::Base.establish_connection(:arunit)
+          FileUtils.rm_rf "db"
         end
       end
 
