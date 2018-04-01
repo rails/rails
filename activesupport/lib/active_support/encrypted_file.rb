@@ -57,7 +57,7 @@ module ActiveSupport
 
     private
       def writing(contents)
-        tmp_file = "#{content_path.basename}.#{Process.pid}"
+        tmp_file = "#{Process.pid}.#{content_path.basename.to_s.chomp('.enc')}"
         tmp_path = Pathname.new File.join(Dir.tmpdir, tmp_file)
         tmp_path.binwrite contents
 
