@@ -135,7 +135,7 @@ asyncTest('HTML content should be plain-text', 1, function() {
   $('form').append('<input type="text" name="content" value="<p>hello</p>">')
 
   submit(function(e, data, status, xhr) {
-    ok(data === '<p>hello</ps>', 'returned data should be a plain-text string')
+    ok(data === '<p>hello</p>', 'returned data should be a plain-text string')
   })
 })
 
