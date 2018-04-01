@@ -4,7 +4,7 @@ script: 'ci/travis.rb'
 before_install:
   - "rvm current | grep 'jruby' && export AR_JDBC=true || echo"
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "travis_retry gem update --system"
+  - "travis_retry gem update --system 2.6.13"
   - "travis_retry gem install bundler"
 before_script:
   - bundle update
