@@ -95,9 +95,9 @@ module Rails
     end
 
     # Returns a hash that maps filenames under +dir+ (recursively) to arrays
-    # with their annotations. Only files with annotations are included. Files
-    # with extension +.builder+, +.rb+, +.rake+, +.yml+, +.yaml+, +.ruby+,
-    # +.css+, +.js+ and +.erb+ are taken into account.
+    # with their annotations. Files with extensions registered in
+    # <tt>Rails::SourceAnnotationExtractor::Annotation.extensions</tt> are
+    # taken into account. Only files with annotations are included.
     def find_in(dir)
       results = {}
 
