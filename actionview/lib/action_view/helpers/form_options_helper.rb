@@ -16,7 +16,7 @@ module ActionView
     #
     # * <tt>:include_blank</tt> - set to true or a prompt string if the first option element of the select element is a blank. Useful if there is not a default value required for the select element.
     #
-    #     select("post", "category", Post::CATEGORIES, {include_blank: true})
+    #     select("post", "category", Post::CATEGORIES, { include_blank: true })
     #
     #   could become:
     #
@@ -30,7 +30,7 @@ module ActionView
     #
     #   Example with <tt>@post.person_id => 2</tt>:
     #
-    #     select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {include_blank: 'None'})
+    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: 'None' })
     #
     #   could become:
     #
@@ -43,7 +43,7 @@ module ActionView
     #
     # * <tt>:prompt</tt> - set to true or a prompt string. When the select element doesn't have a value yet, this prepends an option with a generic prompt -- "Please select" -- or the given prompt string.
     #
-    #     select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, {prompt: 'Select Person'})
+    #     select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { prompt: 'Select Person' })
     #
     #   could become:
     #
@@ -69,7 +69,7 @@ module ActionView
     #
     # * <tt>:disabled</tt> - can be a single value or an array of values that will be disabled options in the final output.
     #
-    #     select("post", "category", Post::CATEGORIES, {disabled: 'restricted'})
+    #     select("post", "category", Post::CATEGORIES, { disabled: 'restricted' })
     #
     #   could become:
     #
@@ -82,7 +82,7 @@ module ActionView
     #
     #   When used with the <tt>collection_select</tt> helper, <tt>:disabled</tt> can also be a Proc that identifies those options that should be disabled.
     #
-    #     collection_select(:post, :category_id, Category.all, :id, :name, {disabled: -> (category) { category.archived? }})
+    #     collection_select(:post, :category_id, Category.all, :id, :name, { disabled: -> (category) { category.archived? } })
     #
     #   If the categories "2008 stuff" and "Christmas" return true when the method <tt>archived?</tt> is called, this would return:
     #     <select name="post[category_id]" id="post_category_id">
@@ -107,7 +107,7 @@ module ActionView
       #
       # For example:
       #
-      #   select("post", "person_id", Person.all.collect {|p| [ p.name, p.id ] }, { include_blank: true })
+      #   select("post", "person_id", Person.all.collect { |p| [ p.name, p.id ] }, { include_blank: true })
       #
       # would become:
       #
@@ -323,12 +323,12 @@ module ActionView
       #
       # You can optionally provide HTML attributes as the last element of the array.
       #
-      #   options_for_select([ "Denmark", ["USA", {class: 'bold'}], "Sweden" ], ["USA", "Sweden"])
+      #   options_for_select([ "Denmark", ["USA", { class: 'bold' }], "Sweden" ], ["USA", "Sweden"])
       #   # => <option value="Denmark">Denmark</option>
       #   # => <option value="USA" class="bold" selected="selected">USA</option>
       #   # => <option value="Sweden" selected="selected">Sweden</option>
       #
-      #   options_for_select([["Dollar", "$", {class: "bold"}], ["Kroner", "DKK", {onclick: "alert('HI');"}]])
+      #   options_for_select([["Dollar", "$", { class: "bold" }], ["Kroner", "DKK", { onclick: "alert('HI');" }]])
       #   # => <option value="$" class="bold">Dollar</option>
       #   # => <option value="DKK" onclick="alert('HI');">Kroner</option>
       #

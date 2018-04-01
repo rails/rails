@@ -302,15 +302,15 @@ module ActionView
       #   time_select("article", "start_time", include_seconds: true)
       #
       #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30, and 45.
-      #   time_select 'game', 'game_time', {minute_step: 15}
+      #   time_select 'game', 'game_time', { minute_step: 15 }
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   time_select("article", "written_on", prompt: {hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds'})
-      #   time_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   time_select("article", "written_on", prompt: { hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds' })
+      #   time_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   time_select("article", "written_on", prompt: true) # generic prompts for all
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
-      #   time_select 'game', 'game_time', {ampm: true}
+      #   time_select 'game', 'game_time', { ampm: true }
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -346,8 +346,8 @@ module ActionView
       #   datetime_select("article", "written_on", discard_type: true)
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   datetime_select("article", "written_on", prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   datetime_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   datetime_select("article", "written_on", prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   datetime_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   datetime_select("article", "written_on", prompt: true) # generic prompts for all
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
@@ -397,8 +397,8 @@ module ActionView
       #   select_datetime(my_date_time, prefix: 'payday')
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_datetime(my_date_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_datetime(my_date_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_datetime(my_date_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_datetime(my_date_time, prompt: { hour: true }) # generic prompt for hours
       #   select_datetime(my_date_time, prompt: true) # generic prompts for all
       def select_datetime(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_datetime
@@ -436,8 +436,8 @@ module ActionView
       #   select_date(my_date, prefix: 'payday')
       #
       #   # Generates a date select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_date(my_date, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_date(my_date, prompt: {hour: true}) # generic prompt for hours
+      #   select_date(my_date, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_date(my_date, prompt: { hour: true }) # generic prompt for hours
       #   select_date(my_date, prompt: true) # generic prompts for all
       def select_date(date = Date.current, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_date
@@ -476,8 +476,8 @@ module ActionView
       #   select_time(my_time, start_hour: 2, end_hour: 14)
       #
       #   # Generates a time select with a custom prompt. Use <tt>:prompt</tt> to true for generic prompts.
-      #   select_time(my_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_time(my_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_time(my_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_time(my_time, prompt: { hour: true }) # generic prompt for hours
       #   select_time(my_time, prompt: true) # generic prompts for all
       def select_time(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_time

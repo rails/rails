@@ -227,10 +227,10 @@ module ActionView
       #   tag("img", src: "open & shut.png")
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("img", {src: "open &amp; shut.png"}, false, false)
+      #   tag("img", { src: "open &amp; shut.png" }, false, false)
       #   # => <img src="open &amp; shut.png" />
       #
-      #   tag("div", data: {name: 'Stephen', city_state: %w(Chicago IL)})
+      #   tag("div", data: { name: 'Stephen', city_state: %w(Chicago IL) })
       #   # => <div data-name="Stephen" data-city-state="[&quot;Chicago&quot;,&quot;IL&quot;]" />
       def tag(name = nil, options = nil, open = false, escape = true)
         if name.nil?
