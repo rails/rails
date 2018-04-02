@@ -310,7 +310,7 @@ to run Action Mailer tests:
 
 ```bash
 $ cd actionmailer
-$ bundle exec rake test
+$ bin/test
 ```
 
 #### Running a Single Test
@@ -319,7 +319,7 @@ You can run a single test through ruby. For instance:
 
 ```bash
 $ cd actionmailer
-$ bundle exec ruby -w -Itest test/mail_layout_test.rb -n test_explicit_class_layout
+$ bin/test test/mail_layout_test.rb -n test_explicit_class_layout
 ```
 
 The `-n` option allows you to run a single method instead of the whole
@@ -338,20 +338,20 @@ This is how you run the Active Record test suite only for SQLite3:
 
 ```bash
 $ cd activerecord
-$ bundle exec rake test:sqlite3
+$ bin/test -a sqlite3
 ```
 
 You can now run the tests as you did for `sqlite3`. The tasks are respectively:
 
 ```bash
-test:mysql2
-test:postgresql
+$ bin/test -a mysql2
+$ bin/test -a postgresql
 ```
 
 Finally,
 
 ```bash
-$ bundle exec rake test
+$ bin/test
 ```
 
 will now run the three of them in turn.
@@ -359,7 +359,7 @@ will now run the three of them in turn.
 You can also run any single test separately:
 
 ```bash
-$ ARCONN=sqlite3 bundle exec ruby -Itest test/cases/associations/has_many_associations_test.rb
+$ bin/test -a sqlite3 test/cases/associations/has_many_associations_test.rb
 ```
 
 To run a single test against all adapters, use:
@@ -440,7 +440,7 @@ The description section can have multiple paragraphs.
 
 Code examples can be embedded by indenting them with 4 spaces:
 
-    class ArticlesController
+    class ArticlesController < ActionController::Base
       def index
         render json: Article.limit(10)
       end
