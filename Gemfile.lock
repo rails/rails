@@ -324,8 +324,6 @@ GEM
     mysql2 (0.5.0-x86-mingw32)
     nio4r (2.3.0)
     nio4r (2.3.0-java)
-    nokogiri (1.8.1)
-      mini_portile2 (~> 2.3.0)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     nokogiri (1.8.2-java)
