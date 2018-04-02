@@ -45,7 +45,10 @@ module ActionDispatch
           end
 
           parameterized_parts.delete_if do |key, value|
-            required_parts.exclude?(key) && defaults.key?(key) && defaults[key].to_s == value.to_s
+            required_parts.exclude?(key) &&
+              !path_parameters.key?(key) &&
+              defaults.key?(key) &&
+              defaults[key].to_param == value.to_param
           end
 
           return [route.format(parameterized_parts), params]
