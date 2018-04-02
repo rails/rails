@@ -10,6 +10,7 @@ module ActionView
     config.action_view.embed_authenticity_token_in_remote_forms = nil
     config.action_view.debug_missing_translation = true
     config.action_view.default_enforce_utf8 = nil
+    config.action_view.finalize_compiled_template_methods = true
 
     config.eager_load_namespaces << ActionView
 
@@ -42,6 +43,13 @@ module ActionView
         unless default_enforce_utf8.nil?
           ActionView::Helpers::FormTagHelper.default_enforce_utf8 = default_enforce_utf8
         end
+      end
+    end
+
+    initializer "action_view.finalize_compiled_template_methods" do |app|
+      ActiveSupport.on_load(:action_view) do
+        ActionView::Template.finalize_compiled_template_methods =
+          app.config.action_view.delete(:finalize_compiled_template_methods)
       end
     end
 
