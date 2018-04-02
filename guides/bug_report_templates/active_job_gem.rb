@@ -8,7 +8,7 @@ end
 gemfile(true) do
   source "https://rubygems.org"
   # Activate the gem you are reporting the issue against.
-  gem "activejob", "5.1.0"
+  gem "activejob", "5.1.6"
 end
 
 require "minitest/autorun"
