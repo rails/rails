@@ -38,7 +38,7 @@ gem "rubocop", ">= 0.47", require: false
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
 
 # https://github.com/puma/puma/pull/1345
-gem "stopgap_13632", platforms: :mri if RUBY_VERSION == "2.2.8"
+gem "stopgap_13632", platforms: :mri if RUBY_VERSION < "2.3"
 
 group :doc do
   gem "sdoc", "~> 1.0"
