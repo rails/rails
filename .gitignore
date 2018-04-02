@@ -9,6 +9,7 @@
 /.bundle
 /dist/
 /doc/
+/storage/
 /guides/output/
 debug.log
 node_modules/
