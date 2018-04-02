@@ -1510,7 +1510,7 @@ module ApplicationTests
         end
       end
 
-      assert_not_nil SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
+      assert_not_nil Rails::SourceAnnotationExtractor::Annotation.extensions[/\.(coffee)$/]
     end
 
     test "rake_tasks block works at instance level" do

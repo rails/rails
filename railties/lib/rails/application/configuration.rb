@@ -253,7 +253,7 @@ module Rails
       end
 
       def annotations
-        SourceAnnotationExtractor::Annotation
+        Rails::SourceAnnotationExtractor::Annotation
       end
 
       def content_security_policy(&block)
