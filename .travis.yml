@@ -50,18 +50,18 @@ rvm:
 matrix:
   include:
     # Latest compiled version in http://rubies.travis-ci.org
-    - rvm: 2.3.3
+    - rvm: 2.3.7
       env:
         - "GEM=ar:mysql2"
       addons:
         mariadb: 10.2
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.9.0
       jdk: oraclejdk8
       env:
         - "JRUBY_OPTS='--dev -J-Xmx1024M'"
         - "GEM='ap'"
   allow_failures:
-    - rvm: jruby-9.1.7.0
+    - rvm: jruby-9.1.9.0
   fast_finish: true
 
 notifications:
