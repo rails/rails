@@ -8,7 +8,6 @@ module ActiveModel
 
     def initialize(attributes)
       @attributes = attributes
-      @forced_changes = Set.new
     end
 
     def changed_values
