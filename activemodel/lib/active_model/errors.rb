@@ -64,7 +64,7 @@ module ActiveModel
     include Enumerable
 
     extend Forwardable
-    def_delegators :@errors, :size, :clear, :blank?, :empty?, *(Enumerable.instance_methods(false) - [:to_a, :include?])
+    def_delegators :@errors, :size, :clear, :blank?, :empty?
 
     LEGACY_ATTRIBUTES = [:messages, :details].freeze
 
@@ -309,7 +309,7 @@ module ActiveModel
     end
 
     def group_by_attribute
-      group_by(&:attribute)
+      @errors.group_by(&:attribute)
     end
 
     # Adds +message+ to the error messages and used validator type to +details+ on +attribute+.
