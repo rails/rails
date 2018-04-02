@@ -292,4 +292,12 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
       assert_not_respond_to @params, :dig
     end
   end
+
+  test "mutating #dig return value mutates underlying parameters" do
+    @params.dig(:person, :name)[:first] = "Bill"
+    assert_equal "Bill", @params.dig(:person, :name, :first)
+
+    @params.dig(:person, :addresses)[0] = { city: "Boston", state: "Massachusetts" }
+    assert_equal "Boston", @params.dig(:person, :addresses, 0, :city)
+  end
 end
