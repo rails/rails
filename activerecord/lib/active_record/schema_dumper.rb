@@ -21,7 +21,7 @@ module ActiveRecord
     # :singleton-method:
     # Specify a custom regular expression matching foreign keys which name
     # should not be dumped to db/schema.rb.
-    cattr_accessor :fk_ignore_pattern, default: ActiveRecord::ForeignKeys::DEFAULT_IGNORE_PATTERN
+    cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
 
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
