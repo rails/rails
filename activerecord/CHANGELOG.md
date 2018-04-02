@@ -1,4 +1,4 @@
-*   Add `AR::Base.base_class?` predicate
+*   Add `ActiveRecord::Base.base_class?` predicate.
 
     *Bogdan Gusiev*
 
