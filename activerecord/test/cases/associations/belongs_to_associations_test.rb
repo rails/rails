@@ -26,6 +26,7 @@ require "models/ship"
 require "models/treasure"
 require "models/parrot"
 require "models/dog"
+require "models/dog_lover"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -848,11 +849,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_decrement_counter_cache_once
-    dog = Dog.create!(trainer_attributes: { name: "David" })
+    dog_lover_1 = DogLover.create!
+    dog = Dog.create!(trainer: dog_lover_1)
     previous_trainer_id = dog.trainer_id
     dog_count_before = DogLover.find(previous_trainer_id).trained_dogs_count
     # Move dog to a new trainer
-    dog.update!(trainer_attributes: { name: "Joanna" })
+    dog_lover_2 = DogLover.create!
+    dog.update!(trainer: dog_lover_2)
     dog_count_after = DogLover.find(previous_trainer_id).trained_dogs_count
     assert_equal(-1, dog_count_after - dog_count_before)
   end
