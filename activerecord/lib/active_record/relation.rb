@@ -43,6 +43,12 @@ module ActiveRecord
       klass.arel_attribute(name, table)
     end
 
+    def bind_attribute(name, value) # :nodoc:
+      attr = arel_attribute(name)
+      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      yield attr, bind
+    end
+
     # Initializes new record from relation while maintaining the current
     # scope.
     #
