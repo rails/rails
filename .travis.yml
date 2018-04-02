@@ -18,7 +18,8 @@ addons:
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "gem install bundler -v 1.15.4"
+  - "travis_retry gem update --system"
+  - "travis_retry gem install bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
 
