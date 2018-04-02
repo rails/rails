@@ -105,7 +105,7 @@ module ActionView
       # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
-      # If the server supports Early Hints header links for these assets  will be
+      # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
       #
       #   stylesheet_link_tag "style"

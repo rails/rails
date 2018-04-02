@@ -43,23 +43,23 @@ module ActiveSupport
 
       # Parallelizes the test suite.
       #
-      # Takes a `workers` argument that controls how many times the process
+      # Takes a +workers+ argument that controls how many times the process
       # is forked. For each process a new database will be created suffixed
       # with the worker number.
       #
       #   test-database-0
       #   test-database-1
       #
-      # If `ENV["PARALLEL_WORKERS"]` is set the workers argument will be ignored
+      # If <tt>ENV["PARALLEL_WORKERS"]</tt> is set the workers argument will be ignored
       # and the environment variable will be used instead. This is useful for CI
       # environments, or other environments where you may need more workers than
       # you do for local testing.
       #
-      # If the number of workers is set to `1` or fewer, the tests will not be
+      # If the number of workers is set to +1+ or fewer, the tests will not be
       # parallelized.
       #
       # The default parallelization method is to fork processes. If you'd like to
-      # use threads instead you can pass `with: :threads` to the `parallelize`
+      # use threads instead you can pass <tt>with: :threads</tt> to the +parallelize+
       # method. Note the threaded parallelization does not create multiple
       # database and will not work with system tests at this time.
       #
