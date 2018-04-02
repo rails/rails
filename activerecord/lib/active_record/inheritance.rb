@@ -55,7 +55,7 @@ module ActiveRecord
         if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
 
-          if subclass.nil? && base_class == self
+          if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
         end
@@ -102,6 +102,12 @@ module ActiveRecord
         else
           superclass.base_class
         end
+      end
+
+      # Returns whether the class is a base class.
+      # See #base_class for more information.
+      def base_class?
+        base_class == self
       end
 
       # Set this to +true+ if this is an abstract class (see

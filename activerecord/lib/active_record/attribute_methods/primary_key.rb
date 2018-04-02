@@ -83,7 +83,7 @@ module ActiveRecord
           end
 
           def reset_primary_key #:nodoc:
-            if self == base_class
+            if base_class?
               self.primary_key = get_primary_key(base_class.name)
             else
               self.primary_key = base_class.primary_key

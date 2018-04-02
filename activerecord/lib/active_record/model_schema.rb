@@ -276,7 +276,7 @@ module ActiveRecord
       end
 
       def sequence_name
-        if base_class == self
+        if base_class?
           @sequence_name ||= reset_sequence_name
         else
           (@sequence_name ||= nil) || base_class.sequence_name
@@ -501,8 +501,7 @@ module ActiveRecord
 
         # Computes and returns a table name according to default conventions.
         def compute_table_name
-          base = base_class
-          if self == base
+          if base_class?
             # Nested classes are prefixed with singular parent table name.
             if parent < Base && !parent.abstract_class?
               contained = parent.table_name
@@ -513,7 +512,7 @@ module ActiveRecord
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
-            base.table_name
+            base_class.table_name
           end
         end
     end

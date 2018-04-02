@@ -10,7 +10,7 @@ module ActiveRecord
       classes = [klass]
       return classes if klass == ActiveRecord::Base
 
-      while klass != klass.base_class
+      while !klass.base_class?
         classes << klass = klass.superclass
       end
       classes
