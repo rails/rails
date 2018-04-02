@@ -1324,7 +1324,7 @@ module ActiveRecord
             identifier = "#{table_name}_#{options.fetch(:column)}_fk"
             hashed_identifier = Digest::SHA256.hexdigest(identifier).first(10)
 
-            "#{ActiveRecord::ForeignKeys::PREFIX}_#{hashed_identifier}"
+            "fk_rails_#{hashed_identifier}"
           end
         end
 
