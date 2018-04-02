@@ -1,3 +1,7 @@
+*   Add `AR::Base.base_class?` predicate
+
+    *Bogdan Gusiev*
+
 *   Add custom prefix option to ActiveRecord::Store.store_accessor.
 
     *Tan Huynh*

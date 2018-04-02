@@ -174,17 +174,26 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_inheritance_base_class
     assert_equal Post, Post.base_class
+    assert_predicate Post, :base_class?
     assert_equal Post, SpecialPost.base_class
+    assert_not_predicate SpecialPost, :base_class?
     assert_equal Post, StiPost.base_class
+    assert_not_predicate StiPost, :base_class?
     assert_equal Post, SubStiPost.base_class
+    assert_not_predicate SubStiPost, :base_class?
     assert_equal SubAbstractStiPost, SubAbstractStiPost.base_class
+    assert_predicate SubAbstractStiPost, :base_class?
   end
 
   def test_abstract_inheritance_base_class
     assert_equal LoosePerson, LoosePerson.base_class
+    assert_predicate LoosePerson, :base_class?
     assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_predicate LooseDescendant, :base_class?
     assert_equal TightPerson, TightPerson.base_class
+    assert_predicate TightPerson, :base_class?
     assert_equal TightPerson, TightDescendant.base_class
+    assert_not_predicate TightDescendant, :base_class?
   end
 
   def test_base_class_activerecord_error

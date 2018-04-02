@@ -59,7 +59,7 @@ module ActiveRecord
         # attribute methods.
         generated_attribute_methods.synchronize do
           return false if @attribute_methods_generated
-          superclass.define_attribute_methods unless self == base_class
+          superclass.define_attribute_methods unless base_class?
           super(attribute_names)
           @attribute_methods_generated = true
         end
