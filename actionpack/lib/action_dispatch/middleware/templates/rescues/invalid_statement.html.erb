@@ -15,7 +15,7 @@
     <% end %>
   </h2>
 
-  <%= render template: "rescues/_source" %>
-  <%= render template: "rescues/_trace" %>
+  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
+  <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>
   <%= render template: "rescues/_request_and_response" %>
 </div>
