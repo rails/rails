@@ -52,7 +52,7 @@ module ActiveRecord
       clear_timestamp_attributes
     end
 
-    class_methods do
+    module ClassMethods # :nodoc:
       private
         def timestamp_attributes_for_create_in_model
           timestamp_attributes_for_create.select { |c| column_names.include?(c) }
