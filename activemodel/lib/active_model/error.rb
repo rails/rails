@@ -62,5 +62,20 @@ module ActiveModel
 
       full_message == Error.new(@base, attribute, type, **options).full_message
     end
+
+    def ==(other)
+      attributes_for_hash == other.attributes_for_hash
+    end
+    alias eql? ==
+
+    def hash
+      attributes_for_hash.hash
+    end
+
+    protected
+
+      def attributes_for_hash
+        [@base, @attribute, @raw_type, @options]
+      end
   end
 end

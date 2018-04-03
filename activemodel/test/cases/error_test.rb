@@ -170,4 +170,24 @@ class ErrorTest < ActiveModel::TestCase
       assert_equal "name can't be blank", error.full_message
     }
   end
+
+  test "equality by base attribute, type and options" do
+    person = Person.new
+
+    e1 = ActiveModel::Error.new(person, :name, foo: :bar)
+    e2 = ActiveModel::Error.new(person, :name, foo: :bar)
+    e2.instance_variable_set(:@_humanized_attribute, "Name")
+
+    assert_equal(e1, e2)
+  end
+
+  test "inequality" do
+    person = Person.new
+    error = ActiveModel::Error.new(person, :name, foo: :bar)
+
+    assert error != ActiveModel::Error.new(person, :name, foo: :baz)
+    assert error != ActiveModel::Error.new(person, :name)
+    assert error != ActiveModel::Error.new(person, :title, foo: :bar)
+    assert error != ActiveModel::Error.new(Person.new, :name, foo: :bar)
+  end
 end

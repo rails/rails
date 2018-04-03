@@ -491,9 +491,7 @@ module ActiveRecord
       end
 
       def _ensure_no_duplicate_errors
-        errors.messages.each_key do |attribute|
-          errors[attribute].uniq!
-        end
+        errors.uniq!
       end
   end
 end
