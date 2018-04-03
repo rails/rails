@@ -9,8 +9,7 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
-    mattr_accessor :finalize_compiled_template_methods
-    self.finalize_compiled_template_methods = true
+    mattr_accessor :finalize_compiled_template_methods, default: true
 
     # === Encodings in ActionView::Template
     #
