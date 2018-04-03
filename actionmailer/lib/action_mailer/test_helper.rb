@@ -119,7 +119,7 @@ module ActionMailer
     #
     #   def test_parameterized_email
     #     assert_enqueued_email_with ContactMailer, :welcome,
-    #       args: {email: 'user@example.com} do
+    #       args: {email: 'user@example.com'} do
     #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end
