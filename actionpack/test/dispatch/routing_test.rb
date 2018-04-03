@@ -1418,18 +1418,18 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/user?format=html", user_path(format: "html")
   end
 
-  # def test_scoped_with_optional_param_and_defaults_and_with_route_with_dynamic_segment
-  #   draw do
-  #     scope "(:locale)", locale: /en|uk/, defaults: { locale: :uk } do
-  #       get "/projects/:id(/:year(/:month(/:day)))" => "projects#index", as: :project, defaults: { year: "2018", month: "01", day: "01" }
-  #     end
-  #   end
-  #
-  #   assert_equal "/uk/projects/1", project_path(id: 1)
-  #   assert_equal "/uk/projects/1", project_path(id: 1, locale: :uk)
-  #   assert_equal "/uk/projects/1/2018/01/13", project_path(id: 1, locale: :uk, day: "13")
-  #   assert_equal "/en/projects/1", project_path(id: 1, locale: :en)
-  # end
+  def test_scoped_with_optional_param_and_defaults_and_with_route_with_dynamic_segment
+    draw do
+      scope "(:locale)", locale: /en|uk/, defaults: { locale: :uk } do
+        get "/projects/:id(/:year(/:month(/:day)))" => "projects#index", as: :project, defaults: { year: "2018", month: "01", day: "01" }
+      end
+    end
+
+    assert_equal "/projects/1", project_path(id: 1)
+    assert_equal "/projects/1", project_path(id: 1, locale: :uk)
+    assert_equal "/projects/1/2018/01/13", project_path(id: 1, locale: :uk, day: "13")
+    assert_equal "/en/projects/1", project_path(id: 1, locale: :en)
+  end
 
   def test_required_param_suffixed_with_multiple_optional_params
     draw do
