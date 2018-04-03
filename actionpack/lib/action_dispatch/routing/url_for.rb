@@ -204,7 +204,7 @@ module ActionDispatch
       #   end
       #
       # This maintains the context of the original caller on
-      # whether to return a path or full url, e.g:
+      # whether to return a path or full URL, e.g:
       #
       #   threadable_path(threadable)  # => "/buckets/1"
       #   threadable_url(threadable)   # => "http://example.com/buckets/1"
