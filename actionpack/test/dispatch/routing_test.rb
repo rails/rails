@@ -1438,10 +1438,11 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
 
     assert_equal "/projects/1", project_path(id: 1)
     assert_equal "/projects/1/2018/01/13", project_path(id: 1, day: "13")
-    assert_equal "/projects/1/2017/01/01", project_path(id: 1, year: "2017")
-    assert_equal "/projects/1/2018/12/01", project_path(id: 1, month: "12")
-    assert_equal "/projects/1/2008/12/01", project_path(id: 1, year: "2008", month: "12")
-    assert_equal "/projects/1/2008/12/13", project_path(id: 1, month: "12", day: "13")
+    assert_equal "/projects/1/2008", project_path(id: 1, year: "2008")
+    assert_equal "/projects/1/2018/12", project_path(id: 1, month: "12")
+    assert_equal "/projects/1/2008/12", project_path(id: 1, year: "2008", month: "12")
+    assert_equal "/projects/1/2018/12/13", project_path(id: 1, month: "12", day: "13")
+    assert_equal "/projects/1/2008/01/13", project_path(id: 1, year: "2008", day: "13")
     assert_equal "/projects/1/2008/12/13", project_path(id: 1, year: "2008", month: "12", day: "13")
   end
 
