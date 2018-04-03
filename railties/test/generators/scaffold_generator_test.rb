@@ -285,10 +285,13 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     # Views
     assert_file "app/views/admin/roles/index.html.erb" do |content|
+      assert_match("'New Admin Role', new_admin_role_path", content)
+    end
+
+    assert_file "app/views/admin/roles/_role.html.erb" do |content|
       assert_match("'Show', admin_role", content)
       assert_match("'Edit', edit_admin_role_path(admin_role)", content)
       assert_match("'Destroy', admin_role", content)
-      assert_match("'New Admin Role', new_admin_role_path", content)
     end
 
     %w(edit new show _form).each do |view|
