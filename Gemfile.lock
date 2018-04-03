@@ -264,7 +264,7 @@ GEM
     sequel (5.7.0)
     serverengine (2.0.6)
       sigdump (~> 0.2.2)
-    sidekiq (5.1.2)
+    sidekiq (5.1.3)
       concurrent-ruby (~> 1.0)
       connection_pool (~> 2.2, >= 2.2.0)
       rack-protection (>= 1.5.0)

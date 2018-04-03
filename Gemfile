@@ -47,7 +47,7 @@ gem 'listen', '~> 3.0.5', require: false
 group :job do
   gem 'resque', '< 1.26', require: false
   gem 'resque-scheduler', require: false
-  gem 'sidekiq', RUBY_VERSION < '2.3' ? '< 5' : nil, require: false
+  gem 'sidekiq', require: false
   gem 'sucker_punch', require: false
   gem 'delayed_job', require: false
   gem "queue_classic", github: "rafaelfranca/queue_classic", branch: "update-pg", require: false, platforms: :ruby
