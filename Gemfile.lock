@@ -178,7 +178,7 @@ GEM
       rails-deprecated_sanitizer (>= 1.0.1)
     rails-html-sanitizer (1.0.4)
       loofah (~> 2.2, >= 2.2.2)
-    rake (12.3.1)
+    rake (12.2.1)
     rdoc (4.3.0)
     redcarpet (3.1.2)
     redis (4.0.1)
@@ -284,7 +284,7 @@ DEPENDENCIES
   racc (>= 1.4.6)
   rack-cache (~> 1.2)
   rails!
-  rake (>= 10.3)
+  rake (>= 10.3, < 12.3)
   redcarpet (~> 3.1.2)
   resque
   resque-scheduler
