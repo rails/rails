@@ -41,7 +41,7 @@ module ApplicationTests
         rails "db:create", "db:migrate"
         output = rails("db:test:prepare", "test")
 
-        refute_match(/ActiveRecord::ProtectedEnvironmentError/, output)
+        assert_no_match(/ActiveRecord::ProtectedEnvironmentError/, output)
       end
     end
 

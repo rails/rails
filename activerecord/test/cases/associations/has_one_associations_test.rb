@@ -678,7 +678,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
+    assert_not_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 
   def test_association_enum_works_properly_with_nested_join

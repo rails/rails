@@ -328,7 +328,7 @@ module ActiveRecord
 
           pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
           assert_same klass2.connection, pool.connection
-          refute_same klass2.connection, ActiveRecord::Base.connection
+          assert_not_same klass2.connection, ActiveRecord::Base.connection
 
           klass2.remove_connection
 
@@ -347,7 +347,7 @@ module ActiveRecord
         def test_remove_connection_should_not_remove_parent
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
           klass2.remove_connection
-          refute_nil ActiveRecord::Base.connection
+          assert_not_nil ActiveRecord::Base.connection
           assert_same klass2.connection, ActiveRecord::Base.connection
         end
       end
