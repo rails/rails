@@ -23,7 +23,7 @@ module ActionDispatch
         end
 
         def register
-          define_browser_capabilities(@browser.driver_option)
+          define_browser_capabilities(@browser.driver_options)
 
           Capybara.register_driver @name do |app|
             case @name
@@ -34,8 +34,8 @@ module ActionDispatch
           end
         end
 
-        def define_browser_capabilities(driver_option)
-          @desired_capabilities.call(driver_option) if @desired_capabilities
+        def define_browser_capabilities(driver_options)
+          @desired_capabilities.call(driver_options) if @desired_capabilities
         end
 
         def browser_options

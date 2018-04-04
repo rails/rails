@@ -29,7 +29,7 @@ module ActionDispatch
         end
       end
 
-      def driver_option
+      def driver_options
         @option ||= case type
                     when :chrome
                       Selenium::WebDriver::Chrome::Options.new
@@ -43,13 +43,13 @@ module ActionDispatch
           driver_option.args << "--headless"
           driver_option.args << "--disable-gpu" if Gem.win_platform?
 
-          driver_option
+          driver_options
         end
 
         def headless_firefox_browser_options
-          driver_option.args << "-headless"
+          driver_options.args << "-headless"
 
-          driver_option
+          driver_options
         end
     end
   end
