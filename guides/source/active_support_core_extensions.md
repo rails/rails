@@ -779,6 +779,14 @@ delegate :size, to: :attachment, prefix: :avatar
 
 In the previous example the macro generates `avatar_size` rather than `size`.
 
+The option `:private` changes methods scope:
+
+```ruby
+delegate :date_of_birth, to: :profile, private: true
+```
+
+The delegated methods are public by default. Pass `private: true` to change that.
+
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
 #### `delegate_missing_to`
