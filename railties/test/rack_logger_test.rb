@@ -12,12 +12,19 @@ module Rails
 
         attr_reader :logger
 
-        def initialize(logger = NULL, taggers = nil, &block)
-          super(->(_) { block.call; [200, {}, []] }, taggers)
+        def initialize(logger = NULL, app: nil, taggers: nil, &block)
+          app ||= ->(_) { block.call; [200, {}, []] }
+          super(app, taggers)
           @logger = logger
         end
 
         def development?; false; end
+      end
+
+      class TestApp < Struct.new(:response)
+        def call(_env)
+          response
+        end
       end
 
       class Subscriber < Struct.new(:starts, :finishes)
@@ -68,6 +75,15 @@ module Rails
               logger.call 'REQUEST_METHOD' => 'GET'
             end
           end
+        end
+      end
+
+      def test_logger_does_not_mutate_app_return
+        response = []
+        app = TestApp.new(response)
+        logger = TestLogger.new(app: app)
+        assert_no_difference('response.length') do
+          logger.call('REQUEST_METHOD' => 'GET')
         end
       end
     end
