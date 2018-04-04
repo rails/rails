@@ -12,6 +12,7 @@ gem "rake", ">= 11.1"
 gem "mocha"
 
 gem "capybara", ">= 2.15"
+gem "selenium-webdriver", "~> 3.5.1"
 
 gem "rack-cache", "~> 1.2"
 gem "coffee-rails"

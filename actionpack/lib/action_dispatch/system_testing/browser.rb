@@ -29,20 +29,27 @@ module ActionDispatch
         end
       end
 
+      def driver_option
+        @option ||= case type
+                    when :chrome
+                      Selenium::WebDriver::Chrome::Options.new
+                    when :firefox
+                      Selenium::WebDriver::Firefox::Options.new
+        end
+      end
+
       private
         def headless_chrome_browser_options
-          options = Selenium::WebDriver::Chrome::Options.new
-          options.args << "--headless"
-          options.args << "--disable-gpu" if Gem.win_platform?
+          driver_option.args << "--headless"
+          driver_option.args << "--disable-gpu" if Gem.win_platform?
 
-          options
+          driver_option
         end
 
         def headless_firefox_browser_options
-          options = Selenium::WebDriver::Firefox::Options.new
-          options.args << "-headless"
+          driver_option.args << "-headless"
 
-          options
+          driver_option
         end
     end
   end

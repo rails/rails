@@ -1,3 +1,7 @@
+*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block to define specific browser capabilities.
+
+    *Edouard Chin*
+
 *   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
