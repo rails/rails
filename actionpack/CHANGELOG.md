@@ -1,4 +1,5 @@
-*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block to define specific browser capabilities.
+*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block
+    to define specific browser capabilities.
 
     *Edouard Chin*
 
