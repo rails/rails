@@ -369,7 +369,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     Tag.has_many :null_taggings, -> { none }, class_name: :Tagging
     Tag.has_many :null_tagged_posts, through: :null_taggings, source: "taggable", source_type: "Post"
     assert_equal [], tags(:general).null_tagged_posts
-    refute_equal [], tags(:general).tagged_posts
+    assert_not_equal [], tags(:general).tagged_posts
   end
 
   def test_eager_has_many_polymorphic_with_source_type

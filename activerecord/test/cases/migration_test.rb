@@ -404,7 +404,7 @@ class MigrationTest < ActiveRecord::TestCase
     ENV["RAILS_ENV"]    = ENV["RACK_ENV"] = "foofoo"
     new_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
 
-    refute_equal current_env, new_env
+    assert_not_equal current_env, new_env
 
     sleep 1 # mysql by default does not store fractional seconds in the database
     migrator.up

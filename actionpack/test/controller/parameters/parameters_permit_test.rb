@@ -309,7 +309,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.reverse_merge(default_params)
 
     assert_equal "1234", merged_params[:id]
-    refute_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params[:person], :empty?
   end
 
   test "#with_defaults is an alias of reverse_merge" do
@@ -317,11 +317,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.with_defaults(default_params)
 
     assert_equal "1234", merged_params[:id]
-    refute_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params[:person], :empty?
   end
 
   test "not permitted is sticky beyond reverse_merge" do
-    refute_predicate @params.reverse_merge(a: "b"), :permitted?
+    assert_not_predicate @params.reverse_merge(a: "b"), :permitted?
   end
 
   test "permitted is sticky beyond reverse_merge" do
@@ -334,7 +334,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.reverse_merge!(default_params)
 
     assert_equal "1234", @params[:id]
-    refute_predicate @params[:person], :empty?
+    assert_not_predicate @params[:person], :empty?
   end
 
   test "#with_defaults! is an alias of reverse_merge!" do
@@ -342,7 +342,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.with_defaults!(default_params)
 
     assert_equal "1234", @params[:id]
-    refute_predicate @params[:person], :empty?
+    assert_not_predicate @params[:person], :empty?
   end
 
   test "modifying the parameters" do

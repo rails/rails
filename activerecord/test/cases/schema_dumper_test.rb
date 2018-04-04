@@ -469,7 +469,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
 
     assert_match %r{create_table "omg_cats"}, output
-    refute_match %r{create_table "cats"}, output
+    assert_no_match %r{create_table "cats"}, output
   ensure
     migration.migrate(:down)
     ActiveRecord::Base.table_name_prefix = original_table_name_prefix

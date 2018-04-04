@@ -1497,7 +1497,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "column names are quoted when using #from clause and model has ignored columns" do
-    refute_empty Developer.ignored_columns
+    assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
     quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
 

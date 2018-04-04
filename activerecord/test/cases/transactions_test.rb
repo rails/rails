@@ -323,8 +323,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    refute_predicate topic_one, :persisted?
-    refute_predicate topic_two, :persisted?
+    assert_not_predicate topic_one, :persisted?
+    assert_not_predicate topic_two, :persisted?
   end
 
   def test_nested_transaction_without_new_transaction_applies_parent_state_on_rollback
@@ -344,8 +344,8 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    refute_predicate topic_one, :persisted?
-    refute_predicate topic_two, :persisted?
+    assert_not_predicate topic_one, :persisted?
+    assert_not_predicate topic_two, :persisted?
   end
 
   def test_double_nested_transaction_applies_parent_state_on_rollback
@@ -371,9 +371,9 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
-    refute_predicate topic_one, :persisted?
-    refute_predicate topic_two, :persisted?
-    refute_predicate topic_three, :persisted?
+    assert_not_predicate topic_one, :persisted?
+    assert_not_predicate topic_two, :persisted?
+    assert_not_predicate topic_three, :persisted?
   end
 
   def test_manually_rolling_back_a_transaction

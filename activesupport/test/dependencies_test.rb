@@ -223,7 +223,7 @@ class DependenciesTest < ActiveSupport::TestCase
         Timeout.timeout(0.1) do
           # Remove the constant, as if Rails development middleware is reloading changed files:
           ActiveSupport::Dependencies.remove_unloadable_constants!
-          refute defined?(AnotherConstant::ReloadError)
+          assert_not defined?(AnotherConstant::ReloadError)
         end
 
         # Change the file, so that it is **correct** this time:
@@ -231,7 +231,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
         # Again: Remove the constant, as if Rails development middleware is reloading changed files:
         ActiveSupport::Dependencies.remove_unloadable_constants!
-        refute defined?(AnotherConstant::ReloadError)
+        assert_not defined?(AnotherConstant::ReloadError)
 
         # Now, reload the _fixed_ constant:
         assert ConstantReloadError
