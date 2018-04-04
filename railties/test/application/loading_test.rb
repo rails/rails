@@ -352,11 +352,23 @@ class LoadingTest < ActiveSupport::TestCase
   def test_initialize_can_be_called_at_any_time
     require "#{app_path}/config/application"
 
-    assert !Rails.initialized?
-    assert !Rails.application.initialized?
+    assert_not_predicate Rails, :initialized?
+    assert_not_predicate Rails.application, :initialized?
     Rails.initialize!
-    assert Rails.initialized?
-    assert Rails.application.initialized?
+    assert_predicate Rails, :initialized?
+    assert_predicate Rails.application, :initialized?
+  end
+
+  test "frameworks aren't loaded during initialization" do
+    app_file "config/initializers/raise_when_frameworks_load.rb", <<-RUBY
+      %i(action_controller action_mailer active_job active_record).each do |framework|
+        ActiveSupport.on_load(framework) { raise "\#{framework} loaded!" }
+      end
+    RUBY
+
+    assert_nothing_raised do
+      require "#{app_path}/config/environment"
+    end
   end
 
   private

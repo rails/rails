@@ -17,6 +17,12 @@ module ActiveRecord
     # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching foreign keys which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
         connection.create_schema_dumper(generate_options(config)).dump(stream)
@@ -210,7 +216,7 @@ HEADER
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.name !~ /^fk_rails_[0-9a-f]{10}$/
+            if foreign_key.export_name_on_schema_dump?
               parts << "name: #{foreign_key.name.inspect}"
             end
 

@@ -57,6 +57,10 @@ module ActiveRecord
       spec = resolver.resolve(config).symbolize_keys
       spec[:name] = spec_name
 
+      # use the primary config if a config is not passed in and
+      # it's a three tier config
+      spec = spec[spec_name.to_sym] if spec[spec_name.to_sym]
+
       connection_handler.establish_connection(spec)
     end
 

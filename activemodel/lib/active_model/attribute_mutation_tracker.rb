@@ -65,13 +65,8 @@ module ActiveModel
       forced_changes << attr_name.to_s
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
-
-      attr_reader :attributes, :forced_changes
-
     private
+      attr_reader :attributes, :forced_changes
 
       def attr_names
         attributes.keys

@@ -73,6 +73,11 @@ module ActiveStorage
       raise NotImplementedError
     end
 
+    # Return the partial content in the byte +range+ of the file at the +key+.
+    def download_chunk(key, range)
+      raise NotImplementedError
+    end
+
     # Delete the file at the +key+.
     def delete(key)
       raise NotImplementedError

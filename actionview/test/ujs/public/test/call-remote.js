@@ -128,6 +128,17 @@ asyncTest('execution of JS code does not modify current DOM', 1, function() {
   })
 })
 
+asyncTest('HTML content should be plain-text', 1, function() {
+  buildForm({ method: 'post', 'data-type': 'html' })
+
+  $('form').append('<input type="text" name="content_type" value="text/html">')
+  $('form').append('<input type="text" name="content" value="<p>hello</p>">')
+
+  submit(function(e, data, status, xhr) {
+    ok(data === '<p>hello</p>', 'returned data should be a plain-text string')
+  })
+})
+
 asyncTest('XML document should be parsed', 1, function() {
   buildForm({ method: 'post', 'data-type': 'html' })
 

@@ -93,15 +93,6 @@ local:
   root: <%= Rails.root.join("storage") %>
 ```
 
-Optionally specify a host for generating URLs (the default is `http://localhost:3000`):
-
-```yaml
-local:
-  service: Disk
-  root: <%= Rails.root.join("storage") %>
-  host: http://myapp.test
-```
-
 ### Amazon S3 Service
 
 Declare an S3 service in `config/storage.yml`:
@@ -121,6 +112,15 @@ Add the [`aws-sdk-s3`](https://github.com/aws/aws-sdk-ruby) gem to your `Gemfile
 gem "aws-sdk-s3", require: false
 ```
 
+NOTE: The core features of Active Storage require the following permissions: `s3:ListBucket`, `s3:PutObject`, `s3:GetObject`, and `s3:DeleteObject`. If you have additional upload options configured such as setting ACLs then additional permissions may be required.
+
+NOTE: If you want to use environment variables, standard SDK configuration files, profiles,
+IAM instance profiles or task roles, you can omit the `access_key_id`, `secret_access_key`,
+and `region` keys in the example above. The Amazon S3 Service supports all of the
+authentication options described in the [AWS SDK documentation]
+(https://docs.aws.amazon.com/sdk-for-ruby/v3/developer-guide/setup-config.html).
+
+
 ### Microsoft Azure Storage Service
 
 Declare an Azure Storage service in `config/storage.yml`:
@@ -128,7 +128,6 @@ Declare an Azure Storage service in `config/storage.yml`:
 ```yaml
 azure:
   service: AzureStorage
-  path: ""
   storage_account_name: ""
   storage_access_key: ""
   container: ""
@@ -175,7 +174,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.3", require: false
+gem "google-cloud-storage", "~> 1.8", require: false
 ```
 
 ### Mirror Service
@@ -554,6 +553,30 @@ config.active_job.queue_adapter = :inline
 
 # Separate file storage in the test environment
 config.active_storage.service = :local_test
+```
+
+Discarding Files Stored During Integration Tests
+-------------------------------------------
+
+Similarly to System Tests, files uploaded during Integration Tests will not be
+automatically cleaned up. If you want to clear the files, you can do it in an
+`after_teardown` callback. Doing it here ensures that all connections created
+during the test are complete and you won't receive an error from Active Storage
+saying it can't find a file.
+
+```ruby
+module ActionDispatch
+  class IntegrationTest
+    def remove_uploaded_files
+      FileUtils.rm_rf(Rails.root.join('tmp', 'storage'))
+    end
+
+    def after_teardown
+      super
+      remove_uploaded_files
+    end
+  end
+end
 ```
 
 Implementing Support for Other Cloud Services

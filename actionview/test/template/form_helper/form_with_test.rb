@@ -14,6 +14,16 @@ class FormWithTest < ActionView::TestCase
   teardown do
     ActionView::Helpers::FormHelper.form_with_generates_ids = @old_value
   end
+
+  private
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
+    end
 end
 
 class FormWithActsLikeFormTagTest < FormWithTest
@@ -108,7 +118,25 @@ class FormWithActsLikeFormTagTest < FormWithTest
     actual = form_with(skip_enforcing_utf8: true)
     expected = whole_form("http://www.example.com", skip_enforcing_utf8: true)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
+  end
+
+  def test_form_with_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      actual = form_with
+      expected = whole_form("http://www.example.com", skip_enforcing_utf8: true)
+      assert_dom_equal expected, actual
+      assert_predicate actual, :html_safe?
+    end
+  end
+
+  def test_form_with_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      actual = form_with
+      expected = whole_form("http://www.example.com", skip_enforcing_utf8: false)
+      assert_dom_equal expected, actual
+      assert_predicate actual, :html_safe?
+    end
   end
 
   def test_form_with_with_block_in_erb
@@ -189,6 +217,9 @@ class FormWithActsLikeFormForTest < FormWithTest
           update: "Confirm %{model} changes",
           submit: "Save changes",
           another_post: {
+            update: "Update your %{model}"
+          },
+          "blog/post": {
             update: "Update your %{model}"
           }
         }
@@ -816,6 +847,34 @@ class FormWithActsLikeFormForTest < FormWithTest
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_with_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      form_with(scope: :post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", skip_enforcing_utf8: false) do
+        "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_form_with_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      form_with(scope: :post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", skip_enforcing_utf8: true) do
+        "<input name='post[title]' type='text' value='Hello World' id='post_title' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
   def test_form_with_without_object
     form_with(scope: :post, id: "create-post") do |f|
       concat f.text_field(:title)
@@ -962,13 +1021,28 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
-  def test_submit_with_object_and_nested_lookup
+  def test_submit_with_object_which_is_overwritten_by_scope_option
     with_locale :submit do
       form_with(model: @post, scope: :another_post) do |f|
         concat f.submit
       end
 
       expected = whole_form("/posts/123", method: "patch") do
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_with_object_which_is_namespaced
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    with_locale :submit do
+      form_with(model: blog_post) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form("/posts/44", method: "patch") do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
@@ -2272,5 +2346,14 @@ class FormWithActsLikeFormForTest < FormWithTest
       yield
     ensure
       I18n.locale = old_locale
+    end
+
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end

@@ -217,7 +217,7 @@ The best _solution against it is not to store this kind of data in a session, bu
 
 NOTE: _Apart from stealing a user's session ID, the attacker may fix a session ID known to them. This is called session fixation._
 
-![Session fixation](images/session_fixation.png)
+![Session fixation](images/security/session_fixation.png)
 
 This attack focuses on fixing a user's session ID known to the attacker, and forcing the user's browser into using this ID. It is therefore not necessary for the attacker to steal the session ID afterwards. Here is how this attack works:
 
@@ -272,7 +272,7 @@ Cross-Site Request Forgery (CSRF)
 
 This attack method works by including malicious code or a link in a page that accesses a web application that the user is believed to have authenticated. If the session for that web application has not timed out, an attacker may execute unauthorized commands.
 
-![](images/csrf.png)
+![](images/security/csrf.png)
 
 In the [session chapter](#sessions) you have learned that most Rails applications use cookie-based sessions. Either they store the session ID in the cookie and have a server-side session hash, or the entire session hash is on the client-side. In either case the browser will automatically send along the cookie on every request to a domain, if it can find a cookie for that domain. The controversial point is that if the request comes from a site of a different domain, it will also send the cookie. Let's start with an example:
 
@@ -325,7 +325,7 @@ Or the attacker places the code into the onmouseover event handler of an image:
 
 There are many other possibilities, like using a `<script>` tag to make a cross-site request to a URL with a JSONP or JavaScript response. The response is executable code that the attacker can find a way to run, possibly extracting sensitive data. To protect against this data leakage, we must disallow cross-site `<script>` tags. Ajax requests, however, obey the browser's same-origin policy (only your own site is allowed to initiate `XmlHttpRequest`) so we can safely allow them to return JavaScript responses.
 
-Note: We can't distinguish a `<script>` tag's origin—whether it's a tag on your own site or on some other malicious site—so we must block all `<script>` across the board, even if it's actually a safe same-origin script served from your own site. In these cases, explicitly skip CSRF protection on actions that serve JavaScript meant for a `<script>` tag.
+NOTE: We can't distinguish a `<script>` tag's origin—whether it's a tag on your own site or on some other malicious site—so we must block all `<script>` across the board, even if it's actually a safe same-origin script served from your own site. In these cases, explicitly skip CSRF protection on actions that serve JavaScript meant for a `<script>` tag.
 
 To protect against all other forged requests, we introduce a _required security token_ that our site knows but other sites don't know. We include the security token in requests and verify it on the server. This is a one-liner in your application controller, and is the default for newly created Rails applications:
 
@@ -551,7 +551,7 @@ Here are some ideas how to hide honeypot fields by JavaScript and/or CSS:
 * make the elements very small or color them the same as the background of the page
 * leave the fields displayed, but tell humans to leave them blank
 
-The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on. You can do this with annoying users, too.
+The most simple negative CAPTCHA is one hidden honeypot field. On the server side, you will check the value of the field: If it contains any text, it must be a bot. Then, you can either ignore the post or return a positive result, but not saving the post to the database. This way the bot will be satisfied and moves on.
 
 You can find more sophisticated negative CAPTCHAs in Ned Batchelder's [blog post](http://nedbatchelder.com/text/stopbots.html):
 
@@ -572,18 +572,6 @@ config.filter_parameters << :password
 ```
 
 NOTE: Provided parameters will be filtered out by partial matching regular expression. Rails adds default `:password` in the appropriate initializer (`initializers/filter_parameter_logging.rb`) and cares about typical application parameters `password` and `password_confirmation`.
-
-### Good Passwords
-
-INFO: _Do you find it hard to remember all your passwords? Don't write them down, but use the initial letters of each word in an easy to remember sentence._
-
-Bruce Schneier, a security technologist, [has analyzed](http://www.schneier.com/blog/archives/2006/12/realworld_passw.html) 34,000 real-world user names and passwords from the MySpace phishing attack mentioned [below](#examples-from-the-underground). It turns out that most of the passwords are quite easy to crack. The 20 most common passwords are:
-
-password1, abc123, myspace1, password, blink182, qwerty1, ****you, 123abc, baseball1, football1, 123456, soccer, monkey1, liverpool1, princess1, jordan23, slipknot1, superman1, iloveyou1, and monkey.
-
-It is interesting that only 4% of these passwords were dictionary words and the great majority is actually alphanumeric. However, password cracker dictionaries contain a large number of today's passwords, and they try out all kinds of (alphanumerical) combinations. If an attacker knows your user name and you use a weak password, your account will be easily cracked.
-
-A good password is a long alphanumeric combination of mixed cases. As this is quite hard to remember, it is advisable to enter only the _first letters of a sentence that you can easily remember_. For example "The quick brown fox jumps over the lazy dog" will be "Tqbfjotld". Note that this is just an example, you should not use well known phrases like these, as they might appear in cracker dictionaries, too.
 
 ### Regular Expressions
 
@@ -1070,7 +1058,10 @@ Every HTTP response from your Rails application receives the following default s
 config.action_dispatch.default_headers = {
   'X-Frame-Options' => 'SAMEORIGIN',
   'X-XSS-Protection' => '1; mode=block',
-  'X-Content-Type-Options' => 'nosniff'
+  'X-Content-Type-Options' => 'nosniff',
+  'X-Download-Options' => 'noopen',
+  'X-Permitted-Cross-Domain-Policies' => 'none',
+  'Referrer-Policy' => 'strict-origin-when-cross-origin'
 }
 ```
 
@@ -1097,6 +1088,112 @@ Here is a list of common headers:
 * **X-Content-Security-Policy:** [A powerful mechanism for controlling which sites certain content types can be loaded from](http://w3c.github.io/webappsec/specs/content-security-policy/csp-specification.dev.html)
 * **Access-Control-Allow-Origin:** Used to control which sites are allowed to bypass same origin policies and send cross-origin requests.
 * **Strict-Transport-Security:** [Used to control if the browser is allowed to only access a site over a secure connection](https://en.wikipedia.org/wiki/HTTP_Strict_Transport_Security)
+
+### Content Security Policy
+
+Rails provides a DSL that allows you to configure a
+[Content Security Policy](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy)
+for your application. You can configure a global default policy and then
+override it on a per-resource basis and even use lambdas to inject per-request
+values into the header such as account subdomains in a multi-tenant application.
+
+Example global policy:
+
+```ruby
+# config/initializers/content_security_policy.rb
+Rails.application.config.content_security_policy do |policy|
+  policy.default_src :self, :https
+  policy.font_src    :self, :https, :data
+  policy.img_src     :self, :https, :data
+  policy.object_src  :none
+  policy.script_src  :self, :https
+  policy.style_src   :self, :https
+
+  # Specify URI for violation reports
+  policy.report_uri "/csp-violation-report-endpoint"
+end
+```
+
+Example controller overrides:
+
+```ruby
+# Override policy inline
+class PostsController < ApplicationController
+  content_security_policy do |p|
+    p.upgrade_insecure_requests true
+  end
+end
+
+# Using literal values
+class PostsController < ApplicationController
+  content_security_policy do |p|
+    p.base_uri "https://www.example.com"
+  end
+end
+
+# Using mixed static and dynamic values
+class PostsController < ApplicationController
+  content_security_policy do |p|
+    p.base_uri :self, -> { "https://#{current_user.domain}.example.com" }
+  end
+end
+
+# Disabling the global CSP
+class LegacyPagesController < ApplicationController
+  content_security_policy false, only: :index
+end
+```
+
+Use the `content_security_policy_report_only`
+configuration attribute to set
+[Content-Security-Policy-Report-Only](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy-Report-Only)
+in order to report only content violations for migrating
+legacy content
+
+```ruby
+# config/initializers/content_security_policy.rb
+Rails.application.config.content_security_policy_report_only = true
+```
+
+```ruby
+# Controller override
+class PostsController < ApplicationController
+  content_security_policy_report_only only: :index
+end
+```
+
+You can enable automatic nonce generation:
+
+```ruby
+# config/initializers/content_security_policy.rb
+Rails.application.config.content_security_policy do |policy|
+  policy.script_src :self, :https
+end
+
+Rails.application.config.content_security_policy_nonce_generator = -> request { SecureRandom.base64(16) }
+```
+
+Then you can add an automatic nonce value by passing `nonce: true`
+as part of `html_options`. Example:
+
+```html+erb
+<%= javascript_tag nonce: true do -%>
+  alert('Hello, World!');
+<% end -%>
+```
+
+Use [`csp_meta_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
+helper to create a meta tag "csp-nonce" with the per-session nonce value
+for allowing inline `<script>` tags.
+
+```html+erb
+<head>
+  <%= csp_meta_tag %>
+</head>
+```
+
+This is used by the Rails UJS helper to create dynamically
+loaded inline `<script>` elements.
 
 Environmental Security
 ----------------------

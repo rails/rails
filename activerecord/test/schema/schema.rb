@@ -21,6 +21,8 @@ ActiveRecord::Schema.define do
   create_table :admin_users, force: true do |t|
     t.string :name
     t.string :settings, null: true, limit: 1024
+    t.string :parent, null: true, limit: 1024
+    t.string :spouse, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
     t.string :preferences, null: true, default: "", limit: 1024
@@ -210,7 +212,7 @@ ActiveRecord::Schema.define do
     t.index [:firm_id, :type, :rating], name: "company_index", length: { type: 10 }, order: { rating: :desc }
     t.index [:firm_id, :type], name: "company_partial_index", where: "(rating > 10)"
     t.index :name, name: "company_name_index", using: :btree
-    t.index "lower(name)", name: "company_expression_index" if supports_expression_index?
+    t.index "(CASE WHEN rating > 0 THEN lower(name) END)", name: "company_expression_index" if supports_expression_index?
   end
 
   create_table :content, force: true do |t|
@@ -343,6 +345,10 @@ ActiveRecord::Schema.define do
     t.references :family
     t.references :member
     t.string :token
+  end
+
+  create_table :frogs, force: true do |t|
+    t.string :name
   end
 
   create_table :funny_jokes, force: true do |t|
@@ -547,7 +553,7 @@ ActiveRecord::Schema.define do
   create_table :numeric_data, force: true do |t|
     t.decimal :bank_balance, precision: 10, scale: 2
     t.decimal :big_bank_balance, precision: 15, scale: 2
-    t.decimal :world_population, precision: 10, scale: 0
+    t.decimal :world_population, precision: 20, scale: 0
     t.decimal :my_house_population, precision: 2, scale: 0
     t.decimal :decimal_number_with_default, precision: 3, scale: 2, default: 2.78
     t.float   :temperature
@@ -690,6 +696,7 @@ ActiveRecord::Schema.define do
     t.integer :taggings_with_delete_all_count, default: 0
     t.integer :taggings_with_destroy_count, default: 0
     t.integer :tags_count, default: 0
+    t.integer :indestructible_tags_count, default: 0
     t.integer :tags_with_destroy_count, default: 0
     t.integer :tags_with_nullify_count, default: 0
   end
@@ -813,6 +820,7 @@ ActiveRecord::Schema.define do
   create_table :sponsors, force: true do |t|
     t.integer :club_id
     t.references :sponsorable, polymorphic: true, index: false
+    t.references :sponsor, polymorphic: true, index: false
   end
 
   create_table :string_key_objects, id: false, force: true do |t|
@@ -847,6 +855,7 @@ ActiveRecord::Schema.define do
     t.column :taggable_type, :string
     t.column :taggable_id, :integer
     t.string :comment
+    t.string :type
   end
 
   create_table :tasks, force: true do |t|
@@ -949,6 +958,7 @@ ActiveRecord::Schema.define do
     t.string  :poly_man_without_inverse_type
     t.integer :horrible_polymorphic_man_id
     t.string  :horrible_polymorphic_man_type
+    t.references :human, polymorphic: true, index: false
   end
 
   create_table :interests, force: true do |t|

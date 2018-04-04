@@ -59,6 +59,7 @@ module ActiveRecord
         console = ActiveSupport::Logger.new(STDERR)
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
+      ActiveRecord::Base.verbose_query_logs = false
     end
 
     runner do
@@ -153,6 +154,13 @@ end_warning
       require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
+      end
+    end
+
+    initializer "active_record.collection_cache_association_loading" do
+      require "active_record/railties/collection_cache_association_loading"
+      ActiveSupport.on_load(:action_view) do
+        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 

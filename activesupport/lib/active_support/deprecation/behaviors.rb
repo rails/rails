@@ -85,7 +85,7 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       #   ActiveSupport::Deprecation.behavior = MyCustomHandler
-      #   ActiveSupport::Deprecation.behavior = ->(message, callstack) {
+      #   ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
       #     # custom stuff
       #   }
       def behavior=(behavior)

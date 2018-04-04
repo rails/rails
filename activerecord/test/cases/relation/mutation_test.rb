@@ -25,7 +25,7 @@ module ActiveRecord
     test "#order! with symbol prepends the table name" do
       assert relation.order!(:name).equal?(relation)
       node = relation.order_values.first
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
@@ -59,7 +59,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :skip_preloading]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
@@ -88,7 +88,7 @@ module ActiveRecord
       assert relation.reorder!(:name).equal?(relation)
       node = relation.order_values.first
 
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
@@ -137,9 +137,14 @@ module ActiveRecord
       assert relation.skip_query_cache_value
     end
 
+    test "skip_preloading!" do
+      relation.skip_preloading!
+      assert relation.skip_preloading_value
+    end
+
     private
       def relation
-        @relation ||= Relation.new(FakeKlass, Post.arel_table, Post.predicate_builder)
+        @relation ||= Relation.new(FakeKlass)
       end
   end
 end

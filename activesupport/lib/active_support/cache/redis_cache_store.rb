@@ -20,6 +20,15 @@ require "active_support/core_ext/marshal"
 
 module ActiveSupport
   module Cache
+    module ConnectionPoolLike
+      def with
+        yield self
+      end
+    end
+
+    ::Redis.include(ConnectionPoolLike)
+    ::Redis::Distributed.include(ConnectionPoolLike)
+
     # Redis cache store.
     #
     # Deployment note: Take care to use a *dedicated Redis cache* rather
@@ -69,7 +78,7 @@ module ActiveSupport
 
           def write_entry(key, entry, options)
             if options[:raw] && local_cache
-              raw_entry = Entry.new(entry.value.to_s)
+              raw_entry = Entry.new(serialize_entry(entry, raw: true))
               raw_entry.expires_at = entry.expires_at
               super(key, raw_entry, options)
             else
@@ -80,7 +89,7 @@ module ActiveSupport
           def write_multi_entries(entries, options)
             if options[:raw] && local_cache
               raw_entries = entries.map do |key, entry|
-                raw_entry = Entry.new(entry.value.to_s)
+                raw_entry = Entry.new(serialize_entry(entry, raw: true))
                 raw_entry.expires_at = entry.expires_at
               end.to_h
 
@@ -109,7 +118,7 @@ module ActiveSupport
         def build_redis(redis: nil, url: nil, **redis_options) #:nodoc:
           urls = Array(url)
 
-          if redis.respond_to?(:call)
+          if redis.is_a?(Proc)
             redis.call
           elsif redis
             redis
@@ -145,11 +154,11 @@ module ActiveSupport
       #   :url   Array  -> Redis::Distributed.new([{ url: … }, { url: … }, …])
       #
       # No namespace is set by default. Provide one if the Redis cache
-      # server is shared with other apps: <tt>namespace: 'myapp-cache'<tt>.
+      # server is shared with other apps: <tt>namespace: 'myapp-cache'</tt>.
       #
       # Compression is enabled by default with a 1kB threshold, so cached
       # values larger than 1kB are automatically compressed. Disable by
-      # passing <tt>cache: false</tt> or change the threshold by passing
+      # passing <tt>compress: false</tt> or change the threshold by passing
       # <tt>compress_threshold: 4.kilobytes</tt>.
       #
       # No expiry is set on cache entries by default. Redis is expected to
@@ -172,7 +181,16 @@ module ActiveSupport
       end
 
       def redis
-        @redis ||= self.class.build_redis(**redis_options)
+        @redis ||= begin
+          pool_options = self.class.send(:retrieve_pool_options, redis_options)
+
+          if pool_options.any?
+            self.class.send(:ensure_connection_pool_added!)
+            ::ConnectionPool.new(pool_options) { self.class.build_redis(**redis_options) }
+          else
+            self.class.build_redis(**redis_options)
+          end
+        end
       end
 
       def inspect
@@ -186,7 +204,11 @@ module ActiveSupport
       # fetched values.
       def read_multi(*names)
         if mget_capable?
-          read_multi_mget(*names)
+          instrument(:read_multi, names, options) do |payload|
+            read_multi_mget(*names).tap do |results|
+              payload[:hits] = results.keys
+            end
+          end
         else
           super
         end
@@ -211,7 +233,7 @@ module ActiveSupport
         instrument :delete_matched, matcher do
           case matcher
           when String
-            redis.eval DELETE_GLOB_LUA, [], [namespace_key(matcher, options)]
+            redis.with { |c| c.eval DELETE_GLOB_LUA, [], [namespace_key(matcher, options)] }
           else
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
           end
@@ -228,7 +250,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
         instrument :increment, name, amount: amount do
-          redis.incrby normalize_key(name, options), amount
+          failsafe :increment do
+            redis.with { |c| c.incrby normalize_key(name, options), amount }
+          end
         end
       end
 
@@ -242,7 +266,9 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
         instrument :decrement, name, amount: amount do
-          redis.decrby normalize_key(name, options), amount
+          failsafe :decrement do
+            redis.with { |c| c.decrby normalize_key(name, options), amount }
+          end
         end
       end
 
@@ -263,7 +289,7 @@ module ActiveSupport
           if namespace = merged_options(options)[namespace]
             delete_matched "*", namespace: namespace
           else
-            redis.flushdb
+            redis.with { |c| c.flushdb }
           end
         end
       end
@@ -294,7 +320,15 @@ module ActiveSupport
         # Read an entry from the cache.
         def read_entry(key, options = nil)
           failsafe :read_entry do
-            deserialize_entry redis.get(key)
+            deserialize_entry redis.with { |c| c.get(key) }
+          end
+        end
+
+        def read_multi_entries(names, _options)
+          if mget_capable?
+            read_multi_mget(*names)
+          else
+            super
           end
         end
 
@@ -303,7 +337,10 @@ module ActiveSupport
           options = merged_options(options)
 
           keys = names.map { |name| normalize_key(name, options) }
-          values = redis.mget(*keys)
+
+          values = failsafe(:read_multi_mget, returning: {}) do
+            redis.with { |c| c.mget(*keys) }
+          end
 
           names.zip(values).each_with_object({}) do |(name, value), results|
             if value
@@ -319,7 +356,7 @@ module ActiveSupport
         #
         # Requires Redis 2.6.12+ for extended SET options.
         def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
-          value = raw ? entry.value.to_s : serialize_entry(entry)
+          serialized_entry = serialize_entry(entry, raw: raw)
 
           # If race condition TTL is in use, ensure that cache entries
           # stick around a bit longer after they would have expired
@@ -328,15 +365,15 @@ module ActiveSupport
             expires_in += 5.minutes
           end
 
-          failsafe :write_entry do
+          failsafe :write_entry, returning: false do
             if unless_exist || expires_in
               modifiers = {}
               modifiers[:nx] = unless_exist
               modifiers[:px] = (1000 * expires_in.to_f).ceil if expires_in
 
-              redis.set key, value, modifiers
+              redis.with { |c| c.set key, serialized_entry, modifiers }
             else
-              redis.set key, value
+              redis.with { |c| c.set key, serialized_entry }
             end
           end
         end
@@ -344,7 +381,7 @@ module ActiveSupport
         # Delete an entry from the cache.
         def delete_entry(key, options)
           failsafe :delete_entry, returning: false do
-            redis.del key
+            redis.with { |c| c.del key }
           end
         end
 
@@ -353,7 +390,7 @@ module ActiveSupport
           if entries.any?
             if mset_capable? && expires_in.nil?
               failsafe :write_multi_entries do
-                redis.mapped_mset(entries)
+                redis.with { |c| c.mapped_mset(serialize_entries(entries, raw: options[:raw])) }
               end
             else
               super
@@ -376,15 +413,25 @@ module ActiveSupport
           end
         end
 
-        def deserialize_entry(raw_value)
-          if raw_value
-            entry = Marshal.load(raw_value) rescue raw_value
+        def deserialize_entry(serialized_entry)
+          if serialized_entry
+            entry = Marshal.load(serialized_entry) rescue serialized_entry
             entry.is_a?(Entry) ? entry : Entry.new(entry)
           end
         end
 
-        def serialize_entry(entry)
-          Marshal.dump(entry)
+        def serialize_entry(entry, raw: false)
+          if raw
+            entry.value.to_s
+          else
+            Marshal.dump(entry)
+          end
+        end
+
+        def serialize_entries(entries, raw: false)
+          entries.transform_values do |entry|
+            serialize_entry entry, raw: raw
+          end
         end
 
         def failsafe(method, returning: nil)

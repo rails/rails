@@ -160,6 +160,23 @@ module ActiveSupport
       attr_reader :silence, :options
       alias :silence? :silence
 
+      class << self
+        private
+          def retrieve_pool_options(options)
+            {}.tap do |pool_options|
+              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
+              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
+            end
+          end
+
+          def ensure_connection_pool_added!
+            require "connection_pool"
+          rescue LoadError => e
+            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
+            raise e
+          end
+      end
+
       # Creates a new cache. The options will be passed to any write method calls
       # except for <tt>:namespace</tt> which can be used to set the global
       # namespace for the cache.
@@ -697,11 +714,9 @@ module ActiveSupport
       # Creates a new cache entry for the specified value. Options supported are
       # +:compress+, +:compress_threshold+, and +:expires_in+.
       def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
+        @value = value
+        if should_compress?(options)
+          compress!
         end
 
         @version    = options[:version]
@@ -766,27 +781,30 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if value && options.fetch(:compress, true)
+        def should_compress?(options)
+          if @value && options.fetch(:compress, true)
             compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
+            serialized_value_size = (@value.is_a?(String) ? @value : marshaled_value).bytesize
 
-            return true if serialized_value_size >= compress_threshold
+            serialized_value_size >= compress_threshold
           end
-
-          false
         end
 
         def compressed?
           defined?(@compressed) ? @compressed : false
         end
 
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
+        def compress!
+          @value = Zlib::Deflate.deflate(marshaled_value)
+          @compressed = true
         end
 
         def uncompress(value)
           Marshal.load(Zlib::Inflate.inflate(value))
+        end
+
+        def marshaled_value
+          @marshaled_value ||= Marshal.dump(@value)
         end
     end
   end

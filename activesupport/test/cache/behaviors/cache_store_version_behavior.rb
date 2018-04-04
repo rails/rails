@@ -65,7 +65,7 @@ module CacheStoreVersionBehavior
     m1v2 = ModelWithKeyAndVersion.new("model/1", 2)
 
     @cache.write(m1v1, "bar")
-    assert     @cache.exist?(m1v1)
+    assert @cache.exist?(m1v1)
     assert_not @cache.fetch(m1v2)
   end
 

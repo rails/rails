@@ -3,7 +3,7 @@
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
 
-gem "mysql2", "~> 0.4.4"
+gem "mysql2", ">= 0.4.4", "< 0.6.0"
 require "mysql2"
 
 module ActiveRecord

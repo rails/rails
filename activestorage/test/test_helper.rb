@@ -7,7 +7,6 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
-require "webmock/minitest"
 require "mini_magick"
 
 begin
@@ -42,8 +41,6 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
-  setup { WebMock.allow_net_connect! }
-
   private
     def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
@@ -57,6 +54,16 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_before_direct_upload! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type
     end
 
+    def directly_upload_file_blob(filename: "racecar.jpg", content_type: "image/jpeg")
+      file = file_fixture(filename)
+      byte_size = file.size
+      checksum = Digest::MD5.file(file).base64digest
+
+      create_blob_before_direct_upload(filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type).tap do |blob|
+        ActiveStorage::Blob.service.upload(blob.key, file.open)
+      end
+    end
+
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
     end
@@ -68,5 +75,8 @@ ActiveRecord::Base.send :include, GlobalID::Identification
 
 class User < ActiveRecord::Base
   has_one_attached :avatar
+  has_one_attached :cover_photo, dependent: false
+
   has_many_attached :highlights
+  has_many_attached :vlogs, dependent: false
 end

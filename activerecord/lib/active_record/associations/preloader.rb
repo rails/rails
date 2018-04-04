@@ -169,7 +169,7 @@ module ActiveRecord
             owners.flat_map { |owner| owner.association(reflection.name).target }
           end
 
-          protected
+          private
             attr_reader :owners, :reflection
         end
 

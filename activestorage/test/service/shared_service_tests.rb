@@ -60,6 +60,11 @@ module ActiveStorage::Service::SharedServiceTests
       assert_equal [ FIXTURE_DATA ], chunks
     end
 
+    test "downloading partially" do
+      assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19..21)
+      assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19...22)
+    end
+
     test "existing" do
       assert @service.exist?(FIXTURE_KEY)
       assert_not @service.exist?(FIXTURE_KEY + "nonsense")

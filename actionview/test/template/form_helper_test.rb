@@ -68,6 +68,9 @@ class FormHelperTest < ActionView::TestCase
           submit: "Save changes",
           another_post: {
             update: "Update your %{model}"
+          },
+          "blog/post": {
+            update: "Update your %{model}"
           }
         }
       }
@@ -612,7 +615,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_is_html_safe
-    assert check_box("post", "secret").html_safe?
+    assert_predicate check_box("post", "secret"), :html_safe?
   end
 
   def test_check_box_checked_if_object_value_is_same_that_check_value
@@ -775,7 +778,7 @@ class FormHelperTest < ActionView::TestCase
   end
 
   def test_check_box_with_nil_unchecked_value_is_html_safe
-    assert check_box("post", "secret", {}, "on", nil).html_safe?
+    assert_predicate check_box("post", "secret", {}, "on", nil), :html_safe?
   end
 
   def test_check_box_with_multiple_behavior
@@ -1992,6 +1995,34 @@ class FormHelperTest < ActionView::TestCase
     assert_dom_equal expected, output_buffer
   end
 
+  def test_form_for_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: false) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_form_for_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      form_for(:post) do |f|
+        concat f.text_field(:title)
+      end
+
+      expected = whole_form("/", nil, nil, enforce_utf8: true) do
+        "<input name='post[title]' type='text' id='post_title' value='Hello World' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
   def test_form_for_with_remote_in_html
     form_for(@post, url: "/", html: { remote: true, id: "create-post", method: :patch }) do |f|
       concat f.text_field(:title)
@@ -2271,13 +2302,28 @@ class FormHelperTest < ActionView::TestCase
     end
   end
 
-  def test_submit_with_object_and_nested_lookup
+  def test_submit_with_object_which_is_overwritten_by_as_option
     with_locale :submit do
       form_for(@post, as: :another_post) do |f|
         concat f.submit
       end
 
       expected = whole_form("/posts/123", "edit_another_post", "edit_another_post", method: "patch") do
+        "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
+      end
+
+      assert_dom_equal expected, output_buffer
+    end
+  end
+
+  def test_submit_with_object_which_is_namespaced
+    blog_post = Blog::Post.new("And his name will be forty and four.", 44)
+    with_locale :submit do
+      form_for(blog_post) do |f|
+        concat f.submit
+      end
+
+      expected = whole_form("/posts/44", "edit_post_44", "edit_post", method: "patch") do
         "<input name='commit' data-disable-with='Update your Post' type='submit' value='Update your Post' />"
       end
 
@@ -3550,5 +3596,14 @@ class FormHelperTest < ActionView::TestCase
       yield
     ensure
       I18n.locale = old_locale
+    end
+
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end

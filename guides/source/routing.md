@@ -58,6 +58,26 @@ and this in the corresponding view:
 
 then the router will generate the path `/patients/17`. This reduces the brittleness of your view and makes your code easier to understand. Note that the id does not need to be specified in the route helper.
 
+### Configuring the Rails Router
+
+The routes for your application or engine live in the file `config/routes.rb` and typically looks like this:
+
+```ruby
+Rails.application.routes.draw do
+  resources :brands, only: [:index, :show] do
+    resources :products, only: [:index, :show]
+  end
+
+  resource :basket, only: [:show, :update, :destroy]
+
+  resolve("Basket") { route_for(:basket) }
+end
+```
+
+Since this is a regular Ruby source file you can use all of its features to help you define your routes but be careful with variable names as they can clash with the DSL methods of the router.
+
+NOTE: The `Rails.application.routes.draw do ... end` block that wraps your route definitions is required to establish the scope for the router DSL and must not be deleted.
+
 Resource Routing: the Rails Default
 -----------------------------------
 
@@ -549,7 +569,7 @@ In particular, simple routing makes it very easy to map legacy URLs to new Rails
 When you set up a regular route, you supply a series of symbols that Rails maps to parts of an incoming HTTP request. For example, consider this route:
 
 ```ruby
-get 'photos(/:id)', to: :display
+get 'photos(/:id)', to: 'photos#display'
 ```
 
 If an incoming request of `/photos/1` is processed by this route (because it hasn't matched any previous route in the file), then the result will be to invoke the `display` action of the `PhotosController`, and to make the final parameter `"1"` available as `params[:id]`. This route will also route the incoming request of `/photos` to `PhotosController#display`, since `:id` is an optional parameter, denoted by parentheses.
@@ -1183,7 +1203,7 @@ $ bin/rails routes -c Comments
 $ bin/rails routes -c Articles::CommentsController
 ```
 
-TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap.
+TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.
 
 ### Testing Routes
 

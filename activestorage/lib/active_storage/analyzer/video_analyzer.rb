@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/compact"
-
 module ActiveStorage
   # Extracts the following from a video blob:
   #
@@ -55,8 +53,12 @@ module ActiveStorage
 
       def display_aspect_ratio
         if descriptor = video_stream["display_aspect_ratio"]
-          terms = descriptor.split(":", 2).collect(&:to_i)
-          terms if terms.count == 2 && terms.min >= 0
+          if terms = descriptor.split(":", 2)
+            numerator   = Integer(terms[0])
+            denominator = Integer(terms[1])
+
+            [numerator, denominator] unless numerator == 0
+          end
         end
       end
 

@@ -167,7 +167,7 @@ module ActionCable::StreamTests
 
         @server.broadcast "channel", {}
         wait_for_async
-        refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
+        assert_not Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 
@@ -192,10 +192,10 @@ module ActionCable::StreamTests
 
         Connection.new(@server, env).tap do |connection|
           connection.process
-          assert connection.websocket.possible?
+          assert_predicate connection.websocket, :possible?
 
           wait_for_async
-          assert connection.websocket.alive?
+          assert_predicate connection.websocket, :alive?
         end
       end
 

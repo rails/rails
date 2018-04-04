@@ -2,8 +2,28 @@
 
 require "test_helper"
 require "database/setup"
+require "active_support/testing/method_call_assertions"
 
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
+  test ".unattached scope returns not attached blobs" do
+    class UserWithHasOneAttachedDependentFalse < User
+      has_one_attached :avatar, dependent: false
+    end
+
+    ActiveStorage::Blob.delete_all
+    blob_1 = create_blob filename: "funky.jpg"
+    blob_2 = create_blob filename: "town.jpg"
+
+    user = UserWithHasOneAttachedDependentFalse.create!
+    user.avatar.attach blob_1
+
+    assert_equal [blob_2], ActiveStorage::Blob.unattached
+    user.destroy
+    assert_equal [blob_1, blob_2].map(&:id).sort, ActiveStorage::Blob.unattached.pluck(:id).sort
+  end
+
   test "create after upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
@@ -23,10 +43,22 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/plain", blob.content_type
   end
 
+  test "image?" do
+    blob = create_file_blob filename: "racecar.jpg"
+    assert_predicate blob, :image?
+    assert_not_predicate blob, :audio?
+  end
+
+  test "video?" do
+    blob = create_file_blob(filename: "video.mp4", content_type: "video/mp4")
+    assert_predicate blob, :video?
+    assert_not_predicate blob, :audio?
+  end
+
   test "text?" do
     blob = create_blob data: "Hello world!"
-    assert blob.text?
-    assert_not blob.audio?
+    assert_predicate blob, :text?
+    assert_not_predicate blob, :audio?
   end
 
   test "download yields chunks" do
@@ -67,6 +99,25 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     freeze_time do
       assert_equal expected_url_for(blob), blob.service_url
       assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: new_filename)
+      assert_equal expected_url_for(blob, filename: new_filename), blob.service_url(filename: "new.txt")
+      assert_equal expected_url_for(blob, filename: blob.filename), blob.service_url(filename: nil)
+    end
+  end
+
+  test "urls allow for custom options" do
+    blob = create_blob(filename: "original.txt")
+
+    options = [
+      blob.key,
+      expires_in: blob.service.url_expires_in,
+      disposition: :inline,
+      content_type: blob.content_type,
+      filename: blob.filename,
+      thumb_size: "300x300",
+      thumb_mode: "crop"
+    ]
+    assert_called_with(blob.service, :url, options) do
+      blob.service_url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
 
@@ -89,6 +140,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     def expected_url_for(blob, disposition: :inline, filename: nil)
       filename ||= blob.filename
       query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
-      "http://localhost:3000/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
+      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

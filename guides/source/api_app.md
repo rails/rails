@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://dev.twitter.com) in its web
+For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -375,7 +375,6 @@ controller modules by default:
 - `ActionController::ConditionalGet`: Support for `stale?`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
 - `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
-- `ActionController::ForceSSL`: Support for `force_ssl`.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
   similar helpers.

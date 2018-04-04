@@ -231,6 +231,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
+      fields.reject!(&:blank?)
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
@@ -895,6 +896,11 @@ module ActiveRecord
 
     def skip_query_cache! # :nodoc:
       self.skip_query_cache_value = true
+      self
+    end
+
+    def skip_preloading! # :nodoc:
+      self.skip_preloading_value = true
       self
     end
 

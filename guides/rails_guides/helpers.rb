@@ -38,15 +38,6 @@ module RailsGuides
       end
     end
 
-    def author(name, nick, image = "credits_pic_blank.gif", &block)
-      image = "images/#{image}"
-
-      result = tag(:img, src: image, class: "left pic", alt: name, width: 91, height: 91)
-      result << content_tag(:h3, name)
-      result << content_tag(:p, capture(&block))
-      content_tag(:div, result, class: "clearfix", id: nick)
-    end
-
     def code(&block)
       c = capture(&block)
       content_tag(:code, c)

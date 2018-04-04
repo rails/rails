@@ -235,39 +235,39 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            refute fk.validated?
+            assert_not_predicate fk, :validated?
           end
 
           def test_validate_foreign_key_infers_column
             @connection.add_foreign_key :astronauts, :rockets, validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, :rockets
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_column
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, column: "rocket_id"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_symbol_column
             @connection.add_foreign_key :astronauts, :rockets, column: :rocket_id, validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, column: :rocket_id
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_key_by_name
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk", validate: false
-            refute @connection.foreign_keys("astronauts").first.validated?
+            assert_not_predicate @connection.foreign_keys("astronauts").first, :validated?
 
             @connection.validate_foreign_key :astronauts, name: "fancy_named_fk"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
 
           def test_validate_foreign_non_existing_foreign_key_raises
@@ -280,7 +280,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             @connection.add_foreign_key :astronauts, :rockets, column: "rocket_id", name: "fancy_named_fk", validate: false
 
             @connection.validate_constraint :astronauts, "fancy_named_fk"
-            assert @connection.foreign_keys("astronauts").first.validated?
+            assert_predicate @connection.foreign_keys("astronauts").first, :validated?
           end
         else
           # Foreign key should still be created, but should not be invalid
@@ -291,7 +291,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
             assert_equal 1, foreign_keys.size
 
             fk = foreign_keys.first
-            assert fk.validated?
+            assert_predicate fk, :validated?
           end
         end
 
@@ -304,6 +304,17 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
         def test_schema_dumping_with_options
           output = dump_table_schema "fk_test_has_fk"
           assert_match %r{\s+add_foreign_key "fk_test_has_fk", "fk_test_has_pk", column: "fk_id", primary_key: "pk_id", name: "fk_name"$}, output
+        end
+
+        def test_schema_dumping_with_custom_fk_ignore_pattern
+          original_pattern = ActiveRecord::SchemaDumper.fk_ignore_pattern
+          ActiveRecord::SchemaDumper.fk_ignore_pattern = /^ignored_/
+          @connection.add_foreign_key :astronauts, :rockets, name: :ignored_fk_astronauts_rockets
+
+          output = dump_table_schema "astronauts"
+          assert_match %r{\s+add_foreign_key "astronauts", "rockets"$}, output
+
+          ActiveRecord::SchemaDumper.fk_ignore_pattern = original_pattern
         end
 
         def test_schema_dumping_on_delete_and_on_update_options

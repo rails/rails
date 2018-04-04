@@ -1,164 +1,43 @@
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
-
-*   Deprecate `after_bundle` callback in Rails plugin templates.
-
-    *Yuji Yaginuma*
-
-*   `rails new` and `rails plugin new` get `Active Storage` by default.
-     Add ability to skip `Active Storage` with `--skip-active-storage`
-     and do so automatically when `--skip-active-record` is used.
-
-    *bogdanvlviv*
-
-*   Gemfile for new apps: upgrade redis-rb from ~> 3.0 to 4.0.
-
-    *Jeremy Daer*
-
-*   Add `mini_magick` to default `Gemfile` as comment.
-
-    *Yoshiyuki Hirano*
-
-*   Derive `secret_key_base` from the app name in development and test environments.
-
-    Spares away needless secret configs.
-
-    *DHH*, *Kasper Timm Hansen*
-
-*   Support multiple versions arguments for `gem` method of Generators.
-
-    *Yoshiyuki Hirano*
-
-*   Add `--skip-yarn` option to the plugin generator.
-
-    *bogdanvlviv*
-
-*   Optimize routes indentation.
-
-    *Yoshiyuki Hirano*
-
-*   Optimize indentation for generator actions.
-
-    *Yoshiyuki Hirano*
-
-*   Skip unused components when running `bin/rails` in Rails plugin.
-
-    *Yoshiyuki Hirano*
-
-*   Add `git_source` to `Gemfile` for plugin generator.
-
-    *Yoshiyuki Hirano*
-
-*   Add `--skip-action-cable` option to the plugin generator.
-
-    *bogdanvlviv*
-
-*   Deprecate support for using a `Rails::Application` subclass to start Rails server.
-
-    *Yuji Yaginuma*
-
-*   Add `ruby x.x.x` version to `Gemfile` and create `.ruby-version`
-    root file containing the current Ruby version when new Rails applications are
-    created.
-
-    *Alberto Almagro*
-
-*   Support `-` as a platform-agnostic way to run a script from stdin with
-    `rails runner`
-
-    *Cody Cutrer*
-
-*   Add `bootsnap` to default `Gemfile`.
-
-    *Burke Libbey*
-
-*   Properly expand shortcuts for environment's name running the `console`
-    and `dbconsole` commands.
-
-    *Robin Dupret*
-
-*   Passing the environment's name as a regular argument to the
-    `rails dbconsole` and `rails console` commands is deprecated.
-    The `-e` option should be used instead.
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
 
     Previously:
 
-        $ bin/rails dbconsole production
+        $ bin/rails server thin
+
+    There wasn't an explicit option for the Rack server to use, now we have the
+    `--using` option with the `-u` short switch.
 
     Now:
 
-        $ bin/rails dbconsole -e production
+        $ bin/rails server -u thin
 
-    *Robin Dupret*, *Kasper Timm Hansen*
+    This change also improves the error message if a missing or mistyped rack
+    server is given.
 
-*   Allow passing a custom connection name to the `rails dbconsole`
-    command when using a 3-level database configuration.
+    *Genadi Samokovarov*
 
-        $ bin/rails dbconsole -c replica
+*   Add "rails routes --expanded" option to output routes in expanded mode like
+    "psql --expanded". Result looks like:
 
-    *Robin Dupret*, *Jeremy Daer*
+    ```
+    $ rails routes --expanded
+    --[ Route 1 ]------------------------------------------------------------
+    Prefix            | high_scores
+    Verb              | GET
+    URI               | /high_scores(.:format)
+    Controller#Action | high_scores#index
+    --[ Route 2 ]------------------------------------------------------------
+    Prefix            | new_high_score
+    Verb              | GET
+    URI               | /high_scores/new(.:format)
+    Controller#Action | high_scores#new
+    ```
 
-*   Skip unused components when running `bin/rails app:update`.
+    *Benoit Tigeot*
 
-    If the initial app generation skipped Action Cable, Active Record etc.,
-    the update task honors those skips too.
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    *Yuji Yaginuma*
-
-*   Make Rails' test runner work better with minitest plugins.
-
-    By demoting the Rails test runner to just another minitest plugin —
-    and thereby not eager loading it — we can co-exist much better with
-    other minitest plugins such as pride and minitest-focus.
-
-    *Kasper Timm Hansen*
-
-*   Load environment file in `dbconsole` command.
-
-    Fixes #29717.
-
-    *Yuji Yaginuma*
-
-*   Add `rails secrets:show` command.
-
-    *Yuji Yaginuma*
-
-*   Allow mounting the same engine several times in different locations.
-
-    Fixes #20204.
-
-    *David Rodríguez*
-
-*   Clear screenshot files in `tmp:clear` task.
-
-    *Yuji Yaginuma*
-
-*   Add `railtie.rb` to the plugin generator
-
-    *Tsukuru Tanimichi*
-
-*   Deprecate `capify!` method in generators and templates.
-
-    *Yuji Yaginuma*
-
-*   Allow irb options to be passed from `rails console` command.
-
-    Fixes #28988.
-
-    *Yuji Yaginuma*
-
-*   Added a shared section to `config/database.yml` that will be loaded for all environments.
-
-    *Pierre Schambacher*
-
-*   Namespace error pages' CSS selectors to stop the styles from bleeding into other pages
-    when using Turbolinks.
-
-    *Jan Krutisch*
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/railties/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

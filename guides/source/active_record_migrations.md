@@ -442,7 +442,7 @@ change_column_default :products, :approved, from: true, to: false
 This sets `:name` field on products to a `NOT NULL` column and the default
 value of the `:approved` field from true to false.
 
-Note: You could also write the above `change_column_default` migration as
+NOTE: You could also write the above `change_column_default` migration as
 `change_column_default :products, :approved, false`, but unlike the previous
 example, this would make your migration irreversible.
 

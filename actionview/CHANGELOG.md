@@ -1,79 +1,54 @@
-*   Allow the use of callable objects as group methods for grouped selects.
+*   Disable `ActionView::Template` finalizers in test environment
 
-    Until now, the `option_groups_from_collection_for_select` method was only able to
-    handle method names as `group_method` and `group_label_method` parameters,
-    it is now able to receive procs and other callable objects too.
+    Template finalization can be expensive in large view test suites.
+    Add a configuration option,
+    `action_view.finalize_compiled_template_methods`, and turn it off in
+    the test environment.
 
-    *Jérémie Bonal*
+    *Simon Coffey*
 
-*   Add `preload_link_tag` helper
+*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
+    Example :
+        Rails.confirm = function(message, element) {
+          return (my_bootstrap_modal_confirm(message));
+        }
 
-    This helper that allows to the browser to initiate early fetch of resources
-    (different to the specified in `javascript_include_tag` and `stylesheet_link_tag`).
-    Additionally, this sends Early Hints if supported by browser.
+    *Mathieu Mahé*
 
-    *Guillermo Iguaran*
+*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
+    field. Example:
 
-## Rails 5.2.0.beta2 (November 28, 2017) ##
+        select :post,
+               :category,
+               ["lifestyle", "programming", "spiritual"],
+               { selected: "", disabled: "", prompt: "Choose one" },
+               { required: true }
 
-*   No changes.
+    Placeholder option would be selected and disabled. The HTML produced:
 
+        <select required="required" name="post[category]" id="post_category">
+        <option disabled="disabled" selected="selected" value="">Choose one</option>
+        <option value="lifestyle">lifestyle</option>
+        <option value="programming">programming</option>
+        <option value="spiritual">spiritual</option></select>
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
+    *Sergey Prikhodko*
 
-*   Change `form_with` to generates ids by default.
+*   Don't enforce UTF-8 by default.
 
-    When `form_with` was introduced we disabled the automatic generation of ids
-    that was enabled in `form_for`. This usually is not an good idea since labels don't work
-    when the input doesn't have an id and it made harder to test with Capybara.
+    With the disabling of TLS 1.0 by most major websites, continuing to run
+    IE8 or lower becomes increasingly difficult so default to not enforcing
+    UTF-8 encoding as it's not relevant to other browsers.
 
-    You can still disable the automatic generation of ids setting `config.action_view.form_with_generates_ids`
-    to `false.`
+    *Andrew White*
 
-    *Nick Pezza*
+*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
 
-*   Fix issues with `field_error_proc` wrapping `optgroup` and select divider `option`.
+    *Rui Onodera*
 
-    Fixes #31088
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    *Matthias Neumayr*
-
-*   Remove deprecated Erubis ERB handler.
-
-    *Rafael Mendonça França*
-
-*   Remove default `alt` text generation.
-
-    Fixes #30096
-
-    *Cameron Cundiff*
-
-*   Add `srcset` option to `image_tag` helper.
-
-    *Roberto Miranda*
-
-*   Fix issues with scopes and engine on `current_page?` method.
-
-    Fixes #29401.
-
-    *Nikita Savrov*
-
-*   Generate field ids in `collection_check_boxes` and `collection_radio_buttons`.
-
-    This makes sure that the labels are linked up with the fields.
-
-    Fixes #29014.
-
-    *Yuji Yaginuma*
-
-*   Add `:json` type to `auto_discovery_link_tag` to support [JSON Feeds](https://jsonfeed.org/version/1)
-
-    *Mike Gunderloy*
-
-*   Update `distance_of_time_in_words` helper to display better error messages
-    for bad input.
-
-    *Jay Hayes*
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

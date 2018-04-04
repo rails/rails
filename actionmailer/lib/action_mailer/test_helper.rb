@@ -28,13 +28,13 @@ module ActionMailer
     #
     #     assert_emails 2 do
     #       ContactMailer.welcome.deliver_now
-    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    def assert_emails(number)
+    def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
-        yield
+        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob], &block)
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
@@ -115,11 +115,11 @@ module ActionMailer
     #     end
     #   end
     #
-    # If `args` is provided as a Hash, a parameterized email is matched.
+    # If +args+ is provided as a Hash, a parameterized email is matched.
     #
     #   def test_parameterized_email
     #     assert_enqueued_email_with ContactMailer, :welcome,
-    #       args: {email: 'user@example.com} do
+    #       args: {email: 'user@example.com'} do
     #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
     #     end
     #   end

@@ -636,7 +636,7 @@ module ActionView
         #   to_form_params(name: 'David', nationality: 'Danish')
         #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
         #
-        #   to_form_params(country: {name: 'Denmark'})
+        #   to_form_params(country: { name: 'Denmark' })
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         #
         #   to_form_params(countries: ['Denmark', 'Sweden']})

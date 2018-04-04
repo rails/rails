@@ -40,6 +40,7 @@ module ActiveRecord
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
+  autoload :DatabaseConfigurations
   autoload :DynamicMatchers
   autoload :Enum
   autoload :InternalMetadata
@@ -163,6 +164,7 @@ module ActiveRecord
       "active_record/tasks/postgresql_database_tasks"
   end
 
+  autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
   def self.eager_load!

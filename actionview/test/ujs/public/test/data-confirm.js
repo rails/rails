@@ -314,3 +314,29 @@ asyncTest('clicking on the children of a disabled button should not trigger a co
     start()
   }, 50)
 })
+
+asyncTest('clicking on a link with data-confirm attribute with custom confirm handler. Confirm yes.', 7, function() {
+  var message, element
+  // redefine confirm function so we can make sure it's not called
+  window.confirm = function(msg) {
+    ok(false, 'confirm dialog should not be called')
+  }
+  // custom auto-confirm:
+  Rails.confirm = function(msg, elem) { message = msg; element = elem; return true }
+
+  $('a[data-confirm]')
+    .bindNative('confirm:complete', function(e, data) {
+      App.assertCallbackInvoked('confirm:complete')
+      ok(data == true, 'confirm:complete passes in confirm answer (true)')
+    })
+    .bindNative('ajax:success', function(e, data, status, xhr) {
+      App.assertCallbackInvoked('ajax:success')
+      App.assertRequestPath(data, '/echo')
+      App.assertGetRequest(data)
+
+      equal(message, 'Are you absolutely sure?')
+      equal(element, $('a[data-confirm]').get(0))
+      start()
+    })
+    .triggerNative('click')
+})

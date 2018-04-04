@@ -56,6 +56,44 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
   end
 
+  test "replace attached blob with itself" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    assert_no_changes -> { @user.reload.avatar.blob } do
+      assert_no_changes -> { @user.reload.avatar.attachment } do
+        assert_no_enqueued_jobs do
+          @user.avatar.attach @user.avatar.blob
+        end
+      end
+    end
+  end
+
+  test "replaced attached blob with itself by signed ID" do
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+
+    assert_no_changes -> { @user.reload.avatar.blob } do
+      assert_no_changes -> { @user.reload.avatar.attachment } do
+        assert_no_enqueued_jobs do
+          @user.avatar.attach @user.avatar.blob.signed_id
+        end
+      end
+    end
+  end
+
+  test "replace independent attached blob" do
+    @user.cover_photo.attach create_blob(filename: "funky.jpg")
+
+    perform_enqueued_jobs do
+      assert_difference -> { ActiveStorage::Blob.count }, +1 do
+        assert_no_difference -> { ActiveStorage::Attachment.count } do
+          @user.cover_photo.attach create_blob(filename: "town.jpg")
+        end
+      end
+    end
+
+    assert_equal "town.jpg", @user.cover_photo.filename.to_s
+  end
+
   test "attach blob to new record" do
     user = User.new(name: "Jason")
 
@@ -65,14 +103,14 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       end
     end
 
-    assert user.avatar.attached?
+    assert_predicate user.avatar, :attached?
     assert_equal "funky.jpg", user.avatar.filename.to_s
 
     assert_difference -> { ActiveStorage::Attachment.count }, +1 do
       user.save!
     end
 
-    assert user.reload.avatar.attached?
+    assert_predicate user.reload.avatar, :attached?
     assert_equal "funky.jpg", user.avatar.filename.to_s
   end
 
@@ -81,12 +119,12 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user = User.new(name: "Jason", avatar: { io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg" })
     end
 
-    assert @user.new_record?
-    assert @user.avatar.attached?
+    assert_predicate @user, :new_record?
+    assert_predicate @user.avatar, :attached?
     assert_equal "town.jpg", @user.avatar.filename.to_s
 
     @user.save!
-    assert @user.reload.avatar.attached?
+    assert_predicate @user.reload.avatar, :attached?
     assert_equal "town.jpg", @user.avatar.filename.to_s
   end
 
@@ -98,20 +136,29 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
   end
 
   test "identify newly-attached, directly-uploaded blob" do
-    # Simulate a direct upload.
-    blob = create_blob_before_direct_upload(filename: "racecar.jpg", content_type: "application/octet-stream", byte_size: 1124062, checksum: "7GjDDNEQb4mzMzsW+MS0JQ==")
-    ActiveStorage::Blob.service.upload(blob.key, file_fixture("racecar.jpg").open)
+    blob = directly_upload_file_blob(content_type: "application/octet-stream")
 
-    stub_request(:get, %r{localhost:3000/rails/active_storage/disk/.*}).to_return(body: file_fixture("racecar.jpg"))
     @user.avatar.attach(blob)
 
     assert_equal "image/jpeg", @user.avatar.reload.content_type
-    assert @user.avatar.identified?
+    assert_predicate @user.avatar, :identified?
+  end
+
+  test "identify and analyze newly-attached, directly-uploaded blob" do
+    blob = directly_upload_file_blob(content_type: "application/octet-stream")
+
+    perform_enqueued_jobs do
+      @user.avatar.attach blob
+    end
+
+    assert_equal true, @user.avatar.reload.metadata[:identified]
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
   end
 
   test "identify newly-attached blob only once" do
     blob = create_file_blob
-    assert blob.identified?
+    assert_predicate blob, :identified?
 
     # The blob's backing file is a PNG image. Fudge its content type so we can tell if it's identified when we attach it.
     blob.update! content_type: "application/octet-stream"
@@ -136,7 +183,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       @user.avatar.attach blob
     end
 
-    assert blob.reload.analyzed?
+    assert_predicate blob.reload, :analyzed?
 
     @user.avatar.detach
 
@@ -161,7 +208,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     @user.avatar.detach
-    assert_not @user.avatar.attached?
+    assert_not_predicate @user.avatar, :attached?
     assert ActiveStorage::Blob.exists?(avatar_blob_id)
     assert ActiveStorage::Blob.service.exist?(avatar_key)
   end
@@ -171,7 +218,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     @user.avatar.purge
-    assert_not @user.avatar.attached?
+    assert_not_predicate @user.avatar, :attached?
     assert_not ActiveStorage::Blob.service.exist?(avatar_key)
   end
 
@@ -180,11 +227,18 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     avatar_key = @user.avatar.key
 
     perform_enqueued_jobs do
-      @user.destroy
+      @user.reload.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: avatar_key)
       assert_not ActiveStorage::Blob.service.exist?(avatar_key)
     end
+  end
+
+  test "delete attachment for independent blob when record is destroyed" do
+    @user.cover_photo.attach create_blob(filename: "funky.jpg")
+
+    @user.destroy
+    assert_not ActiveStorage::Attachment.exists?(record: @user, name: "cover_photo")
   end
 
   test "find with attached blob" do
@@ -228,7 +282,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       end
     end
 
-    assert user.highlights.attached?
+    assert_predicate user.highlights, :attached?
     assert_equal "town.jpg", user.highlights.first.filename.to_s
     assert_equal "country.jpg", user.highlights.second.filename.to_s
 
@@ -236,7 +290,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       user.save!
     end
 
-    assert user.reload.highlights.attached?
+    assert_predicate user.reload.highlights, :attached?
     assert_equal "town.jpg", user.highlights.first.filename.to_s
     assert_equal "country.jpg", user.highlights.second.filename.to_s
   end
@@ -248,13 +302,13 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
         { io: StringIO.new("IT"), filename: "country.jpg", content_type: "image/jpg" }])
     end
 
-    assert @user.new_record?
-    assert @user.highlights.attached?
+    assert_predicate @user, :new_record?
+    assert_predicate @user.highlights, :attached?
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
 
     @user.save!
-    assert @user.reload.highlights.attached?
+    assert_predicate @user.reload.highlights, :attached?
     assert_equal "town.jpg", @user.highlights.first.filename.to_s
     assert_equal "country.jpg", @user.highlights.second.filename.to_s
   end
@@ -334,7 +388,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     @user.highlights.detach
-    assert_not @user.highlights.attached?
+    assert_not_predicate @user.highlights, :attached?
 
     assert ActiveStorage::Blob.exists?(highlight_blob_ids.first)
     assert ActiveStorage::Blob.exists?(highlight_blob_ids.second)
@@ -348,7 +402,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     @user.highlights.purge
-    assert_not @user.highlights.attached?
+    assert_not_predicate @user.highlights, :attached?
     assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
     assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
   end
@@ -358,7 +412,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     highlight_keys = @user.highlights.collect(&:key)
 
     perform_enqueued_jobs do
-      @user.destroy
+      @user.reload.destroy
 
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.first)
       assert_not ActiveStorage::Blob.service.exist?(highlight_keys.first)
@@ -366,5 +420,40 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
       assert_nil ActiveStorage::Blob.find_by(key: highlight_keys.second)
       assert_not ActiveStorage::Blob.service.exist?(highlight_keys.second)
     end
+  end
+
+  test "delete attachments for independent blobs when the record is destroyed" do
+    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "wonky.mp4")
+
+    @user.destroy
+    assert_not ActiveStorage::Attachment.exists?(record: @user, name: "vlogs")
+  end
+
+  test "selectively purge one attached blob of many" do
+    first_blob  = create_blob(filename: "funky.jpg")
+    second_blob = create_blob(filename: "wonky.jpg")
+    attachments = @user.highlights.attach(first_blob, second_blob)
+
+    assert_difference -> { ActiveStorage::Blob.count }, -1 do
+      @user.highlights.where(id: attachments.first.id).purge
+    end
+
+    assert_not ActiveStorage::Blob.exists?(key: first_blob.key)
+    assert ActiveStorage::Blob.exists?(key: second_blob.key)
+  end
+
+  test "selectively purge one attached blob of many later" do
+    first_blob  = create_blob(filename: "funky.jpg")
+    second_blob = create_blob(filename: "wonky.jpg")
+    attachments = @user.highlights.attach(first_blob, second_blob)
+
+    perform_enqueued_jobs do
+      assert_difference -> { ActiveStorage::Blob.count }, -1 do
+        @user.highlights.where(id: attachments.first.id).purge_later
+      end
+    end
+
+    assert_not ActiveStorage::Blob.exists?(key: first_blob.key)
+    assert ActiveStorage::Blob.exists?(key: second_blob.key)
   end
 end

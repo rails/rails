@@ -94,7 +94,7 @@ class Book < ApplicationRecord
 end
 ```
 
-![belongs_to Association Diagram](images/belongs_to.png)
+![belongs_to Association Diagram](images/association_basics/belongs_to.png)
 
 NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
 
@@ -127,7 +127,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-![has_one Association Diagram](images/has_one.png)
+![has_one Association Diagram](images/association_basics/has_one.png)
 
 The corresponding migration might look like this:
 
@@ -171,7 +171,7 @@ end
 
 NOTE: The name of the other model is pluralized when declaring a `has_many` association.
 
-![has_many Association Diagram](images/has_many.png)
+![has_many Association Diagram](images/association_basics/has_many.png)
 
 The corresponding migration might look like this:
 
@@ -213,7 +213,7 @@ class Patient < ApplicationRecord
 end
 ```
 
-![has_many :through Association Diagram](images/has_many_through.png)
+![has_many :through Association Diagram](images/association_basics/has_many_through.png)
 
 The corresponding migration might look like this:
 
@@ -299,7 +299,7 @@ class AccountHistory < ApplicationRecord
 end
 ```
 
-![has_one :through Association Diagram](images/has_one_through.png)
+![has_one :through Association Diagram](images/association_basics/has_one_through.png)
 
 The corresponding migration might look like this:
 
@@ -340,7 +340,7 @@ class Part < ApplicationRecord
 end
 ```
 
-![has_and_belongs_to_many Association Diagram](images/habtm.png)
+![has_and_belongs_to_many Association Diagram](images/association_basics/habtm.png)
 
 The corresponding migration might look like this:
 
@@ -494,7 +494,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
 end
 ```
 
-![Polymorphic Association Diagram](images/polymorphic.png)
+![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 ### Self Joins
 
@@ -572,39 +572,31 @@ class Book < ApplicationRecord
 end
 ```
 
-This declaration needs to be backed up by the proper foreign key declaration on the books table:
+This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
 class CreateBooks < ActiveRecord::Migration[5.0]
   def change
     create_table :books do |t|
-      t.datetime :published_at
-      t.string   :book_number
-      t.integer  :author_id
+      t.datetime   :published_at
+      t.string     :book_number
+      t.references :author
     end
   end
 end
 ```
 
-If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
-
-It's a good practice to add an index on the foreign key to improve queries
-performance and a foreign key constraint to ensure referential data integrity:
+Whereas for an existing table, it might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[5.0]
+class AddAuthorToBooks < ActiveRecord::Migration[5.0]
   def change
-    create_table :books do |t|
-      t.datetime :published_at
-      t.string   :book_number
-      t.integer  :author_id
-    end
-
-    add_index :books, :author_id
-    add_foreign_key :books, :authors
+    add_reference :books, :author
   end
 end
 ```
+
+NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 

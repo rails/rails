@@ -35,24 +35,20 @@ module ActiveRecord
 
         binds << last_reflection.join_id_for(owner)
         if last_reflection.type
-          binds << owner.class.base_class.name
+          binds << owner.class.polymorphic_name
         end
 
         chain.each_cons(2).each do |reflection, next_reflection|
           if reflection.type
-            binds << next_reflection.klass.base_class.name
+            binds << next_reflection.klass.polymorphic_name
           end
         end
         binds
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :value_transformation
 
-      private
         def join(table, constraint)
           table.create_join(table, table.create_on(constraint))
         end
@@ -67,7 +63,7 @@ module ActiveRecord
           scope = apply_scope(scope, table, key, value)
 
           if reflection.type
-            polymorphic_type = transform_value(owner.class.base_class.name)
+            polymorphic_type = transform_value(owner.class.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, polymorphic_type)
           end
 
@@ -88,7 +84,7 @@ module ActiveRecord
           constraint = table[key].eq(foreign_table[foreign_key])
 
           if reflection.type
-            value = transform_value(next_reflection.klass.base_class.name)
+            value = transform_value(next_reflection.klass.polymorphic_name)
             scope = apply_scope(scope, table, reflection.type, value)
           end
 
@@ -135,7 +131,7 @@ module ActiveRecord
               item = eval_scope(reflection, scope_chain_item, owner)
 
               if scope_chain_item == chain_head.scope
-                scope.merge! item.except(:where, :includes)
+                scope.merge! item.except(:where, :includes, :unscope, :order)
               end
 
               reflection.all_includes do
@@ -144,7 +140,7 @@ module ActiveRecord
 
               scope.unscope!(*item.unscope_values)
               scope.where_clause += item.where_clause
-              scope.order_values |= item.order_values
+              scope.order_values = item.order_values | scope.order_values
             end
           end
 

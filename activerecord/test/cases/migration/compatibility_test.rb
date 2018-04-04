@@ -182,7 +182,7 @@ module LegacyPrimaryKeyTestCases
     assert_legacy_primary_key
 
     legacy_ref = LegacyPrimaryKey.columns_hash["legacy_ref_id"]
-    assert_not legacy_ref.bigint?
+    assert_not_predicate legacy_ref, :bigint?
 
     record1 = LegacyPrimaryKey.create!
     assert_not_nil record1.id
@@ -301,8 +301,8 @@ module LegacyPrimaryKeyTestCases
       @migration.migrate(:up)
 
       legacy_pk = LegacyPrimaryKey.columns_hash["id"]
-      assert legacy_pk.bigint?
-      assert legacy_pk.auto_increment?
+      assert_predicate legacy_pk, :bigint?
+      assert_predicate legacy_pk, :auto_increment?
 
       schema = dump_table_schema "legacy_primary_keys"
       assert_match %r{create_table "legacy_primary_keys", (?!id: :bigint, default: nil)}, schema
@@ -334,7 +334,7 @@ module LegacyPrimaryKeyTestCases
       legacy_pk = LegacyPrimaryKey.columns_hash["id"]
 
       assert_equal :integer, legacy_pk.type
-      assert_not legacy_pk.bigint?
+      assert_not_predicate legacy_pk, :bigint?
       assert_not legacy_pk.null
 
       if current_adapter?(:Mysql2Adapter, :PostgreSQLAdapter)

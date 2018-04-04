@@ -22,6 +22,8 @@ module ActionView
       mattr_accessor :embed_authenticity_token_in_remote_forms
       self.embed_authenticity_token_in_remote_forms = nil
 
+      mattr_accessor :default_enforce_utf8, default: true
+
       # Starts a form tag that points the action to a url configured with <tt>url_for_options</tt> just like
       # ActionController::Base#url_for. The method for the form defaults to POST.
       #
@@ -549,7 +551,8 @@ module ActionView
       #   # => <input src="/assets/save.png" data-confirm="Are you sure?" type="image" />
       def image_submit_tag(source, options = {})
         options = options.stringify_keys
-        tag :input, { "type" => "image", "src" => path_to_image(source) }.update(options)
+        src = path_to_image(source, skip_pipeline: options.delete("skip_pipeline"))
+        tag :input, { "type" => "image", "src" => src }.update(options)
       end
 
       # Creates a field set for grouping HTML form elements.
@@ -866,7 +869,7 @@ module ActionView
               })
             end
 
-          if html_options.delete("enforce_utf8") { true }
+          if html_options.delete("enforce_utf8") { default_enforce_utf8 }
             utf8_enforcer_tag + method_tag
           else
             method_tag

@@ -101,6 +101,10 @@ module ActiveRecord
       end
       alias validated? validate?
 
+      def export_name_on_schema_dump?
+        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+      end
+
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
         if to_table_ord
           self.to_table == to_table_ord.to_s
@@ -151,13 +155,8 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
-        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
-
       private
+        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
 
         def as_options(value)
           value.is_a?(Hash) ? value : {}

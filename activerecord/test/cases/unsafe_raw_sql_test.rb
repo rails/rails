@@ -107,6 +107,26 @@ class UnsafeRawSqlTest < ActiveRecord::TestCase
     assert_equal ids_expected, ids_disabled
   end
 
+  test "order: allows NULLS FIRST and NULLS LAST too" do
+    raise "precondition failed" if Post.count < 2
+
+    # Ensure there are NULL and non-NULL post types.
+    Post.first.update_column(:type, nil)
+    Post.last.update_column(:type, "Programming")
+
+    ["asc", "desc", ""].each do |direction|
+      %w(first last).each do |position|
+        ids_expected = Post.order(Arel.sql("type #{direction} nulls #{position}")).pluck(:id)
+
+        ids_depr     = with_unsafe_raw_sql_deprecated { Post.order("type #{direction} nulls #{position}").pluck(:id) }
+        ids_disabled = with_unsafe_raw_sql_disabled   { Post.order("type #{direction} nulls #{position}").pluck(:id) }
+
+        assert_equal ids_expected, ids_depr
+        assert_equal ids_expected, ids_disabled
+      end
+    end
+  end if current_adapter?(:PostgreSQLAdapter)
+
   test "order: disallows invalid column name" do
     with_unsafe_raw_sql_disabled do
       assert_raises(ActiveRecord::UnknownAttributeReference) do

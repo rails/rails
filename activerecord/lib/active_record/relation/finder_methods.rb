@@ -371,16 +371,16 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(eager_loading: true)
+      def construct_join_dependency
         including = eager_load_values + includes_values
         joins = joins_values.select { |join| join.is_a?(Arel::Nodes::Join) }
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including, alias_tracker(joins), eager_loading: eager_loading
+          klass, table, including, alias_tracker(joins)
         )
       end
 
       def apply_join_dependency(eager_loading: true)
-        join_dependency = construct_join_dependency(eager_loading: eager_loading)
+        join_dependency = construct_join_dependency
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && !using_limitable_reflections?(join_dependency.reflections)

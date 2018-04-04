@@ -5,6 +5,7 @@ require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
 require "time_zone_test_helpers"
+require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -23,7 +24,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(1.class)
+    assert 1.minute.instance_of?(Integer)
     assert 2.days.instance_of?(ActiveSupport::Duration)
     assert !3.second.instance_of?(Numeric)
   end
@@ -640,6 +641,12 @@ class DurationTest < ActiveSupport::TestCase
     d2 = 2.months - 2.months
 
     assert_equal time + d1, time + d2
+  end
+
+  def test_durations_survive_yaml_serialization
+    d1 = YAML.load(YAML.dump(10.minutes))
+    assert_equal 600, d1.to_i
+    assert_equal 660, (d1 + 60).to_i
   end
 
   private

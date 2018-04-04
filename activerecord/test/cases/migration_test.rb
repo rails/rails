@@ -120,11 +120,11 @@ class MigrationTest < ActiveRecord::TestCase
     old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
-    assert migrator.any_migrations?
+    assert_predicate migrator, :any_migrations?
 
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
-    assert_not migrator_empty.any_migrations?
+    assert_not_predicate migrator_empty, :any_migrations?
   ensure
     ActiveRecord::MigrationContext.new(old_path)
   end
@@ -170,14 +170,14 @@ class MigrationTest < ActiveRecord::TestCase
   def test_add_table_with_decimals
     Person.connection.drop_table :big_numbers rescue nil
 
-    assert !BigNumber.table_exists?
+    assert_not_predicate BigNumber, :table_exists?
     GiveMeBigNumbers.up
     BigNumber.reset_column_information
 
     assert BigNumber.create(
       bank_balance: 1586.43,
       big_bank_balance: BigDecimal("1000234000567.95"),
-      world_population: 6000000000,
+      world_population: 2**62,
       my_house_population: 3,
       value_of_e: BigDecimal("2.7182818284590452353602875")
     )
@@ -191,10 +191,8 @@ class MigrationTest < ActiveRecord::TestCase
     assert_not_nil b.my_house_population
     assert_not_nil b.value_of_e
 
-    # TODO: set world_population >= 2**62 to cover 64-bit platforms and test
-    # is_a?(Bignum)
     assert_kind_of Integer, b.world_population
-    assert_equal 6000000000, b.world_population
+    assert_equal 2**62, b.world_population
     assert_kind_of Integer, b.my_house_population
     assert_equal 3, b.my_house_population
     assert_kind_of BigDecimal, b.bank_balance
@@ -229,7 +227,7 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_filtering_migrations
     assert_no_column Person, :last_name
-    assert !Reminder.table_exists?
+    assert_not_predicate Reminder, :table_exists?
 
     name_filter = lambda { |migration| migration.name == "ValidPeopleHaveLastNames" }
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
@@ -465,7 +463,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_rename_table_with_prefix_and_suffix
-    assert !Thing.table_exists?
+    assert_not_predicate Thing, :table_exists?
     ActiveRecord::Base.table_name_prefix = "p_"
     ActiveRecord::Base.table_name_suffix = "_s"
     Thing.reset_table_name
@@ -486,7 +484,7 @@ class MigrationTest < ActiveRecord::TestCase
   end
 
   def test_add_drop_table_with_prefix_and_suffix
-    assert !Reminder.table_exists?
+    assert_not_predicate Reminder, :table_exists?
     ActiveRecord::Base.table_name_prefix = "prefix_"
     ActiveRecord::Base.table_name_suffix = "_suffix"
     Reminder.reset_table_name
@@ -693,6 +691,25 @@ class MigrationTest < ActiveRecord::TestCase
       assert_no_column Person, :last_name,
         "without an advisory lock, the Migrator should not make any changes, but it did."
     end
+
+    def test_with_advisory_lock_raises_the_right_error_when_it_fails_to_release_lock
+      migration = Class.new(ActiveRecord::Migration::Current).new
+      migrator = ActiveRecord::Migrator.new(:up, [migration], 100)
+      lock_id = migrator.send(:generate_migrator_advisory_lock_id)
+
+      e = assert_raises(ActiveRecord::ConcurrentMigrationError) do
+        silence_stream($stderr) do
+          migrator.send(:with_advisory_lock) do
+            ActiveRecord::Base.connection.release_advisory_lock(lock_id)
+          end
+        end
+      end
+
+      assert_match(
+        /#{ActiveRecord::ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE}/,
+        e.message
+      )
+    end
   end
 
   private
@@ -881,7 +898,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
       expected_query_count = {
         "Mysql2Adapter"     => 3, # one query for columns, one query for primary key, one query to do the bulk change
-        "PostgreSQLAdapter" => 2, # one query for columns, one for bulk change
+        "PostgreSQLAdapter" => 3, # one query for columns, one for bulk change, one for comment
       }.fetch(classname) {
         raise "need an expected query count for #{classname}"
       }
@@ -889,12 +906,13 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_queries(expected_query_count, ignore_none: true) do
         with_bulk_change_table do |t|
           t.change :name, :string, default: "NONAME"
-          t.change :birthdate, :datetime
+          t.change :birthdate, :datetime, comment: "This is a comment"
         end
       end
 
       assert_equal "NONAME", column(:name).default
       assert_equal :datetime, column(:birthdate).type
+      assert_equal "This is a comment", column(:birthdate).comment
     end
 
     private
@@ -954,7 +972,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert copied.empty?
+    assert_empty copied
   ensure
     clear
   end
@@ -995,7 +1013,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert copied.empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1037,7 +1055,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
       files_count = Dir[@migrations_path + "/*.rb"].length
       copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/to_copy_with_timestamps")
       assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-      assert copied.empty?
+      assert_empty copied
     end
   ensure
     clear
@@ -1058,7 +1076,7 @@ class CopyMigrationsTest < ActiveRecord::TestCase
     files_count = Dir[@migrations_path + "/*.rb"].length
     copied = ActiveRecord::Migration.copy(@migrations_path, bukkits: MIGRATIONS_ROOT + "/magic")
     assert_equal files_count, Dir[@migrations_path + "/*.rb"].length
-    assert copied.empty?
+    assert_empty copied
   ensure
     clear
   end

@@ -114,8 +114,7 @@ module ActiveRecord
       end
     end
 
-    protected
-
+    private
       attr_reader :query_builder, :bind_map, :klass
   end
 end

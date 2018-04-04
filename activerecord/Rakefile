@@ -41,9 +41,11 @@ namespace :test do
   end
 end
 
-desc "Build MySQL and PostgreSQL test databases"
 namespace :db do
+  desc "Build MySQL and PostgreSQL test databases"
   task create: ["db:mysql:build", "db:postgresql:build"]
+
+  desc "Drop MySQL and PostgreSQL test databases"
   task drop: ["db:mysql:drop", "db:postgresql:drop"]
 end
 

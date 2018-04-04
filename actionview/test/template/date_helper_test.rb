@@ -141,18 +141,16 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_distance_in_words_doesnt_use_the_quotient_operator
-    rubinius_skip "Date is written in Ruby and relies on Fixnum#/"
-    jruby_skip "Date is written in Ruby and relies on Fixnum#/"
+    rubinius_skip "Date is written in Ruby and relies on Integer#/"
+    jruby_skip "Date is written in Ruby and relies on Integer#/"
 
-    klass = RUBY_VERSION > "2.4" ? Integer : Fixnum
-
-    # Make sure that we avoid {Integer,Fixnum}#/ (redefined by mathn)
-    klass.send :private, :/
+    # Make sure that we avoid Integer#/ (redefined by mathn)
+    Integer.send :private, :/
 
     from = Time.utc(2004, 6, 6, 21, 45, 0)
     assert_distance_of_time_in_words(from)
   ensure
-    klass.send :public, :/
+    Integer.send :public, :/
   end
 
   def test_time_ago_in_words_passes_include_seconds
@@ -3593,25 +3591,25 @@ class DateHelperTest < ActionView::TestCase
   end
 
   def test_select_html_safety
-    assert select_day(16).html_safe?
-    assert select_month(8).html_safe?
-    assert select_year(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
-    assert select_minute(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
-    assert select_second(Time.mktime(2003, 8, 16, 8, 4, 18)).html_safe?
+    assert_predicate select_day(16), :html_safe?
+    assert_predicate select_month(8), :html_safe?
+    assert_predicate select_year(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
+    assert_predicate select_minute(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
+    assert_predicate select_second(Time.mktime(2003, 8, 16, 8, 4, 18)), :html_safe?
 
-    assert select_minute(8, use_hidden: true).html_safe?
-    assert select_month(8, prompt: "Choose month").html_safe?
+    assert_predicate select_minute(8, use_hidden: true), :html_safe?
+    assert_predicate select_month(8, prompt: "Choose month"), :html_safe?
 
-    assert select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, { class: "selector" }).html_safe?
-    assert select_date(Time.mktime(2003, 8, 16), date_separator: " / ", start_year: 2003, end_year: 2005, prefix: "date[first]").html_safe?
+    assert_predicate select_time(Time.mktime(2003, 8, 16, 8, 4, 18), {}, { class: "selector" }), :html_safe?
+    assert_predicate select_date(Time.mktime(2003, 8, 16), date_separator: " / ", start_year: 2003, end_year: 2005, prefix: "date[first]"), :html_safe?
   end
 
   def test_object_select_html_safety
     @post = Post.new
     @post.written_on = Date.new(2004, 6, 15)
 
-    assert date_select("post", "written_on", default: Time.local(2006, 9, 19, 15, 16, 35), include_blank: true).html_safe?
-    assert time_select("post", "written_on", ignore_date: true).html_safe?
+    assert_predicate date_select("post", "written_on", default: Time.local(2006, 9, 19, 15, 16, 35), include_blank: true), :html_safe?
+    assert_predicate time_select("post", "written_on", ignore_date: true), :html_safe?
   end
 
   def test_time_tag_with_date

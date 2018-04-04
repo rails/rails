@@ -17,6 +17,12 @@ class SlowDalliClient < Dalli::Client
   end
 end
 
+class UnavailableDalliServer < Dalli::Server
+  def alive?
+    false
+  end
+end
+
 class MemCacheStoreTest < ActiveSupport::TestCase
   begin
     ss = Dalli::Client.new("localhost:11211").stats
@@ -43,58 +49,11 @@ class MemCacheStoreTest < ActiveSupport::TestCase
   include CacheStoreVersionBehavior
   include LocalCacheBehavior
   include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
   include EncodedKeyCacheBehavior
   include AutoloadingCacheBehavior
-
-  def test_connection_pool
-    emulating_latency do
-      begin
-        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, pool_size: 2, pool_timeout: 1)
-        cache.clear
-
-        threads = []
-
-        assert_raises Timeout::Error do
-          # One of the three threads will fail in 1 second because our pool size
-          # is only two.
-          3.times do
-            threads << Thread.new do
-              cache.read("latency")
-            end
-          end
-
-          threads.each(&:join)
-        end
-      ensure
-        threads.each(&:kill)
-      end
-    end
-  end
-
-  def test_no_connection_pool
-    emulating_latency do
-      begin
-        cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
-        cache.clear
-
-        threads = []
-
-        assert_nothing_raised do
-          # Default connection pool size is 5, assuming 10 will make sure that
-          # the connection pool isn't used at all.
-          10.times do
-            threads << Thread.new do
-              cache.read("latency")
-            end
-          end
-
-          threads.each(&:join)
-        end
-      ensure
-        threads.each(&:kill)
-      end
-    end
-  end
+  include ConnectionPoolBehavior
+  include FailureSafetyBehavior
 
   def test_raw_values
     cache = ActiveSupport::Cache.lookup_store(:mem_cache_store, raw: true)
@@ -154,6 +113,10 @@ class MemCacheStoreTest < ActiveSupport::TestCase
 
   private
 
+    def store
+      :mem_cache_store
+    end
+
     def emulating_latency
       old_client = Dalli.send(:remove_const, :Client)
       Dalli.const_set(:Client, SlowDalliClient)
@@ -162,5 +125,15 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     ensure
       Dalli.send(:remove_const, :Client)
       Dalli.const_set(:Client, old_client)
+    end
+
+    def emulating_unavailability
+      old_server = Dalli.send(:remove_const, :Server)
+      Dalli.const_set(:Server, UnavailableDalliServer)
+
+      yield ActiveSupport::Cache::MemCacheStore.new
+    ensure
+      Dalli.send(:remove_const, :Server)
+      Dalli.const_set(:Server, old_server)
     end
 end

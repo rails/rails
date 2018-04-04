@@ -135,16 +135,14 @@ NOTE: Defined in `active_support/core_ext/object/blank.rb`.
 
 ### `duplicable?`
 
-In Ruby 2.4 most objects can be duplicated via `dup` or `clone` except
-methods and certain numbers. Though Ruby 2.2 and 2.3 can't duplicate `nil`,
-`false`, `true`, and  symbols as well as instances `Float`, `Fixnum`,
-and `Bignum` instances.
+As of Ruby 2.5, most objects can be duplicated via `dup` or `clone`:
 
 ```ruby
 "foo".dup           # => "foo"
 "".dup              # => ""
-1.method(:+).dup    # => TypeError: allocator undefined for Method
-Complex(0).dup      # => TypeError: can't copy Complex
+Rational(1).dup     # => (1/1)
+Complex(0).dup      # => (0+0i)
+1.method(:+).dup    # => TypeError (allocator undefined for Method)
 ```
 
 Active Support provides `duplicable?` to query an object about this:
@@ -152,35 +150,18 @@ Active Support provides `duplicable?` to query an object about this:
 ```ruby
 "foo".duplicable?           # => true
 "".duplicable?              # => true
-Rational(1).duplicable?     # => false
-Complex(1).duplicable?      # => false
+Rational(1).duplicable?     # => true
+Complex(1).duplicable?      # => true
 1.method(:+).duplicable?    # => false
 ```
 
-`duplicable?` matches Ruby's `dup` according to the Ruby version.
-
-So in 2.4:
-
-```ruby
-nil.dup                 # => nil
-:my_symbol.dup          # => :my_symbol
-1.dup                   # => 1
-
-nil.duplicable?         # => true
-:my_symbol.duplicable?  # => true
-1.duplicable?           # => true
-```
-
-Whereas in 2.2 and 2.3:
+`duplicable?` matches the current Ruby version's `dup` behavior,
+so results will vary according the version of Ruby you're using.
+In Ruby 2.4, for example, Complex and Rational are not duplicable:
 
 ```ruby
-nil.dup                 # => TypeError: can't dup NilClass
-:my_symbol.dup          # => TypeError: can't dup Symbol
-1.dup                   # => TypeError: can't dup Fixnum
-
-nil.duplicable?         # => false
-:my_symbol.duplicable?  # => false
-1.duplicable?           # => false
+Rational(1).duplicable?     # => false
+Complex(1).duplicable?      # => false
 ```
 
 WARNING: Any class can disallow duplication by removing `dup` and `clone` or raising exceptions from them. Thus only `rescue` can tell whether a given arbitrary object is duplicable. `duplicable?` depends on the hard-coded list above, but it is much faster than `rescue`. Use it only if you know the hard-coded list is enough in your use case.
@@ -798,6 +779,14 @@ delegate :size, to: :attachment, prefix: :avatar
 
 In the previous example the macro generates `avatar_size` rather than `size`.
 
+The option `:private` changes methods scope:
+
+```ruby
+delegate :date_of_birth, to: :profile, private: true
+```
+
+The delegated methods are public by default. Pass `private: true` to change that.
+
 NOTE: Defined in `active_support/core_ext/module/delegation.rb`
 
 #### `delegate_missing_to`
@@ -925,6 +914,15 @@ The macros `cattr_reader`, `cattr_writer`, and `cattr_accessor` are analogous to
 ```ruby
 class MysqlAdapter < AbstractAdapter
   # Generates class methods to access @@emulate_booleans.
+  cattr_accessor :emulate_booleans
+end
+```
+
+Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
+
+```ruby
+class MysqlAdapter < AbstractAdapter
+  # Generates class methods to access @@emulate_booleans with default value of true.
   cattr_accessor :emulate_booleans, default: true
 end
 ```
@@ -940,15 +938,6 @@ end
 ```
 
 we can access `field_error_proc` in views.
-
-Also, you can pass a block to `cattr_*` to set up the attribute with a default value:
-
-```ruby
-class MysqlAdapter < AbstractAdapter
-  # Generates class methods to access @@emulate_booleans with default value of true.
-  cattr_accessor :emulate_booleans, default: true
-end
-```
 
 The generation of the reader instance method can be prevented by setting `:instance_reader` to `false` and the generation of the writer instance method can be prevented by setting `:instance_writer` to `false`. Generation of both methods can be prevented by setting `:instance_accessor` to `false`. In all cases, the value must be exactly `false` and not any false value.
 
@@ -2776,20 +2765,6 @@ Active Record does not accept unknown options when building associations, for ex
 
 NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
-### Working with Values
-
-#### `transform_values` && `transform_values!`
-
-The method `transform_values` accepts a block and returns a hash that has applied the block operations to each of the values in the receiver.
-
-```ruby
-{ nil => nil, 1 => 1, :x => :a }.transform_values { |value| value.to_s.upcase }
-# => {nil=>"", 1=>"1", :x=>"A"}
-```
-There's also the bang variant `transform_values!` that applies the block operations to values in the very receiver.
-
-NOTE: Defined in `active_support/core_ext/hash/transform_values.rb`.
-
 ### Slicing
 
 Ruby has built-in support for taking slices out of strings and arrays. Active Support extends slicing to hashes:
@@ -2851,16 +2826,6 @@ The method `with_indifferent_access` returns an `ActiveSupport::HashWithIndiffer
 
 NOTE: Defined in `active_support/core_ext/hash/indifferent_access.rb`.
 
-### Compacting
-
-The methods `compact` and `compact!` return a Hash without items with `nil` value.
-
-```ruby
-{a: 1, b: 2, c: nil}.compact # => {a: 1, b: 2}
-```
-
-NOTE: Defined in `active_support/core_ext/hash/compact.rb`.
-
 Extensions to `Regexp`
 ----------------------
 
@@ -2889,24 +2854,6 @@ end
 ```
 
 NOTE: Defined in `active_support/core_ext/regexp.rb`.
-
-### `match?`
-
-Rails implements `Regexp#match?` for Ruby versions prior to 2.4:
-
-```ruby
-/oo/.match?('foo')    # => true
-/oo/.match?('bar')    # => false
-/oo/.match?('foo', 1) # => true
-```
-
-The backport has the same interface and lack of side-effects in the caller like
-not setting `$1` and friends, but it does not have the speed benefits. Its
-purpose is to be able to write 2.4 compatible code. Rails itself uses this
-predicate internally for example.
-
-Active Support defines `Regexp#match?` only if not present, so code running
-under 2.4 or later does run the original one and gets the performance boost.
 
 Extensions to `Range`
 ---------------------

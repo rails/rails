@@ -75,21 +75,7 @@ module ActiveRecord
   #   end
   #
   # Now, when <tt>Topic#destroy</tt> is run only +destroy_author+ is called. When <tt>Reply#destroy</tt> is
-  # run, both +destroy_author+ and +destroy_readers+ are called. Contrast this to the following situation
-  # where the +before_destroy+ method is overridden:
-  #
-  #   class Topic < ActiveRecord::Base
-  #     def before_destroy() destroy_author end
-  #   end
-  #
-  #   class Reply < Topic
-  #     def before_destroy() destroy_readers end
-  #   end
-  #
-  # In that case, <tt>Reply#destroy</tt> would only run +destroy_readers+ and _not_ +destroy_author+.
-  # So, use the callback macros when you want to ensure that a certain callback is called for the entire
-  # hierarchy, and use the regular overwritable methods when you want to leave it up to each descendant
-  # to decide whether they want to call +super+ and trigger the inherited callbacks.
+  # run, both +destroy_author+ and +destroy_readers+ are called.
   #
   # *IMPORTANT:* In order for inheritance to work for the callback queues, you must specify the
   # callbacks before specifying the associations. Otherwise, you might trigger the loading of a

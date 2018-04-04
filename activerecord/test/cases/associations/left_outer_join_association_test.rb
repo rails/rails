@@ -5,6 +5,7 @@ require "models/post"
 require "models/comment"
 require "models/author"
 require "models/essay"
+require "models/category"
 require "models/categorization"
 require "models/person"
 
@@ -69,15 +70,15 @@ class LeftOuterJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.left_outer_joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
+    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
   def test_does_not_override_select
     authors = Author.select("authors.name, #{%{(authors.author_address_id || ' ' || authors.author_address_extra_id) as addr_id}}").left_outer_joins(:posts)
-    assert authors.any?
-    assert authors.first.respond_to?(:addr_id)
+    assert_predicate authors, :any?
+    assert_respond_to authors.first, :addr_id
   end
 
   test "the default scope of the target is applied when joining associations" do

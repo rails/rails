@@ -3,7 +3,6 @@
 require "set"
 require "zlib"
 require "active_support/core_ext/module/attribute_accessors"
-require "active_record/tasks/database_tasks"
 
 module ActiveRecord
   class MigrationError < ActiveRecordError#:nodoc:
@@ -141,6 +140,7 @@ module ActiveRecord
 
   class ConcurrentMigrationError < MigrationError #:nodoc:
     DEFAULT_MESSAGE = "Cannot run migrations because another migration process is currently running.".freeze
+    RELEASE_LOCK_FAILED_MESSAGE = "Failed to release advisory lock".freeze
 
     def initialize(message = DEFAULT_MESSAGE)
       super
@@ -1356,12 +1356,17 @@ module ActiveRecord
 
       def with_advisory_lock
         lock_id = generate_migrator_advisory_lock_id
-        got_lock = Base.connection.get_advisory_lock(lock_id)
+        connection = Base.connection
+        got_lock = connection.get_advisory_lock(lock_id)
         raise ConcurrentMigrationError unless got_lock
         load_migrated # reload schema_migrations to be sure it wasn't changed by another process before we got the lock
         yield
       ensure
-        Base.connection.release_advisory_lock(lock_id) if got_lock
+        if got_lock && !connection.release_advisory_lock(lock_id)
+          raise ConcurrentMigrationError.new(
+            ConcurrentMigrationError::RELEASE_LOCK_FAILED_MESSAGE
+          )
+        end
       end
 
       MIGRATOR_SALT = 2053462845
