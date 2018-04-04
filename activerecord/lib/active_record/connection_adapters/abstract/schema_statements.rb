@@ -305,7 +305,8 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force]
-          drop_table(table_name, **options, if_exists: true)
+          drop_opts = { if_exists: true }.merge(**options)
+          drop_table(table_name, drop_opts)
         end
 
         result = execute schema_creation.accept td
@@ -908,7 +909,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, **foreign_key_options)
+          remove_foreign_key(table_name, foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")

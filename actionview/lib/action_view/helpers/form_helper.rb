@@ -1970,7 +1970,7 @@ module ActionView
 
         convert_to_legacy_options(options)
 
-        fields_for(scope || model, model, **options, &block)
+        fields_for(scope || model, model, options, &block)
       end
 
       # Returns a label tag tailored for labelling an input field for a specified attribute (identified by +method+) on an object
