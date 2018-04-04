@@ -10,6 +10,10 @@ module ActionCable
         @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, event_loop, protocols) : nil
       end
 
+      def ping
+        websocket.ping
+      end
+
       def possible?
         websocket
       end

@@ -32,6 +32,7 @@ module ActionCable
       attr_reader :env, :url
 
       def initialize(env, event_target, event_loop, protocols)
+        @ping_times = 0
         @env          = env
         @event_target = event_target
         @event_loop   = event_loop
@@ -64,6 +65,15 @@ module ActionCable
 
         @driver_started = true
         @driver.start
+      end
+
+      def ping
+        return false if @ready_state > OPEN
+        @ping_times += 1
+        result = @driver.ping('pong') do
+          @ping_times = 0
+        end
+        client_gone if @ping_times > 5
       end
 
       def rack_response
