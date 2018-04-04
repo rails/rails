@@ -1,3 +1,8 @@
+*   `ActionDispatch::SystemTestCase.driven_by` can now be called with a block to define specific browser capabilities.
+
+    *Edouard Chin*
+
+
 ## Rails 6.0.0.beta1 (January 18, 2019) ##
 
 *   Remove deprecated `fragment_cache_key` helper in favor of `combined_fragment_cache_key`.
@@ -154,7 +159,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`.
+*   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the

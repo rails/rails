@@ -89,6 +89,20 @@ module ActionDispatch
   #       { js_errors: true }
   #   end
   #
+  # Most drivers won't let you add specific browser capabilities through the +options+ mentioned above.
+  # As an example, if you want to add mobile emulation on chrome, you'll have to create an instance of selenium's
+  # `Chrome::Options` object and add capabilities to it.
+  # To make things easier, `driven_by` can be called with a block.
+  # The block will be passed an instance of `<Driver>::Options` where you can define the capabilities you want.
+  # Please refer to your driver documentation to learn about supported options.
+  #
+  # class ApplicationSystemTestCase < ActionDispatch::SystemTestCase
+  #   driven_by :chrome, screen_size: [1024, 768] do |driver_option|
+  #     driver_option.add_emulation(device: 'iPhone 6')
+  #     driver_option.add_extension('path/to/chrome_extension.crx')
+  #   end
+  # end
+  #
   # Because <tt>ActionDispatch::SystemTestCase</tt> is a shim between Capybara
   # and Rails, any driver that is supported by Capybara is supported by system
   # tests as long as you include the required gems and files.
@@ -134,8 +148,10 @@ module ActionDispatch
     #   driven_by :selenium, using: :firefox
     #
     #   driven_by :selenium, using: :headless_firefox
-    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {})
-      self.driver = SystemTesting::Driver.new(driver, using: using, screen_size: screen_size, options: options)
+    def self.driven_by(driver, using: :chrome, screen_size: [1400, 1400], options: {}, &desired_capabilities)
+      driver_options = { using: using, screen_size: screen_size, options: options }
+
+      self.driver = SystemTesting::Driver.new(driver, driver_options, &desired_capabilities)
     end
 
     driven_by :selenium

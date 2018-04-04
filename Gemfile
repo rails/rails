@@ -10,6 +10,7 @@ gemspec
 gem "rake", ">= 11.1"
 
 gem "capybara", ">= 2.15"
+gem "selenium-webdriver", "~> 3.5.1"
 
 gem "rack-cache", "~> 1.2"
 gem "sass-rails"
