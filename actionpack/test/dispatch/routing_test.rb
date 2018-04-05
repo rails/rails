@@ -1477,8 +1477,8 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "/projects.json", projects_path(format: :json)
     assert_equal "/de/projects.json", projects_path(format: :json)
 
-    assert_equal "/projects.json", projects_path("en", "2018", "01", "31", :json)
-    assert_equal "/de/projects.json", projects_path("de", "2018", "01", "31", :json)
+    assert_equal "/projects/2018/01/31.json", projects_path("en", "2018", "01", "31", :json)
+    assert_equal "/de/projects/2018/01/31.json", projects_path("de", "2018", "01", "31", :json)
     assert_equal "/projects/2018/01/31.json", projects_path(day: "31", format: :json)
     assert_equal "/de/projects/2018/01/31.json", projects_path(locale: "de", day: "31", format: :json)
 
