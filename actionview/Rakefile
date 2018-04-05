@@ -29,6 +29,7 @@ namespace :test do
     t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
   end
 
+  desc "Run tests for rails-ujs"
   task :ujs do
     begin
       Dir.mkdir("log")
