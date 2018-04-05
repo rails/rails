@@ -1450,7 +1450,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     draw do
       get "(/:locale)/projects(/:year(/:month(/:day)))", to: "projects#index", as: :projects,
         constraints: { locale: /en|de|fr/, year: /\d{4}/, month: /\d{2}/, day: /\d{2}/ },
-        defaults: { locale: "en", year: "2018", month: "01", day: "01"}
+        defaults: { locale: "en", year: "2018", month: "01", day: "01" }
     end
 
     assert_equal "/projects", projects_path
