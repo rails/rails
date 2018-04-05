@@ -45,6 +45,7 @@ module ActiveStorage
       config.after_initialize do |app|
         ActiveStorage.logger     = app.config.active_storage.logger || Rails.logger
         ActiveStorage.queue      = app.config.active_storage.queue
+        ActiveStorage.processor  = app.config.active_storage.processor || :mini_magick
         ActiveStorage.previewers = app.config.active_storage.previewers || []
         ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
         ActiveStorage.paths      = app.config.active_storage.paths || {}

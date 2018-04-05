@@ -6,7 +6,7 @@ require "database/setup"
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize: "100x100").processed
+    variant = blob.variant(resize_to_fit: [100, 100]).processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -16,7 +16,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
   test "resized and monochrome variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize: "100x100", monochrome: true).processed
+    variant = blob.variant(resize_to_fit: [100, 100], monochrome: true).processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -26,17 +26,24 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
   end
 
   test "center-weighted crop of JPEG blob" do
-    blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(combine_options: {
-      gravity: "center",
-      resize: "100x100^",
-      crop: "100x100+0+0",
-    }).processed
-    assert_match(/racecar\.jpg/, variant.service_url)
+    begin
+      ActiveStorage.processor = nil
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = ActiveSupport::Deprecation.silence do
+        blob.variant(combine_options: {
+          gravity: "center",
+          resize: "100x100^",
+          crop: "100x100+0+0",
+        }).processed
+      end
+      assert_match(/racecar\.jpg/, variant.service_url)
 
-    image = read_image(variant)
-    assert_equal 100, image.width
-    assert_equal 100, image.height
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 100, image.height
+    ensure
+      ActiveStorage.processor = :mini_magick
+    end
   end
 
   test "resized variation of PSD blob" do
@@ -79,5 +86,21 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(font: "a" * 10_000).processed
     assert_operator variant.service_url.length, :<, 525
+  end
+
+  test "works for vips processor" do
+    begin
+      ActiveStorage.processor = :vips
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(thumbnail_image: 100).processed
+
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 67, image.height
+    rescue LoadError
+      # libvips not installed
+    ensure
+      ActiveStorage.processor = :mini_magick
+    end
   end
 end
