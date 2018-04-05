@@ -63,13 +63,13 @@ With no further work, `rails server` will run our new shiny Rails app:
 $ cd commandsapp
 $ bin/rails server
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
+=> Rails 5.1.6 application starting in development
 => Run `rails server -h` for more startup options
 Puma starting in single mode...
-* Version 3.0.2 (ruby 2.3.0-p0), codename: Plethora of Penguin Pinatas
+* Version 3.11.3 (ruby 2.5.1-p57), codename: Love Song
 * Min threads: 5, max threads: 5
 * Environment: development
-* Listening on tcp://localhost:3000
+* Listening on tcp://0.0.0.0:3000
 Use Ctrl-C to stop
 ```
 
@@ -297,7 +297,7 @@ If you wish to test out some code without changing any data, you can do that by 
 
 ```bash
 $ bin/rails console --sandbox
-Loading development environment in sandbox (Rails 5.1.0)
+Loading development environment in sandbox (Rails 5.1.6)
 Any modifications you make will be rolled back on exit
 irb(main):001:0>
 ```
