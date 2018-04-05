@@ -115,7 +115,7 @@ module ActionMailer
     #     end
     #   end
     #
-    # If `args` is provided as a Hash, a parameterized email is matched.
+    # If +args+ is provided as a Hash, a parameterized email is matched.
     #
     #   def test_parameterized_email
     #     assert_enqueued_email_with ContactMailer, :welcome,
