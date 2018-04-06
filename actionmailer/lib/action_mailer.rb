@@ -37,6 +37,7 @@ module ActionMailer
 
   eager_autoload do
     autoload :Collector
+    autoload :MessageDelivery
   end
 
   autoload :Base
@@ -47,7 +48,6 @@ module ActionMailer
   autoload :Previews, 'action_mailer/preview'
   autoload :TestCase
   autoload :TestHelper
-  autoload :MessageDelivery
   autoload :DeliveryJob
 end
 
