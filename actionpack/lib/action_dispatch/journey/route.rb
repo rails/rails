@@ -141,8 +141,8 @@ module ActionDispatch
         @required_parts ||= path.required_names.map(&:to_sym)
       end
 
-      def groupped_parts
-        @groupped_parts ||= path.groupped_names.map do |group|
+      def groupped_optional_parts
+        @groupped_optional_parts ||= path.groupped_optional_names.map do |group|
           group.map(&:to_sym)
         end
       end

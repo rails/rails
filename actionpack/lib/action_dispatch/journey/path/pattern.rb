@@ -68,8 +68,8 @@ module ActionDispatch
           }.map(&:name).uniq
         end
 
-        def groupped_names
-          @groupped_names ||= spec.find_all(&:group?).each_with_object([]) do |group, memo|
+        def groupped_optional_names
+          @groupped_optional_names ||= spec.find_all(&:group?).each_with_object([]) do |group, memo|
             if last_added = memo.last
               memo << group unless last_added.include?(group)
             else
