@@ -136,8 +136,13 @@ module ActiveRecord
 
       def for_each
         databases = Rails.application.config.load_database_yaml
-        ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases) do |spec_name, _|
-          yield spec_name
+        database_configs = ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases)
+
+        # if this is a single database application we don't want tasks for each primary database
+        return if database_configs.count == 1
+
+        database_configs.each do |db_config|
+          yield db_config.spec_name
         end
       end
 
