@@ -29,6 +29,7 @@ module ActiveRecord
       @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
+      @delegate_to_klass = false
     end
 
     def initialize_copy(other)
@@ -282,6 +283,13 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
+    def _exec_scope(*args, &block) # :nodoc:
+      @delegate_to_klass = true
+      instance_exec(*args, &block) || self
+    ensure
+      @delegate_to_klass = false
+    end
+
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
@@ -415,6 +423,7 @@ module ActiveRecord
     end
 
     def reset
+      @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
