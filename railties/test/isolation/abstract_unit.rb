@@ -112,22 +112,57 @@ module TestHelpers
         end
       end
 
-      File.open("#{app_path}/config/database.yml", "w") do |f|
-        f.puts <<-YAML
-        default: &default
-          adapter: sqlite3
-          pool: 5
-          timeout: 5000
-        development:
-          <<: *default
-          database: db/development.sqlite3
-        test:
-          <<: *default
-          database: db/test.sqlite3
-        production:
-          <<: *default
-          database: db/production.sqlite3
-        YAML
+      if options[:multi_db]
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            primary:
+              <<: *default
+              database: db/development.sqlite3
+            animals:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          test:
+            primary:
+              <<: *default
+              database: db/test.sqlite3
+            animals:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          production:
+            primary:
+              <<: *default
+              database: db/production.sqlite3
+            animals:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            <<: *default
+            database: db/development.sqlite3
+          test:
+            <<: *default
+            database: db/test.sqlite3
+          production:
+            <<: *default
+            database: db/production.sqlite3
+          YAML
+        end
       end
 
       add_to_config <<-RUBY
