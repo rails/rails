@@ -44,8 +44,15 @@ module ActiveSupport
       end
 
       def after_teardown # :nodoc:
-        run_callbacks :teardown
+        begin
+          run_callbacks :teardown
+        rescue => e
+          error = e
+        end
+
         super
+      ensure
+        raise error if error
       end
     end
   end
