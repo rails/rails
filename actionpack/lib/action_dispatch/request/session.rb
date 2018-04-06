@@ -93,8 +93,8 @@ module ActionDispatch
         @delegate[key.to_s]
       end
 
-      # Returns the nested value specified by the sequence of key, returning
-      # nil if any intermediate step is nil.
+      # Returns the nested value specified by the sequence of keys, returning
+      # +nil+ if any intermediate step is +nil+.
       def dig(*keys)
         load_for_read!
         keys = keys.map.with_index { |key, i| i.zero? ? key.to_s : key }
