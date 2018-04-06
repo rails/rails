@@ -313,13 +313,13 @@ For example:
 
 ```bash
 => Booting Puma
-=> Rails 5.1.0 application starting in development on http://0.0.0.0:3000
+=> Rails 5.1.6 application starting in development
 => Run `rails server -h` for more startup options
 Puma starting in single mode...
-* Version 3.4.0 (ruby 2.3.1-p112), codename: Owl Bowl Brawl
+* Version 3.11.3 (ruby 2.5.1-p57), codename: Love Song
 * Min threads: 5, max threads: 5
 * Environment: development
-* Listening on tcp://localhost:3000
+* Listening on tcp://0.0.0.0:3000
 Use Ctrl-C to stop
 Started GET "/" for 127.0.0.1 at 2014-04-11 13:11:48 +0200
   ActiveRecord::SchemaMigration Load (0.2ms)  SELECT "schema_migrations".* FROM "schema_migrations"
@@ -445,11 +445,11 @@ then `backtrace` will supply the answer.
 --> #0  ArticlesController.index
       at /PathToProject/app/controllers/articles_controller.rb:8
     #1  ActionController::BasicImplicitRender.send_action(method#String, *args#Array)
-      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/basic_implicit_render.rb:4
+      at /PathToGems/actionpack-5.1.6/lib/action_controller/metal/basic_implicit_render.rb:4
     #2  AbstractController::Base.process_action(action#NilClass, *args#Array)
-      at /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb:181
+      at /PathToGems/actionpack-5.1.6/lib/abstract_controller/base.rb:181
     #3  ActionController::Rendering.process_action(action, *args)
-      at /PathToGems/actionpack-5.1.0/lib/action_controller/metal/rendering.rb:30
+      at /PathToGems/actionpack-5.1.6/lib/action_controller/metal/rendering.rb:30
 ...
 ```
 
@@ -461,7 +461,7 @@ context.
 ```
 (byebug) frame 2
 
-[176, 185] in /PathToGems/actionpack-5.1.0/lib/abstract_controller/base.rb
+[176, 185] in /PathToGems/actionpack-5.1.6/lib/abstract_controller/base.rb
    176:       # is the intended way to override action dispatching.
    177:       #
    178:       # Notice that the first argument is the method to be dispatched
@@ -676,7 +676,7 @@ Ruby instruction to be executed -- in this case, Active Support's `week` method.
 ```
 (byebug) step
 
-[49, 58] in /PathToGems/activesupport-5.1.0/lib/active_support/core_ext/numeric/time.rb
+[49, 58] in /PathToGems/activesupport-5.1.6/lib/active_support/core_ext/numeric/time.rb
    49:
    50:   # Returns a Duration instance matching the number of weeks provided.
    51:   #
