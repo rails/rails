@@ -8,7 +8,7 @@ module OtherAfterTeardown
   end
 end
 
-class SetupAndTeardownTest < Minitest::Test
+class AfterTeardownTest < Minitest::Test
   include OtherAfterTeardown
   include ActiveSupport::Testing::SetupAndTeardown
 
