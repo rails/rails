@@ -4,8 +4,8 @@
 # This means using expiring, signed URLs that are meant for immediate access, not permanent linking.
 # Always go through the BlobsController, or your own authenticated controller, rather than directly
 # to the service url.
-class ActiveStorage::DiskController < ActionController::Base
-  skip_forgery_protection if default_protect_from_forgery
+class ActiveStorage::DiskController < ActiveStorage::BaseController
+  skip_forgery_protection
 
   def show
     if key = decode_verified_key

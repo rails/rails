@@ -4,7 +4,7 @@
 # Note: These URLs are publicly accessible. If you need to enforce access protection beyond the
 # security-through-obscurity factor of the signed blob and variation reference, you'll need to implement your own
 # authenticated redirection controller.
-class ActiveStorage::RepresentationsController < ActionController::Base
+class ActiveStorage::RepresentationsController < ActiveStorage::BaseController
   include ActiveStorage::SetBlob
 
   def show
