@@ -1,3 +1,7 @@
+*   Add method `dig` to `session`.
+
+    *claudiob*, *Takumi Shotoku*
+
 *   Controller level `force_ssl` has been deprecated in favor of
     `config.force_ssl`.
 
