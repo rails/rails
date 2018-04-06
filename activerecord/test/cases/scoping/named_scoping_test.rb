@@ -303,6 +303,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal "lifo", topic.author_name
   end
 
+  def test_deprecated_delegating_private_method
+    assert_deprecated do
+      scope = Topic.all.by_private_lifo
+      assert_not scope.instance_variable_get(:@delegate_to_klass)
+    end
+  end
+
   def test_reserved_scope_names
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
