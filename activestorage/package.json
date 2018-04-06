@@ -26,7 +26,8 @@
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.3.0",
     "eslint-plugin-import": "^2.7.0",
-    "webpack": "^3.4.0"
+    "webpack": "^4.4.1",
+    "webpack-cli": "^2.0.13"
   },
   "scripts": {
     "prebuild": "yarn lint",
