@@ -79,11 +79,13 @@ module Rails
       end
 
       def test_logger_does_not_mutate_app_return
-        response = []
+        response = [].freeze
         app = TestApp.new(response)
         logger = TestLogger.new(app: app)
         assert_no_changes("response") do
-          logger.call("REQUEST_METHOD" => "GET")
+          assert_nothing_raised do
+            logger.call("REQUEST_METHOD" => "GET")
+          end
         end
       end
     end
