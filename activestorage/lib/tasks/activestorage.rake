@@ -2,7 +2,7 @@
 
 namespace :active_storage do
   desc "Copy over the migration needed to the application"
-  task install:, [:option] => :environment do |t, args|
+  task :install, [:option] => [:environment] do |t, args|
     if Rake::Task.task_defined?("active_storage:install:migrations")
       if args[:option] == 'uuid'
         Rake::Task["active_storage:migrate_uuid"]
