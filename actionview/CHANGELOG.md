@@ -1,3 +1,7 @@
+*   Remove RecordTagHelper
+
+    *Yoshiyuki Hirano*
+
 *   Disable `ActionView::Template` finalizers in test environment
 
     Template finalization can be expensive in large view test suites.
