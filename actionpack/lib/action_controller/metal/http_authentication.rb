@@ -101,7 +101,7 @@ module ActionController
       end
 
       def has_basic_credentials?(request)
-        request.authorization.present? && (auth_scheme(request).downcase == "basic") && !user_name_and_password(request).second.nil?
+        request.authorization.present? && (auth_scheme(request).downcase == "basic") && user_name_and_password(request).second
       end
 
       def user_name_and_password(request)
