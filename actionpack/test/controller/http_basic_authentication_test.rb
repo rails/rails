@@ -171,6 +171,13 @@ class HttpBasicAuthenticationTest < ActionController::TestCase
     assert_response :unauthorized
   end
 
+  test "authentication request with invalid Base64 encoded basic auth" do
+    header = "Basic aW52YWxpZA==" # Base64 for "invalid"
+    @request.env["HTTP_AUTHORIZATION"] = header
+    get :search
+    assert_response :unauthorized
+  end
+
   private
 
     def encode_credentials(username, password)
