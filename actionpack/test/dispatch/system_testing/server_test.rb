@@ -5,6 +5,10 @@ require "capybara/dsl"
 require "action_dispatch/system_testing/server"
 
 class ServerTest < ActiveSupport::TestCase
+  setup do
+    @old_capybara_server = Capybara.server
+  end
+
   test "port is always included" do
     ActionDispatch::SystemTesting::Server.new.run
     assert Capybara.always_include_port, "expected Capybara.always_include_port to be true"
@@ -23,6 +27,6 @@ class ServerTest < ActiveSupport::TestCase
   end
 
   teardown do
-    Capybara.server = :default
+    Capybara.server = @old_capybara_server
   end
 end
