@@ -165,13 +165,7 @@ GEM
     bunny (2.9.2)
       amq-protocol (~> 2.3.0)
     byebug (10.0.2)
-    capybara (3.0.0)
-      addressable
-      mini_mime (>= 0.1.3)
-      nokogiri (~> 1.8)
-      rack (>= 1.6.0)
-      rack-test (>= 0.6.3)
-      xpath (~> 3.0)
+    capybara (3.0.1)
     childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
     chromedriver-helper (1.2.0)
@@ -484,8 +478,6 @@ GEM
     websocket-driver (0.7.0-java)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.3)
-    xpath (3.0.0)
-      nokogiri (~> 1.8)
 
 PLATFORMS
   java
