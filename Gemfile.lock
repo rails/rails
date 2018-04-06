@@ -161,17 +161,11 @@ GEM
     bootsnap (1.1.2-java)
       msgpack (~> 1.0)
     builder (3.2.3)
-    bunny (2.6.6)
-      amq-protocol (>= 2.1.0)
-    byebug (9.0.6)
-    capybara (2.15.1)
-      addressable
-      mini_mime (>= 0.1.3)
-      nokogiri (>= 1.3.3)
-      rack (>= 1.0.0)
-      rack-test (>= 0.5.4)
-      xpath (~> 2.0)
-    childprocess (0.7.1)
+    bunny (2.9.2)
+      amq-protocol (~> 2.3.0)
+    byebug (10.0.2)
+    capybara (3.0.1)
+    childprocess (0.9.0)
       ffi (~> 1.0, >= 1.0.11)
     chromedriver-helper (1.1.0)
       archive-zip (~> 0.7.0)
@@ -481,9 +475,7 @@ GEM
     websocket (1.2.4)
     websocket-driver (0.6.5)
       websocket-extensions (>= 0.1.0)
-    websocket-extensions (0.1.2)
-    xpath (2.1.0)
-      nokogiri (~> 1.3)
+    websocket-extensions (0.1.3)
 
 PLATFORMS
   java
