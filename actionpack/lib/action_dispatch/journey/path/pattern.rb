@@ -69,13 +69,15 @@ module ActionDispatch
         end
 
         def groupped_optional_names
-          @groupped_optional_names ||= spec.find_all(&:group?).each_with_object([]) do |group, memo|
-            if last_added = memo.last
-              memo << group unless last_added.include?(group)
-            else
-              memo << group
+          last_added_group = nil
+          spec.each_with_object([]) do |node, memo|
+            next unless node.group?
+
+            if !last_added_group || last_added_group.exclude?(node)
+              last_added_group = node
+              memo << node.find_all(&:symbol?).map(&:name)
             end
-          end.map { |spec| spec.find_all(&:symbol?).map(&:name) }
+          end
         end
 
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:
