@@ -516,11 +516,11 @@ module ActionController
           format ||= as
         end
 
+        parameters = parameters.symbolize_keys
+
         if format
           parameters[:format] = format
         end
-
-        parameters = parameters.symbolize_keys
 
         generated_extras = @routes.generate_extras(parameters.merge(controller: controller_class_name, action: action.to_s))
         generated_path = generated_path(generated_extras)
