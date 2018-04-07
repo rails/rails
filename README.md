@@ -6,10 +6,10 @@ create database-backed web applications according to the
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
-application into three layers, each with a specific responsibility.
+application into three layers: Model, View, and Controller, each with a specific responsibility.
 
-The _Model layer_ represents your domain model (such as Account, Product,
-Person, Post, etc.) and encapsulates the business logic that is specific to
+The _Model layer_ represents the domain model (such as Account, Product,
+Person, Post, etc.) and encapsulates the business logic specific to
 your application. In Rails, database-backed model classes are derived from
 `ActiveRecord::Base`. Active Record allows you to present the data from
 database rows as objects and embellish these data objects with business logic
@@ -65,7 +65,7 @@ and may also be used independently outside Rails.
 
    Run with `--help` or `-h` for options.
 
-4. Using a browser, go to `http://localhost:3000` and you'll see:
+4. Go to `http://localhost:3000` and you'll see:
 "Yay! You’re on Rails!"
 
 5. Follow the guidelines to start developing your application. You may find
