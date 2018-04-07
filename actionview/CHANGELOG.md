@@ -1,8 +1,8 @@
-*   Remove RecordTagHelper
+*   Remove `ActionView::Helpers::RecordTagHelper`.
 
     *Yoshiyuki Hirano*
 
-*   Disable `ActionView::Template` finalizers in test environment
+*   Disable `ActionView::Template` finalizers in test environment.
 
     Template finalization can be expensive in large view test suites.
     Add a configuration option,
