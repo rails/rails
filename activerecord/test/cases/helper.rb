@@ -184,4 +184,4 @@ module InTimeZone
     end
 end
 
-require "mocha/setup" # FIXME: stop using mocha
+require "mocha/minitest" # FIXME: stop using mocha

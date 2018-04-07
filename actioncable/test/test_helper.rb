@@ -4,7 +4,7 @@ require "action_cable"
 require "active_support/testing/autorun"
 
 require "puma"
-require "mocha/setup"
+require "mocha/minitest"
 require "rack/mock"
 
 begin
