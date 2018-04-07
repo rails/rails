@@ -6,9 +6,9 @@ create database-backed web applications according to the
 pattern.
 
 Understanding the MVC pattern is key to understanding \Rails. MVC divides your
-application into three layers, each with a specific responsibility.
+application into three layers: Model, View, and Controller, each with a specific responsibility.
 
-The <em>Model layer</em> represents your domain model (such as Account, Product,
+The <em>Model layer</em> represents the domain model (such as Account, Product,
 Person, Post, etc.) and encapsulates the business logic that is specific to
 your application. In \Rails, database-backed model classes are derived from
 ActiveRecord::Base. Active Record allows you to present the data from
