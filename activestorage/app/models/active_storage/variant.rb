@@ -13,14 +13,14 @@ require "active_storage/downloading"
 # into memory. The larger the image, the more memory is used. Because of this process, you also want to be
 # considerate about when the variant is actually processed. You shouldn't be processing variants inline in a
 # template, for example. Delay the processing to an on-demand controller, like the one provided in
-# ActiveStorage::VariantsController.
+# ActiveStorage::RepresentationsController.
 #
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
 #   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
 #
-# This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
+# This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
 # can then produce on-demand.
 #
 # When you do want to actually produce the variant needed, call +processed+. This will check that the variant
@@ -65,7 +65,7 @@ class ActiveStorage::Variant
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
   #
   # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
-  # for a variant that points to the ActiveStorage::VariantsController, which in turn will use this +service_call+ method
+  # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
   def service_url(expires_in: service.url_expires_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
