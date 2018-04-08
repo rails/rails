@@ -308,7 +308,7 @@ GEM
       path_expander (~> 1.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
-    mocha (1.3.0)
+    mocha (1.5.0)
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.2.4)
