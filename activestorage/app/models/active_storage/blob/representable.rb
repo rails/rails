@@ -20,7 +20,7 @@ module ActiveStorage::Blob::Representable
   #
   #   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
   #
-  # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
+  # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
   # can then produce on-demand.
   #
   # Raises ActiveStorage::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
