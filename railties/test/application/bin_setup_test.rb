@@ -52,6 +52,8 @@ The Gemfile's dependencies are satisfied
 Created database 'db/development.sqlite3'
 Created database 'db/test.sqlite3'
 
+== Configuring Git for Credentials ==
+
 == Removing old logs and tempfiles ==
 
 == Restarting application server ==
