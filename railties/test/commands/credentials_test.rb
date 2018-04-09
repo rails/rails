@@ -83,7 +83,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       f.write(content)
       f.rewind
 
-      assert_match(/api_key: abc/, run_show_command(f.path))
+      assert_match(/api_key: abc/, run_show_command("--path", f.path))
     end
   end
 
@@ -94,7 +94,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       end
     end
 
-    def run_show_command(path = nil, **options)
-      rails "credentials:show", path, **options
+    def run_show_command(*args, **options)
+      rails "credentials:show", *args, **options
     end
 end

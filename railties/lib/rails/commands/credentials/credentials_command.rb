@@ -8,6 +8,8 @@ module Rails
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
+      class_option :path, type: :string
+
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
@@ -30,10 +32,10 @@ module Rails
         say "New credentials encrypted and saved."
       end
 
-      def show(path = nil, *)
+      def show
         require_application_and_environment!
 
-        credentials = path ? Rails.application.encrypted(path) : Rails.application.credentials
+        credentials = options.path? ? Rails.application.encrypted(options.path) : Rails.application.credentials
         say credentials.read.presence || missing_credentials_message
       end
 
