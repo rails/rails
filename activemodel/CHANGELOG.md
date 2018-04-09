@@ -1,9 +1,8 @@
+## Rails 5.2.0 (April 09, 2018) ##
+
 *   Do not lose all multiple `:includes` with options in serialization.
 
     *Mike Mangino*
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Models using the attributes API with a proc default can now be marshalled.
 
@@ -14,14 +13,6 @@
 *   Fix to working before/after validation callbacks on multiple contexts.
 
     *Yoshiyuki Hirano*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
 

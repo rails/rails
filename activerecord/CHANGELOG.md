@@ -1,9 +1,8 @@
+## Rails 5.2.0 (April 09, 2018) ##
+
 *   MySQL: Support mysql2 0.5.x.
 
     *Aaron Stone*
-
-
-## Rails 5.2.0.rc2 (March 20, 2018) ##
 
 *   Apply time column precision on assignment.
 
@@ -60,9 +59,6 @@
     Fixes #31876.
 
     *Ryuta Kamizono*
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   PostgreSQL: Allow pg-1.0 gem to be used with Active Record.
 
@@ -293,14 +289,6 @@
     Fixes #31120.
 
     *kinnrot*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Add new error class `QueryCanceled` which will be raised
     when canceling statement due to user request.
