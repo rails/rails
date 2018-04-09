@@ -35,11 +35,22 @@ module ActionDispatch
 
           defaults       = route.defaults
           required_parts = route.required_parts
+          filter_action_part = true
 
           route.parts.reverse_each do |key|
-            break if defaults[key].nil? && parameterized_parts[key].present?
+            next if (key == :action) && !filter_action_part
+
+            if defaults[key].nil? && parameterized_parts[key].present?
+              filter_action_part = false
+              next
+            end
+
             next if parameterized_parts[key].to_s != defaults[key].to_s
-            break if required_parts.include?(key)
+
+            if required_parts.include?(key)
+              filter_action_part = false
+              next
+            end
 
             parameterized_parts.delete(key)
           end
