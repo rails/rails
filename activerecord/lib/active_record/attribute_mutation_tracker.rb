@@ -8,6 +8,10 @@ module ActiveRecord
       @deprecated_forced_changes = Set.new
     end
 
+    def changed_attribute_names
+      attr_names.select { |attr_name| changed?(attr_name) }
+    end
+
     def changed_values
       attr_names.each_with_object({}.with_indifferent_access) do |attr_name, result|
         if changed?(attr_name)
@@ -81,6 +85,10 @@ module ActiveRecord
 
   class NullMutationTracker # :nodoc:
     include Singleton
+
+    def changed_attribute_names(*)
+      []
+    end
 
     def changed_values(*)
       {}

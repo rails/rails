@@ -204,7 +204,7 @@ module ActiveRecord
 
       # Alias for `changed`
       def changed_attribute_names_to_save
-        changes_to_save.keys
+        mutations_from_database.changed_attribute_names
       end
 
       # Alias for `changed_attributes`
