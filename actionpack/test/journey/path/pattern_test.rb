@@ -107,15 +107,15 @@ module ActionDispatch
           end
         end
 
-        def test_groupped_optional_names
-          [
-            ["/:foo/:bar", []],
-            ["(/:lol)/:foo(/:bar(/:baz))", [["lol"], ["bar", "baz"]]],
-          ].each do |pattern, result|
-            path = Pattern.from_string pattern
-            assert_equal result, path.groupped_optional_names
-          end
-        end
+        # def test_groupped_optional_names
+        #   [
+        #     ["/:foo/:bar", []],
+        #     ["(/:lol)/:foo(/:bar(/:baz))", [["lol"], ["bar", "baz"]]],
+        #   ].each do |pattern, result|
+        #     path = Pattern.from_string pattern
+        #     assert_equal result, path.groupped_optional_names
+        #   end
+        # end
 
         def test_to_regexp_match_non_optional
           path = Pattern.build(
