@@ -1,13 +1,10 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Pass the `:skip_pipeline` option in `image_submit_tag` when calling `path_to_image`.
 
     Fixes #32248.
 
     *Andrew White*
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Allow the use of callable objects as group methods for grouped selects.
 
@@ -24,13 +21,6 @@
     Additionally, this sends Early Hints if supported by browser.
 
     *Guillermo Iguaran*
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Change `form_with` to generates ids by default.
 

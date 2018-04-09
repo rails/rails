@@ -1,4 +1,4 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Fix minitest rails plugin.
 
@@ -7,19 +7,6 @@
     This will fix conflicts with others plugins.
 
     *Kevin Robatel*
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Deprecate `after_bundle` callback in Rails plugin templates.
 

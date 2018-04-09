@@ -1,9 +1,4 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Allow block to be passed to `ActiveJob::Base.discard_on` to allow custom handling of discard jobs.
 
@@ -20,14 +15,6 @@
         end
 
     *Aidan Haran*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Support redis-rb 4.0.
 

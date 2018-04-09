@@ -1,4 +1,4 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Check exclude before flagging cookies as secure.
 
@@ -61,9 +61,6 @@
 
     *Dominic Cleal*
 
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
-
 *   Add `Referrer-Policy` header to default headers set.
 
     *Guillermo Iguaran*
@@ -103,14 +100,6 @@
     Fixes #31220.
 
     *Andrew White*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Add DSL for configuring Content-Security-Policy header.
 

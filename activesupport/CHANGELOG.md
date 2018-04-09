@@ -1,4 +1,4 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Caching: MemCache and Redis `read_multi` and `fetch_multi` speedup.
     Read from the local in-memory cache before consulting the backend.
@@ -20,9 +20,6 @@
     Fixes #31668.
 
     *Andrew White*
-
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
 
 *   Add support for connection pooling on RedisCacheStore.
 
@@ -50,14 +47,6 @@
     `config.active_support.use_sha1_digests = true`.
 
     *Dmitri Dolguikh*, *Eugene Kenny*
-
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Changed default behaviour of `ActiveSupport::SecurityUtils.secure_compare`,
     to make it not leak length information even for variable length string.

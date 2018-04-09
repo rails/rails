@@ -1,4 +1,4 @@
-## Rails 5.2.0.rc2 (March 20, 2018) ##
+## Rails 5.2.0 (April 09, 2018) ##
 
 *   Allow full use of the AWS S3 SDK options for authentication. If an
     explicit AWS key pair and/or region is not provided in `storage.yml`,
@@ -34,9 +34,6 @@
 
     *Richard Macklin*
 
-
-## Rails 5.2.0.rc1 (January 30, 2018) ##
-
 *   Preserve display aspect ratio when extracting width and height from videos
     with rectangular samples in `ActiveStorage::Analyzer::VideoAnalyzer`.
 
@@ -58,15 +55,9 @@
 
     *Rosa Gutierrez*
 
-
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
 *   Fix the gem adding the migrations files to the package.
 
     *Yuji Yaginuma*
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
 
 *   Added to Rails.
 
