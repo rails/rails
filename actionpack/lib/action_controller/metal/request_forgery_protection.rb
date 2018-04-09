@@ -417,7 +417,7 @@ module ActionController #:nodoc:
 
       NULL_ORIGIN_MESSAGE = <<~MSG
         The browser returned a 'null' origin for a request with origin-based forgery protection turned on. This usually
-        means you have the 'no-referrer' Referrer-Policy header enabled, or that you the request came from a site that
+        means you have the 'no-referrer' Referrer-Policy header enabled, or that the request came from a site that
         refused to give its origin. This makes it impossible for Rails to verify the source of the requests. Likely the
         best solution is to change your referrer policy to something less strict like same-origin or strict-same-origin.
         If you cannot change the referrer policy, you can disable origin checking with the
