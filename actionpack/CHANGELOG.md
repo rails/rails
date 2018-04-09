@@ -1,3 +1,11 @@
+*   Only disable GPUs for headless Chrome on Windows.
+
+    It is not necessary anymore for Linux and macOS machines.
+
+    https://bugs.chromium.org/p/chromium/issues/detail?id=737678#c1
+
+    *Stefan Wrobel*
+
 *   Check exclude before flagging cookies as secure.
 
     *Catherine Khuu*
