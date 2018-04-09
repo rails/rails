@@ -404,4 +404,25 @@ class DateExtBehaviorTest < ActiveSupport::TestCase
       Date.today.freeze.freeze
     end
   end
+
+  def test_can_safe_parse_nil
+    assert_nil Date.safe_parse(nil)
+  end
+
+  def test_can_safe_parse_empty_string
+    assert_nil Date.safe_parse("")
+  end
+
+  def test_can_safe_parse_and_fallback
+    fallback = 1.day.ago
+    assert_equal Date.safe_parse(nil, fallback), fallback
+  end
+
+  def test_can_safe_parse_an_invalid_string
+    assert_nil Date.safe_parse("i am so cool")
+  end
+
+  def test_can_safe_parse_a_valid_string
+    assert_equal Date.safe_parse("2018-01-01", "fallback"), Date.new(2018, 1, 1)
+  end
 end
