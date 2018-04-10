@@ -64,7 +64,7 @@ of Rails.
 Severe Security Issues
 ----------------------
 
-For severe security issues all releases in the current series, and also the
+For severe security issues all releases in the current major series, and also the
 last major release series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
