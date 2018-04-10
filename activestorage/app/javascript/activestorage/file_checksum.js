@@ -19,8 +19,8 @@ export class FileChecksum {
     this.callback = callback
     this.md5Buffer = new SparkMD5.ArrayBuffer
     this.fileReader = new FileReader
-    this.fileReader.addEventListener("load", event => this.fileReaderDidLoad(event))
-    this.fileReader.addEventListener("error", event => this.fileReaderDidError(event))
+    this.fileReader.addEventListener("load", this.fileReaderDidLoad)
+    this.fileReader.addEventListener("error", this.fileReaderDidError)
     this.readNextChunk()
   }
 
