@@ -890,9 +890,11 @@ XML
   end
 
   def test_request_format_kwarg_doesnt_mutate_params
-    params = { foo: 'bar' }
-    get :test_format, format: 'json', params: params
-    assert_equal({ foo: 'bar' }, params)
+    params = { foo: 'bar' }.freeze
+
+    assert_nothing_raised do
+      get :test_format, format: 'json', params: params
+    end
   end
 
   def test_deprecated_request_format_params_with_session
