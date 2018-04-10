@@ -232,6 +232,7 @@ module ActionController
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
+      DefaultHeaders,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
@@ -262,12 +263,6 @@ module ActionController
 
     def _protected_ivars # :nodoc:
       PROTECTED_IVARS
-    end
-
-    def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
-        res.request = request
-      end
     end
 
     ActiveSupport.run_load_hooks(:action_controller_base, self)

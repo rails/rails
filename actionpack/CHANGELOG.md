@@ -1,3 +1,7 @@
+*   Move default headers configuration into their own module that can be included in controllers.
+
+    *Kevin Deisz*
+
 *   Add method `dig` to `session`.
 
     *claudiob*, *Takumi Shotoku*
