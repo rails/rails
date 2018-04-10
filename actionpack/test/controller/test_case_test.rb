@@ -740,6 +740,14 @@ XML
     assert_equal "application/json", @response.body
   end
 
+  def test_request_format_kwarg_doesnt_mutate_params
+    params = { foo: "bar" }.freeze
+
+    assert_nothing_raised do
+      get :test_format, format: "json", params: params
+    end
+  end
+
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set
     cookies["foo"] = "bar"
     get :no_op
