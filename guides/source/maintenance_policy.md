@@ -64,11 +64,11 @@ of Rails.
 Severe Security Issues
 ----------------------
 
-For severe security issues we will provide new versions as above, and also the
+For severe security issues all releases in the current series, and also the
 last major release series will receive patches and new versions. The
 classification of the security issue is judged by the core team.
 
-**Currently included series:** `5.2.Z`, `5.1.Z`, `4.2.Z`.
+**Currently included series:** `5.2.Z`, `5.1.Z`, `5.0.Z`, `4.2.Z`.
 
 Unsupported Release Series
 --------------------------
