@@ -50,7 +50,7 @@ module ActiveRecord
         return self
       elsif association && !association.polymorphic?
         association_klass = association.klass
-        arel_table = association_klass.arel_table.alias(table_name)
+        arel_table = association_klass.arel_table
       else
         type_caster = TypeCaster::Connection.new(klass, table_name)
         association_klass = nil
