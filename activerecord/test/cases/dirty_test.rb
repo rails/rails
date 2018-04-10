@@ -473,6 +473,14 @@ class DirtyTest < ActiveRecord::TestCase
     end
   end
 
+  def test_changes_to_save_should_not_mutate_array_of_hashes
+    topic = Topic.new(author_name: "Bill", content: [{ a: "a" }])
+
+    topic.changes_to_save
+
+    assert_equal [{ a: "a" }], topic.content
+  end
+
   def test_previous_changes
     # original values should be in previous_changes
     pirate = Pirate.new
