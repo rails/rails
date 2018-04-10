@@ -11,8 +11,8 @@ export class BlobUpload {
     for (const key in headers) {
       this.xhr.setRequestHeader(key, headers[key])
     }
-    this.xhr.addEventListener("load", event => this.requestDidLoad(event))
-    this.xhr.addEventListener("error", event => this.requestDidError(event))
+    this.xhr.addEventListener("load", this.requestDidLoad)
+    this.xhr.addEventListener("error", this.requestDidError)
   }
 
   create(callback) {
