@@ -32,7 +32,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[5.0]
+class ChangeAmountToAddScale < ActiveRecord::Migration[5.1]
   def change
     reversible do |dir|
       dir.up do
