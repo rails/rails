@@ -8,7 +8,7 @@ end
 gemfile(true) do
   source 'https://rubygems.org'
   # Activate the gem you are reporting the issue against.
-  gem 'rails', '~> 5.0.1'
+  gem 'rails', '~> 5.0.7'
 end
 
 require 'rack/test'

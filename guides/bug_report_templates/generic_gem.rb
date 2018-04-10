@@ -8,7 +8,7 @@ end
 gemfile(true) do
   source 'https://rubygems.org'
   # Activate the gem you are reporting the issue against.
-  gem 'activesupport', '~> 5.0.1'
+  gem 'activesupport', '~> 5.0.7'
 end
 
 require 'active_support/core_ext/object/blank'
