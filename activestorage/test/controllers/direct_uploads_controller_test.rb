@@ -121,4 +121,27 @@ class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::Integrati
       assert_equal({ "Content-Type" => "text/plain" }, details["direct_upload"]["headers"])
     end
   end
+
+  test "creating new direct upload does not include root in json" do
+    checksum = Digest::MD5.base64digest("Hello")
+
+    set_include_root_in_json(true) do
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+    end
+
+    @response.parsed_body.tap do |details|
+      assert_nil details["blob"]
+      assert_not_nil details["id"]
+    end
+  end
+
+  private
+    def set_include_root_in_json(value)
+      original = ActiveRecord::Base.include_root_in_json
+      ActiveRecord::Base.include_root_in_json = value
+      yield
+    ensure
+      ActiveRecord::Base.include_root_in_json = original
+    end
 end
