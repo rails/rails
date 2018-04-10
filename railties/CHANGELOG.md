@@ -1,3 +1,9 @@
+*   Allow use of `minitest-rails` gem with Rails test runner.
+
+    Fixes #31324.
+
+    *Yuji Yaginuma*
+
 ## Rails 5.2.0 (April 09, 2018) ##
 
 *   Fix minitest rails plugin.
