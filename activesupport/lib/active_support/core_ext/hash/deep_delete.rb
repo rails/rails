@@ -1,6 +1,15 @@
 # frozen_string_literal: true
 
 class Hash
+  # Method provides recursive removing a pairs by keys list with nesting ignore.
+  # Returns a self with removed pairs.
+  #
+  #    h = { a: 1, b: { c: 2 } }
+  #    h.deep_delete(:c)
+  #    h
+  #    # => { a: 1, b: {} }
+  #
+  # Method can take an 1+ arguments.
   def deep_delete(*keys)
     raise ArgumentError, "wrong number of arguments (0 for 1+)" if keys.blank?
 
