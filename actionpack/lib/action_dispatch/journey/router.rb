@@ -3,6 +3,7 @@
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
+require "action_dispatch/journey/matched_route"
 
 before = $-w
 $-w = false
