@@ -11,7 +11,7 @@ gem "rake", ">= 11.1"
 
 gem "mocha"
 
-gem "capybara", ">= 2.15", "< 4.0"
+gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
