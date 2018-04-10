@@ -388,7 +388,7 @@ DEPENDENCIES
   blade
   blade-sauce_labs_plugin
   byebug
-  capybara (~> 2.13)
+  capybara (>= 2.15)
   coffee-rails
   dalli (>= 2.2.1)
   delayed_job

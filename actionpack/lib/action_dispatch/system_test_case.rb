@@ -1,4 +1,4 @@
-gem "capybara", ">= 2.15", "< 4.0"
+gem "capybara", ">= 2.15"
 
 require "capybara/dsl"
 require "capybara/minitest"
