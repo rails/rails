@@ -22,6 +22,10 @@ require "models/customer"
 require "models/carrier"
 require "models/shop_account"
 require "models/customer_carrier"
+require "models/game"
+require "models/game_board"
+require "models/game_collection"
+require "models/game_owner"
 
 class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   fixtures :member_types, :members, :clubs, :memberships, :sponsors, :organizations, :minivans,
@@ -62,6 +66,24 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     assert_equal clubs(:moustache_club), new_member.club
     assert new_member.save
     assert_equal clubs(:moustache_club), new_member.club
+  end
+
+  def test_building_multiple_associations_builds_through_record
+    game_owner = GameOwner.create
+    game_collection = GameCollection.create
+    game_board_with_one_association = GameBoard.new(game_owner: game_owner)
+    assert_nil game_board_with_one_association.game.id
+    game_board_with_two_associations = GameBoard.new(game_owner: game_owner, game_collection: game_collection)
+    assert_nil game_board_with_two_associations.game.id
+  end
+
+  def test_creating_multiple_associations_creates_through_record
+    game_owner = GameOwner.create
+    game_collection = GameCollection.create
+    game_board_with_one_association = GameBoard.create(game_owner: game_owner)
+    assert_not_nil game_board_with_one_association.game.id
+    game_board_with_two_associations = GameBoard.create(game_owner: game_owner, game_collection: game_collection)
+    assert_not_nil game_board_with_two_associations.game.id
   end
 
   def test_creating_association_sets_both_parent_ids_for_new
