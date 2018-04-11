@@ -8,6 +8,7 @@ AllCops:
   Exclude:
     - '**/templates/**/*'
     - '**/vendor/**/*'
+    - 'Brewfile'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
 
 # Prefer assert_not_x over refute_x
