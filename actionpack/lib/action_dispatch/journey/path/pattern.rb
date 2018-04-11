@@ -68,7 +68,7 @@ module ActionDispatch
           }.map(&:name).uniq
         end
 
-        def groupped_optional_names
+        def grouped_optional_names
           last_added_group = nil
           spec.each_with_object([]) do |node, memo|
             next unless node.group?

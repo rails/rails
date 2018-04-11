@@ -3,7 +3,7 @@
 module ActionDispatch
   module Journey # :nodoc:
     class MatchedRoute # :nodoc:
-      delegate :defaults, :required_parts, :groupped_optional_parts, to: :@route
+      delegate :defaults, :required_parts, :grouped_optional_parts, to: :@route
 
       def initialize(route, constraints, options, path_parameters, parameterize)
         @route = route
@@ -78,7 +78,7 @@ module ActionDispatch
       def formatted_route
         parts = parameterized_parts.dup
 
-        groupped_optional_parts.each do |group|
+        grouped_optional_parts.each do |group|
           group.reverse_each do |key|
             break if defaults[key].nil? && parts[key].present?
             break if parts[key].to_s != defaults[key].to_s

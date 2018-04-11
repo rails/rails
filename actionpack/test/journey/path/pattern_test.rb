@@ -107,13 +107,13 @@ module ActionDispatch
           end
         end
 
-        def test_groupped_optional_names
+        def test_grouped_optional_names
           [
             ["/:foo/:bar", []],
             ["(/:lol)/:foo(/:bar(/:baz))", [["lol"], ["bar", "baz"]]],
           ].each do |pattern, list|
             path = Pattern.from_string pattern
-            assert_equal list, path.groupped_optional_names
+            assert_equal list, path.grouped_optional_names
           end
         end
 
