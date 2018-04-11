@@ -142,7 +142,7 @@ GEM
     crass (1.0.3)
     curses (1.0.2)
     daemons (1.2.6)
-    dalli (2.7.6)
+    dalli (2.7.8)
     dante (0.2.0)
     delayed_job (4.1.4)
       activesupport (>= 3.0, < 5.2)
@@ -390,7 +390,7 @@ DEPENDENCIES
   byebug
   capybara (~> 2.13)
   coffee-rails
-  dalli (>= 2.2.1, < 2.7.7)
+  dalli (>= 2.2.1)
   delayed_job
   delayed_job_active_record
   em-hiredis
