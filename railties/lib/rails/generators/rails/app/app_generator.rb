@@ -98,6 +98,7 @@ module Rails
       bin_yarn_exist = File.exist?("bin/yarn")
 
       bin
+      generate_spring_binstubs unless options[:skip_spring]
 
       if options[:api] && !bin_yarn_exist
         remove_file "bin/yarn"
