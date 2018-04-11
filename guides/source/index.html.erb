@@ -10,7 +10,9 @@ Ruby on Rails Guides
 <div id="subCol">
   <dl>
     <dt></dt>
-    <dd class="kindle">Rails Guides are also available for <%= link_to 'Kindle', @mobi %>.</dd>
+    <% unless @edge -%>
+      <dd class="kindle">Rails Guides are also available for <%= link_to 'Kindle', @mobi %>.</dd>
+    <% end -%>
     <dd class="work-in-progress">Guides marked with this icon are currently being worked on and will not be available in the Guides Index menu. While still useful, they may contain incomplete information and even errors. You can help by reviewing them and posting your comments and corrections.</dd>
   </dl>
 </div>
