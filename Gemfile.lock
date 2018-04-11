@@ -162,8 +162,8 @@ GEM
     bootsnap (1.2.1-java)
       msgpack (~> 1.0)
     builder (3.2.3)
-    bunny (2.6.7)
-      amq-protocol (~> 2.2.0)
+    bunny (2.9.2)
+      amq-protocol (~> 2.3.0)
     byebug (10.0.2)
     capybara (3.0.1)
       addressable
