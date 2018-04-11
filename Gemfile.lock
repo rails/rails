@@ -190,7 +190,7 @@ GEM
     crass (1.0.3)
     curses (1.0.2)
     daemons (1.2.4)
-    dalli (2.7.6)
+    dalli (2.7.8)
     dante (0.2.0)
     declarative (0.0.10)
     declarative-option (0.1.0)
@@ -510,7 +510,7 @@ DEPENDENCIES
   chromedriver-helper
   coffee-rails
   connection_pool
-  dalli (< 2.7.7)
+  dalli
   delayed_job
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
