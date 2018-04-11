@@ -13,6 +13,7 @@ require "models/invoice"
 require "models/line_item"
 require "models/order"
 require "models/parrot"
+require "models/food"
 require "models/pirate"
 require "models/ship"
 require "models/ship_part"
@@ -1566,6 +1567,17 @@ class TestAutosaveAssociationOnAHasAndBelongsToManyAssociation < ActiveRecord::T
   end
 
   include AutosaveAssociationOnACollectionAssociationTests
+
+  def test_should_save_changed_grandchild_objects_if_grandparent_is_saved
+    @child_1.foods.create(name: "Apple")
+    @jack = Pirate.new(catchphrase: "Remember the day thou almost catch captain Jack Sparrow")
+    @jack.autosaved_parrots << @child_1
+    @grandchild = @child_1.foods[0]
+    @grandchild.name = "Banana"
+    @jack.save!
+    @grandchild.reload
+    assert_equal "Banana", @grandchild.name
+  end
 end
 
 class TestAutosaveAssociationOnAHasAndBelongsToManyAssociationWithAcceptsNestedAttributes < ActiveRecord::TestCase
