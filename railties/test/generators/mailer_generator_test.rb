@@ -176,4 +176,12 @@ class MailerGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/mailers/previews/notifier_mailer_mailer_preview.rb"
     assert_file "test/mailers/previews/notifier_mailer_preview.rb"
   end
+
+  def test_file_is_opened_in_editor
+    generator ["notifier"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat app/mailers/notifier_mailer.rb"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end

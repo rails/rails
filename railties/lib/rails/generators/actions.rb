@@ -276,6 +276,13 @@ module Rails
         @after_bundle_callbacks << block
       end
 
+      # Opens the given file in the user's editor, if generator is run with the <tt>--editor</tt> option.
+      #
+      #   open_file_in_editor "app/models/account.rb"
+      def open_file_in_editor(path)
+        run("#{options["editor"]} #{path}")
+      end
+
       private
 
         # Define log for backwards compatibility. If just one argument is sent,

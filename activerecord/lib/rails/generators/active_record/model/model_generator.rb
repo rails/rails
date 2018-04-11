@@ -23,7 +23,7 @@ module ActiveRecord
       end
 
       def create_model_file
-        template "model.rb", File.join("app/models", class_path, "#{file_name}.rb")
+        primary_template "model.rb", File.join("app/models", class_path, "#{file_name}.rb")
       end
 
       def create_module_file
@@ -42,6 +42,10 @@ module ActiveRecord
         # Used by the migration template to determine the parent name of the model
         def parent_class_name
           options[:parent] || "ApplicationRecord"
+        end
+
+        def primary_file?
+          shell.base.class.to_s == "Rails::Generators::ModelGenerator"
         end
     end
   end

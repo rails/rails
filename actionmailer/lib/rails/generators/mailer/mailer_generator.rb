@@ -10,7 +10,7 @@ module Rails
       check_class_collision suffix: "Mailer"
 
       def create_mailer_file
-        template "mailer.rb", File.join("app/mailers", class_path, "#{file_name}_mailer.rb")
+        primary_template "mailer.rb", File.join("app/mailers", class_path, "#{file_name}_mailer.rb")
 
         in_root do
           if behavior == :invoke && !File.exist?(application_mailer_file_name)

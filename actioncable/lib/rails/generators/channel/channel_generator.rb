@@ -12,7 +12,7 @@ module Rails
       check_class_collision suffix: "Channel"
 
       def create_channel_file
-        template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
+        primary_template "channel.rb", File.join("app/channels", class_path, "#{file_name}_channel.rb")
 
         if options[:assets]
           if behavior == :invoke

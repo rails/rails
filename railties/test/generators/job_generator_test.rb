@@ -45,4 +45,12 @@ class JobGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/jobs/notifier_job_job_test.rb"
     assert_file "test/jobs/notifier_job_test.rb"
   end
+
+  def test_file_is_opened_in_editor
+    generator ["notifier"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat app/jobs/notifier_job.rb"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end

@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/model/model_generator"
+require "rails/generators/active_record/model/model_generator"
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -458,6 +459,22 @@ class ModelGeneratorTest < Rails::Generators::TestCase
       end
     FILE
     assert_file "app/models/user.rb", expected_file
+  end
+
+  def test_file_is_opened_in_editor
+    model = "account"
+    editor = "cat"
+
+    generator [model], editor: editor
+    model_generator = ActiveRecord::Generators::ModelGenerator.new(
+      [model], ["-e", editor], shell: generator.shell, destination_root: generator.destination_root
+    )
+
+    stub_any_instance(ActiveRecord::Generators::ModelGenerator, instance: model_generator) do |instance|
+      assert_called_with(instance, :run, ["cat app/models/account.rb"]) do
+        quietly { generator.invoke_all }
+      end
+    end
   end
 
   private

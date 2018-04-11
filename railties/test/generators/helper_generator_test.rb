@@ -38,4 +38,12 @@ class HelperGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
+
+  def test_file_is_opened_in_editor
+    generator ["products"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat app/helpers/products_helper.rb"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end

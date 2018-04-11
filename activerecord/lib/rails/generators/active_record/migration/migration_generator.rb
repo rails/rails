@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "rails/generators/active_record"
+require "rails/generators/primary_file_helpers"
 
 module ActiveRecord
   module Generators # :nodoc:
     class MigrationGenerator < Base # :nodoc:
+      include Rails::Generators::PrimaryFileHelpers
+
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
@@ -12,7 +15,8 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
+        destination = migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
+        primary_file(destination)
       end
 
       private
@@ -68,6 +72,10 @@ module ActiveRecord
 
         def normalize_table_name(_table_name)
           pluralize_table_names? ? _table_name.pluralize : _table_name.singularize
+        end
+
+        def primary_file?
+          shell.base.class.to_s == "Rails::Generators::MigrationGenerator"
         end
     end
   end

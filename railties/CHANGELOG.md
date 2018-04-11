@@ -1,3 +1,7 @@
+*   Added --editor (-e) option to open the main generated files in the user's editor.
+
+    *Nathan Broadbent*, *Yuji Yaginuma*
+
 *   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
     The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:

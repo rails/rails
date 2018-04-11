@@ -23,4 +23,12 @@ class TaskGeneratorTest < Rails::Generators::TestCase
     run_generator ["feeds"], behavior: :revoke
     assert_no_file task_path
   end
+
+  def test_file_is_opened_in_editor
+    generator ["feeds"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat lib/tasks/feeds.rake"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end

@@ -457,6 +457,14 @@ F
     assert_equal("", action(:log, :yes, "YES"))
   end
 
+  def test_open_file_in_editor
+    generator(default_arguments, editor: "cat")
+
+    assert_called_with(generator, :run, ["cat Gemfile"]) do
+      action :open_file_in_editor, "Gemfile"
+    end
+  end
+
   private
 
     def action(*args, &block)

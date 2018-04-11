@@ -138,4 +138,12 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/stylesheets/account_controller.css"
     assert_file "app/assets/stylesheets/account.css"
   end
+
+  def test_file_is_opened_in_editor
+    generator ["account"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat app/controllers/account_controller.rb"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end

@@ -2,10 +2,13 @@
 
 require "rails/generators/base"
 require "rails/generators/generated_attribute"
+require "rails/generators/primary_file_helpers"
 
 module Rails
   module Generators
     class NamedBase < Base
+      include Rails::Generators::PrimaryFileHelpers
+
       argument :name, type: :string
 
       def initialize(args, *options) #:nodoc:
@@ -28,6 +31,11 @@ module Rails
 
         def js_template(source, destination)
           template(source + ".js", destination + ".js")
+        end
+
+        def primary_template(source, destination)
+          template(source, destination)
+          primary_file(destination)
         end
       end
 

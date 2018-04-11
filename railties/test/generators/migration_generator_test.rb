@@ -2,6 +2,7 @@
 
 require "generators/generators_test_helper"
 require "rails/generators/rails/migration/migration_generator"
+require "rails/generators/active_record/migration/migration_generator"
 
 class MigrationGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
@@ -342,6 +343,24 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db2/migrate/#{migration}.rb", /.*/
   ensure
     Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
+  def test_file_is_opened_in_editor
+    migration = "change_title_body_from_posts"
+    editor = "cat"
+
+    generator [migration], editor: editor
+    migration_generator = ActiveRecord::Generators::MigrationGenerator.new(
+      [migration], ["-e", editor], shell: generator.shell, destination_root: generator.destination_root
+    )
+
+    travel_to(Time.utc(2001, 1, 1)) do
+      stub_any_instance(ActiveRecord::Generators::MigrationGenerator, instance: migration_generator) do |instance|
+        assert_called_with(instance, :run, ["cat db/migrate/20010101000000_change_title_body_from_posts.rb"]) do
+          quietly { generator.invoke_all }
+        end
+      end
+    end
   end
 
   private

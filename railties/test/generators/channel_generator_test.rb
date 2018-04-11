@@ -86,4 +86,12 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_no_file "app/assets/javascripts/channels/chat_channel.js"
     assert_file "app/assets/javascripts/channels/chat.js"
   end
+
+  def test_file_is_opened_in_editor
+    generator ["chat"], editor: "cat"
+
+    assert_called_with(generator, :run, ["cat app/channels/chat_channel.rb"]) do
+      quietly { generator.invoke_all }
+    end
+  end
 end
