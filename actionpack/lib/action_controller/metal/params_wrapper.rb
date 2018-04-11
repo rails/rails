@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
+require "active_support/concurrency/load_interlock_aware_monitor"
 require "action_dispatch/http/mime_type"
 
 module ActionController
@@ -73,11 +74,7 @@ module ActionController
 
     EXCLUDE_PARAMETERS = %w(authenticity_token _method utf8)
 
-    require "mutex_m"
-
     class Options < Struct.new(:name, :format, :include, :exclude, :klass, :model) # :nodoc:
-      include Mutex_m
-
       def self.from_hash(hash)
         name    = hash[:name]
         format  = Array(hash[:format])
@@ -90,17 +87,18 @@ module ActionController
         super
         @include_set = include
         @name_set    = name
+        @monitor     = ActiveSupport::Concurrency::LoadInterlockAwareMonitor.new
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || @monitor.synchronize { super || self.model = _default_wrap_model }
       end
 
       def include
         return super if @include_set
 
         m = model
-        synchronize do
+        @monitor.synchronize do
           return super if @include_set
 
           @include_set = true
@@ -129,7 +127,7 @@ module ActionController
         return super if @name_set
 
         m = model
-        synchronize do
+        @monitor.synchronize do
           return super if @name_set
 
           @name_set = true
