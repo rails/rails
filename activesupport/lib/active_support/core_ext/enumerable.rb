@@ -6,7 +6,7 @@ module Enumerable
 
   # We can't use Refinements here because Refinements with Module which will be prepended
   # doesn't work well https://bugs.ruby-lang.org/issues/13446
-  alias :_original_sum_with_required_identity :sum
+  alias :_original_sum_with_required_identity :sum # :nodoc:
   private :_original_sum_with_required_identity
 
   # Calculates a sum from the elements.
