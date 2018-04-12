@@ -162,7 +162,7 @@ module CacheStoreBehavior
   end
 
   def test_nil_with_compress_low_compress_threshold
-    assert_uncompressed(nil, compress: true, compress_threshold: 2)
+    assert_uncompressed(nil, compress: true, compress_threshold: 1)
   end
 
   def test_small_string_with_default_compression_settings
@@ -178,7 +178,7 @@ module CacheStoreBehavior
   end
 
   def test_small_string_with_low_compress_threshold
-    assert_compressed(SMALL_STRING, compress: true, compress_threshold: 2)
+    assert_compressed(SMALL_STRING, compress: true, compress_threshold: 1)
   end
 
   def test_small_object_with_default_compression_settings
@@ -227,6 +227,25 @@ module CacheStoreBehavior
 
   def test_large_object_with_high_compress_threshold
     assert_uncompressed(LARGE_OBJECT, compress: true, compress_threshold: 1.megabyte)
+  end
+
+  def test_incompressable_data
+    assert_uncompressed(nil, compress: true, compress_threshold: 1)
+    assert_uncompressed(true, compress: true, compress_threshold: 1)
+    assert_uncompressed(false, compress: true, compress_threshold: 1)
+    assert_uncompressed(0, compress: true, compress_threshold: 1)
+    assert_uncompressed(1.2345, compress: true, compress_threshold: 1)
+    assert_uncompressed("", compress: true, compress_threshold: 1)
+
+    incompressible = nil
+
+    # generate an incompressible string
+    loop do
+      incompressible = SecureRandom.bytes(1.kilobyte)
+      break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
+    end
+
+    assert_uncompressed(incompressible, compress: true, compress_threshold: 1)
   end
 
   def test_cache_key

@@ -1,3 +1,10 @@
+*   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
+    size when compression is enabled (which is true by default). This patch
+    does not attempt to repair existing data: please manually flush the cache
+    to clear out the problematic entries.
+
+    *Godfrey Chan*
+
 *   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
