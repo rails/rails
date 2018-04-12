@@ -113,7 +113,9 @@ module ActionDispatch #:nodoc:
       blob:           "blob:",
       filesystem:     "filesystem:",
       report_sample:  "'report-sample'",
-      strict_dynamic: "'strict-dynamic'"
+      strict_dynamic: "'strict-dynamic'",
+      ws:             "ws:",
+      wss:            "wss:"
     }.freeze
 
     DIRECTIVES = {
