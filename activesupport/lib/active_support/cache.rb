@@ -333,8 +333,9 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
-      # both of these conditions are applied before the data is returned.
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
