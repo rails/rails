@@ -63,12 +63,18 @@ module Rails
       end
 
       def format_line(result)
-        "%s#%s = %.2f s = %s" % [result.class, result.name, result.time, result.result_code]
+        klass = result.respond_to?(:klass) ? result.klass : result.class
+        "%s#%s = %.2f s = %s" % [klass, result.name, result.time, result.result_code]
       end
 
       def format_rerun_snippet(result)
-        location, line = result.method(result.name).source_location
-        "#{self.executable} #{relative_path_for(location)}:#{line}"
+        location, line = if result.respond_to?(:source_location)
+          result.source_location
+        else
+          result.method(result.name).source_location
+        end
+
+        "#{executable} #{relative_path_for(location)}:#{line}"
       end
 
       def app_root
