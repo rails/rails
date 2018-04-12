@@ -2994,7 +2994,7 @@ Extensions to `Date`
 
 ### Calculations
 
-NOTE: All the following methods are defined in `active_support/core_ext/date/calculations.rb`.
+NOTE: All the following methods are defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 INFO: The following calculation methods have edge cases in October 1582, since days 5..14 just do not exist. This guide does not document their behavior around those days for brevity, but it is enough to say that they do what you would expect. That is, `Date.new(1582, 10, 4).tomorrow` returns `Date.new(1582, 10, 15)` and so on. Please check `test/core_ext/date_ext_test.rb` in the Active Support test suite for expected behavior.
 
