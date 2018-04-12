@@ -43,7 +43,7 @@ module ActiveRecord
     # Given an env, spec and config creates DatabaseConfig structs with
     # each attribute set.
     def self.walk_configs(env_name, spec_name, config) # :nodoc:
-      if config["database"] || config["url"] || env_name == "default"
+      if config["database"] || config["url"] || config["adapter"]
         DatabaseConfig.new(env_name, spec_name, config)
       else
         config.each_pair.map do |sub_spec_name, sub_config|
