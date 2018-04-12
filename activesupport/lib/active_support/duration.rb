@@ -375,7 +375,7 @@ module ActiveSupport
       parts.
         reduce(::Hash.new(0)) { |h, (l, r)| h[l] += r; h }.
         sort_by { |unit,  _ | PARTS.index(unit) }.
-        map     { |unit, val| "#{val} #{val == 1 ? unit.to_s.chop : unit.to_s}" }.
+        map     { |unit, val| "#{val} #{val.abs == 1 ? unit.to_s.chop : unit.to_s}" }.
         to_sentence(locale: ::I18n.default_locale)
     end
 
