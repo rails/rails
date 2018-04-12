@@ -8,8 +8,8 @@ module ActiveRecord
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache,
-                            :skip_preloading]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
@@ -19,6 +19,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_accessor :skip_preloading_value
     alias :model :klass
     alias :loaded? :loaded
     alias :locked? :lock_value
