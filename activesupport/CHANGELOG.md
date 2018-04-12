@@ -1,3 +1,11 @@
+*   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
+    size when compression is enabled (which is true by default). This patch
+    does not attempt to repair existing data: please manually flush the cache
+    to clear out the problematic entries.
+
+    *Godfrey Chan*
+
+
 ## Rails 5.2.0 (April 09, 2018) ##
 
 *   Caching: MemCache and Redis `read_multi` and `fetch_multi` speedup.

@@ -6,8 +6,7 @@ require_relative "../behaviors"
 
 class MemoryStoreTest < ActiveSupport::TestCase
   def setup
-    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
-    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60, size: @record_size * 10 + 1)
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60)
   end
 
   include CacheStoreBehavior
@@ -15,6 +14,13 @@ class MemoryStoreTest < ActiveSupport::TestCase
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
   include CacheInstrumentationBehavior
+end
+
+class MemoryStorePruningTest < ActiveSupport::TestCase
+  def setup
+    @record_size = ActiveSupport::Cache.lookup_store(:memory_store).send(:cached_size, 1, ActiveSupport::Cache::Entry.new("aaaaaaaaaa"))
+    @cache = ActiveSupport::Cache.lookup_store(:memory_store, expires_in: 60, size: @record_size * 10 + 1)
+  end
 
   def test_prune_size
     @cache.write(1, "aaaaaaaaaa") && sleep(0.001)

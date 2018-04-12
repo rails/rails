@@ -13,25 +13,4 @@ class CacheEntryTest < ActiveSupport::TestCase
       assert entry.expired?, "entry is expired"
     end
   end
-
-  def test_compressed_values
-    value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value, compress: true, compress_threshold: 1)
-    assert_equal value, entry.value
-    assert(value.bytesize > entry.size, "value is compressed")
-  end
-
-  def test_compressed_by_default
-    value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value, compress_threshold: 1)
-    assert_equal value, entry.value
-    assert(value.bytesize > entry.size, "value is compressed")
-  end
-
-  def test_uncompressed_values
-    value = "value" * 100
-    entry = ActiveSupport::Cache::Entry.new(value, compress: false)
-    assert_equal value, entry.value
-    assert_equal value.bytesize, entry.size
-  end
 end
