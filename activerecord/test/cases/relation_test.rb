@@ -315,6 +315,14 @@ module ActiveRecord
       assert_equal "type cast from database", UpdateAllTestModel.first.body
     end
 
+    def test_skip_preloading_after_arel_has_been_generated
+      assert_nothing_raised do
+        relation = Comment.all
+        relation.arel
+        relation.skip_preloading!
+      end
+    end
+
     private
 
       def skip_if_sqlite3_version_includes_quoting_bug
