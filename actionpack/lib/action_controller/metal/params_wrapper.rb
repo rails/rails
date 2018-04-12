@@ -93,7 +93,7 @@ module ActionController
       end
 
       def model
-        super || synchronize { super || self.model = _default_wrap_model }
+        super || self.model = _default_wrap_model
       end
 
       def include
