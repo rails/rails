@@ -141,7 +141,7 @@ module ActionController
         @cv = new_cond
         @aborted = false
         @ignore_disconnect = false
-        super(response, SizedQueue.new(10))
+        super(response, Rails.env.test? ? Queue.new : SizedQueue.new(10))
       end
 
       def write(string)
