@@ -87,7 +87,7 @@ current version of Ruby installed:
 
 ```bash
 $ ruby -v
-ruby 2.5.0
+ruby 2.5.1
 ```
 
 Rails requires Ruby version 2.4.1 or later. If the version number returned is
@@ -128,7 +128,7 @@ run the following:
 $ rails --version
 ```
 
-If it says something like "Rails 5.1.1", you are ready to continue.
+If it says something like "Rails 5.2.0", you are ready to continue.
 
 ### Creating the Blog Application
 
