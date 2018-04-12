@@ -27,18 +27,18 @@ module ActionDispatch
           return matched_route.generate
         end
 
-        message = "No route matches #{Hash[constraints.sort_by { |k, v| k.to_s }].inspect}".dup
+        messages = ["No route matches #{constraints.sort_by { |k, _| k.to_s }.to_h.inspect}"]
         if matched_route
           unless matched_route.sanitized_missing_keys.empty?
-            message << ", missing required keys: #{matched_route.sanitized_missing_keys.sort.inspect}"
+            messages << "missing required keys: #{matched_route.sanitized_missing_keys.inspect}"
           end
 
           unless matched_route.unmatched_keys.empty?
-            message << ", possible unmatched constraints: #{matched_route.unmatched_keys.sort.inspect}"
+            messages << "possible unmatched constraints: #{matched_route.unmatched_keys.inspect}"
           end
         end
 
-        raise ActionController::UrlGenerationError, message
+        raise ActionController::UrlGenerationError, messages.join(", ")
       end
 
       def clear

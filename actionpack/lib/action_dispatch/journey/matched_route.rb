@@ -70,7 +70,7 @@ module ActionDispatch
       end
 
       def params
-        @options.dup.delete_if do |key, _|
+        @options.reject do |key, _|
           parameterized_parts.key?(key) || defaults.key?(key)
         end
       end
@@ -96,11 +96,11 @@ module ActionDispatch
       end
 
       def unmatched_keys
-        @unmatched_keys ||= missing_keys & @constraints.keys
+        @unmatched_keys ||= (missing_keys & @constraints.keys).sort
       end
 
       def sanitized_missing_keys
-        @sanitized_missing_keys ||= missing_keys - unmatched_keys
+        @sanitized_missing_keys ||= (missing_keys - unmatched_keys).sort
       end
     end
   end
