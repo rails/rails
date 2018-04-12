@@ -51,6 +51,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.script_src :strict_dynamic
     assert_equal "script-src 'strict-dynamic'", @policy.build
 
+    @policy.script_src :ws
+    assert_equal "script-src ws:", @policy.build
+
+    @policy.script_src :wss
+    assert_equal "script-src wss:", @policy.build
+
     @policy.script_src :none, :report_sample
     assert_equal "script-src 'none' 'report-sample'", @policy.build
   end
