@@ -59,7 +59,7 @@ module ActiveRecord
       assert_equal [], relation.extending_values
     end
 
-    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache, :skip_preloading]).each do |method|
+    (Relation::SINGLE_VALUE_METHODS - [:lock, :reordering, :reverse_order, :create_with, :skip_query_cache]).each do |method|
       test "##{method}!" do
         assert relation.public_send("#{method}!", :foo).equal?(relation)
         assert_equal :foo, relation.public_send("#{method}_value")
