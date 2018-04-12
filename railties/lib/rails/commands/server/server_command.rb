@@ -219,7 +219,7 @@ module Rails
                 user_supplied_options << name
               end
             end
-            user_supplied_options << :Host if ENV["HOST"]
+            user_supplied_options << :Host if ENV["HOST"] || ENV["BINDING"]
             user_supplied_options << :Port if ENV["PORT"]
             user_supplied_options.uniq
           end
@@ -234,7 +234,17 @@ module Rails
             options[:binding]
           else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
-            ENV.fetch("HOST", default_host)
+
+            if ENV["HOST"] && !ENV["BINDING"]
+              ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                Using the `HOST` environment to specify the IP is deprecated and will be removed in Rails 6.1.
+                Please use `BINDING` environment instead.
+              MSG
+
+              return ENV["HOST"]
+            end
+
+            ENV.fetch("BINDING", default_host)
           end
         end
 
