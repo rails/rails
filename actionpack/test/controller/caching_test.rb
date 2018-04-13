@@ -173,6 +173,9 @@ class FunctionalCachingController < CachingController
     end
   end
 
+  def xml_fragment_cached_with_html_partial
+  end
+
   def formatted_fragment_cached
     respond_to do |format|
       format.html
@@ -306,6 +309,11 @@ CACHED
 
     assert_equal "<p>PHONE</p>",
       @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
+  end
+
+  def test_fragment_caching_with_html_partials_in_xml
+    get :xml_fragment_cached_with_html_partial, format: "*/*"
+    assert_response :success
   end
 
   private
