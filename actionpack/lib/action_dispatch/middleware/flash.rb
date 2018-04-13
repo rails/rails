@@ -73,7 +73,7 @@ module ActionDispatch
         end
       end
 
-      def reset_session # :nodoc
+      def reset_session # :nodoc:
         super
         self.flash = nil
       end
