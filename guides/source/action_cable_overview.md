@@ -167,12 +167,12 @@ you're interested in having.
 
 A consumer becomes a subscriber by creating a subscription to a given channel:
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/chat.coffee
-App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" }
+```javascript
+// app/assets/javascripts/cable/subscriptions/chat.js
+App.cable.subscriptions.create({ channel: "ChatChannel", room: "Best Room" });
 
-# app/assets/javascripts/cable/subscriptions/appearance.coffee
-App.cable.subscriptions.create { channel: "AppearanceChannel" }
+// app/assets/javascripts/cable/subscriptions/appearance.js
+App.cable.subscriptions.create({ channel: "AppearanceChannel" });
 ```
 
 While this creates the subscription, the functionality needed to respond to
@@ -181,9 +181,9 @@ received data will be described later on.
 A consumer can act as a subscriber to a given channel any number of times. For
 example, a consumer could subscribe to multiple chat rooms at the same time:
 
-```coffeescript
-App.cable.subscriptions.create { channel: "ChatChannel", room: "1st Room" }
-App.cable.subscriptions.create { channel: "ChatChannel", room: "2nd Room" }
+```javascript
+App.cable.subscriptions.create({ channel: "ChatChannel", room: "1st Room" });
+App.cable.subscriptions.create({ channel: "ChatChannel", room: "2nd Room" });
 ```
 
 ## Client-Server Interactions
@@ -256,24 +256,29 @@ When a consumer is subscribed to a channel, they act as a subscriber. This
 connection is called a subscription. Incoming messages are then routed to
 these channel subscriptions based on an identifier sent by the cable consumer.
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/chat.coffee
-# Assumes you've already requested the right to send web notifications
-App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
-  received: (data) ->
-    @appendLine(data)
+```javascript
+// app/assets/javascripts/cable/subscriptions/chat.js
+// Assumes you've already requested the right to send web notifications
+App.cable.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
+  received(data) {
+    this.appendLine(data);
+  },
 
-  appendLine: (data) ->
-    html = @createLine(data)
-    $("[data-chat-room='Best Room']").append(html)
+  appendLine(data) {
+    const html = this.createLine(data);
+    $("[data-chat-room='Best Room']").append(html);
+  },
 
-  createLine: (data) ->
-    """
-    <article class="chat-line">
-      <span class="speaker">#{data["sent_by"]}</span>
-      <span class="body">#{data["body"]}</span>
-    </article>
-    """
+  createLine(data) {
+    return `
+<article class="chat-line">
+  <span class="speaker">${data["sent_by"]}</span>
+  <span class="body">${data["body"]}</span>
+</article>
+`;
+  }
+}
+);
 ```
 
 ### Passing Parameters to Channels
@@ -293,23 +298,28 @@ end
 An object passed as the first argument to `subscriptions.create` becomes the
 params hash in the cable channel. The keyword `channel` is required:
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/chat.coffee
-App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
-  received: (data) ->
-    @appendLine(data)
+```javascript
+// app/assets/javascripts/cable/subscriptions/chat.js
+App.cable.subscriptions.create({ channel: "ChatChannel", room: "Best Room" }, {
+  received(data) {
+    this.appendLine(data);
+  },
 
-  appendLine: (data) ->
-    html = @createLine(data)
-    $("[data-chat-room='Best Room']").append(html)
+  appendLine(data) {
+    const html = this.createLine(data);
+    $("[data-chat-room='Best Room']").append(html);
+  },
 
-  createLine: (data) ->
-    """
-    <article class="chat-line">
-      <span class="speaker">#{data["sent_by"]}</span>
-      <span class="body">#{data["body"]}</span>
-    </article>
-    """
+  createLine(data) {
+    return `
+<article class="chat-line">
+  <span class="speaker">${data["sent_by"]}</span>
+  <span class="body">${data["body"]}</span>
+</article>
+`;
+  }
+}
+);
 ```
 
 ```ruby
@@ -340,13 +350,13 @@ class ChatChannel < ApplicationCable::Channel
 end
 ```
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/chat.coffee
-App.chatChannel = App.cable.subscriptions.create { channel: "ChatChannel", room: "Best Room" },
-  received: (data) ->
-    # data => { sent_by: "Paul", body: "This is a cool chat app." }
+```javascript
+// app/assets/javascripts/cable/subscriptions/chat.js
+App.chatChannel = App.cable.subscriptions.create({ channel: "ChatChannel", room: "Best Room" },
+  {received(data) {}});
+    // data => { sent_by: "Paul", body: "This is a cool chat app." }
 
-App.chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." })
+App.chatChannel.send({ sent_by: "Paul", body: "This is a cool chat app." });
 ```
 
 The rebroadcast will be received by all connected clients, _including_ the
@@ -396,46 +406,60 @@ appear/disappear API could be backed by Redis, a database, or whatever else.
 
 Create the client-side appearance channel subscription:
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/appearance.coffee
-App.cable.subscriptions.create "AppearanceChannel",
-  # Called when the subscription is ready for use on the server.
-  connected: ->
-    @install()
-    @appear()
+```javascript
+ */
+// app/assets/javascripts/cable/subscriptions/appearance.js
+let buttonSelector;
+App.cable.subscriptions.create("AppearanceChannel", {
+  // Called when the subscription is ready for use on the server.
+  connected() {
+    this.install();
+    this.appear();
+  },
 
-  # Called when the WebSocket connection is closed.
-  disconnected: ->
-    @uninstall()
+  // Called when the WebSocket connection is closed.
+  disconnected() {
+    this.uninstall();
+  },
 
-  # Called when the subscription is rejected by the server.
-  rejected: ->
-    @uninstall()
+  // Called when the subscription is rejected by the server.
+  rejected() {
+    this.uninstall();
+  },
 
-  appear: ->
-    # Calls `AppearanceChannel#appear(data)` on the server.
-    @perform("appear", appearing_on: $("main").data("appearing-on"))
+  appear() {
+    // Calls `AppearanceChannel#appear(data)` on the server.
+    this.perform("appear", {appearing_on: $("main").data("appearing-on")});
+  },
 
-  away: ->
-    # Calls `AppearanceChannel#away` on the server.
-    @perform("away")
+  away() {
+    // Calls `AppearanceChannel#away` on the server.
+    this.perform("away");
+  }
+},
 
 
-  buttonSelector = "[data-behavior~=appear_away]"
+  (buttonSelector = "[data-behavior~=appear_away]"), {
 
-  install: ->
-    $(document).on "turbolinks:load.appearance", =>
-      @appear()
+  install() {
+    $(document).on("turbolinks:load.appearance", () => {
+      this.appear();
+    });
 
-    $(document).on "click.appearance", buttonSelector, =>
-      @away()
-      false
+    $(document).on("click.appearance", buttonSelector, () => {
+      this.away();
+      return false;
+    });
 
-    $(buttonSelector).show()
+    $(buttonSelector).show();
+  },
 
-  uninstall: ->
-    $(document).off(".appearance")
-    $(buttonSelector).hide()
+  uninstall() {
+    $(document).off(".appearance");
+    $(buttonSelector).hide();
+  }
+}
+);
 ```
 
 ##### Client-Server Interaction
@@ -445,14 +469,14 @@ ActionCable.createConsumer("ws://cable.example.com")`. (`cable.js`). The
 **Server** identifies this connection by `current_user`.
 
 2. **Client** subscribes to the appearance channel via
-`App.cable.subscriptions.create(channel: "AppearanceChannel")`. (`appearance.coffee`)
+`App.cable.subscriptions.create(channel: "AppearanceChannel")`. (`appearance.js`)
 
 3. **Server** recognizes a new subscription has been initiated for the
 appearance channel and runs its `subscribed` callback, calling the `appear`
 method on `current_user`. (`appearance_channel.rb`)
 
 4. **Client** recognizes that a subscription has been established and calls
-`connected` (`appearance.coffee`) which in turn calls `@install` and `@appear`.
+`connected` (`appearance.js`) which in turn calls `@install` and `@appear`.
 `@appear` calls `AppearanceChannel#appear(data)` on the server, and supplies a
 data hash of `{ appearing_on: $("main").data("appearing-on") }`. This is
 possible because the server-side channel instance automatically exposes all
@@ -488,13 +512,15 @@ end
 
 Create the client-side web notifications channel subscription:
 
-```coffeescript
-# app/assets/javascripts/cable/subscriptions/web_notifications.coffee
-# Client-side which assumes you've already requested
-# the right to send web notifications.
-App.cable.subscriptions.create "WebNotificationsChannel",
-  received: (data) ->
-    new Notification data["title"], body: data["body"]
+```javascript
+// app/assets/javascripts/cable/subscriptions/web_notifications.js
+// Client-side which assumes you've already requested
+// the right to send web notifications.
+App.cable.subscriptions.create("WebNotificationsChannel", {
+  received(data) {
+    return new Notification(data["title"], {body: data["body"]});
+  }
+});
 ```
 
 Broadcast content to a web notification channel instance from elsewhere in your
