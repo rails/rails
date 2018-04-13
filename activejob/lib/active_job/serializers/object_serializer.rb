@@ -38,7 +38,7 @@ module ActiveJob
         { Arguments::OBJECT_SERIALIZER_KEY => self.class.name }.merge!(hash)
       end
 
-      # Deserilizes an argument form a JSON primiteve type.
+      # Deserializes an argument from a JSON primitive type.
       def deserialize(_argument)
         raise NotImplementedError
       end
