@@ -12,8 +12,8 @@ gemfile(true) do
   git_source(:github) { |repo| "https://github.com/#{repo}.git" }
 
   # Activate the gem you are reporting the issue against.
-  gem "activerecord", :path => "/Users/domangi/Development/rails-contributions/rails/activerecord"
-  gem "activemodel", :path => "/Users/domangi/Development/rails-contributions/rails/activemodel"
+  gem "activerecord", :path => "./activerecord"
+  gem "activemodel", :path => "./activemodel"
   gem "sqlite3"
 end
 
