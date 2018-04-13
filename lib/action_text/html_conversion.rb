@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module HtmlConversion
     extend self
 

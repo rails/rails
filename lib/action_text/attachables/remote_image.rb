@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module Attachables
     class RemoteImage
       extend ActiveModel::Naming
@@ -37,7 +37,7 @@ module ActiveText
       end
 
       def to_partial_path
-        "active_text/attachables/remote_image"
+        "action_text/attachables/remote_image"
       end
     end
   end

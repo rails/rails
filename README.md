@@ -1,4 +1,4 @@
-# Active Text
+# Action Text
 
 🤸‍♂️💰📝
 
@@ -10,7 +10,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
 
     ```ruby
     # Gemfile
-    gem "activetext", github: "basecamp/activetext", require: "active_text"
+    gem "activetext", github: "basecamp/activetext", require: "action_text"
     gem "mini_magick" # for Active Storage variants
     ```
    
@@ -32,7 +32,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     import "activetext"
     ```
 
-1. Declare text columns as Active Text attributes:
+1. Declare text columns as Action Text attributes:
 
     ```ruby
     # app/models/message.rb

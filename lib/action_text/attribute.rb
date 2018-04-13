@@ -1,10 +1,10 @@
-module ActiveText
+module ActionText
   module Attribute
     extend ActiveSupport::Concern
 
     class_methods do
       def has_rich_text(attribute_name)
-        serialize(attribute_name, ActiveText::Content)
+        serialize(attribute_name, ActionText::Content)
 
         has_many_attached "#{attribute_name}_attachments"
 

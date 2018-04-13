@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   class Attachment
     include Attachments::TrixConversion, Attachments::Minification, Attachments::Caching
 
@@ -12,7 +12,7 @@ module ActiveText
       end
 
       def from_node(node, attachable = nil)
-        new(node, attachable || ActiveText::Attachable.from_node(node))
+        new(node, attachable || ActionText::Attachable.from_node(node))
       end
 
       def from_attachables(attachables)
@@ -34,7 +34,7 @@ module ActiveText
       private
         def node_from_attributes(attributes)
           if attributes = process_attributes(attributes).presence
-            ActiveText::HtmlConversion.create_element(TAG_NAME, attributes)
+            ActionText::HtmlConversion.create_element(TAG_NAME, attributes)
           end
         end
 

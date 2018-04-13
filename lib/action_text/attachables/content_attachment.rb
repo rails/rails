@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module Attachables
     class ContentAttachment
       include ActiveModel::Model
@@ -25,11 +25,11 @@ module ActiveText
       end
 
       def to_partial_path
-        "active_text/attachables/content_attachment"
+        "action_text/attachables/content_attachment"
       end
 
       def to_trix_content_attachment_partial_path
-        "active_text/attachables/content_attachments/#{name.underscore}"
+        "action_text/attachables/content_attachments/#{name.underscore}"
       end
     end
   end

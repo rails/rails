@@ -1,12 +1,12 @@
 $:.push File.expand_path("lib", __dir__)
 
 # Maintain your gem's version:
-require "active_text/version"
+require "action_text/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name     = "activetext"
-  s.version  = ActiveText::VERSION
+  s.version  = ActionText::VERSION
   s.authors  = ["Javan Makhmali", "Sam Stephenson"]
   s.email    = ["javan@javan.us", "sstephenson@gmail.com"]
   s.summary  = "Edit and display rich text in Rails applications"

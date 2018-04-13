@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   class Fragment
     class << self
       def wrap(fragment_or_html)
@@ -13,7 +13,7 @@ module ActiveText
       end
 
       def from_html(html)
-        new(ActiveText::HtmlConversion.fragment_for_html(html.to_s.strip))
+        new(ActionText::HtmlConversion.fragment_for_html(html.to_s.strip))
       end
     end
 

@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module Serialization
     extend ActiveSupport::Concern
 

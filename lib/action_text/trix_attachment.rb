@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   class TrixAttachment
     TAG_NAME = "figure"
     SELECTOR = "[data-trix-attachment]"
@@ -19,7 +19,7 @@ module ActiveText
         trix_attachment_attributes = attributes.except("caption")
         trix_attributes = attributes.slice("caption")
 
-        node = ActiveText::HtmlConversion.create_element(TAG_NAME)
+        node = ActionText::HtmlConversion.create_element(TAG_NAME)
         node["data-trix-attachment"] = JSON.generate(trix_attachment_attributes)
         node["data-trix-attributes"] = JSON.generate(trix_attributes) if trix_attributes.any?
 
@@ -54,7 +54,7 @@ module ActiveText
     end
 
     def to_html
-      ActiveText::HtmlConversion.node_to_html(node)
+      ActionText::HtmlConversion.node_to_html(node)
     end
 
     def to_s

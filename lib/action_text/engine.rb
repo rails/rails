@@ -1,21 +1,21 @@
 require "rails/engine"
 
-module ActiveText
+module ActionText
   class Engine < Rails::Engine
-    isolate_namespace ActiveText
-    config.eager_load_namespaces << ActiveText
+    isolate_namespace ActionText
+    config.eager_load_namespaces << ActionText
 
-    initializer "active_text.attribute" do
+    initializer "action_text.attribute" do
       ActiveSupport.on_load(:active_record) do
-        include ActiveText::Attribute
+        include ActionText::Attribute
       end
     end
 
-    initializer "active_text.active_storage_extension" do
+    initializer "action_text.active_storage_extension" do
       require "active_storage/blob"
 
       class ActiveStorage::Blob
-        include ActiveText::Attachable
+        include ActionText::Attachable
 
         def previewable_attachable?
           representable?
@@ -23,21 +23,21 @@ module ActiveText
       end
     end
 
-    initializer "active_text.helper" do
+    initializer "action_text.helper" do
       ActiveSupport.on_load(:action_controller_base) do
-        helper ActiveText::TagHelper
+        helper ActionText::TagHelper
       end
     end
 
-    initializer "active_text.config" do
+    initializer "action_text.config" do
       config.after_initialize do |app|
-        ActiveText.renderer ||= ApplicationController.renderer
+        ActionText.renderer ||= ApplicationController.renderer
 
         # FIXME: ApplicationController should have a per-request specific renderer 
-        # that's been set with the request.env env, and ActiveText should just piggyback off
+        # that's been set with the request.env env, and ActionText should just piggyback off
         # that by default rather than doing this work directly.
         ApplicationController.before_action do
-          ActiveText.renderer = ActiveText.renderer.new(request.env)
+          ActionText.renderer = ActionText.renderer.new(request.env)
         end
       end
     end

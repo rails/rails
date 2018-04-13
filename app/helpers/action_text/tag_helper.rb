@@ -1,11 +1,11 @@
-module ActiveText
+module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
 
     def rich_text_field_tag(name, value = nil, options = {})
       options = options.symbolize_keys
 
-      options[:input] ||= "trix_input_#{ActiveText::TagHelper.id += 1}"
+      options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
       options[:data] ||= {}
       options[:data][:direct_upload_url] = rails_direct_uploads_url
       options[:data][:blob_url_template] = rails_service_blob_url(":signed_id", ":filename")
@@ -19,7 +19,7 @@ module ActiveText
 end
 
 module ActionView::Helpers
-  class Tags::ActiveText < Tags::Base
+  class Tags::ActionText < Tags::Base
     delegate :dom_id, to: ActionView::RecordIdentifier
 
     def render
@@ -36,7 +36,7 @@ module ActionView::Helpers
 
   module FormHelper
     def rich_text_field(object_name, method, options = {})
-      Tags::ActiveText.new(object_name, method, self, options).render
+      Tags::ActionText.new(object_name, method, self, options).render
     end
   end
 

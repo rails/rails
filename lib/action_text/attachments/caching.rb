@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module Attachments
     module Caching
       def cache_key(*args)

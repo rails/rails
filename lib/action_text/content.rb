@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   class Content
     include Serialization
 
@@ -7,7 +7,7 @@ module ActiveText
     delegate :blank?, :empty?, :html_safe, :present?, to: :to_s
 
     def initialize(content = nil)
-      @fragment = ActiveText::Attachment.fragment_by_canonicalizing_attachments(content)
+      @fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)
     end
 
     def links
@@ -22,17 +22,17 @@ module ActiveText
 
     def attachables
       @attachables ||= attachment_nodes.map do |node|
-        ActiveText::Attachable.from_node(node)
+        ActionText::Attachable.from_node(node)
       end
     end
 
     def append_attachables(attachables)
-      attachments = ActiveText::Attachment.from_attachables(attachables)
+      attachments = ActionText::Attachment.from_attachables(attachables)
       self.class.new([self.to_s.presence, *attachments].compact.join("\n"))
     end
 
     def render_attachments(**options, &block)
-      fragment.replace(ActiveText::Attachment::SELECTOR) do |node|
+      fragment.replace(ActionText::Attachment::SELECTOR) do |node|
         block.call(attachment_for_node(node, **options))
       end
     end
@@ -48,7 +48,7 @@ module ActiveText
     def to_html
       render_attachments do |attachment|
         attachment.node.tap do |node|
-          node.inner_html = ActiveText.renderer.render(attachment)
+          node.inner_html = ActionText.renderer.render(attachment)
         end
       end.to_html
     end
@@ -73,11 +73,11 @@ module ActiveText
 
     private
       def attachment_nodes
-        @attachment_nodes ||= fragment.find_all(ActiveText::Attachment::SELECTOR)
+        @attachment_nodes ||= fragment.find_all(ActionText::Attachment::SELECTOR)
       end
 
       def attachment_for_node(node, with_full_attributes: true)
-        attachment = ActiveText::Attachment.from_node(node)
+        attachment = ActionText::Attachment.from_node(node)
         with_full_attributes ? attachment.with_full_attributes : attachment
       end
   end

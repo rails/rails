@@ -1,4 +1,4 @@
-module ActiveText
+module ActionText
   module Attachable
     extend ActiveSupport::Concern
 
@@ -8,12 +8,12 @@ module ActiveText
       def from_node(node)
         if attachable = attachable_from_sgid(node["sgid"])
           attachable
-        elsif attachable = ActiveText::Attachables::ContentAttachment.from_node(node)
+        elsif attachable = ActionText::Attachables::ContentAttachment.from_node(node)
           attachable
-        elsif attachable = ActiveText::Attachables::RemoteImage.from_node(node)
+        elsif attachable = ActionText::Attachables::RemoteImage.from_node(node)
           attachable
         else
-          ActiveText::Attachables::MissingAttachable
+          ActionText::Attachables::MissingAttachable
         end
       end
 
@@ -33,7 +33,7 @@ module ActiveText
 
     class_methods do
       def from_attachable_sgid(sgid)
-        ActiveText::Attachable.from_attachable_sgid(sgid, only: self)
+        ActionText::Attachable.from_attachable_sgid(sgid, only: self)
       end
     end
 

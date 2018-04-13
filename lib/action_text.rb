@@ -1,8 +1,8 @@
 require "active_record"
-require "active_text/engine"
+require "action_text/engine"
 require "nokogiri"
 
-module ActiveText
+module ActionText
   extend ActiveSupport::Autoload
 
   mattr_accessor(:renderer)
