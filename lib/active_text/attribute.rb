@@ -3,7 +3,7 @@ module ActiveText
     extend ActiveSupport::Concern
 
     class_methods do
-      def active_text_attribute(attribute_name)
+      def has_rich_text(attribute_name)
         serialize(attribute_name, ActiveText::Content)
 
         has_many_attached "#{attribute_name}_attachments"

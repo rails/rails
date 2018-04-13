@@ -20,7 +20,7 @@ module ActiveText
       end
 
       def from_attachable(attachable, attributes = {})
-        if node = node_from_attributes(attachable.to_active_text_attributes(attributes))
+        if node = node_from_attributes(attachable.to_rich_text_attributes(attributes))
           new(node, attachable)
         end
       end
@@ -91,7 +91,7 @@ module ActiveText
       end
 
       def attachable_attributes
-        @attachable_attributes ||= (attachable.try(:to_active_text_attributes) || {}).stringify_keys
+        @attachable_attributes ||= (attachable.try(:to_rich_text_attributes) || {}).stringify_keys
       end
 
       def sgid_attributes

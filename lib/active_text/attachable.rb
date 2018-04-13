@@ -53,7 +53,7 @@ module ActiveText
       super.merge(attachable_sgid: attachable_sgid)
     end
 
-    def to_active_text_attributes(attributes = {})
+    def to_rich_text_attributes(attributes = {})
       attributes.dup.tap do |attributes|
         attributes[:sgid] = attachable_sgid
         attributes[:content_type] = attachable_content_type

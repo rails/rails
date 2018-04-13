@@ -1,3 +1,3 @@
 class Message < ApplicationRecord
-  active_text_attribute :content
+  has_rich_text :content
 end

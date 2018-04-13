@@ -37,11 +37,11 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     ```ruby
     # app/models/message.rb
     class Message < ActiveRecord::Base
-      active_text_attribute :content
+      has_rich_text :content
     end
     ```
 
-1. Replace form `text_area`s with `active_text_field`s:
+1. Replace form `text_area`s with `rich_text_field`s:
 
     ```erb
     <%# app/views/messages/_form.html.erb %>
@@ -49,7 +49,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
       …
       <div class="field">
         <%= form.label :content %>
-        <%= form.active_text_field :content %>
+        <%= form.rich_text_field :content %>
       </div>
       …
     <% end %>
