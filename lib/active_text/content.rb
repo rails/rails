@@ -54,7 +54,7 @@ module ActiveText
     end
 
     def to_s
-      to_html
+      to_html.html_safe
     end
 
     def as_json(*)
