@@ -1,6 +1,6 @@
 {
   "name": "activetext",
-  "version": "0.1",
+  "version": "0.1.0",
   "description": "Edit and display rich text in Rails applications",
   "main": "app/javascript/activetext/index.js",
   "files": [
