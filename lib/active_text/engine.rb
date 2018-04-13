@@ -32,6 +32,13 @@ module ActiveText
     initializer "active_text.config" do
       config.after_initialize do |app|
         ActiveText.renderer ||= ApplicationController.renderer
+
+        # FIXME: ApplicationController should have a per-request specific renderer 
+        # that's been set with the request.env env, and ActiveText should just piggyback off
+        # that by default rather than doing this work directly.
+        ApplicationController.before_action do
+          ActiveText.renderer = ActiveText.renderer.new(request.env)
+        end
       end
     end
   end
