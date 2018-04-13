@@ -69,7 +69,7 @@ module ActiveRecord
       if defined?(JRUBY_VERSION)
         # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
         # https://github.com/jruby/jruby/pull/2562
-        def _read_attribute(attr_name, &block) # :nodoc
+        def _read_attribute(attr_name, &block) # :nodoc:
           @attributes.fetch_value(attr_name.to_s, &block)
         end
       else
