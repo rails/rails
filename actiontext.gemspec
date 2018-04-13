@@ -5,7 +5,7 @@ require "action_text/version"
 
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
-  s.name     = "activetext"
+  s.name     = "actiontext"
   s.version  = ActionText::VERSION
   s.authors  = ["Javan Makhmali", "Sam Stephenson"]
   s.email    = ["javan@javan.us", "sstephenson@gmail.com"]
