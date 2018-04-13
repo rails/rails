@@ -236,7 +236,7 @@ module ActiveModel
 
       # Handles <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
-        return if attribute_changed?(attr)
+        return if saved_change_to_attribute?(attr)
 
         begin
           value = __send__(attr)
