@@ -183,6 +183,12 @@ module ActiveModel
         (from == OPTION_NOT_GIVEN || from == changed_attributes[attr])
     end
 
+    # allows to use saved_change_to_attribute? in attribute_will_change! method
+    # in order to remove deprecation warning caused by attribute_changed? method
+    # in active_record/attribute_methods/dirty.rb
+    alias_method 'saved_change_to_attribute?', 'attribute_changed?'
+
+
     # Handles <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
       attribute_changed?(attr) ? changed_attributes[attr] : __send__(attr)
