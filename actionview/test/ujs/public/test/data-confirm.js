@@ -173,9 +173,9 @@ asyncTest('binding to confirm event of a link and returning false', 1, function(
   }
 
   $('a[data-confirm]')
-    .bindNative('confirm', function() {
+    .bindNative('confirm', function(e) {
       App.assertCallbackInvoked('confirm')
-      return false
+      e.preventDefault()
     })
     .bindNative('confirm:complete', function() {
       App.assertCallbackNotInvoked('confirm:complete')
@@ -194,9 +194,9 @@ asyncTest('binding to confirm event of a button and returning false', 1, functio
   }
 
   $('button[data-confirm]')
-    .bindNative('confirm', function() {
+    .bindNative('confirm', function(e) {
       App.assertCallbackInvoked('confirm')
-      return false
+      e.preventDefault()
     })
     .bindNative('confirm:complete', function() {
       App.assertCallbackNotInvoked('confirm:complete')
@@ -216,9 +216,9 @@ asyncTest('binding to confirm:complete event of a link and returning false', 2, 
   }
 
   $('a[data-confirm]')
-    .bindNative('confirm:complete', function() {
+    .bindNative('confirm:complete', function(e) {
       App.assertCallbackInvoked('confirm:complete')
-      return false
+      e.preventDefault()
     })
     .bindNative('ajax:beforeSend', function() {
       App.assertCallbackNotInvoked('ajax:beforeSend')
@@ -238,9 +238,9 @@ asyncTest('binding to confirm:complete event of a button and returning false', 2
   }
 
   $('button[data-confirm]')
-    .bindNative('confirm:complete', function() {
+    .bindNative('confirm:complete', function(e) {
       App.assertCallbackInvoked('confirm:complete')
-      return false
+      e.preventDefault()
     })
     .bindNative('ajax:beforeSend', function() {
       App.assertCallbackNotInvoked('ajax:beforeSend')
