@@ -286,7 +286,7 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def clear(options = nil)
         failsafe :clear do
-          if namespace = merged_options(options)[namespace]
+          if namespace = merged_options(options)[:namespace]
             delete_matched "*", namespace: namespace
           else
             redis.with { |c| c.flushdb }

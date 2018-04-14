@@ -221,4 +221,22 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       end
     end
   end
+
+  class ClearTest < StoreTest
+    test "clear all cache key" do
+      @cache.write("foo", "bar")
+      @cache.write("fu", "baz")
+      @cache.clear
+      assert !@cache.exist?("foo")
+      assert !@cache.exist?("fu")
+    end
+
+    test "only clear namespace cache key" do
+      @cache.write("foo", "bar")
+      @cache.redis.set("fu", "baz")
+      @cache.clear
+      assert !@cache.exist?("foo")
+      assert @cache.redis.exists("fu")
+    end
+  end
 end
