@@ -1267,8 +1267,8 @@ password_field_tag 'pass'
 Creates a radio button; use groups of radio buttons named the same to allow users to select from a group of options.
 
 ```ruby
-radio_button_tag 'gender', 'male'
-# => <input id="gender_male" name="gender" type="radio" value="male" />
+radio_button_tag 'favorite_color', 'maroon'
+# => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
 ```
 
 #### select_tag
