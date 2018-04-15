@@ -8,13 +8,11 @@ require "active_support/encrypted_file"
 module Rails
   module Generators
     class MasterKeyGenerator < Base # :nodoc:
-      MASTER_KEY_PATH = Pathname.new("config/master.key")
-
       def add_master_key_file
-        unless MASTER_KEY_PATH.exist?
+        unless master_key_path.exist?
           key = ActiveSupport::EncryptedFile.generate_key
 
-          log "Adding #{MASTER_KEY_PATH} to store the master encryption key: #{key}"
+          log "Adding #{master_key_path} to store the master encryption key: #{key}"
           log ""
           log "Save this in a password manager your team can access."
           log ""
@@ -27,17 +25,17 @@ module Rails
       end
 
       def add_master_key_file_silently(key = nil)
-        unless MASTER_KEY_PATH.exist?
-          key_file_generator.add_key_file_silently(MASTER_KEY_PATH, key)
+        unless master_key_path.exist?
+          key_file_generator.add_key_file_silently(master_key_path, key)
         end
       end
 
       def ignore_master_key_file
-        key_file_generator.ignore_key_file(MASTER_KEY_PATH, ignore: key_ignore)
+        key_file_generator.ignore_key_file(master_key_path, ignore: key_ignore)
       end
 
       def ignore_master_key_file_silently
-        key_file_generator.ignore_key_file_silently(MASTER_KEY_PATH, ignore: key_ignore)
+        key_file_generator.ignore_key_file_silently(master_key_path, ignore: key_ignore)
       end
 
       private
@@ -46,7 +44,15 @@ module Rails
         end
 
         def key_ignore
-          [ "", "# Ignore master key for decrypting credentials and more.", "/#{MASTER_KEY_PATH}", "" ].join("\n")
+          [ "", "# Ignore master key for decrypting credentials and more.", "/#{master_key_path}", "" ].join("\n")
+        end
+
+        def master_key_path
+          @master_key_path ||= if Rails.respond_to?(:application)
+                                 Rails.application.credentials.key_path.relative_path_from(Rails.root)
+                               else
+                                 Pathname.new("config/master.key")
+                               end
         end
     end
   end
