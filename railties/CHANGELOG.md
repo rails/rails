@@ -1,3 +1,11 @@
+*   Deprecate support for using the `HOST` environment to specify the server IP.
+
+    The `BINDING` environment should be used instead.
+
+    Fixes #29516.
+
+    *Yuji Yaginuma*
+
 *   Deprecate passing Rack server name as a regular argument to `rails server`.
 
     Previously:

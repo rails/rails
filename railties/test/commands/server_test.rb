@@ -90,6 +90,15 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
 
   def test_environment_with_host
     switch_env "HOST", "1.2.3.4" do
+      assert_deprecated do
+        options = parse_arguments
+        assert_equal "1.2.3.4", options[:Host]
+      end
+    end
+  end
+
+  def test_environment_with_binding
+    switch_env "BINDING", "1.2.3.4" do
       options = parse_arguments
       assert_equal "1.2.3.4", options[:Host]
     end
@@ -196,7 +205,7 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
       assert_equal 3000, options[:Port]
     end
 
-    switch_env "HOST", "1.2.3.4" do
+    switch_env "BINDING", "1.2.3.4" do
       args = ["-b", "127.0.0.1"]
       options = parse_arguments(args)
       assert_equal "127.0.0.1", options[:Host]
@@ -215,6 +224,11 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
 
     server_options = parse_arguments(["--port=3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
+
+    switch_env "BINDING", "1.2.3.4" do
+      server_options = parse_arguments
+      assert_equal [:Host], server_options[:user_supplied_options]
+    end
   end
 
   def test_default_options
