@@ -67,8 +67,8 @@ module ApplicationTests
           else
             schema_dump = File.read("db/#{format}.sql")
             schema_dump_animals = File.read("db/animals_#{format}.sql")
-            assert_match(/CREATE TABLE \"books\"/, schema_dump)
-            assert_match(/CREATE TABLE \"dogs\"/, schema_dump_animals)
+            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"books\"/, schema_dump)
+            assert_match(/CREATE TABLE (?:IF NOT EXISTS )?\"dogs\"/, schema_dump_animals)
           end
 
           rails "db:#{format}:load"
