@@ -24,6 +24,13 @@ module FileUpdateCheckerSharedTests
     end
   end
 
+  test "must not freeze file list" do
+    list = []
+    refute list.frozen?
+    new_checker(list) {}
+    refute list.frozen?
+  end
+
   test "should not execute the block if no paths are given" do
     silence_warnings { require "listen" }
     i = 0
