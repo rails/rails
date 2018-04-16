@@ -1,3 +1,10 @@
+*   Fix strong parameters `permit!` with nested arrays
+
+    Strong parameters doesn't support nested arrays, take as example: `[[{ name: 'Leonardo', age: 26 }]]`.
+    This is separate from making `permit(something: [[:key]])` work properly, which is being addressed in #23650
+
+    *Steve Hull*
+
 *   Move default headers configuration into their own module that can be included in controllers.
 
     *Kevin Deisz*
