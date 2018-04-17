@@ -1,3 +1,9 @@
+*   Add the `nonce: true` option for `javascript_include_tag` helper to
+    support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_tag nonce: true` does.
+
+    *Yaroslav Markin*
+
 *   Remove `ActionView::Helpers::RecordTagHelper`.
 
     *Yoshiyuki Hirano*
