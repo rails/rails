@@ -132,7 +132,22 @@ module ActiveRecord
       #     end
       #   end
       #
+      #   # app/models/store_listing.rb
+      #   class StoreListing < ActiveRecord::Base
+      #     attribute :price_in_cents, MoneyType.new
+      #   end
+      #
+      #   store_listing = StoreListing.new(price_in_cents: '$10.00')
+      #   store_listing.price_in_cents # => 1000
+      #
+      # For more details on creating custom types, see the documentation for
+      # ActiveRecord::Type::Value.
+      #
+      # It is also possible to register a type within an initializer. It is then possible to use a symbol to refer to
+      # the type rather than passing an instantiated type directly within attribute:
+      #
       #   # config/initializers/types.rb
+      #   require 'lib/money_type' # NB: don't use an autoloaded location from initializers
       #   ActiveRecord::Type.register(:money, MoneyType)
       #
       #   # app/models/store_listing.rb
@@ -140,13 +155,8 @@ module ActiveRecord
       #     attribute :price_in_cents, :money
       #   end
       #
-      #   store_listing = StoreListing.new(price_in_cents: '$10.00')
-      #   store_listing.price_in_cents # => 1000
-      #
-      # For more details on creating custom types, see the documentation for
-      # ActiveModel::Type::Value. For more details on registering your types
-      # to be referenced by a symbol, see ActiveRecord::Type.register. You can
-      # also pass a type object directly, in place of a symbol.
+      # see ActiveRecord::Type.register for more details
+
       #
       # ==== \Querying
       #
