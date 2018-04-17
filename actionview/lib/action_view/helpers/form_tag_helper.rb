@@ -389,8 +389,8 @@ module ActionView
       # * Any other key creates standard HTML options for the tag.
       #
       # ==== Examples
-      #   radio_button_tag 'gender', 'male'
-      #   # => <input id="gender_male" name="gender" type="radio" value="male" />
+      #   radio_button_tag 'favorite_color', 'maroon'
+      #   # => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
       #
       #   radio_button_tag 'receive_updates', 'no', true
       #   # => <input checked="checked" id="receive_updates_no" name="receive_updates" type="radio" value="no" />
