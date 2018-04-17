@@ -454,8 +454,8 @@ module CacheStoreBehavior
 
     def assert_compression(should_compress, value, **options)
       freeze_time do
-        @cache.write("actual", value, **options)
-        @cache.write("uncompressed", value, **options, compress: false)
+        @cache.write("actual", value, options)
+        @cache.write("uncompressed", value, options.merge(compress: false))
       end
 
       if value.nil?
