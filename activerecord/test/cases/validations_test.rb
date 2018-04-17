@@ -39,7 +39,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_valid_using_special_context
     r = WrongReply.new(title: "Valid title")
-    assert !r.valid?(:special_case)
+    assert_not r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
@@ -125,7 +125,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_save_without_validation
     reply = WrongReply.new
-    assert !reply.save
+    assert_not reply.save
     assert reply.save(validate: false)
   end
 

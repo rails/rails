@@ -518,19 +518,19 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
 
   def test_find
     assert_called(Task.connection, :clear_query_cache) do
-      assert !Task.connection.query_cache_enabled
+      assert_not Task.connection.query_cache_enabled
       Task.cache do
         assert Task.connection.query_cache_enabled
         Task.find(1)
 
         Task.uncached do
-          assert !Task.connection.query_cache_enabled
+          assert_not Task.connection.query_cache_enabled
           Task.find(1)
         end
 
         assert Task.connection.query_cache_enabled
       end
-      assert !Task.connection.query_cache_enabled
+      assert_not Task.connection.query_cache_enabled
     end
   end
 

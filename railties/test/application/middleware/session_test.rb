@@ -31,7 +31,7 @@ module ApplicationTests
       add_to_config "config.force_ssl = true"
       add_to_config "config.ssl_options = { secure_cookies: false }"
       require "#{app_path}/config/environment"
-      assert !app.config.session_options[:secure]
+      assert_not app.config.session_options[:secure]
     end
 
     test "session is not loaded if it's not used" do
@@ -51,7 +51,7 @@ module ApplicationTests
       get "/"
 
       assert last_request.env["HTTP_COOKIE"]
-      assert !last_response.headers["Set-Cookie"]
+      assert_not last_response.headers["Set-Cookie"]
     end
 
     test "session is empty and isn't saved on unverified request when using :null_session protect method" do

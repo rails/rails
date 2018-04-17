@@ -39,7 +39,7 @@ class AttributesDirtyTest < ActiveModel::TestCase
   end
 
   test "changes to attribute values" do
-    assert !@model.changes["name"]
+    assert_not @model.changes["name"]
     @model.name = "John"
     assert_equal [nil, "John"], @model.changes["name"]
   end

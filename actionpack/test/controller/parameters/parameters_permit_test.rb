@@ -136,7 +136,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "key: it is not assigned if not present in params" do
     params = ActionController::Parameters.new(name: "Joe")
     permitted = params.permit(:id)
-    assert !permitted.has_key?(:id)
+    assert_not permitted.has_key?(:id)
   end
 
   test "key to empty array: empty arrays pass" do

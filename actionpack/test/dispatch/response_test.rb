@@ -191,7 +191,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "does not include Status header" do
     @response.status = "200 OK"
     _, headers, _ = @response.to_a
-    assert !headers.has_key?("Status")
+    assert_not headers.has_key?("Status")
   end
 
   test "response code" do

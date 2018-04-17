@@ -44,7 +44,7 @@ module ActionDispatch
       @hash["foo"] = "bar"
       @hash.delete "foo"
 
-      assert !@hash.key?("foo")
+      assert_not @hash.key?("foo")
       assert_nil @hash["foo"]
     end
 
@@ -53,7 +53,7 @@ module ActionDispatch
       assert_equal({ "foo" => "bar" }, @hash.to_hash)
 
       @hash.to_hash["zomg"] = "aaron"
-      assert !@hash.key?("zomg")
+      assert_not @hash.key?("zomg")
       assert_equal({ "foo" => "bar" }, @hash.to_hash)
     end
 

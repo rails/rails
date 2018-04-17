@@ -116,8 +116,8 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 
   def test_timestamps_without_null_set_null_to_false_on_change_table
@@ -129,8 +129,8 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 
   def test_timestamps_without_null_set_null_to_false_on_add_timestamps
@@ -139,7 +139,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       add_timestamps :has_timestamps, default: Time.now
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 end

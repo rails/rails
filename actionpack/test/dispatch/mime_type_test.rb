@@ -180,8 +180,8 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert Mime[:js] =~ "text/javascript"
     assert Mime[:js] =~ "application/javascript"
     assert Mime[:js] !~ "text/html"
-    assert !(Mime[:js] !~ "text/javascript")
-    assert !(Mime[:js] !~ "application/javascript")
+    assert_not (Mime[:js] !~ "text/javascript")
+    assert_not (Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ "application/xhtml+xml"
   end
 end

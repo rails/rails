@@ -361,7 +361,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert !$prepared
+      assert_not $prepared
 
       app "development"
 

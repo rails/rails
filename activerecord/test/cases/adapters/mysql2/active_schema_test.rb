@@ -148,8 +148,8 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
           t.timestamps null: true
         end
         ActiveRecord::Base.connection.remove_timestamps :delete_me, null: true
-        assert !column_present?("delete_me", "updated_at", "datetime")
-        assert !column_present?("delete_me", "created_at", "datetime")
+        assert_not column_present?("delete_me", "updated_at", "datetime")
+        assert_not column_present?("delete_me", "created_at", "datetime")
       ensure
         ActiveRecord::Base.connection.drop_table :delete_me rescue nil
       end

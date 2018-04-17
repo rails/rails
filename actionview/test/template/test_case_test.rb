@@ -192,7 +192,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !view.help_me
+      assert_not view.help_me
     end
   end
 

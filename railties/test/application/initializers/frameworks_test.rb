@@ -226,7 +226,7 @@ module ApplicationTests
       rails %w(generate model post title:string)
       rails %w(db:migrate db:schema:cache:dump db:rollback)
       require "#{app_path}/config/environment"
-      assert !ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+      assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do

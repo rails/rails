@@ -83,7 +83,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.subscriptions.expects(:unsubscribe_from_all)
       connection.send :handle_close
 
-      assert ! connection.connected
+      assert_not connection.connected
       assert_equal [], @server.connections
     end
   end

@@ -34,7 +34,7 @@ module ApplicationTests
           assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
-          assert !File.exist?(expected_database)
+          assert_not File.exist?(expected_database)
         end
       end
 

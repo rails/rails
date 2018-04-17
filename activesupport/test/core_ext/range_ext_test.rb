@@ -37,7 +37,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_overlaps_last_exclusive
-    assert !(1...5).overlaps?(5..10)
+    assert_not (1...5).overlaps?(5..10)
   end
 
   def test_overlaps_first_inclusive
@@ -45,7 +45,7 @@ class RangeTest < ActiveSupport::TestCase
   end
 
   def test_overlaps_first_exclusive
-    assert !(5..10).overlaps?(1...5)
+    assert_not (5..10).overlaps?(1...5)
   end
 
   def test_should_include_identical_inclusive
@@ -102,7 +102,7 @@ class RangeTest < ActiveSupport::TestCase
   def test_no_overlaps_on_time
     time_range_1 = Time.utc(2005, 12, 10, 15, 30)..Time.utc(2005, 12, 10, 17, 30)
     time_range_2 = Time.utc(2005, 12, 10, 17, 31)..Time.utc(2005, 12, 10, 18, 00)
-    assert !time_range_1.overlaps?(time_range_2)
+    assert_not time_range_1.overlaps?(time_range_2)
   end
 
   def test_each_on_time_with_zone

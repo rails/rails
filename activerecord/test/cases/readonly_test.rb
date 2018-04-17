@@ -23,7 +23,7 @@ class ReadOnlyTest < ActiveRecord::TestCase
 
     assert_nothing_raised do
       dev.name = "Luscious forbidden fruit."
-      assert !dev.save
+      assert_not dev.save
       dev.name = "Forbidden."
     end
 
@@ -38,8 +38,8 @@ class ReadOnlyTest < ActiveRecord::TestCase
   end
 
   def test_find_with_readonly_option
-    Developer.all.each { |d| assert !d.readonly? }
-    Developer.readonly(false).each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert_not d.readonly? }
+    Developer.readonly(false).each { |d| assert_not d.readonly? }
     Developer.readonly(true).each { |d| assert d.readonly? }
     Developer.readonly.each { |d| assert d.readonly? }
   end
@@ -55,14 +55,14 @@ class ReadOnlyTest < ActiveRecord::TestCase
   def test_has_many_find_readonly
     post = Post.find(1)
     assert_not_empty post.comments
-    assert !post.comments.any?(&:readonly?)
-    assert !post.comments.to_a.any?(&:readonly?)
+    assert_not post.comments.any?(&:readonly?)
+    assert_not post.comments.to_a.any?(&:readonly?)
     assert post.comments.readonly(true).all?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly
     assert people = Post.find(1).people
-    assert !people.any?(&:readonly?)
+    assert_not people.any?(&:readonly?)
   end
 
   def test_has_many_with_through_is_not_implicitly_marked_readonly_while_finding_by_id

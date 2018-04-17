@@ -171,7 +171,7 @@ module ActiveRecord
         end
       end
 
-      assert !movie.persisted?
+      assert_not movie.persisted?
     end
   end
 end

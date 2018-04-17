@@ -40,13 +40,13 @@ class AppLoaderTest < ActiveSupport::TestCase
     test "is not in a Rails application if #{exe} is not found in the current or parent directories" do
       def loader.find_executables; end
 
-      assert !loader.exec_app
+      assert_not loader.exec_app
     end
 
     test "is not in a Rails application if #{exe} exists but is a folder" do
       FileUtils.mkdir_p(exe)
 
-      assert !loader.exec_app
+      assert_not loader.exec_app
     end
 
     ["APP_PATH", "ENGINE_PATH"].each do |keyword|
@@ -61,7 +61,7 @@ class AppLoaderTest < ActiveSupport::TestCase
       test "is not in a Rails application if #{exe} exists but doesn't contain #{keyword}" do
         write exe
 
-        assert !loader.exec_app
+        assert_not loader.exec_app
       end
 
       test "is in a Rails application if parent directory has #{exe} containing #{keyword} and chdirs to the root directory" do

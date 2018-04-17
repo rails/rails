@@ -307,7 +307,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Dude", cbs[0].name
     assert_equal "Bob", cbs[1].name
     assert cbs[0].frickinawesome
-    assert !cbs[1].frickinawesome
+    assert_not cbs[1].frickinawesome
   end
 
   def test_load
@@ -856,11 +856,11 @@ class BasicsTest < ActiveRecord::TestCase
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new name: "Bjorn"
     assert developer.name_changed?            # obviously
-    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+    assert_not developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
     assert_predicate cloned_developer, :name_changed?
-    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+    assert_not cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
@@ -875,12 +875,12 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! name: "Bjorn"
-    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
+    assert_not developer.name_changed?           # both attributes of saved object should be treated as not changed
     assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
+    assert_not cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum

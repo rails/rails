@@ -2009,7 +2009,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_none_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
     firm.clients.load  # force load
-    assert_no_queries { assert ! firm.clients.none? }
+    assert_no_queries { assert_not firm.clients.none? }
   end
 
   def test_calling_none_should_defer_to_collection_if_using_a_block
@@ -2044,7 +2044,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_one_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
     firm.clients.load  # force load
-    assert_no_queries { assert ! firm.clients.one? }
+    assert_no_queries { assert_not firm.clients.one? }
   end
 
   def test_calling_one_should_defer_to_collection_if_using_a_block

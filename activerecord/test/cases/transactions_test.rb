@@ -159,7 +159,7 @@ class TransactionTest < ActiveRecord::TestCase
     def @first.before_save_for_transaction
       raise ActiveRecord::Rollback
     end
-    assert !@first.approved
+    assert_not @first.approved
 
     Topic.transaction do
       @first.approved = true
@@ -194,7 +194,7 @@ class TransactionTest < ActiveRecord::TestCase
     posts_count = author.posts.size
     assert posts_count > 0
     status = author.update(name: nil, post_ids: [])
-    assert !status
+    assert_not status
     assert_equal posts_count, author.posts.reload.size
   end
 
@@ -212,7 +212,7 @@ class TransactionTest < ActiveRecord::TestCase
     add_cancelling_before_destroy_with_db_side_effect_to_topic @first
     nbooks_before_destroy = Book.count
     status = @first.destroy
-    assert !status
+    assert_not status
     @first.reload
     assert_equal nbooks_before_destroy, Book.count
   end
@@ -224,7 +224,7 @@ class TransactionTest < ActiveRecord::TestCase
       original_author_name = @first.author_name
       @first.author_name += "_this_should_not_end_up_in_the_db"
       status = @first.save
-      assert !status
+      assert_not status
       assert_equal original_author_name, @first.reload.author_name
       assert_equal nbooks_before_save, Book.count
     end

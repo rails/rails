@@ -17,7 +17,7 @@ class LengthValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association
     assert_nothing_raised { @owner.validates_size_of :pets, minimum: 1 }
     o = @owner.new("name" => "nopets")
-    assert !o.save
+    assert_not o.save
     assert_predicate o.errors[:pets], :any?
     o.pets.build("name" => "apet")
     assert_predicate o, :valid?
@@ -26,21 +26,21 @@ class LengthValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association_using_within
     assert_nothing_raised { @owner.validates_size_of :pets, within: 1..2 }
     o = @owner.new("name" => "nopets")
-    assert !o.save
+    assert_not o.save
     assert_predicate o.errors[:pets], :any?
 
     o.pets.build("name" => "apet")
     assert_predicate o, :valid?
 
     2.times { o.pets.build("name" => "apet") }
-    assert !o.save
+    assert_not o.save
     assert_predicate o.errors[:pets], :any?
   end
 
   def test_validates_size_of_association_utf8
     @owner.validates_size_of :pets, minimum: 1
     o = @owner.new("name" => "あいうえおかきくけこ")
-    assert !o.save
+    assert_not o.save
     assert_predicate o.errors[:pets], :any?
     o.pets.build("name" => "あいうえおかきくけこ")
     assert_predicate o, :valid?

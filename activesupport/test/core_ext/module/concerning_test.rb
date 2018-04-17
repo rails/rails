@@ -21,7 +21,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
 
     # Declares a concern but doesn't include it
     assert klass.const_defined?(:Baz, false)
-    assert !ModuleConcernTest.const_defined?(:Baz)
+    assert_not ModuleConcernTest.const_defined?(:Baz)
     assert_kind_of ActiveSupport::Concern, klass::Baz
     assert_not_includes klass.ancestors, klass::Baz, klass.ancestors.inspect
 

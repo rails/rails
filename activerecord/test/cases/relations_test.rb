@@ -511,7 +511,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_readonly_option
-    Developer.all.each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert_not d.readonly? }
     Developer.all.readonly.each { |d| assert d.readonly? }
   end
 
@@ -1097,7 +1097,7 @@ class RelationTest < ActiveRecord::TestCase
       assert_not_predicate posts.where(id: nil), :any?
 
       assert posts.any? { |p| p.id > 0 }
-      assert ! posts.any? { |p| p.id <= 0 }
+      assert_not posts.any? { |p| p.id <= 0 }
     end
 
     assert_predicate posts, :loaded?
@@ -1109,7 +1109,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
       assert posts.many? { |p| p.id > 0 }
-      assert ! posts.many? { |p| p.id < 2 }
+      assert_not posts.many? { |p| p.id < 2 }
     end
 
     assert_predicate posts, :loaded?
@@ -1125,14 +1125,14 @@ class RelationTest < ActiveRecord::TestCase
   def test_none?
     posts = Post.all
     assert_queries(1) do
-      assert ! posts.none? # Uses COUNT()
+      assert_not posts.none? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
       assert posts.none? { |p| p.id < 0 }
-      assert ! posts.none? { |p| p.id == 1 }
+      assert_not posts.none? { |p| p.id == 1 }
     end
 
     assert_predicate posts, :loaded?
@@ -1141,13 +1141,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_one
     posts = Post.all
     assert_queries(1) do
-      assert ! posts.one? # Uses COUNT()
+      assert_not posts.one? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
-      assert ! posts.one? { |p| p.id < 3 }
+      assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
     end
 
@@ -1696,7 +1696,7 @@ class RelationTest < ActiveRecord::TestCase
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
     assert_no_queries { assert topics.present? }
-    assert_no_queries { assert !topics.blank? }
+    assert_no_queries { assert_not topics.blank? }
 
     # shows count of topics and loops after loading the query should not trigger extra queries either.
     assert_no_queries { topics.size }

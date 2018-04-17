@@ -104,7 +104,7 @@ class MemoryStorePruningTest < ActiveSupport::TestCase
     assert @cache.exist?(4)
     assert @cache.exist?(3)
     assert @cache.exist?(2)
-    assert !@cache.exist?(1)
+    assert_not @cache.exist?(1)
   end
 
   def test_write_with_unless_exist
