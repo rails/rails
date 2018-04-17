@@ -279,7 +279,8 @@ module ActiveSupport
 
         def zones_map
           @zones_map ||= MAPPING.each_with_object({}) do |(name, _), zones|
-            zones[name] = self[name]
+            timezone = self[name]
+            zones[name] = timezone if timezone
           end
         end
     end
