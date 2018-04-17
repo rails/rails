@@ -436,7 +436,7 @@ module ActiveSupport
 
         def failsafe(method, returning: nil)
           yield
-        rescue ::Redis::BaseConnectionError => e
+        rescue ::Redis::BaseConnectionError, SocketError => e
           handle_exception exception: e, method: method, returning: returning
           returning
         end
