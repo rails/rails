@@ -1,10 +1,10 @@
 require "active_support/core_ext/date_and_time/compatibility"
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 
 class DateTime
   include DateAndTime::Compatibility
 
-  remove_possible_method :to_time
+  silence_redefinition_of_method :to_time
 
   # Either return an instance of `Time` with the same UTC offset
   # as +self+ or an instance of `Time` representing the same time

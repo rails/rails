@@ -1,6 +1,7 @@
 require "action_dispatch/journey"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/hash/slice"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/array/extract_options"
 require "action_controller/metal/exceptions"
@@ -561,7 +562,7 @@ module ActionDispatch
 
           # plus a singleton class method called _routes ...
           included do
-            singleton_class.send(:redefine_method, :_routes) { routes }
+            redefine_singleton_method(:_routes) { routes }
           end
 
           # And an instance method _routes. Note that

@@ -1,3 +1,4 @@
+require "active_support/core_ext/module/redefine_method"
 module ActionCable
   # If you need to disconnect a given connection, you can go through the
   # RemoteConnections. You can find the connections you're looking for by
@@ -45,7 +46,7 @@ module ActionCable
         end
 
         # Returns all the identifiers that were applied to this connection.
-        def identifiers
+        redefine_method :identifiers do
           server.connection_identifiers
         end
 

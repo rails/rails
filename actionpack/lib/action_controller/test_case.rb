@@ -2,6 +2,7 @@ require "rack/session/abstract/id"
 require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/keys"
 require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
@@ -17,7 +18,7 @@ module ActionController
     # the database on the main thread, so they could open a txn, then the
     # controller thread will open a new connection and try to access data
     # that's only visible to the main thread's txn. This is the problem in #23483.
-    remove_method :new_controller_thread
+    silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
     end

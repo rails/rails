@@ -1,5 +1,5 @@
 require "action_view/rendering"
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 
 module ActionView
   # Layouts reverse the common pattern of including shared headers and footers in many templates to isolate changes in
@@ -277,7 +277,7 @@ module ActionView
       # If a layout is not explicitly mentioned then look for a layout with the controller's name.
       # if nothing is found then try same procedure to find super class's layout.
       def _write_layout_method # :nodoc:
-        remove_possible_method(:_layout)
+        silence_redefinition_of_method(:_layout)
 
         prefixes = /\blayouts/.match?(_implied_layout_name) ? [] : ["layouts"]
         default_behavior = "lookup_context.find_all('#{_implied_layout_name}', #{prefixes.inspect}, false, [], { formats: formats }).first || super"
