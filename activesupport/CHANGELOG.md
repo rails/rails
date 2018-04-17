@@ -1,3 +1,8 @@
+*   Redis cache store: `delete_matched` no longer blocks the Redis server.
+    (Switches from evaled Lua to a batched SCAN + DEL loop.)
+
+    *Gleb Mazovetskiy*
+
 *   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
     size when compression is enabled (which is true by default). This patch
     does not attempt to repair existing data: please manually flush the cache
