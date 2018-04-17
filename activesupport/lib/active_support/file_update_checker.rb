@@ -44,7 +44,7 @@ module ActiveSupport
         raise ArgumentError, "A block is required to initialize a FileUpdateChecker"
       end
 
-      @files = files.freeze
+      @files = files.dup.freeze
       @glob  = compile_glob(dirs)
       @block = block
 
