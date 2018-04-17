@@ -63,8 +63,9 @@ module ActiveSupport
         end
       end
 
-      DELETE_GLOB_LUA = "for i, name in ipairs(redis.call('KEYS', ARGV[1])) do redis.call('DEL', name); end"
-      private_constant :DELETE_GLOB_LUA
+      # The maximum number of entries to receive per SCAN call.
+      SCAN_BATCH_SIZE = 1000
+      private_constant :SCAN_BATCH_SIZE
 
       # Support raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
@@ -232,11 +233,17 @@ module ActiveSupport
       # Failsafe: Raises errors.
       def delete_matched(matcher, options = nil)
         instrument :delete_matched, matcher do
-          case matcher
-          when String
-            redis.with { |c| c.eval DELETE_GLOB_LUA, [], [namespace_key(matcher, options)] }
-          else
+          unless String === matcher
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
+          end
+          redis.with do |c|
+            pattern = namespace_key(matcher, options)
+            cursor = "0"
+            # Fetch keys in batches using SCAN to avoid blocking the Redis server.
+            begin
+              cursor, keys = c.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
+              c.del(*keys) unless keys.empty?
+            end until cursor == "0"
           end
         end
       end

@@ -1,3 +1,8 @@
+*   Redis cache store: `delete_matched` no longer blocks the Redis server.
+    (Switches from evaled Lua to a batched SCAN + DEL loop.)
+
+    *Gleb Mazovetskiy*
+
 *   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::MAPPING` is missing.
 
