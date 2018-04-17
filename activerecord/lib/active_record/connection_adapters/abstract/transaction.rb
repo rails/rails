@@ -75,7 +75,6 @@ module ActiveRecord
 
     class Transaction #:nodoc:
       attr_reader :connection, :state, :records, :savepoint_name
-      attr_writer :joinable
 
       def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
