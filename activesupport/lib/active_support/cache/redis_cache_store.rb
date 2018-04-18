@@ -237,12 +237,12 @@ module ActiveSupport
           end
           redis.with do |c|
             pattern = namespace_key(matcher, options)
-            start = "0"
+            cursor = "0"
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
             begin
-              start, keys = c.scan(start, match: pattern, count: SCAN_BATCH_SIZE)
+              cursor, keys = c.scan(cursor, match: pattern, count: SCAN_BATCH_SIZE)
               c.del(*keys) unless keys.empty?
-            end until start == "0"
+            end until cursor == "0"
           end
         end
       end
