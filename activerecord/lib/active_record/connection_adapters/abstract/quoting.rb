@@ -131,7 +131,7 @@ module ActiveRecord
 
       def quoted_time(value) # :nodoc:
         value = value.change(year: 2000, month: 1, day: 1)
-        quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "")
+        quoted_date(value).slice(11..-1)
       end
 
       def quoted_binary(value) # :nodoc:

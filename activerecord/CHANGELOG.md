@@ -1,3 +1,7 @@
+*   Normalize the date component to account for DST.
+
+    *Sean Prashad*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*
