@@ -236,14 +236,13 @@ module ActiveSupport
             raise ArgumentError, "Only Redis glob strings are supported: #{matcher.inspect}"
           end
           redis.with do |c|
-            start = "0"
             pattern = namespace_key(matcher, options)
+            start = "0"
             # Fetch keys in batches using SCAN to avoid blocking the Redis server.
-            while true
+            begin
               start, keys = c.scan(start, match: pattern, count: SCAN_BATCH_SIZE)
               c.del(*keys) unless keys.empty?
-              break if start == "0"
-            end
+            end until start == "0"
           end
         end
       end
