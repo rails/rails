@@ -690,7 +690,7 @@ System Testing
 --------------
 
 System tests allow you to test user interactions with your application, running tests
-in either a real or a headless browser. System tests uses Capybara under the hood.
+in either a real or a headless browser. System tests use Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
