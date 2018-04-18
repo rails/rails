@@ -1,3 +1,9 @@
+*   Output only one Content-Security-Policy nonce header value per request.
+
+    Fixes #35297.
+
+    *Andrey Novikov*, *Andrew White*
+
 *   Only disable GPUs for headless Chrome on Windows.
 
     It is not necessary anymore for Linux and macOS machines.

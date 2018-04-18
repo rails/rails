@@ -21,13 +21,8 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
-          if policy.directives["script-src"]
-            if nonce = request.content_security_policy_nonce
-              policy.directives["script-src"] << "'nonce-#{nonce}'"
-            end
-          end
-
-          headers[header_name(request)] = policy.build(request.controller_instance)
+          nonce = request.content_security_policy_nonce
+          headers[header_name(request)] = policy.build(request.controller_instance, nonce)
         end
 
         response
@@ -136,7 +131,9 @@ module ActionDispatch #:nodoc:
       worker_src:      "worker-src"
     }.freeze
 
-    private_constant :MAPPINGS, :DIRECTIVES
+    NONCE_DIRECTIVES = %w[script-src].freeze
+
+    private_constant :MAPPINGS, :DIRECTIVES, :NONCE_DIRECTIVES
 
     attr_reader :directives
 
@@ -205,8 +202,8 @@ module ActionDispatch #:nodoc:
       end
     end
 
-    def build(context = nil)
-      build_directives(context).compact.join("; ")
+    def build(context = nil, nonce = nil)
+      build_directives(context, nonce).compact.join("; ")
     end
 
     private
@@ -229,10 +226,14 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build_directives(context)
+      def build_directives(context, nonce)
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
-            "#{directive} #{build_directive(sources, context).join(' ')}"
+            if nonce && nonce_directive?(directive)
+              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+            else
+              "#{directive} #{build_directive(sources, context).join(' ')}"
+            end
           elsif sources
             directive
           else
@@ -260,6 +261,10 @@ module ActionDispatch #:nodoc:
         else
           raise RuntimeError, "Unexpected content security policy source: #{source.inspect}"
         end
+      end
+
+      def nonce_directive?(directive)
+        NONCE_DIRECTIVES.include?(directive)
       end
   end
 end
