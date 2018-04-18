@@ -1,6 +1,6 @@
 *   Output only one Content-Security-Policy nonce header value per request.
 
-    Fixes [#35297](https://github.com/rails/rails/issues/32597).
+    Fixes #35297.
 
     *Andrey Novikov*, *Andrew White*
 
