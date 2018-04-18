@@ -1,3 +1,8 @@
+*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
+    use loaded association ids if present.
+
+    *Graham Turner*
+
 *   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
 
     *Dana Sherson*
