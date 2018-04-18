@@ -21,7 +21,8 @@ module ActionDispatch #:nodoc:
         return response if policy_present?(headers)
 
         if policy = request.content_security_policy
-          headers[header_name(request)] = policy.build(request)
+          nonce = request.content_security_policy_nonce
+          headers[header_name(request)] = policy.build(request.controller_instance, nonce)
         end
 
         response
@@ -95,14 +96,6 @@ module ActionDispatch #:nodoc:
         end
     end
 
-    class NonceGenerator
-      def call(request)
-        if nonce = request&.content_security_policy_nonce
-          "'nonce-#{nonce}'"
-        end
-      end
-    end
-
     MAPPINGS = {
       self:           "'self'",
       unsafe_eval:    "'unsafe-eval'",
@@ -133,12 +126,14 @@ module ActionDispatch #:nodoc:
       manifest_src:    "manifest-src",
       media_src:       "media-src",
       object_src:      "object-src",
-      # script_src handled differently
+      script_src:      "script-src",
       style_src:       "style-src",
       worker_src:      "worker-src"
     }.freeze
 
-    private_constant :MAPPINGS, :DIRECTIVES
+    NONCE_DIRECTIVES = %w[script-src].freeze
+
+    private_constant :MAPPINGS, :DIRECTIVES, :NONCE_DIRECTIVES
 
     attr_reader :directives
 
@@ -158,15 +153,6 @@ module ActionDispatch #:nodoc:
         else
           @directives.delete(directive)
         end
-      end
-    end
-
-    def script_src(*sources)
-      if sources.first
-        @directives["script-src"] = apply_mappings(sources)
-        @directives["script-src"] << NonceGenerator.new
-      else
-        @directives.delete("script-src")
       end
     end
 
@@ -216,8 +202,8 @@ module ActionDispatch #:nodoc:
       end
     end
 
-    def build(request = nil)
-      build_directives(request).compact.join("; ")
+    def build(context = nil, nonce = nil)
+      build_directives(context, nonce).compact.join("; ")
     end
 
     private
@@ -240,10 +226,15 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build_directives(request)
+      def build_directives(context, nonce)
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
-            "#{directive} #{build_directive(sources, request).compact.join(' ')}"
+            "#{directive} #{build_directive(sources, context).join(' ')}"
+            if nonce && nonce_directive?(directive)
+              "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
+            else
+              "#{directive} #{build_directive(sources, context).join(' ')}"
+            end
           elsif sources
             directive
           else
@@ -252,27 +243,29 @@ module ActionDispatch #:nodoc:
         end
       end
 
-      def build_directive(sources, request)
-        sources.map { |source| resolve_source(source, request) }
+      def build_directive(sources, context)
+        sources.map { |source| resolve_source(source, context) }
       end
 
-      def resolve_source(source, request)
+      def resolve_source(source, context)
         case source
         when String
           source
         when Symbol
           source.to_s
         when Proc
-          if request&.controller_instance.nil?
+          if context.nil?
             raise RuntimeError, "Missing context for the dynamic content security policy source: #{source.inspect}"
           else
-            request.controller_instance.instance_exec(&source)
+            context.instance_exec(&source)
           end
-        when NonceGenerator
-          source.call(request)
         else
           raise RuntimeError, "Unexpected content security policy source: #{source.inspect}"
         end
+      end
+
+      def nonce_directive?(directive)
+        NONCE_DIRECTIVES.include?(directive)
       end
   end
 end

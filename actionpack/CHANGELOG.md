@@ -2,7 +2,7 @@
 
     Fixes [#35297](https://github.com/rails/rails/issues/32597).
 
-    *Andrey Novikov*
+    *Andrey Novikov*, *Andrew White*
 
 *   Move default headers configuration into their own module that can be included in controllers.
 
