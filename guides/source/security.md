@@ -1182,6 +1182,12 @@ as part of `html_options`. Example:
 <% end -%>
 ```
 
+The same works with `javascript_include_tag`:
+
+```html+erb
+<%= javascript_include_tag "script", nonce: true %>
+```
+
 Use [`csp_meta_tag`](http://api.rubyonrails.org/classes/ActionView/Helpers/CspHelper.html#method-i-csp_meta_tag)
 helper to create a meta tag "csp-nonce" with the per-session nonce value
 for allowing inline `<script>` tags.
