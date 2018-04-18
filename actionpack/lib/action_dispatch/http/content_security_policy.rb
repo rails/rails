@@ -229,7 +229,6 @@ module ActionDispatch #:nodoc:
       def build_directives(context, nonce)
         @directives.map do |directive, sources|
           if sources.is_a?(Array)
-            "#{directive} #{build_directive(sources, context).join(' ')}"
             if nonce && nonce_directive?(directive)
               "#{directive} #{build_directive(sources, context).join(' ')} 'nonce-#{nonce}'"
             else
