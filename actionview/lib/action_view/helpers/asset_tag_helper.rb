@@ -55,6 +55,8 @@ module ActionView
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
+      # * <tt>:nonce<tt>  - When set to true, adds an automatic nonce value if
+      #   you have Content Security Policy enabled.
       #
       # ==== Examples
       #
@@ -79,6 +81,9 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js"
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", nonce: true
+      #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
@@ -90,6 +95,9 @@ module ActionView
           tag_options = {
             "src" => href
           }.merge!(options)
+          if tag_options["nonce"] == true
+            tag_options["nonce"] = content_security_policy_nonce
+          end
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
 

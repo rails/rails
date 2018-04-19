@@ -728,8 +728,8 @@ Rails.application.config.assets.precompile += %w( admin.js admin.css )
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The task also generates a `.sprockets-manifest-md5hash.json` (where `md5hash` is
-an MD5 hash) that contains a list with all your assets and their respective
+The task also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
+a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
 
