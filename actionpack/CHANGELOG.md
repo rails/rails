@@ -1,3 +1,14 @@
+*   Fix strong parameters `permit!` with nested arrays
+
+    Given:
+
+      params = ActionController::Parameters.new(nested_arrays: [[{ x: 2, y: 3 }, { x: 21, y: 42 }]])
+      params.permit!
+
+    `params[:nested_arrays][0][0].permitted?` will now return `true` instead of `false`.
+
+    *Steve Hull*
+
 *   Output only one Content-Security-Policy nonce header value per request.
 
     Fixes #32597.

@@ -375,7 +375,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        Array.wrap(value).each do |v|
+        Array.wrap(value).flatten.each do |v|
           v.permit! if v.respond_to? :permit!
         end
       end

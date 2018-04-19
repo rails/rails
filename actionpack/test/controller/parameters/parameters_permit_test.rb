@@ -353,12 +353,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "Jonas", @params[:person][:family][:brother]
   end
 
-  test "permit is recursive" do
+  test "permit! is recursive" do
+    @params[:nested_array] = [[{ x: 2, y: 3 }, { x: 21, y: 42 }]]
     @params.permit!
     assert_predicate @params, :permitted?
     assert_predicate @params[:person], :permitted?
     assert_predicate @params[:person][:name], :permitted?
     assert_predicate @params[:person][:addresses][0], :permitted?
+    assert_predicate @params[:nested_array][0][0], :permitted?
+    assert_predicate @params[:nested_array][0][1], :permitted?
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do
