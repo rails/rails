@@ -223,7 +223,7 @@ module ActiveRecord
         end
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "VALUES ()"
       end
 

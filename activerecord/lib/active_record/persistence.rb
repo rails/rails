@@ -178,7 +178,7 @@ module ActiveRecord
         end
 
         if values.empty?
-          im = arel_table.compile_insert(connection.empty_insert_statement_value)
+          im = arel_table.compile_insert(connection.empty_insert_statement_value(primary_key))
           im.into arel_table
         else
           im = arel_table.compile_insert(_substitute_values(values))
