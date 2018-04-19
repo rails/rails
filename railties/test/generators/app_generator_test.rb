@@ -941,6 +941,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_directory("test/system")
   end
 
+  unless Gem.win_platform?
+    def test_master_key_is_only_readable_by_the_owner
+      run_generator
+
+      stat = File.stat("config/master.key")
+      assert_equal "100600", sprintf("%o", stat.mode)
+    end
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root
