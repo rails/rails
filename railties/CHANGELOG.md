@@ -1,8 +1,26 @@
+*   Make the master.key file read-only for the owner upon generation on
+    POSIX-compliant systems.
+
+    Previously:
+
+        $ ls -l config/master.key
+        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
+
+    Now:
+
+        $ ls -l config/master.key
+        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
+
+    Fixes #32604.
+
+    *Jose Luis Duran*
+
 *   Allow use of `minitest-rails` gem with Rails test runner.
 
     Fixes #31324.
 
     *Yuji Yaginuma*
+
 
 ## Rails 5.2.0 (April 09, 2018) ##
 
