@@ -130,6 +130,22 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "Hello &lt;sc...", truncate("Hello <script>code!</script>World!!", length: 12)
   end
 
+  def test_truncate_should_always_escape_if_true
+    assert_equal "Hello &amp;gt; W...", truncate("Hello &gt; World!", :length => 15, :escape => true)
+  end
+
+  def test_truncate_should_not_escape_a_html_safe_input
+    assert_equal "Hello &gt; W...", truncate("Hello &gt; World!".html_safe, :length => 15)
+  end
+
+  def test_truncate_should_not_escape_an_umodified_html_safe_input
+    assert_equal "Hello &gt; World!", truncate("Hello &gt; World!".html_safe, :length => 30)
+  end
+
+  def test_truncate_should_escape_an_umodified_html_safe_input_if_escape_true
+    assert_equal "Hello &amp;gt; World!", truncate("Hello &gt; World!".html_safe, :length => 30, :escape => true)
+  end
+  
   def test_truncate_should_not_escape_the_input_with_escape_false
     assert_equal "Hello <sc...", truncate("Hello <script>code!</script>World!!", length: 12, escape: false)
   end
