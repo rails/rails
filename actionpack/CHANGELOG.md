@@ -1,6 +1,6 @@
 *   Output only one Content-Security-Policy nonce header value per request.
 
-    Fixes #35297.
+    Fixes #32597.
 
     *Andrey Novikov*, *Andrew White*
 
