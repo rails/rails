@@ -20,7 +20,7 @@ module ActiveModel
     private
       def sanitize_for_mass_assignment(attributes)
         if attributes.respond_to?(:permitted?)
-          raise ActiveModel::ForbiddenAttributesError if !attributes.permitted?
+          raise ActiveModel::ForbiddenAttributesError unless attributes.permitted?
           attributes.to_h
         else
           attributes
