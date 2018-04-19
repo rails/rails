@@ -1,9 +1,10 @@
-*   Fix strong parameters `permit!` with nested arrays
+*   Fix strong parameters `permit!` with nested arrays.
 
     Given:
-
-      params = ActionController::Parameters.new(nested_arrays: [[{ x: 2, y: 3 }, { x: 21, y: 42 }]])
-      params.permit!
+    ```
+    params = ActionController::Parameters.new(nested_arrays: [[{ x: 2, y: 3 }, { x: 21, y: 42 }]])
+    params.permit!
+    ```
 
     `params[:nested_arrays][0][0].permitted?` will now return `true` instead of `false`.
 
