@@ -725,7 +725,7 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes all_zones, galapagos
   end
 
-  def test_all_not_raises_exception_with_mizzing_tzinfo_data
+  def test_all_doesnt_raise_exception_with_missing_tzinfo_data
     mappings = {
       "Puerto Rico" => "America/Unknown",
       "Pittsburgh"  => "America/New_York"
