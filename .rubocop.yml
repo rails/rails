@@ -9,6 +9,7 @@ AllCops:
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
+    - 'railties/test/fixtures/tmp/**/*'
 
 # Prefer assert_not_x over refute_x
 CustomCops/RefuteNot:
