@@ -131,7 +131,7 @@ namespace :assets do
 end
 
 task :lines do
-  load File.join(File.expand_path("..", __dir__), "/tools/line_statistics")
+  load File.expand_path("../tools/line_statistics", __dir__)
   files = FileList["lib/**/*.rb"]
   CodeTools::LineStatistics.new(files).print_loc
 end
