@@ -732,7 +732,7 @@ class AssociationsJoinModelTest < ActiveRecord::TestCase
     category = Category.create!(name: "Not Associated")
 
     assert_not_predicate david.categories, :loaded?
-    assert ! david.categories.include?(category)
+    assert_not david.categories.include?(category)
   end
 
   def test_has_many_through_goes_through_all_sti_classes

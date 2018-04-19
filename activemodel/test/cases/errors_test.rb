@@ -207,26 +207,26 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? returns false when no errors are present" do
     person = Person.new
-    assert !person.errors.added?(:name)
+    assert_not person.errors.added?(:name)
   end
 
   test "added? returns false when checking a nonexisting error and other errors are present for the given attribute" do
     person = Person.new
     person.errors.add(:name, "is invalid")
-    assert !person.errors.added?(:name, "cannot be blank")
+    assert_not person.errors.added?(:name, "cannot be blank")
   end
 
   test "added? returns false when checking for an error, but not providing message arguments" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
-    assert !person.errors.added?(:name)
+    assert_not person.errors.added?(:name)
   end
 
   test "added? returns false when checking for an error by symbol and a different error with same message is present" do
     I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
     person = Person.new
     person.errors.add(:name, :wrong)
-    assert !person.errors.added?(:name, :used)
+    assert_not person.errors.added?(:name, :used)
   end
 
   test "size calculates the number of error messages" do

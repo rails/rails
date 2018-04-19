@@ -135,7 +135,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert !session1.equal?(session2)
+    assert_not session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into

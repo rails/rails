@@ -508,16 +508,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_considering_params
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(url_hash, check_parameters: true)
-    assert !current_page?(url_hash.merge(check_parameters: true))
-    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
-    assert !current_page?("http://www.example.com/", check_parameters: true)
+    assert_not current_page?(url_hash, check_parameters: true)
+    assert_not current_page?(url_hash.merge(check_parameters: true))
+    assert_not current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert_not current_page?("http://www.example.com/", check_parameters: true)
   end
 
   def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(:back, check_parameters: false)
+    assert_not current_page?(:back, check_parameters: false)
   end
 
   def test_current_page_with_params_that_match
@@ -562,7 +562,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_with_not_get_verb
     @request = request_for_url("/events", method: :post)
 
-    assert !current_page?("/events")
+    assert_not current_page?("/events")
   end
 
   def test_link_unless_current

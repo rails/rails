@@ -3166,7 +3166,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
-    assert !respond_to?(:routes_no_collision_path)
+    assert_not respond_to?(:routes_no_collision_path)
   end
 
   def test_controller_name_with_leading_slash_raise_error

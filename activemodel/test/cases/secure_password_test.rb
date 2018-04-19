@@ -187,7 +187,7 @@ class SecurePasswordTest < ActiveModel::TestCase
   test "authenticate" do
     @user.password = "secret"
 
-    assert !@user.authenticate("wrong")
+    assert_not @user.authenticate("wrong")
     assert @user.authenticate("secret")
   end
 

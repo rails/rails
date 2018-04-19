@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "support/cop_helper"
-require "./lib/custom_cops/refute_not"
+require_relative "../../lib/custom_cops/refute_not"
 
 class RefuteNotTest < ActiveSupport::TestCase
   include CopHelper
@@ -58,15 +58,6 @@ class RefuteNotTest < ActiveSupport::TestCase
   end
 
   private
-
-    def assert_offense(cop, expected_message)
-      assert_not_empty cop.offenses
-
-      offense = cop.offenses.first
-      carets = "^" * offense.column_length
-
-      assert_equal expected_message, "#{carets} #{offense.message}"
-    end
 
     def offense_message(refute_method, assert_method)
       carets = "^" * refute_method.to_s.length

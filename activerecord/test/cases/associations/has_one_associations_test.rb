@@ -452,7 +452,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_equal new_ship, pirate.ship
     assert_predicate new_ship, :new_record?
     assert_nil orig_ship.pirate_id
-    assert !orig_ship.changed? # check it was saved
+    assert_not orig_ship.changed? # check it was saved
   end
 
   def test_creation_failure_with_dependent_option

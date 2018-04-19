@@ -229,7 +229,7 @@ module ApplicationTests
 
     def test_rake_clear_schema_cache
       rails "db:schema:cache:dump", "db:schema:cache:clear"
-      assert !File.exist?(File.join(app_path, "db", "schema_cache.yml"))
+      assert_not File.exist?(File.join(app_path, "db", "schema_cache.yml"))
     end
 
     def test_copy_templates

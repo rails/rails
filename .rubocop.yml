@@ -16,6 +16,11 @@ CustomCops/RefuteNot:
   Include:
     - '**/*_test.rb'
 
+# Prefer assert_not over assert !
+CustomCops/AssertNot:
+  Include:
+    - '**/*_test.rb'
+
 # Prefer &&/|| over and/or.
 Style/AndOr:
   Enabled: true

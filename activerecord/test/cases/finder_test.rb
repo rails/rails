@@ -727,8 +727,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveModel::MissingAttributeError) { topic.title? }
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
-    assert !topic.attribute_present?("title")
-    assert !topic.attribute_present?(:title)
+    assert_not topic.attribute_present?("title")
+    assert_not topic.attribute_present?(:title)
     assert topic.attribute_present?("author_name")
     assert_respond_to topic, "author_name"
   end

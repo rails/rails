@@ -215,7 +215,7 @@ module ActiveRecord
       migration = InvertibleMigration.new
       migration.migrate :up
       migration.migrate :down
-      assert !migration.connection.table_exists?("horses")
+      assert_not migration.connection.table_exists?("horses")
     end
 
     def test_migrate_revert
@@ -223,11 +223,11 @@ module ActiveRecord
       revert = InvertibleRevertMigration.new
       migration.migrate :up
       revert.migrate :up
-      assert !migration.connection.table_exists?("horses")
+      assert_not migration.connection.table_exists?("horses")
       revert.migrate :down
       assert migration.connection.table_exists?("horses")
       migration.migrate :down
-      assert !migration.connection.table_exists?("horses")
+      assert_not migration.connection.table_exists?("horses")
     end
 
     def test_migrate_revert_by_part
@@ -241,12 +241,12 @@ module ActiveRecord
       }
       migration.migrate :up
       assert_equal [:both, :up], received
-      assert !migration.connection.table_exists?("horses")
+      assert_not migration.connection.table_exists?("horses")
       assert migration.connection.table_exists?("new_horses")
       migration.migrate :down
       assert_equal [:both, :up, :both, :down], received
       assert migration.connection.table_exists?("horses")
-      assert !migration.connection.table_exists?("new_horses")
+      assert_not migration.connection.table_exists?("new_horses")
     end
 
     def test_migrate_revert_whole_migration
@@ -255,11 +255,11 @@ module ActiveRecord
         revert = RevertWholeMigration.new(klass)
         migration.migrate :up
         revert.migrate :up
-        assert !migration.connection.table_exists?("horses")
+        assert_not migration.connection.table_exists?("horses")
         revert.migrate :down
         assert migration.connection.table_exists?("horses")
         migration.migrate :down
-        assert !migration.connection.table_exists?("horses")
+        assert_not migration.connection.table_exists?("horses")
       end
     end
 
@@ -268,7 +268,7 @@ module ActiveRecord
       revert.migrate :down
       assert revert.connection.table_exists?("horses")
       revert.migrate :up
-      assert !revert.connection.table_exists?("horses")
+      assert_not revert.connection.table_exists?("horses")
     end
 
     def test_migrate_revert_change_column_default
@@ -402,7 +402,7 @@ module ActiveRecord
 
       UpOnlyMigration.new.migrate(:down) # should be no error
       connection = ActiveRecord::Base.connection
-      assert !connection.column_exists?(:horses, :oldie)
+      assert_not connection.column_exists?(:horses, :oldie)
       Horse.reset_column_information
     end
   end

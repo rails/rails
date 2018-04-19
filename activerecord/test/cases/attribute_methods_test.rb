@@ -63,8 +63,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
-    assert !t.attribute_present?("content")
-    assert !t.attribute_present?("author_name")
+    assert_not t.attribute_present?("content")
+    assert_not t.attribute_present?("author_name")
   end
 
   test "attribute_present with booleans" do
@@ -77,7 +77,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert b2.attribute_present?(:value)
 
     b3 = Boolean.new
-    assert !b3.attribute_present?(:value)
+    assert_not b3.attribute_present?(:value)
 
     b4 = Boolean.new
     b4.value = false
@@ -827,7 +827,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       self.table_name = "computers"
     end
 
-    assert !klass.instance_method_already_implemented?(:system)
+    assert_not klass.instance_method_already_implemented?(:system)
     computer = klass.new
     assert_nil computer.system
   end
@@ -841,8 +841,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       self.table_name = "computers"
     end
 
-    assert !klass.instance_method_already_implemented?(:system)
-    assert !subklass.instance_method_already_implemented?(:system)
+    assert_not klass.instance_method_already_implemented?(:system)
+    assert_not subklass.instance_method_already_implemented?(:system)
     computer = subklass.new
     assert_nil computer.system
   end

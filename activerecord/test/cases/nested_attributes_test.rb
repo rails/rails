@@ -83,7 +83,7 @@ class TestNestedAttributesInGeneral < ActiveRecord::TestCase
 
   def test_a_model_should_respond_to_underscore_destroy_and_return_if_it_is_marked_for_destruction
     ship = Ship.create!(name: "Nights Dirty Lightning")
-    assert !ship._destroy
+    assert_not ship._destroy
     ship.mark_for_destruction
     assert ship._destroy
   end
@@ -835,7 +835,7 @@ module NestedAttributesOnACollectionAssociationTests
       man = Man.create(name: "John")
       interest = man.interests.create(topic: "bar", zine_id: 0)
       assert interest.save
-      assert !man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
+      assert_not man.update(interests_attributes: { id: interest.id, zine_id: "foo" })
     end
   end
 

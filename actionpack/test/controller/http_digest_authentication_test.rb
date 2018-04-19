@@ -202,7 +202,7 @@ class HttpDigestAuthenticationTest < ActionController::TestCase
 
   test "validate_digest_response should fail with nil returning password_procedure" do
     @request.env["HTTP_AUTHORIZATION"] = encode_credentials(username: nil, password: nil)
-    assert !ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret") { nil }
+    assert_not ActionController::HttpAuthentication::Digest.validate_digest_response(@request, "SuperSecret") { nil }
   end
 
   test "authentication request with request-uri ending in '/'" do

@@ -270,9 +270,9 @@ module Notifications
       parent.children << child
 
       assert parent.parent_of?(child)
-      assert !child.parent_of?(parent)
-      assert !parent.parent_of?(not_child)
-      assert !not_child.parent_of?(parent)
+      assert_not child.parent_of?(parent)
+      assert_not parent.parent_of?(not_child)
+      assert_not not_child.parent_of?(parent)
     end
 
     private

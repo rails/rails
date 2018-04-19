@@ -548,7 +548,7 @@ class MigrationTest < ActiveRecord::TestCase
       end
       assert Person.connection.column_exists?(:something, :foo)
       assert_nothing_raised { Person.connection.remove_column :something, :foo, :bar }
-      assert !Person.connection.column_exists?(:something, :foo)
+      assert_not Person.connection.column_exists?(:something, :foo)
       assert Person.connection.column_exists?(:something, :name)
       assert Person.connection.column_exists?(:something, :number)
     ensure
@@ -822,7 +822,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       end
 
-      [:qualification, :experience].each { |c| assert ! column(c) }
+      [:qualification, :experience].each { |c| assert_not column(c) }
       assert column(:qualification_experience)
     end
 
@@ -852,7 +852,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
 
       name_age_index = index(:index_delete_me_on_name_and_age)
       assert_equal ["name", "age"].sort, name_age_index.columns.sort
-      assert ! name_age_index.unique
+      assert_not name_age_index.unique
 
       assert index(:awesome_username_index).unique
     end
@@ -880,7 +880,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         end
       end
 
-      assert ! index(:index_delete_me_on_name)
+      assert_not index(:index_delete_me_on_name)
 
       new_name_index = index(:new_name_index)
       assert new_name_index.unique
@@ -892,7 +892,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
         t.date :birthdate
       end
 
-      assert ! column(:name).default
+      assert_not column(:name).default
       assert_equal :date, column(:birthdate).type
 
       classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]

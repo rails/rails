@@ -86,7 +86,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_are_composable
     assert_equal((approved = Topic.all.merge!(where: { approved: true }).to_a), Topic.approved)
     assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
-    assert !(approved == replied)
+    assert_not (approved == replied)
     assert_not_empty (approved & replied)
 
     assert_equal approved & replied, Topic.approved.replied

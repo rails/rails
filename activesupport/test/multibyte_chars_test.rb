@@ -75,7 +75,7 @@ class MultibyteCharsTest < ActiveSupport::TestCase
   def test_consumes_utf8_strings
     assert @proxy_class.consumes?(UNICODE_STRING)
     assert @proxy_class.consumes?(ASCII_STRING)
-    assert !@proxy_class.consumes?(BYTE_STRING)
+    assert_not @proxy_class.consumes?(BYTE_STRING)
   end
 
   def test_concatenation_should_return_a_proxy_class_instance
@@ -148,7 +148,7 @@ class MultibyteCharsUTF8BehaviourTest < ActiveSupport::TestCase
   def test_identity
     assert_equal @chars, @chars
     assert @chars.eql?(@chars)
-    assert !@chars.eql?(UNICODE_STRING)
+    assert_not @chars.eql?(UNICODE_STRING)
   end
 
   def test_string_methods_are_chainable

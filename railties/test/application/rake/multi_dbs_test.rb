@@ -26,7 +26,7 @@ module ApplicationTests
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_match_namespace(namespace, output)
-          assert !File.exist?(expected_database)
+          assert_not File.exist?(expected_database)
         end
       end
 
@@ -40,7 +40,7 @@ module ApplicationTests
           output = rails("db:drop:#{namespace}")
           assert_match(/Dropped database/, output)
           assert_match_namespace(namespace, output)
-          assert !File.exist?(expected_database)
+          assert_not File.exist?(expected_database)
         end
       end
 
