@@ -1,4 +1,8 @@
-*   Add `ActiveRecord::Base.base_class?` predicate.
+*   Fix relation merging with skip_query_cache!
+
+    *James Williams*
+
+*    Add `ActiveRecord::Base.base_class?` predicate.
 
     *Bogdan Gusiev*
 
