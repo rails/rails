@@ -1,3 +1,9 @@
+*   Fix relation merging when one of the relations is going to skip the
+    query cache.
+
+    *James Williams*
+
+
 ## Rails 5.2.0 (April 09, 2018) ##
 
 *   MySQL: Support mysql2 0.5.x.

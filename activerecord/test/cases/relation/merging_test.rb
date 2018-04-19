@@ -78,6 +78,10 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal 1, comments.count
   end
 
+  def test_relation_merging_with_skip_query_cache
+    assert_equal Post.all.merge(Post.all.skip_query_cache!).skip_query_cache_value, true
+  end
+
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
       post = Post.where(body: "Such a lovely day").first
