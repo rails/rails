@@ -1,3 +1,8 @@
+*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+    any timezone defined in `ActiveSupport::MAPPING` is missing.
+
+    *Dominik Sander*
+
 *   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
     size when compression is enabled (which is true by default). This patch
     does not attempt to repair existing data: please manually flush the cache
