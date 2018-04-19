@@ -15,11 +15,11 @@ application into three layers: Model, View, and Controller, each with a specific
 The <em><b>Model layer</b></em> represents the domain model (such as Account, Product,
 Person, Post, etc.) and encapsulates the business logic specific to
 your application. In \Rails, database-backed model classes are derived from
-<tt>ActiveRecord::Base</tt>. {Active Record}[link:../activerecord/README.rdoc] allows you to present the data from
+<tt>ActiveRecord::Base</tt>. {Active Record}[link:files/activerecord/README_rdoc.html] allows you to present the data from
 database rows as objects and embellish these data objects with business logic
 methods. Although most \Rails models are backed by a database, models can also be ordinary
 Ruby classes, or Ruby classes that implement a set of interfaces as provided by
-the {Active Model}[link:../activemodel/README.rdoc] module.
+the {Active Model}[link:files/activemodel/README_rdoc.html] module.
 
 == Controller layer
 
@@ -29,7 +29,7 @@ can also generate XML, JSON, PDFs, mobile-specific views, and more. Controllers 
 manipulate models, and render view templates in order to generate the appropriate HTTP response.
 In \Rails, incoming requests are routed by Action Dispatch to an appropriate controller, and
 controller classes are derived from <tt>ActionController::Base</tt>. Action Dispatch and Action Controller
-are bundled together in {Action Pack}[link:../actionpack/README.rdoc].
+are bundled together in {Action Pack}[link:files/actionpack/README_rdoc.html].
 
 == View layer
 
@@ -37,19 +37,19 @@ The <em><b>View layer</b></em> is composed of "templates" that are responsible f
 appropriate representations of your application's resources. Templates can
 come in a variety of formats, but most view templates are \HTML with embedded
 Ruby code (ERB files). Views are typically rendered to generate a controller response,
-or to generate the body of an email. In \Rails, View generation is handled by {Action View}[link:../actionview/README.rdoc].
+or to generate the body of an email. In \Rails, View generation is handled by {Action View}[link:files/actionview/README_rdoc.html].
 
 == Frameworks and libraries
 
-{Active Record}[link:../activerecord/README.rdoc], {Active Model}[link:../activemodel/README.rdoc],
-{Action Pack}[link:../actionpack/README.rdoc], and {Action View}[link:../actionview/README.rdoc] can each be used independently outside \Rails.
-In addition to that, \Rails also comes with {Action Mailer}[link:../actionmailer/README.rdoc], a library
-to generate and send emails; {Active Job}[link:../activejob/README.md], a
+{Active Record}[link:files/activerecord/README_rdoc.html], {Active Model}[link:files/activemodel/README_rdoc.html],
+{Action Pack}[link:files/actionpack/README_rdoc.html], and {Action View}[link:files/actionview/README_rdoc.html] can each be used independently outside \Rails.
+In addition to that, \Rails also comes with {Action Mailer}[link:files/actionmailer/README_rdoc.html], a library
+to generate and send emails; {Active Job}[link:files/activejob/README_md.html], a
 framework for declaring jobs and making them run on a variety of queueing
-backends; {Action Cable}[link:../actioncable/README.md], a framework to
-integrate WebSockets with a \Rails application; {Active Storage}[link:../activestorage/README.md],
+backends; {Action Cable}[link:files/actioncable/README_md.html], a framework to
+integrate WebSockets with a \Rails application; {Active Storage}[link:files/activestorage/README_md.html],
 a library to attach cloud and local files to \Rails applications;
-and {Active Support}[link:../activesupport/README.rdoc], a collection
+and {Active Support}[link:files/activesupport/README_rdoc.html], a collection
 of utility classes and standard library extensions that are useful for \Rails,
 and may also be used independently outside \Rails.
 
