@@ -894,8 +894,8 @@ module ActiveRecord
       self
     end
 
-    def skip_query_cache! # :nodoc:
-      self.skip_query_cache_value = true
+    def skip_query_cache!(value = true) # :nodoc:
+      self.skip_query_cache_value = value
       self
     end
 
