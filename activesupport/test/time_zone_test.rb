@@ -725,6 +725,21 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_not_includes all_zones, galapagos
   end
 
+  def test_all_not_raises_exception_with_mizzing_tzinfo_data
+    mappings = {
+      "Puerto Rico" => "America/Unknown",
+      "Pittsburgh"  => "America/New_York"
+    }
+
+    with_tz_mappings(mappings) do
+      assert_nil ActiveSupport::TimeZone["Puerto Rico"]
+      assert_nil ActiveSupport::TimeZone[-9]
+      assert_nothing_raised do
+        ActiveSupport::TimeZone.all
+      end
+    end
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
