@@ -187,7 +187,7 @@ module ActiveRecord
 
             # def active?() status == "active" end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}?")
-            define_method("#{value_method_name}?") { self[attr] == label }
+            define_method("#{value_method_name}?") { self.try(attr) == label }
 
             # def active!() update!(status: 0) end
             klass.send(:detect_enum_conflict!, name, "#{value_method_name}!")
