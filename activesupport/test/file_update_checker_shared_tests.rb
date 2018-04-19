@@ -30,7 +30,7 @@ module FileUpdateCheckerSharedTests
 
     checker = new_checker { i += 1 }
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -41,7 +41,7 @@ module FileUpdateCheckerSharedTests
 
     checker = new_checker(tmpfiles) { i += 1 }
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -212,7 +212,7 @@ module FileUpdateCheckerSharedTests
     touch(tmpfile("foo.rb"))
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -238,7 +238,7 @@ module FileUpdateCheckerSharedTests
     mkdir(subdir)
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
 
     touch(File.join(subdir, "nested.rb"))
@@ -259,7 +259,7 @@ module FileUpdateCheckerSharedTests
     touch(tmpfile("new.txt"))
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent tmpdir does.

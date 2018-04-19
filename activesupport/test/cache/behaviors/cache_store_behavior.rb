@@ -33,7 +33,7 @@ module CacheStoreBehavior
 
     cache_miss = false
     assert_equal 3, @cache.fetch("foo") { |key| cache_miss = true; key.length }
-    assert !cache_miss
+    assert_not cache_miss
   end
 
   def test_fetch_with_forced_cache_miss
@@ -308,7 +308,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar")
     assert @cache.exist?("foo")
     assert @cache.delete("foo")
-    assert !@cache.exist?("foo")
+    assert_not @cache.exist?("foo")
   end
 
   def test_original_store_objects_should_not_be_immutable
