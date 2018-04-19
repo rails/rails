@@ -1,1 +1,1 @@
-<%= RUBY_VERSION -%>
+<%= ENV["RBENV_VERSION"] || ENV["rvm_ruby_string"] || RUBY_VERSION -%>
