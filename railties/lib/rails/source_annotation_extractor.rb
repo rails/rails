@@ -29,7 +29,7 @@ module Rails
       end
 
       # Registers additional directories to be included
-      #   SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
+      #   Rails::SourceAnnotationExtractor::Annotation.register_directories("spec", "another")
       def self.register_directories(*dirs)
         directories.push(*dirs)
       end
@@ -39,7 +39,7 @@ module Rails
       end
 
       # Registers new Annotations File Extensions
-      #   SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
+      #   Rails::SourceAnnotationExtractor::Annotation.register_extensions("css", "scss", "sass", "less", "js") { |tag| /\/\/\s*(#{tag}):?\s*(.*)$/ }
       def self.register_extensions(*exts, &block)
         extensions[/\.(#{exts.join("|")})$/] = block
       end
@@ -69,7 +69,7 @@ module Rails
     #
     # Directories may also be explicitly set using the <tt>:dirs</tt> key in +options+.
     #
-    #   SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
+    #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
     #
     # If +options+ has a <tt>:tag</tt> flag, it will be passed to each annotation's +to_s+.
     #
@@ -95,9 +95,9 @@ module Rails
     end
 
     # Returns a hash that maps filenames under +dir+ (recursively) to arrays
-    # with their annotations. Only files with annotations are included. Files
-    # with extension +.builder+, +.rb+, +.rake+, +.yml+, +.yaml+, +.ruby+,
-    # +.css+, +.js+ and +.erb+ are taken into account.
+    # with their annotations. Files with extensions registered in
+    # <tt>Rails::SourceAnnotationExtractor::Annotation.extensions</tt> are
+    # taken into account. Only files with annotations are included.
     def find_in(dir)
       results = {}
 
