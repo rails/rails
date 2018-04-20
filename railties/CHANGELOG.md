@@ -1,3 +1,9 @@
+*   Create the `.ruby-version` file compatible with MRI/JRuby by default.
+
+    Fixes #32639.
+
+    *Guillermo Iguaran*
+
 *   Make the master.key file read-only for the owner upon generation on
     POSIX-compliant systems.
 
