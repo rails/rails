@@ -1,3 +1,10 @@
+*   Introduce a new error page to when the implict render page is accessed in the browser.
+
+    Now instead of showing an error page that with exception and backtraces we now show only
+    one informative page.
+
+    *Vinicius Stock*
+
 *   Introduce ActionDispatch::DebugExceptions.register_interceptor
 
     Exception aware plugin authors can use the newly introduced
