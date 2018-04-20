@@ -1375,7 +1375,7 @@ number_to_currency(1234567890.50) # => $1,234,567,890.50
 Formats the bytes in size into a more understandable representation; useful for reporting file sizes to users.
 
 ```ruby
-number_to_human_size(1234)          # => 1.2 KB
+number_to_human_size(1234)          # => 1.2 kB
 number_to_human_size(1234567)       # => 1.2 MB
 ```
 

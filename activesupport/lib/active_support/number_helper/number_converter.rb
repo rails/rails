@@ -80,7 +80,7 @@ module ActiveSupport
             format: "%n %u",
             units: {
               byte: "Bytes",
-              kb: "KB",
+              kb: "kB",
               mb: "MB",
               gb: "GB",
               tb: "TB"

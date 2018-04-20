@@ -246,7 +246,7 @@ module ActionView
       end
 
       # Formats the bytes in +number+ into a more understandable
-      # representation (e.g., giving it 1500 yields 1.5 KB). This
+      # representation (e.g., giving it 1500 yields 1.5 kB). This
       # method is useful for reporting file sizes to users. You can
       # customize the format in the +options+ hash.
       #
@@ -275,15 +275,15 @@ module ActionView
       # ==== Examples
       #
       #   number_to_human_size(123)                                          # => 123 Bytes
-      #   number_to_human_size(1234)                                         # => 1.21 KB
-      #   number_to_human_size(12345)                                        # => 12.1 KB
+      #   number_to_human_size(1234)                                         # => 1.21 kB
+      #   number_to_human_size(12345)                                        # => 12.1 kB
       #   number_to_human_size(1234567)                                      # => 1.18 MB
       #   number_to_human_size(1234567890)                                   # => 1.15 GB
       #   number_to_human_size(1234567890123)                                # => 1.12 TB
       #   number_to_human_size(1234567890123456)                             # => 1.1 PB
       #   number_to_human_size(1234567890123456789)                          # => 1.07 EB
       #   number_to_human_size(1234567, precision: 2)                        # => 1.2 MB
-      #   number_to_human_size(483989, precision: 2)                         # => 470 KB
+      #   number_to_human_size(483989, precision: 2)                         # => 470 kB
       #   number_to_human_size(1234567, precision: 2, separator: ',')        # => 1,2 MB
       #   number_to_human_size(1234567890123, precision: 5)                  # => "1.1228 TB"
       #   number_to_human_size(524288000, precision: 5)                      # => "500 MB"
