@@ -858,7 +858,11 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ruby '#{RUBY_VERSION}'/, content)
     end
     assert_file ".ruby-version" do |content|
-      assert_match(/#{RUBY_VERSION}/, content)
+      if defined?(JRUBY_VERSION)
+        assert_match(/jruby-#{JRUBY_VERSION}/, content)
+      else
+        assert_match(/ruby-#{RUBY_VERSION}/, content)
+      end
     end
   end
 
