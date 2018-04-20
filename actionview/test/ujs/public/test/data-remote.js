@@ -272,9 +272,10 @@ asyncTest('returning false in form\'s submit bindings in non-submit-bubbling bro
 
   form
     .append($('<input type="submit" />'))
-    .bindNative('submit', function() {
+    .bindNative('submit', function(e) {
       ok(true, 'binding handler is called')
-      return false
+      e.preventDefault()
+      e.stopPropagation()
     })
     .bindNative('ajax:beforeSend', function() {
       ok(false, 'form should not be submitted')
@@ -296,8 +297,8 @@ asyncTest('clicking on a link with falsy "data-remote" attribute does not fire a
     .bindNative('ajax:beforeSend', function() {
       ok(false, 'ajax should not be triggered')
     })
-    .bindNative('click', function() {
-      return false
+    .bindNative('click', function(e) {
+      e.preventDefault()
     })
     .triggerNative('click')
 
@@ -314,8 +315,8 @@ asyncTest('ctrl-clicking on a link with falsy "data-remote" attribute does not f
     .bindNative('ajax:beforeSend', function() {
       ok(false, 'ajax should not be triggered')
     })
-    .bindNative('click', function() {
-      return false
+    .bindNative('click', function(e) {
+      e.preventDefault()
     })
     .triggerNative('click', { metaKey: true })
 
@@ -333,8 +334,8 @@ asyncTest('clicking on a button with falsy "data-remote" attribute', 0, function
     .bindNative('ajax:beforeSend', function() {
       ok(false, 'ajax should not be triggered')
     })
-    .bindNative('click', function() {
-      return false
+    .bindNative('click', function(e) {
+      e.preventDefault()
     })
     .triggerNative('click')
 
@@ -347,8 +348,8 @@ asyncTest('submitting a form with falsy "data-remote" attribute', 0, function() 
     .bindNative('ajax:beforeSend', function() {
       ok(false, 'ajax should not be triggered')
     })
-    .bindNative('submit', function() {
-      return false
+    .bindNative('submit', function(e) {
+      e.preventDefault()
     })
     .triggerNative('submit')
 
@@ -429,7 +430,7 @@ asyncTest('changing a select option without "data-url" attribute still fires aja
       ajaxLocation = settings.url.replace(settings.data, '').replace(/&$/, '').replace(/\?$/, '')
       equal(ajaxLocation, currentLocation, 'URL should be current page by default')
 
-      return false
+      e.preventDefault()
     })
     .val('optionValue2')
     .triggerNative('change')
