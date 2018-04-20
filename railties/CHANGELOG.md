@@ -1,3 +1,9 @@
+*   Don't include `bootsnap` by default in apps generated under JRuby.
+
+    Fixes #32641.
+
+    *Guillermo Iguaran*
+
 *   Create the `.ruby-version` file compatible with MRI/JRuby by default.
 
     Fixes #32639.
