@@ -1417,7 +1417,7 @@ module ApplicationTests
       assert_equal "XML", last_response.body
     end
 
-    test "Rails.application#env_config exists and include some existing parameters" do
+    test "Rails.application#env_config exists and includes some existing parameters" do
       make_basic_app
 
       assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
