@@ -1,3 +1,7 @@
+*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+
+    *Dana Sherson*
+
 *   Add `touch_all` method to `ActiveRecord::Relation`.
 
     Example:
