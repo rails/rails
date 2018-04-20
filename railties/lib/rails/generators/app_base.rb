@@ -440,7 +440,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev]
+        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
       end
 
       def os_supports_listen_out_of_the_box?

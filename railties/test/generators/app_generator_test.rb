@@ -816,9 +816,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bootsnap
     run_generator
 
-    assert_gem "bootsnap"
-    assert_file "config/boot.rb" do |content|
-      assert_match(/require 'bootsnap\/setup'/, content)
+    unless defined?(JRUBY_VERSION)
+      assert_gem "bootsnap"
+      assert_file "config/boot.rb" do |content|
+        assert_match(/require 'bootsnap\/setup'/, content)
+      end
+    else
+       assert_file "Gemfile" do |content|
+        assert_no_match(/bootsnap/, content)
+      end
+      assert_file "config/boot.rb" do |content|
+        assert_no_match(/require 'bootsnap\/setup'/, content)
+      end
     end
   end
 
