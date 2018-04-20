@@ -11,16 +11,14 @@ If you find one, please open an [issue on GitHub](https://github.com/rails/rails
 
 ## CHANGES since <%= version.previous %>
 
-To view the changes for each gem, please read the changelogs on GitHub:
-  <% FRAMEWORKS.sort.each do |framework| %>
-<%= "* [#{FRAMEWORK_NAMES[framework]} CHANGELOG](https://github.com/rails/rails/blob/v#{version}/#{framework}/CHANGELOG.md)" %>
-  <% end %>
+<%= fetch_changes(version) %>
 
-*Full listing*
+### Full listing
 
 To see the full list of changes, [check out all the commits on
 GitHub](https://github.com/rails/rails/compare/v<%= "#{version.previous}...v#{version}" %>).
-  <% end %>
+<% end %>
+
 ## SHA-256
 
 If you'd like to verify that your gem is the same as the one I've uploaded,
