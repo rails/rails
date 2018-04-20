@@ -231,6 +231,29 @@ module Announcement
 end
 
 task :announce do
+  def format_change(framework, changelog)
+    changes = changelog.lines[1..-1].inject("") do |changes, line|
+      break changes if line =~ /^##/
+      changes + line
+    end.chomp('')
+    %|### Changes in #{FRAMEWORK_NAMES[framework]}
+    #{changes}
+    |
+  end
+
+  def fetch_changes(version)
+    require "open-uri"
+    FRAMEWORKS.map do |framework|
+      begin
+        url = "https://raw.githubusercontent.com/rails/rails/v#{version}/#{framework}/CHANGELOG.md"
+        changelog = URI.parse(url).open.read
+        format_change(framework, changelog)
+      rescue OpenURI::HTTPError => e
+        raise e unless e.message =~ /^404\ /
+      end
+    end.compact.join("\n")
+  end
+
   Dir.chdir("pkg/") do
     versions = ENV["VERSIONS"] ? ENV["VERSIONS"].split(",") : [ version ]
     versions = versions.sort.map { |v| Announcement::Version.new(v) }
