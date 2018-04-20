@@ -615,6 +615,11 @@ ActiveRecord::Schema.define do
     end
   end
 
+  create_table :foods, force: true do |t|
+    t.column :name, :string
+    t.column :parrot_id, :integer
+  end
+
   create_table :parrots_pirates, id: false, force: true do |t|
     t.column :parrot_id, :integer
     t.column :pirate_id, :integer
