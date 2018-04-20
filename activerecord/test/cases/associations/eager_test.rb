@@ -1515,6 +1515,35 @@ class EagerAssociationTest < ActiveRecord::TestCase
     Author.preload(:readonly_comments).first!
   end
 
+  test "preloading through a polymorphic association doesn't require the association to exist" do
+    sponsors = []
+    assert_queries 5 do
+      sponsors = Sponsor.where(sponsorable_id: 1).preload(sponsorable: [:post, :membership]).to_a
+    end
+    # check the preload worked
+    assert_queries 0 do
+      sponsors.map(&:sponsorable).map { |s| s.respond_to?(:posts) ? s.post.author : s.membership }
+    end
+  end
+
+  test "preloading a regular association through a polymorphic association doesn't require the association to exist on all types" do
+    sponsors = []
+    assert_queries 6 do
+      sponsors = Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :first_comment }, :membership]).to_a
+    end
+    # check the preload worked
+    assert_queries 0 do
+      sponsors.map(&:sponsorable).map { |s| s.respond_to?(:posts) ? s.post.author : s.membership }
+    end
+  end
+
+  test "preloading a regular association with a typo through a polymorphic association still raises" do
+    # this test contains an intentional typo of first -> fist
+    assert_raises(ActiveRecord::AssociationNotFoundError) do
+      Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
+    end
+  end
+
   private
     def find_all_ordered(klass, include = nil)
       klass.order("#{klass.table_name}.#{klass.primary_key}").includes(include).to_a

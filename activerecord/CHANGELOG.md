@@ -1,3 +1,6 @@
+*   Can preload through polymorphic associations (e.g. `Review.includes(media: [:author, :director])` where not all media records have an author or director)
+    *Dana Sherson*
+
 *   Add `ActiveRecord::Base.base_class?` predicate.
 
     *Bogdan Gusiev*
