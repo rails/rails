@@ -116,12 +116,9 @@ module ActiveRecord
             loaders = preloaders_for_one parent, records, scope, polymorphic_parent
 
             recs = loaders.flat_map(&:preloaded_records).uniq
-            polymorphic_parent = begin
-              records.first.association(parent).options[:polymorphic]
-            rescue ActiveRecord::AssociationNotFoundError
-              raise unless polymorphic_parent
-              false
-            end
+
+            reflection = records.first.class._reflect_on_association(parent)
+            polymorphic_parent = reflection && reflection.options[:polymorphic]
 
             loaders.concat Array.wrap(child).flat_map { |assoc|
               preloaders_on assoc, recs, scope, polymorphic_parent
@@ -156,12 +153,8 @@ module ActiveRecord
           h = {}
           records.each do |record|
             next unless record
-            begin
-              assoc = record.association(association)
-            rescue ActiveRecord::AssociationNotFoundError
-              raise unless polymorphic_parent
-              next
-            end
+            next if polymorphic_parent && !record.class._reflect_on_association(association)
+            assoc = record.association(association)
             next unless assoc.klass
             klasses = h[assoc.reflection] ||= {}
             (klasses[assoc.klass] ||= []) << record
