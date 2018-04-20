@@ -9,6 +9,7 @@ require "models/comment"
 require "models/author"
 require "models/entrant"
 require "models/developer"
+require "models/person"
 require "models/computer"
 require "models/reply"
 require "models/company"
@@ -25,7 +26,7 @@ require "models/edge"
 require "models/subscriber"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -1523,6 +1524,50 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
     assert_equal posts(:thinking), comments(:more_greetings).post
     assert_equal posts(:welcome),  comments(:greetings).post
+  end
+
+  def test_touch_all_updates_records_timestamps
+    david = developers(:david)
+    david_previously_updated_at = david.updated_at
+    jamis = developers(:jamis)
+    jamis_previously_updated_at = jamis.updated_at
+    Developer.where(name: "David").touch_all
+
+    assert_not_equal david_previously_updated_at, david.reload.updated_at
+    assert_equal jamis_previously_updated_at, jamis.reload.updated_at
+  end
+
+  def test_touch_all_with_custom_timestamp
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    Developer.where(name: "David").touch_all(:created_at)
+    developer = developer.reload
+
+    assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+  end
+
+  def test_touch_all_with_given_time
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0)
+    Developer.where(name: "David").touch_all(:created_at, time: new_time)
+    developer = developer.reload
+
+    assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+    assert_equal new_time, developer.created_at
+    assert_equal new_time, developer.updated_at
+  end
+
+  def test_touch_all_updates_locking_column
+    person = people(:david)
+
+    assert_difference -> { person.reload.lock_version }, +1 do
+      Person.where(first_name: "David").touch_all
+    end
   end
 
   def test_update_on_relation
