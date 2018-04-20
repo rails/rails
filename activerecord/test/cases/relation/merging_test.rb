@@ -79,7 +79,7 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   def test_relation_merging_with_skip_query_cache
-    assert_equal Post.all.merge(Post.all.skip_query_cache!).skip_query_cache_value, true
+    assert Post.all.merge(Post.all.skip_query_cache!).skip_query_cache_value
   end
 
   def test_relation_merging_with_association
