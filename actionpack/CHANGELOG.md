@@ -1,3 +1,15 @@
+*   Introduce ActionDispatch::DebugExceptions.register_interceptor
+
+    Exception aware plugin authors can use the newly introduced
+    `.register_interceptor` method to get the processed exception, instead of
+    monkey patching DebugExceptions.
+
+        ActionDispatch::DebugExceptions.register_interceptor do |request, exception|
+          HypoteticalPlugin.capture_exception(request, exception)
+        end
+
+    *Genadi Samokovarov*
+
 *   Output only one Content-Security-Policy nonce header value per request.
 
     Fixes #32597.
