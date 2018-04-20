@@ -199,7 +199,7 @@ asyncTest('allow empty form "action"', 1, function() {
   buildForm({ action: '' })
 
   $('#qunit-fixture').find('form')
-    .bindNative('ajax:beforeSend', function(e, xhr, settings) {
+    .bindNative('ajax:beforeSend', function(evt, xhr, settings) {
       // Get current location (the same way jQuery does)
       try {
         currentLocation = location.href
@@ -218,7 +218,7 @@ asyncTest('allow empty form "action"', 1, function() {
 
       // Prevent the request from actually getting sent to the current page and
       // causing an error.
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 
@@ -246,7 +246,7 @@ asyncTest('intelligently guesses crossDomain behavior when target URL has a diff
       equal(settings.crossDomain, true, 'crossDomain should be set to true')
 
       // prevent request from actually getting sent off-domain
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 
@@ -265,7 +265,7 @@ asyncTest('intelligently guesses crossDomain behavior when target URL consists o
       equal(settings.crossDomain, false, 'crossDomain should be set to false')
 
       // prevent request from actually getting sent off-domain
-      return false
+      evt.preventDefault()
     })
     .triggerNative('submit')
 
