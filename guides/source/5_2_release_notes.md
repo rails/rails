@@ -212,6 +212,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Remove deprecated `ActionController::ParamsParser::ParseError`.
     ([Commit](https://github.com/rails/rails/commit/e16c765ac6dcff068ff2e5554d69ff345c003de1))
 
+*   Remove deprecated `ActionController::UnknownController`.
+    ([Commit](https://github.com/rails/rails/commit/b1c8610fca6d8a59246e190bfaed1aa445480b07))
+
 ### Deprecations
 
 *   Deprecate `#success?`, `#missing?` and `#error?` aliases of
