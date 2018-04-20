@@ -104,6 +104,39 @@ else
   puts "Skipping Azure Storage Direct Upload tests because no Azure Storage configuration was supplied"
 end
 
+if SERVICE_CONFIGURATIONS[:digital_ocean] && SERVICE_CONFIGURATIONS[:digital_ocean][:spaces_access_key].present?
+  class ActiveStorage::DigitalOceanDirectUploadsControllerTest < ActionDispatch::IntegrationTest
+    setup do
+      @old_service = ActiveStorage::Blob.service
+      ActiveStorage::Blob.service = ActiveStorage::Service.configure(:digital_ocean, SERVICE_CONFIGURATIONS)
+    end
+
+    teardown do
+      ActiveStorage::Blob.service = @old_service
+    end
+
+    test "creating new direct upload" do
+      checksum = Digest::MD5.base64digest("Hello")
+
+      post rails_direct_uploads_url, params: { blob: {
+        filename: "hello.txt", byte_size: 6, checksum: checksum, content_type: "text/plain" } }
+
+      response.parsed_body.tap do |details|
+        assert_equal ActiveStorage::Blob.find(details["id"]), ActiveStorage::Blob.find_signed(details["signed_id"])
+        assert_equal "hello.txt", details["filename"]
+        assert_equal 6, details["byte_size"]
+        assert_equal checksum, details["checksum"]
+        assert_equal "text/plain", details["content_type"]
+        assert_match SERVICE_CONFIGURATIONS[:digital_ocean][:bucket], details["direct_upload"]["url"]
+        assert_match(/(-[-a-z0-9]+)?\.(\S+)?digitaloceanspaces\.com/, details["direct_upload"]["url"])
+        assert_equal({ "Content-Type" => "text/plain", "Content-MD5" => checksum }, details["direct_upload"]["headers"])
+      end
+    end
+  end
+else
+  puts "Skipping Digital Ocean Direct Upload tests because no Digital Ocean configuration was supplied"
+end
+
 class ActiveStorage::DiskDirectUploadsControllerTest < ActionDispatch::IntegrationTest
   test "creating new direct upload" do
     checksum = Digest::MD5.base64digest("Hello")
