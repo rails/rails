@@ -64,7 +64,7 @@ module CodeTools
           puts "#{' ' * (13 + depth)}#{file}"
         end
       end
-      puts "%8.1f ms  %d KB RSS" % [elapsed * 1000, after_rss - before_rss]
+      puts "%8.1f ms  %d kB RSS" % [elapsed * 1000, after_rss - before_rss]
     end
 
     private

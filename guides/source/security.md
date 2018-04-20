@@ -890,7 +890,7 @@ The next problem was MySpace filtering the word "javascript", so the author used
 
 Another problem for the worm's author was the [CSRF security tokens](#cross-site-request-forgery-csrf). Without them he couldn't send a friend request over POST. He got around it by sending a GET to the page right before adding a user and parsing the result for the CSRF token.
 
-In the end, he got a 4 KB worm, which he injected into his profile page.
+In the end, he got a 4 kB worm, which he injected into his profile page.
 
 The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS property proved to be another way to introduce JavaScript in CSS in Gecko-based browsers (Firefox, for example).
 

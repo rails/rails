@@ -111,7 +111,7 @@ class NumberHelperTest < ActionView::TestCase
     assert_equal "1&lt;script&gt;&lt;/script&gt;010", number_with_precision(1.01, separator: "<script></script>")
     assert_equal "1&lt;script&gt;&lt;/script&gt;000.000", number_with_precision(1000, delimiter: "<script></script>")
 
-    assert_equal "9&lt;script&gt;&lt;/script&gt;86 KB", number_to_human_size(10100, separator: "<script></script>")
+    assert_equal "9&lt;script&gt;&lt;/script&gt;86 kB", number_to_human_size(10100, separator: "<script></script>")
 
     assert_equal "1&lt;script&gt;&lt;/script&gt;01", number_to_human(1.01, separator: "<script></script>")
     assert_equal "100&lt;script&gt;&lt;/script&gt;000 Quadrillion", number_to_human(10**20, delimiter: "<script></script>")

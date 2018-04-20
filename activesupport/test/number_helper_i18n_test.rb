@@ -120,7 +120,7 @@ module ActiveSupport
     end
 
     def test_number_to_i18n_human_size_with_empty_i18n_store
-      assert_equal("2 KB", number_to_human_size(2048, locale: "empty"))
+      assert_equal("2 kB", number_to_human_size(2048, locale: "empty"))
       assert_equal("42 Bytes", number_to_human_size(42, locale: "empty"))
     end
 

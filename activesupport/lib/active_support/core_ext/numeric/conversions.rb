@@ -72,15 +72,15 @@ module ActiveSupport::NumericWithFormat
   #
   #  Human-friendly size in Bytes:
   #  123.to_s(:human_size)                                   # => "123 Bytes"
-  #  1234.to_s(:human_size)                                  # => "1.21 KB"
-  #  12345.to_s(:human_size)                                 # => "12.1 KB"
+  #  1234.to_s(:human_size)                                  # => "1.21 kB"
+  #  12345.to_s(:human_size)                                 # => "12.1 kB"
   #  1234567.to_s(:human_size)                               # => "1.18 MB"
   #  1234567890.to_s(:human_size)                            # => "1.15 GB"
   #  1234567890123.to_s(:human_size)                         # => "1.12 TB"
   #  1234567890123456.to_s(:human_size)                      # => "1.1 PB"
   #  1234567890123456789.to_s(:human_size)                   # => "1.07 EB"
   #  1234567.to_s(:human_size, precision: 2)                 # => "1.2 MB"
-  #  483989.to_s(:human_size, precision: 2)                  # => "470 KB"
+  #  483989.to_s(:human_size, precision: 2)                  # => "470 kB"
   #  1234567.to_s(:human_size, precision: 2, separator: ',') # => "1,2 MB"
   #  1234567890123.to_s(:human_size, precision: 5)           # => "1.1228 TB"
   #  524288000.to_s(:human_size, precision: 5)               # => "500 MB"

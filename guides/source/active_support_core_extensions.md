@@ -1871,8 +1871,8 @@ Produce a string representation of a number as a human-readable number of bytes:
 
 ```ruby
 123.to_s(:human_size)                  # => 123 Bytes
-1234.to_s(:human_size)                 # => 1.21 KB
-12345.to_s(:human_size)                # => 12.1 KB
+1234.to_s(:human_size)                 # => 1.21 kB
+12345.to_s(:human_size)                # => 12.1 kB
 1234567.to_s(:human_size)              # => 1.18 MB
 1234567890.to_s(:human_size)           # => 1.15 GB
 1234567890123.to_s(:human_size)        # => 1.12 TB
