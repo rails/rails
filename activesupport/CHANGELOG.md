@@ -1,20 +1,3 @@
-*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
-    any timezone defined in `ActiveSupport::MAPPING` is missing.
-
-    *Dominik Sander*
-
-*   Redis cache store: `delete_matched` no longer blocks the Redis server.
-    (Switches from evaled Lua to a batched SCAN + DEL loop.)
-
-    *Gleb Mazovetskiy*
-
-*   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
-    size when compression is enabled (which is true by default). This patch
-    does not attempt to repair existing data: please manually flush the cache
-    to clear out the problematic entries.
-
-    *Godfrey Chan*
-
 *   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"

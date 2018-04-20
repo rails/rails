@@ -1,20 +1,3 @@
-*   Make the master.key file read-only for the owner upon generation on
-    POSIX-compliant systems.
-
-    Previously:
-
-        $ ls -l config/master.key
-        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
-
-    Now:
-
-        $ ls -l config/master.key
-        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
-
-    Fixes #32604.
-
-    *Jose Luis Duran*
-
 *   Deprecate support for using the `HOST` environment to specify the server IP.
 
     The `BINDING` environment should be used instead.

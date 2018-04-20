@@ -1,9 +1,3 @@
-*   Output only one Content-Security-Policy nonce header value per request.
-
-    Fixes #32597.
-
-    *Andrey Novikov*, *Andrew White*
-
 *   Move default headers configuration into their own module that can be included in controllers.
 
     *Kevin Deisz*
