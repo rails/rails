@@ -9,8 +9,16 @@ module ActiveModel
 
       RESERVED_OPTIONS = CHECKS.keys + [:only_integer]
 
+      VALID_OPTIONS = RESERVED_OPTIONS + [:allow_blank, :allow_nil, :message]
+
       def check_validity!
         keys = CHECKS.keys - [:odd, :even]
+        options.each do |option, _|
+          unless VALID_OPTIONS.include?(option)
+            raise ArgumentError, ":#{option} is not a valid option"
+          end
+        end
+
         options.slice(*keys).each do |option, value|
           unless value.is_a?(Numeric) || value.is_a?(Proc) || value.is_a?(Symbol)
             raise ArgumentError, ":#{option} must be a number, a symbol or a proc"

@@ -279,6 +279,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
     assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, equal_to: "foo" }
   end
 
+  def test_validates_numericality_with_invalid_options
+    assert_raise(ArgumentError) { Topic.validates_numericality_of :approved, invalid_option: "foo" }
+  end
+
   private
 
     def invalid!(values, error = nil)
