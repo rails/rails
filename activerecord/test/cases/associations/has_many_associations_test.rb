@@ -983,6 +983,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty company.contracts
   end
 
+  def test_collection_size_with_dirty_target
+    post = posts(:thinking)
+    assert_equal [], post.reader_ids
+    assert_equal 0, post.readers.size
+    post.readers.reset
+    post.readers.build
+    assert_equal [], post.reader_ids
+    assert_equal 1, post.readers.size
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
