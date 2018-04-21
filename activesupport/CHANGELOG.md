@@ -4,7 +4,7 @@
     *Gleb Mazovetskiy*
 
 *   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
-    any timezone defined in `ActiveSupport::MAPPING` is missing.
+    any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
     *Dominik Sander*
 
