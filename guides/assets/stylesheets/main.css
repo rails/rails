@@ -407,6 +407,10 @@ a, a:link, a:visited {
   padding-top: 2em;
 }
 
+#guides.visible {
+  display: block !important;
+}
+
 #guides dt, #guides dd {
   font-weight: normal;
   font-size: 0.722em;
