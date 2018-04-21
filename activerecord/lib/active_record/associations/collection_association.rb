@@ -45,6 +45,8 @@ module ActiveRecord
       def ids_reader
         if loaded?
           target.pluck(reflection.association_primary_key)
+        elsif !target.empty?
+          load_target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
@@ -212,7 +214,7 @@ module ActiveRecord
       def size
         if !find_target? || loaded?
           target.size
-        elsif @association_ids && target.empty?
+        elsif @association_ids
           @association_ids.size
         elsif !association_scope.group_values.empty?
           load_target.size
