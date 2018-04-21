@@ -681,6 +681,14 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_raw_post_reset_between_post_requests
+    post :no_op, params: { foo: "bar" }
+    assert_equal "foo=bar", @request.raw_post
+
+    post :no_op, params: { foo: "baz" }
+    assert_equal "foo=baz", @request.raw_post
+  end
+
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
     assert_equal "/test_case_test/test/test_params/foo", @request.path
