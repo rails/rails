@@ -410,7 +410,7 @@ module ActiveRecord
           attributes = attributes.to_h
         end
         attributes = attributes.with_indifferent_access
-        existing_record = send(association_name)
+        existing_record = self.class.reflect_on_association(association_name).class_name.constantize.find_by(id: attributes["id"])
 
         if (options[:update_only] || !attributes["id"].blank?) && existing_record &&
             (options[:update_only] || existing_record.id.to_s == attributes["id"].to_s)
