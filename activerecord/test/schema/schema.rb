@@ -484,7 +484,8 @@ ActiveRecord::Schema.define do
 
   create_table :members, force: true do |t|
     t.string :name
-    t.integer :member_type_id
+    t.references :member_type, index: false
+    t.references :admittable, polymorphic: true, index: false
   end
 
   create_table :member_details, force: true do |t|

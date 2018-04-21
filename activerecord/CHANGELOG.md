@@ -1,3 +1,10 @@
+*   Fix that building record with assigning multiple has_one associations
+    wrongly persists through record.
+
+    Fixes #32511.
+
+    *Sam DeCesare*
+
 *   Fix relation merging when one of the relations is going to skip the
     query cache.
 
