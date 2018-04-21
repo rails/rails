@@ -364,6 +364,19 @@ ActiveRecord::Schema.define do
     t.integer :follower_id
   end
 
+  create_table :games, force: true do |t|
+    t.integer :game_owner_id
+    t.integer :game_collection_id
+  end
+
+  create_table :game_boards, force: true do |t|
+    t.integer :game_id
+  end
+
+  create_table :game_collections, force: true
+
+  create_table :game_owners, force: true
+
   create_table :goofy_string_id, force: true, id: false do |t|
     t.string :id, null: false
     t.string :info

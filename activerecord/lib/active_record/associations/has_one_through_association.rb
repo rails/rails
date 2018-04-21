@@ -28,7 +28,11 @@ module ActiveRecord
             end
 
             if through_record
-              through_record.update(attributes)
+              if through_record.new_record?
+                through_record.assign_attributes(attributes)
+              else
+                through_record.update(attributes)
+              end
             elsif owner.new_record? || !save
               through_proxy.build(attributes)
             else
