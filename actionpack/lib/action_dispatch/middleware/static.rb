@@ -69,7 +69,7 @@ module ActionDispatch
 
       headers["Vary"] = "Accept-Encoding" if gzip_path
 
-      return [status, headers, body]
+      [status, headers, body]
     ensure
       request.path_info = path
     end
