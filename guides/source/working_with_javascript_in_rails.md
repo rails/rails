@@ -188,9 +188,10 @@ bind to the `ajax:success` event. On failure, use `ajax:error`. Check it out:
 
 ```coffeescript
 $(document).ready ->
-  $("#new_article").on("ajax:success", (e, data, status, xhr) ->
+  $("#new_article").on("ajax:success", (event) ->
+    [data, status, xhr] = event.detail
     $("#new_article").append xhr.responseText
-  ).on "ajax:error", (e, xhr, status, error) ->
+  ).on "ajax:error", (event) ->
     $("#new_article").append "<p>ERROR</p>"
 ```
 
@@ -351,18 +352,18 @@ that have a `data-remote` attribute:
 
 NOTE: All handlers bound to these events are always passed the event object as the
 first argument. The table below describes the extra parameters passed after the
-event argument. For exemple, if the extra parameters are listed as `xhr, settings`,
+event argument. For example, if the extra parameters are listed as `xhr, settings`,
 then to access them, you would define your handler with `function(event, xhr, settings)`.
 
-| Event name          | Extra parameters | Fired                                                       |
-|---------------------|------------------|-------------------------------------------------------------|
-| `ajax:before`       |                  | Before the whole ajax business, aborts if stopped.          |
-| `ajax:beforeSend`   | xhr, options     | Before the request is sent, aborts if stopped.              |
-| `ajax:send`         | xhr              | When the request is sent.                                   |
-| `ajax:success`      | xhr, status, err | After completion, if the response was a success.            |
-| `ajax:error`        | xhr, status, err | After completion, if the response was an error.             |
-| `ajax:complete`     | xhr, status      | After the request has been completed, no matter the outcome.|
-| `ajax:aborted:file` | elements         | If there are non-blank file inputs, aborts if stopped.      |
+| Event name          | Extra parameters  | Fired                                                       |
+|---------------------|-------------------|-------------------------------------------------------------|
+| `ajax:before`       |                   | Before the whole ajax business, aborts if stopped.          |
+| `ajax:beforeSend`   | xhr, options      | Before the request is sent, aborts if stopped.              |
+| `ajax:send`         | xhr               | When the request is sent.                                   |
+| `ajax:success`      | data, status, xhr | After completion, if the response was a success.            |
+| `ajax:error`        | data, status, xhr | After completion, if the response was an error.             |
+| `ajax:complete`     | xhr, status       | After the request has been completed, no matter the outcome.|
+| `ajax:aborted:file` | elements          | If there are non-blank file inputs, aborts if stopped.      |
 
 ### Stoppable events
 
