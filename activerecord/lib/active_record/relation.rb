@@ -378,19 +378,19 @@ module ActiveRecord
     # === Examples
     #
     #   # Touch all records
-    #   Person.all.touch
+    #   Person.all.touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
     #
     #   # Touch multiple records with a custom attribute
-    #   Person.all.touch(:created_at)
+    #   Person.all.touch_all(:created_at)
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
     #
     #   # Touch multiple records with a specified time
-    #   Person.all.touch(time: Time.new(2020, 5, 16, 0, 0, 0))
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
     #
     #   # Touch records with scope
-    #   Person.where(name: 'David').touch
+    #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
       attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
