@@ -45,6 +45,8 @@ module ActiveRecord
       def ids_reader
         if loaded?
           target.pluck(reflection.association_primary_key)
+        elsif !target.empty?
+          load_target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
