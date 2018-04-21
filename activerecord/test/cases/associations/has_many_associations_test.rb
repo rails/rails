@@ -989,7 +989,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 0, post.readers.size
     post.readers.reset
     post.readers.build
-    assert_equal [], post.reader_ids
+    assert_equal [nil], post.reader_ids
     assert_equal 1, post.readers.size
   end
 
@@ -999,7 +999,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_empty post.readers
     post.readers.reset
     post.readers.build
-    assert_equal [], post.reader_ids
+    assert_equal [nil], post.reader_ids
     assert_not_empty post.readers
   end
 
