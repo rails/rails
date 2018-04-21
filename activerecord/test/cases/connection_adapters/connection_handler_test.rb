@@ -89,7 +89,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_equal "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
@@ -112,7 +112,7 @@ module ActiveRecord
 
           ActiveRecord::Base.establish_connection
 
-          assert_equal "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
         ensure
           ActiveRecord::Base.configurations = @prev_configs
           ENV["RAILS_ENV"] = previous_env
