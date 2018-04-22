@@ -1,6 +1,7 @@
 (function() {
   "use strict";
-  window.syntaxhighlighterConfig = { autoLinks: false };
+
+  this.syntaxhighlighterConfig = { autoLinks: false };
 
   this.wrap = function(elem, wrapper) {
     elem.parentNode.insertBefore(wrapper, elem);
@@ -19,34 +20,34 @@
   }
 
   document.addEventListener("DOMContentLoaded", function() {
-    var $guidesMenu = document.getElementById("guidesMenu");
-    var $guides     = document.getElementById("guides");
+    var guidesMenu = document.getElementById("guidesMenu");
+    var guides     = document.getElementById("guides");
 
-    $guidesMenu.addEventListener("click", function(e) {
+    guidesMenu.addEventListener("click", function(e) {
       e.preventDefault();
-      $guides.classList.toggle("visible");
+      guides.classList.toggle("visible");
     });
 
-    var $guidesIndexItem   = document.querySelector("select.guides-index-item");
-    var currentGuidePath   = window.location.pathname;
-    $guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
+    var guidesIndexItem   = document.querySelector("select.guides-index-item");
+    var currentGuidePath  = window.location.pathname;
+    guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
 
-    $guidesIndexItem.addEventListener("change", function(e) {
+    guidesIndexItem.addEventListener("change", function(e) {
       window.location = e.target.value;
     });
 
-    var $moreInfoButton = document.querySelector(".more-info-button");
-    var $moreInfoLinks  = document.querySelector(".more-info-links");
+    var moreInfoButton = document.querySelector(".more-info-button");
+    var moreInfoLinks  = document.querySelector(".more-info-links");
 
-    $moreInfoButton.addEventListener("click", function(e) {
+    moreInfoButton.addEventListener("click", function(e) {
       e.preventDefault();
 
-      if ($moreInfoLinks.classList.contains("s-hidden")) {
-        wrap($moreInfoLinks, createElement("div", "more-info-container"));
-        $moreInfoLinks.classList.remove("s-hidden");
+      if (moreInfoLinks.classList.contains("s-hidden")) {
+        wrap(moreInfoLinks, createElement("div", "more-info-container"));
+        moreInfoLinks.classList.remove("s-hidden");
       } else {
-        $moreInfoLinks.classList.add("s-hidden");
-        unwrap($moreInfoLinks);
+        moreInfoLinks.classList.add("s-hidden");
+        unwrap(moreInfoLinks);
       }
     });
   });
