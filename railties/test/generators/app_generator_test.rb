@@ -822,7 +822,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_match(/require 'bootsnap\/setup'/, content)
       end
     else
-       assert_file "Gemfile" do |content|
+      assert_file "Gemfile" do |content|
         assert_no_match(/bootsnap/, content)
       end
       assert_file "config/boot.rb" do |content|
