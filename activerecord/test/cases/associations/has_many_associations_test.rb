@@ -1986,8 +1986,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_many_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.many? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.many? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end
@@ -2025,8 +2026,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_none_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.none? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.none? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end
@@ -2060,8 +2062,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_one_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.one? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.one? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end

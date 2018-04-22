@@ -127,18 +127,18 @@ module ActiveRecord
     def test_ignores_configurations_without_databases
       @configurations["development"].merge!("database" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_warning_for_remote_databases
@@ -343,18 +343,18 @@ module ActiveRecord
     def test_ignores_configurations_without_databases
       @configurations[:development].merge!("database" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_ignores_remote_databases
       @configurations[:development].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_warning_for_remote_databases
