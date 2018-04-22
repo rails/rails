@@ -35,7 +35,7 @@ module ActionDispatch
           if @raise_on_name_error
             raise
           else
-            return [404, { "X-Cascade" => "pass" }, []]
+            [404, { "X-Cascade" => "pass" }, []]
           end
         end
 
