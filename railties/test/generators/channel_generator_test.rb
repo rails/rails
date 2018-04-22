@@ -76,4 +76,14 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/channels/application_cable/connection.rb"
     assert_file "app/assets/javascripts/cable.js"
   end
+
+  def test_channel_suffix_is_not_duplicated
+    run_generator ["chat_channel"]
+
+    assert_no_file "app/channels/chat_channel_channel.rb"
+    assert_file "app/channels/chat_channel.rb"
+
+    assert_no_file "app/assets/javascripts/channels/chat_channel.js"
+    assert_file "app/assets/javascripts/channels/chat.js"
+  end
 end
