@@ -1,9 +1,12 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "active_support/testing/method_call_assertions"
 require "stubs/test_server"
 
 class ActionCable::Connection::StreamTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   class Connection < ActionCable::Connection::Base
     attr_reader :connected, :websocket, :errors
 
@@ -42,9 +45,10 @@ class ActionCable::Connection::StreamTest < ActionCable::TestCase
         # Internal hax = :(
         client = connection.websocket.send(:websocket)
         client.instance_variable_get("@stream").instance_variable_get("@rack_hijack_io").expects(:write).raises(closed_exception, "foo")
-        client.expects(:client_gone)
 
-        client.write("boo")
+        assert_called(client, :client_gone) do
+          client.write("boo")
+        end
         assert_equal [], connection.errors
       end
     end

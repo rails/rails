@@ -204,9 +204,9 @@ if current_adapter?(:SQLite3Adapter)
       def test_structure_dump_with_ignore_tables
         dbfile   = @database
         filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo"])
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        assert_called(ActiveRecord::SchemaDumper, :ignore_tables, returns: ["foo"]) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        end
         assert File.exist?(dbfile)
         assert File.exist?(filename)
         assert_match(/bar/, File.read(filename))

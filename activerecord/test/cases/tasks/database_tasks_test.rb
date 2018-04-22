@@ -152,25 +152,25 @@ module ActiveRecord
     def test_creates_configurations_with_local_ip
       @configurations["development"].merge!("host" => "127.0.0.1")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_creates_configurations_with_local_host
       @configurations["development"].merge!("host" => "localhost")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_creates_configurations_with_blank_hosts
       @configurations["development"].merge!("host" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
   end
 
@@ -368,25 +368,25 @@ module ActiveRecord
     def test_drops_configurations_with_local_ip
       @configurations[:development].merge!("host" => "127.0.0.1")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_drops_configurations_with_local_host
       @configurations[:development].merge!("host" => "localhost")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_drops_configurations_with_blank_hosts
       @configurations[:development].merge!("host" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
   end
 
@@ -645,8 +645,9 @@ module ActiveRecord
     end
 
     def test_migrate_clears_schema_cache_afterward
-      ActiveRecord::Base.expects(:clear_cache!)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      assert_called(ActiveRecord::Base, :clear_cache!) do
+        ActiveRecord::Tasks::DatabaseTasks.migrate
+      end
     end
   end
 

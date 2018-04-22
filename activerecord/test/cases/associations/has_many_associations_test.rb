@@ -2105,9 +2105,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
-    Comment.expects(:transaction)
-    Post.first.comments.transaction do
-      # nothing
+    assert_called(Comment, :transaction) do
+      Post.first.comments.transaction do
+        # nothing
+      end
     end
   end
 

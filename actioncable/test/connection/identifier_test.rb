@@ -44,8 +44,9 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     run_in_eventmachine do
       open_connection_with_stubbed_pubsub
 
-      @connection.websocket.expects(:close)
-      @connection.process_internal_message "type" => "disconnect"
+      assert_called(@connection.websocket, :close) do
+        @connection.process_internal_message "type" => "disconnect"
+      end
     end
   end
 

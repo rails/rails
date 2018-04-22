@@ -7,6 +7,7 @@ require "websocket-client-simple"
 require "json"
 
 require "active_support/hash_with_indifferent_access"
+require "active_support/testing/method_call_assertions"
 
 ####
 # 😷 Warning suppression 😷
@@ -27,6 +28,8 @@ WebSocket::Frame::Data.prepend Module.new {
 ####
 
 class ClientTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   WAIT_WHEN_EXPECTING_EVENT = 2
   WAIT_WHEN_NOT_EXPECTING_EVENT = 0.5
 
@@ -289,9 +292,10 @@ class ClientTest < ActionCable::TestCase
       subscriptions = app.connections.first.subscriptions.send(:subscriptions)
       assert_not_equal 0, subscriptions.size, "Missing EchoChannel subscription"
       channel = subscriptions.first[1]
-      channel.expects(:unsubscribed)
-      c.close
-      sleep 0.1 # Data takes a moment to process
+      assert_called(channel, :unsubscribed) do
+        c.close
+        sleep 0.1 # Data takes a moment to process
+      end
 
       # All data is removed: No more connection or subscription information!
       assert_equal(0, app.connections.count)
