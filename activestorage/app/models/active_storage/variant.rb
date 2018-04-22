@@ -100,9 +100,9 @@ class ActiveStorage::Variant
 
     def process
       download_blob_to_tempfile do |image|
-        variant = transform image
-        upload variant
-        variant.close!
+        transform image do |output|
+          upload output
+        end
       end
     end
 
@@ -121,7 +121,13 @@ class ActiveStorage::Variant
 
     def transform(image)
       format = "png" unless WEB_IMAGE_CONTENT_TYPES.include?(blob.content_type)
-      variation.transform(image, format: format)
+      result = variation.transform(image, format: format)
+
+      begin
+        yield result
+      ensure
+        result.close!
+      end
     end
 
     def upload(file)
