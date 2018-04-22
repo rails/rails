@@ -29,7 +29,7 @@ module Rails # :nodoc:
 
       private
         def file_name
-          @_file_name ||= super.gsub(/_job/i, "")
+          @_file_name ||= super.sub(/_job\z/i, "")
         end
 
         def application_job_file_name

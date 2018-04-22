@@ -13,7 +13,7 @@ module TestUnit # :nodoc:
 
       private
         def file_name
-          @_file_name ||= super.gsub(/_job/i, "")
+          @_file_name ||= super.sub(/_job\z/i, "")
         end
     end
   end
