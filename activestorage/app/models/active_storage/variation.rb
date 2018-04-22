@@ -103,10 +103,10 @@ class ActiveStorage::Variation
       image.tempfile.tap(&:open)
     end
 
-    # Returns the ImageProcessing processor class specified by `ActiveStorage.processor`.
+    # Returns the ImageProcessing processor class specified by `ActiveStorage.variant_processor`.
     def processor
       require "image_processing"
-      ImageProcessing.const_get(ActiveStorage.processor.to_s.camelize) if ActiveStorage.processor
+      ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize) if ActiveStorage.variant_processor
     rescue LoadError
       ActiveSupport::Deprecation.warn("Using mini_magick gem directly is deprecated and will be removed in Rails 6.1. Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.")
     end

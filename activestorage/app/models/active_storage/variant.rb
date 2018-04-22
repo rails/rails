@@ -13,10 +13,10 @@ require "active_storage/downloading"
 # {libvips}[http://jcupitt.github.io/libvips/] processor operated by the {ruby-vips}[https://github.com/jcupitt/ruby-vips]
 # gem).
 #
-#   Rails.application.config.active_storage.processor
+#   Rails.application.config.active_storage.variant_processor
 #   # => :mini_magick
 #
-#   Rails.application.config.active_storage.processor = :vips
+#   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
 #
 # Note that to create a variant it's necessary to download the entire blob file from the service and load it

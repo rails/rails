@@ -361,7 +361,7 @@ To switch to the Vips processor, you would add the following to
 
 ```ruby
 # Use Vips for processing variants.
-config.active_storage.processor = :vips
+config.active_storage.variant_processor = :vips
 ```
 
 Previewing Files
