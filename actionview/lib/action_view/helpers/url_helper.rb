@@ -319,7 +319,7 @@ module ActionView
 
         request_token_tag = if form_method == "post"
           request_method = method.empty? ? "post" : method
-          token_tag(nil, form_options: { action: url, method: request_method })
+          token_tag(form_options.delete(:authenticity_token), form_options: { action: url, method: request_method })
         else
           "".freeze
         end

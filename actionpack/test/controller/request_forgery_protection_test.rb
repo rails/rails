@@ -14,6 +14,10 @@ module RequestForgeryProtectionActions
     render inline: "<%= button_to('New', '/') %>"
   end
 
+  def show_button_without_authenticity_token
+    render inline: "<%= button_to('New', '/', form: {authenticity_token: false}) %>"
+  end
+
   def unsafe
     render plain: "pwn"
   end
@@ -200,6 +204,15 @@ module RequestForgeryProtectionTests
         get :show_button
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+    end
+  end
+
+  def test_should_render_button_to_without_token_tag
+    @controller.stub :form_authenticity_token, @token do
+      assert_not_blocked do
+        get :show_button_without_authenticity_token
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token, count: 0
     end
   end
 
