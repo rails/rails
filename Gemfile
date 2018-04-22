@@ -30,7 +30,7 @@ gem "uglifier", ">= 1.3.0", require: false
 # Explicitly avoid 1.x that doesn't support Ruby 2.4+
 gem "json", ">= 2.0.0"
 
-gem "rubocop", ">= 0.47", require: false
+gem "rubocop", ">= 0.53", require: false
 
 # https://github.com/guard/rb-inotify/pull/79
 gem "rb-inotify", github: "matthewd/rb-inotify", branch: "close-handling", require: false
