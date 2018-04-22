@@ -1534,7 +1534,7 @@ module ActionView
 
           html_options[:authenticity_token] = options.delete(:authenticity_token)
 
-          if !local && html_options[:authenticity_token].blank?
+          if !local && html_options[:authenticity_token].nil?
             html_options[:authenticity_token] = embed_authenticity_token_in_remote_forms
           end
 

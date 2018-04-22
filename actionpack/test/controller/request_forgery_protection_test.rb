@@ -46,6 +46,10 @@ module RequestForgeryProtectionActions
     render inline: "<%= form_with(scope: :some_resource) {} %>"
   end
 
+  def form_with_remote_authenticity_token_refused
+    render inline: "<%= form_with(scope: :some_resource, :authenticity_token => false) {} %>"
+  end
+
   def form_with_remote_with_token
     render inline: "<%= form_with(scope: :some_resource, authenticity_token: true) {} %>"
   end
@@ -343,6 +347,22 @@ module RequestForgeryProtectionTests
         end
       end
       assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token
+    ensure
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
+    end
+  end
+
+  def test_should_render_form_with_without_token_tag_if_remote_and_embedding_token_is_on_and_authenticity_token_refused
+    original = ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms
+    begin
+      ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = true
+
+      @controller.stub :form_authenticity_token, @token do
+        assert_not_blocked do
+          get :form_with_remote_authenticity_token_refused
+        end
+      end
+      assert_select "form>input[name=?][value=?]", "custom_authenticity_token", @token, count: 0
     ensure
       ActionView::Helpers::FormTagHelper.embed_authenticity_token_in_remote_forms = original
     end
