@@ -33,8 +33,8 @@ Rails creates a `test` directory for you as soon as you create a Rails project u
 
 ```bash
 $ ls -F test
-controllers/           helpers/               mailers/               system/                test_helper.rb
-fixtures/              integration/           models/                application_system_test_case.rb
+application_system_test_case.rb  fixtures/                        integration/                     models/                          test_helper.rb
+controllers/                     helpers/                         mailers/                         system/
 ```
 
 The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
@@ -433,16 +433,8 @@ at the end of test run and so on. Check the documentation of the test runner as 
 
 ```bash
 $ bin/rails test -h
-minitest options:
-    -h, --help                       Display this help.
-    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
-    -v, --verbose                    Verbose. Show progress processing files.
-    -n, --name PATTERN               Filter run on /regexp/ or string.
-        --exclude PATTERN            Exclude /regexp/ or string from run.
-
-Known extensions: rails, pride
-
 Usage: bin/rails test [options] [files or directories]
+
 You can run a single test by appending a line number to a filename:
 
     bin/rails test test/models/user_test.rb:27
@@ -453,13 +445,22 @@ You can run multiple files and directories at the same time:
 
 By default test failures and errors are reported inline during a run.
 
-Rails options:
+minitest options:
+    -h, --help                       Display this help.
+        --no-plugins                 Bypass minitest plugin auto-loading (or set $MT_NO_PLUGINS).
+    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
+    -v, --verbose                    Verbose. Show progress processing files.
+    -n, --name PATTERN               Filter run on /regexp/ or string.
+        --exclude PATTERN            Exclude /regexp/ or string from run.
+
+Known extensions: rails, pride
     -w, --warnings                   Run with Ruby warnings enabled
-    -e, --environment                Run tests in the ENV environment
+    -e, --environment ENV            Run tests in the ENV environment
     -b, --backtrace                  Show the complete backtrace
     -d, --defer-output               Output test failures and errors after the test run
     -f, --fail-fast                  Abort test run on first failure or error
     -c, --[no-]color                 Enable color in the output
+    -p, --pride                      Pride. Show your testing pride!
 ```
 
 Parallel Testing
