@@ -62,10 +62,11 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     run_in_eventmachine do
       connection = open_connection
 
-      connection.websocket.expects(:transmit).with({ type: "welcome" }.to_json)
-      assert_called(connection.message_buffer, :process!) do
-        connection.process
-        wait_for_async
+      assert_called_with(connection.websocket, :transmit, [{ type: "welcome" }.to_json]) do
+        assert_called(connection.message_buffer, :process!) do
+          connection.process
+          wait_for_async
+        end
       end
 
       assert_equal [ connection ], @server.connections
