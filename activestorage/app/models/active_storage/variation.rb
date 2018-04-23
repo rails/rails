@@ -105,10 +105,14 @@ class ActiveStorage::Variation
 
     # Returns the ImageProcessing processor class specified by `ActiveStorage.variant_processor`.
     def processor
-      require "image_processing"
+      begin
+        require "image_processing"
+      rescue LoadError
+        ActiveSupport::Deprecation.warn("Using mini_magick gem directly is deprecated and will be removed in Rails 6.1. Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.")
+        return nil
+      end
+
       ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize) if ActiveStorage.variant_processor
-    rescue LoadError
-      ActiveSupport::Deprecation.warn("Using mini_magick gem directly is deprecated and will be removed in Rails 6.1. Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.")
     end
 
     def pass_transform_argument(command, method, argument)
