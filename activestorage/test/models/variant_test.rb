@@ -6,7 +6,7 @@ require "database/setup"
 class ActiveStorage::VariantTest < ActiveSupport::TestCase
   test "resized variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize_to_fit: [100, 100]).processed
+    variant = blob.variant(resize: "100x100").processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -16,7 +16,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
 
   test "resized and monochrome variation of JPEG blob" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(resize_to_fit: [100, 100], monochrome: true).processed
+    variant = blob.variant(resize: "100x100", monochrome: true).processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -25,7 +25,7 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/Gray/, image.colorspace)
   end
 
-  test "center-weighted crop of JPEG blob" do
+  test "center-weighted crop of JPEG blob using :combine_options" do
     begin
       ActiveStorage.variant_processor = nil
       blob = create_file_blob(filename: "racecar.jpg")
@@ -44,6 +44,16 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     ensure
       ActiveStorage.variant_processor = :mini_magick
     end
+  end
+
+  test "center-weighted crop of JPEG blob using :resize_to_fill" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize_to_fill: [100, 100]).processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 100, image.height
   end
 
   test "resized variation of PSD blob" do

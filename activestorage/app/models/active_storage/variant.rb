@@ -19,16 +19,15 @@ require "active_storage/downloading"
 #   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
 #
-# Note that to create a variant it's necessary to download the entire blob file from the service and load it
-# into memory. The larger the image, the more memory is used. Because of this process, you also want to be
-# considerate about when the variant is actually processed. You shouldn't be processing variants inline in a
-# template, for example. Delay the processing to an on-demand controller, like the one provided in
-# ActiveStorage::RepresentationsController.
+# Note that to create a variant it's necessary to download the entire blob file from the service. The larger
+# the image, the more memory is used. Because of this process, you also want to be considerate about when the variant
+# is actually processed. You shouldn't be processing variants inline in a template, for example. Delay the processing
+# to an on-demand controller, like the one provided in ActiveStorage::RepresentationsController.
 #
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
-#   <%= image_tag Current.user.avatar.variant(resize_to_fit: [100, 100]) %>
+#   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
 #
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
 # can then produce on-demand.
@@ -37,22 +36,22 @@ require "active_storage/downloading"
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
 # the transformations, upload the variant to the service, and return itself again. Example:
 #
-#   avatar.variant(resize_to_fit: [100, 100]).processed.service_url
+#   avatar.variant(resize: "100x100").processed.service_url
 #
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
 # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
 #
-# Variant options are forwarded directly to the ImageProcessing gem. Visit the following links for a list of
-# available ImageProcessing commands and processor operations:
+# You can combine any number of ImageMagick/libvips operations into a variant. In addition to that, you can also use
+# any macros provided by the ImageProcessing gem (such as +resize_to_limit+).
+#
+#   avatar.variant(resize_to_limit: [800, 800], monochrome: true, flip: "-90")
+#
+# Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
 # * {ImageProcessing::MiniMagick}[https://github.com/janko-m/image_processing/blob/master/doc/minimagick.md#methods]
 # * {ImageMagick reference}[https://www.imagemagick.org/script/mogrify.php]
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
-#
-# You can combine as many of these options as you like freely:
-#
-#   avatar.variant(resize_to_fit: [100, 100], monochrome: true, flip: "-90")
 class ActiveStorage::Variant
   include ActiveStorage::Downloading
 
