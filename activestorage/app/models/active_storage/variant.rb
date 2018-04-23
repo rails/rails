@@ -19,10 +19,10 @@ require "active_storage/downloading"
 #   Rails.application.config.active_storage.variant_processor = :vips
 #   # => :vips
 #
-# Note that to create a variant it's necessary to download the entire blob file from the service. The larger
-# the image, the more memory is used. Because of this process, you also want to be considerate about when the variant
-# is actually processed. You shouldn't be processing variants inline in a template, for example. Delay the processing
-# to an on-demand controller, like the one provided in ActiveStorage::RepresentationsController.
+# Note that to create a variant it's necessary to download the entire blob file from the service. Because of this process,
+# you also want to be considerate about when the variant is actually processed. You shouldn't be processing variants inline
+# in a template, for example. Delay the processing to an on-demand controller, like the one provided in
+# ActiveStorage::RepresentationsController.
 #
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
