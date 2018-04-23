@@ -71,10 +71,7 @@ module ActiveRecord
 
             log(sql, name, binds, type_casted_binds) do
               if cache_stmt
-                cache = @statements[sql] ||= {
-                  stmt: @connection.prepare(sql)
-                }
-                stmt = cache[:stmt]
+                stmt = @statements[sql] ||= @connection.prepare(sql)
               else
                 stmt = @connection.prepare(sql)
               end
