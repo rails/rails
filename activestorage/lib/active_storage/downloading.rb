@@ -27,6 +27,7 @@ module ActiveStorage
       def download_blob_to(file) #:doc:
         file.binmode
         blob.download { |chunk| file.write(chunk) }
+        file.flush
         file.rewind
       end
 
