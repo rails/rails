@@ -325,9 +325,9 @@ module ActionView
       #
       #   image_tag(user.avatar)
       #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize: "100x100"))
+      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]))
       #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize: "100x100"), size: '100')
+      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]), size: '100')
       #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" />
       def image_tag(source, options = {})
         options = options.symbolize_keys

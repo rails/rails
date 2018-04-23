@@ -6,7 +6,7 @@
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize: "100x100", monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_fit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
 # The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation

@@ -27,7 +27,7 @@ require "active_storage/downloading"
 # To refer to such a delayed on-demand variant, simply link to the variant through the resolved route provided
 # by Active Storage like so:
 #
-#   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
+#   <%= image_tag Current.user.avatar.variant(resize_to_fit: [100, 100]) %>
 #
 # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::RepresentationsController
 # can then produce on-demand.
@@ -36,15 +36,15 @@ require "active_storage/downloading"
 # has already been processed and uploaded to the service, and, if so, just return that. Otherwise it will perform
 # the transformations, upload the variant to the service, and return itself again. Example:
 #
-#   avatar.variant(resize: "100x100").processed.service_url
+#   avatar.variant(resize_to_fit: [100, 100]).processed.service_url
 #
 # This will create and process a variant of the avatar blob that's constrained to a height and width of 100.
 # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
 #
-# You can combine any number of ImageMagick/libvips operations into a variant. In addition to that, you can also use
-# any macros provided by the ImageProcessing gem (such as +resize_to_limit+).
+# You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
+# ImageProcessing gem (such as +resize_to_fit+):
 #
-#   avatar.variant(resize_to_limit: [800, 800], monochrome: true, flip: "-90")
+#   avatar.variant(resize_to_fit: [800, 800], monochrome: true, flip: "-90")
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #

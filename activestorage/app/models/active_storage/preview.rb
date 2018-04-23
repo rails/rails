@@ -38,7 +38,7 @@ class ActiveStorage::Preview
 
   # Processes the preview if it has not been processed yet. Returns the receiving Preview instance for convenience:
   #
-  #   blob.preview(resize: "100x100").processed.service_url
+  #   blob.preview(resize_to_fit: [100, 100]).processed.service_url
   #
   # Processing a preview generates an image from its blob and attaches the preview image to the blob. Because the preview
   # image is stored with the blob, it is only generated once.

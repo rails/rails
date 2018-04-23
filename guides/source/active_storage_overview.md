@@ -353,7 +353,7 @@ original blob into the format you specified and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize: "100x100") %>
+<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
 ```
 
 To switch to the Vips processor, you would add the following to
@@ -375,7 +375,7 @@ the box, Active Storage supports previewing videos and PDF documents.
 <ul>
   <% @message.files.each do |file| %>
     <li>
-      <%= image_tag file.preview(resize: "100x100>") %>
+      <%= image_tag file.preview(resize_to_limit: [100, 100]) %>
     </li>
   <% end %>
 </ul>
