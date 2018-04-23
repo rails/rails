@@ -25,13 +25,30 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/Gray/, image.colorspace)
   end
 
-  test "center-weighted crop of JPEG blob" do
+  test "center-weighted crop of JPEG blob using :combine_options" do
+    begin
+      ActiveStorage.variant_processor = nil
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = ActiveSupport::Deprecation.silence do
+        blob.variant(combine_options: {
+          gravity: "center",
+          resize: "100x100^",
+          crop: "100x100+0+0",
+        }).processed
+      end
+      assert_match(/racecar\.jpg/, variant.service_url)
+
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 100, image.height
+    ensure
+      ActiveStorage.variant_processor = :mini_magick
+    end
+  end
+
+  test "center-weighted crop of JPEG blob using :resize_to_fill" do
     blob = create_file_blob(filename: "racecar.jpg")
-    variant = blob.variant(combine_options: {
-      gravity: "center",
-      resize: "100x100^",
-      crop: "100x100+0+0",
-    }).processed
+    variant = blob.variant(resize_to_fill: [100, 100]).processed
     assert_match(/racecar\.jpg/, variant.service_url)
 
     image = read_image(variant)
@@ -79,5 +96,21 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     blob = create_file_blob(filename: "racecar.jpg")
     variant = blob.variant(font: "a" * 10_000).processed
     assert_operator variant.service_url.length, :<, 525
+  end
+
+  test "works for vips processor" do
+    begin
+      ActiveStorage.variant_processor = :vips
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(thumbnail_image: 100).processed
+
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 67, image.height
+    rescue LoadError
+      # libvips not installed
+    ensure
+      ActiveStorage.variant_processor = :mini_magick
+    end
   end
 end

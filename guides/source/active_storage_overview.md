@@ -337,14 +337,15 @@ rails_blob_path(user.avatar, disposition: "attachment")
 Transforming Images
 -------------------
 
-To create variation of the image, call `variant` on the Blob.
-You can pass any [MiniMagick](https://github.com/minimagick/minimagick)
-supported transformation to the method.
+To create variation of the image, call `variant` on the Blob. You can pass
+any transformation to the method supported by the processor. The default
+processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
+can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 
-To enable variants, add `mini_magick` to your `Gemfile`:
+To enable variants, add the `image_processing` gem to your `Gemfile`:
 
 ```ruby
-gem 'mini_magick'
+gem 'image_processing', '~> 1.2'
 ```
 
 When the browser hits the variant URL, Active Storage will lazy transform the
@@ -352,7 +353,15 @@ original blob into the format you specified and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize: "100x100") %>
+<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+```
+
+To switch to the Vips processor, you would add the following to
+`config/application.rb`:
+
+```ruby
+# Use Vips for processing variants.
+config.active_storage.variant_processor = :vips
 ```
 
 Previewing Files
@@ -366,7 +375,7 @@ the box, Active Storage supports previewing videos and PDF documents.
 <ul>
   <% @message.files.each do |file| %>
     <li>
-      <%= image_tag file.preview(resize: "100x100>") %>
+      <%= image_tag file.preview(resize_to_limit: [100, 100]) %>
     </li>
   <% end %>
 </ul>

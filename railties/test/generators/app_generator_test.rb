@@ -312,7 +312,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_active_storage_mini_magick_gem
     run_generator
-    assert_file "Gemfile", /^# gem 'mini_magick'/
+    assert_file "Gemfile", /^# gem 'image_processing'/
   end
 
   def test_mini_magick_gem_when_skip_active_storage_is_given
@@ -320,7 +320,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [app_root, "--skip-active-storage"]
 
     assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
+      assert_no_match(/gem 'image_processing'/, content)
     end
   end
 

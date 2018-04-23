@@ -6,17 +6,9 @@
 # In case you do need to use this directly, it's instantiated using a hash of transformations where
 # the key is the command and the value is the arguments. Example:
 #
-#   ActiveStorage::Variation.new(resize: "100x100", monochrome: true, trim: true, rotate: "-90")
+#   ActiveStorage::Variation.new(resize_to_fit: [100, 100], monochrome: true, trim: true, rotate: "-90")
 #
-# You can also combine multiple transformations in one step, e.g. for center-weighted cropping:
-#
-#   ActiveStorage::Variation.new(combine_options: {
-#     resize: "100x100^",
-#     gravity: "center",
-#     crop: "100x100+0+0",
-#   })
-#
-# A list of all possible transformations is available at https://www.imagemagick.org/script/mogrify.php.
+# The options map directly to {ImageProcessing}[https://github.com/janko-m/image_processing] commands.
 class ActiveStorage::Variation
   attr_reader :transformations
 
@@ -51,10 +43,49 @@ class ActiveStorage::Variation
     @transformations = transformations
   end
 
-  # Accepts an open MiniMagick image instance, like what's returned by <tt>MiniMagick::Image.read(io)</tt>,
-  # and performs the +transformations+ against it. The transformed image instance is then returned.
-  def transform(image)
+  # Accepts a File object, performs the +transformations+ against it, and
+  # saves the transformed image into a temporary file. If +format+ is specified
+  # it will be the format of the result image, otherwise the result image
+  # retains the source format.
+  def transform(file, format: nil)
     ActiveSupport::Notifications.instrument("transform.active_storage") do
+      if processor
+        image_processing_transform(file, format)
+      else
+        mini_magick_transform(file, format)
+      end
+    end
+  end
+
+  # Returns a signed key for all the +transformations+ that this variation was instantiated with.
+  def key
+    self.class.encode(transformations)
+  end
+
+  private
+    # Applies image transformations using the ImageProcessing gem.
+    def image_processing_transform(file, format)
+      operations = transformations.inject([]) do |list, (name, argument)|
+        if name.to_s == "combine_options"
+          ActiveSupport::Deprecation.warn("The ImageProcessing ActiveStorage variant backend doesn't need :combine_options, as it already generates a single MiniMagick command. In Rails 6.1 :combine_options will not be supported anymore.")
+          list.concat argument.to_a
+        else
+          list << [name, argument]
+        end
+      end
+
+      processor
+        .source(file)
+        .loader(page: 0)
+        .convert(format)
+        .apply(operations)
+        .call
+    end
+
+    # Applies image transformations using the MiniMagick gem.
+    def mini_magick_transform(file, format)
+      image = MiniMagick::Image.new(file.path, file)
+
       transformations.each do |name, argument_or_subtransformations|
         image.mogrify do |command|
           if name.to_s == "combine_options"
@@ -66,15 +97,24 @@ class ActiveStorage::Variation
           end
         end
       end
+
+      image.format(format) if format
+
+      image.tempfile.tap(&:open)
     end
-  end
 
-  # Returns a signed key for all the +transformations+ that this variation was instantiated with.
-  def key
-    self.class.encode(transformations)
-  end
+    # Returns the ImageProcessing processor class specified by `ActiveStorage.variant_processor`.
+    def processor
+      begin
+        require "image_processing"
+      rescue LoadError
+        ActiveSupport::Deprecation.warn("Using mini_magick gem directly is deprecated and will be removed in Rails 6.1. Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.")
+        return nil
+      end
 
-  private
+      ImageProcessing.const_get(ActiveStorage.variant_processor.to_s.camelize) if ActiveStorage.variant_processor
+    end
+
     def pass_transform_argument(command, method, argument)
       if eligible_argument?(argument)
         command.public_send(method, argument)

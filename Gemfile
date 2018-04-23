@@ -88,7 +88,7 @@ group :storage do
   gem "google-cloud-storage", "~> 1.8", require: false
   gem "azure-storage", require: false
 
-  gem "mini_magick"
+  gem "image_processing", "~> 1.2"
 end
 
 group :ujs do

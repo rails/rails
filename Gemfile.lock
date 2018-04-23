@@ -229,10 +229,10 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.9.18)
-    ffi (1.9.18-java)
-    ffi (1.9.18-x64-mingw32)
-    ffi (1.9.18-x86-mingw32)
+    ffi (1.9.23)
+    ffi (1.9.23-java)
+    ffi (1.9.23-x64-mingw32)
+    ffi (1.9.23-x86-mingw32)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     google-api-client (0.17.3)
@@ -265,6 +265,9 @@ GEM
     httpclient (2.8.3)
     i18n (1.0.0)
       concurrent-ruby (~> 1.0)
+    image_processing (1.2.0)
+      mini_magick (~> 4.0)
+      ruby-vips (>= 2.0.10, < 3)
     io-like (0.3.0)
     jdbc-mysql (5.1.44)
     jdbc-postgres (9.4.1206)
@@ -393,6 +396,8 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
+    ruby-vips (2.0.10)
+      ffi (~> 1.9)
     ruby_dep (1.5.0)
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
@@ -515,11 +520,11 @@ DEPENDENCIES
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
   hiredis
+  image_processing (~> 1.2)
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
-  mini_magick
   minitest-bisect
   mocha
   mysql2 (>= 0.4.10)

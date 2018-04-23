@@ -4,7 +4,7 @@ Active Storage makes it simple to upload and reference files in cloud services l
 
 Files can be uploaded from the server to the cloud or directly from the client to the cloud.
 
-Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) supported transformation.
+Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
 ## Compared to other storage solutions
 
@@ -99,7 +99,7 @@ Variation of image attachment:
 
 ```erb
 <%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
-<%= image_tag user.avatar.variant(resize: "100x100") %>
+<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
 ```
 
 ## Direct uploads

@@ -45,6 +45,7 @@ module ActiveStorage
   mattr_accessor :queue
   mattr_accessor :previewers, default: []
   mattr_accessor :analyzers, default: []
+  mattr_accessor :variant_processor, default: :mini_magick
   mattr_accessor :paths, default: {}
   mattr_accessor :variable_content_types, default: []
   mattr_accessor :content_types_to_serve_as_binary, default: []
