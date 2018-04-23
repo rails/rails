@@ -450,7 +450,7 @@ class LoginsController < ApplicationController
 end
 ```
 
-To remove something from the session, assign that key to be `nil`:
+To remove something from the session, delete the key/value pair:
 
 ```ruby
 class LoginsController < ApplicationController
@@ -478,7 +478,7 @@ Let's use the act of logging out as an example. The controller can send a messag
 ```ruby
 class LoginsController < ApplicationController
   def destroy
-    session[:current_user_id] = nil
+    session.delete(:current_user_id)
     flash[:notice] = "You have successfully logged out."
     redirect_to root_url
   end
