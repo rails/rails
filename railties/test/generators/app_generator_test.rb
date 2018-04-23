@@ -316,12 +316,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_gem_for_active_storage_when_skip_active_storage_is_given
-    app_root = File.join(destination_root, "myapp")
-    run_generator [app_root, "--skip-active-storage"]
+    run_generator [destination_root, "--skip-active-storage"]
 
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'image_processing'/, content)
-    end
+    assert_no_gem "image_processing"
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
@@ -474,9 +471,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_puma_is_given
     run_generator [destination_root, "--skip-puma"]
     assert_no_file "config/puma.rb"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/puma/, content)
-    end
+    assert_no_gem "puma"
   end
 
   def test_generator_has_assets_gems
@@ -496,22 +491,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/capybara/, content)
-      assert_no_match(/selenium-webdriver/, content)
-      assert_no_match(/chromedriver-helper/, content)
-    end
+    assert_no_gem "capybara"
+    assert_no_gem "selenium-webdriver"
+    assert_no_gem "chromedriver-helper"
 
     assert_no_directory("test")
   end
 
   def test_generator_if_skip_system_test_is_given
     run_generator [destination_root, "--skip-system-test"]
-    assert_file "Gemfile" do |content|
-      assert_no_match(/capybara/, content)
-      assert_no_match(/selenium-webdriver/, content)
-      assert_no_match(/chromedriver-helper/, content)
-    end
+    assert_no_gem "capybara"
+    assert_no_gem "selenium-webdriver"
+    assert_no_gem "chromedriver-helper"
 
     assert_directory("test")
 
@@ -557,10 +548,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/coffee-rails/, content)
-      assert_no_match(/uglifier/, content)
-    end
+    assert_no_gem "coffee-rails"
+    assert_no_gem "uglifier"
 
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
@@ -584,9 +573,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
-      assert_file "Gemfile" do |content|
-        assert_no_match(/byebug/, content)
-      end
+      assert_no_gem "byebug"
     else
       assert_gem "byebug"
     end
@@ -737,9 +724,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_called_with(Process, :respond_to?, [[:fork], [:fork]], returns: false) do
       run_generator
 
-      assert_file "Gemfile" do |content|
-        assert_no_match(/spring/, content)
-      end
+      assert_no_gem "spring"
     end
   end
 
@@ -747,17 +732,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-spring"]
 
     assert_no_file "config/spring.rb"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/spring/, content)
-    end
+    assert_no_gem "spring"
   end
 
   def test_spring_with_dev_option
     run_generator [destination_root, "--dev"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/spring/, content)
-    end
+    assert_no_gem "spring"
   end
 
   def test_webpack_option
@@ -802,9 +783,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/turbolinks/, content)
-    end
+    assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
     end
@@ -822,9 +801,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_match(/require 'bootsnap\/setup'/, content)
       end
     else
-      assert_file "Gemfile" do |content|
-        assert_no_match(/bootsnap/, content)
-      end
+      assert_no_gem "bootsnap"
       assert_file "config/boot.rb" do |content|
         assert_no_match(/require 'bootsnap\/setup'/, content)
       end
@@ -834,9 +811,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_skip_bootsnap
     run_generator [destination_root, "--skip-bootsnap"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/bootsnap/, content)
-    end
+    assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
       assert_no_match(/require 'bootsnap\/setup'/, content)
     end
@@ -845,9 +820,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bootsnap_with_dev_option
     run_generator [destination_root, "--dev"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/bootsnap/, content)
-    end
+    assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
       assert_no_match(/require 'bootsnap\/setup'/, content)
     end
@@ -979,6 +952,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
+    def assert_no_gem(gem)
+      assert_file "Gemfile" do |content|
+        assert_no_match(gem, content)
+      end
+    end
+
     def assert_listen_related_configuration
       assert_gem "listen"
       assert_gem "spring-watcher-listen"
@@ -989,9 +968,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_no_listen_related_configuration
-      assert_file "Gemfile" do |content|
-        assert_no_match(/listen/, content)
-      end
+      assert_no_gem "listen"
 
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
