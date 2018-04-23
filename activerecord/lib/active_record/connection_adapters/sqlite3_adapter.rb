@@ -94,7 +94,7 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
-            stmt[:stmt].close unless stmt[:stmt].closed?
+            stmt.close unless stmt.closed?
           end
       end
 
@@ -224,11 +224,8 @@ module ActiveRecord
                 stmt.close
               end
             else
-              cache = @statements[sql] ||= {
-                stmt: @connection.prepare(sql)
-              }
-              stmt = cache[:stmt]
-              cols = cache[:cols] ||= stmt.columns
+              stmt = @statements[sql] ||= @connection.prepare(sql)
+              cols = stmt.columns
               stmt.reset!
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
