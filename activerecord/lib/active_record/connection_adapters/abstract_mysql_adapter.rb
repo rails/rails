@@ -44,7 +44,7 @@ module ActiveRecord
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
-          stmt[:stmt].close
+          stmt.close
         end
       end
 
