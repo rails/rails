@@ -229,6 +229,18 @@ class ErrorsTest < ActiveModel::TestCase
     assert_not person.errors.added?(:name, :used)
   end
 
+  test "added? does not modify messages when checking for a String message" do
+    person = Person.new
+    person.errors.added?(:name, "cannot be blank")
+    assert person.errors.messages.empty?
+  end
+
+  test "added? does not modify messages when checking for a Symbol message" do
+    person = Person.new
+    person.errors.added?(:name, :blank)
+    assert person.errors.messages.empty?
+  end
+
   test "size calculates the number of error messages" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")

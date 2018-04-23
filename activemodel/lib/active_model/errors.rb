@@ -327,7 +327,7 @@ module ActiveModel
       else
         message = message.call if message.respond_to?(:call)
         message = normalize_message(attribute, message, options)
-        self[attribute].include? message
+        self.has_key?(attribute) && self[attribute].include?(message)
       end
     end
 
