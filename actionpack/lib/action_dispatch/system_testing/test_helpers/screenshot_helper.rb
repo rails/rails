@@ -80,7 +80,7 @@ module ActionDispatch
           end
 
           def inline_base64(path)
-            Base64.encode64(path).gsub("\n", "")
+            Base64.strict_encode64(path)
           end
 
           def failed?
