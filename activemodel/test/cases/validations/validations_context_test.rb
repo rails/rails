@@ -67,4 +67,13 @@ class ValidationsContextTest < ActiveModel::TestCase
     assert_includes topic.errors[:base], ERROR_MESSAGE
     assert_includes topic.errors[:base], ANOTHER_ERROR_MESSAGE
   end
+
+  test "with a class that adds errors except on context and validating a model with that context" do
+    Topic.validates_with(ValidatorThatAddsErrors, except: :context1)
+    topic = Topic.new
+
+    assert topic.valid?(:context1), "Validation doesn't run on context1 if 'except' is set to context1"
+    assert topic.invalid?, "Validation does run without context"
+    assert_includes topic.errors[:base], ERROR_MESSAGE
+  end
 end
