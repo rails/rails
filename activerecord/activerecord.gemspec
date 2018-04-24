@@ -30,6 +30,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
   s.add_dependency "activemodel",   version
-
-  s.add_dependency "arel", ">= 9.0"
 end
