@@ -17,9 +17,9 @@ module Arel
         assert_equal core.projections, dolly.projections
         assert_equal core.wheres, dolly.wheres
 
-        refute_same core.froms, dolly.froms
-        refute_same core.projections, dolly.projections
-        refute_same core.wheres, dolly.wheres
+        assert_not_same core.froms, dolly.froms
+        assert_not_same core.projections, dolly.projections
+        assert_not_same core.wheres, dolly.wheres
       end
 
       def test_set_quantifier

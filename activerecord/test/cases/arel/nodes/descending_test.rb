@@ -24,7 +24,7 @@ module Arel
 
       def test_ascending?
         descending = Descending.new "zomg"
-        assert !descending.ascending?
+        assert_not descending.ascending?
       end
 
       def test_descending?
