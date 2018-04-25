@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require_relative "../helper"
+require "arel/collectors/bind"
 
 module Arel
   module Collectors
