@@ -227,10 +227,10 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.9.23)
-    ffi (1.9.23-java)
-    ffi (1.9.23-x64-mingw32)
-    ffi (1.9.23-x86-mingw32)
+    ffi (1.9.21)
+    ffi (1.9.21-java)
+    ffi (1.9.21-x64-mingw32)
+    ffi (1.9.21-x86-mingw32)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
     google-api-client (0.17.3)
@@ -516,6 +516,7 @@ DEPENDENCIES
   dalli
   delayed_job
   delayed_job_active_record
+  ffi (<= 1.9.21)
   google-cloud-storage (~> 1.8)
   hiredis
   image_processing (~> 1.2)
