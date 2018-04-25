@@ -1,4 +1,4 @@
-*   Normalize the date component to account for DST.
+*   Normalize the date component for `time` columns to the epoch date of 2000-01-01.
 
     *Sean Prashad*
 
