@@ -75,6 +75,10 @@ class ActiveSupport::TestCase
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
     end
+
+    def extract_metadata_from(blob)
+      blob.tap(&:analyze).metadata
+    end
 end
 
 require "global_id"
