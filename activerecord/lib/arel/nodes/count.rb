@@ -3,8 +3,6 @@
 module Arel # :nodoc: all
   module Nodes
     class Count < Arel::Nodes::Function
-      include Math
-
       def initialize(expr, distinct = false, aliaz = nil)
         super(expr, aliaz)
         @distinct = distinct
