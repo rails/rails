@@ -48,7 +48,8 @@ module ActiveStorage
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        uri = URI(url(key, expires_in: 30.seconds, filename: ActiveStorage::Filename.new(""), content_type: "application/octet-stream", disposition: "inline"))
+        file = file_for(key)
+        uri  = URI(file.signed_url(expires: 30.seconds))
 
         Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |client|
           client.get(uri, "Range" => "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body
