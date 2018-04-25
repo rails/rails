@@ -29,9 +29,4 @@ class ActiveStorage::Analyzer::ImageAnalyzerTest < ActiveSupport::TestCase
     assert_equal 792, metadata[:width]
     assert_equal 584, metadata[:height]
   end
-
-  private
-    def extract_metadata_from(blob)
-      blob.tap(&:analyze).metadata
-    end
 end
