@@ -162,6 +162,9 @@ class Author < ActiveRecord::Base
     def extension_method; end
   end
 
+  has_many :top_posts, -> { order(id: :asc) }, class_name: "Post"
+  has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
+
   attr_accessor :post_log
   after_initialize :set_post_log
 
