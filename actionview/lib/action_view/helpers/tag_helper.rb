@@ -88,7 +88,7 @@ module ActionView
           if value.is_a?(Array)
             value = escape ? safe_join(value, " ".freeze) : value.join(" ".freeze)
           else
-            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
+            value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s.dup
           end
           value.gsub!('"'.freeze, '&quot;'.freeze)
           %(#{key}="#{value}")
