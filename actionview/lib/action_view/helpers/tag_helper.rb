@@ -90,7 +90,8 @@ module ActionView
           else
             value = escape ? ERB::Util.unwrapped_html_escape(value) : value.to_s
           end
-          %(#{key}="#{value.gsub('"'.freeze, '&quot;'.freeze)}")
+          value.gsub!('"'.freeze, '&quot;'.freeze)
+          %(#{key}="#{value}")
         end
 
         private
