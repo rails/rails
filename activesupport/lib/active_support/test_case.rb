@@ -130,7 +130,7 @@ module ActiveSupport
     alias_method :method_name, :name
 
     include ActiveSupport::Testing::TaggedLogging
-    include ActiveSupport::Testing::SetupAndTeardown
+    prepend ActiveSupport::Testing::SetupAndTeardown
     include ActiveSupport::Testing::Assertions
     include ActiveSupport::Testing::Deprecation
     include ActiveSupport::Testing::TimeHelpers
