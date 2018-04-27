@@ -2,8 +2,11 @@
 
 require "test_helper"
 require "stubs/test_server"
+require "active_support/testing/method_call_assertions"
 
 class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   class Connection < ActionCable::Connection::Base
     attr_reader :connected, :websocket, :errors
 
@@ -41,9 +44,10 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
       # Internal hax = :(
       client = connection.websocket.send(:websocket)
       client.instance_variable_get("@stream").expects(:write).raises("foo")
-      client.expects(:client_gone).never
 
-      client.write("boo")
+      assert_not_called(client, :client_gone) do
+        client.write("boo")
+      end
       assert_equal %w[ foo ], connection.errors
     end
   end

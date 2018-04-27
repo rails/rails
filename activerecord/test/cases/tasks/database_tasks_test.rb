@@ -80,10 +80,11 @@ module ActiveRecord
       instance = klazz.new
 
       klazz.stubs(:new).returns instance
-      instance.expects(:structure_dump).with("awesome-file.sql", nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
-      ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
+      assert_called_with(instance, :structure_dump, ["awesome-file.sql", nil]) do
+        ActiveRecord::Tasks::DatabaseTasks.register_task(/foo/, klazz)
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => :foo }, "awesome-file.sql")
+      end
     end
 
     def test_unregistered_task
@@ -127,50 +128,50 @@ module ActiveRecord
     def test_ignores_configurations_without_databases
       @configurations["development"].merge!("database" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).never
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_warning_for_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
 
-      $stderr.expects(:puts).with("This task only modifies local databases. my-db is on a remote host.")
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called_with($stderr, :puts, ["This task only modifies local databases. my-db is on a remote host."]) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_creates_configurations_with_local_ip
       @configurations["development"].merge!("host" => "127.0.0.1")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_creates_configurations_with_local_host
       @configurations["development"].merge!("host" => "localhost")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
 
     def test_creates_configurations_with_blank_hosts
       @configurations["development"].merge!("host" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create)
-
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
+      end
     end
   end
 
@@ -187,21 +188,27 @@ module ActiveRecord
     end
 
     def test_creates_current_environment_database
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("database" => "test-db")
-
-      ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new("test")
-      )
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :create,
+        ["database" => "test-db"],
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.create_current(
+          ActiveSupport::StringInquirer.new("test")
+        )
+      end
     end
 
     def test_creates_current_environment_database_with_url
-      ActiveRecord::Tasks::DatabaseTasks.expects(:create).
-        with("url" => "prod-db-url")
-
-      ActiveRecord::Tasks::DatabaseTasks.create_current(
-        ActiveSupport::StringInquirer.new("production")
-      )
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :create,
+        ["url" => "prod-db-url"],
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.create_current(
+          ActiveSupport::StringInquirer.new("production")
+        )
+      end
     end
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
@@ -343,50 +350,54 @@ module ActiveRecord
     def test_ignores_configurations_without_databases
       @configurations[:development].merge!("database" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_ignores_remote_databases
       @configurations[:development].merge!("host" => "my.server.tld")
       $stderr.stubs(:puts).returns(nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop).never
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_warning_for_remote_databases
       @configurations[:development].merge!("host" => "my.server.tld")
 
-      $stderr.expects(:puts).with("This task only modifies local databases. my-db is on a remote host.")
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called_with(
+        $stderr,
+        :puts,
+        ["This task only modifies local databases. my-db is on a remote host."],
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_drops_configurations_with_local_ip
       @configurations[:development].merge!("host" => "127.0.0.1")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_drops_configurations_with_local_host
       @configurations[:development].merge!("host" => "localhost")
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
 
     def test_drops_configurations_with_blank_hosts
       @configurations[:development].merge!("host" => nil)
 
-      ActiveRecord::Tasks::DatabaseTasks.expects(:drop)
-
-      ActiveRecord::Tasks::DatabaseTasks.drop_all
+      assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
+        ActiveRecord::Tasks::DatabaseTasks.drop_all
+      end
     end
   end
 
@@ -645,8 +656,9 @@ module ActiveRecord
     end
 
     def test_migrate_clears_schema_cache_afterward
-      ActiveRecord::Base.expects(:clear_cache!)
-      ActiveRecord::Tasks::DatabaseTasks.migrate
+      assert_called(ActiveRecord::Base, :clear_cache!) do
+        ActiveRecord::Tasks::DatabaseTasks.migrate
+      end
     end
   end
 
@@ -672,9 +684,10 @@ module ActiveRecord
 
       ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
         with("database" => "prod-db")
-      ActiveRecord::Base.expects(:establish_connection).with(:production)
 
-      ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
+      assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
+        ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
+      end
     end
   end
 
@@ -838,8 +851,9 @@ module ActiveRecord
 
   class DatabaseTasksCheckSchemaFileTest < ActiveRecord::TestCase
     def test_check_schema_file
-      Kernel.expects(:abort).with(regexp_matches(/awesome-file.sql/))
-      ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
+      assert_called_with(Kernel, :abort, [/awesome-file.sql/]) do
+        ActiveRecord::Tasks::DatabaseTasks.check_schema_file("awesome-file.sql")
+      end
     end
   end
 

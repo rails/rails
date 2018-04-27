@@ -204,9 +204,9 @@ if current_adapter?(:SQLite3Adapter)
       def test_structure_dump_with_ignore_tables
         dbfile   = @database
         filename = "awesome-file.sql"
-        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo"])
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        assert_called(ActiveRecord::SchemaDumper, :ignore_tables, returns: ["foo"]) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root")
+        end
         assert File.exist?(dbfile)
         assert File.exist?(filename)
         assert_match(/bar/, File.read(filename))
@@ -219,14 +219,19 @@ if current_adapter?(:SQLite3Adapter)
       def test_structure_dump_execution_fails
         dbfile   = @database
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("sqlite3", "--noop", "db_create.sqlite3", ".schema", out: "awesome-file.sql").returns(nil)
-
-        e = assert_raise(RuntimeError) do
-          with_structure_dump_flags(["--noop"]) do
-            quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
+        assert_called_with(
+          Kernel,
+          :system,
+          ["sqlite3", "--noop", "db_create.sqlite3", ".schema", out: "awesome-file.sql"],
+          returns: nil
+        ) do
+          e = assert_raise(RuntimeError) do
+            with_structure_dump_flags(["--noop"]) do
+              quietly { ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename, "/rails/root") }
+            end
           end
+          assert_match("failed to execute:", e.message)
         end
-        assert_match("failed to execute:", e.message)
       ensure
         FileUtils.rm_f(filename)
         FileUtils.rm_f(dbfile)

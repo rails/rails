@@ -1,10 +1,13 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "active_support/testing/method_call_assertions"
 require "stubs/test_server"
 require "stubs/user"
 
 class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   class Connection < ActionCable::Connection::Base
     identified_by :current_user
     attr_reader :websocket
@@ -41,8 +44,9 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     run_in_eventmachine do
       open_connection_with_stubbed_pubsub
 
-      @connection.websocket.expects(:close)
-      @connection.process_internal_message "type" => "disconnect"
+      assert_called(@connection.websocket, :close) do
+        @connection.process_internal_message "type" => "disconnect"
+      end
     end
   end
 
@@ -50,8 +54,9 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     run_in_eventmachine do
       open_connection_with_stubbed_pubsub
 
-      @connection.websocket.expects(:close).never
-      @connection.process_internal_message "type" => "unknown"
+      assert_not_called(@connection.websocket, :close) do
+        @connection.process_internal_message "type" => "unknown"
+      end
     end
   end
 

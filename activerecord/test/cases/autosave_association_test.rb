@@ -769,8 +769,9 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_not_predicate @pirate, :valid?
 
     @pirate.ship.mark_for_destruction
-    @pirate.ship.expects(:valid?).never
-    assert_difference("Ship.count", -1) { @pirate.save! }
+    assert_not_called(@pirate.ship, :valid?) do
+      assert_difference("Ship.count", -1) { @pirate.save! }
+    end
   end
 
   def test_a_child_marked_for_destruction_should_not_be_destroyed_twice
@@ -806,8 +807,9 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
   end
 
   def test_should_not_save_changed_has_one_unchanged_object_if_child_is_saved
-    @pirate.ship.expects(:save).never
-    assert @pirate.save
+    assert_not_called(@pirate.ship, :save) do
+      assert @pirate.save
+    end
   end
 
   # belongs_to
@@ -830,8 +832,9 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     assert_not_predicate @ship, :valid?
 
     @ship.pirate.mark_for_destruction
-    @ship.pirate.expects(:valid?).never
-    assert_difference("Pirate.count", -1) { @ship.save! }
+    assert_not_called(@ship.pirate, :valid?) do
+      assert_difference("Pirate.count", -1) { @ship.save! }
+    end
   end
 
   def test_a_parent_marked_for_destruction_should_not_be_destroyed_twice
@@ -898,11 +901,13 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.birds.each { |bird| bird.name = "" }
     assert_not_predicate @pirate, :valid?
 
-    @pirate.birds.each do |bird|
-      bird.mark_for_destruction
-      bird.expects(:valid?).never
+    @pirate.birds.each(&:mark_for_destruction)
+
+    assert_not_called(@pirate.birds.first, :valid?) do
+      assert_not_called(@pirate.birds.last, :valid?) do
+        assert_difference("Bird.count", -2) { @pirate.save! }
+      end
     end
-    assert_difference("Bird.count", -2) { @pirate.save! }
   end
 
   def test_should_skip_validation_on_has_many_if_destroyed
@@ -921,8 +926,11 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.birds.each(&:mark_for_destruction)
     assert @pirate.save
 
-    @pirate.birds.each { |bird| bird.expects(:destroy).never }
-    assert @pirate.save
+    @pirate.birds.each do |bird|
+      assert_not_called(bird, :destroy) do
+        assert @pirate.save
+      end
+    end
   end
 
   def test_should_rollback_destructions_if_an_exception_occurred_while_saving_has_many
@@ -1022,12 +1030,14 @@ class TestDestroyAsPartOfAutosaveAssociation < ActiveRecord::TestCase
     @pirate.parrots.each { |parrot| parrot.name = "" }
     assert_not_predicate @pirate, :valid?
 
-    @pirate.parrots.each do |parrot|
-      parrot.mark_for_destruction
-      parrot.expects(:valid?).never
+    @pirate.parrots.each { |parrot| parrot.mark_for_destruction }
+
+    assert_not_called(@pirate.parrots.first, :valid?) do
+      assert_not_called(@pirate.parrots.last, :valid?) do
+        @pirate.save!
+      end
     end
 
-    @pirate.save!
     assert_empty @pirate.reload.parrots
   end
 
