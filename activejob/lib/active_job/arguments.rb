@@ -79,6 +79,8 @@ module ActiveJob
           result = serialize_hash(argument)
           result[SYMBOL_KEYS_KEY] = symbol_keys
           result
+        when Proc
+          serialize_argument(argument.call)
         else
           Serializers.serialize(argument)
         end
