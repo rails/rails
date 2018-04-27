@@ -212,6 +212,8 @@ module ActiveRecord
       def size
         if !find_target? || loaded?
           target.size
+        elsif @association_ids && target.empty?
+          @association_ids.size
         elsif !association_scope.group_values.empty?
           load_target.size
         elsif !association_scope.distinct_value && !target.empty?
@@ -231,7 +233,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded?
+        if loaded? || @association_ids
           size.zero?
         else
           target.empty? && !scope.exists?

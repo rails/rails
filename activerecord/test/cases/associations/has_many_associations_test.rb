@@ -993,6 +993,16 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, post.readers.size
   end
 
+  def test_collection_empty_with_dirty_target
+    post = posts(:thinking)
+    assert_equal [], post.reader_ids
+    assert_empty post.readers
+    post.readers.reset
+    post.readers.build
+    assert_equal [], post.reader_ids
+    assert_not_empty post.readers
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
@@ -2570,6 +2580,70 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       car.bulbs.create!
 
       assert_equal 1, count
+    end
+  end
+
+  test "calling size on an association that has not been loaded performs a query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+
+    car_two = Car.create!
+
+    assert_queries(1) do
+      assert_equal 1, car.bulbs.size
+    end
+
+    assert_queries(1) do
+      assert_equal 0, car_two.bulbs.size
+    end
+  end
+
+  test "calling size on an association that has been loaded does not perform query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+    car.bulb_ids
+
+    car_two = Car.create!
+    car_two.bulb_ids
+
+    assert_no_queries do
+      assert_equal 1, car.bulbs.size
+    end
+
+    assert_no_queries do
+      assert_equal 0, car_two.bulbs.size
+    end
+  end
+
+  test "calling empty on an association that has not been loaded performs a query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+
+    car_two = Car.create!
+
+    assert_queries(1) do
+      assert_not_empty car.bulbs
+    end
+
+    assert_queries(1) do
+      assert_empty car_two.bulbs
+    end
+  end
+
+  test "calling empty on an association that has been loaded does not performs query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+    car.bulb_ids
+
+    car_two = Car.create!
+    car_two.bulb_ids
+
+    assert_no_queries do
+      assert_not_empty car.bulbs
+    end
+
+    assert_no_queries do
+      assert_empty car_two.bulbs
     end
   end
 
