@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/concern"
 require "active_support/callbacks"
 
 module ActiveSupport
@@ -19,11 +18,10 @@ module ActiveSupport
     #     end
     #   end
     module SetupAndTeardown
-      extend ActiveSupport::Concern
-
-      included do
-        include ActiveSupport::Callbacks
-        define_callbacks :setup, :teardown
+      def self.prepended(klass)
+        klass.include ActiveSupport::Callbacks
+        klass.define_callbacks :setup, :teardown
+        klass.extend ClassMethods
       end
 
       module ClassMethods
@@ -47,12 +45,10 @@ module ActiveSupport
         begin
           run_callbacks :teardown
         rescue => e
-          error = e
+          self.failures << Minitest::UnexpectedError.new(e)
         end
 
         super
-      ensure
-        raise error if error
       end
     end
   end
