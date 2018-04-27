@@ -185,10 +185,14 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/views/admin/users/index.html.erb" do |content|
+      assert_match(/render @users/, content)
+      assert_match("'New User', new_admin_user_path", content)
+    end
+
+    assert_file "app/views/admin/users/_user.html.erb" do |content|
       assert_match("'Show', [:admin, user]", content)
       assert_match("'Edit', edit_admin_user_path(user)", content)
       assert_match("'Destroy', [:admin, user]", content)
-      assert_match("'New User', new_admin_user_path", content)
     end
 
     assert_file "app/views/admin/users/new.html.erb" do |content|

@@ -1,0 +1,8 @@
+<tr>
+<% attributes.reject(&:password_digest?).each do |attribute| -%>
+  <td><%%= <%= singular_table_name %>.<%= attribute.name %> %></td>
+<% end -%>
+  <td><%%= link_to 'Show', <%= model_resource_name %> %></td>
+  <td><%%= link_to 'Edit', edit_<%= singular_route_name %>_path(<%= singular_table_name %>) %></td>
+  <td><%%= link_to 'Destroy', <%= model_resource_name %>, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+</tr>
