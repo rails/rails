@@ -239,7 +239,7 @@ module RequestForgeryProtectionTests
     assert_not_blocked do
       get :form_for_without_token
     end
-    refute_match(/authenticity_token/, response.body)
+    assert_no_match(/authenticity_token/, response.body)
   end
 
   def test_should_render_form_with_token_tag_if_remote_and_embedding_token_is_on
