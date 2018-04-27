@@ -36,7 +36,7 @@ get '/patients/:id', to: 'patients#show'
 
 the request is dispatched to the `patients` controller's `show` action with `{ id: '17' }` in `params`.
 
-NOTE: rails uses snake_case for controller names here, if you have a multiple word controller like `MonsterTrucksController`, you want to use `monster_trucks#show` for example.
+NOTE: Rails uses snake_case for controller names here, if you have a multiple word controller like `MonsterTrucksController`, you want to use `monster_trucks#show` for example.
 
 ### Generating Paths and URLs from Code
 
