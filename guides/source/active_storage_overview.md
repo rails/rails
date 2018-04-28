@@ -299,6 +299,30 @@ Call `images.attached?` to determine whether a particular message has any images
 @message.images.attached?
 ```
 
+### Attaching File/IO Objects
+
+Sometimes you need to attach a file that doesn’t arrive via an HTTP request.
+For example, you may want to attach a file you generated on disk or downloaded
+from a user-submitted URL. You may also want to attach a fixture file in a
+model test. To do that, provide a Hash containing at least an open IO object
+and a filename:
+
+```ruby
+@message.image.attach(io: File.open('/path/to/file'), filename: 'file.pdf')
+```
+
+When possible, provide a content type as well. Active Storage attempts to
+determine a file’s content type from its data. It falls back to the content
+type you provide if it can’t do that.
+
+```ruby
+@message.image.attach(io: File.open('/path/to/file'), filename: 'file.pdf', content_type: 'application/pdf')
+```
+
+If you don’t provide a content type and Active Storage can’t determine the
+file’s content type automatically, it defaults to application/octet-stream.
+
+
 Removing Files
 --------------
 
@@ -333,6 +357,68 @@ helper allows you to set the disposition.
 ```ruby
 rails_blob_path(user.avatar, disposition: "attachment")
 ```
+
+If you need to create a link from outside of controller/view context (Background
+jobs, Cronjobs, etc.), you can access the rails_blob_path like this:
+
+```
+Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: true)
+```
+
+Downloading Files
+-----------------
+
+If you need to process the blobs on the server side, such as, when performing
+analysis or further conversions, you can download the blob and get a binary
+object:
+
+```ruby
+binary = user.avatar.download
+```
+
+In some cases you might want to convert that into an actual file on the disk to
+pass the file path to external programs (such as virus scanners, converters,
+optimizers, minifiers, etc.). In this case you can include the
+`ActiveStorage::Downloading` module into your class which provides helpers to
+download directly into files while avoiding to store the file into memory.
+`ActiveStorage::Downloading` expects a `blob` method to be defined.
+
+```ruby
+class VirusScanner
+  include ActiveStorage::Downloading
+
+  attr_reader :blob
+
+  def initialize(blob)
+    @blob = blob
+  end
+
+  def scan
+    download_blob_to_tempfile do |file|
+      system 'scan_virus', file.path
+    end
+  end
+end
+```
+
+By default, `download_blob_to_tempfile` creates files in `Dir.tmpdir`. If you need to use another directory, override ActiveStorage::Downloading#tempdir in your class:
+
+```ruby
+class VirusScanner
+  include ActiveStorage::Downloading
+  # ...
+
+  private
+    def tempdir
+      '/path/to/tmp'
+    end
+end
+```
+
+If the external program is run as a separate program, you might also want to
+chmod the file and it's directory, as it is unaccessible by other users because
+Tempfile will set the permissions to 0600.
+
 
 Transforming Images
 -------------------
@@ -522,6 +608,92 @@ Add styles:
 
 input[type=file][data-direct-upload-url][disabled] {
   display: none;
+}
+```
+
+### Integrating with Libraries or Frameworks
+
+If you want to use the Direct Upload feature from a JavaScript framework, or
+you want to integrate custom drag and drop solutions, you can use the
+`DirectUpload` class for this purpose. Upon receiving a file from your library
+of choice, instantiate a DirectUpload and call its create method. Create takes
+a callback to invoke when the upload completes.
+
+```js
+import { DirectUpload } from "activestorage"
+
+const input = document.querySelector('input[type=file]')
+
+// Bind to file drop - use the ondrop on a parent element or use a
+//  library like Dropzone
+const onDrop = (event) => {
+  event.preventDefault()
+  const files = event.dataTransfer.files;
+  Array.from(files).forEach(file => uploadFile(file))
+}
+
+// Bind to normal file selection
+input.addEventListener('change', (event) => {
+  Array.from(input.files).forEach(file => uploadFile(file))
+  // you might clear the selected files from the input
+  input.value = null
+})
+
+const uploadFile = (file) {
+  // your form needs the file_field direct_upload: true, which
+  //  provides data-direct-upload-url
+  const url = input.dataset.directUploadUrl
+  const upload = new DirectUpload(file, url)
+
+  upload.create((error, blob) => {
+    if (error) {
+      // Handle the error
+    } else {
+      // Add an appropriately-named hidden input to the form with a
+      //  value of blob.signed_id so that the blob ids will be
+      //  transmitted in the normal upload flow
+      const hiddenField = document.createElement('input')
+      hiddenField.setAttribute("type", "hidden");
+      hiddenField.setAttribute("value", blob.signed_id);
+      hiddenField.name = input.name
+      document.querySelector('form').appendChild(hiddenField)
+    }
+  })
+}
+```
+
+If you need to track the progress of the file upload, you can pass a third
+parameter to the `DirectUpload` constructor. During the upload, DirectUpload
+will call the object's `directUploadWillStoreFileWithXHR` method. You can then
+bind your own progress handler on the XHR.
+
+```js
+import { DirectUpload } from "activestorage"
+
+class Uploader {
+  constructor(file, url) {
+    this.upload = new DirectUpload(this.file, this.url, this)
+  }
+
+  upload(file) {
+    this.upload.create((error, blob) => {
+      if (error) {
+        // Handle the error
+      } else {
+        // Add an appropriately-named hidden input to the form
+        // with a value of blob.signed_id
+      }
+    })
+  }
+
+  directUploadWillStoreFileWithXHR(request) {
+    request.upload.addEventListener("progress",
+      event => this.directUploadDidProgress(event))
+  }
+
+  directUploadDidProgress(event) {
+    // Use event.loaded and event.total to update the progress bar
+  }
 }
 ```
 
