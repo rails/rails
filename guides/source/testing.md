@@ -504,7 +504,7 @@ Two hooks are provided, one runs when the process is forked, and one runs before
 These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
 workers.
 
-The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` metod
+The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
 is called right before the processes are closed.
 
 ```
