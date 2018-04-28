@@ -2915,7 +2915,7 @@ Extensions to `Date`
 
 ### Calculations
 
-NOTE: All the following methods are defined in `active_support/core_ext/date/calculations.rb`.
+NOTE: All the following methods are defined in `active_support/core_ext/date_and_time/calculations.rb`.
 
 ```ruby
 yesterday
