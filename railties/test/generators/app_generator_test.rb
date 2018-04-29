@@ -919,8 +919,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_system_tests_directory_generated
     run_generator
 
-    assert_file("test/system/.keep")
     assert_directory("test/system")
+    assert_file("test/system/.keep")
   end
 
   unless Gem.win_platform?
