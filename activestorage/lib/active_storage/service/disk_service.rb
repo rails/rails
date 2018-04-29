@@ -26,7 +26,7 @@ module ActiveStorage
       if block_given?
         instrument :streaming_download, key: key do
           File.open(path_for(key), "rb") do |file|
-            while data = file.read(64.kilobytes)
+            while data = file.read(5.megabytes)
               yield data
             end
           end
