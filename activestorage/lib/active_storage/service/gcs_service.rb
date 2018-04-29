@@ -39,9 +39,9 @@ module ActiveStorage
         io.rewind
 
         if block_given?
-          yield io.read
+          yield io.string
         else
-          io.read
+          io.string
         end
       end
     end
