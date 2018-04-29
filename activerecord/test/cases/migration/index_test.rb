@@ -195,6 +195,13 @@ module ActiveRecord
           connection.add_index("testings", ["last_name", "first_name"], order: :desc)
           connection.remove_index("testings", ["last_name", "first_name"])
         end
+
+        if current_adapter?(:PostgreSQLAdapter)
+          connection.add_index("testings", "CAST(last_name AS text)")
+          connection.remove_index("testings", "CAST(last_name AS text)")
+          connection.add_index("testings", "((last_name)::text)")
+          connection.remove_index("testings", "((last_name)::text)")
+        end
       end
 
       if current_adapter?(:PostgreSQLAdapter)

@@ -1241,7 +1241,10 @@ module ActiveRecord
           end
 
           if column_names.present?
-            checks << lambda { |i| index_name(table_name, i.columns) == index_name(table_name, column_names) }
+            checks << lambda do |i|
+              index_name(table_name, i.columns) == index_name(table_name, column_names) ||
+                i.name == index_name(table_name, column_names)
+            end
           end
 
           raise ArgumentError, "No name or columns specified" if checks.none?
