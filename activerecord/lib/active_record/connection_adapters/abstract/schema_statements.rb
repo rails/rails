@@ -305,8 +305,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force]
-          drop_opts = { if_exists: true }.merge(**options)
-          drop_table(table_name, drop_opts)
+          drop_table(table_name, options.merge(if_exists: true))
         end
 
         result = execute schema_creation.accept td
