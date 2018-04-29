@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/erikhuda/thor.git
+  revision: 006832ea32480618791f89bb7d9e67b22fc814b9
+  ref: 006832ea32480618791f89bb7d9e67b22fc814b9
+  specs:
+    thor (0.20.0)
+
+GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -458,7 +465,6 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (0.20.0)
     thread (0.1.7)
     thread_safe (0.3.6)
     thread_safe (0.3.6-java)
@@ -554,6 +560,7 @@ DEPENDENCIES
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
+  thor!
   turbolinks (~> 5)
   tzinfo-data
   uglifier (>= 1.3.0)
