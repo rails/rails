@@ -29,7 +29,7 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
   end
 
   def test_using_server_mistype
-    assert_match(/Could not find server "tin". Maybe you meant "thin"?/, run_command("--using", "tin"))
+    assert_match(/Could not find server "tin"./, run_command("--using", "tin"))
   end
 
   def test_using_positional_argument_deprecation
