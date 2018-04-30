@@ -53,7 +53,8 @@ class <%= controller_class_name %>Controller < ApplicationController
   private
     # Use callbacks to share common setup or constraints between actions.
     def set_<%= singular_table_name %>
-      @<%= singular_table_name %> = <%= orm_class.find(class_name, "params[:id]") %>
+      @<%= singular_table_name %> = <%= orm_class.find_by_id(class_name, "params[:id]") %>
+      raise ActionController::RoutingError.new(<%= "'No #{human_name} Found'" %>) unless @<%= singular_table_name %>
     end
 
     # Only allow a trusted parameter "white list" through.
