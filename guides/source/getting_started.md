@@ -93,11 +93,9 @@ ruby 2.5.0
 Rails requires Ruby version 2.4.1 or later. If the version number returned is
 less than that number, you'll need to install a fresh copy of Ruby.
 
-TIP: A number of tools exist to help you quickly install Ruby and Ruby
-on Rails on your system. Windows users can use [Rails Installer](http://railsinstaller.org),
-while macOS users can use [Tokaido](https://github.com/tokaido/tokaidoapp).
-For more installation methods for most Operating Systems take a look at
-[ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
+TIP: To quickly install Ruby and Ruby on Rails on your system in Windows, you can use 
+[Rails Installer](http://railsinstaller.org). For more installation methods for most 
+Operating Systems take a look at [ruby-lang.org](https://www.ruby-lang.org/en/documentation/installation/).
 
 If you are working on Windows, you should also install the
 [Ruby Installer Development Kit](https://rubyinstaller.org/downloads/).
