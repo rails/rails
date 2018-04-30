@@ -1,3 +1,7 @@
+*   Request Forgery takes relative paths into account.
+
+    *Stefan Wienert*
+
 *   Add ".test" as a default allowed host in development to ensure smooth golden-path setup with puma.dev.
 
     *DHH*
