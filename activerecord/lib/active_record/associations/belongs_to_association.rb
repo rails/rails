@@ -30,7 +30,7 @@ module ActiveRecord
       end
 
       def target=(record)
-        replace_keys(record) if record.nil? || different_target?(record)
+        replace_keys(record)
         super
       end
 

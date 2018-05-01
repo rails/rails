@@ -25,7 +25,6 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
-require "models/category"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -39,12 +38,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_assigning_belongs_to_on_destroyed_object
-    firm = Firm.create!(name: "Firm")
-    client = Client.create!(name: "Client", firm: firm)
+    client = Client.create!(name: "Client")
     client.destroy!
     assert_raise(frozen_error_class) { client.firm = nil }
-    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "New Firm") }
-    assert_nothing_raised { client.firm = firm }
+    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
   end
 
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute

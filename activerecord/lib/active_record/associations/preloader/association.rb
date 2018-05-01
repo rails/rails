@@ -46,7 +46,7 @@ module ActiveRecord
             if reflection.collection?
               association.target.concat(records)
             else
-              association.target = records.first unless records.empty?
+              association.preloaded_target = records.first unless records.empty?
             end
           end
 

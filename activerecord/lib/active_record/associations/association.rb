@@ -76,6 +76,11 @@ module ActiveRecord
         loaded!
       end
 
+      def preloaded_target=(target) #:nodoc:
+        @target = target
+        loaded!
+      end
+
       def scope
         target_scope.merge!(association_scope)
       end
