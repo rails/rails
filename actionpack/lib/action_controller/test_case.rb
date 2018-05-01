@@ -604,6 +604,7 @@ module ActionController
           env.delete "action_dispatch.request.query_parameters"
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new
+          env.delete "CONTENT_LENGTH"
           env.delete "RAW_POST_DATA"
           env
         end
