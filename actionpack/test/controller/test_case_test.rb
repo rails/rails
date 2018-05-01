@@ -689,6 +689,14 @@ XML
     assert_equal "foo=baz", @request.raw_post
   end
 
+  def test_content_length_reset_after_post_request
+    post :no_op, params: { foo: "bar" }
+    assert_not_equal 0, @request.content_length
+
+    get :no_op
+    assert_equal 0, @request.content_length
+  end
+
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
     assert_equal "/test_case_test/test/test_params/foo", @request.path
