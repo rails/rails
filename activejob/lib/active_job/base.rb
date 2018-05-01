@@ -9,6 +9,7 @@ require "active_job/execution"
 require "active_job/callbacks"
 require "active_job/exceptions"
 require "active_job/logging"
+require "active_job/restore_attributes"
 require "active_job/timezones"
 require "active_job/translation"
 
@@ -40,6 +41,13 @@ module ActiveJob #:nodoc:
   # Records that are passed in are serialized/deserialized using Global
   # ID. More information can be found in Arguments.
   #
+  # You can also define that Active Job should preserve attributes on a given
+  # class such as your Current class:
+  #
+  #   class ApplicationJob < ActiveJob::Base
+  #     restore_attributes_on Current
+  #   end
+  #
   # To enqueue a job to be performed as soon as the queueing system is free:
   #
   #   ProcessPhotoJob.perform_later(photo)
@@ -52,7 +60,7 @@ module ActiveJob #:nodoc:
   #
   # A job can also be processed immediately without sending to the queue:
   #
-  #  ProcessPhotoJob.perform_now(photo)
+  #   ProcessPhotoJob.perform_now(photo)
   #
   # == Exceptions
   #
@@ -69,6 +77,7 @@ module ActiveJob #:nodoc:
     include Callbacks
     include Exceptions
     include Logging
+    include RestoreAttributes
     include Timezones
     include Translation
 

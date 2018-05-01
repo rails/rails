@@ -91,7 +91,8 @@ module ActiveJob
         "arguments"  => serialize_arguments(arguments),
         "executions" => executions,
         "locale"     => I18n.locale.to_s,
-        "timezone"   => Time.zone.try(:name)
+        "timezone"   => Time.zone.try(:name),
+        "shared_attributes" => store_shared_attributes
       }
     end
 
@@ -122,6 +123,8 @@ module ActiveJob
     #      end
     #    end
     def deserialize(job_data)
+      restore_shared_attributes(job_data["shared_attributes"])
+
       self.job_id               = job_data["job_id"]
       self.provider_job_id      = job_data["provider_job_id"]
       self.queue_name           = job_data["queue_name"]
@@ -146,6 +149,20 @@ module ActiveJob
 
       def deserialize_arguments(serialized_args)
         Arguments.deserialize(serialized_args)
+      end
+
+      def store_shared_attributes
+        serialize_arguments(
+          self.class.shared_attributes_classes.each_with_object({}) do |klass, result|
+            result[klass.name.underscore] = klass.attributes
+          end
+        )
+      end
+
+      def restore_shared_attributes(serialized_data)
+        deserialize_arguments(serialized_data).each do |klass_name, attributes|
+          klass_name.camelcase.constantize.attributes = attributes
+        end
       end
   end
 end

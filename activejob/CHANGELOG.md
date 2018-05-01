@@ -1,3 +1,20 @@
+*   Introduce `restore_attributes_on` to Active Job
+
+    User will be able to define a class (or classes) that Active Job should
+    preserve its attributes between when the job is enqueued and when the job
+    gets deserialized and ready to be executed. This is useful when using with
+    a subclass of `ActiveSupport::CurrentAttributes` as it will save and restore
+    those attributes on `Current` class automatically.
+
+    User can activate this functionality by putting this into their
+    `ApplicationJob`:
+
+        class ApplicationJob < ActiveJob::Base
+          restore_attributes_on Current
+        end
+
+    *Prem Sichanugrist*
+
 *   Remove support for Qu gem.
 
     Reasons are that the Qu gem wasn't compatible since Rails 5.1,
