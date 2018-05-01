@@ -19,7 +19,6 @@ module ActiveRecord
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
-      attr_accessor :inversed
 
       delegate :options, to: :reflection
 
@@ -67,7 +66,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !inversed && loaded? && @stale_state != stale_state
+        !@inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -98,21 +97,22 @@ module ActiveRecord
 
       # Set the inverse association, if possible
       def set_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = owner
-          inverse.inversed = true
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(owner)
         end
         record
       end
 
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = nil
-          inverse.inversed = false
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(nil)
         end
+      end
+
+      def inversed_from(record)
+        self.target = record
+        @inversed = !!record
       end
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
@@ -237,6 +237,12 @@ module ActiveRecord
                 "got #{record.inspect} which is an instance of #{record.class}(##{record.class.object_id})"
               raise ActiveRecord::AssociationTypeMismatch, message
             end
+          end
+        end
+
+        def inverse_association_for(record)
+          if invertible_for?(record)
+            record.association(inverse_reflection_for(record).name)
           end
         end
 
