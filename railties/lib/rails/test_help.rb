@@ -20,28 +20,29 @@ if defined?(ActiveRecord::Base)
     exit 1
   end
 
-  module ActiveSupport
-    class TestCase
-      include ActiveRecord::TestDatabases
-      include ActiveRecord::TestFixtures
-      self.fixture_path = "#{Rails.root}/test/fixtures/"
-      self.file_fixture_path = fixture_path + "files"
-    end
+  ActiveSupport.on_load(:active_support_test_case) do
+    include ActiveRecord::TestDatabases
+    include ActiveRecord::TestFixtures
+
+    self.fixture_path = "#{Rails.root}/test/fixtures/"
+    self.file_fixture_path = fixture_path + "files"
   end
 
-  ActionDispatch::IntegrationTest.fixture_path = ActiveSupport::TestCase.fixture_path
+  ActiveSupport.on_load(:action_dispatch_integration_test) do
+    self.fixture_path = ActiveSupport::TestCase.fixture_path
+  end
 end
 
 # :enddoc:
 
-class ActionController::TestCase
+ActiveSupport.on_load(:action_controller_test_case) do
   def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
   end
 end
 
-class ActionDispatch::IntegrationTest
+ActiveSupport.on_load(:action_dispatch_integration_test) do
   def before_setup # :nodoc:
     @routes = Rails.application.routes
     super
