@@ -135,9 +135,12 @@ module ActiveRecord
       end
 
       def test_remove_named_index
-        connection.add_index :testings, :foo, name: "custom_index_name"
+        connection.add_index :testings, :foo, name: "index_testings_on_custom_index_name"
 
         assert connection.index_exists?(:testings, :foo)
+
+        assert_raise(ArgumentError) { connection.remove_index(:testings, "custom_index_name") }
+
         connection.remove_index :testings, :foo
         assert_not connection.index_exists?(:testings, :foo)
       end
