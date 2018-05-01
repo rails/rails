@@ -1144,7 +1144,7 @@ module Arel
         assert_match("LIMIT", manager.to_sql)
 
         manager.limit = nil
-        refute_match("LIMIT", manager.to_sql)
+        assert_no_match("LIMIT", manager.to_sql)
       end
     end
 

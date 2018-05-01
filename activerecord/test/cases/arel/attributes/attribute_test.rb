@@ -978,7 +978,7 @@ module Arel
           table = Table.new(:foo)
           condition = table["id"].eq("1")
 
-          refute table.able_to_type_cast?
+          assert_not table.able_to_type_cast?
           condition.to_sql.must_equal %("foo"."id" = '1')
         end
 
