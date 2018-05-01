@@ -78,7 +78,7 @@ module ActionController
   #
   # You can retrieve it again through the same hash:
   #
-  #   Hello #{session[:person]}
+  #   "Hello #{session[:person]}"
   #
   # For removing objects from the session, you can either assign a single key to +nil+:
   #
