@@ -44,6 +44,14 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
   end
 
+  def test_eager_loading_wont_mutate_owner_record
+    client = Client.eager_load(:firm_with_basic_id).first
+    assert_not_predicate client, :firm_id_came_from_user?
+
+    client = Client.preload(:firm_with_basic_id).first
+    assert_not_predicate client, :firm_id_came_from_user?
+  end
+
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
     assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
   end
