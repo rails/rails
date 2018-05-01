@@ -63,10 +63,6 @@ module ActiveRecord
         end
 
         def _create_record(attributes, raise_error = false)
-          unless owner.persisted?
-            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
-          end
-
           record = build_record(attributes)
           yield(record) if block_given?
           saved = record.save

@@ -1,3 +1,7 @@
+*   Allow a belonging to parent object to be created from a new record.
+
+    *Jolyon Pawlyn*
+
 *   Fix that building record with assigning multiple has_one associations
     wrongly persists through record.
 

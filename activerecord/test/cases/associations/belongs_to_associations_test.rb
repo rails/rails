@@ -265,6 +265,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple, citibank.firm
   end
 
+  def test_creating_the_belonging_object_from_new_record
+    citibank = Account.new("credit_limit" => 10)
+    apple    = citibank.create_firm("name" => "Apple")
+    assert_equal apple, citibank.firm
+    citibank.save
+    citibank.reload
+    assert_equal apple, citibank.firm
+  end
+
   def test_creating_the_belonging_object_with_primary_key
     client = Client.create(name: "Primary key client")
     apple  = client.create_firm_with_primary_key("name" => "Apple")
