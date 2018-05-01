@@ -29,13 +29,15 @@ module ActiveRecord
     # * rename_column
     # * rename_index
     # * rename_table
+    # * create_enum
+    # * drop_enum
     class CommandRecorder
       ReversibleAndIrreversibleMethods = [:create_table, :create_join_table, :rename_table, :add_column, :remove_column,
         :rename_index, :rename_column, :add_index, :remove_index, :add_timestamps, :remove_timestamps,
         :change_column_default, :add_reference, :remove_reference, :transaction,
         :drop_join_table, :drop_table, :execute_block, :enable_extension, :disable_extension,
         :change_column, :execute, :remove_columns, :change_column_null,
-        :add_foreign_key, :remove_foreign_key
+        :add_foreign_key, :remove_foreign_key, :create_enum, :drop_enum
       ]
       include JoinTable
 
@@ -221,6 +223,15 @@ module ActiveRecord
           reversed_args << remove_options if remove_options
 
           [:add_foreign_key, reversed_args]
+        end
+
+        def invert_create_enum(args)
+          [:drop_enum, [args.first]]
+        end
+
+        def invert_drop_enum(args, &block)
+          raise ActiveRecord::IrreversibleMigration, "To avoid mistakes, drop_enum is only reversible if value list is given" if args.size == 1
+          [:create_enum, args]
         end
 
         def respond_to_missing?(method, _)
