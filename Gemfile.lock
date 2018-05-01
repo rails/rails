@@ -89,6 +89,7 @@ PATH
     railties (6.0.0.alpha)
       actionpack (= 6.0.0.alpha)
       activesupport (= 6.0.0.alpha)
+      did_you_mean
       method_source
       rake (>= 0.8.7)
       thor (>= 0.18.1, < 2.0)
@@ -204,6 +205,7 @@ GEM
     delayed_job_active_record (4.1.2)
       activerecord (>= 3.0, < 5.2)
       delayed_job (>= 3.0, < 5)
+    did_you_mean (1.2.1)
     digest-crc (0.4.1)
     em-http-request (1.1.5)
       addressable (>= 2.3.4)

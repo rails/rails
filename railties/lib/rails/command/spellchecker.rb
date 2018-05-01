@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "did_you_mean"
+
 module Rails
   module Command
     module Spellchecker # :nodoc:
