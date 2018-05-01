@@ -1,3 +1,7 @@
+*   Don't generate assets' initializer in `app:update` task if sprockets is skipped
+
+    *Tsukuru Tanimichi*
+
 *   Make the master.key file read-only for the owner upon generation on
     POSIX-compliant systems.
 

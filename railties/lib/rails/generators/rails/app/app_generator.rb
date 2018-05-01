@@ -146,6 +146,10 @@ module Rails
         template "config/storage.yml"
       end
 
+      if options[:skip_sprockets] && !assets_config_exist
+        remove_file "config/initializers/assets.rb"
+      end
+
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
