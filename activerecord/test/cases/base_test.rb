@@ -982,7 +982,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_clear_cash_when_setting_table_name
+  def test_clear_cache_when_setting_table_name
     original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
