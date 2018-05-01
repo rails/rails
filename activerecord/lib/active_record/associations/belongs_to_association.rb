@@ -26,10 +26,12 @@ module ActiveRecord
           decrement_counters
         end
 
+        replace_keys(record)
+
         self.target = record
       end
 
-      def target=(record)
+      def inversed_from(record)
         replace_keys(record)
         super
       end
