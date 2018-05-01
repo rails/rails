@@ -175,6 +175,12 @@ module ActiveRecord
       class TableDefinition < ActiveRecord::ConnectionAdapters::TableDefinition
         include ColumnMethods
 
+        def enum(*args, **options)
+          enum_type = options.delete(:enum_type)
+          raise ArgumentError, "`enum_type` options is required for `enum` column definition" unless enum_type
+          args.each { |name| column(name, enum_type, options) }
+        end
+
         private
           def integer_like_primary_key_type(type, options)
             if type == :bigint || options[:limit] == 8

@@ -113,9 +113,20 @@ module ActiveRecord
         money:       { name: "money" },
         interval:    { name: "interval" },
         oid:         { name: "oid" },
+        enum:        { name: "enum" },
       }
 
       OID = PostgreSQL::OID #:nodoc:
+
+      ENUM_TYPES_QUERY = <<-SQL
+        SELECT t.typname AS enum_name,
+               string_agg(e.enumlabel, ' ') AS enum_value
+        FROM pg_type t
+        JOIN pg_enum e ON t.oid = e.enumtypid
+        JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+        WHERE n.nspname = 'public'
+        GROUP BY enum_name
+      SQL
 
       include PostgreSQL::Quoting
       include PostgreSQL::ReferentialIntegrity
@@ -359,6 +370,12 @@ module ActiveRecord
 
       def extensions
         exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+      end
+
+      def enum_types
+        exec_query(ENUM_TYPES_QUERY, "SCHEMA")
+          .cast_values
+          .each { |line| line[1] = line[1].split }
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL

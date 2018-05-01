@@ -631,6 +631,25 @@ module ActiveRecord
           validate_constraint from_table, fk_name_to_validate
         end
 
+        def create_enum(name, *values)
+          execute "CREATE TYPE #{name} AS ENUM (#{values.map(&method(:quote)).join(', ')})"
+        end
+
+        def drop_enum(name, *values)
+          execute "DROP TYPE #{name}"
+        end
+
+        def add_enum_value(name, value, options = {})
+          opts = if options[:before]
+            "BEFORE #{quote(options[:before])}"
+          elsif options[:after]
+            "AFTER #{quote(options[:after])}"
+          end
+
+          execute "ALTER TYPE #{name} ADD VALUE #{quote(value)} #{opts}"
+        end
+        alias_method :alter_enum, :add_enum_value
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
