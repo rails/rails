@@ -5,21 +5,30 @@
 # Always go through the BlobsController, or your own authenticated controller, rather than directly
 # to the service url.
 class ActiveStorage::DiskController < ActiveStorage::BaseController
+  include ActionController::Live
+
   skip_forgery_protection
 
   def show
     if key = decode_verified_key
-      send_data disk_service.download(key),
-        disposition: params[:disposition], content_type: params[:content_type]
+      response.headers["Content-Type"] = params[:content_type] || DEFAULT_SEND_FILE_TYPE
+      response.headers["Content-Disposition"] = params[:disposition] || DEFAULT_SEND_FILE_DISPOSITION
+
+      disk_service.download key do |chunk|
+        response.stream.write chunk
+      end
     else
       head :not_found
     end
+  ensure
+    response.stream.close
   end
 
   def update
     if token = decode_verified_token
       if acceptable_content?(token)
         disk_service.upload token[:key], request.body, checksum: token[:checksum]
+        head :no_content
       else
         head :unprocessable_entity
       end
@@ -28,6 +37,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     end
   rescue ActiveStorage::IntegrityError
     head :unprocessable_entity
+  ensure
+    response.stream.close
   end
 
   private
