@@ -1,3 +1,8 @@
+*   The Google Cloud Storage service properly supports streaming downloads.
+    It now requires version 1.11 or newer of the google-cloud-storage gem.
+
+    *George Claghorn*
+
 *   Use the [ImageProcessing](https://github.com/janko-m/image_processing) gem
     for Active Storage variants, and deprecate the MiniMagick backend.
 
