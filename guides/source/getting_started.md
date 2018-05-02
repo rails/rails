@@ -809,7 +809,7 @@ private
 
 TIP: For more information, refer to the reference above and
 [this blog article about Strong Parameters]
-(http://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
+(https://weblog.rubyonrails.org/2012/3/21/strong-parameters/).
 
 ### Showing Articles
 

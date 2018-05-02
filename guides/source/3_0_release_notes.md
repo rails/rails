@@ -155,7 +155,7 @@ Documentation
 
 The documentation in the Rails tree is being updated with all the API changes, additionally, the [Rails Edge Guides](http://edgeguides.rubyonrails.org/) are being updated one by one to reflect the changes in Rails 3.0. The guides at [guides.rubyonrails.org](http://guides.rubyonrails.org/) however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
-More Information: - [Rails Documentation Projects](http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
+More Information: - [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 
 
 Internationalization
@@ -250,7 +250,7 @@ Deprecations:
 More Information:
 
 * [Render Options in Rails 3](https://blog.engineyard.com/2010/render-options-in-rails-3)
-* [Three reasons to love ActionController::Responder](http://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder)
+* [Three reasons to love ActionController::Responder](https://weblog.rubyonrails.org/2009/8/31/three-reasons-love-responder)
 
 
 ### Action Dispatch
