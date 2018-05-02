@@ -27,7 +27,7 @@ module Rails
     #     destination File.expand_path("../tmp", __dir__)
     #     setup :prepare_destination
     #   end
-    class TestCase < ActiveSupport::TestCase
+    class TestCase < ApplicationTestCase
       include Rails::Generators::Testing::Behaviour
       include Rails::Generators::Testing::SetupAndTeardown
       include Rails::Generators::Testing::Assertions

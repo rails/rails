@@ -4,7 +4,7 @@ require "abstract_unit"
 require "active_support/core_ext/module/delegation"
 
 module Notifications
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ApplicationTestCase
     def setup
       @old_notifier = ActiveSupport::Notifications.notifier
       @notifier = ActiveSupport::Notifications::Fanout.new

@@ -12,7 +12,7 @@ module ActiveRecord
   # = Active Record Test Case
   #
   # Defines some test assertions to test against SQL queries.
-  class TestCase < ActiveSupport::TestCase #:nodoc:
+  class TestCase < ApplicationTestCase #:nodoc:
     include ActiveSupport::Testing::MethodCallAssertions
     include ActiveSupport::Testing::Stream
     include ActiveRecord::TestFixtures

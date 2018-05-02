@@ -9,7 +9,7 @@ require "rails-dom-testing"
 
 module ActionView
   # = Action View Test Case
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ApplicationTestCase
     class TestController < ActionController::Base
       include ActionDispatch::TestProcess
 

@@ -325,7 +325,7 @@ module ActionController
   # If you're using named routes, they can be easily tested using the original named routes' methods straight in the test case.
   #
   #  assert_redirected_to page_url(title: 'foo')
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ApplicationTestCase
     module Behavior
       extend ActiveSupport::Concern
       include ActionDispatch::TestProcess

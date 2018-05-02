@@ -3,7 +3,7 @@
 require "active_support/test_case"
 
 module ActiveJob
-  class TestCase < ActiveSupport::TestCase
+  class TestCase < ApplicationTestCase
     include ActiveJob::TestHelper
 
     ActiveSupport.run_load_hooks(:active_job_test_case, self)
