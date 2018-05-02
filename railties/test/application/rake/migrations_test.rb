@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "fileutils"
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -428,6 +429,33 @@ module ApplicationTests
 
           structure_dump = File.read("db/schema.rb")
           assert_match(/create_table "reviews"/, structure_dump)
+        end
+      end
+
+      test "schema cache generation when dump_schema_cache_after_migration is set" do
+        add_to_config("config.active_record.dump_schema_cache_after_migration = false")
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "book", "title:string"
+          output = rails("generate", "model", "author", "name:string")
+          version = output =~ %r{[^/]+db/migrate/(\d+)_create_authors\.rb} && $1
+
+          rails "db:migrate", "db:rollback", "db:forward", "db:migrate:up", "db:migrate:down", "VERSION=#{version}"
+          assert !File.exist?("db/schema_cache.yml"), "should not dump schema cache when configured not to"
+        end
+
+        add_to_config("config.active_record.dump_schema_cache_after_migration = true")
+
+        Dir.chdir(app_path) do
+          rails "generate", "model", "reviews", "book_id:integer"
+          rails "db:migrate"
+
+          assert !File.exist?("db/schema_cache.yml"), "should not dump schema cache when db/schema_cache.yml does not exist"
+          FileUtils.touch "db/schema_cache.yml"
+          rails "db:migrate"
+
+          schema_cache = YAML.load(File.read("db/schema_cache.yml"))
+          assert_match(/reviews:/, schema_cache)
         end
       end
 

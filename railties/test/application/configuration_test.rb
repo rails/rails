@@ -1497,6 +1497,20 @@ module ApplicationTests
       assert ActiveRecord::Base.dump_schema_after_migration
     end
 
+    test "config.active_record.dump_schema_cache_after_migration is false on production" do
+      build_app
+
+      app "production"
+
+      assert_not ActiveRecord::Base.dump_schema_cache_after_migration
+    end
+
+    test "config.active_record.dump_schema_cache_after_migration is true by default in development" do
+      app "development"
+
+      assert ActiveRecord::Base.dump_schema_cache_after_migration
+    end
+
     test "config.active_record.verbose_query_logs is false by default in development" do
       app "development"
 

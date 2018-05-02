@@ -106,6 +106,16 @@ module ActiveRecord
 
       ##
       # :singleton-method:
+      # Specify whether schema cache dump should happen at the end of the
+      # db:migrate rake task. This is true by default, which is useful for the
+      # development environment. This should ideally be false in the production
+      # environment where dumping schema is rarely needed.
+      # To keep the schema cache an opt in feature, the rake task also checks
+      # for the existence of the file.
+      mattr_accessor :dump_schema_cache_after_migration, instance_writer: false, default: true
+
+      ##
+      # :singleton-method:
       # Specifies which database schemas to dump when calling db:structure:dump.
       # If the value is :schema_search_path (the default), any schemas listed in
       # schema_search_path are dumped. Use :all to dump all schemas regardless
