@@ -5,11 +5,7 @@ module Rails
     module Spellchecker # :nodoc:
       class << self
         def suggest(word, from:)
-          if defined?(DidYouMean::SpellChecker)
-            DidYouMean::SpellChecker.new(dictionary: from.map(&:to_s)).correct(word).first
-          else
-            from.sort_by { |w| levenshtein_distance(word, w) }.first
-          end
+          from.sort_by { |w| levenshtein_distance(word, w) }.first
         end
 
         private
