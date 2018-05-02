@@ -54,7 +54,7 @@ Documentation
 
 The [Ruby on Rails guides](http://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](http://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
 
-* More Information: [Rails Documentation Projects](http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
+* More Information: [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 
 Ruby 1.9.1 Support
 ------------------
@@ -89,7 +89,7 @@ accepts_nested_attributes_for :author,
 ```
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
-* More Information: [Nested Model Forms](http://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+* More Information: [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
 
 ### Nested Transactions
 
@@ -376,7 +376,7 @@ You can write this view in Rails 2.3:
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
 * More Information:
-    * [Nested Model Forms](http://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+    * [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
     * [complex-form-examples](https://github.com/alloy/complex-form-examples)
     * [What's New in Edge Rails: Nested Object Forms](http://archives.ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes)
 
@@ -552,7 +552,7 @@ In addition to the Rack changes covered above, Railties (the core code of Rails 
 Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack. Metal endpoints can be loaded from your application or from plugins.
 
 * More Information:
-    * [Introducing Rails Metal](http://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
+    * [Introducing Rails Metal](https://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
     * [Rails Metal: a micro-framework with the power of Rails](http://soylentfoo.jnewland.com/articles/2008/12/16/rails-metal-a-micro-framework-with-the-power-of-rails-m)
     * [Metal: Super-fast Endpoints within your Rails Apps](http://www.railsinside.com/deployment/180-metal-super-fast-endpoints-within-your-rails-apps.html)
     * [What's New in Edge Rails: Rails Metal](http://archives.ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)
