@@ -24,11 +24,6 @@ module Arel
       Arel::Table.engine = @arel_engine if defined? @arel_engine
       super
     end
-
-    def assert_like(expected, actual)
-      assert_equal expected.gsub(/\s+/, " ").strip,
-                   actual.gsub(/\s+/, " ").strip
-    end
   end
 
   class Spec < Minitest::Spec
