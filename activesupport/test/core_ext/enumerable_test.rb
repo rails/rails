@@ -179,6 +179,17 @@ class EnumerableTests < ActiveSupport::TestCase
                  payments.index_by.each(&:price))
   end
 
+  def test_index_grouped_by
+    payments = GenericEnumerable.new([ Payment.new(5), Payment.new(10), Payment.new(10) ])
+    assert_equal({ 5 => [Payment.new(5)], 10 => [ Payment.new(10), Payment.new(10) ]},
+                 payments.index_grouped_by(&:price))
+    assert_equal Enumerator, payments.index_grouped_by.class
+    assert_nil payments.index_grouped_by.size
+    assert_equal 42, (1..42).index_grouped_by.size
+    assert_equal({ 5 => [Payment.new(5)], 10 => [ Payment.new(10), Payment.new(10) ]},
+                 payments.index_grouped_by.each(&:price))
+  end
+
   def test_many
     assert_equal false, GenericEnumerable.new([]).many?
     assert_equal false, GenericEnumerable.new([ 1 ]).many?
