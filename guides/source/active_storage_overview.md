@@ -416,14 +416,14 @@ end
 ```
 
 If the external program is run as a separate program, you might also want to
-chmod the file and it's directory, as it is unaccessible by other users because
-Tempfile will set the permissions to 0600.
+`chmod` the file and it's directory, as it is inaccessible by other users
+because `Tempfile` will set the permissions to `0600`.
 
 
 Transforming Images
 -------------------
 
-To create variation of the image, call `variant` on the Blob. You can pass
+To create a variation of the image, call `variant` on the `Blob`. You can pass
 any transformation to the method supported by the processor. The default
 processor is [MiniMagick](https://github.com/minimagick/minimagick), but you
 can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
@@ -434,8 +434,8 @@ To enable variants, add the `image_processing` gem to your `Gemfile`:
 gem 'image_processing', '~> 1.2'
 ```
 
-When the browser hits the variant URL, Active Storage will lazy transform the
-original blob into the format you specified and redirect to its new service
+When the browser hits the variant URL, Active Storage will lazily transform the
+original blob into the specified format and redirect to its new service
 location.
 
 ```erb
