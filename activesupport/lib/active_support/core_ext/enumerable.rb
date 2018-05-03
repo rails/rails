@@ -53,6 +53,24 @@ module Enumerable
     end
   end
 
+  # Convert an enumerable to a hash, putting items with the same key in a list.
+  #
+  #   fruits.index_by(&:color)
+  #   # => { "yellow" => [<Fruit ...>, <Fruit ...>], "red" => [<Fruit ...>], ...}
+  def index_grouped_by
+    if block_given?
+      result = {}
+      each do |elem|
+        key = yield(elem)
+        result[key] ||= []
+        result[key] << elem
+      end
+      result
+    else
+      to_enum(:index_grouped_by) { size if respond_to?(:size) }
+    end
+  end
+
   # Returns +true+ if the enumerable has more than 1 element. Functionally
   # equivalent to <tt>enum.to_a.size > 1</tt>. Can be called with a block too,
   # much like any?, so <tt>people.many? { |p| p.age > 26 }</tt> returns +true+
