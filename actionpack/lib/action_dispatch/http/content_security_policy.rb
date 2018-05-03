@@ -126,6 +126,7 @@ module ActionDispatch #:nodoc:
       manifest_src:    "manifest-src",
       media_src:       "media-src",
       object_src:      "object-src",
+      prefetch_src:    "prefetch-src",
       script_src:      "script-src",
       style_src:       "style-src",
       worker_src:      "worker-src"
