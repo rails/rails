@@ -269,6 +269,27 @@ class ParamsWrapperTest < ActionController::TestCase
       end
     end
   end
+
+  def test_derived_wrapped_keys_from_has_and_belongs_to_many_association
+    require "active_record/reflection"
+
+    # User has_and_belongs_to_many :roles
+    def User.reflections
+      active_record_mock = MiniTest::Mock.new
+      active_record_mock.expect(:pluralize_table_names, true)
+      {
+        roles: ActiveRecord::Reflection::HasAndBelongsToManyReflection.new(:roles, {}, {}, active_record_mock)
+      }
+    end
+
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "username" => "sikachu", "role_ids" => [1, 2] }
+        assert_parameters("username" => "sikachu", "role_ids" => [1, 2], "user" => { "username" => "sikachu", "role_ids" => [1, 2] })
+      end
+    end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase

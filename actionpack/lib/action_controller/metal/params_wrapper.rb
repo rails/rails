@@ -119,6 +119,14 @@ module ActionController
                 end
               end
 
+              if m.respond_to?(:reflections) && m.reflections.keys.any?
+                self.include += m.reflections.select do |key, reflection|
+                  reflection.class == ActiveRecord::Reflection::HasAndBelongsToManyReflection
+                end.values.map do |reflection|
+                  reflection.plural_name.singularize.concat("_ids")
+                end
+              end
+
               self.include
             end
           end
