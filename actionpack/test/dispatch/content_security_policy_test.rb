@@ -116,6 +116,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.object_src false
     assert_no_match %r{object-src}, @policy.build
 
+    @policy.prefetch_src :self
+    assert_match %r{prefetch-src 'self'}, @policy.build
+
+    @policy.prefetch_src false
+    assert_no_match %r{prefetch-src}, @policy.build
+
     @policy.script_src :self
     assert_match %r{script-src 'self'}, @policy.build
 
