@@ -70,18 +70,11 @@ module ActionView
       end
 
       private
-        def find_template(finder, *args)
-          name = args.first
-          prefixes = args[1] || []
-          partial = args[2] || false
-          keys = args[3] || []
-          options = args[4] || {}
+        def find_template(finder, name, prefixes, partial, keys)
           finder.disable_cache do
-            if format = finder.rendered_format
-              finder.find_all(name, prefixes, partial, keys, options.merge(formats: [format])).first || finder.find_all(name, prefixes, partial, keys, options).first
-            else
-              finder.find_all(name, prefixes, partial, keys, options).first
-            end
+            format = finder.rendered_format
+            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
+            result || finder.find_all(name, prefixes, partial, keys).first
           end
         end
     end
