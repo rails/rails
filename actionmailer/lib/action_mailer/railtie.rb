@@ -11,6 +11,7 @@ module ActionMailer
     config.eager_load_namespaces << ActionMailer
 
     config.before_eager_load do
+      require "mail"
       Mail.eager_autoload!
     end
 
