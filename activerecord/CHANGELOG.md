@@ -1,3 +1,7 @@
+*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
+
+    *Brian Durand*
+
 *   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
     use loaded association ids if present.
 
