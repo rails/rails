@@ -9,7 +9,10 @@ module ActionMailer
   class Railtie < Rails::Railtie # :nodoc:
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionMailer
-    config.eager_load_namespaces << Mail
+
+    config.before_eager_load do
+      Mail.eager_autoload!
+    end
 
     initializer "action_mailer.logger" do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
