@@ -231,9 +231,9 @@ is not entirely equivalent to the one of the body of the definitions using the
 assignment.
 
 Thus, when one informally says "the `String` class", that really means: the
-class object stored in the constant called "String" in the class object stored
-in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
-everything related to constants such as resolution algorithms applies to it.
+class object stored in the constant called "String" and this "String" constant
+gets stored in `Object` class. `String` is otherwise an ordinary Ruby constant 
+and everything related to constants such as resolution algorithms applies to it.
 
 Likewise, in the controller
 
