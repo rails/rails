@@ -611,7 +611,11 @@ module ActiveRecord
 
           log(sql, name, binds, type_casted_binds, stmt_key) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.exec_prepared(stmt_key, type_casted_binds)
+              # TODO: Replace by conn.async_query_prepared introduced with pg-1.1.0
+              @connection.get_last_result # discard possibly pending results
+              @connection.send_query_prepared(stmt_key, type_casted_binds)
+              @connection.block
+              @connection.get_last_result
             end
           end
         rescue ActiveRecord::StatementInvalid => e
@@ -666,12 +670,14 @@ module ActiveRecord
             unless @statements.key? sql_key
               nextkey = @statements.next_key
               begin
-                @connection.prepare nextkey, sql
+                # TODO: Replace by conn.async_prepare introduced with pg-1.1.0
+                @connection.get_last_result # discard possibly pending results
+                @connection.send_prepare nextkey, sql
+                @connection.block
+                @connection.get_last_result
               rescue => e
                 raise translate_exception_class(e, sql)
               end
-              # Clear the queue
-              @connection.get_last_result
               @statements[sql_key] = nextkey
             end
             @statements[sql_key]
