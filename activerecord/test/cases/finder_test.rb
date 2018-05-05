@@ -414,7 +414,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take
-    assert_equal topics(:first), Topic.take
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").take
   end
 
   def test_take_failing
