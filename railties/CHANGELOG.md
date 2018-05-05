@@ -1,3 +1,7 @@
+*   Don't generate assets' initializer in `app:update` task if sprockets is skipped
+
+    *Tsukuru Tanimichi*
+
 *   Don't include `bootsnap` by default in apps generated under JRuby.
 
     Fixes #32641.
