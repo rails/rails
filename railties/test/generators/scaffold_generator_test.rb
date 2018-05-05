@@ -347,7 +347,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content = File.read(route_path).gsub(/\.routes\.draw do/) do |match|
       "#{match} |map|"
     end
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     run_generator ["product_line"], behavior: :revoke
 
@@ -364,7 +364,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
     assert_file "config/routes.rb", /\.routes\.draw do\n  resources :product_lines\nend\n\z/
 
     run_generator ["product_line"], behavior: :revoke
