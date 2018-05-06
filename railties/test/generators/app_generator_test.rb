@@ -323,6 +323,19 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-bootsnap"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/boot.rb" do |content|
+      assert_no_match(/require 'bootsnap\/setup'/, content)
+    end
+  end
+
   def test_gem_for_active_storage
     run_generator
     assert_file "Gemfile", /^# gem 'image_processing'/
