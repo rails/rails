@@ -71,20 +71,33 @@ module ActiveRecord
         with_timezone_config default: :utc do
           t = Time.now.change(usec: 0)
 
+          puts t
+
           expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getutc.to_s(:db).sub("2000-01-01 ", "")
+          expected = expected.getutc.to_s(:db).slice(11..-1)
 
           assert_equal expected, @quoter.quoted_time(t)
         end
       end
 
-      def test_quoted_time_dst
+      def test_quoted_time_utc_dst
         with_timezone_config default: :utc do
-          t = Time.now.change(usec: 0)
+          t = Time.new(2000, 7, 1)
 
-          expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getutc.to_s(:db).sub("2000-01-01 ", "")
+          puts t
 
+          expected = t.change(year: 2000, month: 7, day: 1)
+          expected = expected.getutc.to_s(:db).slice(11..-1)
+          assert_equal expected, @quoter.quoted_time(t)
+        end
+      end
+
+      def test_quoted_time_utc_local
+        with_timezone_config default: :local do
+          t = Time.new(2000, 7, 1)
+
+          expected = t.change(year: 2000, month: 7, day: 1)
+          expected = expected.getlocal.to_s(:db).slice(11..-1)
           assert_equal expected, @quoter.quoted_time(t)
         end
       end
