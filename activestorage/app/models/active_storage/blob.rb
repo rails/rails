@@ -44,21 +44,21 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     # Returns a new, unsaved blob instance after the +io+ has been uploaded to the service.
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
+    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, extract_content_type_from_io: true)
       new.tap do |blob|
         blob.filename     = filename
         blob.content_type = content_type
         blob.metadata     = metadata
 
-        blob.upload io
+        blob.upload(io, extract_content_type_from_io)
       end
     end
 
     # Returns a saved blob instance after the +io+ has been uploaded to the service. Note, the blob is first built,
     # then the +io+ is uploaded, then the blob is saved. This is done this way to avoid uploading (which may take
     # time), while having an open database transaction.
-    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
-      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
+    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil, extract_content_type_from_io: true)
+      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata, extract_content_type_from_io: extract_content_type_from_io).tap(&:save!)
     end
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
@@ -146,9 +146,9 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
   # and +create_after_upload!+.
-  def upload(io)
+  def upload(io , extract_content_type_from_io = true)
     self.checksum     = compute_checksum_in_chunks(io)
-    self.content_type = extract_content_type(io)
+    self.content_type = extract_content_type(io) if self.content_type.nil? || extract_content_type_from_io
     self.byte_size    = io.size
     self.identified   = true
 
