@@ -54,6 +54,10 @@ class ActiveSupport::TestCase
       ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
     end
 
+    def create_csv_blob(data: "article,dates,analysis\n1, 2, 3", filename: "my_csv.csv", content_type: "text/csv", extract_content_type_from_io: true)
+      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, extract_content_type_from_io: extract_content_type_from_io
+    end
+
     def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil)
       ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
     end
