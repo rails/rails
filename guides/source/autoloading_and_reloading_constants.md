@@ -230,10 +230,12 @@ is not entirely equivalent to the one of the body of the definitions using the
 `class` and `module` keywords. But both idioms result in the same constant
 assignment.
 
-Thus, when one informally says "the `String` class", that really means: the
-class object stored in the constant called "String" and this "String" constant
-gets stored in `Object` class. `String` is otherwise an ordinary Ruby constant 
-and everything related to constants such as resolution algorithms applies to it.
+Thus, an informal expression like "the `String` class" technically means the
+class object stored in the constant called "String". That constant, in turn,
+belongs to the class object stored in the constant called "Object".
+
+`String` is an ordinary constant, and everything related to them such as
+resolution algorithms applies to it.
 
 Likewise, in the controller
 
