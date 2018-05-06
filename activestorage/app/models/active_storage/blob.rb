@@ -44,21 +44,23 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     # Returns a new, unsaved blob instance after the +io+ has been uploaded to the service.
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
+    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
+    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, identify: true)
       new.tap do |blob|
         blob.filename     = filename
         blob.content_type = content_type
         blob.metadata     = metadata
 
-        blob.upload io
+        blob.upload(io, identify: identify)
       end
     end
 
     # Returns a saved blob instance after the +io+ has been uploaded to the service. Note, the blob is first built,
     # then the +io+ is uploaded, then the blob is saved. This is done this way to avoid uploading (which may take
     # time), while having an open database transaction.
-    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
-      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
+    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
+    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil, identify: true)
+      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata, identify: identify).tap(&:save!)
     end
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
@@ -142,13 +144,14 @@ class ActiveStorage::Blob < ActiveRecord::Base
   #
   # Prior to uploading, we compute the checksum, which is sent to the service for transit integrity validation. If the
   # checksum does not match what the service receives, an exception will be raised. We also measure the size of the +io+
-  # and store that in +byte_size+ on the blob record.
+  # and store that in +byte_size+ on the blob record. The content type is automatically extracted from the +io+ unless
+  # you specify a +content_type+ and pass +identify+ as false.
   #
   # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
   # and +create_after_upload!+.
-  def upload(io)
+  def upload(io, identify: true)
     self.checksum     = compute_checksum_in_chunks(io)
-    self.content_type = extract_content_type(io)
+    self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
 

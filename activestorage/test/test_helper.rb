@@ -50,8 +50,8 @@ class ActiveSupport::TestCase
   end
 
   private
-    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
-      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
+    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true)
+      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify
     end
 
     def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil)
