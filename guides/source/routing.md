@@ -1139,10 +1139,10 @@ resources :videos, param: :identifier
 ```
 
 ```
-     videos GET  /videos(.:format)                  videos#index
-            POST /videos(.:format)                  videos#create
- new_videos GET  /videos/new(.:format)              videos#new
-edit_videos GET  /videos/:identifier/edit(.:format) videos#edit
+    videos GET  /videos(.:format)                  videos#index
+           POST /videos(.:format)                  videos#create
+ new_video GET  /videos/new(.:format)              videos#new
+edit_video GET  /videos/:identifier/edit(.:format) videos#edit
 ```
 
 ```ruby
@@ -1160,7 +1160,7 @@ class Video < ApplicationRecord
 end
 
 video = Video.find_by(identifier: "Roman-Holiday")
-edit_videos_path(video) # => "/videos/Roman-Holiday/edit"
+edit_video_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
 Inspecting and Testing Routes
