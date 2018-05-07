@@ -1,3 +1,35 @@
+*   Deprecate returning non-relation values in `ActiveRecord::Base.scope`
+
+    `ActiveRecord::Base.scope` expects a returned value of `ActiveRecord::Relation | nil`.
+    However, if you missed this bit in the docs and attempt to return, say a
+    single value, you are in for a surprise. Look at this example:
+
+    ```ruby
+    class Event < ApplicationRecord
+      scope :upcoming, -> {
+        includes(location: :venue).order(time: :desc).where('time >= ?', Time.current).first
+      }
+    end
+    ```
+
+    The scope may be defined with the expectation that it will return `Event |
+    nil`, however when `nil` is returned, the scope will return `Event.all`
+    instead. This is documented, but results in confusing behavior.
+
+    With this change, every scope that returns a value different than the
+    contract of: `ActiveRecord::Relation | nil` will issue a deprecation
+    message, which will turn into an error in Rails 6.2.
+
+    The deprecation looks like:
+
+        DEPRECATION WARNING: Event.upcoming returned a value of type Event.
+        Scopes are intended to return ActiveRecord::Relation objects; consider
+        defining a class method instead.
+
+        This will be an error in Rails 6.2. (called from irb_binding at (irb):1)
+
+    *Genadi Samokovarov*
+
 *   Bump minimum PostgreSQL version to 9.3.
 
     *Yasuo Honda*

@@ -310,9 +310,18 @@ module ActiveRecord
       @delegate_to_klass ? yield : klass._scoping(self) { yield }
     end
 
-    def _exec_scope(*args, &block) # :nodoc:
+    def _exec_scope(name, *args, &block) # :nodoc:
       @delegate_to_klass = true
-      instance_exec(*args, &block) || self
+      instance_exec(*args, &block).tap do |result|
+        valid_scope_result = result.is_a?(Relation) || !result
+        unless valid_scope_result
+          ActiveSupport::Deprecation.warn \
+            "#{klass}.#{name} returned a value of type #{result.class}. " \
+            "Scopes are intended to return ActiveRecord::Relation objects; " \
+            "consider defining a class method instead.\n\n" \
+            "This will be an error in Rails 6.2."
+        end
+      end || self
     ensure
       @delegate_to_klass = false
     end

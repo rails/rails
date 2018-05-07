@@ -1353,6 +1353,9 @@ end
 
 However, there is one important caveat: A scope will always return an `ActiveRecord::Relation` object, even if the conditional evaluates to `false`, whereas a class method, will return `nil`. This can cause `NoMethodError` when chaining class methods with conditionals, if any of the conditionals return `false`.
 
+NOTE: Returning a single model from a scope is deprecated, because of the
+aforementioned caveat. Consider defining a class method instead.
+
 ### Applying a default scope
 
 If we wish for a scope to be applied across all queries to the model we can use the

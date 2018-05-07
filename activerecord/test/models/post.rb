@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "models/comment"
+
 class Post < ActiveRecord::Base
   class CategoryPost < ActiveRecord::Base
     self.table_name = "categories_posts"
@@ -49,6 +51,8 @@ class Post < ActiveRecord::Base
   scope :tagged_with_comment, ->(comment) { joins(:taggings).where(taggings: { comment: comment }) }
 
   scope :typographically_interesting, -> { containing_the_letter_a.or(titled_with_an_apostrophe) }
+
+  scope :one_comment, -> { Comment.first }
 
   has_many :comments do
     def find_most_recent

@@ -103,6 +103,12 @@ module ActiveRecord
       assert_predicate relation, :empty_scope?
     end
 
+    def test_scope_not_returning_a_relation
+      assert_deprecated(/Post.one_comment returned a value of type Comment. Scopes are intended to return ActiveRecord::Relation objects; consider defining a class method instead/) do
+        assert_equal Comment.first, Post.one_comment
+      end
+    end
+
     def test_bad_constants_raise_errors
       assert_raises(NameError) do
         ActiveRecord::Relation::HelloWorld
