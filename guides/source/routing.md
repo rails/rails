@@ -1160,7 +1160,7 @@ class Video < ApplicationRecord
 end
 
 video = Video.find_by(identifier: "Roman-Holiday")
-edit_videos_path(video) # => "/videos/Roman-Holiday"
+edit_videos_path(video) # => "/videos/Roman-Holiday/edit"
 ```
 
 Inspecting and Testing Routes
