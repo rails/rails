@@ -35,15 +35,16 @@ module ActionCable
         rescue LoadError => e
           # We couldn't require the adapter itself. Raise an exception that
           # points out config typos and missing gems.
-          if e.path == path_to_adapter
+          # When `Gem::LoadError` occurs, possible that `path` is not set correctly. Instead can get the gem name from `name` attribute.
+          if (e.path == path_to_adapter) || (e.respond_to?(:name) && e.name == adapter)
             # We can assume that a non-builtin adapter was specified, so it's
             # either misspelled or missing from Gemfile.
-            raise e.class, "Could not load the '#{adapter}' Action Cable pubsub adapter. Ensure that the adapter is spelled correctly in config/cable.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+            raise LoadError, "Could not load the '#{adapter}' Action Cable pubsub adapter. Ensure that the adapter is spelled correctly in config/cable.yml and that you've added the necessary adapter gem to your Gemfile or installed.", e.backtrace
 
           # Bubbled up from the adapter require. Prefix the exception message
           # with some guidance about how to address it and reraise.
           else
-            raise e.class, "Error loading the '#{adapter}' Action Cable pubsub adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+            raise LoadError, "Error loading the '#{adapter}' Action Cable pubsub adapter. Missing a gem it depends on? #{e.message}", e.backtrace
           end
         end
 

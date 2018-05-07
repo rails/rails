@@ -19,7 +19,7 @@ module ActiveRecord
             spec "ridiculous://foo?encoding=utf8"
           end
 
-          assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", error.message
+          assert_match "Could not load the 'ridiculous' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile or installed.", error.message
         end
 
         # The abstract adapter is used simply to bypass the bit of code that
