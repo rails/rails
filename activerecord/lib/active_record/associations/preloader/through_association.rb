@@ -97,8 +97,6 @@ module ActiveRecord
               reflection_scope.merge(preload_scope)
             elsif reflection.scope
               reflection_scope
-            else
-              nil
             end
           end
       end

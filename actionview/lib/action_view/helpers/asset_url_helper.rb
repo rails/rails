@@ -239,10 +239,9 @@ module ActionView
       def compute_asset_extname(source, options = {})
         return if options[:extname] == false
         extname = options[:extname] || ASSET_EXTENSIONS[options[:type]]
+
         if extname && File.extname(source) != extname
           extname
-        else
-          nil
         end
       end
 
