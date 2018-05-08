@@ -43,6 +43,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/plain", blob.content_type
   end
 
+  test "create after upload extracts content_type from io when no content_type given and identify: false" do
+    blob = create_blob content_type: nil, identify: false
+    assert_equal "text/plain", blob.content_type
+  end
+
+  test "create after upload uses content_type when identify: false" do
+    blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
+    assert_equal "text/csv", blob.content_type
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?

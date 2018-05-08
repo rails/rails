@@ -1,3 +1,18 @@
+*   Pass in `identify: false` as an argument when providing a `content_type` for
+    `ActiveStorage::Attached::{One,Many}#attach` to bypass automatic content
+    type inference. For example:
+
+    ```ruby
+      @message.image.attach(
+        io: File.open('/path/to/file'),
+        filename: 'file.pdf',
+        content_type: 'application/pdf',
+        identify: false
+      )
+    ```
+
+    *Ryan Davidson*
+
 *   The Google Cloud Storage service properly supports streaming downloads.
     It now requires version 1.11 or newer of the google-cloud-storage gem.
 
