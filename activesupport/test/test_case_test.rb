@@ -185,6 +185,14 @@ class AssertionsTest < ActiveSupport::TestCase
     end
   end
 
+  def test_assert_changes_with_to_option_and_mutable_value
+    value = []
+
+    assert_changes "value", to: [1] do
+      value << 1
+    end
+  end
+
   def test_assert_changes_with_to_option_but_no_change_has_special_message
     error = assert_raises Minitest::Assertion do
       assert_changes "@object.num", to: 0 do

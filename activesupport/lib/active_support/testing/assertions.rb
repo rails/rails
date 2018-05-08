@@ -160,6 +160,7 @@ module ActiveSupport
         exp = expression.respond_to?(:call) ? expression : -> { eval(expression.to_s, block.binding) }
 
         before = exp.call
+        before_mutation = before.dup
         retval = yield
 
         unless from == UNTRACKED
@@ -173,7 +174,7 @@ module ActiveSupport
         error = "#{expression.inspect} didn't change"
         error = "#{error}. It was already #{to}" if before == to
         error = "#{message}.\n#{error}" if message
-        assert before != after, error
+        assert (before != after) || (before_mutation != after), error
 
         unless to == UNTRACKED
           error = "#{expression.inspect} didn't change to #{to}"
