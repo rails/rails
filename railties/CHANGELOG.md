@@ -4,6 +4,8 @@
 
      Skip `config/spring.rb` when spring isn't loaded.
 
+     Skip yarn's contents when yarn integration isn't used.
+
     *Tsukuru Tanimichi*
 
 *   Make the master.key file read-only for the owner upon generation on
