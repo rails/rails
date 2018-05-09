@@ -79,7 +79,7 @@ module ActiveJob
       def discard_on(exception)
         rescue_from exception do |error|
           if block_given?
-            yield self, exception
+            yield self, error
           else
             logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
           end
