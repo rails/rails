@@ -382,13 +382,7 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        begin
-          status = yield
-        rescue ActiveRecord::Rollback
-          clear_transaction_record_state
-          status = nil
-        end
-
+        status = yield
         raise ActiveRecord::Rollback unless status
       end
       status
