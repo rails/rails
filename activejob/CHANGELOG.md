@@ -1,3 +1,9 @@
+*   Pass the error instance as the second parameter of block executed by `discard_on`.
+
+    Fixes #32853.
+
+    *Yuji Yaginuma*
+
 *   Remove support for Qu gem.
 
     Reasons are that the Qu gem wasn't compatible since Rails 5.1,
