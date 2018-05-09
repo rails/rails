@@ -238,7 +238,7 @@ params.
 The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
 can then just be told `deliver_now` or `deliver_later` to send itself out. The
 `ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
-you want to inspect, alter or do anything else with the `Mail::Message` object you can
+you want to inspect, alter, or do anything else with the `Mail::Message` object you can
 access it with the `message` method on the `ActionMailer::MessageDelivery` object.
 
 ### Auto encoding header values
@@ -270,7 +270,7 @@ Action Mailer makes it very easy to add attachments.
 
 * Pass the file name and content and Action Mailer and the
   [Mail gem](https://github.com/mikel/mail) will automatically guess the
-  mime_type, set the encoding and create the attachment.
+  mime_type, set the encoding, and create the attachment.
 
     ```ruby
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')

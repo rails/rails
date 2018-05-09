@@ -341,7 +341,7 @@ TIP: For more information about routing, refer to [Rails Routing from the Outsid
 Getting Up and Running
 ----------------------
 
-Now that you've seen how to create a controller, an action and a view, let's
+Now that you've seen how to create a controller, an action, and a view, let's
 create something with a bit more substance.
 
 In the Blog application, you will now create a new _resource_. A resource is the
