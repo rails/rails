@@ -21,6 +21,7 @@ module RailsGuides
       extract_raw_header_and_body
       generate_header
       generate_title
+      generate_description
       generate_body
       generate_structure
       generate_index
@@ -147,6 +148,14 @@ module RailsGuides
         end
       end
 
+      def generate_description
+        if heading = Nokogiri::HTML.fragment(@header).at(:p)
+          @description = heading.text.tr("\n", " ")
+        else
+          @description = "This guide is designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together."
+        end
+      end
+
       def node_index(hierarchy)
         case hierarchy.size
         when 1
@@ -166,6 +175,7 @@ module RailsGuides
       def render_page
         @view.content_for(:header_section) { @header }
         @view.content_for(:page_title) { @title }
+        @view.content_for(:page_description) { @description }
         @view.content_for(:index_section) { @index }
         @view.render(layout: @layout, html: @body.html_safe)
       end

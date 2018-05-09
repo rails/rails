@@ -1,12 +1,16 @@
-<% content_for :page_title do %>
+<% content_for :page_title do -%>
 Ruby on Rails Guides
-<% end %>
+<%- end %>
 
-<% content_for :header_section do %>
+<% content_for :page_description do -%>
+This guide is designed to make you immediately productive with Rails, and to help you understand how all of the pieces fit together.
+<%- end %>
+
+<% content_for :header_section do -%>
 <%= render 'welcome' %>
 <% end %>
 
-<% content_for :index_section do %>
+<% content_for :index_section do -%>
 <div id="subCol">
   <dl>
     <dt></dt>
