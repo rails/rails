@@ -934,7 +934,7 @@ module ActiveRecord
     # Determines the version number of the next migration.
     def next_migration_number(number)
       if ActiveRecord::Base.timestamped_migrations
-        [Time.now.utc.strftime("%Y%m%d%H%M%S"), "%.14d" % number].max
+        [Time.now.utc.strftime("%Y%m%d%H%M%S").to_i, ("%.14d" % number).to_i].max
       else
         SchemaMigration.normalize_migration_number(number)
       end
