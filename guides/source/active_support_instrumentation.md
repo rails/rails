@@ -169,7 +169,7 @@ INFO. Additional keys may be added by the caller.
 
 ### send_data.action_controller
 
-`ActionController` does not had any specific information to the payload. All options are passed through to the payload.
+`ActionController` does not add any specific information to the payload. All options are passed through to the payload.
 
 ### redirect_to.action_controller
 
