@@ -173,3 +173,8 @@ Style/Semicolon:
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
   Enabled: true
+
+# Unused method arguments
+Lint/UnusedMethodArgument:
+  Enabled: true
+  AllowUnusedKeywordArguments: true

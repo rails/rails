@@ -31,7 +31,7 @@ module ActionCable
         listener.shutdown
       end
 
-      def with_connection(&block) # :nodoc:
+      def with_connection() # :nodoc:
         ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
           pg_conn = ar_conn.raw_connection
 

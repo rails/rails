@@ -5,7 +5,7 @@ require "cases/helper"
 class PostgresqlActiveSchemaTest < ActiveRecord::PostgreSQLTestCase
   def setup
     ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.class_eval do
-      def execute(sql, name = nil) sql end
+      def execute(sql, _name = nil) sql end
     end
   end
 

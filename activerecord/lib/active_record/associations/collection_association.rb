@@ -407,7 +407,7 @@ module ActiveRecord
         # Delete the given records from the association,
         # using one of the methods +:destroy+, +:delete_all+
         # or +:nullify+ (or +nil+, in which case a default is used).
-        def delete_records(records, method)
+        def delete_records(_records, _method)
           raise NotImplementedError
         end
 

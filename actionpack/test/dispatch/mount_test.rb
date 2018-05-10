@@ -16,7 +16,7 @@ class TestRoutingMount < ActionDispatch::IntegrationTest
   class SinatraLikeApp
     def self.routes; Object.new; end
 
-    def self.call(env)
+    def self.call(_env)
       [200, { "Content-Type" => "text/html" }, ["OK"]]
     end
   end

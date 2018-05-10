@@ -105,7 +105,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     klass = Class.new do
       include ActiveModel::Validations
 
-      def title_confirmation=(value)
+      def title_confirmation=(_value)
         @title_confirmation = "expected title"
       end
 

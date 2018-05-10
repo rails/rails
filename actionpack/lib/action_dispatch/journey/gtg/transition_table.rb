@@ -57,7 +57,7 @@ module ActionDispatch
           }.compact.concat regexps
         end
 
-        def as_json(options = nil)
+        def as_json(_options = nil)
           simple_regexp = Hash.new { |h, k| h[k] = {} }
 
           @regexp_states.each do |from, hash|

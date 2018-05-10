@@ -120,7 +120,7 @@ module ActionDispatch
         def visit_GROUP(n, seed); unary(n, seed); end
         def visit_STAR(n, seed); unary(n, seed); end
 
-        def terminal(node, seed);   seed; end
+        def terminal(_node, seed);   seed; end
         def visit_LITERAL(n, seed); terminal(n, seed); end
         def visit_SYMBOL(n, seed);  terminal(n, seed); end
         def visit_SLASH(n, seed);   terminal(n, seed); end

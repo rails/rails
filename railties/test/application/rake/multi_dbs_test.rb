@@ -52,7 +52,7 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_and_schema_dump_and_load(namespace, expected_database, format)
+      def db_migrate_and_schema_dump_and_load(_namespace, _expected_database, format)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "generate", "model", "dog", "name:string"
@@ -81,7 +81,7 @@ module ApplicationTests
         end
       end
 
-      def db_migrate_namespaced(namespace, expected_database)
+      def db_migrate_namespaced(namespace, _expected_database)
         Dir.chdir(app_path) do
           rails "generate", "model", "book", "title:string"
           rails "generate", "model", "dog", "name:string"

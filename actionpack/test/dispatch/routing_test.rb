@@ -17,13 +17,13 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
   end
 
   class GrumpyRestrictor
-    def self.matches?(request)
+    def self.matches?(_request)
       false
     end
   end
 
   class YoutubeFavoritesRedirector
-    def self.call(params, request)
+    def self.call(params, _request)
       "http://www.youtube.com/watch?v=#{params[:youtube_id]}"
     end
   end
@@ -3795,13 +3795,13 @@ class TestAltApp < ActionDispatch::IntegrationTest
   end
 
   class XHeader
-    def call(env)
+    def call(_env)
       [200, { "Content-Type" => "text/html" }, ["XHeader"]]
     end
   end
 
   class AltApp
-    def call(env)
+    def call(_env)
       [200, { "Content-Type" => "text/html" }, ["Alternative App"]]
     end
   end

@@ -124,7 +124,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     # Stub Rails dispatcher so it does not get controller references and
     # simply return the controller#action as Rack::Body.
     class NullController < ::ActionController::Metal
-      def self.dispatch(action, req, res)
+      def self.dispatch(action, req, _res)
         [200, { "Content-Type" => "text/html" }, ["#{req.params[:controller]}##{action}"]]
       end
     end
@@ -144,7 +144,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
     yield DeadEndRoutes.new(config)
   end
 
-  def with_routing(&block)
+  def with_routing()
     temporary_routes = ActionDispatch::Routing::RouteSet.new
     old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
     old_routes = SharedTestRoutes

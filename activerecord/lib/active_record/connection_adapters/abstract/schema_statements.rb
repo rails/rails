@@ -16,12 +16,12 @@ module ActiveRecord
         {}
       end
 
-      def table_options(table_name)
+      def table_options(_table_name)
         nil
       end
 
       # Returns the table comment that's stored in database metadata.
-      def table_comment(table_name)
+      def table_comment(_table_name)
         nil
       end
 
@@ -79,7 +79,7 @@ module ActiveRecord
       end
 
       # Returns an array of indexes for the given table.
-      def indexes(table_name)
+      def indexes(_table_name)
         raise NotImplementedError, "#indexes is not implemented"
       end
 
@@ -476,7 +476,7 @@ module ActiveRecord
       #
       #   rename_table('octopuses', 'octopi')
       #
-      def rename_table(table_name, new_name)
+      def rename_table(_table_name, _new_name)
         raise NotImplementedError, "rename_table is not implemented"
       end
 
@@ -609,7 +609,7 @@ module ActiveRecord
       #   change_column(:suppliers, :name, :string, limit: 80)
       #   change_column(:accounts, :description, :text)
       #
-      def change_column(table_name, column_name, type, options = {})
+      def change_column(_table_name, _column_name, _type, _options = {})
         raise NotImplementedError, "change_column is not implemented"
       end
 
@@ -627,7 +627,7 @@ module ActiveRecord
       #
       #   change_column_default(:posts, :state, from: nil, to: "draft")
       #
-      def change_column_default(table_name, column_name, default_or_changes)
+      def change_column_default(_table_name, _column_name, _default_or_changes)
         raise NotImplementedError, "change_column_default is not implemented"
       end
 
@@ -647,7 +647,7 @@ module ActiveRecord
       # constraint if needed, since otherwise those rows would not be valid.
       #
       # Please note the fourth argument does not set a column's default.
-      def change_column_null(table_name, column_name, null, default = nil)
+      def change_column_null(_table_name, _column_name, _null, _default = nil)
         raise NotImplementedError, "change_column_null is not implemented"
       end
 
@@ -655,7 +655,7 @@ module ActiveRecord
       #
       #   rename_column(:suppliers, :description, :name)
       #
-      def rename_column(table_name, column_name, new_column_name)
+      def rename_column(_table_name, _column_name, _new_column_name)
         raise NotImplementedError, "rename_column is not implemented"
       end
 
@@ -899,7 +899,7 @@ module ActiveRecord
       #
       #   remove_reference(:products, :user, index: true, foreign_key: true)
       #
-      def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **options)
+      def remove_reference(table_name, ref_name, foreign_key: false, polymorphic: false, **_options)
         if foreign_key
           reference_name = Base.pluralize_table_names ? ref_name.to_s.pluralize : ref_name
           if foreign_key.is_a?(Hash)
@@ -918,7 +918,7 @@ module ActiveRecord
 
       # Returns an array of foreign keys for the given table.
       # The foreign keys are represented as ForeignKeyDefinition objects.
-      def foreign_keys(table_name)
+      def foreign_keys(_table_name)
         raise NotImplementedError, "foreign_keys is not implemented"
       end
 
@@ -1112,7 +1112,7 @@ module ActiveRecord
       #
       #   columns_for_distinct("posts.id", ["posts.created_at desc"])
       #
-      def columns_for_distinct(columns, orders) # :nodoc:
+      def columns_for_distinct(columns, _orders) # :nodoc:
         columns
       end
 
@@ -1132,7 +1132,7 @@ module ActiveRecord
       #
       #  remove_timestamps(:suppliers)
       #
-      def remove_timestamps(table_name, options = {})
+      def remove_timestamps(table_name, _options = {})
         remove_column table_name, :updated_at
         remove_column table_name, :created_at
       end
@@ -1178,12 +1178,12 @@ module ActiveRecord
       end
 
       # Changes the comment for a table or removes it if +nil+.
-      def change_table_comment(table_name, comment)
+      def change_table_comment(_table_name, _comment)
         raise NotImplementedError, "#{self.class} does not support changing table comments"
       end
 
       # Changes the comment for a column or removes it if +nil+.
-      def change_column_comment(table_name, column_name, comment)
+      def change_column_comment(_table_name, _column_name, _comment)
         raise NotImplementedError, "#{self.class} does not support changing column comments"
       end
 
@@ -1372,7 +1372,7 @@ module ActiveRecord
           schema_creation.accept(AddColumnDefinition.new(cd))
         end
 
-        def remove_column_for_alter(table_name, column_name, type = nil, options = {})
+        def remove_column_for_alter(_table_name, column_name, _type = nil, _options = {})
           "DROP COLUMN #{quote_column_name(column_name)}"
         end
 
@@ -1393,11 +1393,11 @@ module ActiveRecord
           end
         end
 
-        def data_source_sql(name = nil, type: nil)
+        def data_source_sql(_name = nil, type: nil)
           raise NotImplementedError
         end
 
-        def quoted_scope(name = nil, type: nil)
+        def quoted_scope(_name = nil, type: nil)
           raise NotImplementedError
         end
     end

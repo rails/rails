@@ -104,7 +104,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_frozen_hash
-    def @contact.serializable_hash(options = nil)
+    def @contact.serializable_hash(_options = nil)
       super({ only: %w(name) }.freeze)
     end
 
@@ -115,7 +115,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_only_option
-    def @contact.serializable_hash(options = nil)
+    def @contact.serializable_hash(_options = nil)
       super(only: %w(name))
     end
 
@@ -126,7 +126,7 @@ class JsonSerializationTest < ActiveRecord::TestCase
   end
 
   def test_uses_serializable_hash_with_except_option
-    def @contact.serializable_hash(options = nil)
+    def @contact.serializable_hash(_options = nil)
       super(except: %w(age))
     end
 

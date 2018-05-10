@@ -10,13 +10,13 @@ module Arel # :nodoc: all
         @bind_index = 1
       end
 
-      def add_bind(bind)
+      def add_bind(_bind)
         self << yield(@bind_index)
         @bind_index += 1
         self
       end
 
-      def compile(bvs)
+      def compile(_bvs)
         value
       end
     end

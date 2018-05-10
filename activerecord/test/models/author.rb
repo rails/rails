@@ -199,7 +199,7 @@ class Author < ActiveRecord::Base
       @post_log << "after_removing#{object.id}"
     end
 
-    def raise_exception(object)
+    def raise_exception(_object)
       raise Exception.new("You can't add a post")
     end
 end

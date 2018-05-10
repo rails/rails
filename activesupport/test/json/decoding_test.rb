@@ -9,7 +9,7 @@ class TestJSONDecoding < ActiveSupport::TestCase
   include TimeZoneTestHelpers
 
   class Foo
-    def self.json_create(object)
+    def self.json_create(_object)
       "Foo"
     end
   end

@@ -331,7 +331,7 @@ module Mime
         method.to_s.ends_with? "?"
       end
 
-      def method_missing(method, *args)
+      def method_missing(method, *_args)
         false if method.to_s.ends_with? "?"
       end
   end

@@ -16,7 +16,7 @@ class BogusDelivery
   def initialize(*)
   end
 
-  def deliver!(mail)
+  def deliver!(_mail)
     raise "failed"
   end
 end

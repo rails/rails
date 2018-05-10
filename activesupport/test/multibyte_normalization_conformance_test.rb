@@ -84,7 +84,7 @@ class MultibyteNormalizationConformanceTest < ActiveSupport::TestCase
   end
 
   private
-    def each_line_of_norm_tests(&block)
+    def each_line_of_norm_tests()
       lines = 0
       max_test_lines = 0 # Don't limit below 38, because that's the header of the testfile
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |

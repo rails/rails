@@ -10,15 +10,15 @@ module ActionCable
         @logger = @server.logger
       end
 
-      def broadcast(channel, payload)
+      def broadcast(_channel, _payload)
         raise NotImplementedError
       end
 
-      def subscribe(channel, message_callback, success_callback = nil)
+      def subscribe(_channel, _message_callback, _success_callback = nil)
         raise NotImplementedError
       end
 
-      def unsubscribe(channel, message_callback)
+      def unsubscribe(_channel, _message_callback)
         raise NotImplementedError
       end
 

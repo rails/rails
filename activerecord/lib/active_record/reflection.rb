@@ -591,7 +591,7 @@ module ActiveRecord
 
       private
 
-        def calculate_constructable(macro, options)
+        def calculate_constructable(_macro, _options)
           true
         end
 
@@ -705,7 +705,7 @@ module ActiveRecord
 
       private
 
-        def calculate_constructable(macro, options)
+        def calculate_constructable(_macro, options)
           !options[:through]
         end
     end
@@ -736,7 +736,7 @@ module ActiveRecord
           !polymorphic? && super
         end
 
-        def calculate_constructable(macro, options)
+        def calculate_constructable(_macro, _options)
           !polymorphic?
         end
     end

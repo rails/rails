@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module ConnectionHandling
-    def fake_connection(config)
+    def fake_connection(_config)
       ConnectionAdapters::FakeAdapter.new nil, logger
     end
   end

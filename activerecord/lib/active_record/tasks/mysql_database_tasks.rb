@@ -105,7 +105,7 @@ module ActiveRecord
           fail run_cmd_error(cmd, args, action) unless Kernel.system(cmd, *args)
         end
 
-        def run_cmd_error(cmd, args, action)
+        def run_cmd_error(cmd, _args, _action)
           msg = "failed to execute: `#{cmd}`\n".dup
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg

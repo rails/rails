@@ -14,7 +14,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       assign_attributes(attributes)
     end
 
-    def broken_attribute=(value)
+    def broken_attribute=(_value)
       raise ErrorFromAttributeWriter
     end
 

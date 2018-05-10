@@ -100,7 +100,7 @@ module ActiveSupport
     # Simple formatter which only displays the message.
     class SimpleFormatter < ::Logger::Formatter
       # This method is invoked when a log event occurs
-      def call(severity, timestamp, progname, msg)
+      def call(_severity, _timestamp, _progname, msg)
         "#{String === msg ? msg : msg.inspect}\n"
       end
     end

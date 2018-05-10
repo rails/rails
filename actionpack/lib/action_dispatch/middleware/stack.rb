@@ -42,7 +42,7 @@ module ActionDispatch
 
     attr_accessor :middlewares
 
-    def initialize(*args)
+    def initialize(*_args)
       @middlewares = []
       yield(self) if block_given?
     end

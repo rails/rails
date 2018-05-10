@@ -70,7 +70,7 @@ module ActionController
       set_header "CONTENT_TYPE", type
     end
 
-    def assign_parameters(routes, controller_path, action, parameters, generated_path, query_string_keys)
+    def assign_parameters(_routes, controller_path, action, parameters, generated_path, query_string_keys)
       non_path_parameters = {}
       path_parameters = {}
 

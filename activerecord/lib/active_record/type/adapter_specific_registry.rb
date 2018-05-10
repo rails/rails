@@ -39,7 +39,7 @@ module ActiveRecord
         end
       end
 
-      def matches?(type_name, *args, **kwargs)
+      def matches?(type_name, *_args, **kwargs)
         type_name == name && matches_adapter?(**kwargs)
       end
 
@@ -104,7 +104,7 @@ module ActiveRecord
         klass.new(subtype)
       end
 
-      def matches?(*args, **kwargs)
+      def matches?(*_args, **kwargs)
         matches_adapter?(**kwargs) && matches_options?(**kwargs)
       end
 

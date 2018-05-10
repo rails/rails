@@ -476,7 +476,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def delete_matched(matcher, options = nil)
+      def delete_matched(_matcher, _options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support delete_matched")
       end
 
@@ -485,7 +485,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def increment(name, amount = 1, options = nil)
+      def increment(_name, _amount = 1, _options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support increment")
       end
 
@@ -494,7 +494,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def decrement(name, amount = 1, options = nil)
+      def decrement(_name, _amount = 1, _options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support decrement")
       end
 
@@ -503,7 +503,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def cleanup(options = nil)
+      def cleanup(_options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support cleanup")
       end
 
@@ -513,7 +513,7 @@ module ActiveSupport
       # The options hash is passed to the underlying cache implementation.
       #
       # All implementations may not support this method.
-      def clear(options = nil)
+      def clear(_options = nil)
         raise NotImplementedError.new("#{self.class.name} does not support clear")
       end
 
@@ -539,13 +539,13 @@ module ActiveSupport
 
         # Reads an entry from the cache implementation. Subclasses must implement
         # this method.
-        def read_entry(key, options)
+        def read_entry(_key, _options)
           raise NotImplementedError.new
         end
 
         # Writes an entry to the cache implementation. Subclasses must implement
         # this method.
-        def write_entry(key, entry, options)
+        def write_entry(_key, _entry, _options)
           raise NotImplementedError.new
         end
 
@@ -581,7 +581,7 @@ module ActiveSupport
 
         # Deletes an entry from the cache implementation. Subclasses must
         # implement this method.
-        def delete_entry(key, options)
+        def delete_entry(_key, _options)
           raise NotImplementedError.new
         end
 

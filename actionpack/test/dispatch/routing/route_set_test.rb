@@ -10,7 +10,7 @@ module ActionDispatch
           @response = response
         end
 
-        def call(env)
+        def call(_env)
           [ 200, { "Content-Type" => "text/plain" }, [response] ]
         end
       end

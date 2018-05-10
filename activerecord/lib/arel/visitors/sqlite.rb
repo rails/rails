@@ -6,7 +6,7 @@ module Arel # :nodoc: all
       private
 
         # Locks are not supported in SQLite
-        def visit_Arel_Nodes_Lock(o, collector)
+        def visit_Arel_Nodes_Lock(_o, collector)
           collector
         end
 
@@ -15,11 +15,11 @@ module Arel # :nodoc: all
           super
         end
 
-        def visit_Arel_Nodes_True(o, collector)
+        def visit_Arel_Nodes_True(_o, collector)
           collector << "1"
         end
 
-        def visit_Arel_Nodes_False(o, collector)
+        def visit_Arel_Nodes_False(_o, collector)
           collector << "0"
         end
     end

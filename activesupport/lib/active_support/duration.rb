@@ -379,7 +379,7 @@ module ActiveSupport
         to_sentence(locale: ::I18n.default_locale)
     end
 
-    def as_json(options = nil) #:nodoc:
+    def as_json(_options = nil) #:nodoc:
       to_i
     end
 

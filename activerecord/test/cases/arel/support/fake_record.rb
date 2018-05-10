@@ -46,7 +46,7 @@ module FakeRecord
       @tables.include? name.to_s
     end
 
-    def columns(name, message = nil)
+    def columns(name, _message = nil)
       @columns[name.to_s]
     end
 

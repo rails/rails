@@ -50,7 +50,7 @@ module ActiveModel
         end
       end
 
-      def matches?(type_name, *args, **kwargs)
+      def matches?(type_name, *_args, **_kwargs)
         type_name == name
       end
 

@@ -14,7 +14,7 @@ module ActionController #:nodoc:
     end
 
     module ClassMethods
-      def content_security_policy(enabled = true, **options, &block)
+      def content_security_policy(enabled = true, **options)
         before_action(options) do
           if block_given?
             policy = current_content_security_policy

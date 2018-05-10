@@ -51,7 +51,7 @@ module ActiveSupport
         @hash_stack.push(new_hash)
       end
 
-      def end_element(name)
+      def end_element(_name)
         if current_hash.length > current_hash.delete(HASH_SIZE_KEY) && current_hash[CONTENT_KEY].blank? || current_hash[CONTENT_KEY] == ""
           current_hash.delete(CONTENT_KEY)
         end

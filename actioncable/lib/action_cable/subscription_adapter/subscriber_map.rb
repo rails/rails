@@ -44,7 +44,7 @@ module ActionCable
         end
       end
 
-      def add_channel(channel, on_success)
+      def add_channel(_channel, on_success)
         on_success.call if on_success
       end
 

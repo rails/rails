@@ -129,7 +129,7 @@ module ActiveRecord
       @ignore = ignore
     end
 
-    def call(name, start, finish, message_id, values)
+    def call(_name, _start, _finish, _message_id, values)
       return if values[:cached]
 
       sql = values[:sql]

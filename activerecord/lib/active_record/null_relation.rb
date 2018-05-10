@@ -2,7 +2,7 @@
 
 module ActiveRecord
   module NullRelation # :nodoc:
-    def pluck(*column_names)
+    def pluck(*_column_names)
       []
     end
 

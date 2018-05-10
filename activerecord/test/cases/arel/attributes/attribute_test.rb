@@ -1000,7 +1000,7 @@ module Arel
 
         it "does not type cast SqlLiteral nodes" do
           fake_caster = Object.new
-          def fake_caster.type_cast_for_database(attr_name, value)
+          def fake_caster.type_cast_for_database(_attr_name, value)
             value.to_i
           end
           table = Table.new(:foo, type_caster: fake_caster)

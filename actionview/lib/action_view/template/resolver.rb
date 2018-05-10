@@ -165,7 +165,7 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+    def find_templates(_name, _prefix, _partial, _details, _outside_app_allowed = false)
       raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
     end
 
@@ -220,7 +220,7 @@ module ActionView
         query(path, details, details[:formats], outside_app_allowed)
       end
 
-      def query(path, details, formats, outside_app_allowed)
+      def query(path, details, _formats, outside_app_allowed)
         query = build_query(path, details)
 
         template_paths = find_template_paths(query)

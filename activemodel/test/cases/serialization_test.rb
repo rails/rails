@@ -87,7 +87,7 @@ class SerializationTest < ActiveModel::TestCase
   end
 
   def test_should_use_read_attribute_for_serialization
-    def @user.read_attribute_for_serialization(n)
+    def @user.read_attribute_for_serialization(_n)
       "Jon"
     end
 

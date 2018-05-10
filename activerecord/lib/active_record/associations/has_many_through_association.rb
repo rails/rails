@@ -195,7 +195,7 @@ module ActiveRecord
         end
 
         # NOTE - not sure that we can actually cope with inverses here
-        def invertible_for?(record)
+        def invertible_for?(_record)
           false
         end
     end

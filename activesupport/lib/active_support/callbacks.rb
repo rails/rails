@@ -151,7 +151,7 @@ module ActiveSupport
           def initialize(&block)
             @block = block
           end
-          def call(target, value); @block.call(value); end
+          def call(_target, value); @block.call(value); end
         end
       end
 

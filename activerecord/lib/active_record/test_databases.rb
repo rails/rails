@@ -26,7 +26,7 @@ module ActiveRecord
       ENV["VERBOSE"] = old
     end
 
-    def self.drop(i, spec_name:)
+    def self.drop(_i, spec_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
       connection_spec = ActiveRecord::Base.configurations[spec_name]
 

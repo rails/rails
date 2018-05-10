@@ -7,7 +7,7 @@ module ActionView
     @@digest_mutex = Mutex.new
 
     module PerExecutionDigestCacheExpiry
-      def self.before(target)
+      def self.before(_target)
         ActionView::LookupContext::DetailsKey.clear
       end
     end
@@ -117,11 +117,11 @@ module ActionView
     class Partial < Node; end
 
     class Missing < Node
-      def digest(finder, _ = []) "" end
+      def digest(_finder, _ = []) "" end
     end
 
     class Injected < Node
-      def digest(finder, _ = []) name end
+      def digest(_finder, _ = []) name end
     end
 
     class NullLogger

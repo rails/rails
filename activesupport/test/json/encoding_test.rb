@@ -435,7 +435,7 @@ EXPECTED
   end
 
   class InfiniteNumber
-    def as_json(options = nil)
+    def as_json(_options = nil)
       { "number" => Float::INFINITY }
     end
   end
@@ -445,7 +445,7 @@ EXPECTED
   end
 
   class NaNNumber
-    def as_json(options = nil)
+    def as_json(_options = nil)
       { "number" => Float::NAN }
     end
   end

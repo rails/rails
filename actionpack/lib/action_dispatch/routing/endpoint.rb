@@ -5,7 +5,7 @@ module ActionDispatch
     class Endpoint # :nodoc:
       def dispatcher?;   false; end
       def redirect?;     false; end
-      def matches?(req);  true; end
+      def matches?(_req);  true; end
       def app;            self; end
       def rack_app;        app; end
 

@@ -84,7 +84,7 @@ module ActionDispatch
 
       private
 
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, _session_id, cookie)
           request.cookie_jar[key] = cookie
         end
     end

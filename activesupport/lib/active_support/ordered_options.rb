@@ -53,7 +53,7 @@ module ActiveSupport
       end
     end
 
-    def respond_to_missing?(name, include_private)
+    def respond_to_missing?(_name, _include_private)
       true
     end
   end

@@ -80,7 +80,7 @@ module ActionDispatch
     class PathRedirect < Redirect
       URL_PARTS = /\A([^?]+)?(\?[^#]+)?(#.+)?\z/
 
-      def path(params, request)
+      def path(params, _request)
         if block.match(URL_PARTS)
           path     = interpolation_required?($1, params) ? $1 % escape_path(params)     : $1
           query    = interpolation_required?($2, params) ? $2 % escape(params)          : $2

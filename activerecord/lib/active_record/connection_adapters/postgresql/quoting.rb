@@ -38,7 +38,7 @@ module ActiveRecord
           PG::Connection.quote_ident(name)
         end
 
-        def quote_table_name_for_assignment(table, attr)
+        def quote_table_name_for_assignment(_table, attr)
           quote_column_name(attr)
         end
 

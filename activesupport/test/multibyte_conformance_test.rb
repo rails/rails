@@ -85,7 +85,7 @@ class MultibyteConformanceTest < ActiveSupport::TestCase
   end
 
   private
-    def each_line_of_norm_tests(&block)
+    def each_line_of_norm_tests()
       File.open(File.join(CACHE_DIR, UNIDATA_FILE), "r") do | f |
         until f.eof?
           line = f.gets.chomp!

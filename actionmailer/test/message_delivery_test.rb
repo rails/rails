@@ -140,7 +140,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
   class DeserializationErrorFixture
     include GlobalID::Identification
 
-    def self.find(id)
+    def self.find(_id)
       raise "boom, missing find"
     end
 
@@ -149,7 +149,7 @@ class MessageDeliveryTest < ActiveSupport::TestCase
       @id = id
     end
 
-    def to_global_id(options = {})
+    def to_global_id(_options = {})
       super app: "foo"
     end
   end

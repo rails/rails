@@ -348,7 +348,7 @@ module Rails
         end
 
         # Returns default for the option name given doing a lookup in config.
-        def self.default_for_option(config, name, options, default) # :doc:
+        def self.default_for_option(config, name, _options, default) # :doc:
           if generator_name && (c = config[generator_name.to_sym]) && c.key?(name)
             c[name]
           elsif base_name && (c = config[base_name.to_sym]) && c.key?(name)

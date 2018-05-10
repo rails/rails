@@ -175,7 +175,7 @@ module ActiveSupport
         notifier.subscribe(*args, &block)
       end
 
-      def subscribed(callback, *args, &block)
+      def subscribed(callback, *args)
         subscriber = subscribe(*args, &callback)
         yield
       ensure

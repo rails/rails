@@ -98,7 +98,7 @@ module ActiveRecord
           end
       end
 
-      def initialize(connection, logger, connection_options, config)
+      def initialize(connection, logger, _connection_options, config)
         super(connection, logger, config)
 
         @active     = true
@@ -242,7 +242,7 @@ module ActiveRecord
       end
       alias :exec_update :exec_delete
 
-      def last_inserted_id(result)
+      def last_inserted_id(_result)
         @connection.last_insert_row_id
       end
 
@@ -302,7 +302,7 @@ module ActiveRecord
         end
       end
 
-      def remove_column(table_name, column_name, type = nil, options = {}) #:nodoc:
+      def remove_column(table_name, column_name, _type = nil, _options = {}) #:nodoc:
         alter_table(table_name) do |definition|
           definition.remove_column column_name
         end

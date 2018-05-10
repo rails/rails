@@ -9,7 +9,7 @@ module ActiveSupport
         @message, @expires_at, @purpose = message, expires_at, purpose
       end
 
-      def as_json(options = {})
+      def as_json(_options = {})
         { _rails: { message: @message, exp: @expires_at, pur: @purpose } }
       end
 

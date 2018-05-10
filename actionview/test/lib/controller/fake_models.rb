@@ -16,7 +16,7 @@ Customer = Struct.new(:name, :id) do
     end
   end
 
-  def to_js(options = {})
+  def to_js(_options = {})
     "name: #{name.inspect}"
   end
   alias :to_text :to_js

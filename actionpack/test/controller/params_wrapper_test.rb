@@ -5,7 +5,7 @@ require "abstract_unit"
 module Admin; class User; end; end
 
 module ParamsWrapperTestHelp
-  def with_default_wrapper_options(&block)
+  def with_default_wrapper_options()
     @controller.class._set_wrapper_options(format: [:json])
     @controller.class.inherited(@controller.class)
     yield

@@ -25,7 +25,7 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.request = @request
   end
 
-  def url_for(*args)
+  def url_for(*_args)
     "http://www.example.com"
   end
 
@@ -696,7 +696,7 @@ class AssetTagHelperNonVhostTest < ActionView::TestCase
     @controller.request = @request
   end
 
-  def url_for(options)
+  def url_for(_options)
     "http://www.example.com/collaboration/hieraki"
   end
 

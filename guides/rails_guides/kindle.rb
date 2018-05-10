@@ -10,7 +10,7 @@ require "date"
 module Kindle
   extend self
 
-  def generate(output_dir, mobi_outfile, logfile)
+  def generate(output_dir, mobi_outfile, _logfile)
     output_dir = File.absolute_path(output_dir)
     Dir.chdir output_dir do
       puts "=> Using output dir: #{output_dir}"

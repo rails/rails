@@ -101,7 +101,7 @@ module ActiveSupport
       #       # create databases
       #     end
       #   end
-      def parallelize_setup(&block)
+      def parallelize_setup()
         ActiveSupport::Testing::Parallelization.after_fork_hook do |worker|
           yield worker
         end
@@ -120,7 +120,7 @@ module ActiveSupport
       #       # drop databases
       #     end
       #   end
-      def parallelize_teardown(&block)
+      def parallelize_teardown()
         ActiveSupport::Testing::Parallelization.run_cleanup_hook do |worker|
           yield worker
         end

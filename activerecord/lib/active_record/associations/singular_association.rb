@@ -54,7 +54,7 @@ module ActiveRecord
           nil
         end
 
-        def replace(record)
+        def replace(_record)
           raise NotImplementedError, "Subclasses must implement a replace(record) method"
         end
 

@@ -68,7 +68,7 @@ class Mysql2DefaultEngineOptionSchemaDumpTest < ActiveRecord::Mysql2TestCase
 
   test "schema dump includes ENGINE=InnoDB in legacy migrations" do
     migration = Class.new(ActiveRecord::Migration[5.1]) do
-      def migrate(x)
+      def migrate(_x)
         create_table "mysql_table_options", force: true
       end
     end.new
@@ -107,7 +107,7 @@ class Mysql2DefaultEngineOptionSqlOutputTest < ActiveRecord::Mysql2TestCase
 
   test "legacy migrations contain default ENGINE=InnoDB option" do
     migration = Class.new(ActiveRecord::Migration[5.1]) do
-      def migrate(x)
+      def migrate(_x)
         create_table "mysql_table_options", force: true
       end
     end.new

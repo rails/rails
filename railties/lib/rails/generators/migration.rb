@@ -27,7 +27,7 @@ module Rails
           end.max.to_i
         end
 
-        def next_migration_number(dirname)
+        def next_migration_number(_dirname)
           raise NotImplementedError
         end
       end

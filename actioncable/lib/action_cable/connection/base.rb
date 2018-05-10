@@ -132,7 +132,7 @@ module ActionCable
         logger.error "WebSocket error occurred: #{message}"
       end
 
-      def on_close(reason, code) # :nodoc:
+      def on_close(_reason, _code) # :nodoc:
         send_async :handle_close
       end
 

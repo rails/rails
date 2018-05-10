@@ -119,7 +119,7 @@ module ActiveModel
 
     # Override this method in subclasses with validation logic, adding errors
     # to the records +errors+ array where necessary.
-    def validate(record)
+    def validate(_record)
       raise NotImplementedError, "Subclasses must implement a validate(record) method."
     end
   end
@@ -155,7 +155,7 @@ module ActiveModel
 
     # Override this method in subclasses with the validation logic, adding
     # errors to the records +errors+ array where necessary.
-    def validate_each(record, attribute, value)
+    def validate_each(_record, _attribute, _value)
       raise NotImplementedError, "Subclasses must implement a validate_each(record, attribute, value) method"
     end
 

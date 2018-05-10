@@ -72,7 +72,7 @@ module ActionDispatch
     PASS_NOT_FOUND = Class.new { # :nodoc:
       def self.action(_); self; end
       def self.call(_); [404, { "X-Cascade" => "pass" }, []]; end
-      def self.binary_params_for?(action); false; end
+      def self.binary_params_for?(_action); false; end
     }
 
     def controller_class

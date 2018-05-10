@@ -892,7 +892,7 @@ end
 
 class ControllerWithFilterClass < PostsController
   class YieldingFilter < DefaultFilter
-    def self.around(controller)
+    def self.around(_controller)
       yield
       raise After
     end
@@ -903,7 +903,7 @@ end
 
 class ControllerWithFilterInstance < PostsController
   class YieldingFilter < DefaultFilter
-    def around(controller)
+    def around(_controller)
       yield
       raise After
     end

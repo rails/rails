@@ -54,7 +54,7 @@ module ActiveRecord
             Arel.sql("DEFAULT") unless column.auto_increment?
           end
 
-          def last_inserted_id(result)
+          def last_inserted_id(_result)
             @connection.last_id
           end
 

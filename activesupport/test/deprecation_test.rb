@@ -295,7 +295,7 @@ class DeprecationTest < ActiveSupport::TestCase
 
     class << deprecator
       private
-        def deprecated_method_warning(method, message)
+        def deprecated_method_warning(method, _message)
           "deprecator.deprecated_method_warning.#{method}"
         end
     end

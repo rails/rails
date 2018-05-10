@@ -55,7 +55,7 @@ module ActionDispatch
         super(app, options.merge!(cookie_only: true))
       end
 
-      def delete_session(req, session_id, options)
+      def delete_session(req, _session_id, options)
         new_sid = generate_sid unless options[:drop]
         # Reset hash and Assign the new session id
         req.set_header("action_dispatch.request.unsigned_session_cookie", new_sid ? { "session_id" => new_sid } : {})
@@ -96,12 +96,12 @@ module ActionDispatch
           data
         end
 
-        def write_session(req, sid, session_data, options)
+        def write_session(_req, sid, session_data, _options)
           session_data["session_id"] = sid
           session_data
         end
 
-        def set_cookie(request, session_id, cookie)
+        def set_cookie(request, _session_id, cookie)
           cookie_jar(request)[@key] = cookie
         end
 

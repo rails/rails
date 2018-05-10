@@ -497,7 +497,7 @@ module ActionDispatch
           end
         end
 
-        def parse(name, data); data; end
+        def parse(_name, data); data; end
         def commit(options); end
     end
 

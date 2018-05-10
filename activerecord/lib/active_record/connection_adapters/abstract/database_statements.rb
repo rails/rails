@@ -98,14 +98,14 @@ module ActiveRecord
       # Note: depending on your database connector, the result returned by this
       # method may be manually memory managed. Consider using the exec_query
       # wrapper instead.
-      def execute(sql, name = nil)
+      def execute(_sql, _name = nil)
         raise NotImplementedError
       end
 
       # Executes +sql+ statement in the context of this connection using
       # +binds+ as the bind substitutes. +name+ is logged along with
       # the executed +sql+ statement.
-      def exec_query(sql, name = "SQL", binds = [], prepare: false)
+      def exec_query(_sql, _name = "SQL", _binds = [], prepare: false)
         raise NotImplementedError
       end
 
@@ -125,7 +125,7 @@ module ActiveRecord
       end
 
       # Executes the truncate statement.
-      def truncate(table_name, name = nil)
+      def truncate(_table_name, _name = nil)
         raise NotImplementedError
       end
 
@@ -294,7 +294,7 @@ module ActiveRecord
       # Begins the transaction with the isolation level set. Raises an error by
       # default; adapters that support setting the isolation level should implement
       # this method.
-      def begin_isolated_db_transaction(isolation)
+      def begin_isolated_db_transaction(_isolation)
         raise ActiveRecord::TransactionIsolationError, "adapter does not support setting transaction isolation"
       end
 
@@ -313,7 +313,7 @@ module ActiveRecord
         exec_rollback_to_savepoint(name)
       end
 
-      def default_sequence_name(table, column)
+      def default_sequence_name(_table, _column)
         nil
       end
 
@@ -385,7 +385,7 @@ module ActiveRecord
         end
       end
 
-      def empty_insert_statement_value(primary_key = nil)
+      def empty_insert_statement_value(_primary_key = nil)
         "DEFAULT VALUES"
       end
 
@@ -414,7 +414,7 @@ module ActiveRecord
       alias join_to_delete join_to_update
 
       private
-        def default_insert_value(column)
+        def default_insert_value(_column)
           Arel.sql("DEFAULT")
         end
 
@@ -469,7 +469,7 @@ module ActiveRecord
           exec_query(sql, name, binds, prepare: true)
         end
 
-        def sql_for_insert(sql, pk, id_value, sequence_name, binds)
+        def sql_for_insert(sql, _pk, _id_value, _sequence_name, binds)
           [sql, binds]
         end
 

@@ -26,7 +26,7 @@ module ActiveRecord
     #
     # If a block is given returns the specification name and configuration
     # otherwise returns an array of DatabaseConfig structs for the environment.
-    def self.configs_for(env, configs = ActiveRecord::Base.configurations, &blk) # :nodoc:
+    def self.configs_for(env, configs = ActiveRecord::Base.configurations) # :nodoc:
       env_with_configs = db_configs(configs).select do |db_config|
         db_config.env_name == env
       end

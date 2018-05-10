@@ -30,7 +30,7 @@ module MiddlewareTest
 
   class BlockMiddleware
     attr_accessor :configurable_message
-    def initialize(app, &block)
+    def initialize(app)
       @app = app
       yield(self) if block_given?
     end
