@@ -9,7 +9,7 @@ module ActiveRecord
       # unused
     end
 
-    def finish(name, id, payload)
+    def finish(_name, _id, payload)
       if ExplainRegistry.collect? && !ignore_payload?(payload)
         ExplainRegistry.queries << payload.values_at(:sql, :binds)
       end

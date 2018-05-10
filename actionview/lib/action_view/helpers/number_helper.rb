@@ -424,7 +424,7 @@ module ActionView
           end]
         end
 
-        def wrap_with_output_safety_handling(number, raise_on_invalid, &block)
+        def wrap_with_output_safety_handling(number, raise_on_invalid)
           valid_float = valid_float?(number)
           raise InvalidNumberError, number if raise_on_invalid && !valid_float
 

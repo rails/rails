@@ -35,7 +35,7 @@ module ActiveRecord
         @sql = sql
       end
 
-      def sql_for(binds, connection)
+      def sql_for(_binds, _connection)
         @sql
       end
     end

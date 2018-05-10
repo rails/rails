@@ -31,7 +31,7 @@ module ActiveRecord
     extend ActiveSupport::Concern
 
     module ClassMethods
-      def suppress(&block)
+      def suppress()
         previous_state = SuppressorRegistry.suppressed[name]
         SuppressorRegistry.suppressed[name] = true
         yield

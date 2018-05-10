@@ -4,7 +4,7 @@ require "abstract_unit"
 
 module I18n
   class CustomExceptionHandler
-    def self.call(exception, locale, key, options)
+    def self.call(_exception, _locale, _key, _options)
       "from CustomExceptionHandler"
     end
   end

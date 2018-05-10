@@ -325,7 +325,7 @@ module ActiveSupport
 
         # Store provider interface:
         # Read an entry from the cache.
-        def read_entry(key, options = nil)
+        def read_entry(key, _options = nil)
           failsafe :read_entry do
             deserialize_entry redis.with { |c| c.get(key) }
           end
@@ -362,7 +362,7 @@ module ActiveSupport
         # Write an entry to the cache.
         #
         # Requires Redis 2.6.12+ for extended SET options.
-        def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **options)
+        def write_entry(key, entry, unless_exist: false, raw: false, expires_in: nil, race_condition_ttl: nil, **_options)
           serialized_entry = serialize_entry(entry, raw: raw)
 
           # If race condition TTL is in use, ensure that cache entries
@@ -386,7 +386,7 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options)
+        def delete_entry(key, _options)
           failsafe :delete_entry, returning: false do
             redis.with { |c| c.del key }
           end

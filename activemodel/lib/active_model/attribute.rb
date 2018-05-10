@@ -145,7 +145,7 @@ module ActiveModel
       attr_reader :original_attribute
       alias :assigned? :original_attribute
 
-      def initialize_dup(other)
+      def initialize_dup(_other)
         if defined?(@value) && @value.duplicable?
           @value = @value.dup
         end
@@ -202,7 +202,7 @@ module ActiveModel
           self.class.with_cast_value(name, nil, type)
         end
 
-        def with_value_from_database(value)
+        def with_value_from_database(_value)
           raise ActiveModel::MissingAttributeError, "can't write unknown attribute `#{name}`"
         end
         alias_method :with_value_from_user, :with_value_from_database

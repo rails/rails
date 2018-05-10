@@ -12,13 +12,13 @@ module ActionDispatch
           super
         end
 
-        def find_session(env, sid)
+        def find_session(_env, sid)
           sid ||= 1
           session = @sessions[sid] ||= {}
           [sid, session]
         end
 
-        def write_session(env, sid, session, options)
+        def write_session(_env, sid, session, _options)
           @sessions[sid] = session
         end
       end
@@ -49,7 +49,7 @@ module ActionDispatch
       end
 
       private
-        def app(&block)
+        def app()
           @env = nil
           lambda { |env| @env = env }
         end

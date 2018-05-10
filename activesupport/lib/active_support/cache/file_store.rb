@@ -29,7 +29,7 @@ module ActiveSupport
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear(options = nil)
+      def clear(_options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT
@@ -69,7 +69,7 @@ module ActiveSupport
 
       private
 
-        def read_entry(key, options)
+        def read_entry(key, _options)
           if File.exist?(key)
             File.open(key) { |f| Marshal.load(f) }
           end
@@ -85,7 +85,7 @@ module ActiveSupport
           true
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, _options)
           if File.exist?(key)
             begin
               File.delete(key)
@@ -100,7 +100,7 @@ module ActiveSupport
         end
 
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block)
+        def lock_file(file_name)
           if File.exist?(file_name)
             File.open(file_name, "r+") do |f|
               begin

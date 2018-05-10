@@ -104,7 +104,7 @@ module ActiveRecord
       alias :add_belongs_to :add_reference
       alias :remove_belongs_to :remove_reference
 
-      def change_table(table_name, options = {}) # :nodoc:
+      def change_table(table_name, _options = {}) # :nodoc:
         yield delegate.update_table_definition(table_name, self)
       end
 

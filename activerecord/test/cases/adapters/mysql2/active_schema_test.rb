@@ -9,7 +9,7 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
   def setup
     ActiveRecord::Base.connection.singleton_class.class_eval do
       alias_method :execute_without_stub, :execute
-      def execute(sql, name = nil) sql end
+      def execute(sql, _name = nil) sql end
     end
   end
 

@@ -6,7 +6,7 @@ module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
       class InactivePgConnection
-        def query(*args)
+        def query(*_args)
           raise PG::Error
         end
 

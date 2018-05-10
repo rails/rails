@@ -2,7 +2,7 @@
 
 module ActiveStorage
   class Analyzer::NullAnalyzer < Analyzer # :nodoc:
-    def self.accept?(blob)
+    def self.accept?(_blob)
       true
     end
 

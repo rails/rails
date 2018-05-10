@@ -434,7 +434,7 @@ module ActiveRecord
           options[:primary_key] && [:integer, :bigint].include?(type) && !options.key?(:default)
         end
 
-        def integer_like_primary_key_type(type, options)
+        def integer_like_primary_key_type(type, _options)
           type
         end
     end

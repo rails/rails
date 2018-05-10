@@ -6,7 +6,7 @@ module ActionController
       super.tap { default_render unless performed? }
     end
 
-    def default_render(*args)
+    def default_render(*_args)
       head :no_content
     end
   end

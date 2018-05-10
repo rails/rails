@@ -46,11 +46,11 @@ module ActiveSupport
             yield
           end
 
-          def clear(options = nil)
+          def clear(_options = nil)
             @data.clear
           end
 
-          def read_entry(key, options)
+          def read_entry(key, _options)
             @data[key]
           end
 
@@ -65,16 +65,16 @@ module ActiveSupport
             values
           end
 
-          def write_entry(key, value, options)
+          def write_entry(key, value, _options)
             @data[key] = value
             true
           end
 
-          def delete_entry(key, options)
+          def delete_entry(key, _options)
             !!@data.delete(key)
           end
 
-          def fetch_entry(key, options = nil) # :nodoc:
+          def fetch_entry(key, _options = nil) # :nodoc:
             @data.fetch(key) { @data[key] = yield }
           end
         end

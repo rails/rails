@@ -307,7 +307,7 @@ class FakeKlass
       "posts"
     end
 
-    def attribute_alias?(name)
+    def attribute_alias?(_name)
       false
     end
 

@@ -10,13 +10,13 @@ module QC
       receiver.send(message, *args)
     end
 
-    def enqueue_in(seconds, method, *args)
+    def enqueue_in(_seconds, method, *args)
       receiver_str, _, message = method.rpartition(".")
       receiver = eval(receiver_str)
       receiver.send(message, *args)
     end
 
-    def enqueue_at(not_before, method, *args)
+    def enqueue_at(_not_before, method, *args)
       receiver_str, _, message = method.rpartition(".")
       receiver = eval(receiver_str)
       receiver.send(message, *args)

@@ -105,7 +105,7 @@ module ActiveRecord
       columns.one? ? result.map!(&:first) : result
     end
 
-    def initialize_copy(other)
+    def initialize_copy(_other)
       @columns      = columns.dup
       @rows         = rows.dup
       @column_types = column_types.dup

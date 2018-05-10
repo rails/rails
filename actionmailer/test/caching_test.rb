@@ -197,11 +197,11 @@ end
 
 class CacheHelperOutputBufferTest < BaseCachingTest
   class MockController
-    def read_fragment(name, options)
+    def read_fragment(_name, _options)
       false
     end
 
-    def write_fragment(name, fragment, options)
+    def write_fragment(_name, fragment, _options)
       fragment
     end
   end

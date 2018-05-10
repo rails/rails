@@ -156,7 +156,7 @@ class RescueController < ActionController::Base
       head :forbidden
     end
 
-    def show_errors(exception)
+    def show_errors(_exception)
       head :unprocessable_entity
     end
 end

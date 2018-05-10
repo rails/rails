@@ -102,7 +102,7 @@ module Rails
         @hidden_namespaces = []
       end
 
-      def initialize_copy(source)
+      def initialize_copy(_source)
         @aliases = @aliases.deep_dup
         @options = @options.deep_dup
         @fallbacks = @fallbacks.deep_dup

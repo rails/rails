@@ -77,7 +77,7 @@ module Rails
       #   add_source "http://gems.github.com/" do
       #     gem "rspec-rails"
       #   end
-      def add_source(source, options = {}, &block)
+      def add_source(source, _options = {}, &block)
         log :source, source
 
         in_root do

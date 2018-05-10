@@ -286,7 +286,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
-        def migrate(x)
+        def migrate(_x)
           add_column "people", "last_name", :string
           raise "Something broke"
         end
@@ -307,7 +307,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
-        def migrate(x)
+        def migrate(_x)
           add_column "people", "last_name", :string
           raise "Something broke"
         end
@@ -330,7 +330,7 @@ class MigrationTest < ActiveRecord::TestCase
         disable_ddl_transaction!
 
         def version; 101 end
-        def migrate(x)
+        def migrate(_x)
           add_column "people", "last_name", :string
           raise "Something broke"
         end
@@ -655,7 +655,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
-        def migrate(x)
+        def migrate(_x)
           add_column "people", "last_name", :string
         end
       }.new
@@ -676,7 +676,7 @@ class MigrationTest < ActiveRecord::TestCase
 
       migration = Class.new(ActiveRecord::Migration::Current) {
         def version; 100 end
-        def migrate(x)
+        def migrate(_x)
           add_column "people", "last_name", :string
         end
       }.new

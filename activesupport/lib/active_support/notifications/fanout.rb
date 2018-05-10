@@ -118,7 +118,7 @@ module ActiveSupport
             @delegate.call name, *args
           end
 
-          def start(name, id, payload)
+          def start(_name, _id, _payload)
             timestack = Thread.current[:_timestack] ||= []
             timestack.push Time.now
           end
@@ -147,7 +147,7 @@ module ActiveSupport
             @delegate.publish name, *args
           end
 
-          def subscribed_to?(name)
+          def subscribed_to?(_name)
             true
           end
 

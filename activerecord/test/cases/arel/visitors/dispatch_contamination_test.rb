@@ -11,7 +11,7 @@ module Arel
         @barrier = Concurrent::CyclicBarrier.new(2)
       end
 
-      def visit_Arel_Visitors_DummySuperNode(node)
+      def visit_Arel_Visitors_DummySuperNode(_node)
         42
       end
 

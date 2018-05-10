@@ -69,7 +69,7 @@ module ActiveRecord
         end
 
         private
-          def aliased_types(name, fallback)
+          def aliased_types(_name, fallback)
             fallback
           end
 

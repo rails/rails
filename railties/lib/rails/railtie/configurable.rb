@@ -10,7 +10,7 @@ module Rails
       module ClassMethods
         delegate :config, to: :instance
 
-        def inherited(base)
+        def inherited(_base)
           raise "You cannot inherit from a #{superclass.name} child"
         end
 

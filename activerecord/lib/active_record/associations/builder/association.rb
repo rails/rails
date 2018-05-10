@@ -59,7 +59,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       new_scope
     end
 
-    def self.wrap_scope(scope, extension)
+    def self.wrap_scope(scope, _extension)
       scope
     end
 
@@ -67,7 +67,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       raise NotImplementedError
     end
 
-    def self.valid_options(options)
+    def self.valid_options(_options)
       VALID_OPTIONS + Association.extensions.flat_map(&:valid_options)
     end
 

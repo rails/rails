@@ -13,7 +13,7 @@ module ActiveStorage
 
     # Implement this method in a concrete subclass. Have it return true when given a blob from which
     # the previewer can generate an image.
-    def self.accept?(blob)
+    def self.accept?(_blob)
       false
     end
 

@@ -148,7 +148,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  def with_routing(&block)
+  def with_routing()
     temporary_routes = ActionDispatch::Routing::RouteSet.new
     old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
     old_routes = SharedTestRoutes

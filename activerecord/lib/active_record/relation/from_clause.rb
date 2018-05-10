@@ -10,7 +10,7 @@ module ActiveRecord
         @name = name
       end
 
-      def merge(other)
+      def merge(_other)
         self
       end
 

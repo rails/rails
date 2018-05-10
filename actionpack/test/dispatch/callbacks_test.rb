@@ -8,7 +8,7 @@ class DispatcherTest < ActiveSupport::TestCase
   end
 
   class DummyApp
-    def call(env)
+    def call(_env)
       [200, {}, "response"]
     end
   end

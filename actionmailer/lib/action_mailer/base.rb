@@ -613,11 +613,11 @@ module ActionMailer
       def body; "" end
       def header; {} end
 
-      def respond_to?(string, include_all = false)
+      def respond_to?(_string, _include_all = false)
         true
       end
 
-      def method_missing(*args)
+      def method_missing(*_args)
         nil
       end
     end

@@ -338,7 +338,7 @@ Expected: ["id", "name"]
         result
       end
 
-      def run_test_file(name, options = {})
+      def run_test_file(name, _options = {})
         rails "test", "#{app_path}/test/#{name}", allow_failure: true
       end
   end

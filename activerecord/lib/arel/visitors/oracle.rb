@@ -72,7 +72,7 @@ module Arel # :nodoc: all
           super
         end
 
-        def visit_Arel_Nodes_Limit(o, collector)
+        def visit_Arel_Nodes_Limit(_o, collector)
           collector
         end
 

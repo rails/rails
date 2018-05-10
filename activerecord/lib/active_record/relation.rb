@@ -34,7 +34,7 @@ module ActiveRecord
       @delegate_to_klass = false
     end
 
-    def initialize_copy(other)
+    def initialize_copy(_other)
       @values = @values.dup
       reset
     end

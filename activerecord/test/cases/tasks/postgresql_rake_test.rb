@@ -339,7 +339,7 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       private
-        def with_dump_schemas(value, &block)
+        def with_dump_schemas(value)
           old_dump_schemas = ActiveRecord::Base.dump_schemas
           ActiveRecord::Base.dump_schemas = value
           yield

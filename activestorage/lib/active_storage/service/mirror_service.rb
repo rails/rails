@@ -12,7 +12,7 @@ module ActiveStorage
     delegate :download, :download_chunk, :exist?, :url, to: :primary
 
     # Stitch together from named services.
-    def self.build(primary:, mirrors:, configurator:, **options) #:nodoc:
+    def self.build(primary:, mirrors:, configurator:, **_options) #:nodoc:
       new \
         primary: configurator.build(primary),
         mirrors: mirrors.collect { |name| configurator.build name }

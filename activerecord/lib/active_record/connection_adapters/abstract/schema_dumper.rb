@@ -37,7 +37,7 @@ module ActiveRecord
           schema_type(column) == :bigint
         end
 
-        def explicit_primary_key_default?(column)
+        def explicit_primary_key_default?(_column)
           false
         end
 

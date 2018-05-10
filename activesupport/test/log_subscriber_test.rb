@@ -11,17 +11,17 @@ class MyLogSubscriber < ActiveSupport::LogSubscriber
     info event.name
   end
 
-  def foo(event)
+  def foo(_event)
     debug "debug"
     info { "info" }
     warn "warn"
   end
 
-  def bar(event)
+  def bar(_event)
     info "#{color("cool", :red)}, #{color("isn't it?", :blue, true)}"
   end
 
-  def puke(event)
+  def puke(_event)
     raise "puke"
   end
 end

@@ -163,7 +163,7 @@ module ActiveRecord
         end
 
         class AlreadyLoaded # :nodoc:
-          def initialize(klass, owners, reflection, preload_scope)
+          def initialize(_klass, owners, reflection, _preload_scope)
             @owners = owners
             @reflection = reflection
           end

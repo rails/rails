@@ -31,7 +31,7 @@ module ActiveSupport
       end
 
       # Delete all data stored in a given cache store.
-      def clear(options = nil)
+      def clear(_options = nil)
         synchronize do
           @data.clear
           @key_access.clear
@@ -116,7 +116,7 @@ module ActiveSupport
           key.to_s.bytesize + entry.size + PER_ENTRY_OVERHEAD
         end
 
-        def read_entry(key, options)
+        def read_entry(key, _options)
           entry = @data[key]
           synchronize do
             if entry
@@ -145,7 +145,7 @@ module ActiveSupport
           end
         end
 
-        def delete_entry(key, options)
+        def delete_entry(key, _options)
           synchronize do
             @key_access.delete(key)
             entry = @data.delete(key)

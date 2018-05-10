@@ -316,7 +316,7 @@ module ActionController
       # Can be much shorter if the Stale directive is implemented. This would
       # allow a user to use new nonce without prompting the user again for their
       # username and password.
-      def validate_nonce(secret_key, request, value, seconds_to_timeout = 5 * 60)
+      def validate_nonce(secret_key, _request, value, seconds_to_timeout = 5 * 60)
         return false if value.nil?
         t = ::Base64.decode64(value).split(":").first.to_i
         nonce(secret_key, t) == value && (t - Time.now.to_i).abs <= seconds_to_timeout

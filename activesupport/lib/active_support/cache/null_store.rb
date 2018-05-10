@@ -31,11 +31,11 @@ module ActiveSupport
         def read_entry(key, options)
         end
 
-        def write_entry(key, entry, options)
+        def write_entry(_key, _entry, _options)
           true
         end
 
-        def delete_entry(key, options)
+        def delete_entry(_key, _options)
           false
         end
     end

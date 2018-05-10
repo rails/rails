@@ -644,7 +644,7 @@ end
 
 class RequestForgeryProtectionControllerUsingNullSessionTest < ActionController::TestCase
   class NullSessionDummyKeyGenerator
-    def generate_key(secret, length = nil)
+    def generate_key(_secret, _length = nil)
       "03312270731a2ed0d11ed091c2338a06"
     end
   end

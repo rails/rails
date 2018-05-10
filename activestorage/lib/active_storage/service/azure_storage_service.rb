@@ -113,7 +113,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, content_type:, checksum:, **)
+    def headers_for_direct_upload(_key, content_type:, checksum:, **)
       { "Content-Type" => content_type, "Content-MD5" => checksum, "x-ms-blob-type" => "BlockBlob" }
     end
 

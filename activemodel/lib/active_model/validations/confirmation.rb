@@ -28,7 +28,7 @@ module ActiveModel
           end.compact)
         end
 
-        def confirmation_value_equal?(record, attribute, value, confirmed)
+        def confirmation_value_equal?(_record, _attribute, value, confirmed)
           if !options[:case_sensitive] && value.is_a?(String)
             value.casecmp(confirmed) == 0
           else

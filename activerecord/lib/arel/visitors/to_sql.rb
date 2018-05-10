@@ -155,11 +155,11 @@ module Arel # :nodoc: all
           collector << quoted(o.expr, nil).to_s
         end
 
-        def visit_Arel_Nodes_True(o, collector)
+        def visit_Arel_Nodes_True(_o, collector)
           collector << "TRUE"
         end
 
-        def visit_Arel_Nodes_False(o, collector)
+        def visit_Arel_Nodes_False(_o, collector)
           collector << "FALSE"
         end
 
@@ -274,11 +274,11 @@ module Arel # :nodoc: all
           visit o.expr, collector
         end
 
-        def visit_Arel_Nodes_Distinct(o, collector)
+        def visit_Arel_Nodes_Distinct(_o, collector)
           collector << DISTINCT
         end
 
-        def visit_Arel_Nodes_DistinctOn(o, collector)
+        def visit_Arel_Nodes_DistinctOn(_o, _collector)
           raise NotImplementedError, "DISTINCT ON not implemented for this db"
         end
 
@@ -378,7 +378,7 @@ module Arel # :nodoc: all
           collector << " FOLLOWING"
         end
 
-        def visit_Arel_Nodes_CurrentRow(o, collector)
+        def visit_Arel_Nodes_CurrentRow(_o, collector)
           collector << "CURRENT ROW"
         end
 
@@ -406,7 +406,7 @@ module Arel # :nodoc: all
         end
 
         # FIXME: this does nothing on most databases, but does on MSSQL
-        def visit_Arel_Nodes_Top(o, collector)
+        def visit_Arel_Nodes_Top(_o, collector)
           collector
         end
 
@@ -549,11 +549,11 @@ module Arel # :nodoc: all
           collector
         end
 
-        def visit_Arel_Nodes_Regexp(o, collector)
+        def visit_Arel_Nodes_Regexp(_o, _collector)
           raise NotImplementedError, "~ not implemented for this db"
         end
 
-        def visit_Arel_Nodes_NotRegexp(o, collector)
+        def visit_Arel_Nodes_NotRegexp(_o, _collector)
           raise NotImplementedError, "!~ not implemented for this db"
         end
 
@@ -751,7 +751,7 @@ module Arel # :nodoc: all
           end
         end
 
-        def unsupported(o, collector)
+        def unsupported(o, _collector)
           raise UnsupportedVisitError.new(o)
         end
 

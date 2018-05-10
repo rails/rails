@@ -7,7 +7,7 @@ module Arel # :nodoc: all
         @binds = []
       end
 
-      def <<(str)
+      def <<(_str)
         self
       end
 

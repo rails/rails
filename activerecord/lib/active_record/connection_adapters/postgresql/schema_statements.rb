@@ -683,7 +683,7 @@ module ActiveRecord
             end
           end
 
-          def change_column_sql(table_name, column_name, type, options = {})
+          def change_column_sql(_table_name, column_name, type, options = {})
             quoted_column_name = quote_column_name(column_name)
             sql_type = type_to_sql(type, options)
             sql = "ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
@@ -725,7 +725,7 @@ module ActiveRecord
             end
           end
 
-          def change_column_null_for_alter(table_name, column_name, null, default = nil) #:nodoc:
+          def change_column_null_for_alter(_table_name, column_name, null, _default = nil) #:nodoc:
             "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
@@ -733,7 +733,7 @@ module ActiveRecord
             [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
           end
 
-          def remove_timestamps_for_alter(table_name, options = {})
+          def remove_timestamps_for_alter(table_name, _options = {})
             [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
           end
 

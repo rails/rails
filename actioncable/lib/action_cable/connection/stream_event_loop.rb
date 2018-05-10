@@ -34,7 +34,7 @@ module ActionCable
         wakeup
       end
 
-      def detach(io, stream)
+      def detach(io, _stream)
         @todo << lambda do
           @nio.deregister io
           @map.delete io

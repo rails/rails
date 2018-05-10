@@ -86,7 +86,7 @@ module ActiveSupport
       event_stack.push e
     end
 
-    def finish(name, id, payload)
+    def finish(name, _id, payload)
       finished  = Time.now
       event     = event_stack.pop
       event.end = finished

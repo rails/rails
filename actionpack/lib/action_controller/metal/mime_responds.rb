@@ -291,7 +291,7 @@ module ActionController #:nodoc:
         end
         alias :all :any
 
-        def method_missing(name, *args, &block)
+        def method_missing(name, *_args, &block)
           @variants[name] = block if block_given?
         end
 

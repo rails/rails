@@ -103,7 +103,7 @@ module ActionView
             tag_option(key, value, escape)
           end
 
-          def respond_to_missing?(*args)
+          def respond_to_missing?(*_args)
             true
           end
 

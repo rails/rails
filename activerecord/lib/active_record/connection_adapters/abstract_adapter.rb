@@ -235,7 +235,7 @@ module ActiveRecord
       # Should primary key values be selected from their corresponding
       # sequence before the insert statement? If true, next_sequence_value
       # is called before each insert to set the record's primary key.
-      def prefetch_primary_key?(table_name = nil)
+      def prefetch_primary_key?(_table_name = nil)
         false
       end
 
@@ -445,7 +445,7 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
+      def case_sensitive_comparison(table, attribute, _column, value) # :nodoc:
         table[attribute].eq(value)
       end
 
@@ -457,7 +457,7 @@ module ActiveRecord
         end
       end
 
-      def can_perform_case_insensitive_comparison_for?(column)
+      def can_perform_case_insensitive_comparison_for?(_column)
         true
       end
       private :can_perform_case_insensitive_comparison_for?
@@ -467,7 +467,7 @@ module ActiveRecord
         pool.checkin self
       end
 
-      def column_name_for_operation(operation, node) # :nodoc:
+      def column_name_for_operation(_operation, node) # :nodoc:
         column_name_from_arel_node(node)
       end
 

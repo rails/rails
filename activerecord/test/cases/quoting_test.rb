@@ -27,7 +27,7 @@ module ActiveRecord
 
       def test_quote_table_name_calls_quote_column_name
         @quoter.extend(Module.new {
-          def quote_column_name(string)
+          def quote_column_name(_string)
             "lol"
           end
         })
@@ -149,7 +149,7 @@ module ActiveRecord
       end
 
       def test_dates_and_times
-        @quoter.extend(Module.new { def quoted_date(value) "lol" end })
+        @quoter.extend(Module.new { def quoted_date(_value) "lol" end })
         assert_equal "'lol'", @quoter.quote(Date.today)
         assert_equal "'lol'", @quoter.quote(Time.now)
         assert_equal "'lol'", @quoter.quote(DateTime.now)

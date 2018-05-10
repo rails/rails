@@ -6,7 +6,7 @@ require "core_ext/date_and_time_behavior"
 require "time_zone_test_helpers"
 
 class DateExtCalculationsTest < ActiveSupport::TestCase
-  def date_time_init(year, month, day, *args)
+  def date_time_init(year, month, day, *_args)
     Date.new(year, month, day)
   end
 

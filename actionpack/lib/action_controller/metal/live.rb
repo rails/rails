@@ -206,7 +206,7 @@ module ActionController
 
       private
 
-        def each_chunk(&block)
+        def each_chunk()
           loop do
             str = nil
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do

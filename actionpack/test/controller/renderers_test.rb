@@ -18,7 +18,7 @@ class RenderersTest < ActionController::TestCase
       hash
     end
 
-    def to_json(options = {})
+    def to_json(_options = {})
       super except: [:c, :e]
     end
   end

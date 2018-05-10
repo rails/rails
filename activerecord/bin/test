@@ -11,7 +11,7 @@ COMPONENT_ROOT = File.expand_path("..", __dir__)
 require_relative "../../tools/test"
 
 module Minitest
-  def self.plugin_active_record_options(opts, options)
+  def self.plugin_active_record_options(opts, _options)
     opts.separator ""
     opts.separator "Active Record options:"
     opts.on("-a", "--adapter [ADAPTER]",

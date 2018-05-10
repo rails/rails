@@ -1041,19 +1041,19 @@ module ActionDispatch
             parent ? "#{parent}/#{child}" : child
           end
 
-          def merge_controller_scope(parent, child)
+          def merge_controller_scope(_parent, child)
             child
           end
 
-          def merge_action_scope(parent, child)
+          def merge_action_scope(_parent, child)
             child
           end
 
-          def merge_via_scope(parent, child)
+          def merge_via_scope(_parent, child)
             child
           end
 
-          def merge_format_scope(parent, child)
+          def merge_format_scope(_parent, child)
             child
           end
 
@@ -1079,11 +1079,11 @@ module ActionDispatch
             (parent || {}).merge(child)
           end
 
-          def merge_shallow_scope(parent, child)
+          def merge_shallow_scope(_parent, child)
             child ? true : false
           end
 
-          def merge_to_scope(parent, child)
+          def merge_to_scope(_parent, child)
             child
           end
       end

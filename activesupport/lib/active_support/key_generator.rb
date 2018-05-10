@@ -47,7 +47,7 @@ module ActiveSupport
       @secret = secret
     end
 
-    def generate_key(salt)
+    def generate_key(_salt)
       @secret
     end
 

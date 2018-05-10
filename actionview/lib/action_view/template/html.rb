@@ -22,7 +22,7 @@ module ActionView #:nodoc:
         ERB::Util.h(@string)
       end
 
-      def render(*args)
+      def render(*_args)
         to_str
       end
 

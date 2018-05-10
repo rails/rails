@@ -1241,7 +1241,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     @firm = Firm.new("D")
 
     @fake_timezones.each do |tz|
-      def tz.=~(re); %(A D).include?(name) end
+      def tz.=~(_re); %(A D).include?(name) end
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)
@@ -1262,7 +1262,7 @@ class FormOptionsHelperTest < ActionView::TestCase
     # `time_zone_select` can't be written with `grep` because Active Support
     # time zones don't support implicit string coercion with `to_str`.
     @fake_timezones.each do |tz|
-      def tz.===(zone); raise Exception; end
+      def tz.===(_zone); raise Exception; end
     end
 
     html = time_zone_select("firm", "time_zone", /A|D/)

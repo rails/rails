@@ -24,7 +24,7 @@ module ActiveSupport
       end
 
       module Forking
-        def run_in_isolation(&blk)
+        def run_in_isolation()
           read, write = IO.pipe
           read.binmode
           write.binmode
@@ -65,7 +65,7 @@ module ActiveSupport
 
         # Crazy H4X to get this working in windows / jruby with
         # no forking.
-        def run_in_isolation(&blk)
+        def run_in_isolation()
           require "tempfile"
 
           if ENV["ISOLATION_TEST"]

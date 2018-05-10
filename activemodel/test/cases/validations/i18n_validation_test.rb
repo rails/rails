@@ -218,7 +218,7 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   # To make things DRY this macro is created to define 3 tests for every validation case.
-  def self.set_expectations_for_validation(validation, error_type, &block_that_sets_validation)
+  def self.set_expectations_for_validation(validation, error_type)
     if error_type == :confirmation
       attribute = :title_confirmation
     else

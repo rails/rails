@@ -847,12 +847,12 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       attr_accessor :pool
       def transaction_open?; true; end
       def begin_transaction(*args); end
-      def rollback_transaction(*args)
+      def rollback_transaction(*_args)
         @rollback_transaction_called = true
       end
     end.new
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); false; end
+      def lock_thread=(_lock_thread); false; end
     end.new
     fire_connection_notification(connection)
     teardown_fixtures
@@ -930,7 +930,7 @@ class FixturesBrokenRollbackTest < ActiveRecord::TestCase
   end
 
   private
-    def load_fixtures(config)
+    def load_fixtures(_config)
       raise "argh"
     end
 end

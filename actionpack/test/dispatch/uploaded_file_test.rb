@@ -66,7 +66,7 @@ module ActionDispatch
     end
 
     def test_delegates_close_to_tempfile
-      tf = Class.new { def close(unlink_now = false); "thunderhorse" end }
+      tf = Class.new { def close(_unlink_now = false); "thunderhorse" end }
       uf = Http::UploadedFile.new(tempfile: tf.new)
       assert_equal "thunderhorse", uf.close
     end
@@ -78,7 +78,7 @@ module ActionDispatch
     end
 
     def test_delegates_read_to_tempfile
-      tf = Class.new { def read(length = nil, buffer = nil); "thunderhorse" end }
+      tf = Class.new { def read(_length = nil, _buffer = nil); "thunderhorse" end }
       uf = Http::UploadedFile.new(tempfile: tf.new)
       assert_equal "thunderhorse", uf.read
     end

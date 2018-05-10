@@ -270,7 +270,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     m = ModelWithAttributes2.new
     m.attributes = { "foo" => "bar" }
 
-    def m.attribute_missing(match, *args, &block)
+    def m.attribute_missing(match, *_args)
       match
     end
 

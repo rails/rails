@@ -48,7 +48,7 @@ module ActiveRecord
         end
       end
 
-      def initialize(connection, logger, connection_options, config)
+      def initialize(connection, logger, _connection_options, config)
         super(connection, logger, config)
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
@@ -134,13 +134,13 @@ module ActiveRecord
 
       # The two drivers have slightly different ways of yielding hashes of results, so
       # this method must be implemented to provide a uniform interface.
-      def each_hash(result) # :nodoc:
+      def each_hash(_result) # :nodoc:
         raise NotImplementedError
       end
 
       # Must return the MySQL error number from the exception, if the exception has an
       # error number.
-      def error_number(exception) # :nodoc:
+      def error_number(_exception) # :nodoc:
         raise NotImplementedError
       end
 
@@ -223,7 +223,7 @@ module ActiveRecord
         end
       end
 
-      def empty_insert_statement_value(primary_key = nil)
+      def empty_insert_statement_value(_primary_key = nil)
         "VALUES ()"
       end
 
@@ -723,7 +723,7 @@ module ActiveRecord
           [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
         end
 
-        def remove_timestamps_for_alter(table_name, options = {})
+        def remove_timestamps_for_alter(table_name, _options = {})
           [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
         end
 

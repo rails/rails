@@ -213,7 +213,7 @@ module ActiveRecord
         #
         # See +ActiveRecord::Inheritance#discriminate_class_for_record+ for
         # the single-table inheritance discriminator.
-        def discriminate_class_for_record(record)
+        def discriminate_class_for_record(_record)
           self
         end
 
@@ -693,7 +693,7 @@ module ActiveRecord
       _update_row(attribute_names, "touch")
     end
 
-    def _update_row(attribute_names, attempted_action = "update")
+    def _update_row(attribute_names, _attempted_action = "update")
       self.class._update_record(
         attributes_with_values(attribute_names),
         self.class.primary_key => id_in_database

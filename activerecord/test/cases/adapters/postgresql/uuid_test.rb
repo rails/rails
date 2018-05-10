@@ -271,7 +271,7 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
 
     migration = Class.new(ActiveRecord::Migration[5.0]) do
       def version; 101 end
-      def migrate(x)
+      def migrate(_x)
         create_table("pg_uuids_4", id: :uuid)
       end
     end.new
@@ -319,7 +319,7 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
 
     migration = Class.new(ActiveRecord::Migration[5.0]) do
       def version; 101 end
-      def migrate(x)
+      def migrate(_x)
         create_table("pg_uuids_4", id: :uuid, default: nil)
       end
     end.new

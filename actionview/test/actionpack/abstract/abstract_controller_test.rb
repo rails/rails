@@ -231,7 +231,7 @@ module AbstractController
     class ActionMissingRespondToActionController < AbstractController::Base
     # No actions
     private
-      def action_missing(action_name)
+      def action_missing(_action_name)
         self.response_body = "success"
       end
     end

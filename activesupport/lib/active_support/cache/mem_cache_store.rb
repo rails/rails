@@ -126,7 +126,7 @@ module ActiveSupport
 
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
-      def clear(options = nil)
+      def clear(_options = nil)
         rescue_error_with(nil) { @data.with { |c| c.flush_all } }
       end
 
@@ -174,7 +174,7 @@ module ActiveSupport
         end
 
         # Delete an entry from the cache.
-        def delete_entry(key, options)
+        def delete_entry(key, _options)
           rescue_error_with(false) { @data.with { |c| c.delete(key) } }
         end
 

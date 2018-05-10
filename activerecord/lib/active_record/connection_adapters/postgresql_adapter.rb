@@ -378,7 +378,7 @@ module ActiveRecord
         @use_insert_returning
       end
 
-      def column_name_for_operation(operation, node) # :nodoc:
+      def column_name_for_operation(operation, _node) # :nodoc:
         OPERATION_ALIASES.fetch(operation) { operation.downcase }
       end
 

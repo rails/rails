@@ -638,7 +638,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def with_test_routes(options = {})
+  def with_test_routes(_options = {})
     with_routing do |set|
       set.draw do
         resources :projects do
@@ -663,7 +663,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def with_top_level_and_nested_routes(options = {})
+  def with_top_level_and_nested_routes(_options = {})
     with_routing do |set|
       set.draw do
         resources :blogs do
@@ -678,7 +678,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def with_admin_test_routes(options = {})
+  def with_admin_test_routes(_options = {})
     with_routing do |set|
       set.draw do
         namespace :admin do
@@ -700,7 +700,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
     end
   end
 
-  def with_admin_and_site_test_routes(options = {})
+  def with_admin_and_site_test_routes(_options = {})
     with_routing do |set|
       set.draw do
         namespace :admin do

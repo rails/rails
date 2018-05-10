@@ -53,7 +53,7 @@ module ActiveRecord
           @cache[Process.pid]
         end
 
-        def dealloc(stmt)
+        def dealloc(_stmt)
           raise NotImplementedError
         end
     end

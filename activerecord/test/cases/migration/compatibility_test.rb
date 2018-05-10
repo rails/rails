@@ -32,7 +32,7 @@ module ActiveRecord
 
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def version; 101 end
-          def migrate(x)
+          def migrate(_x)
             remove_index :testings, :foo
           end
         }.new
@@ -47,7 +47,7 @@ module ActiveRecord
 
         migration = Class.new(ActiveRecord::Migration[4.2]) {
           def version; 101 end
-          def migrate(x)
+          def migrate(_x)
             remove_index :testings, :bar
           end
         }.new
@@ -59,7 +59,7 @@ module ActiveRecord
 
       def test_references_does_not_add_index_by_default
         migration = Class.new(ActiveRecord::Migration[4.2]) {
-          def migrate(x)
+          def migrate(_x)
             create_table :more_testings do |t|
               t.references :foo
               t.belongs_to :bar, index: false
@@ -77,7 +77,7 @@ module ActiveRecord
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_of_create_table
         migration = Class.new(ActiveRecord::Migration[4.2]) {
-          def migrate(x)
+          def migrate(_x)
             create_table :more_testings do |t|
               t.timestamps
             end
@@ -94,7 +94,7 @@ module ActiveRecord
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_of_change_table
         migration = Class.new(ActiveRecord::Migration[4.2]) {
-          def migrate(x)
+          def migrate(_x)
             change_table :testings do |t|
               t.timestamps
             end
@@ -109,7 +109,7 @@ module ActiveRecord
 
       def test_timestamps_have_null_constraints_if_not_present_in_migration_for_adding_timestamps_to_existing_table
         migration = Class.new(ActiveRecord::Migration[4.2]) {
-          def migrate(x)
+          def migrate(_x)
             add_timestamps :testings
           end
         }.new
@@ -133,7 +133,7 @@ module ActiveRecord
 
         def test_legacy_change_column_with_null_executes_update
           migration = Class.new(ActiveRecord::Migration[5.1]) {
-            def migrate(x)
+            def migrate(_x)
               change_column :testings, :foo, :string, limit: 10, null: false, default: "foobar"
             end
           }.new

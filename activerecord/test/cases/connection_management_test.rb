@@ -59,7 +59,7 @@ module ActiveRecord
       end
 
       def test_connections_closed_if_exception
-        app       = Class.new(App) { def call(env); raise NotImplementedError; end }.new
+        app       = Class.new(App) { def call(_env); raise NotImplementedError; end }.new
         explosive = middleware(app)
         assert_raises(NotImplementedError) { explosive.call(@env) }
         assert_not_predicate ActiveRecord::Base.connection_handler, :active_connections?
@@ -67,7 +67,7 @@ module ActiveRecord
 
       def test_connections_not_closed_if_exception_inside_transaction
         ActiveRecord::Base.transaction do
-          app               = Class.new(App) { def call(env); raise RuntimeError; end }.new
+          app               = Class.new(App) { def call(_env); raise RuntimeError; end }.new
           explosive         = middleware(app)
           assert_raises(RuntimeError) { explosive.call(@env) }
           assert_predicate ActiveRecord::Base.connection_handler, :active_connections?

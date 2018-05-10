@@ -69,7 +69,7 @@ module Delayed
 
         # Lock this job for this worker.
         # Returns true if we have the lock, false otherwise.
-        def lock_exclusively!(max_run_time, worker)
+        def lock_exclusively!(_max_run_time, worker)
           now = self.class.db_time_now
           if locked_by != worker
             # We don't own this job so we will update the locked_by name and the locked_at

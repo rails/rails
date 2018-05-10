@@ -136,7 +136,7 @@ module ActionController
       end
     end
 
-    def self.binary_params_for?(action) # :nodoc:
+    def self.binary_params_for?(_action) # :nodoc:
       false
     end
 

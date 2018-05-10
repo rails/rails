@@ -97,7 +97,7 @@ module ActiveStorage
       end
     end
 
-    def headers_for_direct_upload(key, checksum:, **)
+    def headers_for_direct_upload(_key, checksum:, **)
       { "Content-MD5" => checksum }
     end
 

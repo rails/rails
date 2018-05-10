@@ -15,7 +15,7 @@ module ActiveRecord
           @preloaded_records = []
         end
 
-        def run(preloader)
+        def run(_preloader)
           records = load_records do |record|
             owner = owners_by_key[convert_key(record[association_key_name])]
             association = owner.association(reflection.name)

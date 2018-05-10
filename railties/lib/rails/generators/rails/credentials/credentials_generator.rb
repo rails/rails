@@ -25,7 +25,7 @@ module Rails
         end
       end
 
-      def add_credentials_file_silently(template = nil)
+      def add_credentials_file_silently(_template = nil)
         unless credentials.content_path.exist?
           credentials.write(credentials_template)
         end

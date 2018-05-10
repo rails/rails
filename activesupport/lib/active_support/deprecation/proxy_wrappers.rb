@@ -50,7 +50,7 @@ module ActiveSupport
           @object
         end
 
-        def warn(callstack, called, args)
+        def warn(callstack, _called, _args)
           @deprecator.warn(@message, callstack)
         end
     end
@@ -146,7 +146,7 @@ module ActiveSupport
           ActiveSupport::Inflector.constantize(@new_const.to_s)
         end
 
-        def warn(callstack, called, args)
+        def warn(callstack, _called, _args)
           @deprecator.warn(@message, callstack)
         end
     end
