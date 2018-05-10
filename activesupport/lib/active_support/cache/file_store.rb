@@ -131,6 +131,7 @@ module ActiveSupport
 
           # Make sure file name doesn't exceed file system limits.
           begin
+            fname = ActiveSupport::Digest.hexdigest(key) if EXCLUDED_DIRS.include?(fname)
             fname_paths << fname[0, FILENAME_MAX_SIZE]
             fname = fname[FILENAME_MAX_SIZE..-1]
           end until fname.blank?

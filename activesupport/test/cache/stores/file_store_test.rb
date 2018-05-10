@@ -84,6 +84,17 @@ class FileStoreTest < ActiveSupport::TestCase
     assert_equal "B", File.basename(path)
   end
 
+  # '.' and '..' are invalid filename.
+  def test_key_transformation_with_dot
+    key = ".."
+    path = @cache.send(:normalize_key, key, {})
+    assert_not_equal "..", File.basename(path)
+
+    key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}."
+    path = @cache.send(:normalize_key, key, {})
+    assert_not_equal ".", File.basename(path)
+  end
+
   # If nothing has been stored in the cache, there is a chance the cache directory does not yet exist
   # Ensure delete_matched gracefully handles this case
   def test_delete_matched_when_cache_directory_does_not_exist
