@@ -530,7 +530,7 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_predicate client, :valid?
     assert_predicate new_firm, :valid?
     assert_not new_firm.save
-    assert new_firm, :persisted?
+    assert_not_predicate new_firm, :persisted?
     assert_not Firm.exists?(new_firm.id)
     assert_not_predicate client, :persisted?
   end
