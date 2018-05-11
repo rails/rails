@@ -206,6 +206,17 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal "The First Topic", Topic.find(copy.id).title
   end
 
+  def test_becomes_wont_break_mutation_tracking
+    topic = topics(:first)
+    reply = topic.becomes(Reply)
+
+    assert_equal 1, topic.id_in_database
+    assert_empty topic.attributes_in_database
+
+    assert_equal 1, reply.id_in_database
+    assert_empty reply.attributes_in_database
+  end
+
   def test_becomes_includes_changed_attributes
     company = Company.new(name: "37signals")
     client = company.becomes(Client)

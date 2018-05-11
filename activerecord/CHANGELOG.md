@@ -1,3 +1,10 @@
+*   `becomes` should clear the mutation tracker which is created in `after_initialize`.
+
+    Fixes #32867.
+
+    *Ryuta Kamizono*
+
+
 ## Rails 5.1.6 (March 29, 2018) ##
 
 *   MySQL: Support mysql2 0.5.x.
