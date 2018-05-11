@@ -126,7 +126,7 @@ generator to handle making it for you:
 $ bin/rails generate migration AddPartNumberToProducts
 ```
 
-This will create an empty but appropriately named migration:
+This will create an appropriately named empty migration:
 
 ```ruby
 class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
@@ -135,9 +135,14 @@ class AddPartNumberToProducts < ActiveRecord::Migration[5.0]
 end
 ```
 
-If the migration name is of the form "AddXXXToYYY" or "RemoveXXXFromYYY" and is
-followed by a list of column names and types then a migration containing the
-appropriate `add_column` and `remove_column` statements will be created.
+This generator can do much more than append a timestamp to the file name.
+Based on naming conventions and additional (optional) arguments it can
+also start fleshing out the migration.
+
+If the migration name is of the form "AddColumnToTable" or
+"RemoveColumnFromTable" and is followed by a list of column names and
+types then a migration containing the appropriate `add_column` and
+`remove_column` statements will be created.
 
 ```bash
 $ bin/rails generate migration AddPartNumberToProducts part_number:string
