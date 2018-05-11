@@ -502,7 +502,12 @@ class InheritanceComputeTypeTest < ActiveRecord::TestCase
   include InheritanceTestHelper
   fixtures :companies
 
+  def setup
+    ActiveSupport::Dependencies.log_activity = true
+  end
+
   teardown do
+    ActiveSupport::Dependencies.log_activity = false
     self.class.const_remove :FirmOnTheFly rescue nil
     Firm.const_remove :FirmOnTheFly rescue nil
   end
