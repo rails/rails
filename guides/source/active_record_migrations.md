@@ -788,7 +788,7 @@ version to migrate to.
 
 ### Setup the Database
 
-The `rails db:setup` task will create the database, load the schema and initialize
+The `rails db:setup` task will create the database, load the schema, and initialize
 it with the seed data.
 
 ### Resetting the Database
@@ -896,7 +896,7 @@ Occasionally you will make a mistake when writing a migration. If you have
 already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `bin/rails db:rollback`), edit your migration and then run
+example with `bin/rails db:rollback`), edit your migration, and then run
 `rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be

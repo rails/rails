@@ -135,7 +135,7 @@ To test that your method does what it says it does, run the unit tests with `bin
   2 runs, 2 assertions, 0 failures, 0 errors, 0 skips
 ```
 
-To see this in action, change to the `test/dummy` directory, fire up a console and start squawking:
+To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
 
 ```bash
 $ bin/rails console

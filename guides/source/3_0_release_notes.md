@@ -174,7 +174,7 @@ More Information: - [Rails 3 I18n changes](http://blog.plataformatec.com.br/2010
 Railties
 --------
 
-With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines or plugins as painless and extensible as possible:
+With the decoupling of the main Rails frameworks, Railties got a huge overhaul so as to make linking up frameworks, engines, or plugins as painless and extensible as possible:
 
 * Each application now has its own name space, application is started with `YourAppName.boot` for example, makes interacting with other applications a lot easier.
 * Anything under `Rails.root/app` is now added to the load path, so you can make `app/observers/user_observer.rb` and Rails will load it without any modifications.
@@ -422,7 +422,7 @@ More Information:
 Active Record
 -------------
 
-Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates and many enhancements and fixes. All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
+Active Record received a lot of attention in Rails 3.0, including abstraction into Active Model, a full update to the Query interface using Arel, validation updates, and many enhancements and fixes. All of the Rails 2.x API will be usable through a compatibility layer that will be supported until version 3.1.
 
 
 ### Query Interface

@@ -61,7 +61,7 @@ person.age_highest?  # => false
 
 `ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
 ability to define callbacks which run at appropriate times.
-After defining callbacks, you can wrap them with before, after and around
+After defining callbacks, you can wrap them with before, after, and around
 custom methods.
 
 ```ruby

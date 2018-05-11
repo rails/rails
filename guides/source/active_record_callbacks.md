@@ -408,7 +408,7 @@ end
 NOTE: The `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
-Since using `after_commit` callback only on create, update or delete is
+Since using `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
 
 * `after_create_commit`

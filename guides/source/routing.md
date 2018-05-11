@@ -138,7 +138,7 @@ Creating a resourceful route will also expose a number of helpers to the control
 * `edit_photo_path(:id)` returns `/photos/:id/edit` (for instance, `edit_photo_path(10)` returns `/photos/10/edit`)
 * `photo_path(:id)` returns `/photos/:id` (for instance, `photo_path(10)` returns `/photos/10`)
 
-Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port and path prefix.
+Each of these helpers has a corresponding `_url` helper (such as `photos_url`) which returns the same path prefixed with the current host, port, and path prefix.
 
 ### Defining Multiple Resources at the Same Time
 
@@ -196,7 +196,7 @@ A singular resourceful route generates these helpers:
 * `edit_geocoder_path` returns `/geocoder/edit`
 * `geocoder_path` returns `/geocoder`
 
-As with plural resources, the same helpers ending in `_url` will also include the host, port and path prefix.
+As with plural resources, the same helpers ending in `_url` will also include the host, port, and path prefix.
 
 ### Controller Namespaces and Routing
 
@@ -644,7 +644,7 @@ You can also use this to override routing methods defined by resources, like thi
 get ':username', to: 'users#show', as: :user
 ```
 
-This will define a `user_path` method that will be available in controllers, helpers and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
+This will define a `user_path` method that will be available in controllers, helpers, and views that will go to a route such as `/bob`. Inside the `show` action of `UsersController`, `params[:username]` will contain the username for the user. Change `:username` in the route definition if you do not want your parameter name to be `:username`.
 
 ### HTTP Verb Constraints
 
@@ -1061,7 +1061,7 @@ scope ':username' do
 end
 ```
 
-This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers and views.
+This will provide you with URLs such as `/bob/articles/1` and will allow you to reference the `username` part of the path as `params[:username]` in controllers, helpers, and views.
 
 ### Restricting the Routes Created
 

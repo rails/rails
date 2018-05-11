@@ -13,12 +13,12 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps and `Rack::Builder`.
+WARNING: This guide assumes a working knowledge of Rack protocol and Rack concepts such as middlewares, url maps, and `Rack::Builder`.
 
 Introduction to Rack
 --------------------
 
-Rack provides a minimal, modular and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
+Rack provides a minimal, modular, and adaptable interface for developing web applications in Ruby. By wrapping HTTP requests and responses in the simplest way possible, it unifies and distills the API for web servers, web frameworks, and software in between (the so-called middleware) into a single method call.
 
 Explaining how Rack works is not really in the scope of this guide. In case you
 are not familiar with Rack's basics, you should check out the [Resources](#resources)
@@ -134,7 +134,7 @@ The default middlewares shown here (and some others) are each summarized in the 
 
 ### Configuring Middleware Stack
 
-Rails provides a simple configuration interface `config.middleware` for adding, removing and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
+Rails provides a simple configuration interface `config.middleware` for adding, removing, and modifying the middlewares in the middleware stack via `application.rb` or the environment specific configuration file `environments/<environment>.rb`.
 
 #### Adding a Middleware
 

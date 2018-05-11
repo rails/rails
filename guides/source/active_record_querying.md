@@ -486,7 +486,7 @@ This makes for clearer readability if you have a large number of variable condit
 
 Active Record also allows you to pass in hash conditions which can increase the readability of your conditions syntax. With hash conditions, you pass in a hash with keys of the fields you want qualified and the values of how you want to qualify them:
 
-NOTE: Only equality, range and subset checking are possible with Hash conditions.
+NOTE: Only equality, range, and subset checking are possible with Hash conditions.
 
 #### Equality Conditions
 
