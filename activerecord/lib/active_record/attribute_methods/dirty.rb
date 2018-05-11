@@ -119,7 +119,7 @@ module ActiveRecord
 
       # Alias for +changed_attributes+
       def attributes_in_database
-        changes_to_save.transform_values(&:first)
+        mutations_from_database.changed_values
       end
 
       private

@@ -1,3 +1,9 @@
+*   `becomes` should clear the mutation tracker which is created in `after_initialize`.
+
+    Fixes #32867.
+
+    *Ryuta Kamizono*
+
 *   Allow a belonging to parent object to be created from a new record.
 
     *Jolyon Pawlyn*
