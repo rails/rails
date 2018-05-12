@@ -159,10 +159,6 @@ module Rails
           remove_file "config/initializers/cookies_serializer.rb"
         end
 
-        unless assets_config_exist
-          remove_file "config/initializers/assets.rb"
-        end
-
         unless csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
         end
