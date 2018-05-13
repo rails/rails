@@ -27,6 +27,7 @@ module Rails
           options[:skip_action_cable]   = !defined?(ActionCable::Engine)
           options[:skip_sprockets]      = !defined?(Sprockets::Railtie)
           options[:skip_puma]           = !defined?(Puma)
+          options[:skip_spring]         = !defined?(Spring)
           options
         end
     end
