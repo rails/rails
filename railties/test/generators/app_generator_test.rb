@@ -309,6 +309,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_spring_contents_when_skip_spring_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-spring"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_no_file "#{app_root}/config/spring.rb"
+  end
+
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-action-cable"]
