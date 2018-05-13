@@ -80,7 +80,6 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       # Setup the connection
-      connection.server.stubs(:timer).returns(true)
       connection.send :handle_open
       assert connection.connected
 
