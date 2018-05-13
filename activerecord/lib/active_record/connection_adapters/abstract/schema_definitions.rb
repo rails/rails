@@ -498,6 +498,9 @@ module ActiveRecord
     #     t.date
     #     t.binary
     #     t.boolean
+    #     t.foreign_key
+    #     t.json
+    #     t.virtual
     #     t.remove
     #     t.remove_references
     #     t.remove_belongs_to
