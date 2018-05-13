@@ -306,9 +306,7 @@ module ActiveRecord
     end
 
     def save(*) #:nodoc:
-      rollback_active_record_state! do
-        with_transaction_returning_status { super }
-      end
+      with_transaction_returning_status { super }
     end
 
     def save!(*) #:nodoc:
@@ -317,17 +315,6 @@ module ActiveRecord
 
     def touch(*) #:nodoc:
       with_transaction_returning_status { super }
-    end
-
-    # Reset id and @new_record if the transaction rolls back.
-    def rollback_active_record_state!
-      remember_transaction_record_state
-      yield
-    rescue Exception
-      restore_transaction_record_state
-      raise
-    ensure
-      clear_transaction_record_state
     end
 
     def before_committed! # :nodoc:
