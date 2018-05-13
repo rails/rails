@@ -292,6 +292,18 @@ class TransactionTest < ActiveRecord::TestCase
     assert_nil new_topic.id, "The topic should not have an ID"
   end
 
+  def test_callback_rollback_in_create_with_rollback_exception
+    topic = Class.new(Topic) {
+      def after_create_for_transaction
+        raise ActiveRecord::Rollback
+      end
+    }
+
+    new_topic = topic.create(title: "A new topic")
+    assert !new_topic.persisted?, "The topic should not be persisted"
+    assert_nil new_topic.id, "The topic should not have an ID"
+  end
+
   def test_nested_explicit_transactions
     Topic.transaction do
       Topic.transaction do
