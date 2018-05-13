@@ -703,8 +703,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t = Topic.first
     t.update_attribute(:title, "super_title")
     assert_equal "super_title", t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
+    assert_not t.changed?, "topic should not have changed"
+    assert_not t.title_changed?, "title should not have changed"
     assert_nil t.title_change, "title change should be nil"
 
     t.reload

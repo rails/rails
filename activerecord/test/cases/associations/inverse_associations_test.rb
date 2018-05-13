@@ -119,11 +119,11 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
-    assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
+    assert_not sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
 
     club_reflection = Club.reflect_on_association(:members)
 
-    assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
+    assert_not club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
   def test_polymorphic_has_one_should_find_inverse_automatically

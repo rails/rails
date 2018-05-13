@@ -354,9 +354,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "read_attribute when false" do
     topic = topics(:first)
     topic.approved = false
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
   end
 
   test "read_attribute when true" do
@@ -370,10 +370,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "boolean attributes writing and reading" do
     topic = Topic.new
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "true"
     assert topic.approved?, "approved should be true"

@@ -47,7 +47,7 @@ module ApplicationTests
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exist?(filename), "#{filename} does exist"
+      assert_not File.exist?(filename), "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do

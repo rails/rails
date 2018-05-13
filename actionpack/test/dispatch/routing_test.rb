@@ -3153,7 +3153,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       after = has_named_route?(:hello)
     end
 
-    assert !before, "expected to not have named route :hello before route definition"
+    assert_not before, "expected to not have named route :hello before route definition"
     assert after, "expected to have named route :hello after route definition"
   end
 

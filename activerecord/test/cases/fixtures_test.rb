@@ -599,7 +599,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   end
 
   def test_fixtures_from_root_yml_without_instantiation
-    assert !defined?(@unknown), "@unknown is not defined"
+    assert_not defined?(@unknown), "@unknown is not defined"
   end
 
   def test_visibility_of_accessor_method
@@ -634,7 +634,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
-    assert !defined?(@first), "@first is not defined"
+    assert_not defined?(@first), "@first is not defined"
   end
 end
 

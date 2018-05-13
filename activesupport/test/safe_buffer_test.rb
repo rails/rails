@@ -141,13 +141,13 @@ class SafeBufferTest < ActiveSupport::TestCase
     x = "foo".html_safe.gsub!("f", '<script>alert("lolpwnd");</script>')
 
     # calling gsub! makes the dirty flag true
-    assert !x.html_safe?, "should not be safe"
+    assert_not x.html_safe?, "should not be safe"
 
     # getting a slice of it
     y = x[0..-1]
 
     # should still be unsafe
-    assert !y.html_safe?, "should not be safe"
+    assert_not y.html_safe?, "should not be safe"
   end
 
   test "Should work with interpolation (array argument)" do

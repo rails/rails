@@ -158,7 +158,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
+      assert_not headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
     end
   end
 
@@ -177,7 +177,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+      assert_not headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|

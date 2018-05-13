@@ -248,7 +248,7 @@ class NamingHelpersTest < ActiveModel::TestCase
 
   def test_uncountable
     assert uncountable?(@uncountable), "Expected 'sheep' to be uncountable"
-    assert !uncountable?(@klass), "Expected 'contact' to be countable"
+    assert_not uncountable?(@klass), "Expected 'contact' to be countable"
   end
 
   def test_uncountable_route_key

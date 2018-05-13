@@ -204,12 +204,12 @@ class SchemaTest < ActiveRecord::PostgreSQLTestCase
 
   def test_data_source_exists_when_not_on_schema_search_path
     with_schema_search_path("PUBLIC") do
-      assert(!@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
+      assert_not(@connection.data_source_exists?(TABLE_NAME), "data_source exists but should not be found")
     end
   end
 
   def test_data_source_exists_wrong_schema
-    assert(!@connection.data_source_exists?("foo.things"), "data_source should not exist")
+    assert_not(@connection.data_source_exists?("foo.things"), "data_source should not exist")
   end
 
   def test_data_source_exists_quoted_names

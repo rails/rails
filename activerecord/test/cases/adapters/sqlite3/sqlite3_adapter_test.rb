@@ -61,7 +61,7 @@ module ActiveRecord
           WHERE  #{Owner.primary_key} = #{owner.id}
         esql
 
-        assert(!result.rows.first.include?("blob"), "should not store blobs")
+        assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
         owner.delete
       end

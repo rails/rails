@@ -19,7 +19,7 @@ class DuplicableTest < ActiveSupport::TestCase
                   "* https://github.com/rubinius/rubinius/issues/3089"
 
     RAISE_DUP.each do |v|
-      assert !v.duplicable?, "#{ v.inspect } should not be duplicable"
+      assert_not v.duplicable?, "#{ v.inspect } should not be duplicable"
       assert_raises(TypeError, v.class.name) { v.dup }
     end
 

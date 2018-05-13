@@ -755,7 +755,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :EM, Class.new
     with_autoloading_fixtures do
       require_dependency "em"
-      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
+      assert_not ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
@@ -782,7 +782,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
       Object.const_set :M, Module.new
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
+      assert_not defined?(M), "Dependencies should unload unloadable constants each time"
     end
   end
 
@@ -980,10 +980,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -992,10 +992,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { ::RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -1020,13 +1020,13 @@ class DependenciesTest < ActiveSupport::TestCase
           ::RaisesNameError::FooBarBaz.object_id
         end
         assert_equal "uninitialized constant RaisesNameError::FooBarBaz", e.message
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
       assert_not defined?(::RaisesNameError)
       2.times do
         assert_raise(NameError) { ::RaisesNameError }
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
   ensure

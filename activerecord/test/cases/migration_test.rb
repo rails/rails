@@ -262,21 +262,21 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_instance_based_migration_up
     migration = MockMigration.new
-    assert !migration.went_up, "have not gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_up, "have not gone up"
+    assert_not migration.went_down, "have not gone down"
 
     migration.migrate :up
     assert migration.went_up, "have gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_down, "have not gone down"
   end
 
   def test_instance_based_migration_down
     migration = MockMigration.new
-    assert !migration.went_up, "have not gone up"
-    assert !migration.went_down, "have not gone down"
+    assert_not migration.went_up, "have not gone up"
+    assert_not migration.went_down, "have not gone down"
 
     migration.migrate :down
-    assert !migration.went_up, "have gone up"
+    assert_not migration.went_up, "have gone up"
     assert migration.went_down, "have not gone down"
   end
 
