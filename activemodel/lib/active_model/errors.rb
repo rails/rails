@@ -322,9 +322,13 @@ module ActiveModel
     #  person.errors.added? :name, :too_long                                # => false
     #  person.errors.added? :name, "is too long"                            # => false
     def added?(attribute, message = :invalid, options = {})
-      message = message.call if message.respond_to?(:call)
-      message = normalize_message(attribute, message, options)
-      self[attribute].include? message
+      if message.is_a? Symbol
+        self.details[attribute].map { |e| e[:error] }.include? message
+      else
+        message = message.call if message.respond_to?(:call)
+        message = normalize_message(attribute, message, options)
+        self[attribute].include? message
+      end
     end
 
     # Returns all the full error messages in an array.
@@ -398,20 +402,18 @@ module ActiveModel
       type = options.delete(:message) if options[:message].is_a?(Symbol)
 
       if @base.class.respond_to?(:i18n_scope)
-        defaults = @base.class.lookup_ancestors.map do |klass|
-          [ :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
-            :"#{@base.class.i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
+        i18n_scope = @base.class.i18n_scope.to_s
+        defaults = @base.class.lookup_ancestors.flat_map do |klass|
+          [ :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.attributes.#{attribute}.#{type}",
+            :"#{i18n_scope}.errors.models.#{klass.model_name.i18n_key}.#{type}" ]
         end
+        defaults << :"#{i18n_scope}.errors.messages.#{type}"
       else
         defaults = []
       end
 
-      defaults << :"#{@base.class.i18n_scope}.errors.messages.#{type}" if @base.class.respond_to?(:i18n_scope)
       defaults << :"errors.attributes.#{attribute}.#{type}"
       defaults << :"errors.messages.#{type}"
-
-      defaults.compact!
-      defaults.flatten!
 
       key = defaults.shift
       defaults = options.delete(:message) if options[:message]

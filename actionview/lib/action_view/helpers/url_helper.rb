@@ -1,4 +1,6 @@
-require_relative "javascript_helper"
+# frozen_string_literal: true
+
+require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
@@ -136,6 +138,11 @@ module ActionView
       #
       #   link_to "Profiles", controller: "profiles"
       #   # => <a href="/profiles">Profiles</a>
+      #
+      # When name is +nil+ the href is presented instead
+      #
+      #   link_to nil, "http://example.com"
+      #   # => <a href="http://www.example.com">http://www.example.com</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -587,10 +594,27 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
-            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
+          if method_not_get_method?(method) && html_options["rel"] !~ /nofollow/
+            if html_options["rel"].blank?
+              html_options["rel"] = "nofollow"
+            else
+              html_options["rel"] = "#{html_options["rel"]} nofollow"
+            end
           end
-          html_options["data-method".freeze] = method
+          html_options["data-method"] = method
+        end
+
+        STRINGIFIED_COMMON_METHODS = {
+          get:    "get",
+          delete: "delete",
+          patch:  "patch",
+          post:   "post",
+          put:    "put",
+        }.freeze
+
+        def method_not_get_method?(method)
+          return false unless method
+          (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
         end
 
         def token_tag(token = nil, form_options: {})
@@ -612,7 +636,7 @@ module ActionView
         #   to_form_params(name: 'David', nationality: 'Danish')
         #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
         #
-        #   to_form_params(country: {name: 'Denmark'})
+        #   to_form_params(country: { name: 'Denmark' })
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         #
         #   to_form_params(countries: ['Denmark', 'Sweden']})

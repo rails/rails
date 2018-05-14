@@ -1,5 +1,7 @@
-require_relative "../../erb"
-require_relative "../../resource_helpers"
+# frozen_string_literal: true
+
+require "rails/generators/erb"
+require "rails/generators/resource_helpers"
 
 module Erb # :nodoc:
   module Generators # :nodoc:

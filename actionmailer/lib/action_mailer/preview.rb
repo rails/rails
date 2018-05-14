@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/descendants_tracker"
 
 module ActionMailer
@@ -15,7 +17,7 @@ module ActionMailer
       #
       #     config.action_mailer.show_previews = true
       #
-      # Defaults to true for development environment
+      # Defaults to +true+ for development environment
       #
       mattr_accessor :show_previews, instance_writer: false
 
@@ -31,7 +33,7 @@ module ActionMailer
 
       # Register an Interceptor which will be called before mail is previewed.
       # Either a class or a string can be passed in as the Interceptor. If a
-      # string is passed in it will be <tt>constantize</tt>d.
+      # string is passed in it will be constantized.
       def register_preview_interceptor(interceptor)
         preview_interceptor = \
           case interceptor
@@ -79,12 +81,12 @@ module ActionMailer
         public_instance_methods(false).map(&:to_s).sort
       end
 
-      # Returns true if the email exists.
+      # Returns +true+ if the email exists.
       def email_exists?(email)
         emails.include?(email)
       end
 
-      # Returns true if the preview exists.
+      # Returns +true+ if the preview exists.
       def exists?(preview)
         all.any? { |p| p.preview_name == preview }
       end
@@ -102,7 +104,7 @@ module ActionMailer
       private
         def load_previews
           if preview_path
-            Dir["#{preview_path}/**/*_preview.rb"].each { |file| require_dependency file }
+            Dir["#{preview_path}/**/*_preview.rb"].sort.each { |file| require_dependency file }
           end
         end
 

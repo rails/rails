@@ -2,8 +2,8 @@ language: ruby
 sudo: false
 
 cache:
-  bundler: true
   directories:
+    - vendor/bundle
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
     - node_modules
@@ -11,29 +11,38 @@ cache:
 
 services:
   - memcached
+  - redis-server
 
 addons:
-  postgresql: "9.4"
+  postgresql: "9.6"
+  chrome: stable
+  apt:
+    sources:
+      - sourceline: "ppa:mc3man/trusty-media"
+      - sourceline: "ppa:ubuntuhandbook1/apps"
+    packages:
+      - ffmpeg
+      - mupdf
+      - mupdf-tools
+      - poppler-utils
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
   - "rm ${BUNDLE_GEMFILE}.lock"
-  - "gem update --system"
-  - "gem update bundler"
+  - "travis_retry gem update --system"
+  - "travis_retry gem install bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
+  - "[[ -z $encrypted_0fb9444d0374_key && -z $encrypted_0fb9444d0374_iv ]] || openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
-  - "[[ $GEM != 'av:ujs' ]] || [[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
-
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
   # Decodes to e.g. `export VARIABLE=VALUE`
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX0FDQ0VTU19LRVk9YTAzNTM0M2YtZTkyMi00MGIzLWFhM2MtMDZiM2VhNjM1YzQ4")
   - $(base64 --decode <<< "ZXhwb3J0IFNBVUNFX1VTRVJOQU1FPXJ1YnlvbnJhaWxz")
-  - redis-server --bind 127.0.0.1 --port 6379 --requirepass 'password' --daemonize yes
 
 script: 'ci/travis.rb'
 
@@ -43,7 +52,7 @@ env:
   matrix:
     - "GEM=railties"
     - "GEM=ap,ac"
-    - "GEM=am,amo,as,av,aj"
+    - "GEM=am,amo,as,av,aj,ast"
     - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
@@ -52,59 +61,56 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.7
-  - 2.3.4
-  - 2.4.1
+  - 2.4.4
+  - 2.5.1
   - ruby-head
 
 matrix:
   include:
-    - rvm: 2.4.1
+    - rvm: 2.5.1
       env: "GEM=av:ujs"
-    - rvm: 2.2.7
+    - rvm: 2.4.4
       env: "GEM=aj:integration"
       services:
         - memcached
+        - redis-server
         - rabbitmq
-    - rvm: 2.3.4
+    - rvm: 2.5.1
       env: "GEM=aj:integration"
       services:
         - memcached
-        - rabbitmq
-    - rvm: 2.4.1
-      env: "GEM=aj:integration"
-      services:
-        - memcached
+        - redis-server
         - rabbitmq
     - rvm: ruby-head
       env: "GEM=aj:integration"
       services:
         - memcached
+        - redis-server
         - rabbitmq
-    - rvm: 2.3.4
+    - rvm: 2.5.1
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
-        mariadb: 10.0
-    - rvm: 2.3.4
+        mariadb: 10.2
+    - rvm: 2.5.1
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.3.4
+    - rvm: 2.5.1
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.12.0
+    - rvm: jruby-head
     - env: "GEM=ac:integration"
   fast_finish: true
 
@@ -114,7 +120,8 @@ notifications:
     on_success: change
     on_failure: always
     channels:
-      - "irc.freenode.org#rails-contrib"
+      # "irc.freenode.org#rails-contrib"
+      - secure: "QFKSOK7xQiWWqTzYfYm0XWoW7idzuxT57MBW9i9EASyRLEPuDwZEubKRP40Y7wPx7ylQd9lp6kJheeLnrDvvTjFbW3sWv9GDRl4WlOU8sG/Kv7MXAASXlDqzyJxxXTtzLeXz2iwY296kOBuKxKxl923eTvEGeocwH02QGo14LpQ="
   campfire:
     on_success: change
     on_failure: always

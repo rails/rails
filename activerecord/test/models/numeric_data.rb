@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class NumericData < ActiveRecord::Base
   self.table_name = "numeric_data"
   # Decimal columns with 0 scale being automatically treated as integers

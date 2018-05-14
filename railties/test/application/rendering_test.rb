@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
 module ApplicationTests
-  class RoutingTest < ActiveSupport::TestCase
+  class RenderingTest < ActiveSupport::TestCase
     include ActiveSupport::Testing::Isolation
     include Rack::Test::Methods
 

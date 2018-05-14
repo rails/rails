@@ -65,71 +65,35 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "with multiple classes" do
     Topic.validates_with(ValidatorThatAddsErrors, OtherValidatorThatAddsErrors)
     topic = Topic.new
-    assert topic.invalid?
+    assert_predicate topic, :invalid?
     assert_includes topic.errors[:base], ERROR_MESSAGE
     assert_includes topic.errors[:base], OTHER_ERROR_MESSAGE
-  end
-
-  test "with if statements that return false" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 2")
-    end
-    topic = Topic.new
-    assert topic.valid?
-  end
-
-  test "with if statements that return true" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, if: "1 == 1")
-    end
-    topic = Topic.new
-    assert topic.invalid?
-    assert_includes topic.errors[:base], ERROR_MESSAGE
-  end
-
-  test "with unless statements that return true" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 1")
-    end
-    topic = Topic.new
-    assert topic.valid?
-  end
-
-  test "with unless statements that returns false" do
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(ValidatorThatAddsErrors, unless: "1 == 2")
-    end
-    topic = Topic.new
-    assert topic.invalid?
-    assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "passes all configuration options to the validator class" do
     topic = Topic.new
     validator = Minitest::Mock.new
-    validator.expect(:new, validator, [{ foo: :bar, if: "1 == 1", class: Topic }])
+    validator.expect(:new, validator, [{ foo: :bar, if: :condition_is_true, class: Topic }])
     validator.expect(:validate, nil, [topic])
     validator.expect(:is_a?, false, [Symbol])
     validator.expect(:is_a?, false, [String])
 
-    ActiveSupport::Deprecation.silence do
-      Topic.validates_with(validator, if: "1 == 1", foo: :bar)
-    end
-    assert topic.valid?
+    Topic.validates_with(validator, if: :condition_is_true, foo: :bar)
+    assert_predicate topic, :valid?
     validator.verify
   end
 
   test "validates_with with options" do
     Topic.validates_with(ValidatorThatValidatesOptions, field: :first_name)
     topic = Topic.new
-    assert topic.invalid?
+    assert_predicate topic, :invalid?
     assert_includes topic.errors[:base], ERROR_MESSAGE
   end
 
   test "validates_with each validator" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content])
     topic = Topic.new title: "Title", content: "Content"
-    assert topic.invalid?
+    assert_predicate topic, :invalid?
     assert_equal ["Value is Title"], topic.errors[:title]
     assert_equal ["Value is Content"], topic.errors[:content]
   end
@@ -149,28 +113,28 @@ class ValidatesWithTest < ActiveModel::TestCase
   test "each validator skip nil values if :allow_nil is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_nil: true)
     topic = Topic.new content: ""
-    assert topic.invalid?
-    assert topic.errors[:title].empty?
+    assert_predicate topic, :invalid?
+    assert_empty topic.errors[:title]
     assert_equal ["Value is "], topic.errors[:content]
   end
 
   test "each validator skip blank values if :allow_blank is set to true" do
     Topic.validates_with(ValidatorPerEachAttribute, attributes: [:title, :content], allow_blank: true)
     topic = Topic.new content: ""
-    assert topic.valid?
-    assert topic.errors[:title].empty?
-    assert topic.errors[:content].empty?
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
+    assert_empty topic.errors[:content]
   end
 
   test "validates_with can validate with an instance method" do
     Topic.validates :title, with: :my_validation
 
     topic = Topic.new title: "foo"
-    assert topic.valid?
-    assert topic.errors[:title].empty?
+    assert_predicate topic, :valid?
+    assert_empty topic.errors[:title]
 
     topic = Topic.new
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["is missing"], topic.errors[:title]
   end
 
@@ -178,8 +142,8 @@ class ValidatesWithTest < ActiveModel::TestCase
     Topic.validates :title, :content, with: :my_validation_with_arg
 
     topic = Topic.new title: "foo"
-    assert !topic.valid?
-    assert topic.errors[:title].empty?
+    assert_not_predicate topic, :valid?
+    assert_empty topic.errors[:title]
     assert_equal ["is missing"], topic.errors[:content]
   end
 end

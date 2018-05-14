@@ -1,26 +1,21 @@
-require_relative "abstract_adapter"
-require_relative "statement_pool"
-require_relative "mysql/column"
-require_relative "mysql/explain_pretty_printer"
-require_relative "mysql/quoting"
-require_relative "mysql/schema_creation"
-require_relative "mysql/schema_definitions"
-require_relative "mysql/schema_dumper"
-require_relative "mysql/schema_statements"
-require_relative "mysql/type_metadata"
+# frozen_string_literal: true
 
-require "active_support/core_ext/string/strip"
+require "active_record/connection_adapters/abstract_adapter"
+require "active_record/connection_adapters/statement_pool"
+require "active_record/connection_adapters/mysql/column"
+require "active_record/connection_adapters/mysql/explain_pretty_printer"
+require "active_record/connection_adapters/mysql/quoting"
+require "active_record/connection_adapters/mysql/schema_creation"
+require "active_record/connection_adapters/mysql/schema_definitions"
+require "active_record/connection_adapters/mysql/schema_dumper"
+require "active_record/connection_adapters/mysql/schema_statements"
+require "active_record/connection_adapters/mysql/type_metadata"
 
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
       include MySQL::Quoting
-      include MySQL::ColumnDumper
       include MySQL::SchemaStatements
-
-      def update_table_definition(table_name, base) # :nodoc:
-        MySQL::Table.new(table_name, base)
-      end
 
       ##
       # :singleton-method:
@@ -36,7 +31,7 @@ module ActiveRecord
         string:      { name: "varchar", limit: 255 },
         text:        { name: "text", limit: 65535 },
         integer:     { name: "int", limit: 4 },
-        float:       { name: "float" },
+        float:       { name: "float", limit: 24 },
         decimal:     { name: "decimal" },
         datetime:    { name: "datetime" },
         timestamp:   { name: "timestamp" },
@@ -47,9 +42,9 @@ module ActiveRecord
         json:        { name: "json" },
       }
 
-      class StatementPool < ConnectionAdapters::StatementPool
+      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
-          stmt[:stmt].close
+          stmt.close
         end
       end
 
@@ -120,11 +115,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
       end
 
       def native_database_types
@@ -228,7 +223,7 @@ module ActiveRecord
         end
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "VALUES ()"
       end
 
@@ -252,7 +247,7 @@ module ActiveRecord
       #   create_database 'matt_development', charset: :big5
       def create_database(name, options = {})
         if options[:collation]
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')} COLLATE #{quote_table_name(options[:collation])}"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         else
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
         end
@@ -287,7 +282,7 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<-SQL.strip_heredoc, "SCHEMA")
+        query_value(<<~SQL, "SCHEMA").presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
@@ -295,14 +290,10 @@ module ActiveRecord
         SQL
       end
 
-      def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "ENGINE=InnoDB", **options)
-      end
-
       def bulk_change_table(table_name, operations) #:nodoc:
         sqls = operations.flat_map do |command, args|
           table, arguments = args.shift, args
-          method = :"#{command}_sql"
+          method = :"#{command}_for_alter"
 
           if respond_to?(method, true)
             send(method, table, *arguments)
@@ -312,6 +303,11 @@ module ActiveRecord
         end.join(", ")
 
         execute("ALTER TABLE #{quote_table_name(table_name)} #{sqls}")
+      end
+
+      def change_table_comment(table_name, comment) #:nodoc:
+        comment = "" if comment.nil?
+        execute("ALTER TABLE #{quote_table_name(table_name)} COMMENT #{quote(comment)}")
       end
 
       # Renames a table.
@@ -354,26 +350,27 @@ module ActiveRecord
 
       def change_column_default(table_name, column_name, default_or_changes) #:nodoc:
         default = extract_new_default_value(default_or_changes)
-        column = column_for(table_name, column_name)
-        change_column table_name, column_name, column.sql_type, default: default
+        change_column table_name, column_name, nil, default: default
       end
 
       def change_column_null(table_name, column_name, null, default = nil) #:nodoc:
-        column = column_for(table_name, column_name)
-
         unless null || default.nil?
           execute("UPDATE #{quote_table_name(table_name)} SET #{quote_column_name(column_name)}=#{quote(default)} WHERE #{quote_column_name(column_name)} IS NULL")
         end
 
-        change_column table_name, column_name, column.sql_type, null: null
+        change_column table_name, column_name, nil, null: null
+      end
+
+      def change_column_comment(table_name, column_name, comment) #:nodoc:
+        change_column table_name, column_name, nil, comment: comment
       end
 
       def change_column(table_name, column_name, type, options = {}) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_sql(table_name, column_name, type, options)}")
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{change_column_for_alter(table_name, column_name, type, options)}")
       end
 
       def rename_column(table_name, column_name, new_column_name) #:nodoc:
-        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_sql(table_name, column_name, new_column_name)}")
+        execute("ALTER TABLE #{quote_table_name(table_name)} #{rename_column_for_alter(table_name, column_name, new_column_name)}")
         rename_column_indexes(table_name, column_name, new_column_name)
       end
 
@@ -393,19 +390,20 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
+        fk_info = exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
                  fk.constraint_name AS 'name',
                  rc.update_rule AS 'on_update',
                  rc.delete_rule AS 'on_delete'
-          FROM information_schema.key_column_usage fk
-          JOIN information_schema.referential_constraints rc
+          FROM information_schema.referential_constraints rc
+          JOIN information_schema.key_column_usage fk
           USING (constraint_schema, constraint_name)
           WHERE fk.referenced_column_name IS NOT NULL
             AND fk.table_schema = #{scope[:schema]}
             AND fk.table_name = #{scope[:name]}
+            AND rc.constraint_schema = #{scope[:schema]}
             AND rc.table_name = #{scope[:name]}
         SQL
 
@@ -480,7 +478,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<-SQL.strip_heredoc, "SCHEMA")
+        query_values(<<~SQL, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
@@ -515,7 +513,7 @@ module ActiveRecord
           s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-        [super, *order_columns].join(", ")
+        (order_columns << super).join(", ")
       end
 
       def strict_mode?
@@ -526,26 +524,52 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures(*)
-        without_sql_mode("NO_AUTO_VALUE_ON_ZERO") { super }
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        with_multi_statements do
+          super { discard_remaining_results }
+        end
       end
 
       private
-
-        def without_sql_mode(mode)
-          result = execute("SELECT @@SESSION.sql_mode")
-          current_mode = result.first[0]
-          return yield unless current_mode.include?(mode)
-
-          sql_mode = "REPLACE(@@sql_mode, '#{mode}', '')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
-          yield
-        ensure
-          sql_mode = "CONCAT(@@sql_mode, ',#{mode}')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+        def combine_multi_statements(total_sql)
+          total_sql.each_with_object([]) do |sql, total_sql_chunks|
+            previous_packet = total_sql_chunks.last
+            sql << ";\n"
+            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
+              total_sql_chunks << sql
+            else
+              previous_packet << sql
+            end
+          end
         end
 
-        def initialize_type_map(m)
+        def max_allowed_packet_reached?(current_packet, previous_packet)
+          if current_packet.bytesize > max_allowed_packet
+            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
+          elsif previous_packet.nil?
+            false
+          else
+            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+          end
+        end
+
+        def max_allowed_packet
+          bytes_margin = 2
+          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
+        end
+
+        def with_multi_statements
+          previous_flags = @config[:flags]
+          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+          reconnect!
+
+          yield
+        ensure
+          @config[:flags] = previous_flags
+          reconnect!
+        end
+
+        def initialize_type_map(m = type_map)
           super
 
           register_class_with_limit m, %r(char)i, MysqlString
@@ -560,7 +584,6 @@ module ActiveRecord
           m.register_type %r(longblob)i,   Type::Binary.new(limit: 2**32 - 1)
           m.register_type %r(^float)i,     Type::Float.new(limit: 24)
           m.register_type %r(^double)i,    Type::Float.new(limit: 53)
-          m.register_type %r(^json)i,      Type::Json.new
 
           register_integer_type m, %r(^bigint)i,    limit: 8
           register_integer_type m, %r(^int)i,       limit: 4
@@ -603,25 +626,6 @@ module ActiveRecord
           end
         end
 
-        def add_index_length(quoted_columns, **options)
-          if length = options[:length]
-            case length
-            when Hash
-              length = length.symbolize_keys
-              quoted_columns.each { |name, column| column << "(#{length[name]})" if length[name].present? }
-            when Integer
-              quoted_columns.each { |name, column| column << "(#{length})" }
-            end
-          end
-
-          quoted_columns
-        end
-
-        def add_options_for_index_columns(quoted_columns, **options)
-          quoted_columns = add_index_length(quoted_columns, options)
-          super
-        end
-
         # See https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
@@ -632,6 +636,9 @@ module ActiveRecord
         ER_LOCK_DEADLOCK        = 1213
         ER_CANNOT_ADD_FOREIGN   = 1215
         ER_CANNOT_CREATE_TABLE  = 1005
+        ER_LOCK_WAIT_TIMEOUT    = 1205
+        ER_QUERY_INTERRUPTED    = 1317
+        ER_QUERY_TIMEOUT        = 3024
 
         def translate_exception(exception, message)
           case error_number(exception)
@@ -655,19 +662,20 @@ module ActiveRecord
             NotNullViolation.new(message)
           when ER_LOCK_DEADLOCK
             Deadlocked.new(message)
+          when ER_LOCK_WAIT_TIMEOUT
+            LockWaitTimeout.new(message)
+          when ER_QUERY_TIMEOUT
+            StatementTimeout.new(message)
+          when ER_QUERY_INTERRUPTED
+            QueryCanceled.new(message)
           else
             super
           end
         end
 
-        def add_column_sql(table_name, column_name, type, options = {})
-          td = create_table_definition(table_name)
-          cd = td.new_column_definition(column_name, type, options)
-          schema_creation.accept(AddColumnDefinition.new(cd))
-        end
-
-        def change_column_sql(table_name, column_name, type, options = {})
+        def change_column_for_alter(table_name, column_name, type, options = {})
           column = column_for(table_name, column_name)
+          type ||= column.sql_type
 
           unless options.key?(:default)
             options[:default] = column.default
@@ -686,7 +694,7 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def rename_column_sql(table_name, column_name, new_column_name)
+        def rename_column_for_alter(table_name, column_name, new_column_name)
           column  = column_for(table_name, column_name)
           options = {
             default: column.default,
@@ -700,31 +708,23 @@ module ActiveRecord
           schema_creation.accept(ChangeColumnDefinition.new(cd, column.name))
         end
 
-        def remove_column_sql(table_name, column_name, type = nil, options = {})
-          "DROP #{quote_column_name(column_name)}"
-        end
-
-        def remove_columns_sql(table_name, *column_names)
-          column_names.map { |column_name| remove_column_sql(table_name, column_name) }
-        end
-
-        def add_index_sql(table_name, column_name, options = {})
+        def add_index_for_alter(table_name, column_name, options = {})
           index_name, index_type, index_columns, _, index_algorithm, index_using = add_index_options(table_name, column_name, options)
           index_algorithm[0, 0] = ", " if index_algorithm.present?
           "ADD #{index_type} INDEX #{quote_column_name(index_name)} #{index_using} (#{index_columns})#{index_algorithm}"
         end
 
-        def remove_index_sql(table_name, options = {})
+        def remove_index_for_alter(table_name, options = {})
           index_name = index_name_for_remove(table_name, options)
-          "DROP INDEX #{index_name}"
+          "DROP INDEX #{quote_column_name(index_name)}"
         end
 
-        def add_timestamps_sql(table_name, options = {})
-          [add_column_sql(table_name, :created_at, :datetime, options), add_column_sql(table_name, :updated_at, :datetime, options)]
+        def add_timestamps_for_alter(table_name, options = {})
+          [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
         end
 
-        def remove_timestamps_sql(table_name, options = {})
-          [remove_column_sql(table_name, :updated_at), remove_column_sql(table_name, :created_at)]
+        def remove_timestamps_for_alter(table_name, options = {})
+          [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
         end
 
         # MySQL is too stupid to create a temporary table for use subquery, so we have
@@ -737,7 +737,8 @@ module ActiveRecord
           # to work with MySQL 5.7.6 which sets optimizer_switch='derived_merge=on'
           subselect.distinct unless select.limit || select.offset || select.orders.any?
 
-          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key.name))
+          key_name = quote_column_name(key.name)
+          Arel::SelectManager.new(subselect.as("__active_record_temp")).project(Arel.sql(key_name))
         end
 
         def supports_rename_index?
@@ -758,7 +759,7 @@ module ActiveRecord
           defaults = [":default", :default].to_set
 
           # Make MySQL reject illegal values rather than truncating or blanking them, see
-          # http://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
+          # https://dev.mysql.com/doc/refman/5.7/en/sql-mode.html#sqlmode_strict_all_tables
           # If the user has provided another value for sql_mode, don't replace it.
           if sql_mode = variables.delete("sql_mode")
             sql_mode = quote(sql_mode)
@@ -775,7 +776,7 @@ module ActiveRecord
           sql_mode_assignment = "@@SESSION.sql_mode = #{sql_mode}, " if sql_mode
 
           # NAMES does not have an equals sign, see
-          # http://dev.mysql.com/doc/refman/5.7/en/set-statement.html#id944430
+          # https://dev.mysql.com/doc/refman/5.7/en/set-names.html
           # (trailing comma because variable_assignments will always have content)
           if @config[:encoding]
             encoding = "NAMES #{@config[:encoding]}".dup
@@ -861,8 +862,8 @@ module ActiveRecord
         class MysqlString < Type::String # :nodoc:
           def serialize(value)
             case value
-            when true then MySQL::Quoting::QUOTED_TRUE
-            when false then MySQL::Quoting::QUOTED_FALSE
+            when true then "1"
+            when false then "0"
             else super
             end
           end
@@ -871,8 +872,8 @@ module ActiveRecord
 
             def cast_value(value)
               case value
-              when true then MySQL::Quoting::QUOTED_TRUE
-              when false then MySQL::Quoting::QUOTED_FALSE
+              when true then "1"
+              when false then "0"
               else super
               end
             end

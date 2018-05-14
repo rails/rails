@@ -93,19 +93,21 @@ require 'bundler/setup' # Set up gems listed in the Gemfile.
 
 In a standard Rails application, there's a `Gemfile` which declares all
 dependencies of the application. `config/boot.rb` sets
-`ENV['BUNDLE_GEMFILE']` to the location of this file. If the Gemfile
+`ENV['BUNDLE_GEMFILE']` to the location of this file. If the `Gemfile`
 exists, then `bundler/setup` is required. The require is used by Bundler to
 configure the load path for your Gemfile's dependencies.
 
 A standard Rails application depends on several gems, specifically:
 
+* actioncable
 * actionmailer
 * actionpack
 * actionview
+* activejob
 * activemodel
 * activerecord
+* activestorage
 * activesupport
-* activejob
 * arel
 * builder
 * bundler
@@ -114,8 +116,6 @@ A standard Rails application depends on several gems, specifically:
 * mail
 * mime-types
 * rack
-* rack-cache
-* rack-mount
 * rack-test
 * rails
 * railties
@@ -131,7 +131,7 @@ Once `config/boot.rb` has finished, the next file that is required is
 `ARGV` array simply contains `server` which will be passed over:
 
 ```ruby
-require "rails/command"
+require_relative "command"
 
 aliases = {
   "g"  => "generate",
@@ -170,7 +170,7 @@ module Rails::Command
       namespace = namespace.to_s
       namespace = "help" if namespace.blank? || HELP_MAPPINGS.include?(namespace)
       namespace = "version" if %w( -v --version ).include? namespace
-    
+
       if command = find_by_namespace(namespace)
         command.perform(namespace, args, config)
       else
@@ -189,7 +189,7 @@ module Rails
     class ServerCommand < Base # :nodoc:
       def perform
         set_application_directory!
-  
+
         Rails::Server.new.tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
@@ -311,7 +311,7 @@ def parse!(args)
   args, options = args.dup, {}
 
   option_parser(options).parse! args
-  
+
   options[:log_stdout] = options[:daemonize].blank? && (options[:environment] || Rails.env) == "development"
   options[:server]     = args.shift
   options
@@ -366,11 +366,11 @@ private
 
   def log_to_stdout
     wrapped_app # touch the app so the logger is set up
-  
+
     console = ActiveSupport::Logger.new(STDOUT)
     console.formatter = Rails.logger.formatter
     console.level = Rails.logger.level
-  
+
     unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDOUT)
       Rails.logger.extend(ActiveSupport::Logger.broadcast(console))
     end
@@ -532,6 +532,7 @@ require "rails"
 
 %w(
   active_record/railtie
+  active_storage/engine
   action_controller/railtie
   action_view/railtie
   action_mailer/railtie

@@ -23,7 +23,7 @@ class Topic
     true
   end
 
-  def condition_is_true_but_its_not
+  def condition_is_false
     false
   end
 

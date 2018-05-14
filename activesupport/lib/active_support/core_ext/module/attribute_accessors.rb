@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require_relative "../array/extract_options"
-require_relative "../regexp"
+require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
@@ -163,10 +163,10 @@ class Module
   # parent class. Similarly if parent class changes the value then that would
   # change the value of subclasses too.
   #
-  #   class Male < Person
+  #   class Citizen < Person
   #   end
   #
-  #   Male.new.hair_colors << :blue
+  #   Citizen.new.hair_colors << :blue
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActionCable
@@ -9,7 +11,7 @@ module ActionCable
         class_attribute :identifiers, default: Set.new
       end
 
-      class_methods do
+      module ClassMethods
         # Mark a key as being a connection identifier index that can then be used to find the specific connection again later.
         # Common identifiers are current_user and current_account, but could be anything, really.
         #

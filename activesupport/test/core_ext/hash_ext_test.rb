@@ -45,8 +45,6 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :deep_stringify_keys!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
-    assert_respond_to h, :compact
-    assert_respond_to h, :compact!
     assert_respond_to h, :except
     assert_respond_to h, :except!
   end
@@ -446,7 +444,7 @@ class HashExtTest < ActiveSupport::TestCase
     original.freeze
     assert_nothing_raised { original.except(:a) }
 
-    assert_raise(RuntimeError) { original.except!(:a) }
+    assert_raise(frozen_error_class) { original.except!(:a) }
   end
 
   def test_except_does_not_delete_values_in_original
@@ -456,38 +454,10 @@ class HashExtTest < ActiveSupport::TestCase
     end
   end
 
-  def test_compact
-    hash_contain_nil_value = @symbols.merge(z: nil)
-    hash_with_only_nil_values = { a: nil, b: nil }
-
-    h = hash_contain_nil_value.dup
-    assert_equal(@symbols, h.compact)
-    assert_equal(hash_contain_nil_value, h)
-
-    h = hash_with_only_nil_values.dup
-    assert_equal({}, h.compact)
-    assert_equal(hash_with_only_nil_values, h)
-
-    h = @symbols.dup
-    assert_equal(@symbols, h.compact)
-    assert_equal(@symbols, h)
-  end
-
-  def test_compact!
-    hash_contain_nil_value = @symbols.merge(z: nil)
-    hash_with_only_nil_values = { a: nil, b: nil }
-
-    h = hash_contain_nil_value.dup
-    assert_equal(@symbols, h.compact!)
-    assert_equal(@symbols, h)
-
-    h = hash_with_only_nil_values.dup
-    assert_equal({}, h.compact!)
-    assert_equal({}, h)
-
-    h = @symbols.dup
-    assert_nil(h.compact!)
-    assert_equal(@symbols, h)
+  def test_requiring_compact_is_deprecated
+    assert_deprecated do
+      require "active_support/core_ext/hash/compact"
+    end
   end
 end
 
@@ -1061,7 +1031,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
 
@@ -1072,7 +1042,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal Time.utc(2008, 2, 10, 15, 30, 45), alert_at
   end
 
@@ -1083,7 +1053,7 @@ class HashToXmlTest < ActiveSupport::TestCase
       </alert>
     XML
     alert_at = Hash.from_xml(alert_xml)["alert"]["alert_at"]
-    assert alert_at.utc?
+    assert_predicate alert_at, :utc?
     assert_equal 2050,  alert_at.year
     assert_equal 2,     alert_at.month
     assert_equal 10,    alert_at.day

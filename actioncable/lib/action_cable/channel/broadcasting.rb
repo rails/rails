@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/to_param"
 
 module ActionCable
@@ -7,7 +9,7 @@ module ActionCable
 
       delegate :broadcasting_for, to: :class
 
-      class_methods do
+      module ClassMethods
         # Broadcast a hash to a unique broadcasting for this <tt>model</tt> in this channel.
         def broadcast_to(model, message)
           ActionCable.server.broadcast(broadcasting_for([ channel_name, model ]), message)

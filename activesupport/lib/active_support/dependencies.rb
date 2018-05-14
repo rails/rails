@@ -4,17 +4,17 @@ require "set"
 require "thread"
 require "concurrent/map"
 require "pathname"
-require_relative "core_ext/module/aliasing"
-require_relative "core_ext/module/attribute_accessors"
-require_relative "core_ext/module/introspection"
-require_relative "core_ext/module/anonymous"
-require_relative "core_ext/object/blank"
-require_relative "core_ext/kernel/reporting"
-require_relative "core_ext/load_error"
-require_relative "core_ext/name_error"
-require_relative "core_ext/string/starts_ends_with"
-require_relative "dependencies/interlock"
-require_relative "inflector"
+require "active_support/core_ext/module/aliasing"
+require "active_support/core_ext/module/attribute_accessors"
+require "active_support/core_ext/module/introspection"
+require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/object/blank"
+require "active_support/core_ext/kernel/reporting"
+require "active_support/core_ext/load_error"
+require "active_support/core_ext/name_error"
+require "active_support/core_ext/string/starts_ends_with"
+require "active_support/dependencies/interlock"
+require "active_support/inflector"
 
 module ActiveSupport #:nodoc:
   module Dependencies #:nodoc:
@@ -85,7 +85,7 @@ module ActiveSupport #:nodoc:
     # handles the new constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
-    # autoloaded_constants. If it was being `require`d, they will be discarded.
+    # autoloaded_constants. If it was being required, they will be discarded.
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb.
@@ -447,6 +447,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
+      autoloaded_constants.uniq!
       mod
     end
 
@@ -615,7 +616,7 @@ module ActiveSupport #:nodoc:
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
-      return autoloaded_constants.include?(name)
+      autoloaded_constants.include?(name)
     end
 
     # Will the provided constant descriptor be unloaded?
@@ -670,7 +671,7 @@ module ActiveSupport #:nodoc:
       when Module
         desc.name ||
           raise(ArgumentError, "Anonymous modules have no name to be referenced by")
-        else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
+      else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -277,7 +279,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = Topic.new(content: nil)
 
-    assert_not topic.content_changed?
+    assert_not_predicate topic, :content_changed?
   end
 
   def test_classes_without_no_arg_constructors_are_not_supported
@@ -347,7 +349,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = model.create!(foo: "bar")
     topic.foo
-    refute topic.changed?
+    assert_not_predicate topic, :changed?
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access

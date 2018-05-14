@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "duration"
-require_relative "values/time_zone"
-require_relative "core_ext/object/acts_like"
-require_relative "core_ext/date_and_time/compatibility"
+require "active_support/duration"
+require "active_support/values/time_zone"
+require "active_support/core_ext/object/acts_like"
+require "active_support/core_ext/date_and_time/compatibility"
 
 module ActiveSupport
   # A Time-like class that can represent a time in any time zone. Necessary
@@ -225,6 +225,8 @@ module ActiveSupport
     def <=>(other)
       utc <=> other
     end
+    alias_method :before?, :<
+    alias_method :after?, :>
 
     # Returns true if the current object's time is within the specified
     # +min+ and +max+ time.

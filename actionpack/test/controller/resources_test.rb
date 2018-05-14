@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object/try"
 require "active_support/core_ext/object/with_options"
@@ -305,7 +307,7 @@ class ResourcesTest < ActionController::TestCase
         set.draw do
           resources :messages do
             member do
-              match :mark  , via: method
+              match :mark, via: method
               match :unmark, via: method
             end
           end
@@ -941,8 +943,8 @@ class ResourcesTest < ActionController::TestCase
       assert_resource_allowed_routes("products", {},                    { id: "1" }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
       assert_resource_allowed_routes("products", { format: "xml" },  { id: "1" }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
 
-      assert_recognizes({ controller: "products", action: "sale" },                   path: "products/sale",     method: :get)
-      assert_recognizes({ controller: "products", action: "sale", format: "xml" }, path: "products/sale.xml", method: :get)
+      assert_recognizes({ controller: "products", action: "sale" },                   { path: "products/sale",     method: :get })
+      assert_recognizes({ controller: "products", action: "sale", format: "xml" }, { path: "products/sale.xml", method: :get })
     end
   end
 
@@ -957,8 +959,8 @@ class ResourcesTest < ActionController::TestCase
       assert_resource_allowed_routes("products", {},                    { id: "1" }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
       assert_resource_allowed_routes("products", { format: "xml" },  { id: "1" }, [], [:index, :new, :create, :show, :edit, :update, :destroy])
 
-      assert_recognizes({ controller: "products", action: "preview", id: "1" },                    path: "products/1/preview",      method: :get)
-      assert_recognizes({ controller: "products", action: "preview", id: "1", format: "xml" },  path: "products/1/preview.xml",  method: :get)
+      assert_recognizes({ controller: "products", action: "preview", id: "1" },                    { path: "products/1/preview",      method: :get })
+      assert_recognizes({ controller: "products", action: "preview", id: "1", format: "xml" },  { path: "products/1/preview.xml",  method: :get })
     end
   end
 
@@ -975,8 +977,8 @@ class ResourcesTest < ActionController::TestCase
       assert_singleton_resource_allowed_routes("accounts", {},                    [], [:new, :create, :show, :edit, :update, :destroy])
       assert_singleton_resource_allowed_routes("accounts", { format: "xml" },  [], [:new, :create, :show, :edit, :update, :destroy])
 
-      assert_recognizes({ controller: "accounts", action: "signup" },                   path: "account/signup",      method: :get)
-      assert_recognizes({ controller: "accounts", action: "signup", format: "xml" }, path: "account/signup.xml",  method: :get)
+      assert_recognizes({ controller: "accounts", action: "signup" },                   { path: "account/signup",      method: :get })
+      assert_recognizes({ controller: "accounts", action: "signup", format: "xml" }, { path: "account/signup.xml",  method: :get })
     end
   end
 
@@ -993,8 +995,8 @@ class ResourcesTest < ActionController::TestCase
       assert_resource_allowed_routes("images", { product_id: "1" },                    { id: "2" }, :show, [:index, :new, :create, :edit, :update, :destroy], "products/1/images")
       assert_resource_allowed_routes("images", { product_id: "1", format: "xml" },  { id: "2" }, :show, [:index, :new, :create, :edit, :update, :destroy], "products/1/images")
 
-      assert_recognizes({ controller: "images", action: "thumbnail", product_id: "1", id: "2" },                    path: "products/1/images/2/thumbnail", method: :get)
-      assert_recognizes({ controller: "images", action: "thumbnail", product_id: "1", id: "2", format: "jpg" },  path: "products/1/images/2/thumbnail.jpg", method: :get)
+      assert_recognizes({ controller: "images", action: "thumbnail", product_id: "1", id: "2" },                    { path: "products/1/images/2/thumbnail", method: :get })
+      assert_recognizes({ controller: "images", action: "thumbnail", product_id: "1", id: "2", format: "jpg" },  { path: "products/1/images/2/thumbnail.jpg", method: :get })
     end
   end
 
@@ -1067,7 +1069,7 @@ class ResourcesTest < ActionController::TestCase
         match "/products", to: "products#show", via: :all
       end
 
-      assert_routing({ method: "all", path: "/products" }, controller: "products", action: "show")
+      assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
     end
   end
 
@@ -1078,7 +1080,7 @@ class ResourcesTest < ActionController::TestCase
       end
 
       assert_raises(Minitest::Assertion) do
-        assert_routing({ method: "all", path: "/products" }, controller: "products", action: "show")
+        assert_routing({ method: "all", path: "/products" }, { controller: "products", action: "show" })
       end
     end
   end

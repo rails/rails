@@ -1,12 +1,10 @@
-*   Allow Action Mailer classes to configure their delivery job.
+*   Perform email jobs in `assert_emails`.
 
-        class MyMailer < ApplicationMailer
-          self.delivery_job = MyCustomDeliveryJob
+    *Gannon McGibbon*
 
-          ...
-        end
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    *Matthew Mongeau*
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionmailer/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionmailer/CHANGELOG.md) for previous changes.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Application
     class DefaultMiddlewareStack
@@ -61,9 +63,15 @@ module Rails
             middleware.use ::ActionDispatch::Flash
           end
 
+          unless config.api_only
+            middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
+          end
+
           middleware.use ::Rack::Head
           middleware.use ::Rack::ConditionalGet
           middleware.use ::Rack::ETag, "no-cache"
+
+          middleware.use ::Rack::TempfileReaper unless config.api_only
         end
       end
 

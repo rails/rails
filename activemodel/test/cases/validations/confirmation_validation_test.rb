@@ -14,27 +14,40 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     Topic.validates_confirmation_of(:title)
 
     t = Topic.new(author_name: "Plutarch")
-    assert t.valid?
+    assert_predicate t, :valid?
 
     t.title_confirmation = "Parallel Lives"
-    assert t.invalid?
+    assert_predicate t, :invalid?
 
     t.title_confirmation = nil
     t.title = "Parallel Lives"
-    assert t.valid?
+    assert_predicate t, :valid?
 
     t.title_confirmation = "Parallel Lives"
-    assert t.valid?
+    assert_predicate t, :valid?
   end
 
   def test_title_confirmation
     Topic.validates_confirmation_of(:title)
 
     t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
-    assert t.invalid?
+    assert_predicate t, :invalid?
 
     t.title_confirmation = "We should be confirmed"
-    assert t.valid?
+    assert_predicate t, :valid?
+  end
+
+  def test_validates_confirmation_of_with_boolean_attribute
+    Topic.validates_confirmation_of(:approved)
+
+    t = Topic.new(approved: true, approved_confirmation: nil)
+    assert_predicate t, :valid?
+
+    t.approved_confirmation = false
+    assert_predicate t, :invalid?
+
+    t.approved_confirmation = true
+    assert_predicate t, :valid?
   end
 
   def test_validates_confirmation_of_for_ruby_class
@@ -42,12 +55,12 @@ class ConfirmationValidationTest < ActiveModel::TestCase
 
     p = Person.new
     p.karma_confirmation = "None"
-    assert p.invalid?
+    assert_predicate p, :invalid?
 
     assert_equal ["doesn't match Karma"], p.errors[:karma_confirmation]
 
     p.karma = "None"
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end
@@ -64,7 +77,7 @@ class ConfirmationValidationTest < ActiveModel::TestCase
       Topic.validates_confirmation_of(:title)
 
       t = Topic.new("title" => "We should be confirmed", "title_confirmation" => "")
-      assert t.invalid?
+      assert_predicate t, :invalid?
       assert_equal ["doesn't match Test Title"], t.errors[:title_confirmation]
     ensure
       I18n.load_path.replace @old_load_path
@@ -109,13 +122,13 @@ class ConfirmationValidationTest < ActiveModel::TestCase
     Topic.validates_confirmation_of(:title, case_sensitive: true)
 
     t = Topic.new(title: "title", title_confirmation: "Title")
-    assert t.invalid?
+    assert_predicate t, :invalid?
   end
 
   def test_title_confirmation_with_case_sensitive_option_false
     Topic.validates_confirmation_of(:title, case_sensitive: false)
 
     t = Topic.new(title: "title", title_confirmation: "Title")
-    assert t.valid?
+    assert_predicate t, :valid?
   end
 end

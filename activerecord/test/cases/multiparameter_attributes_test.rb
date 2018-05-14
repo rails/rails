@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/customer"
@@ -225,7 +227,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.local(2004, 6, 24, 16, 24, 0), topic.written_on
-      assert_equal false, topic.written_on.respond_to?(:time_zone)
+      assert_not_respond_to topic.written_on, :time_zone
     end
   end
 
@@ -240,7 +242,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       topic = Topic.find(1)
       topic.attributes = attributes
       assert_equal Time.utc(2004, 6, 24, 16, 24, 0), topic.written_on
-      assert_equal false, topic.written_on.respond_to?(:time_zone)
+      assert_not_respond_to topic.written_on, :time_zone
     end
   ensure
     Topic.skip_time_zone_conversion_for_attributes = []
@@ -259,7 +261,7 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
         topic = Topic.find(1)
         topic.attributes = attributes
         assert_equal Time.zone.local(2000, 1, 1, 16, 24, 0), topic.bonus_time
-        assert_not topic.bonus_time.utc?
+        assert_not_predicate topic.bonus_time, :utc?
 
         attributes = {
           "written_on(1i)" => "2000", "written_on(2i)" => "", "written_on(3i)" => "",
@@ -392,6 +394,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       "written_on(4i)" => "13",
       "written_on(5i)" => "55",
     )
-    refute_predicate topic, :written_on_came_from_user?
+    assert_not_predicate topic, :written_on_came_from_user?
   end
 end

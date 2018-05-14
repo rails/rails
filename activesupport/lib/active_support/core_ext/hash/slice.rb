@@ -21,9 +21,8 @@ class Hash
   #   valid_keys = [:mass, :velocity, :time]
   #   search(options.slice(*valid_keys))
   def slice(*keys)
-    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
-    keys.each_with_object(self.class.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
-  end
+    keys.each_with_object(Hash.new) { |k, hash| hash[k] = self[k] if has_key?(k) }
+  end unless method_defined?(:slice)
 
   # Replaces the hash with only the given keys.
   # Returns a hash containing the removed key/value pairs.
@@ -31,7 +30,6 @@ class Hash
   #   { a: 1, b: 2, c: 3, d: 4 }.slice!(:a, :b)
   #   # => {:c=>3, :d=>4}
   def slice!(*keys)
-    keys.map! { |key| convert_key(key) } if respond_to?(:convert_key, true)
     omit = slice(*self.keys - keys)
     hash = slice(*keys)
     hash.default      = default

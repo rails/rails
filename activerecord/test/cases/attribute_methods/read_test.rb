@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -10,7 +12,7 @@ module ActiveRecord
       def setup
         @klass = Class.new(Class.new { def self.initialize_generated_modules; end }) do
           def self.superclass; Base; end
-          def self.base_class; self; end
+          def self.base_class?; true; end
           def self.decorate_matching_attribute_types(*); end
 
           include ActiveRecord::DefineCallbacks

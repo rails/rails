@@ -5,6 +5,7 @@ require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
 require "time_zone_test_helpers"
+require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -15,30 +16,30 @@ class DurationTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
     assert_kind_of Integer, d
-    assert !d.is_a?(Hash)
+    assert_not d.is_a?(Hash)
 
     k = Class.new
     class << k; undef_method :== end
-    assert !d.is_a?(k)
+    assert_not d.is_a?(k)
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(1.class)
+    assert 1.minute.instance_of?(Integer)
     assert 2.days.instance_of?(ActiveSupport::Duration)
-    assert !3.second.instance_of?(Numeric)
+    assert_not 3.second.instance_of?(Numeric)
   end
 
   def test_threequals
     assert ActiveSupport::Duration === 1.day
-    assert !(ActiveSupport::Duration === 1.day.to_i)
-    assert !(ActiveSupport::Duration === "foo")
+    assert_not (ActiveSupport::Duration === 1.day.to_i)
+    assert_not (ActiveSupport::Duration === "foo")
   end
 
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
     assert 1.day.to_i == 1.day
-    assert !(1.day == "foo")
+    assert_not (1.day == "foo")
   end
 
   def test_to_s
@@ -52,11 +53,11 @@ class DurationTest < ActiveSupport::TestCase
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)
     assert 2.days.eql?(48.hours)
-    assert !1.second.eql?(1)
-    assert !1.eql?(1.second)
+    assert_not 1.second.eql?(1)
+    assert_not 1.eql?(1.second)
     assert 1.minute.eql?(180.seconds - 2.minutes)
-    assert !1.minute.eql?(60)
-    assert !1.minute.eql?("foo")
+    assert_not 1.minute.eql?(60)
+    assert_not 1.minute.eql?("foo")
   end
 
   def test_inspect
@@ -71,6 +72,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "7 days",                          7.days.inspect
     assert_equal "1 week",                          1.week.inspect
     assert_equal "2 weeks",                         1.fortnight.inspect
+    assert_equal "0 seconds",                       (10 % 5.seconds).inspect
+    assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
   end
 
   def test_inspect_locale
@@ -111,7 +114,44 @@ class DurationTest < ActiveSupport::TestCase
   def test_divide
     assert_equal 1.day, 7.days / 7
     assert_instance_of ActiveSupport::Duration, 7.days / 7
+
+    assert_equal 1.hour, 1.day / 24
+    assert_instance_of ActiveSupport::Duration, 1.day / 24
+
+    assert_equal 24, 86400 / 1.hour
+    assert_kind_of Integer, 86400 / 1.hour
+
+    assert_equal 24, 1.day / 1.hour
+    assert_kind_of Integer, 1.day / 1.hour
+
     assert_equal 1, 1.day / 1.day
+    assert_kind_of Integer, 1.day / 1.hour
+  end
+
+  def test_modulo
+    assert_equal 1.minute, 5.minutes % 120
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 120
+
+    assert_equal 1.minute, 5.minutes % 2.minutes
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 2.minutes
+
+    assert_equal 1.minute, 5.minutes % 120.seconds
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 120.seconds
+
+    assert_equal 5.minutes, 5.minutes % 1.hour
+    assert_instance_of ActiveSupport::Duration, 5.minutes % 1.hour
+
+    assert_equal 1.day, 36.days % 604800
+    assert_instance_of ActiveSupport::Duration, 36.days % 604800
+
+    assert_equal 1.day, 36.days % 7.days
+    assert_instance_of ActiveSupport::Duration, 36.days % 7.days
+
+    assert_equal 800.seconds, 8000 % 1.hour
+    assert_instance_of ActiveSupport::Duration, 8000 % 1.hour
+
+    assert_equal 1.month, 13.months % 1.year
+    assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
   def test_date_added_with_multiplied_duration
@@ -123,7 +163,7 @@ class DurationTest < ActiveSupport::TestCase
   end
 
   def test_time_plus_duration_returns_same_time_datatype
-    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"] , Time.utc(2016, 4, 28, 00, 45))
+    twz = ActiveSupport::TimeWithZone.new(nil, ActiveSupport::TimeZone["Moscow"], Time.utc(2016, 4, 28, 00, 45))
     now = Time.now.utc
     %w( second minute hour day week month year ).each do |unit|
       assert_equal((now + 1.send(unit)).class, Time, "Time + 1.#{unit} must be Time")
@@ -410,9 +450,9 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal 5, scalar / 2
     assert_instance_of ActiveSupport::Duration::Scalar, scalar / 2
     assert_equal 10, 100.seconds / scalar
-    assert_instance_of ActiveSupport::Duration, 2.seconds * scalar
+    assert_instance_of ActiveSupport::Duration, 100.seconds / scalar
     assert_equal 5, scalar / 2.seconds
-    assert_instance_of ActiveSupport::Duration, scalar / 2.seconds
+    assert_kind_of Integer, scalar / 2.seconds
 
     exception = assert_raises(TypeError) do
       scalar / "foo"
@@ -421,13 +461,29 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
   end
 
-  def test_scalar_divide_parts
+  def test_scalar_modulo
     scalar = ActiveSupport::Duration::Scalar.new(10)
 
-    assert_equal({ days: 2 }, (scalar / 5.days).parts)
-    assert_equal(172800, (scalar / 5.days).value)
-    assert_equal({ days: -2 }, (scalar / -5.days).parts)
-    assert_equal(-172800, (scalar / -5.days).value)
+    assert_equal 1, 31 % scalar
+    assert_instance_of ActiveSupport::Duration::Scalar, 31 % scalar
+    assert_equal 1, scalar % 3
+    assert_instance_of ActiveSupport::Duration::Scalar, scalar % 3
+    assert_equal 1, 31.seconds % scalar
+    assert_instance_of ActiveSupport::Duration, 31.seconds % scalar
+    assert_equal 1, scalar % 3.seconds
+    assert_instance_of ActiveSupport::Duration, scalar % 3.seconds
+
+    exception = assert_raises(TypeError) do
+      scalar % "foo"
+    end
+
+    assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_modulo_parts
+    scalar = ActiveSupport::Duration::Scalar.new(82800)
+    assert_equal({ hours: 1 }, (scalar % 2.hours).parts)
+    assert_equal(3600, (scalar % 2.hours).value)
   end
 
   def test_twelve_months_equals_one_year
@@ -585,6 +641,12 @@ class DurationTest < ActiveSupport::TestCase
     d2 = 2.months - 2.months
 
     assert_equal time + d1, time + d2
+  end
+
+  def test_durations_survive_yaml_serialization
+    d1 = YAML.load(YAML.dump(10.minutes))
+    assert_equal 600, d1.to_i
+    assert_equal 660, (d1 + 60).to_i
   end
 
   private

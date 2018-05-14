@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     # = Active Record Association Collection
@@ -43,6 +45,8 @@ module ActiveRecord
       def ids_reader
         if loaded?
           target.pluck(reflection.association_primary_key)
+        elsif !target.empty?
+          load_target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
@@ -50,14 +54,19 @@ module ActiveRecord
 
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
-        pk_type = reflection.association_primary_key_type
+        primary_key = reflection.association_primary_key
+        pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
-        records = klass.where(reflection.association_primary_key => ids).index_by do |r|
-          r.send(reflection.association_primary_key)
+
+        records = klass.where(primary_key => ids).index_by do |r|
+          r.public_send(primary_key)
         end.values_at(*ids).compact
+
         if records.size != ids.size
-          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, reflection.association_primary_key)
+          found_ids = records.map { |record| record.public_send(primary_key) }
+          not_found_ids = ids - found_ids
+          klass.all.raise_record_not_found_exception!(ids, records.size, ids.size, primary_key, not_found_ids)
         else
           replace(records)
         end
@@ -70,23 +79,25 @@ module ActiveRecord
       end
 
       def find(*args)
-        if block_given?
-          load_target.find(*args) { |*block_args| yield(*block_args) }
-        else
-          if options[:inverse_of] && loaded?
-            args_flatten = args.flatten
-            raise RecordNotFound, "Couldn't find #{scope.klass.name} without an ID" if args_flatten.blank?
-            result = find_by_scan(*args)
+        if options[:inverse_of] && loaded?
+          args_flatten = args.flatten
+          model = scope.klass
 
-            result_size = Array(result).size
-            if !result || result_size != args_flatten.size
-              scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
-            else
-              result
-            end
-          else
-            scope.find(*args)
+          if args_flatten.blank?
+            error_message = "Couldn't find #{model.name} without an ID"
+            raise RecordNotFound.new(error_message, model.name, model.primary_key, args)
           end
+
+          result = find_by_scan(*args)
+
+          result_size = Array(result).size
+          if !result || result_size != args_flatten.size
+            scope.raise_record_not_found_exception!(args_flatten, result_size, args_flatten.size)
+          else
+            result
+          end
+        else
+          scope.find(*args)
         end
       end
 
@@ -178,8 +189,6 @@ module ActiveRecord
       # are actually removed from the database, that depends precisely on
       # +delete_records+. They are in any case removed from the collection.
       def delete(*records)
-        return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, options[:dependent])
       end
 
@@ -189,8 +198,6 @@ module ActiveRecord
       # Note that this method removes records from the database ignoring the
       # +:dependent+ option.
       def destroy(*records)
-        return if records.empty?
-        records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
         delete_or_destroy(records, :destroy)
       end
 
@@ -207,9 +214,11 @@ module ActiveRecord
       def size
         if !find_target? || loaded?
           target.size
+        elsif @association_ids
+          @association_ids.size
         elsif !association_scope.group_values.empty?
           load_target.size
-        elsif !association_scope.distinct_value && target.is_a?(Array)
+        elsif !association_scope.distinct_value && !target.empty?
           unsaved_records = target.select(&:new_record?)
           unsaved_records.size + count_records
         else
@@ -226,10 +235,10 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded?
+        if loaded? || @association_ids
           size.zero?
         else
-          @target.blank? && !scope.exists?
+          target.empty? && !scope.exists?
         end
       end
 
@@ -302,15 +311,13 @@ module ActiveRecord
           return scope.to_a if skip_statement_cache?(scope)
 
           conn = klass.connection
-          sc = reflection.association_scope_cache(conn, owner) do
-            StatementCache.create(conn) { |params|
-              as = AssociationScope.create { params.bind }
-              target_scope.merge!(as.scope(self))
-            }
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self))
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass, conn) do |record|
+          sc.execute(binds, conn) do |record|
             set_inverse_instance(record)
           end
         end
@@ -375,6 +382,8 @@ module ActiveRecord
         end
 
         def delete_or_destroy(records, method)
+          return if records.empty?
+          records = find(records) if records.any? { |record| record.kind_of?(Integer) || record.kind_of?(String) }
           records = records.flatten
           records.each { |record| raise_on_type_mismatch!(record) }
           existing_records = records.reject(&:new_record?)

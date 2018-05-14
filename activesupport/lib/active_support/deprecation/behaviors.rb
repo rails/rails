@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../notifications"
+require "active_support/notifications"
 
 module ActiveSupport
   # Raised when <tt>ActiveSupport::Deprecation::Behavior#behavior</tt> is set with <tt>:raise</tt>.
@@ -27,7 +27,7 @@ module ActiveSupport
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
             else
-              require_relative "../logger"
+              require "active_support/logger"
               ActiveSupport::Logger.new($stderr)
             end
         logger.warn message
@@ -85,7 +85,7 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       #   ActiveSupport::Deprecation.behavior = MyCustomHandler
-      #   ActiveSupport::Deprecation.behavior = ->(message, callstack) {
+      #   ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
       #     # custom stuff
       #   }
       def behavior=(behavior)

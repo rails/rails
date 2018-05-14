@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class CaptureHelperTest < ActionView::TestCase
@@ -47,21 +49,21 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_multiple_calls
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title, "bar"
     assert_equal "foobar", content_for(:title)
   end
 
   def test_content_for_with_multiple_calls_and_flush
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title, "bar", flush: true
     assert_equal "bar", content_for(:title)
   end
 
   def test_content_for_with_block
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title do
       output_buffer << "foo"
       output_buffer << "bar"
@@ -71,7 +73,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_block_and_multiple_calls_with_flush
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title do
       "foo"
     end
@@ -82,7 +84,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_block_and_multiple_calls_with_flush_nil_content
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title do
       "foo"
     end
@@ -93,7 +95,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_block_and_multiple_calls_without_flush
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title do
       "foo"
     end
@@ -104,7 +106,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_whitespace_block
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title do
       output_buffer << "  \n  "
@@ -115,7 +117,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_with_whitespace_block_and_flush
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title, "foo"
     content_for :title, flush: true do
       output_buffer << "  \n  "
@@ -126,7 +128,7 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_returns_nil_when_writing
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     assert_nil content_for(:title, "foo")
     assert_nil content_for(:title) { output_buffer << "bar"; nil }
     assert_nil content_for(:title) { output_buffer << "  \n  "; nil }
@@ -142,27 +144,27 @@ class CaptureHelperTest < ActionView::TestCase
   end
 
   def test_content_for_question_mark
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title, "title"
     assert content_for?(:title)
-    assert ! content_for?(:something_else)
+    assert_not content_for?(:something_else)
   end
 
   def test_content_for_should_be_html_safe_after_flush_empty
-    assert ! content_for?(:title)
+    assert_not content_for?(:title)
     content_for :title do
       content_tag(:p, "title")
     end
-    assert content_for(:title).html_safe?
+    assert_predicate content_for(:title), :html_safe?
     content_for :title, "", flush: true
     content_for(:title) do
       content_tag(:p, "title")
     end
-    assert content_for(:title).html_safe?
+    assert_predicate content_for(:title), :html_safe?
   end
 
   def test_provide
-    assert !content_for?(:title)
+    assert_not content_for?(:title)
     provide :title, "hi"
     assert content_for?(:title)
     assert_equal "hi", content_for(:title)

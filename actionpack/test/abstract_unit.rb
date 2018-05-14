@@ -44,7 +44,7 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
 
-    def root; end;
+    def root; end
   end
 end
 
@@ -380,10 +380,8 @@ class ForkingExecutor
   def initialize(size)
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
-    @url   = "drbunix://#{file}"
     @pool  = nil
-    DRb.start_service @url, @queue
+    @url = DRb.start_service("drbunix:", @queue).uri
   end
 
   def <<(work); @queue << work; end
@@ -448,4 +446,12 @@ end
 
 class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
   driven_by :selenium, using: :chrome
+end
+
+class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
 end

@@ -36,13 +36,13 @@ else
       # key would break.
 
       expected = "b129376f68f1ecae788d7433310249d65ceec090ecacd4c872a3a9e9ec78e055739be5cc6956345d5ae38e7e1daa66f1de587dc8da2bf9e8b965af4b3918a122"
-      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64).generate_key("some_salt").unpack("H*").first
+      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64).generate_key("some_salt").unpack1("H*")
 
       expected = "b129376f68f1ecae788d7433310249d65ceec090ecacd4c872a3a9e9ec78e055"
-      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64).generate_key("some_salt", 32).unpack("H*").first
+      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64).generate_key("some_salt", 32).unpack1("H*")
 
       expected = "cbea7f7f47df705967dc508f4e446fd99e7797b1d70011c6899cd39bbe62907b8508337d678505a7dc8184e037f1003ba3d19fc5d829454668e91d2518692eae"
-      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64, iterations: 2).generate_key("some_salt").unpack("H*").first
+      assert_equal expected, ActiveSupport::KeyGenerator.new("0" * 64, iterations: 2).generate_key("some_salt").unpack1("H*")
     end
   end
 

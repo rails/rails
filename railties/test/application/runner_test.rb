@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "env_helpers"
 
@@ -24,22 +26,19 @@ module ApplicationTests
     end
 
     def test_should_include_runner_in_shebang_line_in_help_without_option
-      assert_match "/rails runner", Dir.chdir(app_path) { `bin/rails runner` }
+      assert_match "/rails runner", rails("runner", allow_failure: true)
     end
 
     def test_should_include_runner_in_shebang_line_in_help
-      assert_match "/rails runner", Dir.chdir(app_path) { `bin/rails runner --help` }
+      assert_match "/rails runner", rails("runner", "--help")
     end
 
     def test_should_run_ruby_statement
-      assert_match "42", Dir.chdir(app_path) { `bin/rails runner "puts User.count"` }
+      assert_match "42", rails("runner", "puts User.count")
     end
 
     def test_should_set_argv_when_running_code
-      output = Dir.chdir(app_path) {
-        # Both long and short args, at start and end of ARGV
-        `bin/rails runner "puts ARGV.join(',')" --foo a1 -b a2 a3 --moo`
-      }
+      output = rails("runner", "puts ARGV.join(',')", "--foo", "a1", "-b", "a2", "a3", "--moo")
       assert_equal "--foo,a1,-b,a2,a3,--moo", output.chomp
     end
 
@@ -48,7 +47,7 @@ module ApplicationTests
       puts User.count
       SCRIPT
 
-      assert_match "42", Dir.chdir(app_path) { `bin/rails runner "bin/count_users.rb"` }
+      assert_match "42", rails("runner", "bin/count_users.rb")
     end
 
     def test_no_minitest_loaded_in_production_mode
@@ -65,7 +64,7 @@ module ApplicationTests
       puts $0
       SCRIPT
 
-      assert_match "bin/dollar0.rb", Dir.chdir(app_path) { `bin/rails runner "bin/dollar0.rb"` }
+      assert_match "bin/dollar0.rb", rails("runner", "bin/dollar0.rb")
     end
 
     def test_should_set_dollar_program_name_to_file
@@ -73,7 +72,7 @@ module ApplicationTests
       puts $PROGRAM_NAME
       SCRIPT
 
-      assert_match "bin/program_name.rb", Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb"` }
+      assert_match "bin/program_name.rb", rails("runner", "bin/program_name.rb")
     end
 
     def test_passes_extra_args_to_file
@@ -81,7 +80,7 @@ module ApplicationTests
       p ARGV
       SCRIPT
 
-      assert_match %w( a b ).to_s, Dir.chdir(app_path) { `bin/rails runner "bin/program_name.rb" a b` }
+      assert_match %w( a b ).to_s, rails("runner", "bin/program_name.rb", "a", "b")
     end
 
     def test_should_run_stdin
@@ -99,35 +98,47 @@ module ApplicationTests
         end
       RUBY
 
-      assert_match "true", Dir.chdir(app_path) { `bin/rails runner "puts Rails.application.config.ran"` }
+      assert_match "true", rails("runner", "puts Rails.application.config.ran")
     end
 
     def test_default_environment
-      assert_match "development", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
+      assert_match "development", rails("runner", "puts Rails.env")
     end
 
     def test_runner_detects_syntax_errors
-      output = Dir.chdir(app_path) { `bin/rails runner "puts 'hello world" 2>&1` }
-      assert_not $?.success?
+      output = rails("runner", "puts 'hello world", allow_failure: true)
+      assert_not_predicate $?, :success?
       assert_match "unterminated string meets end of file", output
     end
 
     def test_runner_detects_bad_script_name
-      output = Dir.chdir(app_path) { `bin/rails runner "iuiqwiourowe" 2>&1` }
-      assert_not $?.success?
+      output = rails("runner", "iuiqwiourowe", allow_failure: true)
+      assert_not_predicate $?, :success?
       assert_match "undefined local variable or method `iuiqwiourowe' for", output
     end
 
     def test_environment_with_rails_env
       with_rails_env "production" do
-        assert_match "production", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
+        assert_match "production", rails("runner", "puts Rails.env")
       end
     end
 
     def test_environment_with_rack_env
       with_rack_env "production" do
-        assert_match "production", Dir.chdir(app_path) { `bin/rails runner "puts Rails.env"` }
+        assert_match "production", rails("runner", "puts Rails.env")
       end
+    end
+
+    def test_can_call_same_name_class_as_defined_in_thor
+      app_file "app/models/task.rb", <<-MODEL
+      class Task
+        def self.count
+          42
+        end
+      end
+      MODEL
+
+      assert_match "42", rails("runner", "puts Task.count")
     end
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Club < ActiveRecord::Base
   has_one :membership
   has_many :memberships, inverse_of: false

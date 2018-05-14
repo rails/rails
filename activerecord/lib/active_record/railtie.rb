@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record"
 require "rails"
 require "active_model/railtie"
@@ -51,16 +53,17 @@ module ActiveRecord
     # to avoid cross references when loading a constant for the
     # first time. Also, make it output to STDERR.
     console do |app|
-      require_relative "railties/console_sandbox" if app.sandbox?
-      require_relative "base"
+      require "active_record/railties/console_sandbox" if app.sandbox?
+      require "active_record/base"
       unless ActiveSupport::Logger.logger_outputs_to?(Rails.logger, STDERR, STDOUT)
         console = ActiveSupport::Logger.new(STDERR)
         Rails.logger.extend ActiveSupport::Logger.broadcast console
       end
+      ActiveRecord::Base.verbose_query_logs = false
     end
 
     runner do
-      require_relative "base"
+      require "active_record/base"
     end
 
     initializer "active_record.initialize_timezone" do
@@ -88,12 +91,16 @@ module ActiveRecord
             filename = File.join(app.config.paths["db"].first, "schema_cache.yml")
 
             if File.file?(filename)
+              current_version = ActiveRecord::Migrator.current_version
+
+              next if current_version.nil?
+
               cache = YAML.load(File.read(filename))
-              if cache.version == ActiveRecord::Migrator.current_version
+              if cache.version == current_version
                 connection.schema_cache = cache
                 connection_pool.schema_cache = cache.dup
               else
-                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{ActiveRecord::Migrator.current_version}, but the one in the cache is #{cache.version}."
+                warn "Ignoring db/schema_cache.yml because it has expired. The current schema version is #{current_version}, but the one in the cache is #{cache.version}."
               end
             end
           end
@@ -104,7 +111,7 @@ module ActiveRecord
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
-          require_relative "relation/record_fetch_warning"
+          require "active_record/relation/record_fetch_warning"
         end
       end
     end
@@ -144,9 +151,16 @@ end_warning
 
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do
-      require_relative "railties/controller_runtime"
+      require "active_record/railties/controller_runtime"
       ActiveSupport.on_load(:action_controller) do
         include ActiveRecord::Railties::ControllerRuntime
+      end
+    end
+
+    initializer "active_record.collection_cache_association_loading" do
+      require "active_record/railties/collection_cache_association_loading"
+      ActiveSupport.on_load(:action_view) do
+        ActionView::PartialRenderer.prepend(ActiveRecord::Railties::CollectionCacheAssociationLoading)
       end
     end
 
@@ -175,7 +189,16 @@ end_warning
     initializer "active_record.clear_active_connections" do
       config.after_initialize do
         ActiveSupport.on_load(:active_record) do
+          # Ideally the application doesn't connect to the database during boot,
+          # but sometimes it does. In case it did, we want to empty out the
+          # connection pools so that a non-database-using process (e.g. a master
+          # process in a forking server model) doesn't retain a needless
+          # connection. If it was needed, the incremental cost of reestablishing
+          # this connection is trivial: the rest of the pool would need to be
+          # populated anyway.
+
           clear_active_connections!
+          flush_idle_connections!
         end
       end
     end

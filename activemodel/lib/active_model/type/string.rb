@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "immutable_string"
+require "active_model/type/immutable_string"
 
 module ActiveModel
   module Type

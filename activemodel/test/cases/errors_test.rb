@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_support/core_ext/string/strip"
 require "yaml"
 
 class ErrorsTest < ActiveModel::TestCase
@@ -83,7 +82,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.count
     person.errors.clear
-    assert person.errors.empty?
+    assert_empty person.errors
   end
 
   test "error access is indifferent" do
@@ -128,8 +127,8 @@ class ErrorsTest < ActiveModel::TestCase
   test "detecting whether there are errors with empty?, blank?, include?" do
     person = Person.new
     person.errors[:foo]
-    assert person.errors.empty?
-    assert person.errors.blank?
+    assert_empty person.errors
+    assert_predicate person.errors, :blank?
     assert_not_includes person.errors, :foo
   end
 
@@ -208,19 +207,26 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "added? returns false when no errors are present" do
     person = Person.new
-    assert !person.errors.added?(:name)
+    assert_not person.errors.added?(:name)
   end
 
   test "added? returns false when checking a nonexisting error and other errors are present for the given attribute" do
     person = Person.new
     person.errors.add(:name, "is invalid")
-    assert !person.errors.added?(:name, "cannot be blank")
+    assert_not person.errors.added?(:name, "cannot be blank")
   end
 
   test "added? returns false when checking for an error, but not providing message arguments" do
     person = Person.new
     person.errors.add(:name, "cannot be blank")
-    assert !person.errors.added?(:name)
+    assert_not person.errors.added?(:name)
+  end
+
+  test "added? returns false when checking for an error by symbol and a different error with same message is present" do
+    I18n.backend.store_translations("en", errors: { attributes: { name: { wrong: "is wrong", used: "is wrong" } } })
+    person = Person.new
+    person.errors.add(:name, :wrong)
+    assert_not person.errors.added?(:name, :used)
   end
 
   test "size calculates the number of error messages" do
@@ -313,7 +319,7 @@ class ErrorsTest < ActiveModel::TestCase
 
   test "generate_message works without i18n_scope" do
     person = Person.new
-    assert !Person.respond_to?(:i18n_scope)
+    assert_not_respond_to Person, :i18n_scope
     assert_nothing_raised {
       person.errors.generate_message(:name, :blank)
     }
@@ -364,7 +370,7 @@ class ErrorsTest < ActiveModel::TestCase
 
     assert_equal 1, person.errors.details.count
     person.errors.clear
-    assert person.errors.details.empty?
+    assert_empty person.errors.details
   end
 
   test "copy errors" do
@@ -399,7 +405,7 @@ class ErrorsTest < ActiveModel::TestCase
   end
 
   test "errors are backward compatible with the Rails 4.2 format" do
-    yaml = <<-CODE.strip_heredoc
+    yaml = <<~CODE
     --- !ruby/object:ActiveModel::Errors
     base: &1 !ruby/object:ErrorsTest::Person
       errors: !ruby/object:ActiveModel::Errors

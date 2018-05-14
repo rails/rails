@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../http/request"
-require_relative "exception_wrapper"
-require_relative "../routing/inspector"
+require "action_dispatch/http/request"
+require "action_dispatch/middleware/exception_wrapper"
+require "action_dispatch/routing/inspector"
 require "action_view"
 require "action_view/base"
 
@@ -50,10 +50,18 @@ module ActionDispatch
       end
     end
 
-    def initialize(app, routes_app = nil, response_format = :default)
+    cattr_reader :interceptors, instance_accessor: false, default: []
+
+    def self.register_interceptor(object = nil, &block)
+      interceptor = object || block
+      interceptors << interceptor
+    end
+
+    def initialize(app, routes_app = nil, response_format = :default, interceptors = self.class.interceptors)
       @app             = app
       @routes_app      = routes_app
       @response_format = response_format
+      @interceptors    = interceptors
     end
 
     def call(env)
@@ -67,11 +75,25 @@ module ActionDispatch
 
       response
     rescue Exception => exception
+      invoke_interceptors(request, exception)
       raise exception unless request.show_exceptions?
       render_exception(request, exception)
     end
 
     private
+
+      def invoke_interceptors(request, exception)
+        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
+        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+
+        @interceptors.each do |interceptor|
+          begin
+            interceptor.call(request, exception)
+          rescue Exception
+            log_error(request, wrapper)
+          end
+        end
+      end
 
       def render_exception(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")

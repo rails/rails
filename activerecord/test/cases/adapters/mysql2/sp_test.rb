@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -15,7 +17,7 @@ class Mysql2StoredProcedureTest < ActiveRecord::Mysql2TestCase
   # Test that MySQL allows multiple results for stored procedures
   #
   # In MySQL 5.6, CLIENT_MULTI_RESULTS is enabled by default.
-  # http://dev.mysql.com/doc/refman/5.6/en/call.html
+  # https://dev.mysql.com/doc/refman/5.6/en/call.html
   def test_multi_results
     rows = @connection.select_rows("CALL ten();")
     assert_equal 10, rows[0][0].to_i, "ten() did not return 10 as expected: #{rows.inspect}"

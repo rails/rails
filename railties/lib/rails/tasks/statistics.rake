@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # While global constants are bad, many 3rd party tools depend on this one (e.g
 # rspec-rails & cucumber-rails). So a deprecation warning is needed if we want
 # to remove it.
@@ -24,6 +26,6 @@ end.select { |name, dir| File.directory?(dir) }
 
 desc "Report code statistics (KLOCs, etc) from the application or engine"
 task :stats do
-  require_relative "../code_statistics"
+  require "rails/code_statistics"
   CodeStatistics.new(*STATS_DIRECTORIES).to_s
 end

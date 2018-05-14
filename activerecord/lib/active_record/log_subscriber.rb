@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
@@ -87,6 +89,47 @@ module ActiveRecord
 
       def logger
         ActiveRecord::Base.logger
+      end
+
+      def debug(progname = nil, &block)
+        return unless super
+
+        if ActiveRecord::Base.verbose_query_logs
+          log_query_source
+        end
+      end
+
+      def log_query_source
+        source_line, line_number = extract_callstack(caller_locations)
+
+        if source_line
+          if defined?(::Rails.root)
+            app_root = "#{::Rails.root.to_s}/".freeze
+            source_line = source_line.sub(app_root, "")
+          end
+
+          logger.debug("  ↳ #{ source_line }:#{ line_number }")
+        end
+      end
+
+      def extract_callstack(callstack)
+        line = callstack.find do |frame|
+          frame.absolute_path && !ignored_callstack(frame.absolute_path)
+        end
+
+        offending_line = line || callstack.first
+
+        [
+          offending_line.path,
+          offending_line.lineno
+        ]
+      end
+
+      RAILS_GEM_ROOT = File.expand_path("../../..", __dir__) + "/"
+
+      def ignored_callstack(path)
+        path.start_with?(RAILS_GEM_ROOT) ||
+        path.start_with?(RbConfig::CONFIG["rubylibdir"])
       end
   end
 end

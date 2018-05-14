@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/kernel/reporting"
 require "active_support/file_update_checker"
-require_relative "../engine/configuration"
-require_relative "../source_annotation_extractor"
+require "rails/engine/configuration"
+require "rails/source_annotation_extractor"
 
 module Rails
   class Application
@@ -14,44 +16,50 @@ module Rails
                     :ssl_options, :public_file_server,
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
-                    :read_encrypted_secrets, :log_level
+                    :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
+                    :content_security_policy_nonce_generator, :require_master_key
 
-      attr_reader :encoding, :api_only
+      attr_reader :encoding, :api_only, :loaded_config_version
 
       def initialize(*)
         super
-        self.encoding                    = Encoding::UTF_8
-        @allow_concurrency               = nil
-        @consider_all_requests_local     = false
-        @filter_parameters               = []
-        @filter_redirect                 = []
-        @helpers_paths                   = []
-        @public_file_server              = ActiveSupport::OrderedOptions.new
-        @public_file_server.enabled      = true
-        @public_file_server.index_name   = "index"
-        @force_ssl                       = false
-        @ssl_options                     = {}
-        @session_store                   = nil
-        @time_zone                       = "UTC"
-        @beginning_of_week               = :monday
-        @log_level                       = :debug
-        @generators                      = app_generators
-        @cache_store                     = [ :file_store, "#{root}/tmp/cache/" ]
-        @railties_order                  = [:all]
-        @relative_url_root               = ENV["RAILS_RELATIVE_URL_ROOT"]
-        @reload_classes_only_on_change   = true
-        @file_watcher                    = ActiveSupport::FileUpdateChecker
-        @exceptions_app                  = nil
-        @autoflush_log                   = true
-        @log_formatter                   = ActiveSupport::Logger::SimpleFormatter.new
-        @eager_load                      = nil
-        @secret_token                    = nil
-        @secret_key_base                 = nil
-        @api_only                        = false
-        @debug_exception_response_format = nil
-        @x                               = Custom.new
-        @enable_dependency_loading       = false
-        @read_encrypted_secrets          = false
+        self.encoding                            = Encoding::UTF_8
+        @allow_concurrency                       = nil
+        @consider_all_requests_local             = false
+        @filter_parameters                       = []
+        @filter_redirect                         = []
+        @helpers_paths                           = []
+        @public_file_server                      = ActiveSupport::OrderedOptions.new
+        @public_file_server.enabled              = true
+        @public_file_server.index_name           = "index"
+        @force_ssl                               = false
+        @ssl_options                             = {}
+        @session_store                           = nil
+        @time_zone                               = "UTC"
+        @beginning_of_week                       = :monday
+        @log_level                               = :debug
+        @generators                              = app_generators
+        @cache_store                             = [ :file_store, "#{root}/tmp/cache/" ]
+        @railties_order                          = [:all]
+        @relative_url_root                       = ENV["RAILS_RELATIVE_URL_ROOT"]
+        @reload_classes_only_on_change           = true
+        @file_watcher                            = ActiveSupport::FileUpdateChecker
+        @exceptions_app                          = nil
+        @autoflush_log                           = true
+        @log_formatter                           = ActiveSupport::Logger::SimpleFormatter.new
+        @eager_load                              = nil
+        @secret_token                            = nil
+        @secret_key_base                         = nil
+        @api_only                                = false
+        @debug_exception_response_format         = nil
+        @x                                       = Custom.new
+        @enable_dependency_loading               = false
+        @read_encrypted_secrets                  = false
+        @content_security_policy                 = nil
+        @content_security_policy_report_only     = false
+        @content_security_policy_nonce_generator = nil
+        @require_master_key                      = false
+        @loaded_config_version                   = nil
       end
 
       def load_defaults(target_version)
@@ -69,7 +77,6 @@ module Rails
           end
 
           self.ssl_options = { hsts: { subdomains: true } }
-
         when "5.1"
           load_defaults "5.0"
 
@@ -80,7 +87,6 @@ module Rails
           if respond_to?(:action_view)
             action_view.form_with_generates_remote_forms = true
           end
-
         when "5.2"
           load_defaults "5.1"
 
@@ -98,15 +104,27 @@ module Rails
 
           if respond_to?(:active_support)
             active_support.use_authenticated_message_encryption = true
+            active_support.use_sha1_digests = true
           end
 
           if respond_to?(:action_controller)
             action_controller.default_protect_from_forgery = true
           end
 
+          if respond_to?(:action_view)
+            action_view.form_with_generates_ids = true
+          end
+        when "6.0"
+          load_defaults "5.2"
+
+          if respond_to?(:action_view)
+            action_view.default_enforce_utf8 = false
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
+
+        @loaded_config_version = target_version
       end
 
       def encoding=(value)
@@ -148,8 +166,20 @@ module Rails
         end
       end
 
+      # Loads the database YAML without evaluating ERB.  People seem to
+      # write ERB that makes the database configuration depend on
+      # Rails configuration.  But we want Rails configuration (specifically
+      # `rake` and `rails` tasks) to be generated based on information in
+      # the database yaml, so we need a method that loads the database
+      # yaml *without* the context of the Rails application.
+      def load_database_yaml # :nodoc:
+        path = paths["config/database"].existent.first
+        return {} unless path
+        YAML.load_file(path.to_s)
+      end
+
       # Loads and returns the entire raw configuration of database from
-      # values stored in `config/database.yml`.
+      # values stored in <tt>config/database.yml</tt>.
       def database_configuration
         path = paths["config/database"].existent.first
         yaml = Pathname.new(path) if path
@@ -223,7 +253,15 @@ module Rails
       end
 
       def annotations
-        SourceAnnotationExtractor::Annotation
+        Rails::SourceAnnotationExtractor::Annotation
+      end
+
+      def content_security_policy(&block)
+        if block_given?
+          @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
+        else
+          @content_security_policy
+        end
       end
 
       class Custom #:nodoc:

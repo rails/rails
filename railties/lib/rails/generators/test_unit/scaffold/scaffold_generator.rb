@@ -1,5 +1,7 @@
-require_relative "../../test_unit"
-require_relative "../../resource_helpers"
+# frozen_string_literal: true
+
+require "rails/generators/test_unit"
+require "rails/generators/resource_helpers"
 
 module TestUnit # :nodoc:
   module Generators # :nodoc:
@@ -21,7 +23,7 @@ module TestUnit # :nodoc:
         template template_file,
                  File.join("test/controllers", controller_class_path, "#{controller_file_name}_controller_test.rb")
 
-        unless options.api? || options[:system_tests].nil?
+        if !options.api? && options[:system_tests]
           template "system_test.rb", File.join("test/system", class_path, "#{file_name.pluralize}_test.rb")
         end
       end

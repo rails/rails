@@ -113,7 +113,7 @@ module ActiveSupport
     def append_features(base)
       if base.instance_variable_defined?(:@_dependencies)
         base.instance_variable_get(:@_dependencies) << self
-        return false
+        false
       else
         return false if base < self
         @_dependencies.each { |dep| base.include(dep) }

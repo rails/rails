@@ -34,6 +34,10 @@ module ActiveJob
           @job_data = job_data
         end
 
+        def display_name
+          "#{job_data['job_class']} [#{job_data['job_id']}] from DelayedJob(#{job_data['queue_name']}) with arguments: #{job_data['arguments']}"
+        end
+
         def perform
           Base.execute(job_data)
         end

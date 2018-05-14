@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "action_view"
-require_relative "log_subscriber"
-require_relative "metal/params_wrapper"
+require "action_controller/log_subscriber"
+require "action_controller/metal/params_wrapper"
 
 module ActionController
   # Action Controllers are the core of a web request in \Rails. They are made up of one or more actions that are executed
@@ -76,7 +78,7 @@ module ActionController
   #
   # You can retrieve it again through the same hash:
   #
-  #   Hello #{session[:person]}
+  #   "Hello #{session[:person]}"
   #
   # For removing objects from the session, you can either assign a single key to +nil+:
   #
@@ -223,12 +225,14 @@ module ActionController
       Flash,
       FormBuilder,
       RequestForgeryProtection,
+      ContentSecurityPolicy,
       ForceSSL,
       Streaming,
       DataStreaming,
       HttpAuthentication::Basic::ControllerMethods,
       HttpAuthentication::Digest::ControllerMethods,
       HttpAuthentication::Token::ControllerMethods,
+      DefaultHeaders,
 
       # Before callbacks should also be executed as early as possible, so
       # also include them at the bottom.
@@ -259,12 +263,6 @@ module ActionController
 
     def _protected_ivars # :nodoc:
       PROTECTED_IVARS
-    end
-
-    def self.make_response!(request)
-      ActionDispatch::Response.create.tap do |res|
-        res.request = request
-      end
     end
 
     ActiveSupport.run_load_hooks(:action_controller_base, self)

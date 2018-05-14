@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 $:.unshift File.expand_path("lib", __dir__)
 $:.unshift File.expand_path("fixtures/helpers", __dir__)
 $:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
@@ -23,14 +25,6 @@ require "active_model"
 require "active_record"
 
 require "pp" # require 'pp' early to prevent hidden_methods from not picking up the pretty-print methods until too late
-
-module Rails
-  class << self
-    def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
-    end
-  end
-end
 
 ActiveSupport::Dependencies.hook!
 
@@ -108,12 +102,6 @@ module ActionDispatch
   end
 end
 
-module ActiveSupport
-  class TestCase
-    include ActionDispatch::DrawOnce
-  end
-end
-
 class RoutedRackApp
   attr_reader :routes
 
@@ -160,29 +148,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
 
   self.app = build_app
 
-  # Stub Rails dispatcher so it does not get controller references and
-  # simply return the controller#action as Rack::Body.
-  class StubDispatcher < ::ActionDispatch::Routing::RouteSet::Dispatcher
-    private
-      def controller_reference(controller_param)
-        controller_param
-      end
-
-      def dispatch(controller, action, env)
-        [200, { "Content-Type" => "text/html" }, ["#{controller}##{action}"]]
-      end
-  end
-
-  def self.stub_controllers
-    old_dispatcher = ActionDispatch::Routing::RouteSet::Dispatcher
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, StubDispatcher }
-    yield ActionDispatch::Routing::RouteSet.new
-  ensure
-    ActionDispatch::Routing::RouteSet.module_eval { remove_const :Dispatcher }
-    ActionDispatch::Routing::RouteSet.module_eval { const_set :Dispatcher, old_dispatcher }
-  end
-
   def with_routing(&block)
     temporary_routes = ActionDispatch::Routing::RouteSet.new
     old_app, self.class.app = self.class.app, self.class.build_app(temporary_routes)
@@ -193,21 +158,6 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   ensure
     self.class.app = old_app
     silence_warnings { Object.const_set(:SharedTestRoutes, old_routes) }
-  end
-
-  def with_autoload_path(path)
-    path = File.join(File.expand_path("fixtures", __dir__), path)
-    if ActiveSupport::Dependencies.autoload_paths.include?(path)
-      yield
-    else
-      begin
-        ActiveSupport::Dependencies.autoload_paths << path
-        yield
-      ensure
-        ActiveSupport::Dependencies.autoload_paths.reject! { |p| p == path }
-        ActiveSupport::Dependencies.clear
-      end
-    end
   end
 end
 
@@ -272,6 +222,7 @@ module ActionDispatch
 end
 
 class ActiveSupport::TestCase
+  include ActionDispatch::DrawOnce
   include ActiveSupport::Testing::MethodCallAssertions
 
   # Skips the current run on Rubinius using Minitest::Assertions#skip

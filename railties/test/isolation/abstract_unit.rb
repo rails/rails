@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Note:
 # It is important to keep this file as light as possible
 # the goal for tests that require this is to test booting up
@@ -36,7 +38,12 @@ module TestHelpers
     end
 
     def app_path(*args)
-      tmp_path(*%w[app] + args)
+      path = tmp_path(*%w[app] + args)
+      if block_given?
+        yield path
+      else
+        path
+      end
     end
 
     def framework_path
@@ -54,10 +61,7 @@ module TestHelpers
       @app ||= begin
         ENV["RAILS_ENV"] = env
 
-        # FIXME: shush Sass warning spam, not relevant to testing Railties
-        Kernel.silence_warnings do
-          require "#{app_path}/config/environment"
-        end
+        require "#{app_path}/config/environment"
 
         Rails.application
       end
@@ -66,7 +70,7 @@ module TestHelpers
     end
 
     def extract_body(response)
-      "".tap do |body|
+      "".dup.tap do |body|
         response[2].each { |chunk| body << chunk }
       end
     end
@@ -83,22 +87,6 @@ module TestHelpers
       assert_match "charset=utf-8", resp[1]["Content-Type"]
       assert extract_body(resp).match(/Yay! You.*re on Rails!/)
     end
-
-    def assert_success(resp)
-      assert_equal 202, resp[0]
-    end
-
-    def assert_missing(resp)
-      assert_equal 404, resp[0]
-    end
-
-    def assert_header(key, value, resp)
-      assert_equal value, resp[1][key.to_s]
-    end
-
-    def assert_body(expected, resp)
-      assert_equal expected, extract_body(resp)
-    end
   end
 
   module Generation
@@ -106,7 +94,6 @@ module TestHelpers
     def build_app(options = {})
       @prev_rails_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
-      ENV["SECRET_KEY_BASE"] ||= SecureRandom.hex(16)
 
       FileUtils.rm_rf(app_path)
       FileUtils.cp_r(app_template_path, app_path)
@@ -125,22 +112,57 @@ module TestHelpers
         end
       end
 
-      File.open("#{app_path}/config/database.yml", "w") do |f|
-        f.puts <<-YAML
-        default: &default
-          adapter: sqlite3
-          pool: 5
-          timeout: 5000
-        development:
-          <<: *default
-          database: db/development.sqlite3
-        test:
-          <<: *default
-          database: db/test.sqlite3
-        production:
-          <<: *default
-          database: db/production.sqlite3
-        YAML
+      if options[:multi_db]
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            primary:
+              <<: *default
+              database: db/development.sqlite3
+            animals:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          test:
+            primary:
+              <<: *default
+              database: db/test.sqlite3
+            animals:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          production:
+            primary:
+              <<: *default
+              database: db/production.sqlite3
+            animals:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+          YAML
+        end
+      else
+        File.open("#{app_path}/config/database.yml", "w") do |f|
+          f.puts <<-YAML
+          default: &default
+            adapter: sqlite3
+            pool: 5
+            timeout: 5000
+          development:
+            <<: *default
+            database: db/development.sqlite3
+          test:
+            <<: *default
+            database: db/test.sqlite3
+          production:
+            <<: *default
+            database: db/production.sqlite3
+          YAML
+        end
       end
 
       add_to_config <<-RUBY
@@ -155,6 +177,7 @@ module TestHelpers
 
     def teardown_app
       ENV["RAILS_ENV"] = @prev_rails_env if @prev_rails_env
+      FileUtils.rm_rf(tmp_path)
     end
 
     # Make a very basic app, without creating the whole directory structure.
@@ -164,9 +187,10 @@ module TestHelpers
       require "action_controller/railtie"
       require "action_view/railtie"
 
-      @app = Class.new(Rails::Application)
+      @app = Class.new(Rails::Application) do
+        def self.name; "RailtiesTestApp"; end
+      end
       @app.config.eager_load = false
-      @app.secrets.secret_key_base = "3b7cd727ee24e8444053437c36cc66c4"
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
       @app.config.active_support.test_order = :random
@@ -222,8 +246,8 @@ module TestHelpers
       FileUtils.mkdir_p(dir)
 
       app = File.readlines("#{app_path}/config/application.rb")
-      app.insert(2, "$:.unshift(\"#{dir}/lib\")")
-      app.insert(3, "require #{name.inspect}")
+      app.insert(4, "$:.unshift(\"#{dir}/lib\")")
+      app.insert(5, "require #{name.inspect}")
 
       File.open("#{app_path}/config/application.rb", "r+") do |f|
         f.puts app
@@ -234,10 +258,86 @@ module TestHelpers
       end
     end
 
-    def script(script)
-      Dir.chdir(app_path) do
-        `#{Gem.ruby} #{app_path}/bin/rails #{script}`
+    # Invoke a bin/rails command inside the app
+    #
+    # allow_failure:: true to return normally if the command exits with
+    #   a non-zero status. By default, this method will raise.
+    # stderr:: true to pass STDERR output straight to the "real" STDERR.
+    #   By default, the STDERR and STDOUT of the process will be
+    #   combined in the returned string.
+    def rails(*args, allow_failure: false, stderr: false)
+      args = args.flatten
+      fork = true
+
+      command = "bin/rails #{Shellwords.join args}#{' 2>&1' unless stderr}"
+
+      # Don't fork if the environment has disabled it
+      fork = false if ENV["NO_FORK"]
+
+      # Don't fork if the runtime isn't able to
+      fork = false if !Process.respond_to?(:fork)
+
+      # Don't fork if we're re-invoking minitest
+      fork = false if args.first == "t" || args.grep(/\Atest(:|\z)/).any?
+
+      if fork
+        out_read, out_write = IO.pipe
+        if stderr
+          err_read, err_write = IO.pipe
+        else
+          err_write = out_write
+        end
+
+        pid = fork do
+          out_read.close
+          err_read.close if err_read
+
+          $stdin.reopen(File::NULL, "r")
+          $stdout.reopen(out_write)
+          $stderr.reopen(err_write)
+
+          at_exit do
+            case $!
+            when SystemExit
+              exit! $!.status
+            when nil
+              exit! 0
+            else
+              err_write.puts "#{$!.class}: #{$!}"
+              exit! 1
+            end
+          end
+
+          Rails.instance_variable_set :@_env, nil
+
+          $-v = $-w = false
+          Dir.chdir app_path unless Dir.pwd == app_path
+
+          ARGV.replace(args)
+          load "./bin/rails"
+
+          exit! 0
+        end
+
+        out_write.close
+
+        if err_read
+          err_write.close
+
+          $stderr.write err_read.read
+        end
+
+        output = out_read.read
+
+        Process.waitpid pid
+
+      else
+        output = `cd #{app_path}; #{command}`
       end
+
+      raise "rails command failed (#{$?.exitstatus}): #{command}\n#{output}" unless allow_failure || $?.success?
+
+      output
     end
 
     def add_to_top_of_config(str)
@@ -282,10 +382,12 @@ module TestHelpers
     end
 
     def app_file(path, contents, mode = "w")
-      FileUtils.mkdir_p File.dirname("#{app_path}/#{path}")
-      File.open("#{app_path}/#{path}", mode) do |f|
+      file_name = "#{app_path}/#{path}"
+      FileUtils.mkdir_p File.dirname(file_name)
+      File.open(file_name, mode) do |f|
         f.puts contents
       end
+      file_name
     end
 
     def remove_file(path)
@@ -297,13 +399,28 @@ module TestHelpers
     end
 
     def use_frameworks(arr)
-      to_remove = [:actionmailer, :activerecord] - arr
+      to_remove = [:actionmailer, :activerecord, :activestorage, :activejob] - arr
 
       if to_remove.include?(:activerecord)
         remove_from_config "config.active_record.*"
       end
 
       $:.reject! { |path| path =~ %r'/(#{to_remove.join('|')})/' }
+    end
+
+    def use_postgresql
+      File.open("#{app_path}/config/database.yml", "w") do |f|
+        f.puts <<-YAML
+        default: &default
+          adapter: postgresql
+          pool: 5
+          database: railties_test
+        development:
+          <<: *default
+        test:
+          <<: *default
+        YAML
+      end
     end
   end
 end
@@ -314,7 +431,9 @@ class ActiveSupport::TestCase
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
 
-  self.test_order = :sorted
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end
 
 # Create a scope and build a fixture rails app
@@ -329,4 +448,25 @@ Module.new do
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
   end
+
+  # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
+  # app-specific one: we don't want to require every gem that lists.
+  contents = File.read("#{app_template_path}/config/application.rb")
+  contents.sub!(/^Bundler\.require.*/, "%w(turbolinks).each { |r| require r }")
+  File.write("#{app_template_path}/config/application.rb", contents)
+
+  require "rails"
+
+  require "active_model"
+  require "active_job"
+  require "active_record"
+  require "action_controller"
+  require "action_mailer"
+  require "action_view"
+  require "active_storage"
+  require "action_cable"
+  require "sprockets"
+
+  require "action_view/helpers"
+  require "action_dispatch/routing/route_set"
 end unless defined?(RAILS_ISOLATED_ENGINE)

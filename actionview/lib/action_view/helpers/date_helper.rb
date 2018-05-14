@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "date"
-require_relative "tag_helper"
+require "action_view/helpers/tag_helper"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/date/conversions"
 require "active_support/core_ext/hash/slice"
@@ -7,7 +9,7 @@ require "active_support/core_ext/object/acts_like"
 require "active_support/core_ext/object/with_options"
 
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     # = Action View Date Helpers
     #
     # The Date Helper primarily creates select/option tags for different kinds of dates and times or date and time
@@ -114,7 +116,7 @@ module ActionView
             when 10..19 then locale.t :less_than_x_seconds, count: 20
             when 20..39 then locale.t :half_a_minute
             when 40..59 then locale.t :less_than_x_minutes, count: 1
-              else             locale.t :x_minutes,           count: 1
+            else             locale.t :x_minutes,           count: 1
             end
 
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
@@ -129,7 +131,7 @@ module ActionView
           when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
             # 60 days up to 365 days
           when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
-            else
+          else
             from_year = from_time.year
             from_year += 1 if from_time.month >= 3
             to_year = to_time.year
@@ -300,15 +302,15 @@ module ActionView
       #   time_select("article", "start_time", include_seconds: true)
       #
       #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30, and 45.
-      #   time_select 'game', 'game_time', {minute_step: 15}
+      #   time_select 'game', 'game_time', { minute_step: 15 }
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   time_select("article", "written_on", prompt: {hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds'})
-      #   time_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   time_select("article", "written_on", prompt: { hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds' })
+      #   time_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   time_select("article", "written_on", prompt: true) # generic prompts for all
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
-      #   time_select 'game', 'game_time', {ampm: true}
+      #   time_select 'game', 'game_time', { ampm: true }
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -344,8 +346,8 @@ module ActionView
       #   datetime_select("article", "written_on", discard_type: true)
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   datetime_select("article", "written_on", prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   datetime_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   datetime_select("article", "written_on", prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   datetime_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   datetime_select("article", "written_on", prompt: true) # generic prompts for all
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
@@ -395,8 +397,8 @@ module ActionView
       #   select_datetime(my_date_time, prefix: 'payday')
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_datetime(my_date_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_datetime(my_date_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_datetime(my_date_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_datetime(my_date_time, prompt: { hour: true }) # generic prompt for hours
       #   select_datetime(my_date_time, prompt: true) # generic prompts for all
       def select_datetime(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_datetime
@@ -434,8 +436,8 @@ module ActionView
       #   select_date(my_date, prefix: 'payday')
       #
       #   # Generates a date select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_date(my_date, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_date(my_date, prompt: {hour: true}) # generic prompt for hours
+      #   select_date(my_date, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_date(my_date, prompt: { hour: true }) # generic prompt for hours
       #   select_date(my_date, prompt: true) # generic prompts for all
       def select_date(date = Date.current, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_date
@@ -474,8 +476,8 @@ module ActionView
       #   select_time(my_time, start_hour: 2, end_hour: 14)
       #
       #   # Generates a time select with a custom prompt. Use <tt>:prompt</tt> to true for generic prompts.
-      #   select_time(my_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_time(my_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_time(my_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_time(my_time, prompt: { hour: true }) # generic prompt for hours
       #   select_time(my_time, prompt: true) # generic prompts for all
       def select_time(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_time
@@ -679,9 +681,8 @@ module ActionView
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, format: format)
-        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
-        content_tag("time".freeze, content, options.reverse_merge(datetime: datetime), &block)
+        content_tag("time".freeze, content, options.reverse_merge(datetime: date_or_time.iso8601), &block)
       end
 
       private

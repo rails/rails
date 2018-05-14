@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module SystemTesting
     module TestHelpers
@@ -17,6 +19,7 @@ module ActionDispatch
         def after_teardown
           take_failed_screenshot
           Capybara.reset_sessions!
+        ensure
           super
         end
       end

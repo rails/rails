@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/company"
@@ -128,56 +130,70 @@ class InheritanceTest < ActiveRecord::TestCase
   end
 
   def test_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
 
     # Abstract subclass of AR::Base.
-    assert LoosePerson.descends_from_active_record?
+    assert_predicate LoosePerson, :descends_from_active_record?
 
     # Concrete subclass of an abstract class.
-    assert LooseDescendant.descends_from_active_record?
+    assert_predicate LooseDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert TightPerson.descends_from_active_record?
+    assert_predicate TightPerson, :descends_from_active_record?
 
     # Concrete subclass of a concrete class but has no type column.
-    assert TightDescendant.descends_from_active_record?
+    assert_predicate TightDescendant, :descends_from_active_record?
 
     # Concrete subclass of AR::Base.
-    assert Post.descends_from_active_record?
+    assert_predicate Post, :descends_from_active_record?
+
+    # Concrete subclasses of a concrete class which has a type column.
+    assert_not_predicate StiPost, :descends_from_active_record?
+    assert_not_predicate SubStiPost, :descends_from_active_record?
 
     # Abstract subclass of a concrete class which has a type column.
     # This is pathological, as you'll never have Sub < Abstract < Concrete.
-    assert !StiPost.descends_from_active_record?
+    assert_not_predicate AbstractStiPost, :descends_from_active_record?
 
-    # Concrete subclasses an abstract class which has a type column.
-    assert !SubStiPost.descends_from_active_record?
+    # Concrete subclass of an abstract class which has a type column.
+    assert_not_predicate SubAbstractStiPost, :descends_from_active_record?
   end
 
   def test_company_descends_from_active_record
-    assert !ActiveRecord::Base.descends_from_active_record?
+    assert_not_predicate ActiveRecord::Base, :descends_from_active_record?
     assert AbstractCompany.descends_from_active_record?, "AbstractCompany should descend from ActiveRecord::Base"
     assert Company.descends_from_active_record?, "Company should descend from ActiveRecord::Base"
-    assert !Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
+    assert_not Class.new(Company).descends_from_active_record?, "Company subclass should not descend from ActiveRecord::Base"
   end
 
   def test_abstract_class
-    assert !ActiveRecord::Base.abstract_class?
-    assert LoosePerson.abstract_class?
-    assert !LooseDescendant.abstract_class?
+    assert_not_predicate ActiveRecord::Base, :abstract_class?
+    assert_predicate LoosePerson, :abstract_class?
+    assert_not_predicate LooseDescendant, :abstract_class?
   end
 
   def test_inheritance_base_class
     assert_equal Post, Post.base_class
+    assert_predicate Post, :base_class?
     assert_equal Post, SpecialPost.base_class
+    assert_not_predicate SpecialPost, :base_class?
     assert_equal Post, StiPost.base_class
-    assert_equal SubStiPost, SubStiPost.base_class
+    assert_not_predicate StiPost, :base_class?
+    assert_equal Post, SubStiPost.base_class
+    assert_not_predicate SubStiPost, :base_class?
+    assert_equal SubAbstractStiPost, SubAbstractStiPost.base_class
+    assert_predicate SubAbstractStiPost, :base_class?
   end
 
   def test_abstract_inheritance_base_class
     assert_equal LoosePerson, LoosePerson.base_class
+    assert_predicate LoosePerson, :base_class?
     assert_equal LooseDescendant, LooseDescendant.base_class
+    assert_predicate LooseDescendant, :base_class?
     assert_equal TightPerson, TightPerson.base_class
+    assert_predicate TightPerson, :base_class?
     assert_equal TightPerson, TightDescendant.base_class
+    assert_not_predicate TightDescendant, :base_class?
   end
 
   def test_base_class_activerecord_error
@@ -273,6 +289,21 @@ class InheritanceTest < ActiveRecord::TestCase
     assert_equal Firm, firm.class
   end
 
+  def test_where_new_with_subclass
+    firm = Company.where(type: "Firm").new
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_with_subclass
+    firm = Company.where(type: "Firm").create(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
+  def test_where_create_bang_with_subclass
+    firm = Company.where(type: "Firm").create!(name: "Basecamp")
+    assert_equal Firm, firm.class
+  end
+
   def test_new_with_abstract_class
     e = assert_raises(NotImplementedError) do
       AbstractCompany.new
@@ -293,6 +324,30 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_new_with_unrelated_type
     assert_raise(ActiveRecord::SubclassNotFound) { Company.new(type: "Account") }
+  end
+
+  def test_where_new_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").new }
+  end
+
+  def test_where_new_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").new }
+  end
+
+  def test_where_create_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create }
+  end
+
+  def test_where_create_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create }
+  end
+
+  def test_where_create_bang_with_invalid_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "InvalidType").create! }
+  end
+
+  def test_where_create_bang_with_unrelated_type
+    assert_raise(ActiveRecord::SubclassNotFound) { Company.where(type: "Account").create! }
   end
 
   def test_new_with_unrelated_namespaced_type
@@ -418,7 +473,8 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = 1/) do
+    bind_param = Arel::Nodes::BindParam.new(nil)
+    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end

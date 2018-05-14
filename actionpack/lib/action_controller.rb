@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "active_support/rails"
 require "abstract_controller"
 require "action_dispatch"
-require_relative "action_controller/metal/live"
-require_relative "action_controller/metal/strong_parameters"
+require "action_controller/metal/live"
+require "action_controller/metal/strong_parameters"
 
 module ActionController
   extend ActiveSupport::Autoload
@@ -20,8 +22,10 @@ module ActionController
 
   autoload_under "metal" do
     autoload :ConditionalGet
+    autoload :ContentSecurityPolicy
     autoload :Cookies
     autoload :DataStreaming
+    autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
     autoload :Flash

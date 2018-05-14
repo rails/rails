@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -41,10 +43,7 @@ module ActiveRecord
               /\A[0-9A-F]*\Z/i.match?(value)
             end
 
-            # TODO Change this to private once we've dropped Ruby 2.2 support.
-            # Workaround for Ruby 2.2 "private attribute?" warning.
-            protected
-
+            private
               attr_reader :value
           end
         end

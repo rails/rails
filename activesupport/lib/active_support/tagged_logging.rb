@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require_relative "core_ext/module/delegation"
-require_relative "core_ext/object/blank"
+require "active_support/core_ext/module/delegation"
+require "active_support/core_ext/object/blank"
 require "logger"
-require_relative "logger"
+require "active_support/logger"
 
 module ActiveSupport
   # Wraps any standard Logger object to provide tagging capabilities.
@@ -52,7 +52,9 @@ module ActiveSupport
 
       def tags_text
         tags = current_tags
-        if tags.any?
+        if tags.one?
+          "[#{tags[0]}] "
+        elsif tags.any?
           tags.collect { |tag| "[#{tag}] " }.join
         end
       end

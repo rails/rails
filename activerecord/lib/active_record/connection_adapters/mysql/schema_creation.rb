@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
-        delegate :add_sql_comment!, :mariadb?, to: :@conn
-        private :add_sql_comment!, :mariadb?
+        delegate :add_sql_comment!, :mariadb?, to: :@conn, private: true
 
         private
 
@@ -28,7 +29,7 @@ module ActiveRecord
             # By default, TIMESTAMP columns are NOT NULL, cannot contain NULL values,
             # and assigning NULL assigns the current timestamp. To permit a TIMESTAMP
             # column to contain NULL, explicitly declare it with the NULL attribute.
-            # See http://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
+            # See https://dev.mysql.com/doc/refman/5.7/en/timestamp-initialization.html
             if /\Atimestamp\b/.match?(options[:column].sql_type) && !options[:primary_key]
               sql << " NULL" unless options[:null] == false || options_include_default?(options)
             end

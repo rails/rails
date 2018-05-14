@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "active_support/core_ext/module/remove_method"
 require "active_support/core_ext/module/attribute_accessors"
-require_relative "template/resolver"
+require "action_view/template/resolver"
 
 module ActionView
   # = Action View Lookup Context

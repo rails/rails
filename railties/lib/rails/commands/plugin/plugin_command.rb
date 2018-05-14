@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class PluginCommand < Base # :nodoc:
@@ -34,8 +36,8 @@ module Rails
 
       private
         def run_plugin_generator(plugin_args)
-          require_relative "../../generators"
-          require_relative "../../generators/rails/plugin/plugin_generator"
+          require "rails/generators"
+          require "rails/generators/rails/plugin/plugin_generator"
           Rails::Generators::PluginGenerator.start plugin_args
         end
     end

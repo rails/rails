@@ -1,4 +1,6 @@
-require_relative "view_paths"
+# frozen_string_literal: true
+
+require "action_view/view_paths"
 
 module ActionView
   # This is a class to fix I18n global state. Whenever you provide I18n.locale during a request,
@@ -73,8 +75,7 @@ module ActionView
     end
 
     # Returns an object that is able to render templates.
-    # :api: private
-    def view_renderer
+    def view_renderer # :nodoc:
       @_view_renderer ||= ActionView::Renderer.new(lookup_context)
     end
 
@@ -90,7 +91,6 @@ module ActionView
     private
 
       # Find and render a template based on the options given.
-      # :api: private
       def _render_template(options)
         variant = options.delete(:variant)
         assigns = options.delete(:assigns)
@@ -112,7 +112,6 @@ module ActionView
 
       # Normalize args by converting render "foo" to render :action => "foo" and
       # render "foo/bar" to render :template => "foo/bar".
-      # :api: private
       def _normalize_args(action = nil, options = {})
         options = super(action, options)
         case action
@@ -135,7 +134,6 @@ module ActionView
       end
 
       # Normalize options.
-      # :api: private
       def _normalize_options(options)
         options = super(options)
         if options[:partial] == true

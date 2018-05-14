@@ -9,6 +9,8 @@ module ActionView
   class Template
     extend ActiveSupport::Autoload
 
+    mattr_accessor :finalize_compiled_template_methods, default: true
+
     # === Encodings in ActionView::Template
     #
     # ActionView::Template is one of a few sources of potential
@@ -307,7 +309,9 @@ module ActionView
         end
 
         mod.module_eval(source, identifier, 0)
-        ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        if finalize_compiled_template_methods
+          ObjectSpace.define_finalizer(self, Finalizer[method_name, mod])
+        end
       end
 
       def handle_render_error(view, e)
@@ -330,8 +334,8 @@ module ActionView
         locals = @locals - Module::RUBY_RESERVED_KEYWORDS
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
-        # Double assign to suppress the dreaded 'assigned but unused variable' warning
-        locals.each_with_object("".dup) { |key, code| code << "#{key} = #{key} = local_assigns[:#{key}];" }
+        # Assign for the same variable is to suppress unused variable warning
+        locals.each_with_object("".dup) { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name

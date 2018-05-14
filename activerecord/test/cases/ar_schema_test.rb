@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class ActiveRecordSchemaTest < ActiveRecord::TestCase
@@ -46,7 +48,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
 
     assert_nothing_raised { @connection.select_all "SELECT * FROM fruits" }
     assert_nothing_raised { @connection.select_all "SELECT * FROM schema_migrations" }
-    assert_equal 7, ActiveRecord::Migrator::current_version
+    assert_equal 7, @connection.migration_context.current_version
   end
 
   def test_schema_define_w_table_name_prefix
@@ -62,7 +64,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
         t.column :flavor, :string
       end
     end
-    assert_equal 7, ActiveRecord::Migrator::current_version
+    assert_equal 7, @connection.migration_context.current_version
   ensure
     ActiveRecord::Base.table_name_prefix = old_table_name_prefix
     ActiveRecord::SchemaMigration.table_name = table_name
@@ -114,8 +116,8 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 
   def test_timestamps_without_null_set_null_to_false_on_change_table
@@ -127,8 +129,8 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       end
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 
   def test_timestamps_without_null_set_null_to_false_on_add_timestamps
@@ -137,7 +139,7 @@ class ActiveRecordSchemaTest < ActiveRecord::TestCase
       add_timestamps :has_timestamps, default: Time.now
     end
 
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
-    assert !@connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "created_at" }.null
+    assert_not @connection.columns(:has_timestamps).find { |c| c.name == "updated_at" }.null
   end
 end

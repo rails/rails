@@ -1,5 +1,7 @@
-require_relative "scoping/default"
-require_relative "scoping/named"
+# frozen_string_literal: true
+
+require "active_record/scoping/default"
+require "active_record/scoping/named"
 
 module ActiveRecord
   # This class is used to create a table that keeps track of which migrations

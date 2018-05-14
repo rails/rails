@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/multibyte/chars"
 
@@ -5,21 +7,12 @@ module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module Quoting
       # Quotes the column value to help prevent
-      # {SQL injection attacks}[http://en.wikipedia.org/wiki/SQL_injection].
+      # {SQL injection attacks}[https://en.wikipedia.org/wiki/SQL_injection].
       def quote(value)
         value = id_value_for_database(value) if value.is_a?(Base)
 
-        if value.respond_to?(:quoted_id)
-          at = value.method(:quoted_id).source_location
-          at &&= " at %s:%d" % at
-
-          owner = value.method(:quoted_id).owner.to_s
-          klass = value.class.to_s
-          klass += "(#{owner})" unless owner == klass
-
-          ActiveSupport::Deprecation.warn \
-            "Defining #quoted_id is deprecated and will be ignored in Rails 5.2. (defined on #{klass}#{at})"
-          return value.quoted_id
+        if value.respond_to?(:value_for_database)
+          value = value.value_for_database
         end
 
         _quote(value)
@@ -30,10 +23,6 @@ module ActiveRecord
       # to a String.
       def type_cast(value, column = nil)
         value = id_value_for_database(value) if value.is_a?(Base)
-
-        if value.respond_to?(:quoted_id) && value.respond_to?(:id)
-          return value.id
-        end
 
         if column
           value = type_cast_from_column(column, value)
@@ -141,7 +130,7 @@ module ActiveRecord
       end
 
       def quoted_time(value) # :nodoc:
-        quoted_date(value).sub(/\A2000-01-01 /, "")
+        quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "")
       end
 
       def quoted_binary(value) # :nodoc:

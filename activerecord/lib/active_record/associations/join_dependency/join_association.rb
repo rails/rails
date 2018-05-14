@@ -1,4 +1,6 @@
-require_relative "join_part"
+# frozen_string_literal: true
+
+require "active_record/associations/join_dependency/join_part"
 
 module ActiveRecord
   module Associations
@@ -9,11 +11,12 @@ module ActiveRecord
 
         attr_accessor :tables
 
-        def initialize(reflection, children)
+        def initialize(reflection, children, alias_tracker)
           super(reflection.klass, children)
 
-          @reflection      = reflection
-          @tables          = nil
+          @alias_tracker = alias_tracker
+          @reflection    = reflection
+          @tables        = nil
         end
 
         def match?(other)
@@ -21,11 +24,8 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        JoinInformation = Struct.new :joins, :binds
-
         def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
           joins         = []
-          binds         = []
           tables        = tables.reverse
 
           # The chain starts with the target table, but we want to end with it here (makes
@@ -39,24 +39,27 @@ module ActiveRecord
             joins << table.create_join(table, table.create_on(constraint), join_type)
 
             join_scope = reflection.join_scope(table, foreign_klass)
+            arel = join_scope.arel(alias_tracker.aliases)
 
-            if join_scope.arel.constraints.any?
-              binds.concat join_scope.bound_attributes
-              joins.concat join_scope.arel.join_sources
+            if arel.constraints.any?
+              joins.concat arel.join_sources
               right = joins.last.right
-              right.expr = right.expr.and(join_scope.arel.constraints)
+              right.expr = right.expr.and(arel.constraints)
             end
 
             # The current table in this iteration becomes the foreign table in the next
             foreign_table, foreign_klass = table, klass
           end
 
-          JoinInformation.new joins, binds
+          joins
         end
 
         def table
           tables.first
         end
+
+        private
+          attr_reader :alias_tracker
       end
     end
   end

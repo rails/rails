@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module RailsGuides
   class Markdown
     class Renderer < Redcarpet::Render::HTML
@@ -73,7 +75,7 @@ HTML
           #
           # It is important that we do not eat more than one newline
           # because formatting may be wrong otherwise. For example,
-          # if a bulleted list follows the first item is not rendered
+          # if a bulleted list follows, the first item is not rendered
           # as a list item, but as a paragraph starting with a plain
           # asterisk.
           body.gsub(/^(TIP|IMPORTANT|CAUTION|WARNING|NOTE|INFO|TODO)[.:](.*?)(\n(?=\n)|\Z)/m) do

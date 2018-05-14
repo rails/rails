@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/topic"
@@ -154,10 +156,6 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     assert_nothing_raised { MixedCaseMonkey.find(1).destroy }
   end
 
-  def test_deprecate_supports_primary_key
-    assert_deprecated { ActiveRecord::Base.connection.supports_primary_key? }
-  end
-
   def test_primary_key_returns_value_if_it_exists
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "developers"
@@ -209,13 +207,13 @@ class PrimaryKeysTest < ActiveRecord::TestCase
     def test_serial_with_quoted_sequence_name
       column = MixedCaseMonkey.columns_hash[MixedCaseMonkey.primary_key]
       assert_equal "nextval('\"mixed_case_monkeys_monkeyID_seq\"'::regclass)", column.default_function
-      assert column.serial?
+      assert_predicate column, :serial?
     end
 
     def test_serial_with_unquoted_sequence_name
       column = Topic.columns_hash[Topic.primary_key]
       assert_equal "nextval('topics_id_seq'::regclass)", column.default_function
-      assert column.serial?
+      assert_predicate column, :serial?
     end
   end
 end
@@ -300,6 +298,8 @@ class PrimaryKeyAnyTypeTest < ActiveRecord::TestCase
     assert_not column.null
     assert_equal :string, column.type
     assert_equal 42, column.limit
+  ensure
+    Barcode.reset_column_information
   end
 
   test "schema dump primary key includes type and options" do
@@ -324,7 +324,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def setup
     @connection = ActiveRecord::Base.connection
     @connection.schema_cache.clear!
-    @connection.create_table(:barcodes, primary_key: ["region", "code"], force: true) do |t|
+    @connection.create_table(:uber_barcodes, primary_key: ["region", "code"], force: true) do |t|
       t.string :region
       t.integer :code
     end
@@ -332,14 +332,24 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
       t.string :region
       t.integer :code
     end
+    @connection.create_table(:travels, primary_key: ["from", "to"], force: true) do |t|
+      t.string :from
+      t.string :to
+    end
   end
 
   def teardown
-    @connection.drop_table(:barcodes, if_exists: true)
+    @connection.drop_table :uber_barcodes, if_exists: true
+    @connection.drop_table :barcodes_reverse, if_exists: true
+    @connection.drop_table :travels, if_exists: true
   end
 
   def test_composite_primary_key
-    assert_equal ["region", "code"], @connection.primary_keys("barcodes")
+    assert_equal ["region", "code"], @connection.primary_keys("uber_barcodes")
+  end
+
+  def test_composite_primary_key_with_reserved_words
+    assert_equal ["from", "to"], @connection.primary_keys("travels")
   end
 
   def test_composite_primary_key_out_of_order
@@ -350,7 +360,7 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
   def test_primary_key_issues_warning
     model = Class.new(ActiveRecord::Base) do
       def self.table_name
-        "barcodes"
+        "uber_barcodes"
       end
     end
     warning = capture(:stderr) do
@@ -359,9 +369,9 @@ class CompositePrimaryKeyTest < ActiveRecord::TestCase
     assert_match(/WARNING: Active Record does not support composite primary key\./, warning)
   end
 
-  def test_dumping_composite_primary_key
-    schema = dump_table_schema "barcodes"
-    assert_match %r{create_table "barcodes", primary_key: \["region", "code"\]}, schema
+  def test_collectly_dump_composite_primary_key
+    schema = dump_table_schema "uber_barcodes"
+    assert_match %r{create_table "uber_barcodes", primary_key: \["region", "code"\]}, schema
   end
 
   def test_dumping_composite_primary_key_out_of_order
@@ -420,7 +430,7 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
       @connection.create_table(:widgets, id: @pk_type, force: true)
       column = @connection.columns(:widgets).find { |c| c.name == "id" }
       assert_equal :integer, column.type
-      assert_not column.bigint?
+      assert_not_predicate column, :bigint?
     end
 
     test "primary key with serial/integer are automatically numbered" do
@@ -432,32 +442,32 @@ if current_adapter?(:PostgreSQLAdapter, :Mysql2Adapter)
     test "schema dump primary key with serial/integer" do
       @connection.create_table(:widgets, id: @pk_type, force: true)
       schema = dump_table_schema "widgets"
-      assert_match %r{create_table "widgets", id: :#{@pk_type}, force: :cascade}, schema
+      assert_match %r{create_table "widgets", id: :#{@pk_type}, }, schema
     end
 
     if current_adapter?(:Mysql2Adapter)
       test "primary key column type with options" do
         @connection.create_table(:widgets, id: :primary_key, limit: 4, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
-        assert column.auto_increment?
+        assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
-        assert_not column.bigint?
-        assert column.unsigned?
+        assert_not_predicate column, :bigint?
+        assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :integer, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :integer, unsigned: true, }, schema
       end
 
       test "bigint primary key with unsigned" do
         @connection.create_table(:widgets, id: :bigint, unsigned: true, force: true)
         column = @connection.columns(:widgets).find { |c| c.name == "id" }
-        assert column.auto_increment?
+        assert_predicate column, :auto_increment?
         assert_equal :integer, column.type
-        assert column.bigint?
-        assert column.unsigned?
+        assert_predicate column, :bigint?
+        assert_predicate column, :unsigned?
 
         schema = dump_table_schema "widgets"
-        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, force: :cascade}, schema
+        assert_match %r{create_table "widgets", id: :bigint, unsigned: true, }, schema
       end
     end
   end

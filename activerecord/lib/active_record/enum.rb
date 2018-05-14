@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
@@ -139,10 +141,7 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
+      private
         attr_reader :name, :mapping, :subtype
     end
 
@@ -219,6 +218,8 @@ module ActiveRecord
       def detect_enum_conflict!(enum_name, method_name, klass_method = false)
         if klass_method && dangerous_class_method?(method_name)
           raise_conflict_error(enum_name, method_name, type: "class")
+        elsif klass_method && method_defined_within?(method_name, Relation)
+          raise_conflict_error(enum_name, method_name, type: "class", source: Relation.name)
         elsif !klass_method && dangerous_attribute_method?(method_name)
           raise_conflict_error(enum_name, method_name)
         elsif !klass_method && method_defined_within?(method_name, _enum_methods_module, Module)

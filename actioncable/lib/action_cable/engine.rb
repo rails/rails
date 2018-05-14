@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "rails"
 require "action_cable"
-require_relative "helpers/action_cable_helper"
+require "action_cable/helpers/action_cable_helper"
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActionCable

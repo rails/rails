@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "abstract_controller/rendering"
 
@@ -33,7 +35,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
   test "allows me to freeze and retrieve frozen formats" do
     @lookup_context.formats.freeze
-    assert @lookup_context.formats.frozen?
+    assert_predicate @lookup_context.formats, :frozen?
   end
 
   test "provides getters and setters for variants" do
@@ -193,7 +195,7 @@ class LookupContextTest < ActiveSupport::TestCase
 
     assert @lookup_context.cache
     template = @lookup_context.disable_cache do
-      assert !@lookup_context.cache
+      assert_not @lookup_context.cache
       @lookup_context.find("foo", %w(test), true)
     end
     assert @lookup_context.cache

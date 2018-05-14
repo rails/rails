@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "date"
-require_relative "../time/calculations"
+require "active_support/core_ext/time/calculations"
 
 class String
   # Converts a string to a Time value.

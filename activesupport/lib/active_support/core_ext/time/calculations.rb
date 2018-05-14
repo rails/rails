@@ -1,11 +1,11 @@
 # frozen_string_literal: true
 
-require_relative "../../duration"
-require_relative "conversions"
-require_relative "../../time_with_zone"
-require_relative "zones"
-require_relative "../date_and_time/calculations"
-require_relative "../date/calculations"
+require "active_support/duration"
+require "active_support/core_ext/time/conversions"
+require "active_support/time_with_zone"
+require "active_support/core_ext/time/zones"
+require "active_support/core_ext/date_and_time/calculations"
+require "active_support/core_ext/date/calculations"
 
 class Time
   include DateAndTime::Calculations

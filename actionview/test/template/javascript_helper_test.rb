@@ -1,14 +1,20 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class JavaScriptHelperTest < ActionView::TestCase
   tests ActionView::Helpers::JavaScriptHelper
 
   attr_accessor :output_buffer
+  attr_reader :request
 
   setup do
     @old_escape_html_entities_in_json = ActiveSupport.escape_html_entities_in_json
     ActiveSupport.escape_html_entities_in_json = true
     @template = self
+    @request = Class.new do
+      def send_early_hints(links) end
+    end.new
   end
 
   def teardown

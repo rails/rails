@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module MySQL
       module DatabaseStatements
         # Returns an ActiveRecord::Result instance.
-        def select_all(arel, name = nil, binds = [], preparable: nil) # :nodoc:
+        def select_all(*) # :nodoc:
           result = if ExplainRegistry.collect? && prepared_statements
             unprepared_statement { super }
           else
             super
           end
-          @connection.next_result while @connection.more_results?
+          discard_remaining_results
           result
         end
 
@@ -48,9 +50,16 @@ module ActiveRecord
         alias :exec_update :exec_delete
 
         private
+          def default_insert_value(column)
+            Arel.sql("DEFAULT") unless column.auto_increment?
+          end
 
           def last_inserted_id(result)
             @connection.last_id
+          end
+
+          def discard_remaining_results
+            @connection.abandon_results!
           end
 
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
@@ -62,10 +71,7 @@ module ActiveRecord
 
             log(sql, name, binds, type_casted_binds) do
               if cache_stmt
-                cache = @statements[sql] ||= {
-                  stmt: @connection.prepare(sql)
-                }
-                stmt = cache[:stmt]
+                stmt = @statements[sql] ||= @connection.prepare(sql)
               else
                 stmt = @connection.prepare(sql)
               end

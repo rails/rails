@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module"
-require_relative "model_naming"
+require "action_view/model_naming"
 
 module ActionView
   # RecordIdentifier encapsulates methods used by various ActionView helpers

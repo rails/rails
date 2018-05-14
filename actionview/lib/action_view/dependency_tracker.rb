@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
-require_relative "path_set"
+require "action_view/path_set"
 
 module ActionView
   class DependencyTracker # :nodoc:

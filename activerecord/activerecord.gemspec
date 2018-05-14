@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
@@ -7,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Object-relational mapper framework (part of Rails)."
   s.description = "Databases on Rails. Build a persistent domain model by mapping database tables to Ruby classes. Strong conventions for associations, validations, aggregations, migrations, and testing come baked-in."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 
@@ -28,6 +30,4 @@ Gem::Specification.new do |s|
 
   s.add_dependency "activesupport", version
   s.add_dependency "activemodel",   version
-
-  s.add_dependency "arel", "~> 8.0"
 end

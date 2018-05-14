@@ -1,29 +1,20 @@
 # frozen_string_literal: true
 
-require_relative "../../duration"
-require_relative "../numeric/time"
+require "active_support/duration"
+require "active_support/core_ext/numeric/time"
 
 class Integer
-  # Enables the use of time calculations and declarations, like <tt>45.minutes +
-  # 2.hours + 4.years</tt>.
+  # Returns a Duration instance matching the number of months provided.
   #
-  # These methods use Time#advance for precise date calculations when using
-  # <tt>from_now</tt>, +ago+, etc. as well as adding or subtracting their
-  # results from a Time object.
-  #
-  #   # equivalent to Time.now.advance(months: 1)
-  #   1.month.from_now
-  #
-  #   # equivalent to Time.now.advance(years: 2)
-  #   2.years.from_now
-  #
-  #   # equivalent to Time.now.advance(months: 4, years: 5)
-  #   (4.months + 5.years).from_now
+  #   2.months # => 2 months
   def months
     ActiveSupport::Duration.months(self)
   end
   alias :month :months
 
+  # Returns a Duration instance matching the number of years provided.
+  #
+  #   2.years # => 2 years
   def years
     ActiveSupport::Duration.years(self)
   end

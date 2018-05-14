@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
-require_relative "actions/create_migration"
+require "rails/generators/actions/create_migration"
 
 module Rails
   module Generators
@@ -61,7 +63,12 @@ module Rails
         numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
         create_migration numbered_destination, nil, config do
-          ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
+          match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
+          if match && match[:version] >= "2.2.0" # Ruby 2.6+
+            ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
+          else
+            ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
+          end
         end
       end
     end

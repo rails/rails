@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
-require_relative "partial_renderer/collection_caching"
+require "action_view/renderer/partial_renderer/collection_caching"
 
 module ActionView
   class PartialIteration
@@ -50,12 +52,12 @@ module ActionView
   #     <%= render partial: "ad", locals: { ad: ad } %>
   #   <% end %>
   #
-  # This would first render "advertiser/_account.html.erb" with @buyer passed in as the local variable +account+, then
-  # render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display.
+  # This would first render <tt>advertiser/_account.html.erb</tt> with <tt>@buyer</tt> passed in as the local variable +account+, then
+  # render <tt>advertiser/_ad.html.erb</tt> and pass the local variable +ad+ to the template for display.
   #
   # == The :as and :object options
   #
-  # By default <tt>ActionView::PartialRenderer</tt> doesn't have any local variables.
+  # By default ActionView::PartialRenderer doesn't have any local variables.
   # The <tt>:object</tt> option can be used to pass an object to the partial. For instance:
   #
   #   <%= render partial: "account", object: @buyer %>
@@ -83,7 +85,7 @@ module ActionView
   #
   #   <%= render partial: "ad", collection: @advertisements %>
   #
-  # This will render "advertiser/_ad.html.erb" and pass the local variable +ad+ to the template for display. An
+  # This will render <tt>advertiser/_ad.html.erb</tt> and pass the local variable +ad+ to the template for display. An
   # iteration object will automatically be made available to the template with a name of the form
   # +partial_name_iteration+. The iteration object has knowledge about which index the current object has in
   # the collection and the total size of the collection. The iteration object also has two convenience methods,
@@ -98,7 +100,7 @@ module ActionView
   #
   #   <%= render partial: "ad", collection: @advertisements, spacer_template: "ad_divider" %>
   #
-  # If the given <tt>:collection</tt> is +nil+ or empty, <tt>render</tt> will return nil. This will allow you
+  # If the given <tt>:collection</tt> is +nil+ or empty, <tt>render</tt> will return +nil+. This will allow you
   # to specify a text which will be displayed instead by using this form:
   #
   #   <%= render(partial: "ad", collection: @advertisements) || "There's no ad to be displayed" %>
@@ -112,18 +114,18 @@ module ActionView
   #
   #   <%= render partial: "advertisement/ad", locals: { ad: @advertisement } %>
   #
-  # This will render the partial "advertisement/_ad.html.erb" regardless of which controller this is being called from.
+  # This will render the partial <tt>advertisement/_ad.html.erb</tt> regardless of which controller this is being called from.
   #
-  # == \Rendering objects that respond to `to_partial_path`
+  # == \Rendering objects that respond to +to_partial_path+
   #
   # Instead of explicitly naming the location of a partial, you can also let PartialRenderer do the work
-  # and pick the proper path by checking `to_partial_path` method.
+  # and pick the proper path by checking +to_partial_path+ method.
   #
   #  # @account.to_partial_path returns 'accounts/account', so it can be used to replace:
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render partial: @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render partial: @posts %>
@@ -143,7 +145,7 @@ module ActionView
   #  # <%= render partial: "accounts/account", locals: { account: @account} %>
   #  <%= render @account %>
   #
-  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on `to_partial_path`,
+  #  # @posts is an array of Post instances, so every post record returns 'posts/post' on +to_partial_path+,
   #  # that's why we can replace:
   #  # <%= render partial: "posts/post", collection: @posts %>
   #  <%= render @posts %>
@@ -353,7 +355,7 @@ module ActionView
       # finds the options and details and extracts them. The method also contains
       # logic that handles the type of object passed in as the partial.
       #
-      # If +options[:partial]+ is a string, then the +@path+ instance variable is
+      # If +options[:partial]+ is a string, then the <tt>@path</tt> instance variable is
       # set to that string. Otherwise, the +options[:partial]+ object must
       # respond to +to_partial_path+ in order to setup the path.
       def setup(context, options, block)
@@ -361,7 +363,7 @@ module ActionView
         @options = options
         @block   = block
 
-        @locals  = options[:locals] || {}
+        @locals  = options[:locals] ? options[:locals].symbolize_keys : {}
         @details = extract_details(options)
 
         prepend_formats(options[:formats])

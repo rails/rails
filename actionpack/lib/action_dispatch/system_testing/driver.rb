@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module SystemTesting
     class Driver # :nodoc:
       def initialize(name, **options)
         @name = name
-        @browser = options[:using]
+        @browser = Browser.new(options[:using])
         @screen_size = options[:screen_size]
         @options = options[:options]
       end
@@ -29,8 +31,12 @@ module ActionDispatch
           end
         end
 
+        def browser_options
+          @options.merge(options: @browser.options).compact
+        end
+
         def register_selenium(app)
-          Capybara::Selenium::Driver.new(app, { browser: @browser }.merge(@options)).tap do |driver|
+          Capybara::Selenium::Driver.new(app, { browser: @browser.type }.merge(browser_options)).tap do |driver|
             driver.browser.manage.window.size = Selenium::WebDriver::Dimension.new(*@screen_size)
           end
         end
@@ -41,7 +47,7 @@ module ActionDispatch
 
         def register_webkit(app)
           Capybara::Webkit::Driver.new(app, Capybara::Webkit::Configuration.to_hash.merge(@options)).tap do |driver|
-            driver.resize_window(*@screen_size)
+            driver.resize_window_to(driver.current_window_handle, *@screen_size)
           end
         end
 

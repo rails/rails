@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
-require_relative "filter_redirect"
-require_relative "cache"
+require "action_dispatch/http/filter_redirect"
+require "action_dispatch/http/cache"
 require "monitor"
 
 module ActionDispatch # :nodoc:
@@ -257,11 +259,10 @@ module ActionDispatch # :nodoc:
     #   response.charset = 'utf-16' # => 'utf-16'
     #   response.charset = nil      # => 'utf-8'
     def charset=(charset)
-      header_info = parsed_content_type_header
+      content_type = parsed_content_type_header.mime_type
       if false == charset
-        set_header CONTENT_TYPE, header_info.mime_type
+        set_content_type content_type, nil
       else
-        content_type = header_info.mime_type
         set_content_type content_type, charset || self.class.default_charset
       end
     end
@@ -432,6 +433,7 @@ module ActionDispatch # :nodoc:
     def before_committed
       return if committed?
       assign_default_content_type_and_charset!
+      merge_and_normalize_cache_control!(@cache_control)
       handle_conditional_get!
       handle_no_content!
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/command"
 require "rails/commands/generate/generate_command"

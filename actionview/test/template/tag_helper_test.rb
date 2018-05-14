@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TagHelperTest < ActionView::TestCase
@@ -79,7 +81,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_content_tag
     assert_equal "<a href=\"create\">Create</a>", content_tag("a", "Create", "href" => "create")
-    assert content_tag("a", "Create", "href" => "create").html_safe?
+    assert_predicate content_tag("a", "Create", "href" => "create"), :html_safe?
     assert_equal content_tag("a", "Create", "href" => "create"),
                  content_tag("a", "Create", href: "create")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
@@ -90,7 +92,7 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_with_content
     assert_equal "<div id=\"post_1\">Content</div>", tag.div("Content", id: "post_1")
-    assert tag.div("Content", id: "post_1").html_safe?
+    assert_predicate tag.div("Content", id: "post_1"), :html_safe?
     assert_equal tag.div("Content", id: "post_1"),
                  tag.div("Content", "id": "post_1")
     assert_equal "<p>&lt;script&gt;evil_js&lt;/script&gt;</p>",
@@ -305,8 +307,8 @@ class TagHelperTest < ActionView::TestCase
 
   def test_tag_builder_disable_escaping
     assert_equal '<a href="&amp;"></a>', tag.a(href: "&amp;", escape_attributes: false)
-    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;" , escape_attributes: false) { "cnt" }
-    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;" , escape_attributes: false)
+    assert_equal '<a href="&amp;">cnt</a>', tag.a(href: "&amp;", escape_attributes: false) { "cnt" }
+    assert_equal '<br data-hidden="&amp;">', tag.br("data-hidden": "&amp;", escape_attributes: false)
     assert_equal '<a href="&amp;">content</a>', tag.a("content", href: "&amp;", escape_attributes: false)
     assert_equal '<a href="&amp;">content</a>', tag.a(href: "&amp;", escape_attributes: false) { "content" }
   end
@@ -314,18 +316,18 @@ class TagHelperTest < ActionView::TestCase
   def test_data_attributes
     ["data", :data].each { |data|
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
-        tag("a", data => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+        tag("a", data => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
       assert_dom_equal '<a data-a-float="3.14" data-a-big-decimal="-123.456" data-a-number="1" data-array="[1,2,3]" data-hash="{&quot;key&quot;:&quot;value&quot;}" data-string-with-quotes="double&quot;quote&quot;party&quot;" data-string="hello" data-symbol="foo" />',
-        tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+        tag.a(data: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
     }
   end
 
   def test_aria_attributes
     ["aria", :aria].each { |aria|
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+        tag("a", aria => { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
       assert_dom_equal '<a aria-a-float="3.14" aria-a-big-decimal="-123.456" aria-a-number="1" aria-array="[1,2,3]" aria-hash="{&quot;key&quot;:&quot;value&quot;}" aria-string-with-quotes="double&quot;quote&quot;party&quot;" aria-string="hello" aria-symbol="foo" />',
-        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal.new("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
+        tag.a(aria: { a_float: 3.14, a_big_decimal: BigDecimal("-123.456"), a_number: 1, string: "hello", symbol: :foo, array: [1, 2, 3], hash: { key: "value" }, string_with_quotes: 'double"quote"party"' })
     }
   end
 

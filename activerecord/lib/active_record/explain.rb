@@ -1,4 +1,6 @@
-require_relative "explain_registry"
+# frozen_string_literal: true
+
+require "active_record/explain_registry"
 
 module ActiveRecord
   module Explain

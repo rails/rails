@@ -63,7 +63,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :gender, inclusion: %w(male female)
+      #   validates :role, inclusion: %(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
@@ -154,7 +154,7 @@ module ActiveModel
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
       def _validates_default_keys
-        [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
+        [:if, :unless, :on, :allow_blank, :allow_nil, :strict]
       end
 
       def _parse_validates_options(options)

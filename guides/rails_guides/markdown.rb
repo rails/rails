@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "redcarpet"
 require "nokogiri"
 require "rails_guides/markdown/renderer"

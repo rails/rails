@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -102,7 +104,7 @@ class BasicsTest < ActiveRecord::TestCase
     pk = Author.columns_hash["id"]
     ref = Post.columns_hash["author_id"]
 
-    assert_equal pk.bigint?, ref.bigint?
+    assert_equal pk.sql_type, ref.sql_type
   end
 
   def test_many_mutations
@@ -145,8 +147,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_table_exists
-    assert !NonExistentTable.table_exists?
-    assert Topic.table_exists?
+    assert_not_predicate NonExistentTable, :table_exists?
+    assert_predicate Topic, :table_exists?
   end
 
   def test_preserving_date_objects
@@ -305,7 +307,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Dude", cbs[0].name
     assert_equal "Bob", cbs[1].name
     assert cbs[0].frickinawesome
-    assert !cbs[1].frickinawesome
+    assert_not cbs[1].frickinawesome
   end
 
   def test_load
@@ -448,7 +450,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_default_values
     topic = Topic.new
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.written_on
     assert_nil topic.bonus_time
     assert_nil topic.last_read
@@ -456,7 +458,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.save
 
     topic = Topic.find(topic.id)
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.last_read
 
     # Oracle has some funky default handling, so it requires a bit of
@@ -627,7 +629,7 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_readonly_attributes
-    assert_equal Set.new([ "title" , "comments_count" ]), ReadonlyTitlePost.readonly_attributes
+    assert_equal Set.new([ "title", "comments_count" ]), ReadonlyTitlePost.readonly_attributes
 
     post = ReadonlyTitlePost.create(title: "cannot change this", body: "changeable")
     post.reload
@@ -725,9 +727,9 @@ class BasicsTest < ActiveRecord::TestCase
     b_nil = Boolean.find(nil_id)
     assert_nil b_nil.value
     b_false = Boolean.find(false_id)
-    assert !b_false.value?
+    assert_not_predicate b_false, :value?
     b_true = Boolean.find(true_id)
-    assert b_true.value?
+    assert_predicate b_true, :value?
   end
 
   def test_boolean_without_questionmark
@@ -751,9 +753,9 @@ class BasicsTest < ActiveRecord::TestCase
     b_blank = Boolean.find(blank_id)
     assert_nil b_blank.value
     b_false = Boolean.find(false_id)
-    assert !b_false.value?
+    assert_not_predicate b_false, :value?
     b_true = Boolean.find(true_id)
-    assert b_true.value?
+    assert_predicate b_true, :value?
   end
 
   def test_new_record_returns_boolean
@@ -766,7 +768,7 @@ class BasicsTest < ActiveRecord::TestCase
     duped_topic = nil
     assert_nothing_raised { duped_topic = topic.dup }
     assert_equal topic.title, duped_topic.title
-    assert !duped_topic.persisted?
+    assert_not_predicate duped_topic, :persisted?
 
     # test if the attributes have been duped
     topic.title = "a"
@@ -784,7 +786,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # test if saved clone object differs from original
     duped_topic.save
-    assert duped_topic.persisted?
+    assert_predicate duped_topic, :persisted?
     assert_not_equal duped_topic.id, topic.id
 
     duped_topic.reload
@@ -805,7 +807,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { dup = dev.dup }
     assert_kind_of DeveloperSalary, dup.salary
     assert_equal dev.salary.amount, dup.salary.amount
-    assert !dup.persisted?
+    assert_not_predicate dup, :persisted?
 
     # test if the attributes have been duped
     original_amount = dup.salary.amount
@@ -813,7 +815,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal original_amount, dup.salary.amount
 
     assert dup.save
-    assert dup.persisted?
+    assert_predicate dup, :persisted?
     assert_not_equal dup.id, dev.id
   end
 
@@ -833,60 +835,65 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_of_new_object_with_defaults
     developer = Developer.new
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert !cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?
+    assert_not_predicate cloned_developer, :name_changed?
+    assert_not_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
     developer = Developer.new name: "Bjorn", salary: 100000
-    assert developer.name_changed?
-    assert developer.salary_changed?
+    assert_predicate developer, :name_changed?
+    assert_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :name_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new name: "Bjorn"
     assert developer.name_changed?            # obviously
-    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+    assert_not developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+    assert_predicate cloned_developer, :name_changed?
+    assert_not cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! name: "Bjorn", salary: 100000
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! name: "Bjorn"
-    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
-    assert !developer.salary_changed?
+    assert_not developer.name_changed?           # both attributes of saved object should be treated as not changed
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
+    assert_not cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum
     company = Company.find(1)
-    company.rating = 2147483647
+    company.rating = 2147483648
     company.save
     company = Company.find(1)
-    assert_equal 2147483647, company.rating
+    assert_equal 2147483648, company.rating
+  end
+
+  def test_bignum_pk
+    company = Company.create!(id: 2147483648, name: "foo")
+    assert_equal company, Company.find(company.id)
   end
 
   # TODO: extend defaults tests to other databases!
@@ -944,14 +951,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_toggle_attribute
-    assert !topics(:first).approved?
+    assert_not_predicate topics(:first), :approved?
     topics(:first).toggle!(:approved)
-    assert topics(:first).approved?
+    assert_predicate topics(:first), :approved?
     topic = topics(:first)
     topic.toggle(:approved)
-    assert !topic.approved?
+    assert_not_predicate topic, :approved?
     topic.reload
-    assert topic.approved?
+    assert_predicate topic, :approved?
   end
 
   def test_reload
@@ -975,7 +982,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_clear_cash_when_setting_table_name
+  def test_clear_cache_when_setting_table_name
     original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
@@ -1052,29 +1059,15 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_count_with_join
     res = Post.count_by_sql "SELECT COUNT(*) FROM posts LEFT JOIN comments ON posts.id=comments.post_id WHERE posts.#{QUOTED_TYPE} = 'Post'"
-
     res2 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
     assert_equal res, res2
 
-    res3 = nil
-    assert_nothing_raised do
-      res3 = Post.where("posts.#{QUOTED_TYPE} = 'Post'").joins("LEFT JOIN comments ON posts.id=comments.post_id").count
-    end
-    assert_equal res, res3
-
     res4 = Post.count_by_sql "SELECT COUNT(p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res5 = nil
-    assert_nothing_raised do
-      res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
-    end
-
+    res5 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").count
     assert_equal res4, res5
 
     res6 = Post.count_by_sql "SELECT COUNT(DISTINCT p.id) FROM posts p, comments co WHERE p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id"
-    res7 = nil
-    assert_nothing_raised do
-      res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
-    end
+    res7 = Post.where("p.#{QUOTED_TYPE} = 'Post' AND p.id=co.post_id").joins("p, comments co").select("p.id").distinct.count
     assert_equal res6, res7
   end
 
@@ -1438,28 +1431,92 @@ class BasicsTest < ActiveRecord::TestCase
   test "resetting column information doesn't remove attribute methods" do
     topic = topics(:first)
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
 
     Topic.reset_column_information
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
   end
 
   test "ignored columns are not present in columns_hash" do
     cache_columns = Developer.connection.schema_cache.columns_hash(Developer.table_name)
     assert_includes cache_columns.keys, "first_name"
     assert_not_includes Developer.columns_hash.keys, "first_name"
+    assert_not_includes SubDeveloper.columns_hash.keys, "first_name"
+    assert_not_includes SymbolIgnoredDeveloper.columns_hash.keys, "first_name"
   end
 
   test "ignored columns have no attribute methods" do
-    refute Developer.new.respond_to?(:first_name)
-    refute Developer.new.respond_to?(:first_name=)
-    refute Developer.new.respond_to?(:first_name?)
+    assert_not_respond_to Developer.new, :first_name
+    assert_not_respond_to Developer.new, :first_name=
+    assert_not_respond_to Developer.new, :first_name?
+    assert_not_respond_to SubDeveloper.new, :first_name
+    assert_not_respond_to SubDeveloper.new, :first_name=
+    assert_not_respond_to SubDeveloper.new, :first_name?
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name=
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name?
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
-    assert Developer.new.respond_to?(:last_name)
-    assert Developer.new.respond_to?(:last_name=)
-    assert Developer.new.respond_to?(:last_name?)
+    assert_respond_to Developer.new, :last_name
+    assert_respond_to Developer.new, :last_name=
+    assert_respond_to Developer.new, :last_name?
+    assert_respond_to SubDeveloper.new, :last_name
+    assert_respond_to SubDeveloper.new, :last_name=
+    assert_respond_to SubDeveloper.new, :last_name?
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
+  end
+
+  test "ignored columns are stored as an array of string" do
+    assert_equal(%w(first_name last_name), Developer.ignored_columns)
+    assert_equal(%w(first_name last_name), SymbolIgnoredDeveloper.ignored_columns)
+  end
+
+  test "when #reload called, ignored columns' attribute methods are not defined" do
+    developer = Developer.create!(name: "Developer")
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+
+    developer.reload
+
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
+  end
+
+  test "ignored columns not included in SELECT" do
+    query = Developer.all.to_sql.downcase
+
+    # ignored column
+    assert_not query.include?("first_name")
+
+    # regular column
+    assert query.include?("name")
+  end
+
+  test "column names are quoted when using #from clause and model has ignored columns" do
+    assert_not_empty Developer.ignored_columns
+    query = Developer.from("developers").to_sql
+    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
+  end
+
+  test "using table name qualified column names unless having SELECT list explicitly" do
+    assert_equal developers(:david), Developer.from("developers").joins(:shared_computers).take
+  end
+
+  test "protected environments by default is an array with production" do
+    assert_equal ["production"], ActiveRecord::Base.protected_environments
+  end
+
+  def test_protected_environments_are_stored_as_an_array_of_string
+    previous_protected_environments = ActiveRecord::Base.protected_environments
+    ActiveRecord::Base.protected_environments = [:staging, "production"]
+    assert_equal ["staging", "production"], ActiveRecord::Base.protected_environments
+  ensure
+    ActiveRecord::Base.protected_environments = previous_protected_environments
   end
 end

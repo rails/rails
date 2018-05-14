@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "rails/test_unit/reporter"
+require "rails/test_unit/runner"
 
 module Minitest
   class SuppressedSummaryReporter < SummaryReporter
@@ -10,6 +13,8 @@ module Minitest
   end
 
   def self.plugin_rails_options(opts, options)
+    ::Rails::TestUnit::Runner.attach_before_load_options(opts)
+
     opts.on("-b", "--backtrace", "Show the complete backtrace") do
       options[:full_backtrace] = true
     end
@@ -38,10 +43,15 @@ module Minitest
       Minitest.backtrace_filter = ::Rails.backtrace_cleaner if ::Rails.respond_to?(:backtrace_cleaner)
     end
 
+    # Suppress summary reports when outputting inline rerun snippets.
+    if reporter.reporters.reject! { |reporter| reporter.kind_of?(SummaryReporter) }
+      reporter << SuppressedSummaryReporter.new(options[:io], options)
+    end
+
     # Replace progress reporter for colors.
-    reporter.reporters.delete_if { |reporter| reporter.kind_of?(SummaryReporter) || reporter.kind_of?(ProgressReporter) }
-    reporter << SuppressedSummaryReporter.new(options[:io], options)
-    reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    if reporter.reporters.reject! { |reporter| reporter.kind_of?(ProgressReporter) }
+      reporter << ::Rails::TestUnitReporter.new(options[:io], options)
+    end
   end
 
   # Backwardscompatibility with Rails 5.0 generated plugin test scripts

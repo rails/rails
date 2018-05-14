@@ -1,15 +1,14 @@
 # frozen_string_literal: true
 
 require "cases/helper"
-require "active_model/type"
 
 module ActiveModel
   module Type
     class BooleanTest < ActiveModel::TestCase
       def test_type_cast_boolean
         type = Type::Boolean.new
-        assert type.cast("").nil?
-        assert type.cast(nil).nil?
+        assert_predicate type.cast(""), :nil?
+        assert_predicate type.cast(nil), :nil?
 
         assert type.cast(true)
         assert type.cast(1)

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/hash/reverse_merge"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/testing/stream"
 require "active_support/concern"
-require_relative "../../generators"
+require "rails/generators"
 
 module Rails
   module Generators

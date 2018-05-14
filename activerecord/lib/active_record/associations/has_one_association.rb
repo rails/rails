@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has One Association
   module Associations
+    # = Active Record Has One Association
     class HasOneAssociation < SingularAssociation #:nodoc:
       include ForeignAssociation
 
@@ -56,7 +58,9 @@ module ActiveRecord
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
+            throw(:abort) unless target.destroyed?
           when :nullify
             target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
@@ -78,6 +82,7 @@ module ActiveRecord
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
           else
             nullify_owner_attributes(target)
@@ -101,6 +106,14 @@ module ActiveRecord
           else
             yield
           end
+        end
+
+        def _create_record(attributes, raise_error = false)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
+          super
         end
     end
   end

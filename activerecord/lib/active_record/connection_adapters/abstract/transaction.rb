@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     class TransactionState
@@ -73,7 +75,6 @@ module ActiveRecord
 
     class Transaction #:nodoc:
       attr_reader :connection, :state, :records, :savepoint_name
-      attr_writer :joinable
 
       def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
@@ -238,7 +239,7 @@ module ActiveRecord
                 rollback_transaction if transaction
               else
                 begin
-                  commit_transaction
+                  commit_transaction if transaction
                 rescue Exception
                   rollback_transaction(transaction) unless transaction.state.completed?
                   raise

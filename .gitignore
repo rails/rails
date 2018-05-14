@@ -1,24 +1,16 @@
-# Don't put *.swp, *.bak, etc here; those belong in a global ~/.gitignore.
+# Don't put *.swp, *.bak, etc here; those belong in a global .gitignore.
 # Check out https://help.github.com/articles/ignoring-files for how to set that up.
 
 .Gemfile
-.ruby-version
 .byebug_history
-debug.log
-pkg
+.ruby-version
+/*/doc/
+/*/test/tmp/
 /.bundle
-/dist
-/doc/rdoc
-/*/doc
-/*/test/tmp
-/activerecord/sqlnet.log
-/activemodel/test/fixtures/fixture_database.sqlite3
-/activesupport/test/fixtures/isolation_test
-/railties/test/500.html
-/railties/test/fixtures/tmp
-/railties/test/initializer/root/log
-/railties/doc
-/railties/tmp
-/guides/output
+/dist/
+/doc/
+/guides/output/
+debug.log
 node_modules/
-/actionview/log
+package-lock.json
+pkg/

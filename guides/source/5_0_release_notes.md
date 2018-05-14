@@ -55,7 +55,7 @@ information.
 ### API Applications
 
 Rails can now be used to create slimmed down API only applications.
-This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](http://developer.github.com) API, 
+This is useful for creating and serving APIs similar to [Twitter](https://dev.twitter.com) or [GitHub](https://developer.github.com) API,
 that can be used to serve public facing, as well as, for custom applications.
 
 You can generate a new api Rails app using:
@@ -73,12 +73,12 @@ This will do three main things:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
-  you generate a new resource. 
+- Configure the generators to skip generating views, helpers, and assets when
+  you generate a new resource.
 
-The application provides a base for APIs, 
-that can then be [configured to pull in functionality](api_app.html) as suitable for the application's needs.  
- 
+The application provides a base for APIs,
+that can then be [configured to pull in functionality](api_app.html) as suitable for the application's needs.
+
 See the [Using Rails for API-only Applications](api_app.html) guide for more
 information.
 
@@ -775,7 +775,7 @@ Please refer to the [Changelog][active-record] for detailed changes.
 
 *   Added prepared statements support to `mysql2` adapter, for mysql2 0.4.4+,
     Previously this was only supported on the deprecated `mysql` legacy adapter.
-    To enable, set `prepared_statements: true` in config/database.yml.
+    To enable, set `prepared_statements: true` in `config/database.yml`.
     ([Pull Request](https://github.com/rails/rails/pull/23461))
 
 *   Added ability to call `ActionRecord::Relation#update` on relation objects
@@ -997,7 +997,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   New config option
     `config.active_support.halt_callback_chains_on_return_false` to specify
-    whether ActiveRecord, ActiveModel and ActiveModel::Validations callback
+    whether ActiveRecord, ActiveModel, and ActiveModel::Validations callback
     chains can be halted by returning `false` in a 'before' callback.
     ([Pull Request](https://github.com/rails/rails/pull/17227))
 

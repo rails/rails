@@ -4,8 +4,8 @@ require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/regexp"
-require_relative "redirection"
-require_relative "endpoint"
+require "action_dispatch/routing/redirection"
+require "action_dispatch/routing/endpoint"
 
 module ActionDispatch
   module Routing
@@ -473,7 +473,17 @@ module ActionDispatch
         #   <tt>params[<:param>]</tt>.
         #   In your router:
         #
-        #      resources :user, param: :name
+        #      resources :users, param: :name
+        #
+        #   The +users+ resource here will have the following routes generated for it:
+        #
+        #      GET       /users(.:format)
+        #      POST      /users(.:format)
+        #      GET       /users/new(.:format)
+        #      GET       /users/:name/edit(.:format)
+        #      GET       /users/:name(.:format)
+        #      PATCH/PUT /users/:name(.:format)
+        #      DELETE    /users/:name(.:format)
         #
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
@@ -484,8 +494,8 @@ module ActionDispatch
         #        end
         #      end
         #
-        #   user = User.find_by(name: 'Phusion')
-        #   user_path(user)  # => "/users/Phusion"
+        #      user = User.find_by(name: 'Phusion')
+        #      user_path(user)  # => "/users/Phusion"
         #
         # [:path]
         #   The path prefix for the routes.
@@ -601,7 +611,7 @@ module ActionDispatch
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<-MSG.strip_heredoc unless path
+          raise ArgumentError, <<~MSG unless path
             Must be called with mount point
 
               mount SomeRackApp, at: "some_route"
@@ -654,13 +664,19 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
+            _url_helpers = @set.url_helpers
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
               prefix_options[:relative_url_root] = "".freeze
+
+              if options[:_recall]
+                prefix_options.reverse_merge!(options[:_recall].slice(*_route.segment_keys))
+              end
+
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _routes.url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)
@@ -1260,7 +1276,7 @@ module ActionDispatch
         #   POST      /profile
         #
         # === Options
-        # Takes same options as +resources+.
+        # Takes same options as resources[rdoc-ref:#resources]
         def resource(*resources, &block)
           options = resources.extract_options!.dup
 
@@ -1325,7 +1341,7 @@ module ActionDispatch
         #   DELETE    /photos/:photo_id/comments/:id
         #
         # === Options
-        # Takes same options as <tt>Base#match</tt> as well as:
+        # Takes same options as match[rdoc-ref:Base#match] as well as:
         #
         # [:path_names]
         #   Allows you to change the segment component of the +edit+ and +new+ actions.
@@ -1558,7 +1574,7 @@ module ActionDispatch
         # Matches a URL pattern to one or more routes.
         # For more information, see match[rdoc-ref:Base#match].
         #
-        #   match 'path' => 'controller#action', via: patch
+        #   match 'path' => 'controller#action', via: :patch
         #   match 'path', to: 'controller#action', via: :post
         #   match 'path', 'otherpath', on: :member, via: :get
         def match(path, *rest, &block)
@@ -1846,7 +1862,7 @@ module ActionDispatch
             path_types.fetch(String, []).each do |_path|
               route_options = options.dup
               if _path && option_path
-                raise ArgumentError, "Ambiguous route definition. Both :path and the route path where specified as strings."
+                raise ArgumentError, "Ambiguous route definition. Both :path and the route path were specified as strings."
               end
               to = get_to_from_path(_path, to, route_options[:action])
               decomposed_match(_path, controller, route_options, _path, to, via, formatted, anchor, options_constraints)
@@ -2031,7 +2047,7 @@ module ActionDispatch
       end
 
       module CustomUrls
-        # Define custom url helpers that will be added to the application's
+        # Define custom URL helpers that will be added to the application's
         # routes. This allows you to override and/or replace the default behavior
         # of routing helpers, e.g:
         #
@@ -2051,11 +2067,11 @@ module ActionDispatch
         # arguments for +url_for+ which will actually build the URL string. This can
         # be one of the following:
         #
-        #   * A string, which is treated as a generated URL
-        #   * A hash, e.g. { controller: "pages", action: "index" }
-        #   * An array, which is passed to `polymorphic_url`
-        #   * An Active Model instance
-        #   * An Active Model class
+        # * A string, which is treated as a generated URL
+        # * A hash, e.g. <tt>{ controller: "pages", action: "index" }</tt>
+        # * An array, which is passed to +polymorphic_url+
+        # * An Active Model instance
+        # * An Active Model class
         #
         # NOTE: Other URL helpers can be called in the block but be careful not to invoke
         # your custom URL helper again otherwise it will result in a stack overflow error.
@@ -2067,9 +2083,9 @@ module ActionDispatch
         #     [ :products, options.merge(params.permit(:page, :size).to_h.symbolize_keys) ]
         #   end
         #
-        # In this instance the +params+ object comes from the context in which the the
+        # In this instance the +params+ object comes from the context in which the
         # block is executed, e.g. generating a URL inside a controller action or a view.
-        # If the block is executed where there isn't a params object such as this:
+        # If the block is executed where there isn't a +params+ object such as this:
         #
         #   Rails.application.routes.url_helpers.browse_path
         #

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "bigdecimal"
 require "securerandom"
@@ -36,7 +38,7 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
   end
 
   def test_type_cast_bigdecimal
-    bd = BigDecimal.new "10.0"
+    bd = BigDecimal "10.0"
     assert_equal bd.to_f, @conn.type_cast(bd)
   end
 
@@ -49,6 +51,13 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
 
   def test_quoted_time_returns_date_qualified_time
     value = ::Time.utc(2000, 1, 1, 12, 30, 0, 999999)
+    type = ActiveRecord::Type::Time.new
+
+    assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
+  end
+
+  def test_quoted_time_normalizes_date_qualified_time
+    value = ::Time.utc(2018, 3, 11, 12, 30, 0, 999999)
     type = ActiveRecord::Type::Time.new
 
     assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))

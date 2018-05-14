@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -132,10 +134,10 @@ _SQL
     end
 
     def test_numrange_values
-      assert_equal BigDecimal.new("0.1")..BigDecimal.new("0.2"), @first_range.num_range
-      assert_equal BigDecimal.new("0.1")...BigDecimal.new("0.2"), @second_range.num_range
-      assert_equal BigDecimal.new("0.1")...BigDecimal.new("Infinity"), @third_range.num_range
-      assert_equal BigDecimal.new("-Infinity")...BigDecimal.new("Infinity"), @fourth_range.num_range
+      assert_equal BigDecimal("0.1")..BigDecimal("0.2"), @first_range.num_range
+      assert_equal BigDecimal("0.1")...BigDecimal("0.2"), @second_range.num_range
+      assert_equal BigDecimal("0.1")...BigDecimal("Infinity"), @third_range.num_range
+      assert_equal BigDecimal("-Infinity")...BigDecimal("Infinity"), @fourth_range.num_range
       assert_nil @empty_range.num_range
     end
 
@@ -230,16 +232,67 @@ _SQL
       end
     end
 
+    def test_create_tstzrange_preserve_usec
+      tstzrange = Time.parse("2010-01-01 14:30:00.670277 +0100")...Time.parse("2011-02-02 14:30:00.745125 CDT")
+      round_trip(@new_range, :tstz_range, tstzrange)
+      assert_equal @new_range.tstz_range, tstzrange
+      assert_equal @new_range.tstz_range, Time.parse("2010-01-01 13:30:00.670277 UTC")...Time.parse("2011-02-02 19:30:00.745125 UTC")
+    end
+
+    def test_update_tstzrange_preserve_usec
+      assert_equal_round_trip(@first_range, :tstz_range,
+                              Time.parse("2010-01-01 14:30:00.245124 CDT")...Time.parse("2011-02-02 14:30:00.451274 CET"))
+      assert_nil_round_trip(@first_range, :tstz_range,
+                            Time.parse("2010-01-01 14:30:00.245124 +0100")...Time.parse("2010-01-01 13:30:00.245124 +0000"))
+    end
+
+    def test_create_tsrange_preseve_usec
+      tz = ::ActiveRecord::Base.default_timezone
+      assert_equal_round_trip(@new_range, :ts_range,
+                              Time.send(tz, 2010, 1, 1, 14, 30, 0, 125435)...Time.send(tz, 2011, 2, 2, 14, 30, 0, 225435))
+    end
+
+    def test_update_tsrange_preserve_usec
+      tz = ::ActiveRecord::Base.default_timezone
+      assert_equal_round_trip(@first_range, :ts_range,
+                              Time.send(tz, 2010, 1, 1, 14, 30, 0, 142432)...Time.send(tz, 2011, 2, 2, 14, 30, 0, 224242))
+      assert_nil_round_trip(@first_range, :ts_range,
+                            Time.send(tz, 2010, 1, 1, 14, 30, 0, 142432)...Time.send(tz, 2010, 1, 1, 14, 30, 0, 142432))
+    end
+
+    def test_timezone_awareness_tsrange_preserve_usec
+      tz = "Pacific Time (US & Canada)"
+
+      in_time_zone tz do
+        PostgresqlRange.reset_column_information
+        time_string = "2017-09-26 07:30:59.132451 -0700"
+        time = Time.zone.parse(time_string)
+        assert time.usec > 0
+
+        record = PostgresqlRange.new(ts_range: time_string..time_string)
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+        assert_equal time.usec, record.ts_range.begin.usec
+
+        record.save!
+        record.reload
+
+        assert_equal time..time, record.ts_range
+        assert_equal ActiveSupport::TimeZone[tz], record.ts_range.begin.time_zone
+        assert_equal time.usec, record.ts_range.begin.usec
+      end
+    end
+
     def test_create_numrange
       assert_equal_round_trip(@new_range, :num_range,
-                              BigDecimal.new("0.5")...BigDecimal.new("1"))
+                              BigDecimal("0.5")...BigDecimal("1"))
     end
 
     def test_update_numrange
       assert_equal_round_trip(@first_range, :num_range,
-                              BigDecimal.new("0.5")...BigDecimal.new("1"))
+                              BigDecimal("0.5")...BigDecimal("1"))
       assert_nil_round_trip(@first_range, :num_range,
-                            BigDecimal.new("0.5")...BigDecimal.new("0.5"))
+                            BigDecimal("0.5")...BigDecimal("0.5"))
     end
 
     def test_create_daterange
@@ -303,6 +356,18 @@ _SQL
       assert_nothing_raised do
         PostgresqlRange.first
       end
+    end
+
+    def test_infinity_values
+      PostgresqlRange.create!(int4_range: 1..Float::INFINITY,
+                              int8_range: -Float::INFINITY..0,
+                              float_range: -Float::INFINITY..Float::INFINITY)
+
+      record = PostgresqlRange.first
+
+      assert_equal(1...Float::INFINITY, record.int4_range)
+      assert_equal(-Float::INFINITY...1, record.int8_range)
+      assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
     end
 
     private

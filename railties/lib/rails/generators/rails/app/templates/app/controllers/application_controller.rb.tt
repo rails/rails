@@ -1,2 +1,2 @@
-class ApplicationController < ActionController::<%= options[:api] ? "API" : "Base" %>
+class ApplicationController < ActionController::<%= options.api? ? "API" : "Base" %>
 end

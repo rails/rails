@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     module Tags #:nodoc:
       extend ActiveSupport::Autoload
 

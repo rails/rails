@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -82,7 +84,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
 
         def test_create_table_with_array_column
@@ -93,7 +95,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
       end
 
@@ -203,8 +205,8 @@ module ActiveRecord
         created_at_column = created_columns.detect { |c| c.name == "created_at" }
         updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        assert_not created_at_column.null
+        assert_not updated_at_column.null
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
@@ -262,17 +264,18 @@ module ActiveRecord
           t.column :foo, :timestamp
         end
 
-        klass = Class.new(ActiveRecord::Base)
-        klass.table_name = "testings"
+        column = connection.columns(:testings).find { |c| c.name == "foo" }
 
-        assert_equal :datetime, klass.columns_hash["foo"].type
+        assert_equal :datetime, column.type
 
         if current_adapter?(:PostgreSQLAdapter)
-          assert_equal "timestamp without time zone", klass.columns_hash["foo"].sql_type
+          assert_equal "timestamp without time zone", column.sql_type
         elsif current_adapter?(:Mysql2Adapter)
-          assert_equal "timestamp", klass.columns_hash["foo"].sql_type
+          assert_equal "timestamp", column.sql_type
+        elsif current_adapter?(:OracleAdapter)
+          assert_equal "TIMESTAMP(6)", column.sql_type
         else
-          assert_equal klass.connection.type_to_sql("datetime"), klass.columns_hash["foo"].sql_type
+          assert_equal connection.type_to_sql("datetime"), column.sql_type
         end
       end
 
@@ -405,7 +408,7 @@ module ActiveRecord
         end
         connection.change_table :testings do |t|
           assert t.column_exists?(:foo)
-          assert !(t.column_exists?(:bar))
+          assert_not (t.column_exists?(:bar))
         end
       end
 

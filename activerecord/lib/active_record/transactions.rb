@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # See ActiveRecord::Transactions::ClassMethods for documentation.
   module Transactions
@@ -168,7 +170,7 @@ module ActiveRecord
     # writing, the only database that we're aware of that supports true nested
     # transactions, is MS-SQL. Because of this, Active Record emulates nested
     # transactions by using savepoints on MySQL and PostgreSQL. See
-    # http://dev.mysql.com/doc/refman/5.7/en/savepoint.html
+    # https://dev.mysql.com/doc/refman/5.7/en/savepoint.html
     # for more information about savepoints.
     #
     # === \Callbacks
@@ -188,7 +190,7 @@ module ActiveRecord
     #
     # === Caveats
     #
-    # If you're on MySQL, then do not use Data Definition Language(DDL) operations in nested
+    # If you're on MySQL, then do not use Data Definition Language (DDL) operations in nested
     # transactions blocks that are emulated with savepoints. That is, do not execute statements
     # like 'CREATE TABLE' inside such blocks. This is because MySQL automatically
     # releases all savepoints upon executing a DDL operation. When +transaction+
@@ -283,7 +285,7 @@ module ActiveRecord
             fire_on = Array(options[:on])
             assert_valid_transaction_action(fire_on)
             options[:if] = Array(options[:if])
-            options[:if].unshift("transaction_include_any_action?(#{fire_on})")
+            options[:if].unshift(-> { transaction_include_any_action?(fire_on) })
           end
         end
 
@@ -304,9 +306,7 @@ module ActiveRecord
     end
 
     def save(*) #:nodoc:
-      rollback_active_record_state! do
-        with_transaction_returning_status { super }
-      end
+      with_transaction_returning_status { super }
     end
 
     def save!(*) #:nodoc:
@@ -315,17 +315,6 @@ module ActiveRecord
 
     def touch(*) #:nodoc:
       with_transaction_returning_status { super }
-    end
-
-    # Reset id and @new_record if the transaction rolls back.
-    def rollback_active_record_state!
-      remember_transaction_record_state
-      yield
-    rescue Exception
-      restore_transaction_record_state
-      raise
-    ensure
-      clear_transaction_record_state
     end
 
     def before_committed! # :nodoc:
@@ -338,7 +327,7 @@ module ActiveRecord
     # Ensure that it is not called if the object was never persisted (failed create),
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
-      if should_run_callbacks && destroyed? || (persisted? && transaction_include_any_action?([:create, :update]))
+      if should_run_callbacks && (destroyed? || (persisted? && transaction_include_any_action?([:create, :update])))
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
       end
@@ -380,13 +369,7 @@ module ActiveRecord
       status = nil
       self.class.transaction do
         add_to_transaction
-        begin
-          status = yield
-        rescue ActiveRecord::Rollback
-          clear_transaction_record_state
-          status = nil
-        end
-
+        status = yield
         raise ActiveRecord::Rollback unless status
       end
       status
@@ -430,8 +413,8 @@ module ActiveRecord
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
             pk = self.class.primary_key
-            if pk && read_attribute(pk) != restore_state[:id]
-              write_attribute(pk, restore_state[:id])
+            if pk && _read_attribute(pk) != restore_state[:id]
+              _write_attribute(pk, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end
@@ -470,7 +453,7 @@ module ActiveRecord
       # if it's associated with a transaction, then the state of the Active Record
       # object will be updated to reflect the current state of the transaction.
       #
-      # The +@transaction_state+ variable stores the states of the associated
+      # The <tt>@transaction_state</tt> variable stores the states of the associated
       # transaction. This relies on the fact that a transaction can only be in
       # one rollback or commit (otherwise a list of states would be required).
       # Each Active Record object inside of a transaction carries that transaction's

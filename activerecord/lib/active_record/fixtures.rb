@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "erb"
 require "yaml"
 require "zlib"
 require "set"
 require "active_support/dependencies"
 require "active_support/core_ext/digest/uuid"
-require_relative "fixture_set/file"
-require_relative "errors"
+require "active_record/fixture_set/file"
+require "active_record/errors"
 
 module ActiveRecord
   class FixtureClassNotFound < ActiveRecord::ActiveRecordError #:nodoc:
@@ -145,7 +147,7 @@ module ActiveRecord
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
   # that is included in ActiveRecord::FixtureSet.context_class.
   #
-  # - define a helper method in `test_helper.rb`
+  # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
@@ -167,13 +169,13 @@ module ActiveRecord
   #     self.use_transactional_tests = true
   #
   #     test "godzilla" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #       Foo.destroy_all
-  #       assert Foo.all.empty?
+  #       assert_empty Foo.all
   #     end
   #
   #     test "godzilla aftermath" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #     end
   #   end
   #
@@ -538,47 +540,38 @@ module ActiveRecord
       }
 
       unless files_to_read.empty?
-        connection.disable_referential_integrity do
-          fixtures_map = {}
+        fixtures_map = {}
 
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
+        fixture_sets = files_to_read.map do |fs_name|
+          klass = class_names[fs_name]
+          conn = klass ? klass.connection : connection
+          fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
+            conn,
+            fs_name,
+            klass,
+            ::File.join(fixtures_directory, fs_name))
+        end
 
-          update_all_loaded_fixtures fixtures_map
+        update_all_loaded_fixtures fixtures_map
+        fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
 
-          connection.transaction(requires_new: true) do
-            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
-            fixture_sets.each do |fs|
-              conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
-              table_rows = fs.table_rows
+        fixture_sets_by_connection.each do |conn, set|
+          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
 
-              table_rows.each_key do |table|
-                unless deleted_tables[conn].include? table
-                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
-                end
-                deleted_tables[conn] << table
-              end
-
-              table_rows.each do |fixture_set_name, rows|
-                conn.insert_fixtures(rows, fixture_set_name)
-              end
-
-              # Cap primary key sequences to max(pk).
-              if conn.respond_to?(:reset_pk_sequence!)
-                conn.reset_pk_sequence!(fs.table_name)
-              end
+          set.each do |fs|
+            fs.table_rows.each do |table, rows|
+              table_rows_for_connection[table].unshift(*rows)
             end
           end
+          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
-          cache_fixtures(connection, fixtures_map)
+          # Cap primary key sequences to max(pk).
+          if conn.respond_to?(:reset_pk_sequence!)
+            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+          end
         end
+
+        cache_fixtures(connection, fixtures_map)
       end
       cached_fixtures(connection, fixture_set_names)
     end
@@ -881,6 +874,7 @@ module ActiveRecord
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
       class_attribute :pre_loaded_fixtures, default: false
       class_attribute :config, default: ActiveRecord::Base
+      class_attribute :lock_threads, default: true
     end
 
     module ClassMethods
@@ -980,7 +974,7 @@ module ActiveRecord
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
-          connection.pool.lock_thread = true
+          connection.pool.lock_thread = true if lock_threads
         end
 
         # When connections are established in the future, begin a transaction too
@@ -996,7 +990,7 @@ module ActiveRecord
 
             if connection && !@fixture_connections.include?(connection)
               connection.begin_transaction joinable: false
-              connection.pool.lock_thread = true
+              connection.pool.lock_thread = true if lock_threads
               @fixture_connections << connection
             end
           end
@@ -1062,6 +1056,10 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
     Class.new ActiveRecord::FixtureSet.context_class do
       def get_binding
         binding()
+      end
+
+      def binary(path)
+        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
       end
     end
   end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "models/pet"
@@ -15,48 +17,48 @@ class LengthValidationTest < ActiveRecord::TestCase
   def test_validates_size_of_association
     assert_nothing_raised { @owner.validates_size_of :pets, minimum: 1 }
     o = @owner.new("name" => "nopets")
-    assert !o.save
-    assert o.errors[:pets].any?
+    assert_not o.save
+    assert_predicate o.errors[:pets], :any?
     o.pets.build("name" => "apet")
-    assert o.valid?
+    assert_predicate o, :valid?
   end
 
   def test_validates_size_of_association_using_within
     assert_nothing_raised { @owner.validates_size_of :pets, within: 1..2 }
     o = @owner.new("name" => "nopets")
-    assert !o.save
-    assert o.errors[:pets].any?
+    assert_not o.save
+    assert_predicate o.errors[:pets], :any?
 
     o.pets.build("name" => "apet")
-    assert o.valid?
+    assert_predicate o, :valid?
 
     2.times { o.pets.build("name" => "apet") }
-    assert !o.save
-    assert o.errors[:pets].any?
+    assert_not o.save
+    assert_predicate o.errors[:pets], :any?
   end
 
   def test_validates_size_of_association_utf8
     @owner.validates_size_of :pets, minimum: 1
     o = @owner.new("name" => "あいうえおかきくけこ")
-    assert !o.save
-    assert o.errors[:pets].any?
+    assert_not o.save
+    assert_predicate o.errors[:pets], :any?
     o.pets.build("name" => "あいうえおかきくけこ")
-    assert o.valid?
+    assert_predicate o, :valid?
   end
 
   def test_validates_size_of_respects_records_marked_for_destruction
     @owner.validates_size_of :pets, minimum: 1
     owner = @owner.new
     assert_not owner.save
-    assert owner.errors[:pets].any?
+    assert_predicate owner.errors[:pets], :any?
     pet = owner.pets.build
-    assert owner.valid?
+    assert_predicate owner, :valid?
     assert owner.save
 
     pet_count = Pet.count
-    assert_not owner.update_attributes pets_attributes: [ { _destroy: 1, id: pet.id } ]
-    assert_not owner.valid?
-    assert owner.errors[:pets].any?
+    assert_not owner.update pets_attributes: [ { _destroy: 1, id: pet.id } ]
+    assert_not_predicate owner, :valid?
+    assert_predicate owner.errors[:pets], :any?
     assert_equal pet_count, Pet.count
   end
 
@@ -68,11 +70,11 @@ class LengthValidationTest < ActiveRecord::TestCase
 
       pet = Pet.create!(name: "Fancy Pants", nickname: "Fancy")
 
-      assert pet.valid?
+      assert_predicate pet, :valid?
 
       pet.nickname = ""
 
-      assert pet.invalid?
+      assert_predicate pet, :invalid?
     end
   end
 end

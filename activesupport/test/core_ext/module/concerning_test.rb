@@ -21,7 +21,7 @@ class ModuleConcernTest < ActiveSupport::TestCase
 
     # Declares a concern but doesn't include it
     assert klass.const_defined?(:Baz, false)
-    assert !ModuleConcernTest.const_defined?(:Baz)
+    assert_not ModuleConcernTest.const_defined?(:Baz)
     assert_kind_of ActiveSupport::Concern, klass::Baz
     assert_not_includes klass.ancestors, klass::Baz, klass.ancestors.inspect
 
@@ -55,10 +55,10 @@ class ModuleConcernTest < ActiveSupport::TestCase
   end
 
   def test_using_class_methods_blocks_instead_of_ClassMethods_module
-    assert !Foo.respond_to?(:will_be_orphaned)
-    assert Foo.respond_to?(:hacked_on)
-    assert Foo.respond_to?(:nicer_dsl)
-    assert Foo.respond_to?(:doesnt_clobber)
+    assert_not_respond_to Foo, :will_be_orphaned
+    assert_respond_to Foo, :hacked_on
+    assert_respond_to Foo, :nicer_dsl
+    assert_respond_to Foo, :doesnt_clobber
 
     # Orphan in Foo::ClassMethods, not Bar::ClassMethods.
     assert Foo.const_defined?(:ClassMethods)

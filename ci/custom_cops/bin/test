@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+COMPONENT_ROOT = File.expand_path("..", __dir__)
+require_relative "../../../tools/test"

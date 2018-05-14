@@ -103,8 +103,8 @@ module ActiveModel
     #     end
     #   end
     #
-    # NOTE: +method_name+ passed to `define_model_callbacks` must not end with
-    # `!`, `?` or `=`.
+    # NOTE: +method_name+ passed to define_model_callbacks must not end with
+    # <tt>!</tt>, <tt>?</tt> or <tt>=</tt>.
     def define_model_callbacks(*callbacks)
       options = callbacks.extract_options!
       options = {

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model"
 
 Customer = Struct.new(:name, :id) do

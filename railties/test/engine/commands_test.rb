@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
-begin
-  require "pty"
-rescue LoadError
-end
+require "console_helpers"
 
 class Rails::Engine::CommandsTest < ActiveSupport::TestCase
+  include ConsoleHelpers
+
   def setup
     @destination_root = Dir.mktmpdir("bukkits")
     Dir.chdir(@destination_root) { `bundle exec rails plugin new bukkits --mountable` }
@@ -64,28 +65,11 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
       "#{@destination_root}/bukkits"
     end
 
-    def assert_output(expected, io, timeout = 10)
-      timeout = Time.now + timeout
-
-      output = ""
-      until output.include?(expected) || Time.now > timeout
-        if IO.select([io], [], [], 0.1)
-          output << io.read(1)
-        end
-      end
-
-      assert_includes output, expected, "#{expected.inspect} expected, but got:\n\n#{output}"
-    end
-
     def spawn_command(command, fd)
       Process.spawn(
         "#{plugin_path}/bin/rails #{command}",
         in: fd, out: fd, err: fd
       )
-    end
-
-    def available_pty?
-      defined?(PTY) && PTY.respond_to?(:open)
     end
 
     def kill(pid)

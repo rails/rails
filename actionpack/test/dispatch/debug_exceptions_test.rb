@@ -3,6 +3,8 @@
 require "abstract_unit"
 
 class DebugExceptionsTest < ActionDispatch::IntegrationTest
+  InterceptedErrorInstance = StandardError.new
+
   class Boomer
     attr_accessor :closed
 
@@ -36,6 +38,8 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         raise RuntimeError
       when %r{/method_not_allowed}
         raise ActionController::MethodNotAllowed
+      when %r{/intercepted_error}
+        raise InterceptedErrorInstance
       when %r{/unknown_http_method}
         raise ActionController::UnknownHttpMethod
       when %r{/not_implemented}
@@ -76,9 +80,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     end
   end
 
+  Interceptor = proc { |request, exception| request.set_header("int", exception) }
+  BadInterceptor = proc { |request, exception| raise "bad" }
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
+  InterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [Interceptor])
+  BadInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
@@ -498,5 +506,21 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
         assert_select "pre code a:first", /method_that_raises/
       end
     end
+  end
+
+  test "invoke interceptors before rendering" do
+    @app = InterceptedApp
+    get "/intercepted_error", headers: { "action_dispatch.show_exceptions" => true }
+
+    assert_equal InterceptedErrorInstance, request.get_header("int")
+  end
+
+  test "bad interceptors doesn't debug exceptions" do
+    @app = BadInterceptedApp
+
+    get "/puke", headers: { "action_dispatch.show_exceptions" => true }
+
+    assert_response 500
+    assert_match(/puke/, body)
   end
 end

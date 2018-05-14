@@ -1,4 +1,6 @@
-require_relative "../dev_caching"
+# frozen_string_literal: true
+
+require "rails/dev_caching"
 
 namespace :dev do
   desc "Toggle development mode caching on/off"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 namespace :app do
   desc "Update configs and some other initially generated files (or use just update:configs or update:bin)"
   task update: [ "update:configs", "update:bin", "update:upgrade_guide_info" ]
@@ -7,9 +9,9 @@ namespace :app do
     template = ENV["LOCATION"]
     raise "No LOCATION value given. Please set LOCATION either as path to a file or a URL" if template.blank?
     template = File.expand_path(template) if template !~ %r{\A[A-Za-z][A-Za-z0-9+\-\.]*://}
-    require_relative "../generators"
-    require_relative "../generators/rails/app/app_generator"
-    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, destination_root: Rails.root
+    require "rails/generators"
+    require "rails/generators/rails/app/app_generator"
+    generator = Rails::Generators::AppGenerator.new [Rails.root], {}, { destination_root: Rails.root }
     generator.apply template, verbose: false
   end
 
@@ -36,9 +38,9 @@ namespace :app do
   end
 
   namespace :update do
-    require_relative "../app_updater"
+    require "rails/app_updater"
 
-    # desc "Update config/boot.rb from your current rails install"
+    # desc "Update config files from your current rails install"
     task :configs do
       Rails::AppUpdater.invoke_from_app_generator :create_boot_file
       Rails::AppUpdater.invoke_from_app_generator :update_config_files

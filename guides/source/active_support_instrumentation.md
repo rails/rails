@@ -3,7 +3,7 @@
 Active Support Instrumentation
 ==============================
 
-Active Support is a part of core Rails that provides Ruby language extensions, utilities and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
+Active Support is a part of core Rails that provides Ruby language extensions, utilities, and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
 
 In this guide, you will learn how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
 
@@ -169,7 +169,7 @@ INFO. Additional keys may be added by the caller.
 
 ### send_data.action_controller
 
-`ActionController` does not had any specific information to the payload. All options are passed through to the payload.
+`ActionController` does not add any specific information to the payload. All options are passed through to the payload.
 
 ### redirect_to.action_controller
 
@@ -196,6 +196,12 @@ INFO. Additional keys may be added by the caller.
   filter: ":halting_filter"
 }
 ```
+
+### unpermitted_parameters.action_controller
+
+| Key     | Value            |
+| ------- | ---------------- |
+| `:keys` | Unpermitted keys |
 
 Action View
 -----------
@@ -304,7 +310,7 @@ Action Mailer
   mailer: "Notification",
   message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
   subject: "Rails Guides",
-  to: ["users@rails.com", "ddh@rails.com"],
+  to: ["users@rails.com", "dhh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
   mail: "..." # omitted for brevity
@@ -330,10 +336,26 @@ Action Mailer
   mailer: "Notification",
   message_id: "4f5b5491f1774_181b23fc3d4434d38138e5@mba.local.mail",
   subject: "Rails Guides",
-  to: ["users@rails.com", "ddh@rails.com"],
+  to: ["users@rails.com", "dhh@rails.com"],
   from: ["me@rails.com"],
   date: Sat, 10 Mar 2012 14:18:09 +0100,
   mail: "..." # omitted for brevity
+}
+```
+
+### process.action_mailer
+
+| Key           | Value                    |
+| ------------- | ------------------------ |
+| `:mailer`     | Name of the mailer class |
+| `:action`     | The action               |
+| `:args`       | The arguments            |
+
+```ruby
+{
+  mailer: "Notification",
+  action: "welcome_email",
+  args: []
 }
 ```
 
@@ -450,6 +472,99 @@ Active Job
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
+Action Cable
+------------
+
+### perform_action.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:action`        | The action                |
+| `:data`          | A hash of data            |
+
+### transmit.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+| `:data`          | A hash of data            |
+| `:via`           | Via                       |
+
+### transmit_subscription_confirmation.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### transmit_subscription_rejection.action_cable
+
+| Key              | Value                     |
+| ---------------- | ------------------------- |
+| `:channel_class` | Name of the channel class |
+
+### broadcast.action_cable
+
+| Key             | Value                |
+| --------------- | -------------------- |
+| `:broadcasting` | A named broadcasting |
+| `:message`      | A hash of message    |
+| `:coder`        | The coder            |
+
+Active Storage
+--------------
+
+### service_upload.active_storage
+
+| Key          | Value                        |
+| ------------ | ---------------------------- |
+| `:key`       | Secure token                 |
+| `:service`   | Name of the service          |
+| `:checksum`  | Checksum to ensure integrity |
+
+### service_streaming_download.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_download.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_delete.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+
+### service_delete_prefixed.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:prefix`    | Key prefix          |
+| `:service`   | Name of the service |
+
+### service_exist.active_storage
+
+| Key          | Value                       |
+| ------------ | --------------------------- |
+| `:key`       | Secure token                |
+| `:service`   | Name of the service         |
+| `:exist`     | File or blob exists or not  |
+
+### service_url.active_storage
+
+| Key          | Value               |
+| ------------ | ------------------- |
+| `:key`       | Secure token        |
+| `:service`   | Name of the service |
+| `:url`       | Generated url       |
 
 Railties
 --------
@@ -549,4 +664,4 @@ end
 ```
 
 You should follow Rails conventions when defining your own events. The format is: `event.library`.
-If you application is sending Tweets, you should create an event named `tweet.twitter`.
+If your application is sending Tweets, you should create an event named `tweet.twitter`.

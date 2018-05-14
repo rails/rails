@@ -1,29 +1,5 @@
 # frozen_string_literal: true
 
-class Hash
-  unless Hash.instance_methods(false).include?(:compact)
-    # Returns a hash with non +nil+ values.
-    #
-    #   hash = { a: true, b: false, c: nil }
-    #   hash.compact        # => { a: true, b: false }
-    #   hash                # => { a: true, b: false, c: nil }
-    #   { c: nil }.compact  # => {}
-    #   { c: true }.compact # => { c: true }
-    def compact
-      select { |_, value| !value.nil? }
-    end
-  end
+require "active_support/deprecation"
 
-  unless Hash.instance_methods(false).include?(:compact!)
-    # Replaces current hash with non +nil+ values.
-    # Returns +nil+ if no changes were made, otherwise returns the hash.
-    #
-    #   hash = { a: true, b: false, c: nil }
-    #   hash.compact!        # => { a: true, b: false }
-    #   hash                 # => { a: true, b: false }
-    #   { c: true }.compact! # => nil
-    def compact!
-      reject! { |_, value| value.nil? }
-    end
-  end
-end
+ActiveSupport::Deprecation.warn "Ruby 2.4+ (required by Rails 6) provides Hash#compact and Hash#compact! natively, so requiring active_support/core_ext/hash/compact is no longer necessary. Requiring it will raise LoadError in Rails 6.1."

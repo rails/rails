@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -7,10 +9,7 @@ module ApplicationTests
     include Rack::Test::Methods
 
     def setup
-      # FIXME: shush Sass warning spam, not relevant to testing Railties
-      Kernel.silence_warnings do
-        build_app(initializers: true)
-      end
+      build_app(initializers: true)
 
       app_file "app/assets/javascripts/application.js", "//= require_tree ."
       app_file "app/assets/javascripts/xmlhr.js", "function f1() { alert(); }"
@@ -34,16 +33,10 @@ module ApplicationTests
       teardown_app
     end
 
-    # FIXME: shush Sass warning spam, not relevant to testing Railties
-    def get(*)
-      Kernel.silence_warnings { super }
-    end
-
     test "assets are concatenated when debug is off and compile is off either if debug_assets param is provided" do
       # config.assets.debug and config.assets.compile are false for production environment
       ENV["RAILS_ENV"] = "production"
-      output = Dir.chdir(app_path) { `bin/rails assets:precompile --trace 2>&1` }
-      assert $?.success?, output
+      rails "assets:precompile", "--trace"
 
       # Load app env
       app "production"
@@ -84,7 +77,8 @@ module ApplicationTests
         stylesheet_link_tag:    %r{<link rel="stylesheet" media="screen" href="/stylesheets/#{contents}.css" />},
         javascript_include_tag: %r{<script src="/javascripts/#{contents}.js">},
         audio_tag:              %r{<audio src="/audios/#{contents}"></audio>},
-        video_tag:              %r{<video src="/videos/#{contents}"></video>}
+        video_tag:              %r{<video src="/videos/#{contents}"></video>},
+        image_submit_tag:       %r{<input type="image" src="/images/#{contents}" />}
       }
 
       cases.each do |(view_method, tag_match)|

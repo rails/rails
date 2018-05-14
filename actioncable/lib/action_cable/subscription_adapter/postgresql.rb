@@ -1,4 +1,6 @@
-gem "pg", "~> 0.18"
+# frozen_string_literal: true
+
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 require "thread"
 require "digest/sha1"

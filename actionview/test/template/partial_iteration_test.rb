@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_view/renderer/partial_renderer"
 
@@ -16,7 +18,7 @@ class PartialIterationTest < ActiveSupport::TestCase
   def test_first_is_false_unless_current_is_at_the_first_index
     iteration = ActionView::PartialIteration.new 3
     iteration.iterate!
-    assert !iteration.first?, "not first when current is 1"
+    assert_not iteration.first?, "not first when current is 1"
   end
 
   def test_last_is_true_when_current_is_at_the_last_index
@@ -28,6 +30,6 @@ class PartialIterationTest < ActiveSupport::TestCase
 
   def test_last_is_false_unless_current_is_at_the_last_index
     iteration = ActionView::PartialIteration.new 3
-    assert !iteration.last?, "not last when current is 0"
+    assert_not iteration.last?, "not last when current is 0"
   end
 end

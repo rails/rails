@@ -1,14 +1,16 @@
-require_relative "router/utils"
-require_relative "routes"
-require_relative "formatter"
+# frozen_string_literal: true
+
+require "action_dispatch/journey/router/utils"
+require "action_dispatch/journey/routes"
+require "action_dispatch/journey/formatter"
 
 before = $-w
 $-w = false
-require_relative "parser"
+require "action_dispatch/journey/parser"
 $-w = before
 
-require_relative "route"
-require_relative "path/pattern"
+require "action_dispatch/journey/route"
+require "action_dispatch/journey/path/pattern"
 
 module ActionDispatch
   module Journey # :nodoc:
@@ -41,6 +43,10 @@ module ActionDispatch
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
 
+          parameters = route.defaults.merge parameters.transform_values { |val|
+            val.dup.force_encoding(::Encoding::UTF_8)
+          }
+
           req.path_parameters = set_params.merge parameters
 
           status, headers, body = route.app.serve(req)
@@ -55,7 +61,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)
@@ -65,6 +71,7 @@ module ActionDispatch
             rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
           end
 
+          parameters = route.defaults.merge parameters
           yield(route, parameters)
         end
       end
@@ -117,7 +124,7 @@ module ActionDispatch
 
           routes.map! { |r|
             match_data = r.path.match(req.path_info)
-            path_parameters = r.defaults.dup
+            path_parameters = {}
             match_data.names.zip(match_data.captures) { |name, val|
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }

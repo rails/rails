@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/anonymous"
@@ -110,6 +112,14 @@ module ActionController
               else
                 self.include = m.attribute_names
               end
+
+              if m.respond_to?(:nested_attributes_options) && m.nested_attributes_options.keys.any?
+                self.include += m.nested_attributes_options.keys.map do |key|
+                  key.to_s.concat("_attributes")
+                end
+              end
+
+              self.include
             end
           end
         end

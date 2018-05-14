@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require_relative "../kernel/singleton_class"
-require_relative "../module/remove_method"
-require_relative "../array/extract_options"
+require "active_support/core_ext/kernel/singleton_class"
+require "active_support/core_ext/module/redefine_method"
+require "active_support/core_ext/array/extract_options"
 
 class Class
   # Declare a class-level attribute whose value is inheritable by subclasses.
@@ -92,25 +92,23 @@ class Class
     default_value      = options.fetch(:default, nil)
 
     attrs.each do |name|
-      remove_possible_singleton_method(name)
+      singleton_class.silence_redefinition_of_method(name)
       define_singleton_method(name) { nil }
 
-      remove_possible_singleton_method("#{name}?")
+      singleton_class.silence_redefinition_of_method("#{name}?")
       define_singleton_method("#{name}?") { !!public_send(name) } if instance_predicate
 
-      ivar = "@#{name}"
+      ivar = "@#{name}".to_sym
 
-      remove_possible_singleton_method("#{name}=")
+      singleton_class.silence_redefinition_of_method("#{name}=")
       define_singleton_method("#{name}=") do |val|
         singleton_class.class_eval do
-          remove_possible_method(name)
-          define_method(name) { val }
+          redefine_method(name) { val }
         end
 
         if singleton_class?
           class_eval do
-            remove_possible_method(name)
-            define_method(name) do
+            redefine_method(name) do
               if instance_variable_defined? ivar
                 instance_variable_get ivar
               else
@@ -123,8 +121,7 @@ class Class
       end
 
       if instance_reader
-        remove_possible_method name
-        define_method(name) do
+        redefine_method(name) do
           if instance_variable_defined?(ivar)
             instance_variable_get ivar
           else
@@ -132,13 +129,13 @@ class Class
           end
         end
 
-        remove_possible_method "#{name}?"
-        define_method("#{name}?") { !!public_send(name) } if instance_predicate
+        redefine_method("#{name}?") { !!public_send(name) } if instance_predicate
       end
 
       if instance_writer
-        remove_possible_method "#{name}="
-        attr_writer name
+        redefine_method("#{name}=") do |val|
+          instance_variable_set ivar, val
+        end
       end
 
       unless default_value.nil?

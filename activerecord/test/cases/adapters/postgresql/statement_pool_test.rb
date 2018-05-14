@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -21,7 +23,7 @@ module ActiveRecord
             assert_equal "bar", cache["foo"]
 
             pid = fork {
-              lookup = cache["foo"];
+              lookup = cache["foo"]
               exit!(!lookup)
             }
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/test_unit/reporter"
 require "minitest/mock"
@@ -161,7 +163,7 @@ class TestUnitReporterTest < ActiveSupport::TestCase
     end
 
     def failed_test
-      ft = ExampleTest.new(:woot)
+      ft = Minitest::Result.from(ExampleTest.new(:woot))
       ft.failures << begin
                        raise Minitest::Assertion, "boo"
                      rescue Minitest::Assertion => e
@@ -174,17 +176,17 @@ class TestUnitReporterTest < ActiveSupport::TestCase
       error = ArgumentError.new("wups")
       error.set_backtrace([ "some_test.rb:4" ])
 
-      et = ExampleTest.new(:woot)
+      et = Minitest::Result.from(ExampleTest.new(:woot))
       et.failures << Minitest::UnexpectedError.new(error)
       et
     end
 
     def passing_test
-      ExampleTest.new(:woot)
+      Minitest::Result.from(ExampleTest.new(:woot))
     end
 
     def skipped_test
-      st = ExampleTest.new(:woot)
+      st = Minitest::Result.from(ExampleTest.new(:woot))
       st.failures << begin
                        raise Minitest::Skip, "skipchurches, misstemples"
                      rescue Minitest::Assertion => e

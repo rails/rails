@@ -1,4 +1,5 @@
-require "method_source"
+# frozen_string_literal: true
+
 require "rails/test_unit/runner"
 
 module Rails

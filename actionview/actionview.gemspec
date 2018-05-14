@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
@@ -7,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Rendering framework putting the V in MVC (part of Rails)."
   s.description = "Simple, battle-tested conventions and helpers for building web pages."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 

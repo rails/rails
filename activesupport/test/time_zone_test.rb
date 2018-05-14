@@ -32,6 +32,12 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_period_for_local_with_ambigiuous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    period = zone.period_for_local(Time.utc(2015, 1, 1))
+    assert_equal period, zone.period_for_local(Time.utc(2014, 10, 26, 1, 0, 0))
+  end
+
   def test_from_integer_to_map
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone[-28800] # PST
   end
@@ -103,7 +109,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].today
-    travel_back
   end
 
   def test_tomorrow
@@ -115,7 +120,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(2000, 1, 2), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 3), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].tomorrow
-    travel_back
   end
 
   def test_yesterday
@@ -127,7 +131,6 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Date.new(1999, 12, 31), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
     travel_to(Time.utc(2000, 1, 2, 5)) # midnight Jan 2 EST
     assert_equal Date.new(2000, 1, 1), ActiveSupport::TimeZone["Eastern Time (US & Canada)"].yesterday
-    travel_back
   end
 
   def test_travel_to_a_date
@@ -196,6 +199,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     assert_equal Time.utc(2006, 10, 29, 5), twz.utc
     assert_equal true, twz.dst?
     assert_equal "EDT", twz.zone
+  end
+
+  def test_local_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.local(2014, 10, 26, 1, 0, 0)
   end
 
   def test_at
@@ -306,6 +314,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_iso8601_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26T01:00:00")
+  end
+
   def test_parse
     zone = ActiveSupport::TimeZone["Eastern Time (US & Canada)"]
     twz = zone.parse("1999-12-31 19:00:00")
@@ -413,6 +426,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
 
     assert_equal "argument out of range", exception.message
+  end
+
+  def test_parse_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.parse("2014-10-26 01:00:00")
   end
 
   def test_rfc3339
@@ -607,6 +625,11 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_strptime_with_ambiguous_time
+    zone = ActiveSupport::TimeZone["Moscow"]
+    assert_equal Time.utc(2014, 10, 25, 22, 0, 0), zone.strptime("2014-10-26 01:00:00", "%Y-%m-%d %H:%M:%S")
+  end
+
   def test_utc_offset_lazy_loaded_from_tzinfo_when_not_passed_in_to_initialize
     tzinfo = TZInfo::Timezone.get("America/New_York")
     zone = ActiveSupport::TimeZone.create(tzinfo.name, nil, tzinfo)
@@ -695,6 +718,28 @@ class TimeZoneTest < ActiveSupport::TestCase
     end
   end
 
+  def test_all_uninfluenced_by_time_zone_lookups_delegated_to_tzinfo
+    ActiveSupport::TimeZone.clear
+    galapagos = ActiveSupport::TimeZone["Pacific/Galapagos"]
+    all_zones = ActiveSupport::TimeZone.all
+    assert_not_includes all_zones, galapagos
+  end
+
+  def test_all_doesnt_raise_exception_with_missing_tzinfo_data
+    mappings = {
+      "Puerto Rico" => "America/Unknown",
+      "Pittsburgh"  => "America/New_York"
+    }
+
+    with_tz_mappings(mappings) do
+      assert_nil ActiveSupport::TimeZone["Puerto Rico"]
+      assert_nil ActiveSupport::TimeZone[-9]
+      assert_nothing_raised do
+        ActiveSupport::TimeZone.all
+      end
+    end
+  end
+
   def test_index
     assert_nil ActiveSupport::TimeZone["bogus"]
     assert_instance_of ActiveSupport::TimeZone, ActiveSupport::TimeZone["Central Time (US & Canada)"]
@@ -724,6 +769,16 @@ class TimeZoneTest < ActiveSupport::TestCase
   def test_country_zones
     assert_includes ActiveSupport::TimeZone.country_zones("ru"), ActiveSupport::TimeZone["Moscow"]
     assert_not_includes ActiveSupport::TimeZone.country_zones(:ru), ActiveSupport::TimeZone["Kuala Lumpur"]
+  end
+
+  def test_country_zones_with_and_without_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Adelaide"]
+    assert_includes ActiveSupport::TimeZone.country_zones("au"), ActiveSupport::TimeZone["Australia/Lord_Howe"]
+  end
+
+  def test_country_zones_with_multiple_mappings
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["Edinburgh"]
+    assert_includes ActiveSupport::TimeZone.country_zones("gb"), ActiveSupport::TimeZone["London"]
   end
 
   def test_country_zones_without_mappings

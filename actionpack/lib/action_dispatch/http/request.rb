@@ -3,15 +3,15 @@
 require "stringio"
 
 require "active_support/inflector"
-require_relative "headers"
+require "action_dispatch/http/headers"
 require "action_controller/metal/exceptions"
 require "rack/request"
-require_relative "cache"
-require_relative "mime_negotiation"
-require_relative "parameters"
-require_relative "filter_parameters"
-require_relative "upload"
-require_relative "url"
+require "action_dispatch/http/cache"
+require "action_dispatch/http/mime_negotiation"
+require "action_dispatch/http/parameters"
+require "action_dispatch/http/filter_parameters"
+require "action_dispatch/http/upload"
+require "action_dispatch/http/url"
 require "active_support/core_ext/array/conversions"
 
 module ActionDispatch
@@ -22,6 +22,7 @@ module ActionDispatch
     include ActionDispatch::Http::Parameters
     include ActionDispatch::Http::FilterParameters
     include ActionDispatch::Http::URL
+    include ActionDispatch::ContentSecurityPolicy::Request
     include Rack::Request::Env
 
     autoload :Session, "action_dispatch/request/session"
@@ -76,10 +77,13 @@ module ActionDispatch
 
     def controller_class
       params = path_parameters
+      params[:action] ||= "index"
+      controller_class_for(params[:controller])
+    end
 
-      if params.key?(:controller)
-        controller_param = params[:controller].underscore
-        params[:action] ||= "index"
+    def controller_class_for(name)
+      if name
+        controller_param = name.underscore
         const_name = "#{controller_param.camelize}Controller"
         ActiveSupport::Dependencies.constantize(const_name)
       else
@@ -95,14 +99,14 @@ module ActionDispatch
     end
 
     # List of HTTP request methods from the following RFCs:
-    # Hypertext Transfer Protocol -- HTTP/1.1 (http://www.ietf.org/rfc/rfc2616.txt)
-    # HTTP Extensions for Distributed Authoring -- WEBDAV (http://www.ietf.org/rfc/rfc2518.txt)
-    # Versioning Extensions to WebDAV (http://www.ietf.org/rfc/rfc3253.txt)
-    # Ordered Collections Protocol (WebDAV) (http://www.ietf.org/rfc/rfc3648.txt)
-    # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (http://www.ietf.org/rfc/rfc3744.txt)
-    # Web Distributed Authoring and Versioning (WebDAV) SEARCH (http://www.ietf.org/rfc/rfc5323.txt)
-    # Calendar Extensions to WebDAV (http://www.ietf.org/rfc/rfc4791.txt)
-    # PATCH Method for HTTP (http://www.ietf.org/rfc/rfc5789.txt)
+    # Hypertext Transfer Protocol -- HTTP/1.1 (https://www.ietf.org/rfc/rfc2616.txt)
+    # HTTP Extensions for Distributed Authoring -- WEBDAV (https://www.ietf.org/rfc/rfc2518.txt)
+    # Versioning Extensions to WebDAV (https://www.ietf.org/rfc/rfc3253.txt)
+    # Ordered Collections Protocol (WebDAV) (https://www.ietf.org/rfc/rfc3648.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) Access Control Protocol (https://www.ietf.org/rfc/rfc3744.txt)
+    # Web Distributed Authoring and Versioning (WebDAV) SEARCH (https://www.ietf.org/rfc/rfc5323.txt)
+    # Calendar Extensions to WebDAV (https://www.ietf.org/rfc/rfc4791.txt)
+    # PATCH Method for HTTP (https://www.ietf.org/rfc/rfc5789.txt)
     RFC2616 = %w(OPTIONS GET HEAD POST PUT DELETE TRACE CONNECT)
     RFC2518 = %w(PROPFIND PROPPATCH MKCOL COPY MOVE LOCK UNLOCK)
     RFC3253 = %w(VERSION-CONTROL REPORT CHECKOUT CHECKIN UNCHECKOUT MKWORKSPACE UPDATE LABEL MERGE BASELINE-CONTROL MKACTIVITY)
@@ -194,6 +198,23 @@ module ActionDispatch
     #   request.headers["Content-Type"] # => "text/plain"
     def headers
       @headers ||= Http::Headers.new(self)
+    end
+
+    # Early Hints is an HTTP/2 status code that indicates hints to help a client start
+    # making preparations for processing the final response.
+    #
+    # If the env contains +rack.early_hints+ then the server accepts HTTP2 push for Link headers.
+    #
+    # The +send_early_hints+ method accepts a hash of links as follows:
+    #
+    #   send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    #
+    # If you are using +javascript_include_tag+ or +stylesheet_link_tag+ the
+    # Early Hints headers are included by default if supported.
+    def send_early_hints(links)
+      return unless env["rack.early_hints"]
+
+      env["rack.early_hints"].call(links)
     end
 
     # Returns a +String+ with the last requested path including their params.
@@ -300,7 +321,7 @@ module ActionDispatch
     # variable is already set, wrap it in a StringIO.
     def body
       if raw_post = get_header("RAW_POST_DATA")
-        raw_post.force_encoding(Encoding::BINARY)
+        raw_post = raw_post.dup.force_encoding(Encoding::BINARY)
         StringIO.new(raw_post)
       else
         body_stream

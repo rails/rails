@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require_relative "../module/concerning"
+require "active_support/core_ext/module/concerning"
 
 module Kernel
   module_function

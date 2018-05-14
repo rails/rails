@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -28,7 +30,7 @@ module ActionDispatch
       def test_unicode
         get "/ほげ", to: "foo#bar"
 
-        #match the escaped version of /ほげ
+        # match the escaped version of /ほげ
         env = rails_env "PATH_INFO" => "/%E3%81%BB%E3%81%92"
         called = false
         router.recognize(env) do |r, params|
@@ -184,14 +186,14 @@ module ActionDispatch
       def test_required_part_in_recall
         get "/messages/:a/:b", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, b: "b")
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar", a: "a" }, { b: "b" })
         assert_equal "/messages/a/b", path
       end
 
       def test_splat_in_recall
         get "/*path", to: "foo#bar"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, path: "b")
+        path, _ = @formatter.generate(nil, { controller: "foo", action: "bar" }, { path: "b" })
         assert_equal "/b", path
       end
 
@@ -199,7 +201,7 @@ module ActionDispatch
         get "/messages/:action(/:id(.:format))", to: "foo#bar"
         get "/messages/:id(.:format)", to: "bar#baz"
 
-        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, action: "index")
+        path, _ = @formatter.generate(nil, { controller: "foo", id: 10 }, { action: "index" })
         assert_equal "/messages/index/10", path
       end
 
@@ -312,7 +314,7 @@ module ActionDispatch
         path, params = @formatter.generate(
           nil,
           { controller: "tasks", id: 10 },
-          action: "index")
+          { action: "index" })
         assert_equal "/tasks/index/10", path
         assert_equal({}, params)
       end
@@ -323,7 +325,7 @@ module ActionDispatch
         path, params = @formatter.generate(
           "tasks",
           { controller: "tasks" },
-          controller: "tasks", action: "index")
+          { controller: "tasks", action: "index" })
         assert_equal "/tasks", path
         assert_equal({}, params)
       end

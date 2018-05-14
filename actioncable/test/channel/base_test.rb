@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_connection"
 require "stubs/room"
@@ -95,12 +97,12 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     @channel.subscribe_to_channel
 
     assert @channel.room
-    assert @channel.subscribed?
+    assert_predicate @channel, :subscribed?
 
     @channel.unsubscribe_from_channel
 
-    assert ! @channel.room
-    assert ! @channel.subscribed?
+    assert_not @channel.room
+    assert_not_predicate @channel, :subscribed?
   end
 
   test "connection identifiers" do

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "config"
 
 require "stringio"
@@ -141,6 +143,8 @@ def load_schema
   if File.exist?(adapter_specific_schema_file)
     load adapter_specific_schema_file
   end
+
+  ActiveRecord::FixtureSet.reset_cache
 ensure
   $stdout = original_stdout
 end
@@ -180,4 +184,4 @@ module InTimeZone
     end
 end
 
-require "mocha/setup" # FIXME: stop using mocha
+require "mocha/minitest" # FIXME: stop using mocha

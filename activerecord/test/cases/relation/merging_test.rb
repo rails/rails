@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/author"
 require "models/comment"
@@ -56,7 +58,7 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_relation_merging_with_locks
     devs = Developer.lock.where("salary >= 80000").order("id DESC").merge(Developer.limit(2))
-    assert devs.locked?
+    assert_predicate devs, :locked?
   end
 
   def test_relation_merging_with_preload
@@ -70,6 +72,16 @@ class RelationMergingTest < ActiveRecord::TestCase
     assert_equal 1, comments.count
   end
 
+  def test_relation_merging_with_left_outer_joins
+    comments = Comment.joins(:post).where(body: "Thank you for the welcome").merge(Post.left_outer_joins(:author).where(body: "Such a lovely day"))
+
+    assert_equal 1, comments.count
+  end
+
+  def test_relation_merging_with_skip_query_cache
+    assert_equal Post.all.merge(Post.all.skip_query_cache!).skip_query_cache_value, true
+  end
+
   def test_relation_merging_with_association
     assert_queries(2) do  # one for loading post, and another one merged query
       post = Post.where(body: "Such a lovely day").first
@@ -79,13 +91,11 @@ class RelationMergingTest < ActiveRecord::TestCase
   end
 
   test "merge collapses wheres from the LHS only" do
-    left  = Post.where(title: "omg").where(comments_count: 1)
+    left = Post.where(title: "omg").where(comments_count: 1)
     right = Post.where(title: "wtf").where(title: "bbq")
 
-    expected = [left.bound_attributes[1]] + right.bound_attributes
-    merged   = left.merge(right)
+    merged = left.merge(right)
 
-    assert_equal expected, merged.bound_attributes
     assert_not_includes merged.to_sql, "omg"
     assert_includes merged.to_sql, "wtf"
     assert_includes merged.to_sql, "bbq"
@@ -107,9 +117,9 @@ class RelationMergingTest < ActiveRecord::TestCase
 
   def test_merging_with_from_clause
     relation = Post.all
-    assert relation.from_clause.empty?
+    assert_empty relation.from_clause
     relation = relation.merge(Post.from("posts"))
-    refute relation.from_clause.empty?
+    assert_not_empty relation.from_clause
   end
 end
 

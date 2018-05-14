@@ -1,4 +1,6 @@
-require_relative "active_model"
+# frozen_string_literal: true
+
+require "rails/generators/active_model"
 
 module Rails
   module Generators

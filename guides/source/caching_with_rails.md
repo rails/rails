@@ -32,7 +32,7 @@ Basic Caching
 This is an introduction to three types of caching techniques: page, action and
 fragment caching. By default Rails provides fragment caching. In order to use
 page and action caching you will need to add `actionpack-page_caching` and
-`actionpack-action_caching` to your Gemfile.
+`actionpack-action_caching` to your `Gemfile`.
 
 By default, caching is only enabled in your production environment. To play
 around with caching locally you'll want to enable caching in your local
@@ -100,9 +100,9 @@ called key-based expiration.
 
 Cache fragments will also be expired when the view fragment changes (e.g., the
 HTML in the view changes). The string of characters at the end of the key is a
-template tree digest. It is an MD5 hash computed based on the contents of the
-view fragment you are caching. If you change the view fragment, the MD5 hash
-will change, expiring the existing file.
+template tree digest. It is a hash digest computed based on the contents of the
+view fragment you are caching. If you change the view fragment, the digest will
+change, expiring the existing file.
 
 TIP: Cache stores like Memcached will automatically delete old cache files.
 
@@ -175,9 +175,27 @@ class Game < ApplicationRecord
 end
 ```
 
-With `touch` set to true, any action which changes `updated_at` for a game
+With `touch` set to `true`, any action which changes `updated_at` for a game
 record will also change it for the associated product, thereby expiring the
 cache.
+
+### Shared Partial Caching
+
+It is possible to share partials and associated caching between files with different mime types. For example shared partial caching allows template writers to share a partial between HTML and JavaScript files. When templates are collected in the template resolver file paths they only include the template language extension and not the mime type. Because of this templates can be used for multiple mime types. Both HTML and JavaScript requests will respond to the following code:
+
+```ruby
+render(partial: 'hotels/hotel', collection: @hotels, cached: true)
+```
+
+Will load a file named `hotels/hotel.erb`.
+
+Another option is to include the full filename of the partial to render.
+
+```ruby
+render(partial: 'hotels/hotel.html.erb', collection: @hotels, cached: true)
+```
+
+Will load a file named `hotels/hotel.html.erb` in any file mime type, for example you could include this partial in a JavaScript file.
 
 ### Managing dependencies
 
@@ -272,7 +290,7 @@ Sometimes you need to cache a particular value or query result instead of cachin
 
 The most efficient way to implement low-level caching is using the `Rails.cache.fetch` method. This method does both reading and writing to the cache. When passed only a single argument, the key is fetched and value from the cache is returned. If a block is passed, that block will be executed in the event of a cache miss. The return value of the block will be written to the cache under the given cache key, and that return value will be returned. In case of cache hit, the cached value will be returned without executing the block.
 
-Consider the following example. An application has a `Product` model with an instance method that looks up the product’s price on a competing website. The data returned by this method would be perfect for low-level caching:
+Consider the following example. An application has a `Product` model with an instance method that looks up the product's price on a competing website. The data returned by this method would be perfect for low-level caching:
 
 ```ruby
 class Product < ApplicationRecord
@@ -284,7 +302,7 @@ class Product < ApplicationRecord
 end
 ```
 
-NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache-key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model’s `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
+NOTE: Notice that in this example we used the `cache_key` method, so the resulting cache key will be something like `products/233-20140225082222765838000/competing_price`. `cache_key` generates a string based on the model's `id` and `updated_at` attributes. This is a common convention and has the benefit of invalidating the cache whenever the product is updated. In general, when you use low-level caching for instance level information, you need to generate a cache key.
 
 ### SQL Caching
 
@@ -348,9 +366,9 @@ There are some common options used by all cache implementations. These can be pa
 
 * `:namespace` - This option can be used to create a namespace within the cache store. It is especially useful if your application shares a cache with other applications.
 
-* `:compress` - This option can be used to indicate that compression should be used in the cache. This can be useful for transferring large cache entries over a slow network.
+* `:compress` - Enabled by default. Compresses cache entries so more data can be stored in the same memory footprint, leading to fewer cache evictions and higher hit rates.
 
-* `:compress_threshold` - This option is used in conjunction with the `:compress` option to indicate a threshold under which cache entries should not be compressed. This defaults to 16 kilobytes.
+* `:compress_threshold` - Defaults to 1kB. Cache entries larger than this threshold, specified in bytes, are compressed.
 
 * `:expires_in` - This option sets an expiration time in seconds for the cache entry when it will be automatically removed from the cache.
 
@@ -387,10 +405,10 @@ store is not appropriate for large application deployments. However, it can
 work well for small, low traffic sites with only a couple of server processes,
 as well as development and test environments.
 
-New Rails projects are configured to use this implementation in development environment by default. 
+New Rails projects are configured to use this implementation in development environment by default.
 
-NOTE: Since processes will not share cache data when using `:memory_store`, 
-it will not be possible to manually read, write or expire the cache via the Rails console.
+NOTE: Since processes will not share cache data when using `:memory_store`,
+it will not be possible to manually read, write, or expire the cache via the Rails console.
 
 ### ActiveSupport::Cache::FileStore
 
@@ -424,6 +442,78 @@ The `write` and `fetch` methods on this cache accept two additional options that
 
 ```ruby
 config.cache_store = :mem_cache_store, "cache-1.example.com", "cache-2.example.com"
+```
+
+### ActiveSupport::Cache::RedisCacheStore
+
+The Redis cache store takes advantage of Redis support for automatic eviction
+when it reaches max memory, allowing it to behave much like a Memcached cache server.
+
+Deployment note: Redis doesn't expire keys by default, so take care to use a
+dedicated Redis cache server. Don't fill up your persistent-Redis server with
+volatile cache data! Read the
+[Redis cache server setup guide](https://redis.io/topics/lru-cache) in detail.
+
+For a cache-only Redis server, set `maxmemory-policy` to one of the variants of allkeys.
+Redis 4+ supports least-frequently-used eviction (`allkeys-lfu`), an excellent
+default choice. Redis 3 and earlier should use least-recently-used eviction (`allkeys-lru`).
+
+Set cache read and write timeouts relatively low. Regenerating a cached value
+is often faster than waiting more than a second to retrieve it. Both read and
+write timeouts default to 1 second, but may be set lower if your network is
+consistently low-latency.
+
+By default, the cache store will not attempt to reconnect to Redis if the
+connection fails during a request. If you experience frequent disconnects you
+may wish to enable reconnect attempts.
+
+Cache reads and writes never raise exceptions; they just return `nil` instead,
+behaving as if there was nothing in the cache. To gauge whether your cache is
+hitting exceptions, you may provide an `error_handler` to report to an
+exception gathering service. It must accept three keyword arguments: `method`,
+the cache store method that was originally called; `returning`, the value that
+was returned to the user, typically `nil`; and `exception`, the exception that
+was rescued.
+
+To get started, add the redis gem to your Gemfile:
+
+```ruby
+gem 'redis'
+```
+
+You can enable support for the faster [hiredis](https://github.com/redis/hiredis)
+connection library by additionally adding its ruby wrapper to your Gemfile:
+
+```ruby
+gem 'hiredis'
+```
+
+Redis cache store will automatically require & use hiredis if available. No further
+configuration is needed.
+
+Finally, add the configuration in the relevant `config/environments/*.rb` file:
+
+```ruby
+config.cache_store = :redis_cache_store, { url: ENV['REDIS_URL'] }
+```
+
+A more complex, production Redis cache store may look something like this:
+
+```ruby
+cache_servers = %w(redis://cache-01:6379/0 redis://cache-02:6379/0)
+config.cache_store = :redis_cache_store, { url: cache_servers,
+
+  connect_timeout:    30,  # Defaults to 20 seconds
+  read_timeout:       0.2, # Defaults to 1 second
+  write_timeout:      0.2, # Defaults to 1 second
+  reconnect_attempts: 1,   # Defaults to 0
+
+  error_handler: -> (method:, returning:, exception:) {
+    # Report errors to Sentry as warnings
+    Raven.capture_exception exception, level: 'warning',
+      tags: { method: method, returning: returning }
+  }
+}
 ```
 
 ### ActiveSupport::Cache::NullStore
@@ -580,7 +670,7 @@ Caching in Development
 ----------------------
 
 It's common to want to test the caching strategy of your application
-in development mode. Rails provides the rake task `dev:cache` to 
+in development mode. Rails provides the rake task `dev:cache` to
 easily toggle caching on/off.
 
 ```bash

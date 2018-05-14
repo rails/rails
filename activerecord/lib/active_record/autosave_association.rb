@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -434,6 +436,9 @@ module ActiveRecord
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
+                if inverse_reflection = reflection.inverse_of
+                  record.association(inverse_reflection.name).loaded!
+                end
               end
 
               saved = record.save(validate: !autosave)

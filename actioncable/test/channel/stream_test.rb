@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
+require "active_support/testing/method_call_assertions"
 require "stubs/test_connection"
 require "stubs/room"
 
@@ -141,6 +144,8 @@ module ActionCable::StreamTests
   end
 
   class StreamFromTest < ActionCable::TestCase
+    include ActiveSupport::Testing::MethodCallAssertions
+
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -151,10 +156,11 @@ module ActionCable::StreamTests
         connection = open_connection
         subscribe_to connection, identifiers: { id: 1 }
 
-        connection.websocket.expects(:transmit)
-        @server.broadcast "test_room_1", { foo: "bar" }, coder: DummyEncoder
-        wait_for_async
-        wait_for_executor connection.server.worker_pool.executor
+        assert_called(connection.websocket, :transmit) do
+          @server.broadcast "test_room_1", { foo: "bar" }, { coder: DummyEncoder }
+          wait_for_async
+          wait_for_executor connection.server.worker_pool.executor
+        end
       end
     end
 
@@ -165,7 +171,7 @@ module ActionCable::StreamTests
 
         @server.broadcast "channel", {}
         wait_for_async
-        refute Thread.current[:ran_callback], "User callback was not run through the worker pool"
+        assert_not Thread.current[:ran_callback], "User callback was not run through the worker pool"
       end
     end
 
@@ -173,10 +179,10 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = open_connection
         expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
-        connection.websocket.expects(:transmit).with(expected.to_json)
-        receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
-
-        wait_for_async
+        assert_called(connection.websocket, :transmit, [expected.to_json]) do
+          receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
+          wait_for_async
+        end
       end
     end
 
@@ -190,15 +196,15 @@ module ActionCable::StreamTests
 
         Connection.new(@server, env).tap do |connection|
           connection.process
-          assert connection.websocket.possible?
+          assert_predicate connection.websocket, :possible?
 
           wait_for_async
-          assert connection.websocket.alive?
+          assert_predicate connection.websocket, :alive?
         end
       end
 
       def receive(connection, command:, identifiers:, channel: "ActionCable::StreamTests::ChatChannel")
-        identifier = JSON.generate(channel: channel, **identifiers)
+        identifier = JSON.generate(identifiers.merge(channel: channel))
         connection.dispatch_websocket_message JSON.generate(command: command, identifier: identifier)
         wait_for_async
       end

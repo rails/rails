@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 
@@ -23,7 +25,7 @@ module ActiveRecord
     test "#order! with symbol prepends the table name" do
       assert relation.order!(:name).equal?(relation)
       node = relation.order_values.first
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
@@ -86,7 +88,7 @@ module ActiveRecord
       assert relation.reorder!(:name).equal?(relation)
       node = relation.order_values.first
 
-      assert node.ascending?
+      assert_predicate node, :ascending?
       assert_equal :name, node.expr.name
       assert_equal "posts", node.expr.relation.name
     end
@@ -135,9 +137,14 @@ module ActiveRecord
       assert relation.skip_query_cache_value
     end
 
+    test "skip_preloading!" do
+      relation.skip_preloading!
+      assert relation.skip_preloading_value
+    end
+
     private
       def relation
-        @relation ||= Relation.new(FakeKlass, Post.arel_table, Post.predicate_builder)
+        @relation ||= Relation.new(FakeKlass)
       end
   end
 end

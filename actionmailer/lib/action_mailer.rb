@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2017 David Heinemeier Hansson
+# Copyright (c) 2004-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -22,7 +24,7 @@
 #++
 
 require "abstract_controller"
-require_relative "action_mailer/version"
+require "action_mailer/version"
 
 # Common Active Support usage in Action Mailer
 require "active_support"

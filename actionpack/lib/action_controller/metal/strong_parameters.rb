@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
@@ -333,7 +334,7 @@ module ActionController
     # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
       @parameters.each_pair do |key, value|
-        yield key, convert_hashes_to_parameters(key, value)
+        yield [key, convert_hashes_to_parameters(key, value)]
       end
     end
     alias_method :each, :each_pair
@@ -373,7 +374,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        Array.wrap(value).each do |v|
+        Array.wrap(value).flatten.each do |v|
           v.permit! if v.respond_to? :permit!
         end
       end
@@ -579,19 +580,18 @@ module ActionController
       )
     end
 
-    if Hash.method_defined?(:dig)
-      # Extracts the nested parameter from the given +keys+ by calling +dig+
-      # at each step. Returns +nil+ if any intermediate step is +nil+.
-      #
-      #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
-      #   params.dig(:foo, :bar, :baz) # => 1
-      #   params.dig(:foo, :zot, :xyz) # => nil
-      #
-      #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      #   params2.dig(:foo, 1) # => 11
-      def dig(*keys)
-        convert_value_to_parameters(@parameters.dig(*keys))
-      end
+    # Extracts the nested parameter from the given +keys+ by calling +dig+
+    # at each step. Returns +nil+ if any intermediate step is +nil+.
+    #
+    #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+    #   params.dig(:foo, :bar, :baz) # => 1
+    #   params.dig(:foo, :zot, :xyz) # => nil
+    #
+    #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+    #   params2.dig(:foo, 1) # => 11
+    def dig(*keys)
+      convert_hashes_to_parameters(keys.first, @parameters[keys.first])
+      @parameters.dig(*keys)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
@@ -673,10 +673,10 @@ module ActionController
       self
     end
 
-    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
-    # to key. If the key is not found, returns the default value. If the
-    # optional code block is given and the key is not found, pass in the key
-    # and return the result of block.
+    # Deletes a key-value pair from +Parameters+ and returns the value. If
+    # +key+ is not found, returns +nil+ (or, with optional code block, yields
+    # +key+ and returns the result). Cf. +#extract!+, which returns the
+    # corresponding +ActionController::Parameters+ object.
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
     end

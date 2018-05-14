@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support"
-require_relative "i18n_railtie"
+require "active_support/i18n_railtie"
 
 module ActiveSupport
   class Railtie < Rails::Railtie # :nodoc:
@@ -10,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
-      if app.config.active_support.respond_to?(:use_authenticated_message_encryption)
-        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
-          app.config.active_support.use_authenticated_message_encryption
+      config.after_initialize do
+        unless app.config.active_support.use_authenticated_message_encryption.nil?
+          ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+            app.config.active_support.use_authenticated_message_encryption
+        end
       end
     end
 
@@ -36,23 +38,42 @@ module ActiveSupport
       rescue TZInfo::DataSourceNotFound => e
         raise e.exception "tzinfo-data is not present. Please add gem 'tzinfo-data' to your Gemfile and run bundle install"
       end
-      require_relative "core_ext/time/zones"
+      require "active_support/core_ext/time/zones"
       Time.zone_default = Time.find_zone!(app.config.time_zone)
     end
 
     # Sets the default week start
     # If assigned value is not a valid day symbol (e.g. :sunday, :monday, ...), an exception will be raised.
     initializer "active_support.initialize_beginning_of_week" do |app|
-      require_relative "core_ext/date/calculations"
+      require "active_support/core_ext/date/calculations"
       beginning_of_week_default = Date.find_beginning_of_week!(app.config.beginning_of_week)
 
       Date.beginning_of_week_default = beginning_of_week_default
+    end
+
+    initializer "active_support.require_master_key" do |app|
+      if app.config.respond_to?(:require_master_key) && app.config.require_master_key
+        begin
+          app.credentials.key
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          $stderr.puts error.message
+          exit 1
+        end
+      end
     end
 
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
+      end
+    end
+
+    initializer "active_support.set_hash_digest_class" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_sha1_digests
+          ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+        end
       end
     end
   end

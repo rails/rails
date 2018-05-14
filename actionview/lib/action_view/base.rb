@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attr_internal"
 require "active_support/core_ext/module/attribute_accessors"
 require "active_support/ordered_options"
-require_relative "log_subscriber"
-require_relative "helpers"
-require_relative "context"
-require_relative "template"
-require_relative "lookup_context"
+require "action_view/log_subscriber"
+require "action_view/helpers"
+require "action_view/context"
+require "action_view/template"
+require "action_view/lookup_context"
 
 module ActionView #:nodoc:
   # = Action View Base

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/comment"
 require "models/post"
@@ -311,7 +313,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_each_record_should_yield_record_if_block_is_given
     assert_queries(6) do
       Post.in_batches(of: 2).each_record do |post|
-        assert post.title.present?
+        assert_predicate post.title, :present?
         assert_kind_of Post, post
       end
     end
@@ -320,7 +322,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_each_record_should_return_enumerator_if_no_block_given
     assert_queries(6) do
       Post.in_batches(of: 2).each_record.with_index do |post, i|
-        assert post.title.present?
+        assert_predicate post.title, :present?
         assert_kind_of Post, post
       end
     end
@@ -351,24 +353,24 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_not_be_loaded
     Post.in_batches(of: 1) do |relation|
-      assert_not relation.loaded?
+      assert_not_predicate relation, :loaded?
     end
 
     Post.in_batches(of: 1, load: false) do |relation|
-      assert_not relation.loaded?
+      assert_not_predicate relation, :loaded?
     end
   end
 
   def test_in_batches_should_be_loaded
     Post.in_batches(of: 1, load: true) do |relation|
-      assert relation.loaded?
+      assert_predicate relation, :loaded?
     end
   end
 
   def test_in_batches_if_not_loaded_executes_more_queries
     assert_queries(@total + 1) do
       Post.in_batches(of: 1, load: false) do |relation|
-        assert_not relation.loaded?
+        assert_not_predicate relation, :loaded?
       end
     end
   end
@@ -506,7 +508,7 @@ class EachTest < ActiveRecord::TestCase
   def test_in_batches_relations_update_all_should_not_affect_matching_records_in_other_batches
     Post.update_all(author_id: 0)
     person = Post.last
-    person.update_attributes(author_id: 1)
+    person.update(author_id: 1)
 
     Post.in_batches(of: 2) do |batch|
       batch.where("author_id >= 1").update_all("author_id = author_id + 1")
@@ -584,32 +586,19 @@ class EachTest < ActiveRecord::TestCase
     end
   end
 
-  test ".error_on_ignored_order_or_limit= is deprecated" do
-    begin
-      prev = ActiveRecord::Base.error_on_ignored_order
-      assert_deprecated "Please use error_on_ignored_order= instead." do
-        ActiveRecord::Base.error_on_ignored_order_or_limit = true
-      end
-      assert ActiveRecord::Base.error_on_ignored_order
-    ensure
-      ActiveRecord::Base.error_on_ignored_order = prev
-    end
-  end
+  test ".find_each respects table alias" do
+    assert_queries(1) do
+      table_alias = Post.arel_table.alias("omg_posts")
+      table_metadata = ActiveRecord::TableMetadata.new(Post, table_alias)
+      predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-  test ".error_on_ignored_order_or_limit is deprecated" do
-    expected = ActiveRecord::Base.error_on_ignored_order
-    actual = assert_deprecated "Please use error_on_ignored_order instead." do
-      ActiveRecord::Base.error_on_ignored_order_or_limit
+      posts = ActiveRecord::Relation.create(
+        Post,
+        table: table_alias,
+        predicate_builder: predicate_builder
+      )
+      posts.find_each {}
     end
-    assert_equal expected, actual
-  end
-
-  test "#error_on_ignored_order_or_limit is deprecated" do
-    expected = ActiveRecord::Base.error_on_ignored_order
-    actual = assert_deprecated "Please use error_on_ignored_order instead." do
-      Post.new.error_on_ignored_order_or_limit
-    end
-    assert_equal expected, actual
   end
 
   test ".find_each bypasses the query cache for its own queries" do

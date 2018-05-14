@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module SystemTesting
     module TestHelpers
@@ -12,7 +14,7 @@ module ActionDispatch
 
           def method_missing(method, *args, &block)
             if METHODS.include?(method)
-              raise NoMethodError
+              raise NoMethodError, "System tests cannot make direct requests via ##{method}; use #visit and #click_on instead. See http://www.rubydoc.info/github/teamcapybara/capybara/master#The_DSL for more information."
             else
               super
             end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "shellwords"
 require "method_source"
 require "rake/file_list"
@@ -9,9 +11,9 @@ module Rails
       mattr_reader :filters, default: []
 
       class << self
-        def options(opts)
+        def attach_before_load_options(opts)
           opts.on("--warnings", "-w", "Run with Ruby warnings enabled") {}
-          opts.on("--environment", "-e", "Run tests in the ENV environment") {}
+          opts.on("-e", "--environment ENV", "Run tests in the ENV environment") {}
         end
 
         def parse_options(argv)
@@ -58,7 +60,8 @@ module Rails
 
         private
           def extract_filters(argv)
-            argv.select { |arg| arg =~ /^\w+\// }.map do |path|
+            # Extract absolute and relative paths but skip -n /.*/ regexp filters.
+            argv.select { |arg| arg =~ %r%^/?\w+/% && !arg.end_with?("/") }.map do |path|
               case
               when path =~ /(:\d+)+$/
                 file, *lines = path.split(":")

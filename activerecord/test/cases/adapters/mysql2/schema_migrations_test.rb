@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
+  self.use_transactional_tests = false
+
   def test_renaming_index_on_foreign_key
     connection.add_index "engines", "car_id"
     connection.add_foreign_key :engines, :cars, name: "fk_engines_cars"
@@ -31,6 +35,8 @@ class SchemaMigrationsTest < ActiveRecord::Mysql2TestCase
 
       assert connection.column_exists?(table_name, :key, :string)
     end
+  ensure
+    ActiveRecord::InternalMetadata[:environment] = connection.migration_context.current_environment
   end
 
   private

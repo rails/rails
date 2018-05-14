@@ -20,6 +20,23 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal 7, i
   end
 
+  def test_basic_hook_with_two_registrations_only_once
+    i = 0
+    block = proc { i += incr }
+    ActiveSupport.on_load(:basic_hook_with_two_once, run_once: true, &block)
+    ActiveSupport.on_load(:basic_hook_with_two_once) do
+      i += incr
+    end
+
+    ActiveSupport.on_load(:different_hook, run_once: true, &block)
+    ActiveSupport.run_load_hooks(:different_hook, FakeContext.new(2))
+    assert_equal 2, i
+    ActiveSupport.run_load_hooks(:basic_hook_with_two_once, FakeContext.new(2))
+    assert_equal 6, i
+    ActiveSupport.run_load_hooks(:basic_hook_with_two_once, FakeContext.new(5))
+    assert_equal 11, i
+  end
+
   def test_hook_registered_after_run
     i = 0
     ActiveSupport.run_load_hooks(:registered_after)
@@ -37,6 +54,15 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal 7, i
   end
 
+  def test_hook_registered_after_run_with_two_registrations_only_once
+    i = 0
+    ActiveSupport.run_load_hooks(:registered_after_with_two_once, FakeContext.new(2))
+    ActiveSupport.run_load_hooks(:registered_after_with_two_once, FakeContext.new(5))
+    assert_equal 0, i
+    ActiveSupport.on_load(:registered_after_with_two_once, run_once: true) { i += incr }
+    assert_equal 2, i
+  end
+
   def test_hook_registered_interleaved_run_with_two_registrations
     i = 0
     ActiveSupport.run_load_hooks(:registered_interleaved_with_two, FakeContext.new(2))
@@ -45,6 +71,22 @@ class LazyLoadHooksTest < ActiveSupport::TestCase
     assert_equal 2, i
     ActiveSupport.run_load_hooks(:registered_interleaved_with_two, FakeContext.new(5))
     assert_equal 7, i
+  end
+
+  def test_hook_registered_interleaved_run_with_two_registrations_once
+    i = 0
+    ActiveSupport
+      .run_load_hooks(:registered_interleaved_with_two_once, FakeContext.new(2))
+    assert_equal 0, i
+
+    ActiveSupport.on_load(:registered_interleaved_with_two_once, run_once: true) do
+      i += incr
+    end
+    assert_equal 2, i
+
+    ActiveSupport
+      .run_load_hooks(:registered_interleaved_with_two_once, FakeContext.new(5))
+    assert_equal 2, i
   end
 
   def test_hook_receives_a_context

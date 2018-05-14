@@ -1,53 +1,54 @@
-$.fn.selectGuide = function(guide) {
-  $("select", this).val(guide);
-};
+(function() {
+  "use strict";
 
-var guidesIndex = {
-  bind: function() {
-    var currentGuidePath = window.location.pathname;
-    var currentGuide = currentGuidePath.substring(currentGuidePath.lastIndexOf("/")+1);
-    $(".guides-index-small").
-      on("change", "select", guidesIndex.navigate).
-      selectGuide(currentGuide);
-    $(document).on("click", ".more-info-button", function(e){
-      e.stopPropagation();
-      if ($(".more-info-links").is(":visible")) {
-        $(".more-info-links").addClass("s-hidden").unwrap();
-      } else {
-        $(".more-info-links").wrap("<div class='more-info-container'></div>").removeClass("s-hidden");
-      }
-    });
-    $("#guidesMenu").on("click", function(e) {
-      $("#guides").toggle();
-      return false;
-    });
-    $(document).on("click", function(e){
-      e.stopPropagation();
-      var $button = $(".more-info-button");
-      var element;
+  this.syntaxhighlighterConfig = { autoLinks: false };
 
-      // Cross browser find the element that had the event
-      if (e.target) element = e.target;
-      else if (e.srcElement) element = e.srcElement;
-
-      // Defeat the older Safari bug:
-      // http://www.quirksmode.org/js/events_properties.html
-      if (element.nodeType === 3) element = element.parentNode;
-
-      var $element = $(element);
-
-      var $container = $element.parents(".more-info-container");
-
-      // We've captured a click outside the popup
-      if($container.length === 0){
-        $container = $button.next(".more-info-container");
-        $container.find(".more-info-links").addClass("s-hidden").unwrap();
-      }
-    });
-  },
-  navigate: function(e){
-    var $list = $(e.target);
-    var url = $list.val();
-    window.location = url;
+  this.wrap = function(elem, wrapper) {
+    elem.parentNode.insertBefore(wrapper, elem);
+    wrapper.appendChild(elem);
   }
-};
+
+  this.unwrap = function(elem) {
+    var wrapper = elem.parentNode;
+    wrapper.parentNode.replaceChild(elem, wrapper);
+  }
+
+  this.createElement = function(tagName, className) {
+    var elem = document.createElement(tagName);
+    elem.classList.add(className);
+    return elem;
+  }
+
+  document.addEventListener("DOMContentLoaded", function() {
+    var guidesMenu = document.getElementById("guidesMenu");
+    var guides     = document.getElementById("guides");
+
+    guidesMenu.addEventListener("click", function(e) {
+      e.preventDefault();
+      guides.classList.toggle("visible");
+    });
+
+    var guidesIndexItem   = document.querySelector("select.guides-index-item");
+    var currentGuidePath  = window.location.pathname;
+    guidesIndexItem.value = currentGuidePath.substring(currentGuidePath.lastIndexOf("/") + 1);
+
+    guidesIndexItem.addEventListener("change", function(e) {
+      window.location = e.target.value;
+    });
+
+    var moreInfoButton = document.querySelector(".more-info-button");
+    var moreInfoLinks  = document.querySelector(".more-info-links");
+
+    moreInfoButton.addEventListener("click", function(e) {
+      e.preventDefault();
+
+      if (moreInfoLinks.classList.contains("s-hidden")) {
+        wrap(moreInfoLinks, createElement("div", "more-info-container"));
+        moreInfoLinks.classList.remove("s-hidden");
+      } else {
+        moreInfoLinks.classList.add("s-hidden");
+        unwrap(moreInfoLinks);
+      }
+    });
+  });
+}).call(this);

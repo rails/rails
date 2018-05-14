@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "rack/utils"
 require "rack/request"
 require "rack/session/abstract/id"
-require_relative "../cookies"
-require_relative "../../request/session"
+require "action_dispatch/middleware/cookies"
+require "action_dispatch/request/session"
 
 module ActionDispatch
   module Session

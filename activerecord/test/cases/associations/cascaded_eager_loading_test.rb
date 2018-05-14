@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -35,7 +37,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
 
   def test_eager_association_loading_with_hmt_does_not_table_name_collide_when_joining_associations
     authors = Author.joins(:posts).eager_load(:comments).where(posts: { tags_count: 1 }).to_a
-    assert_equal 1, assert_no_queries { authors.size }
+    assert_equal 3, assert_no_queries { authors.size }
     assert_equal 10, assert_no_queries { authors[0].comments.size }
   end
 
@@ -134,7 +136,7 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_multiple_stis_and_order
-    author = Author.all.merge!(includes: { posts: [ :special_comments , :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
+    author = Author.all.merge!(includes: { posts: [ :special_comments, :very_special_comment ] }, order: ["authors.name", "comments.body", "very_special_comments_posts.body"], where: "posts.id = 4").first
     assert_equal authors(:david), author
     assert_no_queries do
       author.posts.first.special_comments

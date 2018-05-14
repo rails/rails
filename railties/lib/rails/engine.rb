@@ -1,5 +1,7 @@
-require_relative "railtie"
-require_relative "engine/railties"
+# frozen_string_literal: true
+
+require "rails/railtie"
+require "rails/engine/railties"
 require "active_support/core_ext/module/delegation"
 require "pathname"
 require "thread"
@@ -437,8 +439,8 @@ module Rails
     # Load console and invoke the registered hooks.
     # Check <tt>Rails::Railtie.console</tt> for more info.
     def load_console(app = self)
-      require_relative "console/app"
-      require_relative "console/helpers"
+      require "rails/console/app"
+      require "rails/console/helpers"
       run_console_blocks(app)
       self
     end
@@ -461,7 +463,7 @@ module Rails
     # Load Rails generators and invoke the registered hooks.
     # Check <tt>Rails::Railtie.generators</tt> for more info.
     def load_generators(app = self)
-      require_relative "generators"
+      require "rails/generators"
       run_generators_blocks(app)
       Rails::Generators.configure!(app.config.generators)
       self

@@ -3,50 +3,37 @@
 module Enumerable
   # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
   # when we omit an identity.
+
+  # We can't use Refinements here because Refinements with Module which will be prepended
+  # doesn't work well https://bugs.ruby-lang.org/issues/13446
+  alias :_original_sum_with_required_identity :sum # :nodoc:
+  private :_original_sum_with_required_identity
+
+  # Calculates a sum from the elements.
   #
-  # We tried shimming it to attempt the fast native method, rescue TypeError,
-  # and fall back to the compatible implementation, but that's much slower than
-  # just calling the compat method in the first place.
-  if Enumerable.instance_methods(false).include?(:sum) && !((?a..?b).sum rescue false)
-    # We can't use Refinements here because Refinements with Module which will be prepended
-    # doesn't work well https://bugs.ruby-lang.org/issues/13446
-    alias :_original_sum_with_required_identity :sum
-    private :_original_sum_with_required_identity
-    # Calculates a sum from the elements.
-    #
-    #  payments.sum { |p| p.price * p.tax_rate }
-    #  payments.sum(&:price)
-    #
-    # The latter is a shortcut for:
-    #
-    #  payments.inject(0) { |sum, p| sum + p.price }
-    #
-    # It can also calculate the sum without the use of a block.
-    #
-    #  [5, 15, 10].sum # => 30
-    #  ['foo', 'bar'].sum # => "foobar"
-    #  [[1, 2], [3, 1, 5]].sum # => [1, 2, 3, 1, 5]
-    #
-    # The default sum of an empty list is zero. You can override this default:
-    #
-    #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
-    def sum(identity = nil, &block)
-      if identity
-        _original_sum_with_required_identity(identity, &block)
-      elsif block_given?
-        map(&block).sum(identity)
-      else
-        inject(:+) || 0
-      end
-    end
-  else
-    def sum(identity = nil, &block)
-      if block_given?
-        map(&block).sum(identity)
-      else
-        sum = identity ? inject(identity, :+) : inject(:+)
-        sum || identity || 0
-      end
+  #  payments.sum { |p| p.price * p.tax_rate }
+  #  payments.sum(&:price)
+  #
+  # The latter is a shortcut for:
+  #
+  #  payments.inject(0) { |sum, p| sum + p.price }
+  #
+  # It can also calculate the sum without the use of a block.
+  #
+  #  [5, 15, 10].sum # => 30
+  #  ['foo', 'bar'].sum # => "foobar"
+  #  [[1, 2], [3, 1, 5]].sum # => [1, 2, 3, 1, 5]
+  #
+  # The default sum of an empty list is zero. You can override this default:
+  #
+  #  [].sum(Payment.new(0)) { |i| i.amount } # => Payment.new(0)
+  def sum(identity = nil, &block)
+    if identity
+      _original_sum_with_required_identity(identity, &block)
+    elsif block_given?
+      map(&block).sum(identity)
+    else
+      inject(:+) || 0
     end
   end
 
@@ -133,27 +120,21 @@ class Range #:nodoc:
   end
 end
 
-# Array#sum was added in Ruby 2.4 but it only works with Numeric elements.
-#
-# We tried shimming it to attempt the fast native method, rescue TypeError,
-# and fall back to the compatible implementation, but that's much slower than
-# just calling the compat method in the first place.
-if Array.instance_methods(false).include?(:sum) && !(%w[a].sum rescue false)
-  # Using Refinements here in order not to expose our internal method
-  using Module.new {
-    refine Array do
-      alias :orig_sum :sum
-    end
-  }
+# Using Refinements here in order not to expose our internal method
+using Module.new {
+  refine Array do
+    alias :orig_sum :sum
+  end
+}
 
-  class Array
-    def sum(init = nil, &block) #:nodoc:
-      if init.is_a?(Numeric) || first.is_a?(Numeric)
-        init ||= 0
-        orig_sum(init, &block)
-      else
-        super
-      end
+class Array #:nodoc:
+  # Array#sum was added in Ruby 2.4 but it only works with Numeric elements.
+  def sum(init = nil, &block)
+    if init.is_a?(Numeric) || first.is_a?(Numeric)
+      init ||= 0
+      orig_sum(init, &block)
+    else
+      super
     end
   end
 end

@@ -85,21 +85,21 @@ class CallbacksTest < ActiveModel::TestCase
   end
 
   test "only selects which types of callbacks should be created" do
-    assert !ModelCallbacks.respond_to?(:before_initialize)
-    assert !ModelCallbacks.respond_to?(:around_initialize)
+    assert_not_respond_to ModelCallbacks, :before_initialize
+    assert_not_respond_to ModelCallbacks, :around_initialize
     assert_respond_to ModelCallbacks, :after_initialize
   end
 
   test "only selects which types of callbacks should be created from an array list" do
     assert_respond_to ModelCallbacks, :before_multiple
     assert_respond_to ModelCallbacks, :around_multiple
-    assert !ModelCallbacks.respond_to?(:after_multiple)
+    assert_not_respond_to ModelCallbacks, :after_multiple
   end
 
   test "no callbacks should be created" do
-    assert !ModelCallbacks.respond_to?(:before_empty)
-    assert !ModelCallbacks.respond_to?(:around_empty)
-    assert !ModelCallbacks.respond_to?(:after_empty)
+    assert_not_respond_to ModelCallbacks, :before_empty
+    assert_not_respond_to ModelCallbacks, :around_empty
+    assert_not_respond_to ModelCallbacks, :after_empty
   end
 
   class Violin

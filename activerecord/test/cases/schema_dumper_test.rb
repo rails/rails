@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -64,7 +66,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dump_uses_force_cascade_on_create_table
     output = dump_table_schema "authors"
-    assert_match %r{create_table "authors", force: :cascade}, output
+    assert_match %r{create_table "authors",.* force: :cascade}, output
   end
 
   def test_schema_dump_excludes_sqlite_sequence
@@ -175,14 +177,14 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_index_columns_in_right_order
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter)
-      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
-    elsif current_adapter?(:Mysql2Adapter)
+    if current_adapter?(:Mysql2Adapter)
       if ActiveRecord::Base.connection.supports_index_sort_order?
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }, order: { rating: :desc }', index_definition
       else
         assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", length: { type: 10 }', index_definition
       end
+    elsif ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index", order: { rating: :desc }', index_definition
     else
       assert_equal 't.index ["firm_id", "type", "rating"], name: "company_index"', index_definition
     end
@@ -197,6 +199,24 @@ class SchemaDumperTest < ActiveRecord::TestCase
     end
   end
 
+  def test_schema_dumps_index_sort_order
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_rating/).first.strip
+    if ActiveRecord::Base.connection.supports_index_sort_order?
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating", order: :desc', index_definition
+    else
+      assert_equal 't.index ["name", "rating"], name: "index_companies_on_name_and_rating"', index_definition
+    end
+  end
+
+  def test_schema_dumps_index_length
+    index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*_name_and_description/).first.strip
+    if current_adapter?(:Mysql2Adapter)
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description", length: 10', index_definition
+    else
+      assert_equal 't.index ["name", "description"], name: "index_companies_on_name_and_description"', index_definition
+    end
+  end
+
   def test_schema_dump_should_honor_nonstandard_primary_keys
     output = standard_dump
     match = output.match(%r{create_table "movies"(.*)do})
@@ -205,18 +225,23 @@ class SchemaDumperTest < ActiveRecord::TestCase
   end
 
   def test_schema_dump_should_use_false_as_default
-    output = standard_dump
+    output = dump_table_schema "booleans"
     assert_match %r{t\.boolean\s+"has_fun",.+default: false}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_text_field
-    output = standard_dump
+    output = dump_table_schema "admin_users"
     assert_match %r{t\.text\s+"params"$}, output
   end
 
   def test_schema_dump_does_not_include_limit_for_binary_field
-    output = standard_dump
+    output = dump_table_schema "binaries"
     assert_match %r{t\.binary\s+"data"$}, output
+  end
+
+  def test_schema_dump_does_not_include_limit_for_float_field
+    output = dump_table_schema "numeric_data"
+    assert_match %r{t\.float\s+"temperature"$}, output
   end
 
   if current_adapter?(:Mysql2Adapter)
@@ -273,7 +298,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
     def test_schema_dump_expression_indices
       index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_expression_index/).first.strip
-      assert_equal 't.index "lower((name)::text)", name: "company_expression_index"', index_definition
+      assert_match %r{CASE.+lower\(\(name\)::text\)}i, index_definition
     end
 
     def test_schema_dump_interval_type
@@ -287,20 +312,32 @@ class SchemaDumperTest < ActiveRecord::TestCase
       assert_match %r{t\.oid\s+"obj_id"$}, output
     end
 
-    if ActiveRecord::Base.connection.supports_extensions?
-      def test_schema_dump_includes_extensions
-        connection = ActiveRecord::Base.connection
+    def test_schema_dump_includes_extensions
+      connection = ActiveRecord::Base.connection
 
-        connection.stubs(:extensions).returns(["hstore"])
-        output = perform_schema_dump
-        assert_match "# These are extensions that must be enabled", output
-        assert_match %r{enable_extension "hstore"}, output
+      connection.stubs(:extensions).returns(["hstore"])
+      output = perform_schema_dump
+      assert_match "# These are extensions that must be enabled", output
+      assert_match %r{enable_extension "hstore"}, output
 
-        connection.stubs(:extensions).returns([])
-        output = perform_schema_dump
-        assert_no_match "# These are extensions that must be enabled", output
-        assert_no_match %r{enable_extension}, output
-      end
+      connection.stubs(:extensions).returns([])
+      output = perform_schema_dump
+      assert_no_match "# These are extensions that must be enabled", output
+      assert_no_match %r{enable_extension}, output
+    end
+
+    def test_schema_dump_includes_extensions_in_alphabetic_order
+      connection = ActiveRecord::Base.connection
+
+      connection.stubs(:extensions).returns(["hstore", "uuid-ossp", "xml2"])
+      output = perform_schema_dump
+      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
+
+      connection.stubs(:extensions).returns(["uuid-ossp", "xml2", "hstore"])
+      output = perform_schema_dump
+      enabled_extensions = output.scan(%r{enable_extension "(.+)"}).flatten
+      assert_equal ["hstore", "uuid-ossp", "xml2"], enabled_extensions
     end
   end
 
@@ -384,6 +421,31 @@ class SchemaDumperTest < ActiveRecord::TestCase
     $stdout = original
   end
 
+  def test_schema_dump_with_table_name_prefix_and_suffix_regexp_escape
+    original, $stdout = $stdout, StringIO.new
+    ActiveRecord::Base.table_name_prefix = "foo$"
+    ActiveRecord::Base.table_name_suffix = "$bar"
+
+    migration = CreateDogMigration.new
+    migration.migrate(:up)
+
+    output = perform_schema_dump
+    assert_no_match %r{create_table "foo\$.+\$bar"}, output
+    assert_no_match %r{add_index "foo\$.+\$bar"}, output
+    assert_no_match %r{create_table "schema_migrations"}, output
+    assert_no_match %r{create_table "ar_internal_metadata"}, output
+
+    if ActiveRecord::Base.connection.supports_foreign_keys?
+      assert_no_match %r{add_foreign_key "foo\$.+\$bar"}, output
+      assert_no_match %r{add_foreign_key "[^"]+", "foo\$.+\$bar"}, output
+    end
+  ensure
+    migration.migrate(:down)
+
+    ActiveRecord::Base.table_name_suffix = ActiveRecord::Base.table_name_prefix = ""
+    $stdout = original
+  end
+
   def test_schema_dump_with_table_name_prefix_and_ignoring_tables
     original, $stdout = $stdout, StringIO.new
 
@@ -407,7 +469,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
     output = ActiveRecord::SchemaDumper.dump(ActiveRecord::Base.connection, stream).string
 
     assert_match %r{create_table "omg_cats"}, output
-    refute_match %r{create_table "cats"}, output
+    assert_no_match %r{create_table "cats"}, output
   ensure
     migration.migrate(:down)
     ActiveRecord::Base.table_name_prefix = original_table_name_prefix
