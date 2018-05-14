@@ -33,8 +33,6 @@ module ActiveSupport
           value <=> other.value
         elsif Numeric === other
           value <=> other
-        else
-          nil
         end
       end
 

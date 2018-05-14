@@ -16,9 +16,8 @@ module ActionDispatch
         fetch_header("action_dispatch.request.content_type") do |k|
           v = if get_header("CONTENT_TYPE") =~ /^([^,\;]*)/
             Mime::Type.lookup($1.strip.downcase)
-          else
-            nil
           end
+
           set_header k, v
         end
       end

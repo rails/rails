@@ -28,8 +28,6 @@ module ActiveStorage
           ActiveStorage::Blob.create_after_upload!(attachable)
         when String
           ActiveStorage::Blob.find_signed(attachable)
-        else
-          nil
         end
       end
   end

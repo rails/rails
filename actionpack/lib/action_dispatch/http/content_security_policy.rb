@@ -237,8 +237,6 @@ module ActionDispatch #:nodoc:
             end
           elsif sources
             directive
-          else
-            nil
           end
         end
       end
