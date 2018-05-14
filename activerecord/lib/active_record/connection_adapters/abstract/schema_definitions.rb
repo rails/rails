@@ -664,19 +664,19 @@ module ActiveRecord
 
       # Adds a foreign key.
       #
-      # t.foreign_key(:authors)
+      #  t.foreign_key(:authors)
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args) # :nodoc:
+      def foreign_key(*args)
         @base.add_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.
       #
-      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args) # :nodoc:
+      def foreign_key_exists?(*args)
         @base.foreign_key_exists?(name, *args)
       end
     end
