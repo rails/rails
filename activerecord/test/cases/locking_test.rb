@@ -32,6 +32,11 @@ end
 class OptimisticLockingTest < ActiveRecord::TestCase
   fixtures :people, :legacy_things, :references, :string_key_objects, :peoples_treasures
 
+  def test_locking_enabled_predicate_class_method_should_return_boolean_value
+    assert_equal false, Reader.locking_enabled?
+    assert_equal true, Person.locking_enabled?
+  end
+
   def test_quote_value_passed_lock_col
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version

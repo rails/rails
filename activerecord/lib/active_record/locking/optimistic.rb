@@ -129,7 +129,7 @@ module ActiveRecord
           # (which it is, by default) and the table includes the
           # +locking_column+ column (defaults to +lock_version+).
           def locking_enabled?
-            lock_optimistically && columns_hash[locking_column]
+            lock_optimistically && columns_hash[locking_column].present?
           end
 
           # Set the column to use for optimistic locking. Defaults to +lock_version+.
