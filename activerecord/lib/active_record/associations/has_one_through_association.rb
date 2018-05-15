@@ -6,12 +6,12 @@ module ActiveRecord
     class HasOneThroughAssociation < HasOneAssociation #:nodoc:
       include ThroughAssociation
 
-      def replace(record, save = true)
-        create_through_record(record, save)
-        self.target = record
-      end
-
       private
+        def replace(record, save = true)
+          create_through_record(record, save)
+          self.target = record
+        end
+
         def create_through_record(record, save)
           ensure_not_nested
 

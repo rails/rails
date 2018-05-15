@@ -16,19 +16,6 @@ module ActiveRecord
         end
       end
 
-      def replace(record)
-        if record
-          raise_on_type_mismatch!(record)
-          update_counters_on_replace(record)
-          set_inverse_instance(record)
-          @updated = true
-        else
-          decrement_counters
-        end
-
-        self.target = record
-      end
-
       def target=(record)
         replace_keys(record)
         super
@@ -56,6 +43,18 @@ module ActiveRecord
       end
 
       private
+        def replace(record)
+          if record
+            raise_on_type_mismatch!(record)
+            update_counters_on_replace(record)
+            set_inverse_instance(record)
+            @updated = true
+          else
+            decrement_counters
+          end
+
+          self.target = record
+        end
 
         def update_counters(by)
           if require_counter_update? && foreign_key_present?
