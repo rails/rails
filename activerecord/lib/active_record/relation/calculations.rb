@@ -292,7 +292,8 @@ module ActiveRecord
         if field.respond_to?(:as)
           field.as(aliaz)
         else
-          "#{field} AS #{aliaz}"
+          striped_field = field.split(' ').first
+          "#{striped_field} AS #{aliaz}"
         end
       }
 
