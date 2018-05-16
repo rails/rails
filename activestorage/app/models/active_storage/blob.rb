@@ -164,6 +164,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.download key, &block
   end
 
+  # Opens a new tempfile in #tempdir and copies blob data into it. Yields the tempfile.
+  def download_to_tempfile()
+    tempfile = Tempfile.open([ "ActiveStorage", filename.extension_with_delimiter ], Dir.tmpdir)
+    begin
+      tempfile.binmode
+      download { |chunk| tempfile.write(chunk) }
+      tempfile.flush
+      tempfile.rewind
+      yield tempfile
+    ensure
+      tempfile.close! # deletes the temporary file on disk
+    end
+  end
+
 
   # Deletes the file on the service that's associated with this blob. This should only be done if the blob is going to be
   # deleted as well or you will essentially have a dead reference. It's recommended to use the +#purge+ and +#purge_later+
