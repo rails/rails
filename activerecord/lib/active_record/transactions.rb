@@ -472,7 +472,8 @@ module ActiveRecord
 
       def update_attributes_from_transaction_state(transaction_state)
         if transaction_state && transaction_state.finalized?
-          restore_transaction_record_state if transaction_state.rolledback?
+          restore_transaction_record_state(transaction_state.fully_rolledback?) if transaction_state.rolledback?
+          force_clear_transaction_record_state if transaction_state.fully_committed?
           clear_transaction_record_state if transaction_state.fully_completed?
         end
       end
