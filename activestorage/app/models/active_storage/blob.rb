@@ -165,7 +165,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Opens a new tempfile in #tempdir and copies blob data into it. Yields the tempfile.
-  def download_to_tempfile()
+  def download_to_tempfile
     tempfile = Tempfile.open([ "ActiveStorage", filename.extension_with_delimiter ], Dir.tmpdir)
     begin
       tempfile.binmode
