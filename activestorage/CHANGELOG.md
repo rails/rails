@@ -1,3 +1,9 @@
+*   Generated attachment getter and setter methods are created
+    within the model's `GeneratedAssociationMethods` module to
+    allow overriding and composition using `super`.
+
+    *Josh Susser*, *Jamon Douglas*
+
 *   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
     and yields the tempfile. Deprecate `ActiveStorage::Downloading`.
 
