@@ -622,11 +622,25 @@ class InheritanceAttributeMappingTest < ActiveRecord::TestCase
   class Startup < Company; end
   class Empire < Company; end
 
+  class Firm < ActiveRecord::Base
+    self.table_name = "companies"
+
+    has_many :sponsors, as: :sponsors
+  end
+
+  class Organization < Firm
+    self.table_name = "organizations"
+  end
+
   class Sponsor < ActiveRecord::Base
     self.table_name = "sponsors"
     attribute :sponsorable_type, :omg_sti
 
     belongs_to :sponsorable, polymorphic: true
+  end
+
+  def test_polymorphic_type_without_sti
+    assert Organization.joins(:sponsors).to_sql.include? "InheritanceAttributeMappingTest::Organization"
   end
 
   def test_sti_with_custom_type

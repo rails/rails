@@ -163,7 +163,7 @@ module ActiveRecord
       end
 
       def polymorphic_name
-        base_class.name
+        has_attribute?(inheritance_column) ? base_class.name : name
       end
 
       def inherited(subclass)
