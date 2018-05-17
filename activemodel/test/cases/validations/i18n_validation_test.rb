@@ -42,6 +42,42 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
+  def test_errors_full_messages_uses_attribute_format
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:name, "cannot be blank")
+    assert_equal "Name test cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
+  end
+
+  def test_errors_full_messages_uses_model_format
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { person: { format: "%{message}" } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:name, "cannot be blank")
+    assert_equal "cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
+  end
+
+  def test_errors_full_messages_uses_deeply_nested_model_attributes_format
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts/addresses.street', "cannot be blank")
+    assert_equal "Contacts/addresses country cannot be blank", person.errors.full_message(:'contacts/addresses.country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_uses_deeply_nested_model_model_format
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts/addresses.street', "cannot be blank")
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts/addresses.country', "cannot be blank")
+  end
+
   # ActiveModel::Validations
 
   # A set of common cases for ActiveModel::Validations message generation that
