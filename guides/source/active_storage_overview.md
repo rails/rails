@@ -380,57 +380,24 @@ Rails.application.routes.url_helpers.rails_blob_path(user.avatar, only_path: tru
 Downloading Files
 -----------------
 
-If you need to process the blobs on the server side, such as, when performing
-analysis or further conversions, you can download the blob and get a binary
-object:
+Sometimes you need to process a blob after it’s uploaded—for example, to convert
+it to a different format. Use `ActiveStorage::Blob#download` to read a blob’s
+binary data into memory:
 
 ```ruby
 binary = user.avatar.download
 ```
 
-In some cases you might want to convert that into an actual file on the disk to
-pass the file path to external programs (such as virus scanners, converters,
-optimizers, minifiers, etc.). In this case you can include the
-`ActiveStorage::Downloading` module into your class which provides helpers to
-download directly into files while avoiding to store the file into memory.
-`ActiveStorage::Downloading` expects a `blob` method to be defined.
+You might want to download a blob to a file on disk so an external program (e.g.
+a virus scanner or media transcoder) can operate on it. Use
+`ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
 
-```ruby
-class VirusScanner
-  include ActiveStorage::Downloading
-
-  attr_reader :blob
-
-  def initialize(blob)
-    @blob = blob
-  end
-
-  def scan
-    download_blob_to_tempfile do |file|
-      system 'scan_virus', file.path
-    end
-  end
-end
-```
-
-By default, `download_blob_to_tempfile` creates files in `Dir.tmpdir`. If you need to use another directory, override ActiveStorage::Downloading#tempdir in your class:
-
-```ruby
-class VirusScanner
-  include ActiveStorage::Downloading
+````ruby
+message.video.open do |file|
+  system '/path/to/virus/scanner', file.path
   # ...
-
-  private
-    def tempdir
-      '/path/to/tmp'
-    end
 end
 ```
-
-If the external program is run as a separate program, you might also want to
-`chmod` the file and it's directory, as it is inaccessible by other users
-because `Tempfile` will set the permissions to `0600`.
-
 
 Transforming Images
 -------------------
