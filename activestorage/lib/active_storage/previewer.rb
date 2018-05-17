@@ -27,7 +27,7 @@ module ActiveStorage
 
     private
       # Downloads the blob to a tempfile on disk. Yields the tempfile.
-      def download_blob_to_tempfile #:doc:
+      def download_blob_to_tempfile(&block) #:doc:
         blob.open(&block)
       end
 
