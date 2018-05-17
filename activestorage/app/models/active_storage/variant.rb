@@ -42,7 +42,7 @@
 # You can combine any number of ImageMagick/libvips operations into a variant, as well as any macros provided by the
 # ImageProcessing gem (such as +resize_to_fit+):
 #
-#   avatar.variant(resize_to_fit: [800, 800], monochrome: true, flip: "-90")
+#   avatar.variant(resize_to_fit: [800, 800], monochrome: true, rotate: "-90")
 #
 # Visit the following links for a list of available ImageProcessing commands and ImageMagick/libvips operations:
 #
