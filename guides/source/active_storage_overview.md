@@ -392,7 +392,7 @@ You might want to download a blob to a file on disk so an external program (e.g.
 a virus scanner or media transcoder) can operate on it. Use
 `ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
 
-````ruby
+```ruby
 message.video.open do |file|
   system '/path/to/virus/scanner', file.path
   # ...
