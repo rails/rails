@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_storage/downloader"
+
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
 #
@@ -162,6 +164,11 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # That'll use a lot of RAM for very large files. If a block is given, then the download is streamed and yielded in chunks.
   def download(&block)
     service.download key, &block
+  end
+
+  # Downloads the blob to a tempfile on disk. Yields the tempfile.
+  def open(&block)
+    ActiveStorage::Downloader.new(self).download_blob_to_tempfile(&block)
   end
 
 

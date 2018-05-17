@@ -84,6 +84,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
+  test "open" do
+    create_file_blob(filename: "racecar.jpg").open do |file|
+      assert file.binmode?
+      assert_equal 0, file.pos
+      assert_match(/\.jpg\z/, file.path)
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    end
+  end
+
   test "urls expiring in 5 minutes" do
     blob = create_blob
 

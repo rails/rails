@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_storage/downloading"
-
 # Image blobs can have variants that are the result of a set of transformations applied to the original.
 # These variants are used to create thumbnails, fixed-size avatars, or any other derivative image from the
 # original.
@@ -53,8 +51,6 @@ require "active_storage/downloading"
 # * {ImageProcessing::Vips}[https://github.com/janko-m/image_processing/blob/master/doc/vips.md#methods]
 # * {ruby-vips reference}[http://www.rubydoc.info/gems/ruby-vips/Vips/Image]
 class ActiveStorage::Variant
-  include ActiveStorage::Downloading
-
   WEB_IMAGE_CONTENT_TYPES = %w( image/png image/jpeg image/jpg image/gif )
 
   attr_reader :blob, :variation
@@ -98,7 +94,7 @@ class ActiveStorage::Variant
     end
 
     def process
-      download_blob_to_tempfile do |image|
+      blob.open do |image|
         transform image do |output|
           upload output
         end

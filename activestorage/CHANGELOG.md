@@ -1,3 +1,8 @@
+*   Add `ActiveStorage::Blob#open`, which downloads a blob to a tempfile on disk
+    and yields the tempfile. Deprecate `ActiveStorage::Downloading`.
+
+    *David Robertson, George Claghorn*
+
 *   Pass in `identify: false` as an argument when providing a `content_type` for
     `ActiveStorage::Attached::{One,Many}#attach` to bypass automatic content
     type inference. For example:
