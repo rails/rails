@@ -37,24 +37,6 @@ class SchemaDumperTest < ActiveRecord::TestCase
     ActiveRecord::SchemaMigration.delete_all
   end
 
-  if current_adapter?(:SQLite3Adapter)
-    %w{3.7.8 3.7.11 3.7.12}.each do |version_string|
-      test "dumps schema version for sqlite version #{version_string}" do
-        version = ActiveRecord::ConnectionAdapters::SQLite3Adapter::Version.new(version_string)
-        ActiveRecord::Base.connection.stubs(:sqlite_version).returns(version)
-
-        versions = %w{ 20100101010101 20100201010101 20100301010101 }
-        versions.reverse_each do |v|
-          ActiveRecord::SchemaMigration.create!(version: v)
-        end
-
-        schema_info = ActiveRecord::Base.connection.dump_schema_information
-        assert_match(/20100201010101.*20100301010101/m, schema_info)
-        ActiveRecord::SchemaMigration.delete_all
-      end
-    end
-  end
-
   def test_schema_dump
     output = standard_dump
     assert_match %r{create_table "accounts"}, output
@@ -192,7 +174,7 @@ class SchemaDumperTest < ActiveRecord::TestCase
 
   def test_schema_dumps_partial_indices
     index_definition = dump_table_schema("companies").split(/\n/).grep(/t\.index.*company_partial_index/).first.strip
-    if current_adapter?(:PostgreSQLAdapter, :SQLite3Adapter) && ActiveRecord::Base.connection.supports_partial_index?
+    if ActiveRecord::Base.connection.supports_partial_index?
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index", where: "(rating > 10)"', index_definition
     else
       assert_equal 't.index ["firm_id", "type"], name: "company_partial_index"', index_definition

@@ -104,6 +104,10 @@ module ActiveRecord
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
+        if sqlite_version < "3.8.0"
+          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+        end
+
         configure_connection
       end
 
@@ -116,7 +120,7 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= "3.8.0"
+        true
       end
 
       def requires_reloading?
@@ -124,7 +128,7 @@ module ActiveRecord
       end
 
       def supports_foreign_keys_in_create?
-        sqlite_version >= "3.6.19"
+        true
       end
 
       def supports_views?
@@ -137,10 +141,6 @@ module ActiveRecord
 
       def supports_json?
         true
-      end
-
-      def supports_multi_insert?
-        sqlite_version >= "3.7.11"
       end
 
       def active?
