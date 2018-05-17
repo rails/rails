@@ -167,8 +167,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
-  def open(&block)
-    ActiveStorage::Downloader.new(self).download_blob_to_tempfile(&block)
+  def open(tempdir: nil, &block)
+    ActiveStorage::Downloader.new(self, tempdir: tempdir).download_blob_to_tempfile(&block)
   end
 
 

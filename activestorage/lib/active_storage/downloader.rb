@@ -1,9 +1,10 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class Downloader
-    def initialize(blob)
-      @blob = blob
+  class Downloader #:nodoc:
+    def initialize(blob, tempdir: nil)
+      @blob    = blob
+      @tempdir = tempdir
     end
 
     def download_blob_to_tempfile
@@ -14,10 +15,10 @@ module ActiveStorage
     end
 
     private
-      attr_reader :blob
+      attr_reader :blob, :tempdir
 
       def open_tempfile
-        file = Tempfile.open([ "ActiveStorage", tempfile_extension_with_delimiter ])
+        file = Tempfile.open([ "ActiveStorage", tempfile_extension_with_delimiter ], tempdir)
 
         begin
           yield file
