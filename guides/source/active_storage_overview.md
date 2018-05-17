@@ -392,7 +392,7 @@ You might want to download a blob to a file on disk so an external program (e.g.
 a virus scanner or media transcoder) can operate on it. Use
 `ActiveStorage::Blob#open` to download a blob to a tempfile on disk:
 
-````ruby
+```ruby
 message.video.open do |file|
   system '/path/to/virus/scanner', file.path
   # ...
@@ -418,7 +418,7 @@ original blob into the specified format and redirect to its new service
 location.
 
 ```erb
-<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
+<%= image_tag user.avatar.variant(resize: "100x100") %>
 ```
 
 To switch to the Vips processor, you would add the following to
