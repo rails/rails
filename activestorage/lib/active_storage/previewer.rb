@@ -44,7 +44,7 @@ module ActiveStorage
       #     end
       #   end
       #
-      # The output tempfile is opened in the directory returned by ActiveStorage::Downloading#tempdir.
+      # The output tempfile is opened in the directory returned by #tempdir.
       def draw(*argv) #:doc:
         ActiveSupport::Notifications.instrument("preview.active_storage") do
           open_tempfile_for_drawing do |file|
@@ -72,6 +72,10 @@ module ActiveStorage
 
       def logger #:doc:
         ActiveStorage.logger
+      end
+
+      def tempdir #:doc:
+        Dir.tmpdir
       end
   end
 end
