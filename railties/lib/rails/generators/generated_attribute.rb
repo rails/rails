@@ -153,7 +153,7 @@ module Rails
       end
 
       def inject_options
-        "".dup.tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
+        (+"").tap { |s| options_for_migration.each { |k, v| s << ", #{k}: #{v.inspect}" } }
       end
 
       def inject_index_options

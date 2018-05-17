@@ -19,7 +19,7 @@ class SetupFiberedBase < ActiveSupport::TestCase
 
   def buffered_render(options)
     body = render_body(options)
-    string = "".dup
+    string = +""
     body.each do |piece|
       string << piece
     end

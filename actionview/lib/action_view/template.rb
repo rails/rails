@@ -286,7 +286,7 @@ module ActionView
 
         # Make sure that the resulting String to be eval'd is in the
         # encoding of the code
-        source = <<-end_src.dup
+        source = +<<-end_src
           def #{method_name}(local_assigns, output_buffer)
             _old_virtual_path, @virtual_path = @virtual_path, #{@virtual_path.inspect};_old_output_buffer = @output_buffer;#{locals_code};#{code}
           ensure
@@ -335,12 +335,12 @@ module ActionView
         locals = locals.grep(/\A@?(?![A-Z0-9])(?:[[:alnum:]_]|[^\0-\177])+\z/)
 
         # Assign for the same variable is to suppress unused variable warning
-        locals.each_with_object("".dup) { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
+        locals.each_with_object(+"") { |key, code| code << "#{key} = local_assigns[:#{key}]; #{key} = #{key};" }
       end
 
       def method_name
         @method_name ||= begin
-          m = "_#{identifier_method_name}__#{@identifier.hash}_#{__id__}".dup
+          m = +"_#{identifier_method_name}__#{@identifier.hash}_#{__id__}"
           m.tr!("-".freeze, "_".freeze)
           m
         end

@@ -16,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = "".dup
+        virtual = +""
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual

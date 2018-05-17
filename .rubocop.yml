@@ -208,3 +208,6 @@ Performance/EndWith:
 
 Performance/RegexpMatch:
   Enabled: true
+
+Performance/UnfreezeString:
+  Enabled: true

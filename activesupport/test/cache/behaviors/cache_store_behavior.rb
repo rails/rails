@@ -319,7 +319,7 @@ module CacheStoreBehavior
   end
 
   def test_original_store_objects_should_not_be_immutable
-    bar = "bar".dup
+    bar = +"bar"
     @cache.write("foo", bar)
     assert_nothing_raised { bar.gsub!(/.*/, "baz") }
   end

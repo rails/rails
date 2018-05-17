@@ -686,7 +686,7 @@ module ActiveRecord
           def change_column_sql(table_name, column_name, type, options = {})
             quoted_column_name = quote_column_name(column_name)
             sql_type = type_to_sql(type, options)
-            sql = "ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}".dup
+            sql = +"ALTER COLUMN #{quoted_column_name} TYPE #{sql_type}"
             if options[:collation]
               sql << " COLLATE \"#{options[:collation]}\""
             end
@@ -757,7 +757,7 @@ module ActiveRecord
             scope = quoted_scope(name, type: type)
             scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
-            sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
+            sql = +"SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace"
             sql << " WHERE n.nspname = #{scope[:schema]}"
             sql << " AND c.relname = #{scope[:name]}" if scope[:name]
             sql << " AND c.relkind IN (#{scope[:type]})"

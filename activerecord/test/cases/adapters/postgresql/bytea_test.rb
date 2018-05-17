@@ -49,7 +49,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = "\u001F\x8B".dup.force_encoding("BINARY")
+    data = (+"\u001F\x8B").force_encoding("BINARY")
     assert_equal(data, @type.deserialize(data))
   end
 
