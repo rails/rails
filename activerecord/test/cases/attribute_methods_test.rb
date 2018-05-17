@@ -739,6 +739,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "setting invalid string to a zone-aware time attribute" do
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time_string = "ABC"
+
+      record.bonus_time = time_string
+      assert_nil record.bonus_time
+    end
+  end
+
   test "removing time zone-aware types" do
     with_time_zone_aware_types(:datetime) do
       in_time_zone "Pacific Time (US & Canada)" do
