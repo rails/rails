@@ -35,7 +35,7 @@ require "active_storage/downloading"
 # A list of all possible transformations is available at https://www.imagemagick.org/script/mogrify.php. You can
 # combine as many as you like freely:
 #
-#   avatar.variant(resize: "100x100", monochrome: true, flip: "-90")
+#   avatar.variant(resize: "100x100", monochrome: true, rotate: "-90")
 class ActiveStorage::Variant
   include ActiveStorage::Downloading
 
