@@ -364,12 +364,49 @@ module ActiveModel
     # Returns a full message for a given attribute.
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
+    #
+    #   The `"%{attribute} %{message}"` error format can be overridden either
+    #     - for the language with `errors.format`
+    #     - for the model with `activemodel.errors.models.person.format`
+    #     - Or for the specific attribute with `activemodel.errors.models.person.attributes.name.format`
     def full_message(attribute, message)
       return message if attribute == :base
+
+      parts = attribute.to_s.split(".")
+      attribute_name = parts.pop
+      namespace = parts.join("/") unless parts.empty?
+
+      if @base.class.respond_to?(:i18n_scope)
+        attributes_scope = "#{@base.class.i18n_scope}.errors.models"
+        if namespace
+          defaults = @base.class.lookup_ancestors.map do |klass|
+            [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.attributes.#{attribute_name}.format",
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}/#{namespace}.format",
+            ]
+          end
+          defaults << :"#{attributes_scope}.#{namespace}.attributes.#{attribute_name}.format"
+          defaults << :"#{attributes_scope}.#{namespace}.format"
+        else
+          defaults = @base.class.lookup_ancestors.map do |klass|
+            [
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}.attributes.#{attribute_name}.format",
+              :"#{attributes_scope}.#{klass.model_name.i18n_key}.format",
+            ]
+          end
+        end
+      else
+        defaults = []
+      end
+
+      defaults.flatten!
+      defaults << :"errors.format"
+      defaults << "%{attribute} %{message}"
+
       attr_name = attribute.to_s.tr(".", "_").humanize
       attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
-      I18n.t(:"errors.format",
-        default:  "%{attribute} %{message}",
+      I18n.translate(defaults.shift,
+        default:  defaults,
         attribute: attr_name,
         message:   message)
     end
