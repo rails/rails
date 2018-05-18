@@ -95,11 +95,9 @@ module Rails
     end
 
     def bin_when_updating
-      bin_yarn_exist = File.exist?("bin/yarn")
-
       bin
 
-      if options[:api] && !bin_yarn_exist
+      if options[:skip_yarn]
         remove_file "bin/yarn"
       end
     end

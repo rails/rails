@@ -296,6 +296,27 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_yarn_contents_when_bin_yarn_is_not_used
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-yarn"]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_yarn: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_bin_files) }
+
+      assert_no_file "#{app_root}/bin/yarn"
+
+      assert_file "#{app_root}/bin/setup" do |content|
+        assert_no_match(/system\('bin\/yarn'\)/, content)
+      end
+
+      assert_file "#{app_root}/bin/update" do |content|
+        assert_no_match(/system\('bin\/yarn'\)/, content)
+      end
+    end
+  end
+
   def test_app_update_does_not_generate_assets_initializer_when_skip_sprockets_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-sprockets"]
