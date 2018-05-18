@@ -94,6 +94,10 @@ module ActiveSupport
 
       private
         def arity_coerce(behavior)
+          unless behavior.respond_to?(:call)
+            raise ArgumentError, "#{behavior.inspect} is not a valid deprecation behavior."
+          end
+
           if behavior.arity == 4 || behavior.arity == -1
             behavior
           else
