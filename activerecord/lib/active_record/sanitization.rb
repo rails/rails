@@ -29,8 +29,9 @@ module ActiveRecord
       end
       alias :sanitize_sql :sanitize_sql_for_conditions
 
-      # Accepts an array, hash, or string of SQL conditions and sanitizes
-      # them into a valid SQL fragment for a SET clause.
+      # Accepts an array, hash, hash-like object (i.e. responds to :to_h),
+      # or string of SQL conditions and sanitizes them into a valid
+      # SQL fragment for a SET clause.
       #
       #   sanitize_sql_for_assignment(["name=? and group_id=?", nil, 4])
       #   # => "name=NULL and group_id=4"
@@ -43,11 +44,21 @@ module ActiveRecord
       #
       #   sanitize_sql_for_assignment("name=NULL and group_id='4'")
       #   # => "name=NULL and group_id='4'"
+      #
+      #   # Where post_params is an ActionController::Parameters
+      #   Post.update_all(post_params)
       def sanitize_sql_for_assignment(assignments, default_table_name = table_name)
         case assignments
-        when Array; sanitize_sql_array(assignments)
-        when Hash;  sanitize_sql_hash_for_assignment(assignments, default_table_name)
-        else        assignments
+        when Array
+          sanitize_sql_array(assignments)
+        when Hash
+          sanitize_sql_hash_for_assignment(assignments, default_table_name)
+        else
+          if assignments.respond_to?(:to_h)
+            sanitize_sql_hash_for_assignment(assignments.to_h, default_table_name)
+          else
+            assignments
+          end
         end
       end
 

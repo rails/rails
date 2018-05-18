@@ -1,3 +1,8 @@
+*   Add support to `update_all` for hash-like objects that respond to `:to_h`, including ActionController::Parameters
+    so that code like `Person.update_all(person_params)` works.
+
+    *Gavin Stark*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*

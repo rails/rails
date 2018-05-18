@@ -329,7 +329,8 @@ module ActiveRecord
     #
     # ==== Parameters
     #
-    # * +updates+ - A string, array, or hash representing the SET part of an SQL statement.
+    # * +updates+ - A string, array, hash, or hash-like object (i.e. responds to :to_h)
+    #               representing the SET part of an SQL statement.
     #
     # ==== Examples
     #
@@ -344,6 +345,9 @@ module ActiveRecord
     #
     #   # Update all invoices and set the number column to its id value.
     #   Invoice.update_all('number = id')
+    #
+    #   # Where invoice_params is an ActionController::Parameters
+    #   Invoice.update_all(invoice_params)
     def update_all(updates)
       raise ArgumentError, "Empty list of attributes to change" if updates.blank?
 

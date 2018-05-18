@@ -597,6 +597,19 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_nil Topic.find(1).content
   end
 
+  def test_update_all_with_hash_like_object
+    hash_like_class = Class.new do
+      def to_h
+        { content: "bulk updated with hash-like object" }
+      end
+    end
+
+    hash_like = hash_like_class.new
+    assert_equal Topic.count, Topic.update_all(hash_like)
+    assert_equal "bulk updated with hash-like object", Topic.find(1).content
+    assert_equal "bulk updated with hash-like object", Topic.find(2).content
+  end
+
   def test_update_all_with_hash
     assert_not_nil Topic.find(1).last_read
     assert_equal Topic.count, Topic.update_all(content: "bulk updated with hash!", last_read: nil)
