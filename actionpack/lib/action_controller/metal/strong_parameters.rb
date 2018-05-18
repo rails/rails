@@ -560,12 +560,14 @@ module ActionController
     # Returns a parameter for the given +key+. If the +key+
     # can't be found, there are several options: With no other arguments,
     # it will raise an <tt>ActionController::ParameterMissing</tt> error;
-    # if more arguments are given, then that will be returned; if a block
+    # if a second argument is given, then that is returned (converted to an
+    # instance of ActionController::Parameters if possible); if a block
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
+    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
