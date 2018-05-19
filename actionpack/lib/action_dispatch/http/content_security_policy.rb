@@ -132,7 +132,7 @@ module ActionDispatch #:nodoc:
       worker_src:      "worker-src"
     }.freeze
 
-    NONCE_DIRECTIVES = %w[script-src].freeze
+    NONCE_DIRECTIVES = %w[script-src style-src].freeze
 
     private_constant :MAPPINGS, :DIRECTIVES, :NONCE_DIRECTIVES
 
