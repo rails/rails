@@ -688,6 +688,7 @@ class TransactionTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
 
+    assert_nil topic.id
     assert_predicate topic, :new_record?
   end
 
