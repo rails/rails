@@ -95,7 +95,7 @@ module ActiveRecord
             next
           when value.is_a?(Relation)
             binds += value.bound_attributes
-          when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
+          when value.is_a?(Range) && !table.type(column_name).force_equality?(value)
             first = value.begin
             last = value.end
             unless first.respond_to?(:infinite?) && first.infinite?
@@ -158,7 +158,7 @@ module ActiveRecord
         return if table.associated_with?(column_name)
         case value
         when Array, Range
-          table.type(column_name).respond_to?(:subtype)
+          table.type(column_name).force_equality?(value)
         else
           !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
         end
