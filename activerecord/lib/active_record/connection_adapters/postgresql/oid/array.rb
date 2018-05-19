@@ -66,6 +66,10 @@ module ActiveRecord
             deserialize(raw_old_value) != new_value
           end
 
+          def force_equality?(value)
+            value.is_a?(::Array)
+          end
+
           private
 
             def type_cast_array(value, method)
