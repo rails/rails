@@ -1,3 +1,9 @@
+*   Fix dirty tracking after rollback.
+
+    Fixes #15018, #30167, #33868.
+
+    *Ryuta Kamizono*
+
 *   Fix dirty tracking for `touch` to track saved changes.
 
     Fixes #33429.

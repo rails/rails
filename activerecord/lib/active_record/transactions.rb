@@ -390,6 +390,7 @@ module ActiveRecord
           id: id,
           new_record: @new_record,
           destroyed: @destroyed,
+          attributes: @attributes,
           frozen?: frozen?,
         )
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
@@ -422,12 +423,18 @@ module ActiveRecord
           transaction_level = (@_start_transaction_state[:level] || 0) - 1
           if transaction_level < 1 || force_restore_state
             restore_state = @_start_transaction_state
-            thaw
             @new_record = restore_state[:new_record]
             @destroyed  = restore_state[:destroyed]
+            @attributes = restore_state[:attributes].map do |attr|
+              value = @attributes.fetch_value(attr.name)
+              attr = attr.with_value_from_user(value) if attr.value != value
+              attr
+            end
+            @mutations_from_database = nil
+            @mutations_before_last_save = nil
             pk = self.class.primary_key
-            if pk && _read_attribute(pk) != restore_state[:id]
-              _write_attribute(pk, restore_state[:id])
+            if pk && @attributes.fetch_value(pk) != restore_state[:id]
+              @attributes.write_from_user(pk, restore_state[:id])
             end
             freeze if restore_state[:frozen?]
           end

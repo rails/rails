@@ -583,12 +583,6 @@ module ActiveRecord
       def initialize_internals_callback
       end
 
-      def thaw
-        if @attributes.frozen?
-          @attributes = @attributes.dup
-        end
-      end
-
       def custom_inspect_method_defined?
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
       end

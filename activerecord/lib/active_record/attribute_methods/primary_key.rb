@@ -16,39 +16,33 @@ module ActiveRecord
 
       # Returns the primary key column's value.
       def id
-        sync_with_transaction_state
         primary_key = self.class.primary_key
         _read_attribute(primary_key) if primary_key
       end
 
       # Sets the primary key column's value.
       def id=(value)
-        sync_with_transaction_state
         primary_key = self.class.primary_key
         _write_attribute(primary_key, value) if primary_key
       end
 
       # Queries the primary key column's value.
       def id?
-        sync_with_transaction_state
         query_attribute(self.class.primary_key)
       end
 
       # Returns the primary key column's value before type cast.
       def id_before_type_cast
-        sync_with_transaction_state
         read_attribute_before_type_cast(self.class.primary_key)
       end
 
       # Returns the primary key column's previous value.
       def id_was
-        sync_with_transaction_state
         attribute_was(self.class.primary_key)
       end
 
       # Returns the primary key column's value from the database.
       def id_in_database
-        sync_with_transaction_state
         attribute_in_database(self.class.primary_key)
       end
 
