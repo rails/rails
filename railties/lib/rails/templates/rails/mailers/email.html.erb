@@ -98,7 +98,7 @@
     <dt>Format:</dt>
     <% if @email.multipart? %>
       <dd>
-        <select id="part" onchange="refreshBody();">
+        <select id="part" onchange="refreshBody(false);">
           <option <%= request.format == Mime[:html] ? 'selected' : '' %> value="<%= part_query('text/html') %>">View as HTML email</option>
           <option <%= request.format == Mime[:text] ? 'selected' : '' %> value="<%= part_query('text/plain') %>">View as plain-text email</option>
         </select>
@@ -110,7 +110,7 @@
     <% if I18n.available_locales.count > 1 %>
       <dt>Locale:</dt>
       <dd>
-        <select id="locale" onchange="refreshBody();">
+        <select id="locale" onchange="refreshBody(true);">
           <% I18n.available_locales.each do |locale| %>
             <option <%= I18n.locale == locale ? 'selected' : '' %> value="<%= locale_query(locale) %>"><%= locale %></option>
           <% end %>
@@ -130,7 +130,7 @@
 <% end %>
 
 <script>
-  function refreshBody() {
+  function refreshBody(reload) {
     var part_select = document.querySelector('select#part');
     var locale_select = document.querySelector('select#locale');
     var iframe = document.getElementsByName('messageBody')[0];
@@ -146,10 +146,13 @@
     }
     iframe.contentWindow.location = fresh_location;
 
-    if (history.replaceState) {
-      var url = location.pathname.replace(/\.(txt|html)$/, '');
-      var format = /html/.test(part_param) ? '.html' : '.txt';
-      var state_to_replace = locale_param ? (url + format + '?' + locale_param) : (url + format);
+    var url = location.pathname.replace(/\.(txt|html)$/, '');
+    var format = /html/.test(part_param) ? '.html' : '.txt';
+    var state_to_replace = locale_param ? (url + format + '?' + locale_param) : (url + format);
+
+    if (reload) {
+      location.href = state_to_replace;
+    } else if (history.replaceState) {
       window.history.replaceState({}, '', state_to_replace);
     }
   }
