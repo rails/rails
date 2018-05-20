@@ -501,7 +501,6 @@ module ActiveRecord
             end
             @connections.delete_if(&:requires_reloading?)
             @available.clear
-            
           end
         end
       end
