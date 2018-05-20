@@ -25,6 +25,67 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
     assert_match(/Gray/, image.colorspace)
   end
 
+  test "monochrome with default variant_processor" do
+    begin
+      ActiveStorage.variant_processor = nil
+
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = blob.variant(monochrome: true).processed
+      image = read_image(variant)
+      assert_match(/Gray/, image.colorspace)
+    ensure
+      ActiveStorage.variant_processor = :mini_magick
+    end
+  end
+
+  test "disabled variation of JPEG blob" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = blob.variant(resize: "100x100", monochrome: false).processed
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+    assert_match(/RGB/, image.colorspace)
+  end
+
+  test "disabled variation of JPEG blob with :combine_options" do
+    blob = create_file_blob(filename: "racecar.jpg")
+    variant = ActiveSupport::Deprecation.silence do
+      blob.variant(combine_options: {
+        resize: "100x100",
+        monochrome: false
+      }).processed
+    end
+    assert_match(/racecar\.jpg/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+    assert_match(/RGB/, image.colorspace)
+  end
+
+  test "disabled variation using :combine_options" do
+    begin
+      ActiveStorage.variant_processor = nil
+      blob = create_file_blob(filename: "racecar.jpg")
+      variant = ActiveSupport::Deprecation.silence do
+        blob.variant(combine_options: {
+          crop: "100x100+0+0",
+          monochrome: false
+        }).processed
+      end
+      assert_match(/racecar\.jpg/, variant.service_url)
+
+      image = read_image(variant)
+      assert_equal 100, image.width
+      assert_equal 100, image.height
+      assert_match(/RGB/, image.colorspace)
+    ensure
+      ActiveStorage.variant_processor = :mini_magick
+    end
+  end
+
   test "center-weighted crop of JPEG blob using :combine_options" do
     begin
       ActiveStorage.variant_processor = nil

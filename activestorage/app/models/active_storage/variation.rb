@@ -66,11 +66,13 @@ class ActiveStorage::Variation
     # Applies image transformations using the ImageProcessing gem.
     def image_processing_transform(file, format)
       operations = transformations.inject([]) do |list, (name, argument)|
-        if name.to_s == "combine_options"
-          ActiveSupport::Deprecation.warn("The ImageProcessing ActiveStorage variant backend doesn't need :combine_options, as it already generates a single MiniMagick command. In Rails 6.1 :combine_options will not be supported anymore.")
-          list.concat argument.to_a
-        else
-          list << [name, argument]
+        list.tap do |list|
+          if name.to_s == "combine_options"
+            ActiveSupport::Deprecation.warn("The ImageProcessing ActiveStorage variant backend doesn't need :combine_options, as it already generates a single MiniMagick command. In Rails 6.1 :combine_options will not be supported anymore.")
+            list.concat argument.keep_if { |key, value| value.present? }.to_a
+          elsif argument.present?
+            list << [name, argument]
+          end
         end
       end
 
@@ -116,14 +118,10 @@ class ActiveStorage::Variation
     end
 
     def pass_transform_argument(command, method, argument)
-      if eligible_argument?(argument)
-        command.public_send(method, argument)
-      else
+      if argument == true
         command.public_send(method)
+      elsif argument.present?
+        command.public_send(method, argument)
       end
-    end
-
-    def eligible_argument?(argument)
-      argument.present? && argument != true
     end
 end

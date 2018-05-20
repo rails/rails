@@ -1,3 +1,13 @@
+*   Variant arguments of `false` or `nil` will no longer be passed to the
+    processor. For example, the following will not have the monochrome
+    variation applied:
+
+    ```ruby
+      avatar.variant(monochrome: false)
+    ```
+
+    *Jacob Smith*
+
 *   Generated attachment getter and setter methods are created
     within the model's `GeneratedAssociationMethods` module to
     allow overriding and composition using `super`.
