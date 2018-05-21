@@ -36,7 +36,7 @@ module ApplicationTests
       skip "PTY unavailable" unless available_pty?
 
       File.open("#{app_path}/config/boot.rb", "w") do |f|
-        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile.to_s}'"
+        f.puts "ENV['BUNDLE_GEMFILE'] = '#{Bundler.default_gemfile}'"
         f.puts "require 'bundler/setup'"
       end
 

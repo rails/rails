@@ -104,7 +104,7 @@ module ActiveRecord
 
         if source_line
           if defined?(::Rails.root)
-            app_root = "#{::Rails.root.to_s}/".freeze
+            app_root = "#{::Rails.root}/"
             source_line = source_line.sub(app_root, "")
           end
 
