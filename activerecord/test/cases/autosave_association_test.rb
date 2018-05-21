@@ -520,18 +520,12 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   def test_adding_unsavable_association
     new_firm = Firm.new("name" => "A New Firm, Inc")
     client = new_firm.clients.new("name" => "Apple")
-    # Stub the save method of the client to simulate aborting the insert
-    class << client
-      def save(*)
-        false
-      end
-    end
+    client.throw_on_save = true
 
     assert_predicate client, :valid?
     assert_predicate new_firm, :valid?
     assert_not new_firm.save
     assert_not_predicate new_firm, :persisted?
-    assert_not Firm.exists?(new_firm.id)
     assert_not_predicate client, :persisted?
   end
 
