@@ -1,3 +1,18 @@
+*   Add `index_with` to Enumerable.
+
+    Allows creating a hash from an enumerable with the value from a passed block
+    or a default argument.
+
+        %i( title body ).index_with { |attr| post.public_send(attr) }
+        # => { title: "hey", body: "what's up?" }
+
+        %i( title body ).index_with(nil)
+        # => { title: nil, body: nil }
+
+    Closely linked with its brethen `index_by`.
+
+    *Kasper Timm Hansen*
+
 *   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
     any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 

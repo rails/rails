@@ -2039,6 +2039,21 @@ WARNING. Keys should normally be unique. If the block returns the same value for
 
 NOTE: Defined in `active_support/core_ext/enumerable.rb`.
 
+### `index_with`
+
+The method `index_with` generates a hash with the elements of an enumerable as keys. The value
+is either a passed default or returned in a block.
+
+```ruby
+%i( title body created_at ).index_with { |attr_name| public_send(attr_name) }
+# => { title: "hey", body: "what's up?", … }
+
+WEEKDAYS.index_with([ Interval.all_day ])
+# => { monday: [ 0, 1440 ], … }
+```
+
+NOTE: Defined in `active_support/core_ext/enumerable.rb`.
+
 ### `many?`
 
 The method `many?` is shorthand for `collection.size > 1`:
