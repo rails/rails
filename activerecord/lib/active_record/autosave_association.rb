@@ -400,9 +400,9 @@ module ActiveRecord
               if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
-                else
-                  association_saved = association.insert_record(record) unless reflection.nested?
-                  if reflection.options.fetch(:validate, true)
+                elsif !reflection.nested?
+                  association_saved = association.insert_record(record)
+                  if reflection.validate?
                     saved = association_saved
                   end
                 end
