@@ -295,6 +295,10 @@ module ActiveRecord
         assert_equal "ы", error.message
       end
     end
+
+    def test_supports_multi_insert_is_deprecated
+      assert_deprecated { @connection.supports_multi_insert? }
+    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase

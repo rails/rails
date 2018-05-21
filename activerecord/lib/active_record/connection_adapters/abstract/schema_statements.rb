@@ -1062,13 +1062,7 @@ module ActiveRecord
           if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          if supports_multi_insert?
-            execute insert_versions_sql(inserting)
-          else
-            inserting.each do |v|
-              execute insert_versions_sql(v)
-            end
-          end
+          execute insert_versions_sql(inserting)
         end
       end
 
