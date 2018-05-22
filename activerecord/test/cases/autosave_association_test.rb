@@ -517,6 +517,18 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_not_predicate new_firm, :persisted?
   end
 
+  def test_adding_unsavable_association
+    new_firm = Firm.new("name" => "A New Firm, Inc")
+    client = new_firm.clients.new("name" => "Apple")
+    client.throw_on_save = true
+
+    assert_predicate client, :valid?
+    assert_predicate new_firm, :valid?
+    assert_not new_firm.save
+    assert_not_predicate new_firm, :persisted?
+    assert_not_predicate client, :persisted?
+  end
+
   def test_invalid_adding_with_validate_false
     firm = Firm.first
     client = Client.new
