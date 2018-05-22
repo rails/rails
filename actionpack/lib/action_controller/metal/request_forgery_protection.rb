@@ -400,9 +400,14 @@ module ActionController #:nodoc:
       end
 
       def xor_byte_strings(s1, s2) # :doc:
-        s2_bytes = s2.bytes
-        s1.each_byte.with_index { |c1, i| s2_bytes[i] ^= c1 }
-        s2_bytes.pack("C*")
+        s2 = s2.dup
+        size = s1.bytesize
+        i = 0
+        while i < size
+          s2.setbyte(i, s1.getbyte(i) ^ s2.getbyte(i))
+          i += 1
+        end
+        s2
       end
 
       # The form's authenticity parameter. Override to provide your own.
