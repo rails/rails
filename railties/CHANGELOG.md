@@ -1,3 +1,9 @@
+*   Updates Thor to minimum release 0.20.0
+
+    Fixes #32955 and #32726
+
+    *James Griffin*
+
 *   Don't generate unused files in `app:update` task
 
      Skip the assets' initializer when sprockets isn't loaded.
