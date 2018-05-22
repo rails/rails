@@ -176,7 +176,9 @@ module ActiveSupport
         assert before != after, error
 
         unless to == UNTRACKED
-          error = "#{expression.inspect} didn't change to #{to}"
+          error = "#{expression.inspect} didn't change to as expected\n"
+          error = "#{error}Expected: #{to.inspect}\n"
+          error = "#{error}  Actual: #{after.inspect}"
           error = "#{message}.\n#{error}" if message
           assert to === after, error
         end
