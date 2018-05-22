@@ -1,25 +1,9 @@
 # frozen_string_literal: true
 
-module ActiveSupport
-  module IncludeWithRange #:nodoc:
-    # Extends the default Range#include? to support range comparisons.
-    #  (1..5).include?(1..5) # => true
-    #  (1..5).include?(2..3) # => true
-    #  (1..5).include?(2..6) # => false
-    #
-    # The native Range#include? behavior is untouched.
-    #  ('a'..'f').include?('c') # => true
-    #  (5..9).include?(11) # => false
-    def include?(value)
-      if value.is_a?(::Range)
-        # 1...10 includes 1..9 but it does not include 1..10.
-        operator = exclude_end? && !value.exclude_end? ? :< : :<=
-        super(value.first) && value.last.send(operator, last)
-      else
-        super
-      end
-    end
-  end
-end
+require "active_support/deprecation"
 
-Range.prepend(ActiveSupport::IncludeWithRange)
+ActiveSupport::Deprecation.warn "You have required `active_support/core_ext/range/include_range`. " \
+"This file will be removed in Rails 6.1. You should require `active_support/core_ext/range/compare_range` " \
+  "instead."
+
+require "active_support/core_ext/range/compare_range"
