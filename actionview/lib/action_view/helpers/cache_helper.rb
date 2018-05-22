@@ -201,7 +201,7 @@ module ActionView
       end
 
       # This helper returns the name of a cache key for a given fragment cache
-      # call. By supplying +skip_digest: true+ to cache, the digestion of cache
+      # call. By supplying <tt>skip_digest: true</tt> to cache, the digestion of cache
       # fragments can be manually bypassed. This is useful when cache fragments
       # cannot be manually expired unless you know the exact key which is the
       # case when using memcached.
