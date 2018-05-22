@@ -10,11 +10,6 @@ module ActionMailer
     config.action_mailer = ActiveSupport::OrderedOptions.new
     config.eager_load_namespaces << ActionMailer
 
-    config.before_eager_load do
-      require "mail"
-      Mail.eager_autoload!
-    end
-
     initializer "action_mailer.logger" do
       ActiveSupport.on_load(:action_mailer) { self.logger ||= Rails.logger }
     end
