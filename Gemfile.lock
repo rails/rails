@@ -91,7 +91,7 @@ PATH
       activesupport (= 6.0.0.alpha)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.18.1, < 2.0)
+      thor (>= 0.19.0, < 2.0)
 
 GEM
   remote: https://rubygems.org/
