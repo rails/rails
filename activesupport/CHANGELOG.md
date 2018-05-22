@@ -1,3 +1,14 @@
+*   Allow Range#=== and Range#cover? on Range
+
+    `Range#cover?` can now accept a range argument like `Range#include?` and
+    `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
+    into a new file, with these two methods.
+
+    *Requiring active_support/core_ext/range/include_range is now deprecated.*
+    *Use `require "active_support/core_ext/range/compare_range"` instead.*
+
+    *utilum*
+
 *   Add `index_with` to Enumerable.
 
     Allows creating a hash from an enumerable with the value from a passed block

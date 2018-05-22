@@ -2889,9 +2889,9 @@ As the example depicts, the `:db` format generates a `BETWEEN` SQL clause. That 
 
 NOTE: Defined in `active_support/core_ext/range/conversions.rb`.
 
-### `include?`
+### `===`, `include?`, and `cover?`
 
-The methods `Range#include?` and `Range#===` say whether some value falls between the ends of a given instance:
+The methods `Range#===`, `Range#include?`, and `Range#cover?` say whether some value falls between the ends of a given instance:
 
 ```ruby
 (2..3).include?(Math::E) # => true
@@ -2900,18 +2900,23 @@ The methods `Range#include?` and `Range#===` say whether some value falls betwee
 Active Support extends these methods so that the argument may be another range in turn. In that case we test whether the ends of the argument range belong to the receiver themselves:
 
 ```ruby
+(1..10) === (3..7)  # => true
+(1..10) === (0..7)  # => false
+(1..10) === (3..11) # => false
+(1...9) === (3..9)  # => false
+
 (1..10).include?(3..7)  # => true
 (1..10).include?(0..7)  # => false
 (1..10).include?(3..11) # => false
 (1...9).include?(3..9)  # => false
 
-(1..10) === (3..7)  # => true
-(1..10) === (0..7)  # => false
-(1..10) === (3..11) # => false
-(1...9) === (3..9)  # => false
+(1..10).cover?(3..7)  # => true
+(1..10).cover?(0..7)  # => false
+(1..10).cover?(3..11) # => false
+(1...9).cover?(3..9)  # => false
 ```
 
-NOTE: Defined in `active_support/core_ext/range/include_range.rb`.
+NOTE: Defined in `active_support/core_ext/range/compare_range.rb`.
 
 ### `overlaps?`
 
