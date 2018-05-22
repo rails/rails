@@ -16,6 +16,11 @@ end
 class SillyUniqueReply < UniqueReply
 end
 
+class ValidateUniqueContentReply < Reply
+  belongs_to :topic, foreign_key: "parent_id"
+  validates :content, uniqueness: true
+end
+
 class WrongReply < Reply
   validate :errors_on_empty_content
   validate :title_is_wrong_create, on: :create
