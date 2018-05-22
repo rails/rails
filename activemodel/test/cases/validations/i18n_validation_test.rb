@@ -12,6 +12,9 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.clear
     I18n.backend = I18n::Backend::Simple.new
     I18n.backend.store_translations("en", errors: { messages: { custom: nil } })
+
+    @original_i18n_full_message = ActiveModel::Errors.i18n_full_message
+    ActiveModel::Errors.i18n_full_message = true
   end
 
   def teardown
@@ -19,6 +22,7 @@ class I18nValidationTest < ActiveModel::TestCase
     I18n.load_path.replace @old_load_path
     I18n.backend = @old_backend
     I18n.backend.reload!
+    ActiveModel::Errors.i18n_full_message = @original_i18n_full_message
   end
 
   def test_full_message_encoding
@@ -42,7 +46,20 @@ class I18nValidationTest < ActiveModel::TestCase
     assert_equal ["Field Name empty"], @person.errors.full_messages
   end
 
+  def test_errors_full_messages_doesnt_use_attribute_format_without_config
+    ActiveModel::Errors.i18n_full_message = false
+
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
+
+    person = Person.new
+    assert_equal "Name cannot be blank", person.errors.full_message(:name, "cannot be blank")
+    assert_equal "Name test cannot be blank", person.errors.full_message(:name_test, "cannot be blank")
+  end
+
   def test_errors_full_messages_uses_attribute_format
+    ActiveModel::Errors.i18n_full_message = true
+
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { attributes: { name: { format: "%{message}" } } } } } })
 
@@ -52,6 +69,8 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_model_format
+    ActiveModel::Errors.i18n_full_message = true
+
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { person: { format: "%{message}" } } } })
 
@@ -61,6 +80,8 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_attributes_format
+    ActiveModel::Errors.i18n_full_message = true
+
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
 
@@ -70,6 +91,8 @@ class I18nValidationTest < ActiveModel::TestCase
   end
 
   def test_errors_full_messages_uses_deeply_nested_model_model_format
+    ActiveModel::Errors.i18n_full_message = true
+
     I18n.backend.store_translations("en", activemodel: {
       errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
 

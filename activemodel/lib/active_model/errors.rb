@@ -62,6 +62,11 @@ module ActiveModel
     CALLBACKS_OPTIONS = [:if, :unless, :on, :allow_nil, :allow_blank, :strict]
     MESSAGE_OPTIONS = [:message]
 
+    class << self
+      attr_accessor :i18n_full_message # :nodoc:
+    end
+    self.i18n_full_message = false
+
     attr_reader :messages, :details
 
     # Pass in the instance of the object that is using the errors object.
@@ -375,7 +380,7 @@ module ActiveModel
     def full_message(attribute, message)
       return message if attribute == :base
 
-      if @base.class.respond_to?(:i18n_scope)
+      if self.class.i18n_full_message && @base.class.respond_to?(:i18n_scope)
         parts = attribute.to_s.split(".")
         attribute_name = parts.pop
         namespace = parts.join("/") unless parts.empty?
