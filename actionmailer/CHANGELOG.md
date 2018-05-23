@@ -1,3 +1,7 @@
+*   Ensure mail gem is eager autoloaded when eager load is true to prevent thread deadlocks.
+
+    *Samuel Cochran*
+
 *   Perform email jobs in `assert_emails`.
 
     *Gannon McGibbon*
