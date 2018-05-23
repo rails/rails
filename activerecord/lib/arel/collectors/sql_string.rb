@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "arel/collectors/plain_string"
-
 module Arel # :nodoc: all
   module Collectors
     class SQLString < PlainString
