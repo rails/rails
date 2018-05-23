@@ -54,13 +54,13 @@ module ActionCable::StreamTests
     test "streaming start and stop" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        connection.pubsub.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc))
         channel = ChatChannel.new connection, "{id: 1}", id: 1
         channel.subscribe_to_channel
 
         wait_for_async
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
+        connection.pubsub.expects(:unsubscribe)
         channel.unsubscribe_from_channel
       end
     end
@@ -68,13 +68,14 @@ module ActionCable::StreamTests
     test "stream from non-string channel" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        connection.pubsub.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc))
+
         channel = SymbolChannel.new connection, ""
         channel.subscribe_to_channel
 
         wait_for_async
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
+        connection.pubsub.expects(:unsubscribe)
         channel.unsubscribe_from_channel
       end
     end
@@ -82,7 +83,7 @@ module ActionCable::StreamTests
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
+        connection.pubsub.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc))
 
         channel = ChatChannel.new connection, ""
         channel.subscribe_to_channel
