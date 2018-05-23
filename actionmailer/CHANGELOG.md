@@ -1,3 +1,8 @@
+*   Ensure mail gem is eager autoloaded when eager load is true to prevent thread deadlocks.
+
+    *Samuel Cochran*
+
+
 ## Rails 5.2.0 (April 09, 2018) ##
 
 *   Bring back proc with arity of 1 in `ActionMailer::Base.default` proc

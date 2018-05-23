@@ -52,6 +52,13 @@ module ActionMailer
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :DeliveryJob
+
+  def self.eager_load!
+    super
+
+    require "mail"
+    Mail.eager_autoload!
+  end
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"
