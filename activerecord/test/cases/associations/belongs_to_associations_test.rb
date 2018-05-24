@@ -1222,6 +1222,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  test "associations on destroyed models can be preloaded" do
+    post = posts(:welcome)
+    SelfDestructingComment.create!(post_id: post.id, body: "body")
+
+    comment = SelfDestructingComment.preload(:post).first
+    assert_equal post, comment.post
+  end
+end
+
+class SelfDestructingComment < ActiveRecord::Base
+  self.table_name = :comments
+  self.inheritance_column = nil
+
+  belongs_to :post
+
+  after_find { destroy! }
 end
 
 class BelongsToWithForeignKeyTest < ActiveRecord::TestCase
