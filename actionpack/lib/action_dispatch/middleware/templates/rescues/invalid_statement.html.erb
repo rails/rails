@@ -10,7 +10,7 @@
 <div id="container">
   <h2>
     <%= h @exception.message %>
-    <% if @exception.message.match? %r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}} %>
+    <% if %r{#{ActiveStorage::Blob.table_name}|#{ActiveStorage::Attachment.table_name}}.match?(@exception.message) %>
       <br />To resolve this issue run: bin/rails active_storage:install
     <% end %>
   </h2>
