@@ -10,6 +10,8 @@ require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/string/inflections"
 
 module ActiveSupport
+  autoload :Notifications, "active_support/notifications"
+
   # See ActiveSupport::Cache::Store for documentation.
   module Cache
     autoload :FileStore,        "active_support/cache/file_store"
