@@ -1,3 +1,17 @@
+*   Add the `AR::Relation.where.exists` and `.not_exists` methods.
+    The methods work as a more readable shortcut to the exists SQL where condition build manually.
+    Accepts the AR::Relation or as String argument.
+
+    Example:
+
+        User.where.exists(Project.where("projects.owner_id = users.id"))
+        # SELECT * FROM users WHERE EXISTS (SELECT * FROM projects WHERE users.id = projects.owner_id)
+
+        User.where.not_exists("SELECT 1 FROM projects p WHERE users.id = p.owner_id")
+        # SELECT * FROM users WHERE NOT EXISTS (SELECT 1 FROM projects p WHERE users.id = p.owner_id)
+    
+    *Bogdan Gusiev*
+
 *   Added `index` option for `change_table` migration helpers.
     With this change you can create indexes while adding new
     columns into the existing tables.

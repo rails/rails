@@ -53,6 +53,47 @@ module ActiveRecord
         @scope.where_clause += where_clause.invert
         @scope
       end
+
+      # Returns a new relation expressing WHERE EXISTS condition according to
+      # the subquery in the argument.
+      #
+      # #exists accepts subquery as a string or relation.
+      #
+      #    User.where.exists("SELECT * FROM projects p WHERE users.id = p.owner_id")
+      #    # SELECT * FROM users WHERE EXISTS (SELECT * FROM projects p WHERE users.id = p.owner_id)
+      #
+      #    User.where.exists(Project.where("projects.owner_id = users.id"))
+      #    # SELECT * FROM users WHERE EXISTS (SELECT * FROM projects WHERE users.id = projects.owner_id)
+      def exists(subquery)
+        @scope.where(exists_condition(subquery))
+      end
+
+      # Returns a new relation expressing WHERE EXISTS condition according to
+      # the subquery in the argument.
+      #
+      # #not_exists accepts subquery as a string or relation.
+      #
+      #    User.where.not_exists("SELECT * FROM projects p WHERE users.id = p.owner_id")
+      #    # SELECT * FROM users WHERE NOT EXISTS (SELECT * FROM projects p WHERE users.id = p.owner_id)
+      #
+      #    User.where.not_exists(Project.where("projects.owner_id = users.id"))
+      #    # SELECT * FROM users WHERE NOT EXISTS (SELECT * FROM projects WHERE users.id = projects.owner_id)
+      def not_exists(subquery)
+        self.not(exists_condition(subquery))
+      end
+
+      private
+
+        def exists_condition(subquery)
+          case subquery
+          when Relation
+            subquery.select(1).arel.exists
+          when String
+            "exists (#{subquery})"
+          else
+            raise ArgumentError, "Called exists with invalid argument #{subquery.inspect}"
+          end
+        end
     end
 
     FROZEN_EMPTY_ARRAY = [].freeze

@@ -103,5 +103,33 @@ module ActiveRecord
 
       assert_equal Post.where(comments_count: 3..5), relation
     end
+
+    def test_exists_with_relation
+      relation = Post.where.exists(Comment.where("posts.id = comments.post_id"))
+      post = Post.first
+      Comment.create!(post: post, body: "Nice!")
+      assert_equal [post], relation
+    end
+
+    def test_exists_with_string
+      relation = Post.where.exists("select * from comments c where posts.id = c.post_id")
+      post = Post.first
+      Comment.create!(post: post, body: "Nice!")
+      assert_equal [post], relation
+    end
+
+    def test_not_exists_with_relation
+      relation = Post.where.not_exists(Comment.where("posts.id = comments.post_id"))
+      post = Post.first
+      Comment.create!(post: post, body: "Nice!")
+      assert_equal Post.offset(1).to_a, relation
+    end
+
+    def test_not_exists_with_string
+      relation = Post.where.not_exists("select * from comments c where posts.id = c.post_id")
+      post = Post.first
+      Comment.create!(post: post, body: "Nice!")
+      assert_equal Post.offset(1).to_a, relation
+    end
   end
 end
