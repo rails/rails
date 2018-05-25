@@ -313,6 +313,9 @@ The engine that this guide covers provides submitting articles and commenting
 functionality and follows a similar thread to the [Getting Started
 Guide](getting_started.html), with some new twists.
 
+NOTE: For this section, make sure to run the commands in the root of the
+`blorgh` engine's directory.
+
 ### Generating an Article Resource
 
 The first thing to generate for a blog engine is the `Article` model and related
