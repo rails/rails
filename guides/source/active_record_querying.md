@@ -1423,19 +1423,19 @@ Just like `where` clauses scopes are merged using `AND` conditions.
 ```ruby
 class User < ApplicationRecord
   scope :active, -> { where state: 'active' }
-  scope :inactive, -> { where state: 'inactive' }
+  scope :female, -> { where gender: 'female' }
 end
 
-User.active.inactive
-# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'inactive'
+User.active.female
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."gender" = 'female'
 ```
 
 We can mix and match `scope` and `where` conditions and the final sql
 will have all conditions joined with `AND`.
 
 ```ruby
-User.active.where(state: 'finished')
-# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."state" = 'finished'
+User.active.where(gender: female)
+# SELECT "users".* FROM "users" WHERE "users"."state" = 'active' AND "users"."gender" = 'female'
 ```
 
 If we do want the last `where` clause to win then `Relation#merge` can
@@ -1451,19 +1451,19 @@ One important caveat is that `default_scope` will be prepended in
 
 ```ruby
 class User < ApplicationRecord
-  default_scope { where state: 'pending' }
+  default_scope { where gender: 'female' }
   scope :active, -> { where state: 'active' }
   scope :inactive, -> { where state: 'inactive' }
 end
 
 User.all
-# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending'
+# SELECT "users".* FROM "users" WHERE "users"."gender" = 'female'
 
 User.active
-# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'active'
+# SELECT "users".* FROM "users" WHERE "users"."gender" = 'female' AND "users"."state" = 'active'
 
 User.where(state: 'inactive')
-# SELECT "users".* FROM "users" WHERE "users"."state" = 'pending' AND "users"."state" = 'inactive'
+# SELECT "users".* FROM "users" WHERE "users"."gender" = 'female' AND "users"."state" = 'inactive'
 ```
 
 As you can see above the `default_scope` is being merged in both
