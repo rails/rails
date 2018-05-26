@@ -1071,9 +1071,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     comment = comments(:greetings)
 
-    assert_difference lambda { post.reload.tags_count }, -1 do
+    assert_equal post.id, comment.id
+
+    assert_difference "post.reload.tags_count", -1 do
       assert_difference "comment.reload.tags_count", +1 do
         tagging.taggable = comment
+        tagging.save!
+      end
+    end
+
+    assert_difference "comment.reload.tags_count", -1 do
+      assert_difference "post.reload.tags_count", +1 do
+        tagging.taggable_type = post.class.polymorphic_name
+        tagging.taggable_id = post.id
+        tagging.save!
       end
     end
   end

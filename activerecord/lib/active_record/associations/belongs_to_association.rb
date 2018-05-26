@@ -57,6 +57,10 @@ module ActiveRecord
         update_counters(1)
       end
 
+      def target_changed?
+        owner.saved_change_to_attribute?(reflection.foreign_key)
+      end
+
       private
 
         def update_counters(by)

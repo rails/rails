@@ -36,7 +36,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
           if (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
-          elsif saved_change_to_attribute?(foreign_key) && !new_record?
+          elsif association(reflection.name).target_changed?
             if reflection.polymorphic?
               model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
