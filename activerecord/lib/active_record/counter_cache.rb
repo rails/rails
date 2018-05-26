@@ -111,7 +111,13 @@ module ActiveRecord
           updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
         end
 
-        unscoped.where(primary_key => id).update_all updates.join(", ")
+        if id.is_a?(Relation) && self == id.klass
+          relation = id
+        else
+          relation = unscoped.where!(primary_key => id)
+        end
+
+        relation.update_all updates.join(", ")
       end
 
       # Increment a numeric field by one, via a direct SQL update.
