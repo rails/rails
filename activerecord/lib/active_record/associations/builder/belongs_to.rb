@@ -63,12 +63,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
         private
           def counter_cache_target(reflection, model, foreign_key)
             primary_key = reflection.association_primary_key(model)
-
-            if primary_key == model.primary_key
-              foreign_key
-            else
-              model.unscoped.where!(primary_key => foreign_key)
-            end
+            model.unscoped.where!(primary_key => foreign_key)
           end
       end
     end
