@@ -87,12 +87,15 @@ module ActiveRecord
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.id != owner._read_attribute(reflection.foreign_key)
+          record._read_attribute(primary_key(record)) != owner._read_attribute(reflection.foreign_key)
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record ?
-            record._read_attribute(reflection.association_primary_key(record.class)) : nil
+          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record)) : nil
+        end
+
+        def primary_key(record)
+          reflection.association_primary_key(record.class)
         end
 
         def foreign_key_present?

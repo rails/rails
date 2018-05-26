@@ -471,6 +471,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
 
+    assert_no_queries do
+      reply.topic_with_primary_key = debate
+    end
+
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
     reply.topic_with_primary_key = debate2
 
     assert_equal 0, debate.reload.replies_count
