@@ -49,14 +49,27 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key     = attribute_in_database foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
+              foreign_key = counter_cache_target(reflection, model, foreign_key)
               model.increment_counter(cache_column, foreign_key)
             end
 
             if foreign_key_was && model_was.respond_to?(:decrement_counter)
+              foreign_key_was = counter_cache_target(reflection, model_was, foreign_key_was)
               model_was.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
+
+        private
+          def counter_cache_target(reflection, model, foreign_key)
+            primary_key = reflection.association_primary_key(model)
+
+            if primary_key == model.primary_key
+              foreign_key
+            else
+              model.unscoped.where!(primary_key => foreign_key)
+            end
+          end
       end
     end
 

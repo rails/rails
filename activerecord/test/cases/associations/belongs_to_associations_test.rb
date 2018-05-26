@@ -466,7 +466,13 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_with_primary_key_counter
     debate  = Topic.create("title" => "debate")
     debate2 = Topic.create("title" => "debate2")
-    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate")
+    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate2")
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
+
+    reply.parent_title = "debate"
+    reply.save!
 
     assert_equal 1, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
