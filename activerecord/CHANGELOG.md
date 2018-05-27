@@ -1,3 +1,9 @@
+*   Fix that association's after_touch is not called with counter cache.
+
+    Fixes #31559.
+
+    *Ryuta Kamizono*
+
 *   `becomes` should clear the mutation tracker which is created in `after_initialize`.
 
     Fixes #32867.

@@ -557,6 +557,23 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal 1, Topic.find(topic.id)[:replies_count]
   end
 
+  def test_belongs_to_counter_after_touch
+    topic = Topic.create!(title: "topic")
+
+    assert_equal 0, topic.replies_count
+    assert_equal 0, topic.after_touch_called
+
+    reply = Reply.create!(title: "blah!", content: "world around!", topic_with_primary_key: topic)
+
+    assert_equal 1, topic.replies_count
+    assert_equal 1, topic.after_touch_called
+
+    reply.destroy!
+
+    assert_equal 0, topic.replies_count
+    assert_equal 2, topic.after_touch_called
+  end
+
   def test_belongs_to_touch_with_reassigning
     debate  = Topic.create!(title: "debate")
     debate2 = Topic.create!(title: "debate2")
