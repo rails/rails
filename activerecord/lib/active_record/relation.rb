@@ -369,6 +369,24 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
+    def update_counters(counters) # :nodoc:
+      touch = counters.delete(:touch)
+
+      updates = counters.map do |counter_name, value|
+        operator = value < 0 ? "-" : "+"
+        quoted_column = connection.quote_column_name(counter_name)
+        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+      end
+
+      if touch
+        names = touch if touch != true
+        touch_updates = klass.touch_attributes_with_time(*names)
+        updates << klass.sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
+      end
+
+      update_all updates.join(", ")
+    end
+
     # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
     # set to the current time or the time specified.
     # This method can be passed attribute names and an optional time argument.
