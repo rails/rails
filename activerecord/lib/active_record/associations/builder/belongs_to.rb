@@ -92,7 +92,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         else
           klass = association.klass
         end
-        old_record = klass.find_by(klass.primary_key => old_foreign_id)
+        primary_key = reflection.association_primary_key(klass)
+        old_record = klass.find_by(primary_key => old_foreign_id)
 
         if old_record
           if touch != true
