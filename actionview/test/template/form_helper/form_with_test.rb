@@ -2347,13 +2347,4 @@ class FormWithActsLikeFormForTest < FormWithTest
     ensure
       I18n.locale = old_locale
     end
-
-    def with_default_enforce_utf8(value)
-      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
-      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
-
-      yield
-    ensure
-      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
-    end
 end
