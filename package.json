@@ -1,12 +1,12 @@
 {
-  "name": "activetext",
+  "name": "actiontext",
   "version": "0.1.0",
   "description": "Edit and display rich text in Rails applications",
-  "main": "app/javascript/activetext/index.js",
+  "main": "app/javascript/actiontext/index.js",
   "files": [
-    "app/javascript/activetext/*.js"
+    "app/javascript/actiontext/*.js"
   ],
-  "repository": "https://github.com/basecamp/activetext",
+  "repository": "https://github.com/basecamp/actiontext",
   "author": "Basecamp, LLC",
   "contributors": [
     "Javan Makhmali <javan@javan.us>",
