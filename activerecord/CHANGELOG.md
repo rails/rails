@@ -1,3 +1,9 @@
+*   Fix parent record should not get saved with duplicate children records.
+
+    Fixes #32940.
+
+    *Santosh Wadghule*
+
 *   Fix that association's after_touch is not called with counter cache.
 
     Fixes #31559.
