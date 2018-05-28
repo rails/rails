@@ -10,6 +10,7 @@ module ActiveStorage
     def download_blob_to_tempfile
       open_tempfile do |file|
         download_blob_to file
+        verify_integrity_of file
         yield file
       end
     end
@@ -32,6 +33,12 @@ module ActiveStorage
         blob.download { |chunk| file.write(chunk) }
         file.flush
         file.rewind
+      end
+
+      def verify_integrity_of(file)
+        unless Digest::MD5.file(file).base64digest == checksum
+          raise ActiveStorage::IntegrityError
+        end
       end
 
       def tempfile_extension_with_delimiter

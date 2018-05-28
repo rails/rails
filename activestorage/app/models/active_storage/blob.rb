@@ -167,6 +167,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
   # Downloads the blob to a tempfile on disk. Yields the tempfile.
+  #
+  # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
   def open(tempdir: nil, &block)
     ActiveStorage::Downloader.new(self, tempdir: tempdir).download_blob_to_tempfile(&block)
   end

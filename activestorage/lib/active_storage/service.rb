@@ -3,8 +3,6 @@
 require "active_storage/log_subscriber"
 
 module ActiveStorage
-  class IntegrityError < StandardError; end
-
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:

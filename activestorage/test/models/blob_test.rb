@@ -84,12 +84,22 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "a" * 64.kilobytes, chunks.second
   end
 
-  test "open" do
+  test "open with integrity" do
     create_file_blob(filename: "racecar.jpg").open do |file|
       assert file.binmode?
       assert_equal 0, file.pos
       assert_match(/\.jpg\z/, file.path)
       assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    end
+  end
+
+  test "open without integrity" do
+    create_blob(data: "Hello, world!").tap do |blob|
+      blob.update! checksum: Digest::MD5.base64digest("Goodbye, world!")
+
+      assert_raises ActiveStorage::IntegrityError do
+        blob.open { |file| flunk "Expected integrity check to fail" }
+      end
     end
   end
 
