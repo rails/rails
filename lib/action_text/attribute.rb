@@ -17,19 +17,9 @@ module ActionText
         has_one :"rich_text_#{name}", -> { where(name: name) }, class_name: "ActionText::RichText", as: :record, inverse_of: :record, dependent: false
 
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
+
+        after_save { public_send(name).save if public_send(name).changed? }
       end
-
-
-      # def has_rich_text(attribute_name)
-      #   serialize(attribute_name, ActionText::Content)
-      # 
-      #   has_many_attached "#{attribute_name}_attachments"
-      # 
-      #   after_save do
-      #     blobs = public_send(attribute_name).attachments.map(&:attachable)
-      #     public_send("#{attribute_name}_attachments_blobs=", blobs)
-      #   end
-      # end
     end
   end
 end
