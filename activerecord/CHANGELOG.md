@@ -1,3 +1,7 @@
+*   Normalize the date component for `time` columns to the epoch date of 2000-01-01.
+
+    *Sean Prashad*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*
