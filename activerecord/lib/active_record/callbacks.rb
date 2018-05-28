@@ -128,7 +128,7 @@ module ActiveRecord
   #       end
   #   end
   #
-  # So you specify the object you want messaged on a given callback. When that callback is triggered, the object has
+  # So you specify the object you want to be messaged on a given callback. When that callback is triggered, the object has
   # a method by the name of the callback messaged. You can make these callbacks more flexible by passing in other
   # initialization data such as the name of the attribute to work with:
   #
