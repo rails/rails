@@ -14,7 +14,6 @@ require "models/computer"
 require "models/project"
 require "models/default"
 require "models/auto_id"
-require "models/boolean"
 require "models/column_name"
 require "models/subscriber"
 require "models/comment"
@@ -714,48 +713,6 @@ class BasicsTest < ActiveRecord::TestCase
 
     assert_instance_of Hash, category.attributes
     assert_equal expected_attributes, category.attributes
-  end
-
-  def test_boolean
-    b_nil = Boolean.create("value" => nil)
-    nil_id = b_nil.id
-    b_false = Boolean.create("value" => false)
-    false_id = b_false.id
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    b_nil = Boolean.find(nil_id)
-    assert_nil b_nil.value
-    b_false = Boolean.find(false_id)
-    assert_not_predicate b_false, :value?
-    b_true = Boolean.find(true_id)
-    assert_predicate b_true, :value?
-  end
-
-  def test_boolean_without_questionmark
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    subclass   = Class.new(Boolean).find true_id
-    superclass = Boolean.find true_id
-
-    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
-  end
-
-  def test_boolean_cast_from_string
-    b_blank = Boolean.create("value" => "")
-    blank_id = b_blank.id
-    b_false = Boolean.create("value" => "0")
-    false_id = b_false.id
-    b_true = Boolean.create("value" => "1")
-    true_id = b_true.id
-
-    b_blank = Boolean.find(blank_id)
-    assert_nil b_blank.value
-    b_false = Boolean.find(false_id)
-    assert_not_predicate b_false, :value?
-    b_true = Boolean.find(true_id)
-    assert_predicate b_true, :value?
   end
 
   def test_new_record_returns_boolean
