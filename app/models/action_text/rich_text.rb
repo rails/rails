@@ -3,6 +3,7 @@ class ActionText::RichText < ActiveRecord::Base
 
   serialize :body, ActionText::Content
   
+  belongs_to :record, polymorphic: true, touch: true
   has_many_attached :embeds
 
   after_save do
