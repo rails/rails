@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    activetext (0.1.0)
+    actiontext (0.1.0)
       nokogiri
       rails (>= 5.2.0.rc1)
 
@@ -63,7 +63,7 @@ GEM
       nokogiri (>= 1.5.9)
     mail (2.7.0)
       mini_mime (>= 0.1.1)
-    marcel (0.3.1)
+    marcel (0.3.2)
       mimemagic (~> 0.3.2)
     method_source (0.9.0)
     mimemagic (0.3.2)
@@ -71,7 +71,7 @@ GEM
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
-    nio4r (2.2.0)
+    nio4r (2.3.1)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     rack (2.0.4)
@@ -128,11 +128,11 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  activetext!
+  actiontext!
   bundler (~> 1.15)
   mini_magick
   sqlite3
   webpacker (~> 3.2.2)
 
 BUNDLED WITH
-   1.16.1
+   1.16.2
