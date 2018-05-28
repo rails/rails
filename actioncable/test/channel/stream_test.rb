@@ -180,7 +180,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = open_connection
         expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
-        assert_called(connection.websocket, :transmit, [expected.to_json]) do
+        assert_called_with(connection.websocket, :transmit, [expected.to_json]) do
           receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
           wait_for_async
         end
