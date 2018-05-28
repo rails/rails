@@ -6,7 +6,7 @@ module ActionText
       def has_rich_text(name)
         class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            rich_text_#{name}
+            self.rich_text_#{name} ||= ActionText::RichText.new(name: "#{name}", record: self)
           end
 
           def #{name}=(body)
