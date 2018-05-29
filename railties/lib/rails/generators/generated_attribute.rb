@@ -170,7 +170,6 @@ module Rails
           if reference? && !polymorphic?
             options[:foreign_key] = true
           end
-
         end
       end
     end
