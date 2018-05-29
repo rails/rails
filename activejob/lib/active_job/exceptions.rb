@@ -30,8 +30,8 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    retry_on(YetAnotherCustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
@@ -67,8 +67,8 @@ module ActiveJob
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
-      #    discard_on(CustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    discard_on(CustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #
       #    def perform(record)
