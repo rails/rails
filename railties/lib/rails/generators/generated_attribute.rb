@@ -171,10 +171,6 @@ module Rails
             options[:foreign_key] = true
           end
 
-
-          if reference? && defined?(Rails) && Rails.application && Rails.application.config && Rails.application.config.generators && Rails.application.config.generators.active_record && Rails.application.config.generators.active_record.has_key?(:primary_key_type)
-            options[:type] = Rails.application.config.generators.active_record.fetch(:primary_key_type)
-          end
         end
       end
     end

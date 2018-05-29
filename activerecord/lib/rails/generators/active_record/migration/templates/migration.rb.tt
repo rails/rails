@@ -3,7 +3,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
   def change
 <% attributes.each do |attribute| -%>
   <%- if attribute.reference? -%>
-    add_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %>
+    add_reference :<%= table_name %>, :<%= attribute.name %><%= attribute.inject_options %><%=   ",type: :#{primary_key_type}" %>
   <%- elsif attribute.token? -%>
     add_column :<%= table_name %>, :<%= attribute.name %>, :string<%= attribute.inject_options %>
     add_index :<%= table_name %>, :<%= attribute.index_name %><%= attribute.inject_index_options %>, unique: true

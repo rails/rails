@@ -6,6 +6,8 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
       t.string :password_digest<%= attribute.inject_options %>
 <% elsif attribute.token? -%>
       t.string :<%= attribute.name %><%= attribute.inject_options %>
+<% elsif attribute.reference? -%>
+      t.reference :<%= attribute.name %><%= attribute.inject_options %>, <%= primary_key_type.nil? ? "" :  ",type: :#{primary_key_type}" %>
 <% else -%>
       t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
 <% end -%>
