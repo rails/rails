@@ -14,7 +14,7 @@ module ActionText
           end
         CODE
 
-        has_one :"rich_text_#{name}", -> { where(name: name) }, class_name: "ActionText::RichText", as: :record, inverse_of: :record, dependent: false
+        has_one :"rich_text_#{name}", -> { where(name: name) }, class_name: "ActionText::RichText", as: :record, inverse_of: :record, dependent: :destroy
 
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
 
