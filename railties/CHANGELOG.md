@@ -13,7 +13,6 @@
 
     The references line in the migration would not have `type: :uuid`.
     This change causes the type to be applied appropriately.
-    GH#23422
 
     *Dermot Haughey*
 
