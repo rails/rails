@@ -61,7 +61,7 @@ module ActionView
 
           content = if block_given?
             @template_object.capture(builder, &block)
-          elsif @content.present?
+          elsif !@content.nil?
             @content.to_s
           else
             render_component(builder)
