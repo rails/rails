@@ -14,7 +14,7 @@ module ActiveRecord
       relation = Relation.new(FakeKlass, table: :b)
       assert_equal FakeKlass, relation.klass
       assert_equal :b, relation.table
-      assert !relation.loaded, "relation is not loaded"
+      assert_not relation.loaded, "relation is not loaded"
     end
 
     def test_responds_to_model_and_returns_klass
@@ -313,6 +313,14 @@ module ActiveRecord
       UpdateAllTestModel.update_all(body: "value from user", type: nil) # No STI
 
       assert_equal "type cast from database", UpdateAllTestModel.first.body
+    end
+
+    def test_skip_preloading_after_arel_has_been_generated
+      assert_nothing_raised do
+        relation = Comment.all
+        relation.arel
+        relation.skip_preloading!
+      end
     end
 
     private

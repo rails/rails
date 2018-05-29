@@ -1,9 +1,17 @@
 # frozen_string_literal: true
 
 require "tmpdir"
+require "active_support/core_ext/string/filters"
 
 module ActiveStorage
   module Downloading
+    def self.included(klass)
+      ActiveSupport::Deprecation.warn <<~MESSAGE.squish, caller_locations(2)
+        ActiveStorage::Downloading is deprecated and will be removed in Active Storage 6.1.
+        Use ActiveStorage::Blob#open instead.
+      MESSAGE
+    end
+
     private
       # Opens a new tempfile in #tempdir and copies blob data into it. Yields the tempfile.
       def download_blob_to_tempfile #:doc:
@@ -27,6 +35,7 @@ module ActiveStorage
       def download_blob_to(file) #:doc:
         file.binmode
         blob.download { |chunk| file.write(chunk) }
+        file.flush
         file.rewind
       end
 

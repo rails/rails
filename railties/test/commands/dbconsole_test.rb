@@ -123,31 +123,31 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_mysql
     start(adapter: "mysql2", database: "db")
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_full
     start(adapter: "mysql2", database: "db", host: "locahost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "--host=locahost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
     start({ adapter: "mysql2", database: "db", username: "user", password: "qwerty" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "--user=user", "--password=qwerty", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql
     start(adapter: "postgresql", database: "db")
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql_full
     start(adapter: "postgresql", database: "db", username: "user", password: "q1w2e3", host: "host", port: 5432)
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
     assert_equal "host", ENV["PGHOST"]
@@ -157,7 +157,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_postgresql_include_password
     start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
     assert_equal "q1w2e3", ENV["PGPASSWORD"]
@@ -165,13 +165,13 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_sqlite3
     start(adapter: "sqlite3", database: "db.sqlite3")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_mode
     start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--mode", "html"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", "-html", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
@@ -182,27 +182,27 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_sqlite3_db_absolute_path
     start(adapter: "sqlite3", database: "/tmp/db.sqlite3")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", "/tmp/db.sqlite3"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_db_without_defined_rails_root
     Rails.stub(:respond_to?, false) do
       start(adapter: "sqlite3", database: "config/db.sqlite3")
-      assert !aborted
+      assert_not aborted
       assert_equal ["sqlite3", Rails.root.join("../config/db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
     end
   end
 
   def test_oracle
     start(adapter: "oracle", database: "db", username: "user", password: "secret")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlplus", "user@db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_oracle_include_password
     start({ adapter: "oracle", database: "db", username: "user", password: "secret" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
   end
 

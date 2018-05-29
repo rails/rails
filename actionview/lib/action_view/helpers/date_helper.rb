@@ -681,9 +681,8 @@ module ActionView
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, format: format)
-        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
-        content_tag("time".freeze, content, options.reverse_merge(datetime: datetime), &block)
+        content_tag("time".freeze, content, options.reverse_merge(datetime: date_or_time.iso8601), &block)
       end
 
       private

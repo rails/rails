@@ -68,7 +68,7 @@ module ActiveSupport
 
       def test_new_rejects_strings
         @cache.store ClassCacheTest.name
-        assert !@cache.key?(ClassCacheTest.name)
+        assert_not @cache.key?(ClassCacheTest.name)
       end
 
       def test_store_returns_self

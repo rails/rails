@@ -50,4 +50,7 @@ module ActionController
 
   class UnknownFormat < ActionControllerError #:nodoc:
   end
+
+  class MissingExactTemplate < UnknownFormat #:nodoc:
+  end
 end

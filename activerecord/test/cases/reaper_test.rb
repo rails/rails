@@ -36,15 +36,15 @@ module ActiveRecord
       # A reaper with nil time should never reap connections
       def test_nil_time
         fp = FakePool.new
-        assert !fp.reaped
+        assert_not fp.reaped
         reaper = ConnectionPool::Reaper.new(fp, nil)
         reaper.run
-        assert !fp.reaped
+        assert_not fp.reaped
       end
 
       def test_some_time
         fp = FakePool.new
-        assert !fp.reaped
+        assert_not fp.reaped
 
         reaper = ConnectionPool::Reaper.new(fp, 0.0001)
         reaper.run

@@ -63,8 +63,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     t.author_name = ""
     assert t.attribute_present?("title")
     assert t.attribute_present?("written_on")
-    assert !t.attribute_present?("content")
-    assert !t.attribute_present?("author_name")
+    assert_not t.attribute_present?("content")
+    assert_not t.attribute_present?("author_name")
   end
 
   test "attribute_present with booleans" do
@@ -77,7 +77,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert b2.attribute_present?(:value)
 
     b3 = Boolean.new
-    assert !b3.attribute_present?(:value)
+    assert_not b3.attribute_present?(:value)
 
     b4 = Boolean.new
     b4.value = false
@@ -354,9 +354,9 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "read_attribute when false" do
     topic = topics(:first)
     topic.approved = false
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
   end
 
   test "read_attribute when true" do
@@ -370,10 +370,10 @@ class AttributeMethodsTest < ActiveRecord::TestCase
   test "boolean attributes writing and reading" do
     topic = Topic.new
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "false"
-    assert !topic.approved?, "approved should be false"
+    assert_not topic.approved?, "approved should be false"
 
     topic.approved = "true"
     assert topic.approved?, "approved should be true"
@@ -736,6 +736,16 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     end
   end
 
+  test "setting invalid string to a zone-aware time attribute" do
+    in_time_zone "Pacific Time (US & Canada)" do
+      record = @target.new
+      time_string = "ABC"
+
+      record.bonus_time = time_string
+      assert_nil record.bonus_time
+    end
+  end
+
   test "removing time zone-aware types" do
     with_time_zone_aware_types(:datetime) do
       in_time_zone "Pacific Time (US & Canada)" do
@@ -827,7 +837,7 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       self.table_name = "computers"
     end
 
-    assert !klass.instance_method_already_implemented?(:system)
+    assert_not klass.instance_method_already_implemented?(:system)
     computer = klass.new
     assert_nil computer.system
   end
@@ -841,8 +851,8 @@ class AttributeMethodsTest < ActiveRecord::TestCase
       self.table_name = "computers"
     end
 
-    assert !klass.instance_method_already_implemented?(:system)
-    assert !subklass.instance_method_already_implemented?(:system)
+    assert_not klass.instance_method_already_implemented?(:system)
+    assert_not subklass.instance_method_already_implemented?(:system)
     computer = subklass.new
     assert_nil computer.system
   end

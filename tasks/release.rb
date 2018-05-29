@@ -107,7 +107,7 @@ namespace :changelog do
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
       header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
       contents = header + current_contents
-      File.open(fname, "wb") { |f| f.write contents }
+      File.write(fname, contents)
     end
   end
 
@@ -118,7 +118,7 @@ namespace :changelog do
       fname = File.join fw, "CHANGELOG.md"
 
       contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
-      File.open(fname, "wb") { |f| f.write contents }
+      File.write(fname, contents)
     end
   end
 

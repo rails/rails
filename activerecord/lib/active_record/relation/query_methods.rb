@@ -894,8 +894,8 @@ module ActiveRecord
       self
     end
 
-    def skip_query_cache! # :nodoc:
-      self.skip_query_cache_value = true
+    def skip_query_cache!(value = true) # :nodoc:
+      self.skip_query_cache_value = value
       self
     end
 
@@ -909,11 +909,12 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
+    # Returns a relation value with a given name
+    def get_value(name) # :nodoc:
+      @values.fetch(name, DEFAULT_VALUES[name])
+    end
+
     protected
-      # Returns a relation value with a given name
-      def get_value(name) # :nodoc:
-        @values.fetch(name, DEFAULT_VALUES[name])
-      end
 
       # Sets the relation value with the given name
       def set_value(name, value) # :nodoc:

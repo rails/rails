@@ -135,7 +135,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert !session1.equal?(session2)
+    assert_not session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
@@ -345,7 +345,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       follow_redirect!
 
       assert_response :ok
-      refute_same previous_html_document, html_document
+      assert_not_same previous_html_document, html_document
     end
   end
 
@@ -375,7 +375,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     a = open_session
     b = open_session
 
-    refute_same(a.integration_session, b.integration_session)
+    assert_not_same(a.integration_session, b.integration_session)
   end
 
   def test_get_with_query_string

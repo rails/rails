@@ -86,7 +86,7 @@ class NamedScopingTest < ActiveRecord::TestCase
   def test_scopes_are_composable
     assert_equal((approved = Topic.all.merge!(where: { approved: true }).to_a), Topic.approved)
     assert_equal((replied = Topic.all.merge!(where: "replies_count > 0").to_a), Topic.replied)
-    assert !(approved == replied)
+    assert_not (approved == replied)
     assert_not_empty (approved & replied)
 
     assert_equal approved & replied, Topic.approved.replied
@@ -303,6 +303,13 @@ class NamedScopingTest < ActiveRecord::TestCase
     assert_equal "lifo", topic.author_name
   end
 
+  def test_deprecated_delegating_private_method
+    assert_deprecated do
+      scope = Topic.all.by_private_lifo
+      assert_not scope.instance_variable_get(:@delegate_to_klass)
+    end
+  end
+
   def test_reserved_scope_names
     klass = Class.new(ActiveRecord::Base) do
       self.table_name = "topics"
@@ -481,8 +488,9 @@ class NamedScopingTest < ActiveRecord::TestCase
 
     [:public_method, :protected_method, :private_method].each do |reserved_method|
       assert Topic.respond_to?(reserved_method, true)
-      ActiveRecord::Base.logger.expects(:warn)
-      silence_warnings { Topic.scope(reserved_method, -> {}) }
+      assert_called(ActiveRecord::Base.logger, :warn) do
+        silence_warnings { Topic.scope(reserved_method, -> {}) }
+      end
     end
   end
 

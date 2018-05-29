@@ -392,7 +392,7 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
-            records.each do |record|
+            records.each_with_index do |record, index|
               next if record.destroyed?
 
               saved = true
@@ -400,8 +400,13 @@ module ActiveRecord
               if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
+                elsif !reflection.nested?
+                  if reflection.validate?
+                    valid = association_valid?(reflection, record, index)
+                    saved = valid ? association.insert_record(record, false) : false
+                  else
+                    association.insert_record(record)
+                  end
                 end
               elsif autosave
                 saved = record.save(validate: false)

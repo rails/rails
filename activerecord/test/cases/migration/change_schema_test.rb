@@ -205,8 +205,8 @@ module ActiveRecord
         created_at_column = created_columns.detect { |c| c.name == "created_at" }
         updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        assert_not created_at_column.null
+        assert_not updated_at_column.null
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
@@ -408,7 +408,7 @@ module ActiveRecord
         end
         connection.change_table :testings do |t|
           assert t.column_exists?(:foo)
-          assert !(t.column_exists?(:bar))
+          assert_not (t.column_exists?(:bar))
         end
       end
 

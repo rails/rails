@@ -1,3 +1,46 @@
+*   Allow Range#=== and Range#cover? on Range
+
+    `Range#cover?` can now accept a range argument like `Range#include?` and
+    `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
+    into a new file, with these two methods.
+
+    *Requiring active_support/core_ext/range/include_range is now deprecated.*
+    *Use `require "active_support/core_ext/range/compare_range"` instead.*
+
+    *utilum*
+
+*   Add `index_with` to Enumerable.
+
+    Allows creating a hash from an enumerable with the value from a passed block
+    or a default argument.
+
+        %i( title body ).index_with { |attr| post.public_send(attr) }
+        # => { title: "hey", body: "what's up?" }
+
+        %i( title body ).index_with(nil)
+        # => { title: nil, body: nil }
+
+    Closely linked with its brethen `index_by`.
+
+    *Kasper Timm Hansen*
+
+*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+    any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
+
+    *Dominik Sander*
+
+*   Redis cache store: `delete_matched` no longer blocks the Redis server.
+    (Switches from evaled Lua to a batched SCAN + DEL loop.)
+
+    *Gleb Mazovetskiy*
+
+*   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
+    size when compression is enabled (which is true by default). This patch
+    does not attempt to repair existing data: please manually flush the cache
+    to clear out the problematic entries.
+
+    *Godfrey Chan*
+
 *   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
@@ -10,6 +53,34 @@
     `Time`, and `TimeWithZone`.
 
     *Nick Holden*
+
+*   `ActiveSupport::Inflector#ordinal` and `ActiveSupport::Inflector#ordinalize` now support
+    translations through I18n.
+
+        # locale/fr.rb
+
+        {
+          fr: {
+            number: {
+              nth: {
+                ordinals: lambda do |_key, number:, **_options|
+                  if number.to_i.abs == 1
+                    'er'
+                  else
+                    'e'
+                  end
+                end,
+
+                ordinalized: lambda do |_key, number:, **_options|
+                  "#{number}#{ActiveSupport::Inflector.ordinal(number)}"
+                end
+              }
+            }
+          }
+        }
+
+
+    *Christian Blais*
 
 *   Add `:private` option to ActiveSupport's `Module#delegate`
     in order to delegate methods as private:

@@ -15,7 +15,7 @@ module ActiveJob
   # * {Sucker Punch}[https://github.com/brandonhilkert/sucker_punch]
   # * {Active Job Async Job}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/AsyncAdapter.html]
   # * {Active Job Inline}[http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters/InlineAdapter.html]
-  # * Please Note: We are not accepting pull requests for new adapters. See the README for more details.
+  # * Please Note: We are not accepting pull requests for new adapters. See the {README}[link:files/activejob/README_md.html] for more details.
   #
   # === Backends Features
   #

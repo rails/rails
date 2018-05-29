@@ -37,6 +37,21 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal companies(:first_firm).name, firm.name
   end
 
+  def test_assigning_belongs_to_on_destroyed_object
+    client = Client.create!(name: "Client")
+    client.destroy!
+    assert_raise(frozen_error_class) { client.firm = nil }
+    assert_raise(frozen_error_class) { client.firm = Firm.new(name: "Firm") }
+  end
+
+  def test_eager_loading_wont_mutate_owner_record
+    client = Client.eager_load(:firm_with_basic_id).first
+    assert_not_predicate client, :firm_id_came_from_user?
+
+    client = Client.preload(:firm_with_basic_id).first
+    assert_not_predicate client, :firm_id_came_from_user?
+  end
+
   def test_missing_attribute_error_is_raised_when_no_foreign_key_attribute
     assert_raises(ActiveModel::MissingAttributeError) { Client.select(:id).first.firm }
   end
@@ -265,6 +280,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     assert_equal apple, citibank.firm
   end
 
+  def test_creating_the_belonging_object_from_new_record
+    citibank = Account.new("credit_limit" => 10)
+    apple    = citibank.create_firm("name" => "Apple")
+    assert_equal apple, citibank.firm
+    citibank.save
+    citibank.reload
+    assert_equal apple, citibank.firm
+  end
+
   def test_creating_the_belonging_object_with_primary_key
     client = Client.create(name: "Primary key client")
     apple  = client.create_firm_with_primary_key("name" => "Apple")
@@ -442,7 +466,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   def test_belongs_to_with_primary_key_counter
     debate  = Topic.create("title" => "debate")
     debate2 = Topic.create("title" => "debate2")
-    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate")
+    reply   = Reply.create("title" => "blah!", "content" => "world around!", "parent_title" => "debate2")
+
+    assert_equal 0, debate.reload.replies_count
+    assert_equal 1, debate2.reload.replies_count
+
+    reply.parent_title = "debate"
+    reply.save!
+
+    assert_equal 1, debate.reload.replies_count
+    assert_equal 0, debate2.reload.replies_count
+
+    assert_no_queries do
+      reply.topic_with_primary_key = debate
+    end
 
     assert_equal 1, debate.reload.replies_count
     assert_equal 0, debate2.reload.replies_count
@@ -518,6 +555,48 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     topic.save!
     assert_equal 1, Topic.find(topic.id)[:replies_count]
+  end
+
+  def test_belongs_to_counter_after_touch
+    topic = Topic.create!(title: "topic")
+
+    assert_equal 0, topic.replies_count
+    assert_equal 0, topic.after_touch_called
+
+    reply = Reply.create!(title: "blah!", content: "world around!", topic_with_primary_key: topic)
+
+    assert_equal 1, topic.replies_count
+    assert_equal 1, topic.after_touch_called
+
+    reply.destroy!
+
+    assert_equal 0, topic.replies_count
+    assert_equal 2, topic.after_touch_called
+  end
+
+  def test_belongs_to_touch_with_reassigning
+    debate  = Topic.create!(title: "debate")
+    debate2 = Topic.create!(title: "debate2")
+    reply   = Reply.create!(title: "blah!", content: "world around!", parent_title: "debate2")
+
+    time = 1.day.ago
+
+    debate.touch(time: time)
+    debate2.touch(time: time)
+
+    reply.parent_title = "debate"
+    reply.save!
+
+    assert_operator debate.reload.updated_at, :>, time
+    assert_operator debate2.reload.updated_at, :>, time
+
+    debate.touch(time: time)
+    debate2.touch(time: time)
+
+    reply.topic_with_primary_key = debate2
+
+    assert_operator debate.reload.updated_at, :>, time
+    assert_operator debate2.reload.updated_at, :>, time
   end
 
   def test_belongs_to_with_touch_option_on_touch
@@ -1034,9 +1113,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     post    = posts(:welcome)
     comment = comments(:greetings)
 
-    assert_difference lambda { post.reload.tags_count }, -1 do
+    assert_equal post.id, comment.id
+
+    assert_difference "post.reload.tags_count", -1 do
       assert_difference "comment.reload.tags_count", +1 do
         tagging.taggable = comment
+        tagging.save!
+      end
+    end
+
+    assert_difference "comment.reload.tags_count", -1 do
+      assert_difference "post.reload.tags_count", +1 do
+        tagging.taggable_type = post.class.polymorphic_name
+        tagging.taggable_id = post.id
+        tagging.save!
       end
     end
   end

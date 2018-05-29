@@ -43,6 +43,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal "text/plain", blob.content_type
   end
 
+  test "create after upload extracts content_type from io when no content_type given and identify: false" do
+    blob = create_blob content_type: nil, identify: false
+    assert_equal "text/plain", blob.content_type
+  end
+
+  test "create after upload uses content_type when identify: false" do
+    blob = create_blob data: "Article,dates,analysis\n1, 2, 3", filename: "table.csv", content_type: "text/csv", identify: false
+    assert_equal "text/csv", blob.content_type
+  end
+
   test "image?" do
     blob = create_file_blob filename: "racecar.jpg"
     assert_predicate blob, :image?
@@ -62,7 +72,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "download yields chunks" do
-    blob   = create_blob data: "a" * 75.kilobytes
+    blob   = create_blob data: "a" * 5.0625.megabytes
     chunks = []
 
     blob.download do |chunk|
@@ -70,8 +80,39 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     end
 
     assert_equal 2, chunks.size
-    assert_equal "a" * 64.kilobytes, chunks.first
-    assert_equal "a" * 11.kilobytes, chunks.second
+    assert_equal "a" * 5.megabytes, chunks.first
+    assert_equal "a" * 64.kilobytes, chunks.second
+  end
+
+  test "open with integrity" do
+    create_file_blob(filename: "racecar.jpg").open do |file|
+      assert file.binmode?
+      assert_equal 0, file.pos
+      assert_match(/\.jpg\z/, file.path)
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    end
+  end
+
+  test "open without integrity" do
+    create_blob(data: "Hello, world!").tap do |blob|
+      blob.update! checksum: Digest::MD5.base64digest("Goodbye, world!")
+
+      assert_raises ActiveStorage::IntegrityError do
+        blob.open { |file| flunk "Expected integrity check to fail" }
+      end
+    end
+  end
+
+  test "open in a custom tempdir" do
+    tempdir = Dir.mktmpdir
+
+    create_file_blob(filename: "racecar.jpg").open(tempdir: tempdir) do |file|
+      assert file.binmode?
+      assert_equal 0, file.pos
+      assert_match(/\.jpg\z/, file.path)
+      assert file.path.starts_with?(tempdir)
+      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    end
   end
 
   test "urls expiring in 5 minutes" do
@@ -140,6 +181,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     def expected_url_for(blob, disposition: :inline, filename: nil)
       filename ||= blob.filename
       query_string = { content_type: blob.content_type, disposition: "#{disposition}; #{filename.parameters}" }.to_param
-      "/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
+      "https://example.com/rails/active_storage/disk/#{ActiveStorage.verifier.generate(blob.key, expires_in: 5.minutes, purpose: :blob_key)}/#{filename}?#{query_string}"
     end
 end

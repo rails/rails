@@ -136,8 +136,13 @@ module ActiveRecord
 
       def for_each
         databases = Rails.application.config.load_database_yaml
-        ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases) do |spec_name, _|
-          yield spec_name
+        database_configs = ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases)
+
+        # if this is a single database application we don't want tasks for each primary database
+        return if database_configs.count == 1
+
+        database_configs.each do |db_config|
+          yield db_config.spec_name
         end
       end
 
@@ -240,8 +245,8 @@ module ActiveRecord
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env) # :nodoc:
-        file ||= schema_file(format)
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
 
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
@@ -283,7 +288,7 @@ module ActiveRecord
 
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
         each_current_configuration(environment) { |configuration, spec_name, env|
-          load_schema configuration, format, file, env
+          load_schema(configuration, format, file, env, spec_name)
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end

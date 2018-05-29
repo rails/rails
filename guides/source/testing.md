@@ -33,8 +33,8 @@ Rails creates a `test` directory for you as soon as you create a Rails project u
 
 ```bash
 $ ls -F test
-controllers/           helpers/               mailers/               system/                test_helper.rb
-fixtures/              integration/           models/                application_system_test_case.rb
+application_system_test_case.rb  fixtures/                        integration/                     models/                          test_helper.rb
+controllers/                     helpers/                         mailers/                         system/
 ```
 
 The `helpers`, `mailers`, and `models` directories are meant to hold tests for view helpers, mailers, and models, respectively. The `controllers` directory is meant to hold tests for controllers, routes, and views. The `integration` directory is meant to hold tests for interactions between controllers.
@@ -433,16 +433,8 @@ at the end of test run and so on. Check the documentation of the test runner as 
 
 ```bash
 $ bin/rails test -h
-minitest options:
-    -h, --help                       Display this help.
-    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
-    -v, --verbose                    Verbose. Show progress processing files.
-    -n, --name PATTERN               Filter run on /regexp/ or string.
-        --exclude PATTERN            Exclude /regexp/ or string from run.
-
-Known extensions: rails, pride
-
 Usage: bin/rails test [options] [files or directories]
+
 You can run a single test by appending a line number to a filename:
 
     bin/rails test test/models/user_test.rb:27
@@ -453,13 +445,22 @@ You can run multiple files and directories at the same time:
 
 By default test failures and errors are reported inline during a run.
 
-Rails options:
+minitest options:
+    -h, --help                       Display this help.
+        --no-plugins                 Bypass minitest plugin auto-loading (or set $MT_NO_PLUGINS).
+    -s, --seed SEED                  Sets random seed. Also via env. Eg: SEED=n rake
+    -v, --verbose                    Verbose. Show progress processing files.
+    -n, --name PATTERN               Filter run on /regexp/ or string.
+        --exclude PATTERN            Exclude /regexp/ or string from run.
+
+Known extensions: rails, pride
     -w, --warnings                   Run with Ruby warnings enabled
-    -e, --environment                Run tests in the ENV environment
+    -e, --environment ENV            Run tests in the ENV environment
     -b, --backtrace                  Show the complete backtrace
     -d, --defer-output               Output test failures and errors after the test run
     -f, --fail-fast                  Abort test run on first failure or error
     -c, --[no-]color                 Enable color in the output
+    -p, --pride                      Pride. Show your testing pride!
 ```
 
 Parallel Testing
@@ -503,7 +504,7 @@ Two hooks are provided, one runs when the process is forked, and one runs before
 These can be useful if your app uses multiple databases or perform other tasks that depend on the number of
 workers.
 
-The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` metod
+The `parallelize_setup` method is called right after the processes are forked. The `parallelize_teardown` method
 is called right before the processes are closed.
 
 ```
@@ -690,7 +691,7 @@ System Testing
 --------------
 
 System tests allow you to test user interactions with your application, running tests
-in either a real or a headless browser. System tests uses Capybara under the hood.
+in either a real or a headless browser. System tests use Capybara under the hood.
 
 For creating Rails system tests, you use the `test/system` directory in your
 application. Rails provides a generator to create a system test skeleton for you.
@@ -1084,16 +1085,16 @@ The `get` method kicks off the web request and populates the results into the `@
 
 All of these keyword arguments are optional.
 
-Example: Calling the `:show` action, passing an `id` of 12 as the `params` and setting `HTTP_REFERER` header:
+Example: Calling the `:show` action for the first `Article`, passing in an `HTTP_REFERER` header:
 
 ```ruby
-get article_url, params: { id: 12 }, headers: { "HTTP_REFERER" => "http://example.com/home" }
+get article_url(Article.first), headers: { "HTTP_REFERER" => "http://example.com/home" }
 ```
 
-Another example: Calling the `:update` action, passing an `id` of 12 as the `params` as an Ajax request.
+Another example: Calling the `:update` action for the last `Article`, passing in new text for the `title` in `params`, as an Ajax request:
 
 ```ruby
-patch article_url, params: { id: 12 }, xhr: true
+patch article_url(Article.last), params: { article: { title: "updated" } }, xhr: true
 ```
 
 NOTE: If you try running `test_should_create_article` test from `articles_controller_test.rb` it will fail on account of the newly added model level validation and rightly so.
@@ -1130,7 +1131,7 @@ If you're familiar with the HTTP protocol, you'll know that `get` is a type of r
 * `head`
 * `delete`
 
-All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put` and `delete` more often.
+All of request types have equivalent methods that you can use. In a typical C.R.U.D. application you'll be using `get`, `post`, `put`, and `delete` more often.
 
 NOTE: Functional tests do not verify whether the specified request type is accepted by the action, we're more concerned with the result. Request tests exist for this use case to make your tests more purposeful.
 
@@ -1484,7 +1485,7 @@ located under the `test/helpers` directory.
 Given we have the following helper:
 
 ```ruby
-module UserHelper
+module UsersHelper
   def link_to_user(user)
     link_to "#{user.first_name} #{user.last_name}", user
   end
@@ -1494,7 +1495,7 @@ end
 We can test the output of this method like this:
 
 ```ruby
-class UserHelperTest < ActionView::TestCase
+class UsersHelperTest < ActionView::TestCase
   test "should return the user's full name" do
     user = users(:david)
 
@@ -1595,12 +1596,12 @@ manually with: `ActionMailer::Base.deliveries.clear`
 
 ### Functional Testing
 
-Functional testing for mailers involves more than just checking that the email body, recipients and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
+Functional testing for mailers involves more than just checking that the email body, recipients, and so forth are correct. In functional mail tests you call the mail deliver methods and check that the appropriate emails have been appended to the delivery list. It is fairly safe to assume that the deliver methods themselves do their job. You are probably more interested in whether your own business logic is sending emails when you expect them to go out. For example, you can check that the invite friend operation is sending an email appropriately:
 
 ```ruby
 require 'test_helper'
 
-class UserControllerTest < ActionDispatch::IntegrationTest
+class UsersControllerTest < ActionDispatch::IntegrationTest
   test "invite friend" do
     assert_difference 'ActionMailer::Base.deliveries.size', +1 do
       post invite_friend_url, params: { email: 'friend@example.com' }

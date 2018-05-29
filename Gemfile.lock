@@ -1,4 +1,11 @@
 GIT
+  remote: https://github.com/erikhuda/thor.git
+  revision: 006832ea32480618791f89bb7d9e67b22fc814b9
+  ref: 006832ea32480618791f89bb7d9e67b22fc814b9
+  specs:
+    thor (0.20.0)
+
+GIT
   remote: https://github.com/matthewd/rb-inotify.git
   revision: 856730aad4b285969e8dd621e44808a7c5af4242
   branch: close-handling
@@ -57,7 +64,6 @@ PATH
     activerecord (6.0.0.alpha)
       activemodel (= 6.0.0.alpha)
       activesupport (= 6.0.0.alpha)
-      arel (>= 9.0)
     activestorage (6.0.0.alpha)
       actionpack (= 6.0.0.alpha)
       activerecord (= 6.0.0.alpha)
@@ -85,7 +91,7 @@ PATH
       activesupport (= 6.0.0.alpha)
       method_source
       rake (>= 0.8.7)
-      thor (>= 0.18.1, < 2.0)
+      thor (>= 0.19.0, < 2.0)
 
 GEM
   remote: https://rubygems.org/
@@ -106,7 +112,6 @@ GEM
     amq-protocol (2.2.0)
     archive-zip (0.7.0)
       io-like (~> 0.3.0)
-    arel (9.0.0)
     ast (2.4.0)
     aws-partitions (1.20.0)
     aws-sdk-core (3.3.0)
@@ -158,17 +163,19 @@ GEM
       selenium-webdriver
     bootsnap (1.2.1)
       msgpack (~> 1.0)
+    bootsnap (1.2.1-java)
+      msgpack (~> 1.0)
     builder (3.2.3)
     bunny (2.6.6)
       amq-protocol (>= 2.1.0)
     byebug (9.0.6)
-    capybara (2.15.1)
+    capybara (3.0.1)
       addressable
       mini_mime (>= 0.1.3)
-      nokogiri (>= 1.3.3)
-      rack (>= 1.0.0)
-      rack-test (>= 0.5.4)
-      xpath (~> 2.0)
+      nokogiri (~> 1.8)
+      rack (>= 1.6.0)
+      rack-test (>= 0.6.3)
+      xpath (~> 3.0)
     childprocess (0.7.1)
       ffi (~> 1.0, >= 1.0.11)
     chromedriver-helper (1.1.0)
@@ -188,7 +195,7 @@ GEM
     crass (1.0.3)
     curses (1.0.2)
     daemons (1.2.4)
-    dalli (2.7.6)
+    dalli (2.7.8)
     dante (0.2.0)
     declarative (0.0.10)
     declarative-option (0.1.0)
@@ -207,7 +214,7 @@ GEM
     em-socksify (0.3.2)
       eventmachine (>= 1.0.0.beta.4)
     erubi (1.7.0)
-    et-orbi (1.0.8)
+    et-orbi (1.1.2)
       tzinfo
     event_emitter (0.2.6)
     eventmachine (1.2.5)
@@ -227,27 +234,27 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.9.18)
-    ffi (1.9.18-java)
-    ffi (1.9.18-x64-mingw32)
-    ffi (1.9.18-x86-mingw32)
+    ffi (1.9.21)
+    ffi (1.9.21-java)
+    ffi (1.9.21-x64-mingw32)
+    ffi (1.9.21-x86-mingw32)
     globalid (0.4.1)
       activesupport (>= 4.2.0)
-    google-api-client (0.17.3)
+    google-api-client (0.19.8)
       addressable (~> 2.5, >= 2.5.1)
       googleauth (>= 0.5, < 0.7.0)
       httpclient (>= 2.8.1, < 3.0)
       mime-types (~> 3.0)
       representable (~> 3.0)
       retriable (>= 2.0, < 4.0)
-    google-cloud-core (1.1.0)
+    google-cloud-core (1.2.0)
       google-cloud-env (~> 1.0)
     google-cloud-env (1.0.1)
       faraday (~> 0.11)
-    google-cloud-storage (1.9.0)
+    google-cloud-storage (1.11.0)
       digest-crc (~> 0.4)
-      google-api-client (~> 0.17.0)
-      google-cloud-core (~> 1.1)
+      google-api-client (~> 0.19.0)
+      google-cloud-core (~> 1.2)
       googleauth (~> 0.6.2)
     googleauth (0.6.2)
       faraday (~> 0.12)
@@ -263,6 +270,9 @@ GEM
     httpclient (2.8.3)
     i18n (1.0.0)
       concurrent-ruby (~> 1.0)
+    image_processing (1.2.0)
+      mini_magick (~> 4.0)
+      ruby-vips (>= 2.0.10, < 3)
     io-like (0.3.0)
     jdbc-mysql (5.1.44)
     jdbc-postgres (9.4.1206)
@@ -298,7 +308,7 @@ GEM
     mime-types-data (3.2016.0521)
     mimemagic (0.3.2)
     mini_magick (4.8.0)
-    mini_mime (0.1.4)
+    mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
     minitest-bisect (1.4.0)
@@ -306,7 +316,7 @@ GEM
       path_expander (~> 1.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
-    mocha (1.3.0)
+    mocha (1.5.0)
       metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.2.4)
@@ -331,7 +341,7 @@ GEM
       mini_portile2 (~> 2.3.0)
     os (0.9.6)
     parallel (1.12.1)
-    parser (2.5.0.2)
+    parser (2.5.1.0)
       ast (~> 2.4.0)
     path_expander (1.0.2)
     pg (1.0.0)
@@ -339,7 +349,7 @@ GEM
     pg (1.0.0-x86-mingw32)
     powerpack (0.1.1)
     psych (3.0.2)
-    public_suffix (3.0.1)
+    public_suffix (3.0.2)
     puma (3.9.1)
     puma (3.9.1-java)
     que (0.14.0)
@@ -383,14 +393,16 @@ GEM
       resque (~> 1.26)
       rufus-scheduler (~> 3.2)
     retriable (3.1.1)
-    rubocop (0.52.1)
+    rubocop (0.54.0)
       parallel (~> 1.10)
-      parser (>= 2.4.0.2, < 3.0)
+      parser (>= 2.5)
       powerpack (~> 0.1)
       rainbow (>= 2.2.2, < 4.0)
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
+    ruby-vips (2.0.10)
+      ffi (~> 1.9)
     ruby_dep (1.5.0)
     rubyzip (1.2.1)
     rufus-scheduler (3.4.2)
@@ -453,22 +465,21 @@ GEM
       daemons (~> 1.0, >= 1.0.9)
       eventmachine (~> 1.0, >= 1.0.4)
       rack (>= 1, < 3)
-    thor (0.20.0)
     thread (0.1.7)
     thread_safe (0.3.6)
     thread_safe (0.3.6-java)
     tilt (2.0.8)
-    turbolinks (5.0.1)
-      turbolinks-source (~> 5)
-    turbolinks-source (5.0.3)
-    tzinfo (1.2.3)
+    turbolinks (5.1.1)
+      turbolinks-source (~> 5.1)
+    turbolinks-source (5.1.0)
+    tzinfo (1.2.5)
       thread_safe (~> 0.1)
     tzinfo-data (1.2017.2)
       tzinfo (>= 1.0.0)
     uber (0.1.0)
     uglifier (3.2.0)
       execjs (>= 0.3.0, < 3)
-    unicode-display_width (1.3.0)
+    unicode-display_width (1.3.2)
     useragent (0.16.8)
     vegas (0.1.11)
       rack (>= 1.0.0)
@@ -482,8 +493,8 @@ GEM
     websocket-driver (0.6.5-java)
       websocket-extensions (>= 0.1.0)
     websocket-extensions (0.1.2)
-    xpath (2.1.0)
-      nokogiri (~> 1.3)
+    xpath (3.0.0)
+      nokogiri (~> 1.8)
 
 PLATFORMS
   java
@@ -504,20 +515,21 @@ DEPENDENCIES
   blade-sauce_labs_plugin
   bootsnap (>= 1.1.0)
   byebug
-  capybara (>= 2.15, < 4.0)
+  capybara (>= 2.15)
   chromedriver-helper
   coffee-rails
   connection_pool
-  dalli (< 2.7.7)
+  dalli
   delayed_job
   delayed_job_active_record
-  google-cloud-storage (~> 1.8)
+  ffi (<= 1.9.21)
+  google-cloud-storage (~> 1.11)
   hiredis
+  image_processing (~> 1.2)
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
-  mini_magick
   minitest-bisect
   mocha
   mysql2 (>= 0.4.10)
@@ -548,6 +560,7 @@ DEPENDENCIES
   sqlite3 (~> 1.3.6)
   stackprof
   sucker_punch
+  thor!
   turbolinks (~> 5)
   tzinfo-data
   uglifier (>= 1.3.0)

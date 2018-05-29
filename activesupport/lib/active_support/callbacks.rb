@@ -809,7 +809,9 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            set_callbacks name, CallbackChain.new(name, options)
+            ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
 
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _run_#{name}_callbacks(&block)

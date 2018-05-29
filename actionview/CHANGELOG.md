@@ -1,4 +1,21 @@
-*   Disable `ActionView::Template` finalizers in test environment
+*   Fix JavaScript views rendering does not work with Firefox when using
+    Content Security Policy.
+
+    Fixes #32577.
+
+    *Yuji Yaginuma*
+
+*   Add the `nonce: true` option for `javascript_include_tag` helper to
+    support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_tag nonce: true` does.
+
+    *Yaroslav Markin*
+
+*   Remove `ActionView::Helpers::RecordTagHelper`.
+
+    *Yoshiyuki Hirano*
+
+*   Disable `ActionView::Template` finalizers in test environment.
 
     Template finalization can be expensive in large view test suites.
     Add a configuration option,

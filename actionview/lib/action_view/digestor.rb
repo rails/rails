@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require "concurrent/map"
 require "action_view/dependency_tracker"
-require "monitor"
 
 module ActionView
   class Digestor
@@ -45,9 +43,8 @@ module ActionView
       # Create a dependency tree for template named +name+.
       def tree(name, finder, partial = false, seen = {})
         logical_name = name.gsub(%r|/_|, "/")
-        finder.formats = [finder.rendered_format] if finder.rendered_format
 
-        if template = finder.disable_cache { finder.find_all(logical_name, [], partial, []).first }
+        if template = find_template(finder, logical_name, [], partial, [])
           finder.rendered_format ||= template.formats.first
 
           if node = seen[template.identifier] # handle cycles in the tree
@@ -69,6 +66,15 @@ module ActionView
           seen[name] ||= Missing.new(name, logical_name, nil)
         end
       end
+
+      private
+        def find_template(finder, name, prefixes, partial, keys)
+          finder.disable_cache do
+            format = finder.rendered_format
+            result = finder.find_all(name, prefixes, partial, keys, formats: [format]).first if format
+            result || finder.find_all(name, prefixes, partial, keys).first
+          end
+        end
     end
 
     class Node

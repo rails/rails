@@ -95,11 +95,9 @@ module Rails
     end
 
     def bin_when_updating
-      bin_yarn_exist = File.exist?("bin/yarn")
-
       bin
 
-      if options[:api] && !bin_yarn_exist
+      if options[:skip_yarn]
         remove_file "bin/yarn"
       end
     end
@@ -146,6 +144,10 @@ module Rails
         template "config/storage.yml"
       end
 
+      if options[:skip_sprockets] && !assets_config_exist
+        remove_file "config/initializers/assets.rb"
+      end
+
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
@@ -153,10 +155,6 @@ module Rails
       if options[:api]
         unless cookie_serializer_config_exist
           remove_file "config/initializers/cookies_serializer.rb"
-        end
-
-        unless assets_config_exist
-          remove_file "config/initializers/assets.rb"
         end
 
         unless csp_config_exist

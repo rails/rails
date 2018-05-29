@@ -211,7 +211,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       @cache.write("foo", "bar")
       @cache.write("fu", "baz")
       @cache.delete_matched("foo*")
-      assert !@cache.exist?("foo")
+      assert_not @cache.exist?("foo")
       assert @cache.exist?("fu")
     end
 
@@ -219,6 +219,24 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       assert_raise ArgumentError do
         @cache.delete_matched(/OO/i)
       end
+    end
+  end
+
+  class ClearTest < StoreTest
+    test "clear all cache key" do
+      @cache.write("foo", "bar")
+      @cache.write("fu", "baz")
+      @cache.clear
+      assert_not @cache.exist?("foo")
+      assert_not @cache.exist?("fu")
+    end
+
+    test "only clear namespace cache key" do
+      @cache.write("foo", "bar")
+      @cache.redis.set("fu", "baz")
+      @cache.clear
+      assert_not @cache.exist?("foo")
+      assert @cache.redis.exists("fu")
     end
   end
 end

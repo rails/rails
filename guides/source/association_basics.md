@@ -439,7 +439,7 @@ end
 
 The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
 
-You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
+You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
 ### Polymorphic Associations
 
@@ -505,7 +505,7 @@ class Employee < ApplicationRecord
   has_many :subordinates, class_name: "Employee",
                           foreign_key: "manager_id"
 
-  belongs_to :manager, class_name: "Employee"
+  belongs_to :manager, class_name: "Employee", optional: true
 end
 ```
 
@@ -2391,7 +2391,7 @@ Single Table Inheritance
 ------------------------
 
 Sometimes, you may want to share fields and behavior between different models.
-Let's say we have Car, Motorcycle and Bicycle models. We will want to share
+Let's say we have Car, Motorcycle, and Bicycle models. We will want to share
 the `color` and `price` fields and some methods for all of them, but having some
 specific behavior for each, and separated controllers too.
 

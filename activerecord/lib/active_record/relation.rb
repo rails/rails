@@ -8,8 +8,8 @@ module ActiveRecord
                             :extending, :unscope]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
-                            :reverse_order, :distinct, :create_with, :skip_query_cache,
-                            :skip_preloading]
+                            :reverse_order, :distinct, :create_with, :skip_query_cache]
+
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
@@ -19,6 +19,7 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_accessor :skip_preloading_value
     alias :model :klass
     alias :loaded? :loaded
     alias :locked? :lock_value
@@ -30,6 +31,7 @@ module ActiveRecord
       @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
+      @delegate_to_klass = false
     end
 
     def initialize_copy(other)
@@ -313,6 +315,13 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
+    def _exec_scope(*args, &block) # :nodoc:
+      @delegate_to_klass = true
+      instance_exec(*args, &block) || self
+    ensure
+      @delegate_to_klass = false
+    end
+
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
@@ -358,6 +367,43 @@ module ActiveRecord
       end
 
       @klass.connection.update stmt, "#{@klass} Update All"
+    end
+
+    # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
+    # set to the current time or the time specified.
+    # This method can be passed attribute names and an optional time argument.
+    # If attribute names are passed, they are updated along with updated_at/on attributes.
+    # If no time argument is passed, the current time is used as default.
+    #
+    # === Examples
+    #
+    #   # Touch all records
+    #   Person.all.touch_all
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a custom attribute
+    #   Person.all.touch_all(:created_at)
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a specified time
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #
+    #   # Touch records with scope
+    #   Person.where(name: 'David').touch_all
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    def touch_all(*names, time: nil)
+      attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
+      time ||= klass.current_time_from_proper_timezone
+      updates = {}
+      attributes.each { |column| updates[column] = time }
+
+      if klass.locking_enabled?
+        quoted_locking_column = connection.quote_column_name(klass.locking_column)
+        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+      end
+
+      update_all(updates)
     end
 
     # Destroys the records by instantiating each
@@ -446,6 +492,7 @@ module ActiveRecord
     end
 
     def reset
+      @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
@@ -547,7 +594,7 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
-    def preload_associations(records)
+    def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
       preloader = nil

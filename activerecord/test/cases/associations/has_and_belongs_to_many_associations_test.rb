@@ -569,7 +569,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
     developer = Developer.create name: "Bryan", salary: 50_000
 
     assert_not_predicate project.developers, :loaded?
-    assert ! project.developers.include?(developer)
+    assert_not project.developers.include?(developer)
   end
 
   def test_find_with_merged_options

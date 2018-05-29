@@ -394,6 +394,6 @@ class MultiParameterAttributeTest < ActiveRecord::TestCase
       "written_on(4i)" => "13",
       "written_on(5i)" => "55",
     )
-    refute_predicate topic, :written_on_came_from_user?
+    assert_not_predicate topic, :written_on_came_from_user?
   end
 end

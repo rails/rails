@@ -2,7 +2,7 @@
 
 require "abstract_unit"
 
-class AssertDifferenceTest < ActiveSupport::TestCase
+class AssertionsTest < ActiveSupport::TestCase
   def setup
     @object = Class.new do
       attr_accessor :num
@@ -261,7 +261,7 @@ class AssertDifferenceTest < ActiveSupport::TestCase
       end
     end
 
-    assert_equal "@object.num should 1.\n\"@object.num\" didn't change to 1", error.message
+    assert_equal "@object.num should 1.\n\"@object.num\" didn't change to as expected\nExpected: 1\n  Actual: -1", error.message
   end
 
   def test_assert_no_changes_pass

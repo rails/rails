@@ -48,7 +48,7 @@ class PersistenceTest < ActiveRecord::TestCase
       end
 
       if test_update_with_order_succeeds.call("id DESC")
-        assert !test_update_with_order_succeeds.call("id ASC") # test that this wasn't a fluke and using an incorrect order results in an exception
+        assert_not test_update_with_order_succeeds.call("id ASC") # test that this wasn't a fluke and using an incorrect order results in an exception
       else
         # test that we're failing because the current Arel's engine doesn't support UPDATE ORDER BY queries is using subselects instead
         assert_sql(/\AUPDATE .+ \(SELECT .* ORDER BY id DESC\)\z/i) do
@@ -288,6 +288,17 @@ class PersistenceTest < ActiveRecord::TestCase
     copy = original.dup.becomes(Reply)
     copy.save!
     assert_equal "The First Topic", Topic.find(copy.id).title
+  end
+
+  def test_becomes_wont_break_mutation_tracking
+    topic = topics(:first)
+    reply = topic.becomes(Reply)
+
+    assert_equal 1, topic.id_in_database
+    assert_empty topic.attributes_in_database
+
+    assert_equal 1, reply.id_in_database
+    assert_empty reply.attributes_in_database
   end
 
   def test_becomes_includes_changed_attributes
@@ -692,8 +703,8 @@ class PersistenceTest < ActiveRecord::TestCase
     t = Topic.first
     t.update_attribute(:title, "super_title")
     assert_equal "super_title", t.title
-    assert !t.changed?, "topic should not have changed"
-    assert !t.title_changed?, "title should not have changed"
+    assert_not t.changed?, "topic should not have changed"
+    assert_not t.title_changed?, "title should not have changed"
     assert_nil t.title_change, "title change should be nil"
 
     t.reload

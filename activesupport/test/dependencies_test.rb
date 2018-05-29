@@ -223,7 +223,7 @@ class DependenciesTest < ActiveSupport::TestCase
         Timeout.timeout(0.1) do
           # Remove the constant, as if Rails development middleware is reloading changed files:
           ActiveSupport::Dependencies.remove_unloadable_constants!
-          refute defined?(AnotherConstant::ReloadError)
+          assert_not defined?(AnotherConstant::ReloadError)
         end
 
         # Change the file, so that it is **correct** this time:
@@ -231,7 +231,7 @@ class DependenciesTest < ActiveSupport::TestCase
 
         # Again: Remove the constant, as if Rails development middleware is reloading changed files:
         ActiveSupport::Dependencies.remove_unloadable_constants!
-        refute defined?(AnotherConstant::ReloadError)
+        assert_not defined?(AnotherConstant::ReloadError)
 
         # Now, reload the _fixed_ constant:
         assert ConstantReloadError
@@ -535,9 +535,9 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_qualified_const_defined_should_not_call_const_missing
     ModuleWithMissing.missing_count = 0
-    assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
+    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A")
     assert_equal 0, ModuleWithMissing.missing_count
-    assert ! ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
+    assert_not ActiveSupport::Dependencies.qualified_const_defined?("ModuleWithMissing::A::B")
     assert_equal 0, ModuleWithMissing.missing_count
   end
 
@@ -547,13 +547,13 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoloaded?
     with_autoloading_fixtures do
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
 
       assert ActiveSupport::Dependencies.autoloaded?(ModuleFolder)
 
       assert ActiveSupport::Dependencies.autoloaded?("ModuleFolder")
-      assert ! ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
+      assert_not ActiveSupport::Dependencies.autoloaded?("ModuleFolder::NestedClass")
 
       assert ActiveSupport::Dependencies.autoloaded?(ModuleFolder::NestedClass)
 
@@ -564,11 +564,11 @@ class DependenciesTest < ActiveSupport::TestCase
       assert ActiveSupport::Dependencies.autoloaded?(:ModuleFolder)
 
       # Anonymous modules aren't autoloaded.
-      assert !ActiveSupport::Dependencies.autoloaded?(Module.new)
+      assert_not ActiveSupport::Dependencies.autoloaded?(Module.new)
 
       nil_name = Module.new
       def nil_name.name() nil end
-      assert !ActiveSupport::Dependencies.autoloaded?(nil_name)
+      assert_not ActiveSupport::Dependencies.autoloaded?(nil_name)
     end
   ensure
     remove_constants(:ModuleFolder)
@@ -755,7 +755,7 @@ class DependenciesTest < ActiveSupport::TestCase
     Object.const_set :EM, Class.new
     with_autoloading_fixtures do
       require_dependency "em"
-      assert ! ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
+      assert_not ActiveSupport::Dependencies.autoloaded?(:EM), "EM shouldn't be marked autoloaded!"
       ActiveSupport::Dependencies.clear
     end
   ensure
@@ -778,11 +778,11 @@ class DependenciesTest < ActiveSupport::TestCase
       M.unloadable
 
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M)
+      assert_not defined?(M)
 
       Object.const_set :M, Module.new
       ActiveSupport::Dependencies.clear
-      assert ! defined?(M), "Dependencies should unload unloadable constants each time"
+      assert_not defined?(M), "Dependencies should unload unloadable constants each time"
     end
   end
 
@@ -809,7 +809,7 @@ class DependenciesTest < ActiveSupport::TestCase
     assert_called(C, :before_remove_const, times: 1) do
       assert_respond_to C, :before_remove_const
       ActiveSupport::Dependencies.clear
-      assert !defined?(C)
+      assert_not defined?(C)
     end
   ensure
     remove_constants(:C)
@@ -980,10 +980,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_relative_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -992,10 +992,10 @@ class DependenciesTest < ActiveSupport::TestCase
 
   def test_autoload_doesnt_shadow_no_method_error_with_absolute_constant
     with_autoloading_fixtures do
-      assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
+      assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it hasn't been referenced yet!"
       2.times do
         assert_raise(NoMethodError) { ::RaisesNoMethodError }
-        assert !defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
+        assert_not defined?(::RaisesNoMethodError), "::RaisesNoMethodError is defined but it should have failed!"
       end
     end
   ensure
@@ -1020,13 +1020,13 @@ class DependenciesTest < ActiveSupport::TestCase
           ::RaisesNameError::FooBarBaz.object_id
         end
         assert_equal "uninitialized constant RaisesNameError::FooBarBaz", e.message
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
 
-      assert !defined?(::RaisesNameError)
+      assert_not defined?(::RaisesNameError)
       2.times do
         assert_raise(NameError) { ::RaisesNameError }
-        assert !defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
+        assert_not defined?(::RaisesNameError), "::RaisesNameError is defined but it should have failed!"
       end
     end
   ensure

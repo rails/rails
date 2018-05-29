@@ -237,11 +237,11 @@ class StringInflectionsTest < ActiveSupport::TestCase
     s = "hello"
     assert s.starts_with?("h")
     assert s.starts_with?("hel")
-    assert !s.starts_with?("el")
+    assert_not s.starts_with?("el")
 
     assert s.ends_with?("o")
     assert s.ends_with?("lo")
-    assert !s.ends_with?("el")
+    assert_not s.ends_with?("el")
   end
 
   def test_string_squish

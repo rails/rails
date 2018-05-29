@@ -866,7 +866,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
     author   = authors(:mary)
     category = author.named_categories.create(name: "Primary")
     author.named_categories.delete(category)
-    assert !Categorization.exists?(author_id: author.id, named_category_name: category.name)
+    assert_not Categorization.exists?(author_id: author.id, named_category_name: category.name)
     assert_empty author.named_categories.reload
   end
 

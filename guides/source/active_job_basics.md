@@ -120,7 +120,7 @@ production apps will need to pick a persistent backend.
 ### Backends
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
+Resque, Delayed Job, and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend

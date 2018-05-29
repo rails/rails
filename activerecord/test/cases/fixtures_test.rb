@@ -592,14 +592,14 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_complete_instantiation
-    assert !defined?(@first)
-    assert !defined?(@topics)
-    assert !defined?(@developers)
-    assert !defined?(@accounts)
+    assert_not defined?(@first)
+    assert_not defined?(@topics)
+    assert_not defined?(@developers)
+    assert_not defined?(@accounts)
   end
 
   def test_fixtures_from_root_yml_without_instantiation
-    assert !defined?(@unknown), "@unknown is not defined"
+    assert_not defined?(@unknown), "@unknown is not defined"
   end
 
   def test_visibility_of_accessor_method
@@ -634,7 +634,7 @@ class FixturesWithoutInstanceInstantiationTest < ActiveRecord::TestCase
   fixtures :topics, :developers, :accounts
 
   def test_without_instance_instantiation
-    assert !defined?(@first), "@first is not defined"
+    assert_not defined?(@first), "@first is not defined"
   end
 end
 
@@ -1082,13 +1082,13 @@ class FoxyFixturesTest < ActiveRecord::TestCase
   def test_supports_inline_habtm
     assert(parrots(:george).treasures.include?(treasures(:diamond)))
     assert(parrots(:george).treasures.include?(treasures(:sapphire)))
-    assert(!parrots(:george).treasures.include?(treasures(:ruby)))
+    assert_not(parrots(:george).treasures.include?(treasures(:ruby)))
   end
 
   def test_supports_inline_habtm_with_specified_id
     assert(parrots(:polly).treasures.include?(treasures(:ruby)))
     assert(parrots(:polly).treasures.include?(treasures(:sapphire)))
-    assert(!parrots(:polly).treasures.include?(treasures(:diamond)))
+    assert_not(parrots(:polly).treasures.include?(treasures(:diamond)))
   end
 
   def test_supports_yaml_arrays

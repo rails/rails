@@ -745,7 +745,7 @@ class Person < ApplicationRecord
 end
 ```
 
-The block receives the record, the attribute's name and the attribute's value.
+The block receives the record, the attribute's name, and the attribute's value.
 You can do anything you like to check for valid data within the block. If your
 validation fails, you should add an error message to the model, therefore
 making it invalid.

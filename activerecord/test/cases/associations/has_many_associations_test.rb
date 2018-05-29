@@ -983,6 +983,26 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_not_empty company.contracts
   end
 
+  def test_collection_size_with_dirty_target
+    post = posts(:thinking)
+    assert_equal [], post.reader_ids
+    assert_equal 0, post.readers.size
+    post.readers.reset
+    post.readers.build
+    assert_equal [nil], post.reader_ids
+    assert_equal 1, post.readers.size
+  end
+
+  def test_collection_empty_with_dirty_target
+    post = posts(:thinking)
+    assert_equal [], post.reader_ids
+    assert_empty post.readers
+    post.readers.reset
+    post.readers.build
+    assert_equal [nil], post.reader_ids
+    assert_not_empty post.readers
+  end
+
   def test_collection_size_twice_for_regressions
     post = posts(:thinking)
     assert_equal 0, post.readers.size
@@ -1554,7 +1574,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert_predicate companies(:first_firm).clients_of_firm, :loaded?
 
     clients = companies(:first_firm).clients_of_firm.to_a
-    assert !clients.empty?, "37signals has clients after load"
+    assert_not clients.empty?, "37signals has clients after load"
     destroyed = companies(:first_firm).clients_of_firm.destroy_all
     assert_equal clients.sort_by(&:id), destroyed.sort_by(&:id)
     assert destroyed.all?(&:frozen?), "destroyed clients should be frozen"
@@ -1976,8 +1996,9 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_many_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.many? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.many? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end
@@ -2009,14 +2030,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_none_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
     firm.clients.load  # force load
-    assert_no_queries { assert ! firm.clients.none? }
+    assert_no_queries { assert_not firm.clients.none? }
   end
 
   def test_calling_none_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.none? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.none? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end
@@ -2044,14 +2066,15 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   def test_calling_one_on_loaded_association_should_not_use_query
     firm = companies(:first_firm)
     firm.clients.load  # force load
-    assert_no_queries { assert ! firm.clients.one? }
+    assert_no_queries { assert_not firm.clients.one? }
   end
 
   def test_calling_one_should_defer_to_collection_if_using_a_block
     firm = companies(:first_firm)
     assert_queries(1) do
-      firm.clients.expects(:size).never
-      firm.clients.one? { true }
+      assert_not_called(firm.clients, :size) do
+        firm.clients.one? { true }
+      end
     end
     assert_predicate firm.clients, :loaded?
   end
@@ -2092,9 +2115,10 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_association_proxy_transaction_method_starts_transaction_in_association_class
-    Comment.expects(:transaction)
-    Post.first.comments.transaction do
-      # nothing
+    assert_called(Comment, :transaction) do
+      Post.first.comments.transaction do
+        # nothing
+      end
     end
   end
 
@@ -2560,6 +2584,70 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
       car.bulbs.create!
 
       assert_equal 1, count
+    end
+  end
+
+  test "calling size on an association that has not been loaded performs a query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+
+    car_two = Car.create!
+
+    assert_queries(1) do
+      assert_equal 1, car.bulbs.size
+    end
+
+    assert_queries(1) do
+      assert_equal 0, car_two.bulbs.size
+    end
+  end
+
+  test "calling size on an association that has been loaded does not perform query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+    car.bulb_ids
+
+    car_two = Car.create!
+    car_two.bulb_ids
+
+    assert_no_queries do
+      assert_equal 1, car.bulbs.size
+    end
+
+    assert_no_queries do
+      assert_equal 0, car_two.bulbs.size
+    end
+  end
+
+  test "calling empty on an association that has not been loaded performs a query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+
+    car_two = Car.create!
+
+    assert_queries(1) do
+      assert_not_empty car.bulbs
+    end
+
+    assert_queries(1) do
+      assert_empty car_two.bulbs
+    end
+  end
+
+  test "calling empty on an association that has been loaded does not performs query" do
+    car = Car.create!
+    Bulb.create(car_id: car.id)
+    car.bulb_ids
+
+    car_two = Car.create!
+    car_two.bulb_ids
+
+    assert_no_queries do
+      assert_not_empty car.bulbs
+    end
+
+    assert_no_queries do
+      assert_empty car_two.bulbs
     end
   end
 

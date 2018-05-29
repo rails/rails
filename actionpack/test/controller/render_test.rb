@@ -650,7 +650,7 @@ class ImplicitRenderTest < ActionController::TestCase
   tests ImplicitRenderTestController
 
   def test_implicit_no_content_response_as_browser
-    assert_raises(ActionController::UnknownFormat) do
+    assert_raises(ActionController::MissingExactTemplate) do
       get :empty_action
     end
   end

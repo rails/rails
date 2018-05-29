@@ -290,13 +290,13 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_defined?(:"@hi")
+    assert_not @controller.instance_variable_defined?(:"@hi")
     assert @controller.instance_variable_get(:"@howdy")
   end
 
   def test_template_objects_missing
     process :nothing
-    assert !@controller.instance_variable_defined?(:@howdy)
+    assert_not @controller.instance_variable_defined?(:@howdy)
   end
 
   def test_empty_flash
@@ -366,7 +366,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
     process :redirect_external
     assert_predicate @response, :redirect?
     assert_match(/rubyonrails/, @response.redirect_url)
-    assert !/perloffrails/.match(@response.redirect_url)
+    assert_no_match(/perloffrails/, @response.redirect_url)
   end
 
   def test_redirection

@@ -33,7 +33,7 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          object_for(key).get.body.read.force_encoding(Encoding::BINARY)
+          object_for(key).get.body.string.force_encoding(Encoding::BINARY)
         end
       end
     end

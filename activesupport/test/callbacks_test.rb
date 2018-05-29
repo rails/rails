@@ -829,7 +829,7 @@ module CallbacksTest
     def test_block_never_called_if_terminated
       obj = CallbackTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 
@@ -857,7 +857,7 @@ module CallbacksTest
     def test_block_never_called_if_abort_is_thrown
       obj = CallbackDefaultTerminator.new
       obj.save
-      assert !obj.saved
+      assert_not obj.saved
     end
   end
 

@@ -94,14 +94,14 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @controller.perform_caching = false
     @store.write("views/name", "value")
-    assert !@controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -144,7 +144,7 @@ class FragmentCachingTest < ActionController::TestCase
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 
@@ -171,6 +171,9 @@ class FunctionalCachingController < CachingController
     respond_to do |format|
       format.html
     end
+  end
+
+  def xml_fragment_cached_with_html_partial
   end
 
   def formatted_fragment_cached
@@ -306,6 +309,11 @@ CACHED
 
     assert_equal "<p>PHONE</p>",
       @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
+  end
+
+  def test_fragment_caching_with_html_partials_in_xml
+    get :xml_fragment_cached_with_html_partial, format: "*/*"
+    assert_response :success
   end
 
   private

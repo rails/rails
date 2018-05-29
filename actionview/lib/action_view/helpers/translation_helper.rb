@@ -59,11 +59,9 @@ module ActionView
       # they can provide HTML values for.
       def translate(key, options = {})
         options = options.dup
-        has_default = options.has_key?(:default)
-        remaining_defaults = Array(options.delete(:default)).compact
-
-        if has_default && !remaining_defaults.first.kind_of?(Symbol)
-          options[:default] = remaining_defaults
+        if options.has_key?(:default)
+          remaining_defaults = Array(options.delete(:default)).compact
+          options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.

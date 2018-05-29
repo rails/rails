@@ -280,7 +280,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     replaced = hash.replace(b: 12)
 
     assert hash.key?("b")
-    assert !hash.key?(:a)
+    assert_not hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end
@@ -292,7 +292,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     replaced = hash.replace(HashByConversion.new(b: 12))
 
     assert hash.key?("b")
-    assert !hash.key?(:a)
+    assert_not hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end
@@ -606,7 +606,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   def test_assorted_keys_not_stringified
     original = { Object.new => 2, 1 => 2, [] => true }
     indiff = original.with_indifferent_access
-    assert(!indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
+    assert_not(indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
   end
 
   def test_deep_merge_on_indifferent_access

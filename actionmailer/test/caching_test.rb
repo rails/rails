@@ -40,14 +40,14 @@ class FragmentCachingTest < BaseCachingTest
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @mailer.fragment_exist?("name")
-    assert !@mailer.fragment_exist?("other_name")
+    assert_not @mailer.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @mailer.perform_caching = false
     @store.write("views/name", "value")
-    assert !@mailer.fragment_exist?("name")
-    assert !@mailer.fragment_exist?("other_name")
+    assert_not @mailer.fragment_exist?("name")
+    assert_not @mailer.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -90,7 +90,7 @@ class FragmentCachingTest < BaseCachingTest
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 

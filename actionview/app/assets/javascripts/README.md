@@ -23,6 +23,8 @@ Note that the `data` attributes this library adds are a feature of HTML5. If you
     
     yarn add rails-ujs
 
+Ensure that `.yarnclean` does not include `assets` if you use [yarn autoclean](https://yarnpkg.com/lang/en/docs/cli/autoclean/).
+
 ## Usage
 
 ### Asset pipeline

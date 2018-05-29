@@ -98,7 +98,7 @@ Handled at the Action Pack layer:
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
   add the response headers, but why?
-- Caching: Rails provides page, action and fragment caching. Fragment caching
+- Caching: Rails provides page, action, and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
 - Basic, Digest, and Token Authentication: Rails comes with out-of-the-box support
   for three kinds of HTTP authentication.
@@ -106,7 +106,7 @@ Handled at the Action Pack layer:
   handlers for a variety of events, such as action processing, sending a file or
   data, redirection, and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
-  the controller, action, parameters, request format, request method and the
+  the controller, action, parameters, request format, request method, and the
   request's full path).
 - Generators: It is often handy to generate a resource and get your model,
   controller, test stubs, and routes created for you in a single command for
@@ -148,7 +148,7 @@ This will do three main things for you:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
+- Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
 ### Changing an existing application
@@ -412,7 +412,7 @@ Some common modules you might want to add:
 
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
-- Support for basic, digest or token HTTP authentication:
+- Support for basic, digest, or token HTTP authentication:
   * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
   * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
   * `ActionController::HttpAuthentication::Token::ControllerMethods`

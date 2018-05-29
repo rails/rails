@@ -178,7 +178,7 @@ module ActiveRecord
         end
 
         if values.empty?
-          im = arel_table.compile_insert(connection.empty_insert_statement_value)
+          im = arel_table.compile_insert(connection.empty_insert_statement_value(primary_key))
           im.into arel_table
         else
           im = arel_table.compile_insert(_substitute_values(values))
@@ -373,7 +373,7 @@ module ActiveRecord
       became = klass.allocate
       became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
-      became.instance_variable_set("@mutations_from_database", @mutations_from_database) if defined?(@mutations_from_database)
+      became.instance_variable_set("@mutations_from_database", @mutations_from_database ||= nil)
       became.instance_variable_set("@changed_attributes", attributes_changed_by_setter)
       became.instance_variable_set("@new_record", new_record?)
       became.instance_variable_set("@destroyed", destroyed?)

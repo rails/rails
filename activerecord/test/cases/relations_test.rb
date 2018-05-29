@@ -9,6 +9,7 @@ require "models/comment"
 require "models/author"
 require "models/entrant"
 require "models/developer"
+require "models/person"
 require "models/computer"
 require "models/reply"
 require "models/company"
@@ -25,7 +26,7 @@ require "models/edge"
 require "models/subscriber"
 
 class RelationTest < ActiveRecord::TestCase
-  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
+  fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
@@ -511,7 +512,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_find_with_readonly_option
-    Developer.all.each { |d| assert !d.readonly? }
+    Developer.all.each { |d| assert_not d.readonly? }
     Developer.all.readonly.each { |d| assert d.readonly? }
   end
 
@@ -1097,7 +1098,7 @@ class RelationTest < ActiveRecord::TestCase
       assert_not_predicate posts.where(id: nil), :any?
 
       assert posts.any? { |p| p.id > 0 }
-      assert ! posts.any? { |p| p.id <= 0 }
+      assert_not posts.any? { |p| p.id <= 0 }
     end
 
     assert_predicate posts, :loaded?
@@ -1109,7 +1110,7 @@ class RelationTest < ActiveRecord::TestCase
     assert_queries(2) do
       assert posts.many? # Uses COUNT()
       assert posts.many? { |p| p.id > 0 }
-      assert ! posts.many? { |p| p.id < 2 }
+      assert_not posts.many? { |p| p.id < 2 }
     end
 
     assert_predicate posts, :loaded?
@@ -1125,14 +1126,14 @@ class RelationTest < ActiveRecord::TestCase
   def test_none?
     posts = Post.all
     assert_queries(1) do
-      assert ! posts.none? # Uses COUNT()
+      assert_not posts.none? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
       assert posts.none? { |p| p.id < 0 }
-      assert ! posts.none? { |p| p.id == 1 }
+      assert_not posts.none? { |p| p.id == 1 }
     end
 
     assert_predicate posts, :loaded?
@@ -1141,13 +1142,13 @@ class RelationTest < ActiveRecord::TestCase
   def test_one
     posts = Post.all
     assert_queries(1) do
-      assert ! posts.one? # Uses COUNT()
+      assert_not posts.one? # Uses COUNT()
     end
 
     assert_not_predicate posts, :loaded?
 
     assert_queries(1) do
-      assert ! posts.one? { |p| p.id < 3 }
+      assert_not posts.one? { |p| p.id < 3 }
       assert posts.one? { |p| p.id == 1 }
     end
 
@@ -1525,6 +1526,50 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
+  def test_touch_all_updates_records_timestamps
+    david = developers(:david)
+    david_previously_updated_at = david.updated_at
+    jamis = developers(:jamis)
+    jamis_previously_updated_at = jamis.updated_at
+    Developer.where(name: "David").touch_all
+
+    assert_not_equal david_previously_updated_at, david.reload.updated_at
+    assert_equal jamis_previously_updated_at, jamis.reload.updated_at
+  end
+
+  def test_touch_all_with_custom_timestamp
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    Developer.where(name: "David").touch_all(:created_at)
+    developer = developer.reload
+
+    assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+  end
+
+  def test_touch_all_with_given_time
+    developer = developers(:david)
+    previously_created_at = developer.created_at
+    previously_updated_at = developer.updated_at
+    new_time = Time.utc(2015, 2, 16, 4, 54, 0)
+    Developer.where(name: "David").touch_all(:created_at, time: new_time)
+    developer = developer.reload
+
+    assert_not_equal previously_created_at, developer.created_at
+    assert_not_equal previously_updated_at, developer.updated_at
+    assert_equal new_time, developer.created_at
+    assert_equal new_time, developer.updated_at
+  end
+
+  def test_touch_all_updates_locking_column
+    person = people(:david)
+
+    assert_difference -> { person.reload.lock_version }, +1 do
+      Person.where(first_name: "David").touch_all
+    end
+  end
+
   def test_update_on_relation
     topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
@@ -1696,7 +1741,7 @@ class RelationTest < ActiveRecord::TestCase
     # checking if there are topics is used before you actually display them,
     # thus it shouldn't invoke an extra count query.
     assert_no_queries { assert topics.present? }
-    assert_no_queries { assert !topics.blank? }
+    assert_no_queries { assert_not topics.blank? }
 
     # shows count of topics and loops after loading the query should not trigger extra queries either.
     assert_no_queries { topics.size }

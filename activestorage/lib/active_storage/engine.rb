@@ -43,11 +43,12 @@ module ActiveStorage
 
     initializer "active_storage.configs" do
       config.after_initialize do |app|
-        ActiveStorage.logger     = app.config.active_storage.logger || Rails.logger
-        ActiveStorage.queue      = app.config.active_storage.queue
-        ActiveStorage.previewers = app.config.active_storage.previewers || []
-        ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
-        ActiveStorage.paths      = app.config.active_storage.paths || {}
+        ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.queue             = app.config.active_storage.queue
+        ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
+        ActiveStorage.previewers        = app.config.active_storage.previewers || []
+        ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
+        ActiveStorage.paths             = app.config.active_storage.paths || {}
 
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
         ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []

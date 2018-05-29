@@ -86,7 +86,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
     end
     ```
 
-* `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks and any other registered namespace.
+* `config.eager_load` when `true`, eager loads all registered `config.eager_load_namespaces`. This includes your application, engines, Rails frameworks, and any other registered namespace.
 
 * `config.eager_load_namespaces` registers namespaces that are eager loaded when `config.eager_load` is `true`. All namespaces in the list must respond to the `eager_load!` method.
 
@@ -778,6 +778,8 @@ normal Rails server.
 
 `config.active_storage` provides the following configuration options:
 
+* `config.active_storage.variant_processor` accepts a symbol `:mini_magick` or `:vips`, specifying whether variant transformations will be performed with MiniMagick or ruby-vips. The default is `:mini_magick`.
+
 * `config.active_storage.analyzers` accepts an array of classes indicating the analyzers available for Active Storage blobs. The default is `[ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer]`. The former can extract width and height of an image blob; the latter can extract width, height, duration, angle, and aspect ratio of a video blob.
 
 * `config.active_storage.previewers` accepts an array of classes indicating the image previewers available in Active Storage blobs. The default is `[ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer]`. The former can generate a thumbnail from the first page of a PDF blob; the latter from the relevant frame of a video blob.
@@ -1204,7 +1206,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `i18n.callbacks`: In the development environment, sets up a `to_prepare` callback which will call `I18n.reload!` if any of the locales have changed since the last request. In production mode this callback will only run on the first request.
 
-* `active_support.deprecation_behavior`: Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values.
+* `active_support.deprecation_behavior`: Sets up deprecation reporting for environments, defaulting to `:log` for development, `:notify` for production, and `:stderr` for test. If a value isn't set for `config.active_support.deprecation` then this initializer will prompt the user to configure this line in the current environment's `config/environments` file. Can be set to an array of values.
 
 * `active_support.initialize_time_zone`: Sets the default time zone for the application based on the `config.time_zone` setting, which defaults to "UTC".
 
@@ -1263,23 +1265,23 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `add_routing_paths`: Loads (by default) all `config/routes.rb` files (in the application and railties, including engines) and sets up the routes for the application.
 
-* `add_locales`: Adds the files in `config/locales` (from the application, railties and engines) to `I18n.load_path`, making available the translations in these files.
+* `add_locales`: Adds the files in `config/locales` (from the application, railties, and engines) to `I18n.load_path`, making available the translations in these files.
 
-* `add_view_paths`: Adds the directory `app/views` from the application, railties and engines to the lookup path for view files for the application.
+* `add_view_paths`: Adds the directory `app/views` from the application, railties, and engines to the lookup path for view files for the application.
 
 * `load_environment_config`: Loads the `config/environments` file for the current environment.
 
-* `prepend_helpers_path`: Adds the directory `app/helpers` from the application, railties and engines to the lookup path for helpers for the application.
+* `prepend_helpers_path`: Adds the directory `app/helpers` from the application, railties, and engines to the lookup path for helpers for the application.
 
-* `load_config_initializers`: Loads all Ruby files from `config/initializers` in the application, railties and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
+* `load_config_initializers`: Loads all Ruby files from `config/initializers` in the application, railties, and engines. The files in this directory can be used to hold configuration settings that should be made after all of the frameworks are loaded.
 
 * `engines_blank_point`: Provides a point-in-initialization to hook into if you wish to do anything before engines are loaded. After this point, all railtie and engine initializers are run.
 
-* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
+* `add_generator_templates`: Finds templates for generators at `lib/templates` for the application, railties, and engines and adds these to the `config.generators.templates` setting, which will make the templates available for all generators to reference.
 
 * `ensure_autoload_once_paths_as_subset`: Ensures that the `config.autoload_once_paths` only contains paths from `config.autoload_paths`. If it contains extra paths, then an exception will be raised.
 
-* `add_to_prepare_blocks`: The block for every `config.to_prepare` call in the application, a railtie or engine is added to the `to_prepare` callbacks for Action Dispatch which will be run per request in development, or before the first request in production.
+* `add_to_prepare_blocks`: The block for every `config.to_prepare` call in the application, a railtie, or engine is added to the `to_prepare` callbacks for Action Dispatch which will be run per request in development, or before the first request in production.
 
 * `add_builtin_route`: If the application is running under the development environment then this will append the route for `rails/info/properties` to the application routes. This route provides the detailed information such as Rails and Ruby version for `public/index.html` in a default Rails application.
 
@@ -1287,7 +1289,7 @@ Below is a comprehensive list of all the initializers found in Rails in the orde
 
 * `eager_load!`: If `config.eager_load` is `true`, runs the `config.before_eager_load` hooks and then calls `eager_load!` which will load all `config.eager_load_namespaces`.
 
-* `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties and engines.
+* `finisher_hook`: Provides a hook for after the initialization of process of the application is complete, as well as running all the `config.after_initialize` blocks for the application, railties, and engines.
 
 * `set_routes_reloader_hook`: Configures Action Dispatch to reload the routes file using `ActiveSupport::Callbacks.to_run`.
 
@@ -1379,7 +1381,7 @@ Search Engines Indexing
 -----------------------
 
 Sometimes, you may want to prevent some pages of your application to be visible
-on search sites like Google, Bing, Yahoo or Duck Duck Go. The robots that index
+on search sites like Google, Bing, Yahoo, or Duck Duck Go. The robots that index
 these sites will first analyze the `http://your-site.com/robots.txt` file to
 know which pages it is allowed to index.
 

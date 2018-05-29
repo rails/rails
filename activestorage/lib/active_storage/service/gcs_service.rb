@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-gem "google-cloud-storage", "~> 1.8"
+gem "google-cloud-storage", "~> 1.11"
 
 require "google/cloud/storage"
 require "net/http"
@@ -32,27 +32,21 @@ module ActiveStorage
       end
     end
 
-    # FIXME: Download in chunks when given a block.
-    def download(key)
-      instrument :download, key: key do
-        io = file_for(key).download
-        io.rewind
-
-        if block_given?
-          yield io.read
-        else
-          io.read
+    def download(key, &block)
+      if block_given?
+        instrument :streaming_download, key: key do
+          stream(key, &block)
+        end
+      else
+        instrument :download, key: key do
+          file_for(key).download.string
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        uri = URI(url(key, expires_in: 30.seconds, filename: ActiveStorage::Filename.new(""), content_type: "application/octet-stream", disposition: "inline"))
-
-        Net::HTTP.start(uri.host, uri.port, use_ssl: uri.scheme == "https") do |client|
-          client.get(uri, "Range" => "bytes=#{range.begin}-#{range.exclude_end? ? range.end - 1 : range.end}").body
-        end
+        file_for(key).download(range: range).string
       end
     end
 
@@ -110,8 +104,21 @@ module ActiveStorage
     private
       attr_reader :config
 
-      def file_for(key)
-        bucket.file(key, skip_lookup: true)
+      def file_for(key, skip_lookup: true)
+        bucket.file(key, skip_lookup: skip_lookup)
+      end
+
+      # Reads the file for the given key in chunks, yielding each to the block.
+      def stream(key)
+        file = file_for(key, skip_lookup: false)
+
+        chunk_size = 5.megabytes
+        offset = 0
+
+        while offset < file.size
+          yield file.download(range: offset..(offset + chunk_size - 1)).string
+          offset += chunk_size
+        end
       end
 
       def bucket

@@ -92,7 +92,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
     firm.clients.reload
 
-    assert !firm.clients.empty?, "New firm should have reloaded client objects"
+    assert_not firm.clients.empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients.size, "New firm should have reloaded clients count"
   end
 
@@ -102,8 +102,8 @@ class AssociationsTest < ActiveRecord::TestCase
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
     assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
-    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
-    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+    assert_not using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
+    assert_not using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
 
   def test_association_with_references

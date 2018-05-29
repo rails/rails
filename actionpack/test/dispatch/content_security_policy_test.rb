@@ -51,6 +51,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
     @policy.script_src :strict_dynamic
     assert_equal "script-src 'strict-dynamic'", @policy.build
 
+    @policy.script_src :ws
+    assert_equal "script-src ws:", @policy.build
+
+    @policy.script_src :wss
+    assert_equal "script-src wss:", @policy.build
+
     @policy.script_src :none, :report_sample
     assert_equal "script-src 'none' 'report-sample'", @policy.build
   end
@@ -109,6 +115,12 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     @policy.object_src false
     assert_no_match %r{object-src}, @policy.build
+
+    @policy.prefetch_src :self
+    assert_match %r{prefetch-src 'self'}, @policy.build
+
+    @policy.prefetch_src false
+    assert_no_match %r{prefetch-src}, @policy.build
 
     @policy.script_src :self
     assert_match %r{script-src 'self'}, @policy.build
@@ -194,7 +206,7 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
   end
 
   def test_dynamic_directives
-    request = Struct.new(:host).new("www.example.com")
+    request = ActionDispatch::Request.new("HTTP_HOST" => "www.example.com")
     controller = Struct.new(:request).new(request)
 
     @policy.script_src -> { request.host }
@@ -203,7 +215,9 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
   def test_mixed_static_and_dynamic_directives
     @policy.script_src :self, -> { "foo.com" }, "bar.com"
-    assert_equal "script-src 'self' foo.com bar.com", @policy.build(Object.new)
+    request = ActionDispatch::Request.new({})
+    controller = Struct.new(:request).new(request)
+    assert_equal "script-src 'self' foo.com bar.com", @policy.build(controller)
   end
 
   def test_invalid_directive_source
@@ -233,6 +247,73 @@ class ContentSecurityPolicyTest < ActiveSupport::TestCase
 
     assert_match %r{\AUnexpected content security policy source:}, exception.message
   end
+end
+
+class DefaultContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest
+  class PolicyController < ActionController::Base
+    def index
+      head :ok
+    end
+  end
+
+  ROUTES = ActionDispatch::Routing::RouteSet.new
+  ROUTES.draw do
+    scope module: "default_content_security_policy_integration_test" do
+      get "/", to: "policy#index"
+    end
+  end
+
+  POLICY = ActionDispatch::ContentSecurityPolicy.new do |p|
+    p.default_src :self
+    p.script_src  :https
+  end
+
+  class PolicyConfigMiddleware
+    def initialize(app)
+      @app = app
+    end
+
+    def call(env)
+      env["action_dispatch.content_security_policy"] = POLICY
+      env["action_dispatch.content_security_policy_nonce_generator"] = proc { "iyhD0Yc0W+c=" }
+      env["action_dispatch.content_security_policy_report_only"] = false
+      env["action_dispatch.show_exceptions"] = false
+
+      @app.call(env)
+    end
+  end
+
+  APP = build_app(ROUTES) do |middleware|
+    middleware.use PolicyConfigMiddleware
+    middleware.use ActionDispatch::ContentSecurityPolicy::Middleware
+  end
+
+  def app
+    APP
+  end
+
+  def test_adds_nonce_to_script_src_content_security_policy_only_once
+    get "/"
+    get "/"
+    assert_policy "default-src 'self'; script-src https: 'nonce-iyhD0Yc0W+c='"
+  end
+
+  private
+
+    def assert_policy(expected, report_only: false)
+      assert_response :success
+
+      if report_only
+        expected_header = "Content-Security-Policy-Report-Only"
+        unexpected_header = "Content-Security-Policy"
+      else
+        expected_header = "Content-Security-Policy"
+        unexpected_header = "Content-Security-Policy-Report-Only"
+      end
+
+      assert_nil response.headers[unexpected_header]
+      assert_equal expected, response.headers[expected_header]
+    end
 end
 
 class ContentSecurityPolicyIntegrationTest < ActionDispatch::IntegrationTest

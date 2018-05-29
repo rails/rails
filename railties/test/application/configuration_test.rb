@@ -361,7 +361,7 @@ module ApplicationTests
         end
       RUBY
 
-      assert !$prepared
+      assert_not $prepared
 
       app "development"
 
@@ -1417,7 +1417,7 @@ module ApplicationTests
       assert_equal "XML", last_response.body
     end
 
-    test "Rails.application#env_config exists and include some existing parameters" do
+    test "Rails.application#env_config exists and includes some existing parameters" do
       make_basic_app
 
       assert_equal app.env_config["action_dispatch.parameter_filter"],  app.config.filter_parameters
@@ -1977,6 +1977,23 @@ module ApplicationTests
       app "development"
 
       assert_equal true, ActionView::Helpers::FormTagHelper.default_enforce_utf8
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods is true by default" do
+      app "test"
+      assert_equal true, ActionView::Template.finalize_compiled_template_methods
+    end
+
+    test "ActionView::Template.finalize_compiled_template_methods can be configured via config.action_view.finalize_compiled_template_methods" do
+      app_file "config/environments/test.rb", <<-RUBY
+      Rails.application.configure do
+        config.action_view.finalize_compiled_template_methods = false
+      end
+      RUBY
+
+      app "test"
+
+      assert_equal false, ActionView::Template.finalize_compiled_template_methods
     end
 
     private

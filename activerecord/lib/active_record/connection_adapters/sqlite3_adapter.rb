@@ -94,7 +94,7 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
-            stmt[:stmt].close unless stmt[:stmt].closed?
+            stmt.close unless stmt.closed?
           end
       end
 
@@ -103,6 +103,10 @@ module ActiveRecord
 
         @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+
+        if sqlite_version < "3.8.0"
+          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+        end
 
         configure_connection
       end
@@ -116,7 +120,7 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= "3.8.0"
+        true
       end
 
       def requires_reloading?
@@ -124,7 +128,7 @@ module ActiveRecord
       end
 
       def supports_foreign_keys_in_create?
-        sqlite_version >= "3.6.19"
+        true
       end
 
       def supports_views?
@@ -137,10 +141,6 @@ module ActiveRecord
 
       def supports_json?
         true
-      end
-
-      def supports_multi_insert?
-        sqlite_version >= "3.7.11"
       end
 
       def active?
@@ -187,13 +187,16 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = query_value("PRAGMA foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys")
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 
         begin
+          execute("PRAGMA defer_foreign_keys = ON")
           execute("PRAGMA foreign_keys = OFF")
           yield
         ensure
-          execute("PRAGMA foreign_keys = #{old}")
+          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
+          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
       end
 
@@ -224,11 +227,8 @@ module ActiveRecord
                 stmt.close
               end
             else
-              cache = @statements[sql] ||= {
-                stmt: @connection.prepare(sql)
-              }
-              stmt = cache[:stmt]
-              cols = cache[:cols] ||= stmt.columns
+              stmt = @statements[sql] ||= @connection.prepare(sql)
+              cols = stmt.columns
               stmt.reset!
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
@@ -410,9 +410,11 @@ module ActiveRecord
           caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(temporary: true))
-            move_table(altered_table_name, table_name, &caller)
+            disable_referential_integrity do
+              move_table(table_name, altered_table_name,
+                options.merge(temporary: true))
+              move_table(altered_table_name, table_name, &caller)
+            end
           end
         end
 

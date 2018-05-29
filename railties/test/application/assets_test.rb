@@ -47,7 +47,7 @@ module ApplicationTests
     end
 
     def assert_no_file_exists(filename)
-      assert !File.exist?(filename), "#{filename} does exist"
+      assert_not File.exist?(filename), "#{filename} does exist"
     end
 
     test "assets routes have higher priority" do
@@ -76,7 +76,7 @@ module ApplicationTests
       # Load app env
       app "production"
 
-      assert !defined?(Uglifier)
+      assert_not defined?(Uglifier)
       get "/assets/demo.js"
       assert_match "alert()", last_response.body
       assert defined?(Uglifier)
@@ -270,10 +270,10 @@ module ApplicationTests
       app "production"
 
       # Checking if Uglifier is defined we can know if Sprockets was reached or not
-      assert !defined?(Uglifier)
+      assert_not defined?(Uglifier)
       get "/assets/#{asset_path}"
       assert_match "alert()", last_response.body
-      assert !defined?(Uglifier)
+      assert_not defined?(Uglifier)
     end
 
     test "precompile properly refers files referenced with asset_path" do

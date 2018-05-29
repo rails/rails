@@ -222,9 +222,14 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_structure_dump
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
       end
 
       def test_structure_dump_with_extra_flags
@@ -242,39 +247,57 @@ if current_adapter?(:Mysql2Adapter)
         filename = "awesome-file.sql"
         ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
 
-        Kernel.expects(:system).with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "--ignore-table=test-db.foo", "--ignore-table=test-db.bar", "test-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
       end
 
       def test_warn_when_external_structure_dump_command_execution_fails
         filename = "awesome-file.sql"
-        Kernel.expects(:system)
-          .with("mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db")
-          .returns(false)
-
-        e = assert_raise(RuntimeError) {
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
-        }
-        assert_match(/^failed to execute: `mysqldump`$/, e.message)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          returns: false
+        ) do
+          e = assert_raise(RuntimeError) {
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          }
+          assert_match(/^failed to execute: `mysqldump`$/, e.message)
+        end
       end
 
       def test_structure_dump_with_port_number
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-          @configuration.merge("port" => 10000),
-          filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--port=10000", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+            @configuration.merge("port" => 10000),
+            filename)
+        end
       end
 
       def test_structure_dump_with_ssl
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(
-          @configuration.merge("sslca" => "ca.crt"),
-          filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--ssl-ca=ca.crt", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"],
+          returns: true
+        ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(
+              @configuration.merge("sslca" => "ca.crt"),
+              filename)
+          end
       end
 
       private

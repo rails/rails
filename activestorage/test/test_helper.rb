@@ -7,7 +7,7 @@ require "bundler/setup"
 require "active_support"
 require "active_support/test_case"
 require "active_support/testing/autorun"
-require "mini_magick"
+require "image_processing/mini_magick"
 
 begin
   require "byebug"
@@ -41,9 +41,17 @@ ActiveStorage.verifier = ActiveSupport::MessageVerifier.new("Testing")
 class ActiveSupport::TestCase
   self.file_fixture_path = File.expand_path("fixtures/files", __dir__)
 
+  setup do
+    ActiveStorage::Current.host = "https://example.com"
+  end
+
+  teardown do
+    ActiveStorage::Current.reset
+  end
+
   private
-    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain")
-      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type
+    def create_blob(data: "Hello world!", filename: "hello.txt", content_type: "text/plain", identify: true)
+      ActiveStorage::Blob.create_after_upload! io: StringIO.new(data), filename: filename, content_type: content_type, identify: identify
     end
 
     def create_file_blob(filename: "racecar.jpg", content_type: "image/jpeg", metadata: nil)
@@ -66,6 +74,10 @@ class ActiveSupport::TestCase
 
     def read_image(blob_or_variant)
       MiniMagick::Image.open blob_or_variant.service.send(:path_for, blob_or_variant.key)
+    end
+
+    def extract_metadata_from(blob)
+      blob.tap(&:analyze).metadata
     end
 end
 

@@ -3,7 +3,7 @@
 Active Support Instrumentation
 ==============================
 
-Active Support is a part of core Rails that provides Ruby language extensions, utilities and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
+Active Support is a part of core Rails that provides Ruby language extensions, utilities, and other things. One of the things it includes is an instrumentation API that can be used inside an application to measure certain actions that occur within Ruby code, such as that inside a Rails application or the framework itself. It is not limited to Rails, however. It can be used independently in other Ruby scripts if it is so desired.
 
 In this guide, you will learn how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
 
@@ -169,7 +169,7 @@ INFO. Additional keys may be added by the caller.
 
 ### send_data.action_controller
 
-`ActionController` does not had any specific information to the payload. All options are passed through to the payload.
+`ActionController` does not add any specific information to the payload. All options are passed through to the payload.
 
 ### redirect_to.action_controller
 

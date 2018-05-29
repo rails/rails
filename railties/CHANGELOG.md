@@ -15,6 +15,41 @@
     This change causes the type to be applied appropriately.
 
     *Dermot Haughey*
+    
+*   Don't generate unused files in `app:update` task
+
+     Skip the assets' initializer when sprockets isn't loaded.
+
+     Skip `config/spring.rb` when spring isn't loaded.
+
+     Skip yarn's contents when yarn integration isn't used.
+
+    *Tsukuru Tanimichi*
+
+*   Make the master.key file read-only for the owner upon generation on
+    POSIX-compliant systems.
+
+    Previously:
+
+        $ ls -l config/master.key
+        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
+
+    Now:
+
+        $ ls -l config/master.key
+        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
+
+    Fixes #32604.
+
+    *Jose Luis Duran*
+
+*   Deprecate support for using the `HOST` environment to specify the server IP.
+
+    The `BINDING` environment should be used instead.
+
+    Fixes #29516.
+
+    *Yuji Yaginuma*
 
 *   Deprecate passing Rack server name as a regular argument to `rails server`.
 

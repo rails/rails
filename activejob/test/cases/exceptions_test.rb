@@ -61,7 +61,7 @@ class ExceptionsTest < ActiveJob::TestCase
   test "custom handling of discarded job" do
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomDiscardableError", 2
-      assert_equal "Dealt with a job that was discarded in a custom way", JobBuffer.last_value
+      assert_equal "Dealt with a job that was discarded in a custom way. Message: CustomDiscardableError", JobBuffer.last_value
     end
   end
 

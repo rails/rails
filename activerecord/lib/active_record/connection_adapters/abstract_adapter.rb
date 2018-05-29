@@ -137,6 +137,10 @@ module ActiveRecord
         def <=>(version_string)
           @version <=> version_string.split(".").map(&:to_i)
         end
+
+        def to_s
+          @version.join(".")
+        end
       end
 
       def valid_type?(type) # :nodoc:
@@ -320,6 +324,7 @@ module ActiveRecord
       def supports_multi_insert?
         true
       end
+      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?

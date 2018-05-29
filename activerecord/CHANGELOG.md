@@ -1,3 +1,30 @@
+*   Fix parent record should not get saved with duplicate children records.
+
+    Fixes #32940.
+
+    *Santosh Wadghule*
+
+*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
+
+    *Brian Durand*
+
+*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
+    use loaded association ids if present.
+
+    *Graham Turner*
+
+*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+
+    *Dana Sherson*
+
+*   Add `touch_all` method to `ActiveRecord::Relation`.
+
+    Example:
+
+        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+
+    *fatkodima*, *duggiefresh*
+
 *   Add `ActiveRecord::Base.base_class?` predicate.
 
     *Bogdan Gusiev*

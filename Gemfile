@@ -9,11 +9,9 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-# This needs to be with require false to ensure correct loading order, as it has to
-# be loaded after loading the test library.
-gem "mocha", require: false
+gem "mocha"
 
-gem "capybara", ">= 2.15", "< 4.0"
+gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
 gem "coffee-rails"
@@ -45,7 +43,7 @@ group :doc do
 end
 
 # Active Support.
-gem "dalli", "< 2.7.7"
+gem "dalli"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
@@ -87,10 +85,11 @@ end
 # Active Storage
 group :storage do
   gem "aws-sdk-s3", require: false
-  gem "google-cloud-storage", "~> 1.8", require: false
+  gem "google-cloud-storage", "~> 1.11", require: false
   gem "azure-storage", require: false
 
-  gem "mini_magick"
+  gem "image_processing", "~> 1.2"
+  gem "ffi", "<= 1.9.21"
 end
 
 group :ujs do
@@ -108,6 +107,8 @@ group :test do
   platforms :mri do
     gem "stackprof"
     gem "byebug"
+    # FIXME: Remove this when thor 0.21 is release
+    gem "thor", git: "https://github.com/erikhuda/thor.git", ref: "006832ea32480618791f89bb7d9e67b22fc814b9"
   end
 
   gem "benchmark-ips"

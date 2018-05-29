@@ -367,6 +367,26 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
+  def test_after_commit_chain_not_called_on_errors
+    record_1 = TopicWithCallbacks.create!
+    record_2 = TopicWithCallbacks.create!
+    record_3 = TopicWithCallbacks.create!
+    callbacks = []
+    record_1.after_commit_block { raise }
+    record_2.after_commit_block { callbacks << record_2.id }
+    record_3.after_commit_block { callbacks << record_3.id }
+    begin
+      TopicWithCallbacks.transaction do
+        record_1.save!
+        record_2.save!
+        record_3.save!
+      end
+    rescue
+      # From record_1.after_commit
+    end
+    assert_equal [], callbacks
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
     pet   = Pet.first
     owner = pet.owner

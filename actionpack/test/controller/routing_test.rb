@@ -1288,14 +1288,14 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_routing_traversal_does_not_load_extra_classes
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
     set.draw do
       get "/profile" => "profile#index"
     end
 
     request_path_params("/profile") rescue nil
 
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end
 
   def test_recognize_with_conditions_and_format

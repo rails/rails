@@ -25,6 +25,7 @@ module ActionController
     autoload :ContentSecurityPolicy
     autoload :Cookies
     autoload :DataStreaming
+    autoload :DefaultHeaders
     autoload :EtagWithTemplateDigest
     autoload :EtagWithFlash
     autoload :Flash

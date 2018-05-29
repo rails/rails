@@ -75,7 +75,7 @@ class ReflectionTest < ActiveRecord::TestCase
   def test_column_null_not_null
     subscriber = Subscriber.first
     assert subscriber.column_for_attribute("name").null
-    assert !subscriber.column_for_attribute("nick").null
+    assert_not subscriber.column_for_attribute("nick").null
   end
 
   def test_human_name_for_column

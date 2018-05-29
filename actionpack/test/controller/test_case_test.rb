@@ -681,6 +681,22 @@ XML
     assert_equal "baz", @request.filtered_parameters[:foo]
   end
 
+  def test_raw_post_reset_between_post_requests
+    post :no_op, params: { foo: "bar" }
+    assert_equal "foo=bar", @request.raw_post
+
+    post :no_op, params: { foo: "baz" }
+    assert_equal "foo=baz", @request.raw_post
+  end
+
+  def test_content_length_reset_after_post_request
+    post :no_op, params: { foo: "bar" }
+    assert_not_equal 0, @request.content_length
+
+    get :no_op
+    assert_equal 0, @request.content_length
+  end
+
   def test_path_is_kept_after_the_request
     get :test_params, params: { id: "foo" }
     assert_equal "/test_case_test/test/test_params/foo", @request.path
@@ -738,6 +754,14 @@ XML
   def test_request_format_kwarg_overrides_params
     get :test_format, format: "json", params: { format: "html" }
     assert_equal "application/json", @response.body
+  end
+
+  def test_request_format_kwarg_doesnt_mutate_params
+    params = { foo: "bar" }.freeze
+
+    assert_nothing_raised do
+      get :test_format, format: "json", params: params
+    end
   end
 
   def test_should_have_knowledge_of_client_side_cookie_state_even_if_they_are_not_set

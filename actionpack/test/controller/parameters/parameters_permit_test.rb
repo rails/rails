@@ -6,7 +6,7 @@ require "action_controller/metal/strong_parameters"
 
 class ParametersPermitTest < ActiveSupport::TestCase
   def assert_filtered_out(params, key)
-    assert !params.has_key?(key), "key #{key.inspect} has not been filtered out"
+    assert_not params.has_key?(key), "key #{key.inspect} has not been filtered out"
   end
 
   setup do
@@ -136,7 +136,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
   test "key: it is not assigned if not present in params" do
     params = ActionController::Parameters.new(name: "Joe")
     permitted = params.permit(:id)
-    assert !permitted.has_key?(:id)
+    assert_not permitted.has_key?(:id)
   end
 
   test "key to empty array: empty arrays pass" do
@@ -309,7 +309,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.reverse_merge(default_params)
 
     assert_equal "1234", merged_params[:id]
-    refute_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params[:person], :empty?
   end
 
   test "#with_defaults is an alias of reverse_merge" do
@@ -317,11 +317,11 @@ class ParametersPermitTest < ActiveSupport::TestCase
     merged_params = @params.with_defaults(default_params)
 
     assert_equal "1234", merged_params[:id]
-    refute_predicate merged_params[:person], :empty?
+    assert_not_predicate merged_params[:person], :empty?
   end
 
   test "not permitted is sticky beyond reverse_merge" do
-    refute_predicate @params.reverse_merge(a: "b"), :permitted?
+    assert_not_predicate @params.reverse_merge(a: "b"), :permitted?
   end
 
   test "permitted is sticky beyond reverse_merge" do
@@ -334,7 +334,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.reverse_merge!(default_params)
 
     assert_equal "1234", @params[:id]
-    refute_predicate @params[:person], :empty?
+    assert_not_predicate @params[:person], :empty?
   end
 
   test "#with_defaults! is an alias of reverse_merge!" do
@@ -342,7 +342,7 @@ class ParametersPermitTest < ActiveSupport::TestCase
     @params.with_defaults!(default_params)
 
     assert_equal "1234", @params[:id]
-    refute_predicate @params[:person], :empty?
+    assert_not_predicate @params[:person], :empty?
   end
 
   test "modifying the parameters" do
@@ -353,12 +353,15 @@ class ParametersPermitTest < ActiveSupport::TestCase
     assert_equal "Jonas", @params[:person][:family][:brother]
   end
 
-  test "permit is recursive" do
+  test "permit! is recursive" do
+    @params[:nested_array] = [[{ x: 2, y: 3 }, { x: 21, y: 42 }]]
     @params.permit!
     assert_predicate @params, :permitted?
     assert_predicate @params[:person], :permitted?
     assert_predicate @params[:person][:name], :permitted?
     assert_predicate @params[:person][:addresses][0], :permitted?
+    assert_predicate @params[:nested_array][0][0], :permitted?
+    assert_predicate @params[:nested_array][0][1], :permitted?
   end
 
   test "permitted takes a default value when Parameters.permit_all_parameters is set" do

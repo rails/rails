@@ -104,7 +104,7 @@ module ActiveRecord
 
         if source_line
           if defined?(::Rails.root)
-            app_root = "#{::Rails.root.to_s}/".freeze
+            app_root = "#{::Rails.root}/"
             source_line = source_line.sub(app_root, "")
           end
 
@@ -125,7 +125,7 @@ module ActiveRecord
         ]
       end
 
-      RAILS_GEM_ROOT = File.expand_path("../../../..", __FILE__) + "/"
+      RAILS_GEM_ROOT = File.expand_path("../../..", __dir__) + "/"
 
       def ignored_callstack(path)
         path.start_with?(RAILS_GEM_ROOT) ||

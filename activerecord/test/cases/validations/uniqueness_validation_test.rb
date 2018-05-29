@@ -83,8 +83,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t.save, "Should still save t as unique"
 
     t2 = Topic.new("title" => "I'm uniqué!")
-    assert !t2.valid?, "Shouldn't be valid"
-    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_not t2.valid?, "Shouldn't be valid"
+    assert_not t2.save, "Shouldn't save t2 as unique"
     assert_equal ["has already been taken"], t2.errors[:title]
 
     t2.title = "Now I am really also unique"
@@ -106,8 +106,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t.save, "Should save t as unique"
 
     t2 = Topic.new("title" => nil)
-    assert !t2.valid?, "Shouldn't be valid"
-    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_not t2.valid?, "Shouldn't be valid"
+    assert_not t2.save, "Shouldn't save t2 as unique"
     assert_equal ["has already been taken"], t2.errors[:title]
   end
 
@@ -146,7 +146,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
-    assert !r2.valid?, "Saving r2 first time"
+    assert_not r2.valid?, "Saving r2 first time"
 
     r2.content = "something else"
     assert r2.save, "Saving r2 second time"
@@ -172,7 +172,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
-    assert !r2.valid?, "Saving r2 first time"
+    assert_not r2.valid?, "Saving r2 first time"
   end
 
   def test_validate_uniqueness_with_polymorphic_object_scope
@@ -193,7 +193,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = ReplyWithTitleObject.create "title" => "r1", "content" => "hello world"
-    assert !r2.valid?, "Saving r2 first time"
+    assert_not r2.valid?, "Saving r2 first time"
   end
 
   def test_validate_uniqueness_with_object_arg
@@ -205,7 +205,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.replies.create "title" => "r2", "content" => "hello world"
-    assert !r2.valid?, "Saving r2 first time"
+    assert_not r2.valid?, "Saving r2 first time"
   end
 
   def test_validate_uniqueness_scoped_to_defining_class
@@ -215,7 +215,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.silly_unique_replies.create "title" => "r2", "content" => "a barrel of fun"
-    assert !r2.valid?, "Saving r2"
+    assert_not r2.valid?, "Saving r2"
 
     # Should succeed as validates_uniqueness_of only applies to
     # UniqueReply and its subclasses
@@ -232,19 +232,19 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert r1.valid?, "Saving r1"
 
     r2 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy@rubyonrails.com", "title" => "You're crazy!", "content" => "Crazy reply again..."
-    assert !r2.valid?, "Saving r2. Double reply by same author."
+    assert_not r2.valid?, "Saving r2. Double reply by same author."
 
     r2.author_email_address = "jeremy_alt_email@rubyonrails.com"
     assert r2.save, "Saving r2 the second time."
 
     r3 = t.replies.create "author_name" => "jeremy", "author_email_address" => "jeremy_alt_email@rubyonrails.com", "title" => "You're wrong", "content" => "It's cubic"
-    assert !r3.valid?, "Saving r3"
+    assert_not r3.valid?, "Saving r3"
 
     r3.author_name = "jj"
     assert r3.save, "Saving r3 the second time."
 
     r3.author_name = "jeremy"
-    assert !r3.save, "Saving r3 the third time."
+    assert_not r3.save, "Saving r3 the third time."
   end
 
   def test_validate_case_insensitive_uniqueness
@@ -257,15 +257,15 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert t.save, "Should still save t as unique"
 
     t2 = Topic.new("title" => "I'm UNIQUE!", :parent_id => 1)
-    assert !t2.valid?, "Shouldn't be valid"
-    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_not t2.valid?, "Shouldn't be valid"
+    assert_not t2.save, "Shouldn't save t2 as unique"
     assert_predicate t2.errors[:title], :any?
     assert_predicate t2.errors[:parent_id], :any?
     assert_equal ["has already been taken"], t2.errors[:title]
 
     t2.title = "I'm truly UNIQUE!"
-    assert !t2.valid?, "Shouldn't be valid"
-    assert !t2.save, "Shouldn't save t2 as unique"
+    assert_not t2.valid?, "Shouldn't be valid"
+    assert_not t2.save, "Shouldn't save t2 as unique"
     assert_empty t2.errors[:title]
     assert_predicate t2.errors[:parent_id], :any?
 
@@ -283,8 +283,8 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     # If database hasn't UTF-8 character set, this test fails
     if Topic.all.merge!(select: "LOWER(title) AS title").find(t_utf8.id).title == "я тоже уникальный!"
       t2_utf8 = Topic.new("title" => "я тоже УНИКАЛЬНЫЙ!")
-      assert !t2_utf8.valid?, "Shouldn't be valid"
-      assert !t2_utf8.save, "Shouldn't save t2_utf8 as unique"
+      assert_not t2_utf8.valid?, "Shouldn't be valid"
+      assert_not t2_utf8.save, "Shouldn't save t2_utf8 as unique"
     end
   end
 
@@ -349,7 +349,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
   def test_validate_uniqueness_with_non_standard_table_names
     i1 = WarehouseThing.create(value: 1000)
-    assert !i1.valid?, "i1 should not be valid"
+    assert_not i1.valid?, "i1 should not be valid"
     assert i1.errors[:value].any?, "Should not be empty"
   end
 
@@ -417,12 +417,12 @@ class UniquenessValidationTest < ActiveRecord::TestCase
 
     # Should use validation from base class (which is abstract)
     w2 = IneptWizard.new(name: "Rincewind", city: "Quirm")
-    assert !w2.valid?, "w2 shouldn't be valid"
+    assert_not w2.valid?, "w2 shouldn't be valid"
     assert w2.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w2.errors[:name], "Should have uniqueness message for name"
 
     w3 = Conjurer.new(name: "Rincewind", city: "Quirm")
-    assert !w3.valid?, "w3 shouldn't be valid"
+    assert_not w3.valid?, "w3 shouldn't be valid"
     assert w3.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w3.errors[:name], "Should have uniqueness message for name"
 
@@ -430,12 +430,12 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     assert w4.valid?, "Saving w4"
 
     w5 = Thaumaturgist.new(name: "The Amazing Bonko", city: "Lancre")
-    assert !w5.valid?, "w5 shouldn't be valid"
+    assert_not w5.valid?, "w5 shouldn't be valid"
     assert w5.errors[:name].any?, "Should have errors for name"
     assert_equal ["has already been taken"], w5.errors[:name], "Should have uniqueness message for name"
 
     w6 = Thaumaturgist.new(name: "Mustrum Ridcully", city: "Quirm")
-    assert !w6.valid?, "w6 shouldn't be valid"
+    assert_not w6.valid?, "w6 shouldn't be valid"
     assert w6.errors[:city].any?, "Should have errors for city"
     assert_equal ["has already been taken"], w6.errors[:city], "Should have uniqueness message for city"
   end
@@ -446,7 +446,7 @@ class UniquenessValidationTest < ActiveRecord::TestCase
     Topic.create("title" => "I'm an unapproved topic", "approved" => false)
 
     t3 = Topic.new("title" => "I'm a topic", "approved" => true)
-    assert !t3.valid?, "t3 shouldn't be valid"
+    assert_not t3.valid?, "t3 shouldn't be valid"
 
     t4 = Topic.new("title" => "I'm an unapproved topic", "approved" => false)
     assert t4.valid?, "t4 should be valid"

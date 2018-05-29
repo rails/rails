@@ -403,7 +403,7 @@ class ActionsTest < Rails::Generators::TestCase
     content.gsub!(/^  \#.*\n/, "")
     content.gsub!(/^\n/, "")
 
-    File.open(route_path, "wb") { |file| file.write(content) }
+    File.write(route_path, content)
 
     routes = <<-F
 Rails.application.routes.draw do
