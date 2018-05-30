@@ -1132,7 +1132,7 @@ module ActiveRecord
           end
           o.split(',').map! do |s|
             s.strip!
-            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || s.concat(' DESC')
+            s.gsub!(/\sasc\Z/i, ' DESC') || s.gsub!(/\sdesc\Z/i, ' ASC') || (s << " DESC")
           end
         else
           o
