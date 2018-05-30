@@ -7,7 +7,7 @@ class <%= migration_class_name %> < ActiveRecord::Migration[<%= ActiveRecord::Mi
 <% elsif attribute.token? -%>
       t.string :<%= attribute.name %><%= attribute.inject_options %>
 <% elsif attribute.reference? -%>
-      t.references :<%= attribute.name %><%= attribute.inject_options %> <%= primary_key_type.nil? ? "" :  ",type: :#{primary_key_type}" %>
+      t.references :<%= attribute.name %><%= attribute.inject_options %><%= primary_key_type ? ", type: :#{primary_key_type}" : "" %>
 <% else -%>
       t.<%= attribute.type %> :<%= attribute.name %><%= attribute.inject_options %>
 <% end -%>
