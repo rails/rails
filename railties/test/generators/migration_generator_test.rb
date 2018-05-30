@@ -253,7 +253,7 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
       end
     end
   end
-  
+
   def test_add_migration_with_references_options_when_primary_key_uuid
     migration = "add_references_to_books"
     run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
