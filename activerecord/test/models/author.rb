@@ -180,6 +180,10 @@ class Author < ActiveRecord::Base
     %w(twitter github)
   end
 
+  def self.find_by_name(author)
+    super(author)
+  end
+
   validates_presence_of :name
 
   private

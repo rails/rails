@@ -283,7 +283,6 @@ module ActiveRecord #:nodoc:
     extend QueryCache::ClassMethods
     extend Querying
     extend Translation
-    extend DynamicMatchers
     extend Explain
     extend Enum
     extend Delegation::DelegateCache
@@ -323,6 +322,7 @@ module ActiveRecord #:nodoc:
     include Store
     include SecureToken
     include Suppressor
+    include DynamicMatchers
   end
 
   ActiveSupport.run_load_hooks(:active_record, Base)
