@@ -188,6 +188,9 @@ class FormHelperTest < ActionView::TestCase
       '<label for="post_title">The title goes here</label>',
       label("post", "title", "The title goes here")
     )
+    assert_dom_equal('<label for="post_title">Title</label>', label("post", "title", nil))
+    assert_dom_equal('<label for="post_title">content</label>', label("post", "title", "content"))
+    assert_dom_equal('<label for="post_title"></label>', label("post", "title", ""))
     assert_dom_equal(
       '<label class="title_label" for="post_title">Title</label>',
       label("post", "title", nil, class: "title_label")
