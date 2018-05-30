@@ -196,24 +196,6 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_add_migration_with_references_options_when_primary_key_uuid
-    Rails.application.config.generators do |g|
-      g.orm :active_record, primary_key_type: :uuid
-    end
-    migration = "add_references_to_books"
-    run_generator [migration, "author:belongs_to"]
-
-    assert_migration "db/migrate/#{migration}.rb" do |content|
-      assert_method :change, content do |change|
-        assert_match(/add_reference :books, :author, foreign_key: true, type: :uuid/, change)
-      end
-    end
-
-    Rails.application.config.generators do |g|
-      g.orm :active_record, primary_key_type: :int
-    end
-  end
-
   def test_add_migration_with_required_references
     migration = "add_references_to_books"
     run_generator [migration, "author:belongs_to{required}", "distributor:references{polymorphic,required}"]
@@ -268,6 +250,16 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     assert_migration "db/migrate/create_books.rb" do |content|
       assert_method :change, content do |change|
         assert_match(/create_table :books, id: :uuid/, change)
+      end
+    end
+  end
+  
+  def test_add_migration_with_references_options_when_primary_key_uuid
+    migration = "add_references_to_books"
+    run_generator [migration, "author:belongs_to", "--primary_key_type=uuid"]
+    assert_migration "db/migrate/#{migration}.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/add_reference :books, :author, foreign_key: true, type: :uuid/, change)
       end
     end
   end
