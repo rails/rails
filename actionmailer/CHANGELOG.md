@@ -6,7 +6,7 @@
     This makes it possible to dynamically add and remove email observers and
     interceptors at runtime in the same way they're registered.
 
-    *Kota Miyake*
+    *Claudio Ortolina*, *Kota Miyake*
 
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
