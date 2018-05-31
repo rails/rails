@@ -36,6 +36,12 @@ class CookieJarTest < ActiveSupport::TestCase
     assert_equal "bar", request.cookie_jar.fetch(:foo)
   end
 
+  def test_to_hash
+    request.cookie_jar["foo"] = "bar"
+    assert_equal({ "foo" => "bar" }, request.cookie_jar.to_hash)
+    assert_equal({ "foo" => "bar" }, request.cookie_jar.to_h)
+  end
+
   def test_fetch_type_error
     assert_raises(KeyError) do
       request.cookie_jar.fetch(:omglolwut)
@@ -59,8 +65,8 @@ class CookieJarTest < ActiveSupport::TestCase
   end
 
   def test_key_methods
-    assert !request.cookie_jar.key?(:foo)
-    assert !request.cookie_jar.has_key?("foo")
+    assert_not request.cookie_jar.key?(:foo)
+    assert_not request.cookie_jar.has_key?("foo")
 
     request.cookie_jar[:foo] = :bar
     assert request.cookie_jar.key?(:foo)
@@ -319,7 +325,7 @@ class CookiesTest < ActionController::TestCase
   def test_setting_the_same_value_to_cookie
     request.cookies[:user_name] = "david"
     get :authenticate
-    assert_predicate response.cookies, :empty?
+    assert_empty response.cookies
   end
 
   def test_setting_the_same_value_to_permanent_cookie
@@ -401,7 +407,7 @@ class CookiesTest < ActionController::TestCase
   def test_delete_unexisting_cookie
     request.cookies.clear
     get :delete_cookie
-    assert_predicate @response.cookies, :empty?
+    assert_empty @response.cookies
   end
 
   def test_deleted_cookie_predicate

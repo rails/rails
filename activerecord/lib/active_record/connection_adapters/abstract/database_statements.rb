@@ -356,38 +356,36 @@ module ActiveRecord
       # Inserts a set of fixtures into the table. Overridden in adapters that require
       # something beyond a simple insert (eg. Oracle).
       def insert_fixtures(fixtures, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
         return if fixtures.empty?
 
-        columns = schema_cache.columns_hash(table_name)
+        execute(build_fixture_sql(fixtures, table_name), "Fixtures Insert")
+      end
 
-        values = fixtures.map do |fixture|
-          fixture = fixture.stringify_keys
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        fixture_inserts = fixture_set.map do |table_name, fixtures|
+          next if fixtures.empty?
 
-          unknown_columns = fixture.keys - columns.keys
-          if unknown_columns.any?
-            raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
-          end
+          build_fixture_sql(fixtures, table_name)
+        end.compact
 
-          columns.map do |name, column|
-            if fixture.key?(name)
-              type = lookup_cast_type_from_column(column)
-              bind = Relation::QueryAttribute.new(name, fixture[name], type)
-              with_yaml_fallback(bind.value_for_database)
-            else
-              Arel.sql("DEFAULT")
+        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+        total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
+
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            total_sql.each do |sql|
+              execute sql, "Fixtures Load"
+              yield if block_given?
             end
           end
         end
-
-        table = Arel::Table.new(table_name)
-        manager = Arel::InsertManager.new
-        manager.into(table)
-        columns.each_key { |column| manager.columns << table[column] }
-        manager.values = manager.create_values_list(values)
-        execute manager.to_sql, "Fixtures Insert"
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "DEFAULT VALUES"
       end
 
@@ -416,6 +414,44 @@ module ActiveRecord
       alias join_to_delete join_to_update
 
       private
+        def default_insert_value(column)
+          Arel.sql("DEFAULT")
+        end
+
+        def build_fixture_sql(fixtures, table_name)
+          columns = schema_cache.columns_hash(table_name)
+
+          values = fixtures.map do |fixture|
+            fixture = fixture.stringify_keys
+
+            unknown_columns = fixture.keys - columns.keys
+            if unknown_columns.any?
+              raise Fixture::FixtureError, %(table "#{table_name}" has no columns named #{unknown_columns.map(&:inspect).join(', ')}.)
+            end
+
+            columns.map do |name, column|
+              if fixture.key?(name)
+                type = lookup_cast_type_from_column(column)
+                bind = Relation::QueryAttribute.new(name, fixture[name], type)
+                with_yaml_fallback(bind.value_for_database)
+              else
+                default_insert_value(column)
+              end
+            end
+          end
+
+          table = Arel::Table.new(table_name)
+          manager = Arel::InsertManager.new
+          manager.into(table)
+          columns.each_key { |column| manager.columns << table[column] }
+          manager.values = manager.create_values_list(values)
+
+          manager.to_sql
+        end
+
+        def combine_multi_statements(total_sql)
+          total_sql.join(";\n")
+        end
 
         # Returns a subquery for the given key using the join information.
         def subquery_for(key, select)

@@ -45,6 +45,8 @@ module ActiveRecord
       def ids_reader
         if loaded?
           target.pluck(reflection.association_primary_key)
+        elsif !target.empty?
+          load_target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= scope.pluck(reflection.association_primary_key)
         end
@@ -53,7 +55,7 @@ module ActiveRecord
       # Implements the ids writer method, e.g. foo.item_ids= for Foo.has_many :items
       def ids_writer(ids)
         primary_key = reflection.association_primary_key
-        pk_type = klass.type_for_attribute(primary_key.to_s)
+        pk_type = klass.type_for_attribute(primary_key)
         ids = Array(ids).reject(&:blank?)
         ids.map! { |i| pk_type.cast(i) }
 
@@ -212,9 +214,11 @@ module ActiveRecord
       def size
         if !find_target? || loaded?
           target.size
+        elsif @association_ids
+          @association_ids.size
         elsif !association_scope.group_values.empty?
           load_target.size
-        elsif !association_scope.distinct_value && target.is_a?(Array)
+        elsif !association_scope.distinct_value && !target.empty?
           unsaved_records = target.select(&:new_record?)
           unsaved_records.size + count_records
         else
@@ -231,10 +235,10 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded?
+        if loaded? || @association_ids
           size.zero?
         else
-          @target.blank? && !scope.exists?
+          target.empty? && !scope.exists?
         end
       end
 

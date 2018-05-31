@@ -13,7 +13,7 @@ class DescendantsTrackerWithoutAutoloadingTest < ActiveSupport::TestCase
       parent_instance = Parent.new
       parent_instance.singleton_class.descendants
       ActiveSupport::DescendantsTracker.clear
-      assert !ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants).key?(parent_instance.singleton_class)
+      assert_not ActiveSupport::DescendantsTracker.class_variable_get(:@@direct_descendants).key?(parent_instance.singleton_class)
     end
   end
 end

@@ -10,6 +10,7 @@ module ActiveRecord
     def spawn #:nodoc:
       clone
     end
+    alias :all :spawn
 
     # Merges in the conditions from <tt>other</tt>, if <tt>other</tt> is an ActiveRecord::Relation.
     # Returns an array representing the intersection of the resulting records with <tt>other</tt>, if <tt>other</tt> is an array.
@@ -69,7 +70,7 @@ module ActiveRecord
     private
 
       def relation_with(values)
-        result = Relation.create(klass, table, predicate_builder, values)
+        result = Relation.create(klass, values: values)
         result.extend(*extending_values) if extending_values.any?
         result
       end

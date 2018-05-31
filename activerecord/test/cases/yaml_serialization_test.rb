@@ -96,7 +96,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_deserializing_rails_41_yaml
     topic = YAML.load(yaml_fixture("rails_4_1"))
 
-    assert topic.new_record?
+    assert_predicate topic, :new_record?
     assert_nil topic.id
     assert_equal "The First Topic", topic.title
     assert_equal({ omg: :lol }, topic.content)
@@ -105,7 +105,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_deserializing_rails_4_2_0_yaml
     topic = YAML.load(yaml_fixture("rails_4_2_0"))
 
-    assert_not topic.new_record?
+    assert_not_predicate topic, :new_record?
     assert_equal 1, topic.id
     assert_equal "The First Topic", topic.title
     assert_equal("Have a nice day", topic.content)

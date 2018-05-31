@@ -1,27 +1,22 @@
-## Rails 5.2.0.beta2 (November 28, 2017) ##
+*   Ensure mail gem is eager autoloaded when eager load is true to prevent thread deadlocks.
 
-*   No changes.
+    *Samuel Cochran*
 
+*   Perform email jobs in `assert_emails`.
 
-## Rails 5.2.0.beta1 (November 27, 2017) ##
+    *Gannon McGibbon*
 
-*   Add `assert_enqueued_email_with` test helper.
+*   Add `Base.unregister_observer`, `Base.unregister_observers`,
+    `Base.unregister_interceptor`, `Base.unregister_interceptors`,
+    `Base.unregister_preview_interceptor` and `Base.unregister_preview_interceptors`.
+    This makes it possible to dynamically add and remove email observers and
+    interceptors at runtime in the same way they're registered.
 
-        assert_enqueued_email_with ContactMailer, :welcome do
-          ContactMailer.welcome.deliver_later
-        end
+    *Claudio Ortolina*, *Kota Miyake*
 
-    *Mikkel Malmberg*
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-*   Allow Action Mailer classes to configure their delivery job.
-
-        class MyMailer < ApplicationMailer
-          self.delivery_job = MyCustomDeliveryJob
-
-          ...
-        end
-
-    *Matthew Mongeau*
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionmailer/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionmailer/CHANGELOG.md) for previous changes.

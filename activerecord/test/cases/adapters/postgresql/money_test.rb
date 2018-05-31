@@ -6,7 +6,9 @@ require "support/schema_dumping_helper"
 class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   include SchemaDumpingHelper
 
-  class PostgresqlMoney < ActiveRecord::Base; end
+  class PostgresqlMoney < ActiveRecord::Base
+    validates :depth, numericality: true
+  end
 
   setup do
     @connection = ActiveRecord::Base.connection
@@ -26,15 +28,16 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
     assert_equal :money, column.type
     assert_equal "money", column.sql_type
     assert_equal 2, column.scale
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlMoney.type_for_attribute("wealth")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_default
     assert_equal BigDecimal("150.55"), PostgresqlMoney.column_defaults["depth"]
     assert_equal BigDecimal("150.55"), PostgresqlMoney.new.depth
+    assert_equal "$150.55", PostgresqlMoney.new.depth_before_type_cast
   end
 
   def test_money_values

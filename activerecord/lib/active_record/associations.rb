@@ -241,7 +241,7 @@ module ActiveRecord
       association
     end
 
-    def association_cached?(name) # :nodoc
+    def association_cached?(name) # :nodoc:
       @association_cache.key?(name)
     end
 
@@ -292,13 +292,13 @@ module ActiveRecord
       #
       # The project class now has the following methods (and more) to ease the traversal and
       # manipulation of its relationships:
-      # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
-      # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
-      # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-      #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(milestone), Project#milestones.find(milestone_id),</tt>
-      #   <tt>Project#milestones.build, Project#milestones.create</tt>
-      # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
-      #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
+      # * <tt>Project#portfolio</tt>, <tt>Project#portfolio=(portfolio)</tt>, <tt>Project#reload_portfolio</tt>
+      # * <tt>Project#project_manager</tt>, <tt>Project#project_manager=(project_manager)</tt>, <tt>Project#reload_project_manager</tt>
+      # * <tt>Project#milestones.empty?</tt>, <tt>Project#milestones.size</tt>, <tt>Project#milestones</tt>, <tt>Project#milestones<<(milestone)</tt>,
+      #   <tt>Project#milestones.delete(milestone)</tt>, <tt>Project#milestones.destroy(milestone)</tt>, <tt>Project#milestones.find(milestone_id)</tt>,
+      #   <tt>Project#milestones.build</tt>, <tt>Project#milestones.create</tt>
+      # * <tt>Project#categories.empty?</tt>, <tt>Project#categories.size</tt>, <tt>Project#categories</tt>, <tt>Project#categories<<(category1)</tt>,
+      #   <tt>Project#categories.delete(category1)</tt>, <tt>Project#categories.destroy(category1)</tt>
       #
       # === A word of warning
       #

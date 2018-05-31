@@ -749,8 +749,8 @@ module ActiveSupport
         # * <tt>:skip_after_callbacks_if_terminated</tt> - Determines if after
         #   callbacks should be terminated by the <tt>:terminator</tt> option. By
         #   default after callbacks are executed no matter if callback chain was
-        #   terminated or not. This option makes sense only when <tt>:terminator</tt>
-        #   option is specified.
+        #   terminated or not. This option has no effect if <tt>:terminator</tt>
+        #   option is set to +nil+.
         #
         # * <tt>:scope</tt> - Indicates which methods should be executed when an
         #   object is used as a callback.
@@ -809,7 +809,9 @@ module ActiveSupport
           names.each do |name|
             name = name.to_sym
 
-            set_callbacks name, CallbackChain.new(name, options)
+            ([self] + ActiveSupport::DescendantsTracker.descendants(self)).each do |target|
+              target.set_callbacks name, CallbackChain.new(name, options)
+            end
 
             module_eval <<-RUBY, __FILE__, __LINE__ + 1
               def _run_#{name}_callbacks(&block)

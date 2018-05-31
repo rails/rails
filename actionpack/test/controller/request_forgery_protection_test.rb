@@ -521,6 +521,11 @@ module RequestForgeryProtectionTests
       get :negotiate_same_origin
     end
 
+    assert_cross_origin_blocked do
+      @request.accept = "application/javascript"
+      get :negotiate_same_origin
+    end
+
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true }
     assert_cross_origin_not_blocked { get :same_origin_js, xhr: true, format: "js" }
     assert_cross_origin_not_blocked do
@@ -746,7 +751,7 @@ class FreeCookieControllerTest < ActionController::TestCase
   test "should not emit a csrf-token meta tag" do
     SecureRandom.stub :base64, @token do
       get :meta
-      assert @response.body.blank?
+      assert_predicate @response.body, :blank?
     end
   end
 end

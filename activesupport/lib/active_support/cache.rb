@@ -164,8 +164,8 @@ module ActiveSupport
         private
           def retrieve_pool_options(options)
             {}.tap do |pool_options|
-              pool_options[:size] = options[:pool_size] if options[:pool_size]
-              pool_options[:timeout] = options[:pool_timeout] if options[:pool_timeout]
+              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
+              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
             end
           end
 
@@ -333,8 +333,9 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
-      # both of these conditions are applied before the data is returned.
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
@@ -712,19 +713,14 @@ module ActiveSupport
       DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
-      def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
-        end
-
-        @version    = options[:version]
+      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
+      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+        @value      = value
+        @version    = version
         @created_at = Time.now.to_f
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
+        @expires_in = expires_in && expires_in.to_f
+
+        compress!(compress_threshold) if compress
       end
 
       def value
@@ -756,17 +752,13 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        if defined?(@s)
-          @s
+        case value
+        when NilClass
+          0
+        when String
+          @value.bytesize
         else
-          case value
-          when NilClass
-            0
-          when String
-            @value.bytesize
-          else
-            @s = Marshal.dump(@value).bytesize
-          end
+          @s ||= Marshal.dump(@value).bytesize
         end
       end
 
@@ -783,23 +775,30 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if value && options.fetch(:compress, true)
-            compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
-
-            return true if serialized_value_size >= compress_threshold
+        def compress!(compress_threshold)
+          case @value
+          when nil, true, false, Numeric
+            uncompressed_size = 0
+          when String
+            uncompressed_size = @value.bytesize
+          else
+            serialized = Marshal.dump(@value)
+            uncompressed_size = serialized.bytesize
           end
 
-          false
+          if uncompressed_size >= compress_threshold
+            serialized ||= Marshal.dump(@value)
+            compressed = Zlib::Deflate.deflate(serialized)
+
+            if compressed.bytesize < uncompressed_size
+              @value = compressed
+              @compressed = true
+            end
+          end
         end
 
         def compressed?
-          defined?(@compressed) ? @compressed : false
-        end
-
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
+          defined?(@compressed)
         end
 
         def uncompress(value)

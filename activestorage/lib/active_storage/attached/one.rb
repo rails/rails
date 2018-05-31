@@ -13,6 +13,10 @@ module ActiveStorage
       record.public_send("#{name}_attachment")
     end
 
+    def blank?
+      attachment.blank?
+    end
+
     # Associates a given attachment with the current record, saving it to the database.
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
@@ -20,10 +24,16 @@ module ActiveStorage
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      if attached? && dependent == :purge_later
-        replace attachable
-      else
-        write_attachment build_attachment_from(attachable)
+      blob_was = blob if attached?
+      blob = create_blob_from(attachable)
+
+      unless blob == blob_was
+        transaction do
+          detach
+          write_attachment build_attachment(blob: blob)
+        end
+
+        blob_was.purge_later if blob_was && dependent == :purge_later
       end
     end
 
@@ -63,17 +73,10 @@ module ActiveStorage
     end
 
     private
-      def replace(attachable)
-        blob.tap do
-          transaction do
-            detach
-            write_attachment build_attachment_from(attachable)
-          end
-        end.purge_later
-      end
+      delegate :transaction, to: :record
 
-      def build_attachment_from(attachable)
-        ActiveStorage::Attachment.new(record: record, name: name, blob: create_blob_from(attachable))
+      def build_attachment(blob:)
+        ActiveStorage::Attachment.new(record: record, name: name, blob: blob)
       end
 
       def write_attachment(attachment)

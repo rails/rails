@@ -1,8 +1,11 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "active_support/testing/method_call_assertions"
 
 class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket
 
@@ -45,7 +48,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       setup_connection
 
       @subscriptions.execute_command "command" => "subscribe"
-      assert @subscriptions.identifiers.empty?
+      assert_empty @subscriptions.identifiers
     end
   end
 
@@ -55,10 +58,12 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       subscribe_to_chat_channel
 
       channel = subscribe_to_chat_channel
-      channel.expects(:unsubscribe_from_channel)
 
-      @subscriptions.execute_command "command" => "unsubscribe", "identifier" => @chat_identifier
-      assert @subscriptions.identifiers.empty?
+      assert_called(channel, :unsubscribe_from_channel) do
+        @subscriptions.execute_command "command" => "unsubscribe", "identifier" => @chat_identifier
+      end
+
+      assert_empty @subscriptions.identifiers
     end
   end
 
@@ -67,7 +72,7 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       setup_connection
 
       @subscriptions.execute_command "command" => "unsubscribe"
-      assert @subscriptions.identifiers.empty?
+      assert_empty @subscriptions.identifiers
     end
   end
 
@@ -92,10 +97,11 @@ class ActionCable::Connection::SubscriptionsTest < ActionCable::TestCase
       channel2_id = ActiveSupport::JSON.encode(id: 2, channel: "ActionCable::Connection::SubscriptionsTest::ChatChannel")
       channel2 = subscribe_to_chat_channel(channel2_id)
 
-      channel1.expects(:unsubscribe_from_channel)
-      channel2.expects(:unsubscribe_from_channel)
-
-      @subscriptions.unsubscribe_from_all
+      assert_called(channel1, :unsubscribe_from_channel) do
+        assert_called(channel2, :unsubscribe_from_channel) do
+          @subscriptions.unsubscribe_from_all
+        end
+      end
     end
   end
 

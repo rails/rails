@@ -3,7 +3,6 @@
 require "active_support/hash_with_indifferent_access"
 require "active_support/core_ext/object/duplicable"
 require "active_model/attribute_mutation_tracker"
-require "active_model/attribute_set"
 
 module ActiveModel
   # == Active \Model \Dirty
@@ -143,8 +142,11 @@ module ActiveModel
     end
 
     def changes_applied # :nodoc:
-      _prepare_changes
+      unless defined?(@attributes)
+        @previously_changed = changes
+      end
       @mutations_before_last_save = mutations_from_database
+      @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       forget_attribute_assignments
       @mutations_from_database = nil
     end
@@ -155,7 +157,7 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed? # => true
     def changed?
-      mutations_from_database.any_changes?
+      changed_attributes.present?
     end
 
     # Returns an array with the name of the attributes with unsaved changes.
@@ -164,24 +166,24 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changed # => ["name"]
     def changed
-      mutations_from_database.changed_attribute_names
+      changed_attributes.keys
     end
 
     # Handles <tt>*_changed?</tt> for +method_missing+.
     def attribute_changed?(attr, from: OPTION_NOT_GIVEN, to: OPTION_NOT_GIVEN) # :nodoc:
-      !!mutations_from_database.changed?(attr) &&
+      !!changes_include?(attr) &&
         (to == OPTION_NOT_GIVEN || to == _read_attribute(attr)) &&
-        (from == OPTION_NOT_GIVEN || from == attribute_was(attr))
+        (from == OPTION_NOT_GIVEN || from == changed_attributes[attr])
     end
 
     # Handles <tt>*_was</tt> for +method_missing+.
     def attribute_was(attr) # :nodoc:
-      mutations_from_database.original_value(attr)
+      attribute_changed?(attr) ? changed_attributes[attr] : _read_attribute(attr)
     end
 
     # Handles <tt>*_previously_changed?</tt> for +method_missing+.
     def attribute_previously_changed?(attr) #:nodoc:
-      mutations_before_last_save.changed?(attr)
+      previous_changes_include?(attr)
     end
 
     # Restore all previous data of the provided attributes.
@@ -191,12 +193,15 @@ module ActiveModel
 
     # Clears all dirty data: current changes and previous changes.
     def clear_changes_information
+      @previously_changed = ActiveSupport::HashWithIndifferentAccess.new
       @mutations_before_last_save = nil
+      @attributes_changed_by_setter = ActiveSupport::HashWithIndifferentAccess.new
       forget_attribute_assignments
       @mutations_from_database = nil
     end
 
     def clear_attribute_changes(attr_names)
+      attributes_changed_by_setter.except!(*attr_names)
       attr_names.each do |attr_name|
         clear_attribute_change(attr_name)
       end
@@ -209,7 +214,13 @@ module ActiveModel
     #   person.name = 'robert'
     #   person.changed_attributes # => {"name" => "bob"}
     def changed_attributes
-      mutations_from_database.changed_values.freeze
+      # This should only be set by methods which will call changed_attributes
+      # multiple times when it is known that the computed value cannot change.
+      if defined?(@cached_changed_attributes)
+        @cached_changed_attributes
+      else
+        attributes_changed_by_setter.reverse_merge(mutations_from_database.changed_values).freeze
+      end
     end
 
     # Returns a hash of changed attributes indicating their original
@@ -219,8 +230,9 @@ module ActiveModel
     #   person.name = 'bob'
     #   person.changes # => { "name" => ["bill", "bob"] }
     def changes
-      _prepare_changes
-      mutations_from_database.changes
+      cache_changed_attributes do
+        ActiveSupport::HashWithIndifferentAccess[changed.map { |attr| [attr, attribute_change(attr)] }]
+      end
     end
 
     # Returns a hash of attributes that were changed before the model was saved.
@@ -230,7 +242,8 @@ module ActiveModel
     #   person.save
     #   person.previous_changes # => {"name" => ["bob", "robert"]}
     def previous_changes
-      mutations_before_last_save.changes
+      @previously_changed ||= ActiveSupport::HashWithIndifferentAccess.new
+      @previously_changed.merge(mutations_before_last_save.changes)
     end
 
     def attribute_changed_in_place?(attr_name) # :nodoc:
@@ -246,17 +259,11 @@ module ActiveModel
         unless defined?(@mutations_from_database)
           @mutations_from_database = nil
         end
-
-        unless defined?(@attributes)
-          @_pseudo_attributes = true
-          @attributes = AttributeSet.new(
-            Hash.new { |h, attr|
-              h[attr] = Attribute.with_cast_value(attr, _clone_attribute(attr), Type.default_value)
-            }
-          )
+        @mutations_from_database ||= if defined?(@attributes)
+          ActiveModel::AttributeMutationTracker.new(@attributes)
+        else
+          NullMutationTracker.instance
         end
-
-        @mutations_from_database ||= ActiveModel::AttributeMutationTracker.new(@attributes)
       end
 
       def forget_attribute_assignments
@@ -267,45 +274,68 @@ module ActiveModel
         @mutations_before_last_save ||= ActiveModel::NullMutationTracker.instance
       end
 
+      def cache_changed_attributes
+        @cached_changed_attributes = changed_attributes
+        yield
+      ensure
+        clear_changed_attributes_cache
+      end
+
+      def clear_changed_attributes_cache
+        remove_instance_variable(:@cached_changed_attributes) if defined?(@cached_changed_attributes)
+      end
+
+      # Returns +true+ if attr_name is changed, +false+ otherwise.
+      def changes_include?(attr_name)
+        attributes_changed_by_setter.include?(attr_name) || mutations_from_database.changed?(attr_name)
+      end
+      alias attribute_changed_by_setter? changes_include?
+
+      # Returns +true+ if attr_name were changed before the model was saved,
+      # +false+ otherwise.
+      def previous_changes_include?(attr_name)
+        previous_changes.include?(attr_name)
+      end
+
       # Handles <tt>*_change</tt> for +method_missing+.
       def attribute_change(attr)
-        [attribute_was(attr), _read_attribute(attr)] if attribute_changed?(attr)
+        [changed_attributes[attr], _read_attribute(attr)] if attribute_changed?(attr)
       end
 
       # Handles <tt>*_previous_change</tt> for +method_missing+.
       def attribute_previous_change(attr)
-        mutations_before_last_save.change_to_attribute(attr)
+        previous_changes[attr] if attribute_previously_changed?(attr)
       end
 
       # Handles <tt>*_will_change!</tt> for +method_missing+.
       def attribute_will_change!(attr)
-        attr = attr.to_s
-        mutations_from_database.force_change(attr).tap do
-          @attributes[attr] if defined?(@_pseudo_attributes)
+        unless attribute_changed?(attr)
+          begin
+            value = _read_attribute(attr)
+            value = value.duplicable? ? value.clone : value
+          rescue TypeError, NoMethodError
+          end
+
+          set_attribute_was(attr, value)
         end
+        mutations_from_database.force_change(attr)
       end
 
       # Handles <tt>restore_*!</tt> for +method_missing+.
       def restore_attribute!(attr)
         if attribute_changed?(attr)
-          __send__("#{attr}=", attribute_was(attr))
+          __send__("#{attr}=", changed_attributes[attr])
           clear_attribute_changes([attr])
         end
       end
 
-      def _prepare_changes
-        if defined?(@_pseudo_attributes)
-          changed.each do |attr|
-            @attributes.write_from_user(attr, _read_attribute(attr))
-          end
-        end
+      def attributes_changed_by_setter
+        @attributes_changed_by_setter ||= ActiveSupport::HashWithIndifferentAccess.new
       end
 
-      def _clone_attribute(attr)
-        value = _read_attribute(attr)
-        value.duplicable? ? value.clone : value
-      rescue TypeError, NoMethodError
-        value
+      # Force an attribute to have a particular "before" value
+      def set_attribute_was(attr, old_value)
+        attributes_changed_by_setter[attr] = old_value
       end
   end
 end

@@ -14,11 +14,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    assert_not_predicate @session, :https?
     @session.https!
-    assert @session.https?
+    assert_predicate @session, :https?
     @session.https! false
-    assert !@session.https?
+    assert_not_predicate @session, :https?
   end
 
   def test_host!
@@ -135,7 +135,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert !session1.equal?(session2)
+    assert_not session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
@@ -345,7 +345,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       follow_redirect!
 
       assert_response :ok
-      refute_same previous_html_document, html_document
+      assert_not_same previous_html_document, html_document
     end
   end
 
@@ -375,7 +375,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     a = open_session
     b = open_session
 
-    refute_same(a.integration_session, b.integration_session)
+    assert_not_same(a.integration_session, b.integration_session)
   end
 
   def test_get_with_query_string
@@ -412,11 +412,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert request.env["rack.input"].string.empty?
+      assert_empty request.env["rack.input"].string
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert request.parameters["leaks"].nil?
+      assert_predicate request.parameters["leaks"], :nil?
     end
   end
 

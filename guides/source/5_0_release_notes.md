@@ -73,7 +73,7 @@ This will do three main things:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
+- Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
 The application provides a base for APIs,
@@ -997,7 +997,7 @@ Please refer to the [Changelog][active-support] for detailed changes.
 
 *   New config option
     `config.active_support.halt_callback_chains_on_return_false` to specify
-    whether ActiveRecord, ActiveModel and ActiveModel::Validations callback
+    whether ActiveRecord, ActiveModel, and ActiveModel::Validations callback
     chains can be halted by returning `false` in a 'before' callback.
     ([Pull Request](https://github.com/rails/rails/pull/17227))
 

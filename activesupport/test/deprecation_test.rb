@@ -158,7 +158,7 @@ class DeprecationTest < ActiveSupport::TestCase
     stderr_output = capture(:stderr) {
       assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
-    assert stderr_output.empty?
+    assert_empty stderr_output
   end
 
   def test_default_notify_behavior
@@ -180,6 +180,14 @@ class DeprecationTest < ActiveSupport::TestCase
     ensure
       ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
     end
+  end
+
+  def test_default_invalid_behavior
+    e = assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation.behavior = :invalid
+    end
+
+    assert_equal ":invalid is not a valid deprecation behavior.", e.message
   end
 
   def test_deprecated_instance_variable_proxy

@@ -142,14 +142,32 @@ class FormTagHelperTest < ActionView::TestCase
     actual = form_tag({}, { enforce_utf8: true })
     expected = whole_form("http://www.example.com", enforce_utf8: true)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
   end
 
   def test_form_tag_enforce_utf8_false
     actual = form_tag({}, { enforce_utf8: false })
     expected = whole_form("http://www.example.com", enforce_utf8: false)
     assert_dom_equal expected, actual
-    assert actual.html_safe?
+    assert_predicate actual, :html_safe?
+  end
+
+  def test_form_tag_default_enforce_utf8_false
+    with_default_enforce_utf8 false do
+      actual = form_tag({})
+      expected = whole_form("http://www.example.com", enforce_utf8: false)
+      assert_dom_equal expected, actual
+      assert_predicate actual, :html_safe?
+    end
+  end
+
+  def test_form_tag_default_enforce_utf8_true
+    with_default_enforce_utf8 true do
+      actual = form_tag({})
+      expected = whole_form("http://www.example.com", enforce_utf8: true)
+      assert_dom_equal expected, actual
+      assert_predicate actual, :html_safe?
+    end
   end
 
   def test_form_tag_with_block_in_erb
@@ -781,5 +799,14 @@ class FormTagHelperTest < ActionView::TestCase
 
     def root_elem(rendered_content)
       Nokogiri::HTML::DocumentFragment.parse(rendered_content).children.first # extract from nodeset
+    end
+
+    def with_default_enforce_utf8(value)
+      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
+
+      yield
+    ensure
+      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end

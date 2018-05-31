@@ -33,7 +33,7 @@ module CacheStoreBehavior
 
     cache_miss = false
     assert_equal 3, @cache.fetch("foo") { |key| cache_miss = true; key.length }
-    assert !cache_miss
+    assert_not cache_miss
   end
 
   def test_fetch_with_forced_cache_miss
@@ -113,6 +113,16 @@ module CacheStoreBehavior
     assert_equal("fufu", @cache.read("fu"))
   end
 
+  def test_fetch_multi_without_expires_in
+    @cache.write("foo", "bar")
+    @cache.write("fud", "biz")
+
+    values = @cache.fetch_multi("foo", "fu", "fud", expires_in: nil) { |value| value * 2 }
+
+    assert_equal({ "foo" => "bar", "fu" => "fufu", "fud" => "biz" }, values)
+    assert_equal("fufu", @cache.read("fu"))
+  end
+
   def test_multi_with_objects
     cache_struct = Struct.new(:cache_key, :title)
     foo = cache_struct.new("foo", "FOO!")
@@ -131,29 +141,111 @@ module CacheStoreBehavior
     end
   end
 
-  def test_read_and_write_compressed_small_data
-    @cache.write("foo", "bar", compress: true)
-    assert_equal "bar", @cache.read("foo")
+  # Use strings that are guarenteed to compress well, so we can easily tell if
+  # the compression kicked in or not.
+  SMALL_STRING = "0" * 100
+  LARGE_STRING = "0" * 2.kilobytes
+
+  SMALL_OBJECT = { data: SMALL_STRING }
+  LARGE_OBJECT = { data: LARGE_STRING }
+
+  def test_nil_with_default_compression_settings
+    assert_uncompressed(nil)
   end
 
-  def test_read_and_write_compressed_large_data
-    @cache.write("foo", "bar", compress: true, compress_threshold: 2)
-    assert_equal "bar", @cache.read("foo")
+  def test_nil_with_compress_true
+    assert_uncompressed(nil, compress: true)
   end
 
-  def test_read_and_write_compressed_nil
-    @cache.write("foo", nil, compress: true)
-    assert_nil @cache.read("foo")
+  def test_nil_with_compress_false
+    assert_uncompressed(nil, compress: false)
   end
 
-  def test_read_and_write_uncompressed_small_data
-    @cache.write("foo", "bar", compress: false)
-    assert_equal "bar", @cache.read("foo")
+  def test_nil_with_compress_low_compress_threshold
+    assert_uncompressed(nil, compress: true, compress_threshold: 1)
   end
 
-  def test_read_and_write_uncompressed_nil
-    @cache.write("foo", nil, compress: false)
-    assert_nil @cache.read("foo")
+  def test_small_string_with_default_compression_settings
+    assert_uncompressed(SMALL_STRING)
+  end
+
+  def test_small_string_with_compress_true
+    assert_uncompressed(SMALL_STRING, compress: true)
+  end
+
+  def test_small_string_with_compress_false
+    assert_uncompressed(SMALL_STRING, compress: false)
+  end
+
+  def test_small_string_with_low_compress_threshold
+    assert_compressed(SMALL_STRING, compress: true, compress_threshold: 1)
+  end
+
+  def test_small_object_with_default_compression_settings
+    assert_uncompressed(SMALL_OBJECT)
+  end
+
+  def test_small_object_with_compress_true
+    assert_uncompressed(SMALL_OBJECT, compress: true)
+  end
+
+  def test_small_object_with_compress_false
+    assert_uncompressed(SMALL_OBJECT, compress: false)
+  end
+
+  def test_small_object_with_low_compress_threshold
+    assert_compressed(SMALL_OBJECT, compress: true, compress_threshold: 1)
+  end
+
+  def test_large_string_with_default_compression_settings
+    assert_compressed(LARGE_STRING)
+  end
+
+  def test_large_string_with_compress_true
+    assert_compressed(LARGE_STRING, compress: true)
+  end
+
+  def test_large_string_with_compress_false
+    assert_uncompressed(LARGE_STRING, compress: false)
+  end
+
+  def test_large_string_with_high_compress_threshold
+    assert_uncompressed(LARGE_STRING, compress: true, compress_threshold: 1.megabyte)
+  end
+
+  def test_large_object_with_default_compression_settings
+    assert_compressed(LARGE_OBJECT)
+  end
+
+  def test_large_object_with_compress_true
+    assert_compressed(LARGE_OBJECT, compress: true)
+  end
+
+  def test_large_object_with_compress_false
+    assert_uncompressed(LARGE_OBJECT, compress: false)
+  end
+
+  def test_large_object_with_high_compress_threshold
+    assert_uncompressed(LARGE_OBJECT, compress: true, compress_threshold: 1.megabyte)
+  end
+
+  def test_incompressable_data
+    assert_uncompressed(nil, compress: true, compress_threshold: 1)
+    assert_uncompressed(true, compress: true, compress_threshold: 1)
+    assert_uncompressed(false, compress: true, compress_threshold: 1)
+    assert_uncompressed(0, compress: true, compress_threshold: 1)
+    assert_uncompressed(1.2345, compress: true, compress_threshold: 1)
+    assert_uncompressed("", compress: true, compress_threshold: 1)
+
+    incompressible = nil
+
+    # generate an incompressible string
+    loop do
+      incompressible = SecureRandom.random_bytes(1.kilobyte)
+      break if incompressible.bytesize < Zlib::Deflate.deflate(incompressible).bytesize
+    end
+
+    assert_uncompressed(incompressible, compress: true, compress_threshold: 1)
   end
 
   def test_cache_key
@@ -216,7 +308,7 @@ module CacheStoreBehavior
     @cache.write("foo", "bar")
     assert @cache.exist?("foo")
     assert @cache.delete("foo")
-    assert !@cache.exist?("foo")
+    assert_not @cache.exist?("foo")
   end
 
   def test_original_store_objects_should_not_be_immutable
@@ -349,4 +441,41 @@ module CacheStoreBehavior
   ensure
     ActiveSupport::Notifications.unsubscribe "cache_read.active_support"
   end
+
+  private
+
+    def assert_compressed(value, **options)
+      assert_compression(true, value, **options)
+    end
+
+    def assert_uncompressed(value, **options)
+      assert_compression(false, value, **options)
+    end
+
+    def assert_compression(should_compress, value, **options)
+      freeze_time do
+        @cache.write("actual", value, options)
+        @cache.write("uncompressed", value, options.merge(compress: false))
+      end
+
+      if value.nil?
+        assert_nil @cache.read("actual")
+        assert_nil @cache.read("uncompressed")
+      else
+        assert_equal value, @cache.read("actual")
+        assert_equal value, @cache.read("uncompressed")
+      end
+
+      actual_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "actual", {}), {})
+      uncompressed_entry = @cache.send(:read_entry, @cache.send(:normalize_key, "uncompressed", {}), {})
+
+      actual_size = Marshal.dump(actual_entry).bytesize
+      uncompressed_size = Marshal.dump(uncompressed_entry).bytesize
+
+      if should_compress
+        assert_operator actual_size, :<, uncompressed_size, "value should be compressed"
+      else
+        assert_equal uncompressed_size, actual_size, "value should not be compressed"
+      end
+    end
 end

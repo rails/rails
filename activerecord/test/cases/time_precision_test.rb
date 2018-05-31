@@ -27,6 +27,24 @@ if subsecond_precision_supported?
       assert_equal 6, Foo.columns_hash["finish"].precision
     end
 
+    def test_time_precision_is_truncated_on_assignment
+      @connection.create_table(:foos, force: true)
+      @connection.add_column :foos, :start,  :time, precision: 0
+      @connection.add_column :foos, :finish, :time, precision: 6
+
+      time = ::Time.now.change(nsec: 123456789)
+      foo = Foo.new(start: time, finish: time)
+
+      assert_equal 0, foo.start.nsec
+      assert_equal 123456000, foo.finish.nsec
+
+      foo.save!
+      foo.reload
+
+      assert_equal 0, foo.start.nsec
+      assert_equal 123456000, foo.finish.nsec
+    end
+
     def test_passing_precision_to_time_does_not_set_limit
       @connection.create_table(:foos, force: true) do |t|
         t.time :start,  precision: 3

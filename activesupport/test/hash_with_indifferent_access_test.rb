@@ -169,8 +169,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_indifferent_fetch_values
-    skip unless Hash.method_defined?(:fetch_values)
-
     @mixed = @mixed.with_indifferent_access
 
     assert_equal [1, 2], @mixed.fetch_values("a", "b")
@@ -282,7 +280,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     replaced = hash.replace(b: 12)
 
     assert hash.key?("b")
-    assert !hash.key?(:a)
+    assert_not hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end
@@ -294,7 +292,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     replaced = hash.replace(HashByConversion.new(b: 12))
 
     assert hash.key?("b")
-    assert !hash.key?(:a)
+    assert_not hash.key?(:a)
     assert_equal 12, hash[:b]
     assert_same hash, replaced
   end
@@ -404,6 +402,12 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
 
     assert_equal({ "aa" => 1, "bb" => 2 }, hash)
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
+
+    hash = ActiveSupport::HashWithIndifferentAccess.new(@strings).transform_keys { |k| k.to_sym }
+
+    assert_equal(1, hash[:a])
+    assert_equal(1, hash["a"])
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, hash
   end
 
   def test_indifferent_transform_keys_bang
@@ -411,6 +415,13 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
     indifferent_strings.transform_keys! { |k| k * 2 }
 
     assert_equal({ "aa" => 1, "bb" => 2 }, indifferent_strings)
+    assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
+
+    indifferent_strings = ActiveSupport::HashWithIndifferentAccess.new(@strings)
+    indifferent_strings.transform_keys! { |k| k.to_sym }
+
+    assert_equal(1, indifferent_strings[:a])
+    assert_equal(1, indifferent_strings["a"])
     assert_instance_of ActiveSupport::HashWithIndifferentAccess, indifferent_strings
   end
 
@@ -562,7 +573,6 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   end
 
   def test_nested_dig_indifferent_access
-    skip if RUBY_VERSION < "2.3.0"
     data = { "this" => { "views" => 1234 } }.with_indifferent_access
     assert_equal 1234, data.dig(:this, :views)
   end
@@ -596,7 +606,7 @@ class HashWithIndifferentAccessTest < ActiveSupport::TestCase
   def test_assorted_keys_not_stringified
     original = { Object.new => 2, 1 => 2, [] => true }
     indiff = original.with_indifferent_access
-    assert(!indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
+    assert_not(indiff.keys.any? { |k| k.kind_of? String }, "A key was converted to a string!")
   end
 
   def test_deep_merge_on_indifferent_access

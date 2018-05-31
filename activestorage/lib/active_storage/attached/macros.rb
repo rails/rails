@@ -28,7 +28,7 @@ module ActiveStorage
     # If the +:dependent+ option isn't set, the attachment will be purged
     # (i.e. destroyed) whenever the record is destroyed.
     def has_one_attached(name, dependent: :purge_later)
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
+      generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
           @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
         end
@@ -38,13 +38,15 @@ module ActiveStorage
         end
       CODE
 
-      has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record
+      has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: false
       has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
       if dependent == :purge_later
         after_destroy_commit { public_send(name).purge_later }
+      else
+        before_destroy { public_send(name).detach }
       end
     end
 
@@ -73,7 +75,7 @@ module ActiveStorage
     # If the +:dependent+ option isn't set, all the attachments will be purged
     # (i.e. destroyed) whenever the record is destroyed.
     def has_many_attached(name, dependent: :purge_later)
-      class_eval <<-CODE, __FILE__, __LINE__ + 1
+      generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
           @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
         end
@@ -83,13 +85,25 @@ module ActiveStorage
         end
       CODE
 
-      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record
+      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: false do
+        def purge
+          each(&:purge)
+          reset
+        end
+
+        def purge_later
+          each(&:purge_later)
+          reset
+        end
+      end
       has_many :"#{name}_blobs", through: :"#{name}_attachments", class_name: "ActiveStorage::Blob", source: :blob
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
       if dependent == :purge_later
         after_destroy_commit { public_send(name).purge_later }
+      else
+        before_destroy { public_send(name).detach }
       end
     end
   end

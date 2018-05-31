@@ -31,6 +31,9 @@ module ActiveJob
 
       # I18n.locale to be used during the job.
       attr_accessor :locale
+
+      # Timezone to be used during the job.
+      attr_accessor :timezone
     end
 
     # These methods will be included into any Active Job object, adding
@@ -85,9 +88,10 @@ module ActiveJob
         "provider_job_id" => provider_job_id,
         "queue_name" => queue_name,
         "priority"   => priority,
-        "arguments"  => serialize_arguments(arguments),
+        "arguments"  => serialize_arguments_if_needed(arguments),
         "executions" => executions,
-        "locale"     => I18n.locale.to_s
+        "locale"     => I18n.locale.to_s,
+        "timezone"   => Time.zone.try(:name)
       }
     end
 
@@ -125,22 +129,35 @@ module ActiveJob
       self.serialized_arguments = job_data["arguments"]
       self.executions           = job_data["executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
+      self.timezone             = job_data["timezone"] || Time.zone.try(:name)
     end
 
     private
+      def serialize_arguments_if_needed(arguments)
+        if arguments_serialized?
+          @serialized_arguments
+        else
+          serialize_arguments(arguments)
+        end
+      end
+
       def deserialize_arguments_if_needed
-        if defined?(@serialized_arguments) && @serialized_arguments.present?
+        if arguments_serialized?
           @arguments = deserialize_arguments(@serialized_arguments)
           @serialized_arguments = nil
         end
       end
 
-      def serialize_arguments(serialized_args)
-        Arguments.serialize(serialized_args)
+      def serialize_arguments(arguments)
+        Arguments.serialize(arguments)
       end
 
       def deserialize_arguments(serialized_args)
         Arguments.deserialize(serialized_args)
+      end
+
+      def arguments_serialized?
+        defined?(@serialized_arguments) && @serialized_arguments
       end
   end
 end

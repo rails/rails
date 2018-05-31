@@ -9,7 +9,7 @@ class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
     %w(id name course_id).each do |name|
       column = Entrant.columns_hash[name]
-      assert !column.null, "#{name} column should be NOT NULL"
+      assert_not column.null, "#{name} column should be NOT NULL"
       assert_not column.default, "#{name} column should be DEFAULT 'nil'"
     end
   end

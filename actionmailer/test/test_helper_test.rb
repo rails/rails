@@ -69,6 +69,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_emails_with_enqueued_emails
+    assert_nothing_raised do
+      assert_emails 1 do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
   def test_repeated_assert_emails_calls
     assert_nothing_raised do
       assert_emails 1 do
@@ -103,6 +113,18 @@ class TestHelperMailerTest < ActionMailer::TestCase
         TestHelperMailer.test
       end
     end
+  end
+
+  def test_assert_no_emails_with_enqueued_emails
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_emails do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
   end
 
   def test_assert_emails_too_few_sent

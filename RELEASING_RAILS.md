@@ -14,14 +14,14 @@ Today is mostly coordination tasks. Here are the things you must do today:
 Do not release with a Red CI. You can find the CI status here:
 
 ```
-http://travis-ci.org/rails/rails
+https://travis-ci.org/rails/rails
 ```
 
 ### Is Sam Ruby happy? If not, make him happy.
 
 Sam Ruby keeps a [test suite](https://github.com/rubys/awdwr) that makes
 sure the code samples in his book
-([Agile Web Development with Rails](https://pragprog.com/titles/rails5/agile-web-development-with-rails-5th-edition))
+([Agile Web Development with Rails](https://pragprog.com/book/rails51/agile-web-development-with-rails-51))
 all work. These are valuable system tests
 for Rails. You can check the status of these tests here:
 
@@ -157,7 +157,7 @@ break existing applications.
 If you used Markdown format for your email, you can just paste it into the
 blog.
 
-* http://weblog.rubyonrails.org
+* https://weblog.rubyonrails.org
 
 ### Post the announcement to the Rails Twitter account.
 

@@ -101,6 +101,10 @@ module ActiveRecord
       end
       alias validated? validate?
 
+      def export_name_on_schema_dump?
+        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
+      end
+
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
         if to_table_ord
           self.to_table == to_table_ord.to_s
@@ -151,13 +155,8 @@ module ActiveRecord
         end
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-
-        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
-
       private
+        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
 
         def as_options(value)
           value.is_a?(Hash) ? value : {}
@@ -498,6 +497,9 @@ module ActiveRecord
     #     t.date
     #     t.binary
     #     t.boolean
+    #     t.foreign_key
+    #     t.json
+    #     t.virtual
     #     t.remove
     #     t.remove_references
     #     t.remove_belongs_to
@@ -662,19 +664,19 @@ module ActiveRecord
 
       # Adds a foreign key.
       #
-      # t.foreign_key(:authors)
+      #  t.foreign_key(:authors)
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args) # :nodoc:
+      def foreign_key(*args)
         @base.add_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.
       #
-      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args) # :nodoc:
+      def foreign_key_exists?(*args)
         @base.foreign_key_exists?(name, *args)
       end
     end

@@ -78,6 +78,47 @@ class String
     "#{self[0, stop]}#{omission}"
   end
 
+  # Truncates +text+ to at most <tt>bytesize</tt> bytes in length without
+  # breaking string encoding by splitting multibyte characters or breaking
+  # grapheme clusters ("perceptual characters") by truncating at combining
+  # characters.
+  #
+  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".size
+  #   => 20
+  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".bytesize
+  #   => 80
+  #   >> "🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪🔪".truncate_bytes(20)
+  #   => "🔪🔪🔪🔪…"
+  #
+  # The truncated text ends with the <tt>:omission</tt> string, defaulting
+  # to "…", for a total length not exceeding <tt>bytesize</tt>.
+  def truncate_bytes(truncate_at, omission: "…")
+    omission ||= ""
+
+    case
+    when bytesize <= truncate_at
+      dup
+    when omission.bytesize > truncate_at
+      raise ArgumentError, "Omission #{omission.inspect} is #{omission.bytesize}, larger than the truncation length of #{truncate_at} bytes"
+    when omission.bytesize == truncate_at
+      omission.dup
+    else
+      self.class.new.tap do |cut|
+        cut_at = truncate_at - omission.bytesize
+
+        scan(/\X/) do |grapheme|
+          if cut.bytesize + grapheme.bytesize <= cut_at
+            cut << grapheme
+          else
+            break
+          end
+        end
+
+        cut << omission
+      end
+    end
+  end
+
   # Truncates a given +text+ after a given number of words (<tt>words_count</tt>):
   #
   #   'Once upon a time in a world far far away'.truncate_words(4)

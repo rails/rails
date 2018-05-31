@@ -47,7 +47,7 @@ class AssociationsTest < ActiveRecord::TestCase
     ship = Ship.create!(name: "The good ship Dollypop")
     part = ship.parts.create!(name: "Mast")
     part.mark_for_destruction
-    assert ship.parts[0].marked_for_destruction?
+    assert_predicate ship.parts[0], :marked_for_destruction?
   end
 
   def test_loading_the_association_target_should_load_most_recent_attributes_for_child_records_marked_for_destruction
@@ -92,7 +92,7 @@ class AssociationsTest < ActiveRecord::TestCase
 
     firm.clients.reload
 
-    assert !firm.clients.empty?, "New firm should have reloaded client objects"
+    assert_not firm.clients.empty?, "New firm should have reloaded client objects"
     assert_equal 1, firm.clients.size, "New firm should have reloaded clients count"
   end
 
@@ -102,8 +102,8 @@ class AssociationsTest < ActiveRecord::TestCase
     has_many_reflections = [Tag.reflect_on_association(:taggings), Developer.reflect_on_association(:projects)]
     mixed_reflections = (belongs_to_reflections + has_many_reflections).uniq
     assert using_limitable_reflections.call(belongs_to_reflections), "Belong to associations are limitable"
-    assert !using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
-    assert !using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
+    assert_not using_limitable_reflections.call(has_many_reflections), "All has many style associations are not limitable"
+    assert_not using_limitable_reflections.call(mixed_reflections), "No collection associations (has many style) should pass"
   end
 
   def test_association_with_references
@@ -119,7 +119,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.posts << (post = Post.new(title: "New on Edge", body: "More cool stuff!"))
-    assert !david.posts.loaded?
+    assert_not_predicate david.posts, :loaded?
     assert_includes david.posts, post
   end
 
@@ -127,7 +127,7 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.categories << categories(:technology)
-    assert !david.categories.loaded?
+    assert_not_predicate david.categories, :loaded?
     assert_includes david.categories, categories(:technology)
   end
 
@@ -135,23 +135,23 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
 
     david.posts << (post = Post.new(title: "New on Edge", body: "More cool stuff!"))
-    assert !david.posts.loaded?
+    assert_not_predicate david.posts, :loaded?
     david.save
-    assert !david.posts.loaded?
+    assert_not_predicate david.posts, :loaded?
     assert_includes david.posts, post
   end
 
   def test_push_does_not_lose_additions_to_new_record
     josh = Author.new(name: "Josh")
     josh.posts << Post.new(title: "New on Edge", body: "More cool stuff!")
-    assert josh.posts.loaded?
+    assert_predicate josh.posts, :loaded?
     assert_equal 1, josh.posts.size
   end
 
   def test_append_behaves_like_push
     josh = Author.new(name: "Josh")
     josh.posts.append Post.new(title: "New on Edge", body: "More cool stuff!")
-    assert josh.posts.loaded?
+    assert_predicate josh.posts, :loaded?
     assert_equal 1, josh.posts.size
   end
 
@@ -163,22 +163,22 @@ class AssociationProxyTest < ActiveRecord::TestCase
   def test_save_on_parent_does_not_load_target
     david = developers(:david)
 
-    assert !david.projects.loaded?
+    assert_not_predicate david.projects, :loaded?
     david.update_columns(created_at: Time.now)
-    assert !david.projects.loaded?
+    assert_not_predicate david.projects, :loaded?
   end
 
   def test_load_does_load_target
     david = developers(:david)
 
-    assert !david.projects.loaded?
+    assert_not_predicate david.projects, :loaded?
     david.projects.load
-    assert david.projects.loaded?
+    assert_predicate david.projects, :loaded?
   end
 
   def test_inspect_does_not_reload_a_not_yet_loaded_target
     andreas = Developer.new name: "Andreas", log: "new developer added"
-    assert !andreas.audit_logs.loaded?
+    assert_not_predicate andreas.audit_logs, :loaded?
     assert_match(/message: "new developer added"/, andreas.audit_logs.inspect)
   end
 
@@ -248,14 +248,14 @@ class AssociationProxyTest < ActiveRecord::TestCase
   test "first! works on loaded associations" do
     david = authors(:david)
     assert_equal david.first_posts.first, david.first_posts.reload.first!
-    assert david.first_posts.loaded?
+    assert_predicate david.first_posts, :loaded?
     assert_no_queries { david.first_posts.first! }
   end
 
   def test_pluck_uses_loaded_target
     david = authors(:david)
     assert_equal david.first_posts.pluck(:title), david.first_posts.load.pluck(:title)
-    assert david.first_posts.loaded?
+    assert_predicate david.first_posts, :loaded?
     assert_no_queries { david.first_posts.pluck(:title) }
   end
 
@@ -263,9 +263,9 @@ class AssociationProxyTest < ActiveRecord::TestCase
     david = authors(:david)
     david.posts.reload
 
-    assert david.posts.loaded?
+    assert_predicate david.posts, :loaded?
     david.posts.reset
-    assert !david.posts.loaded?
+    assert_not_predicate david.posts, :loaded?
   end
 end
 

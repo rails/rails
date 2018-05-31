@@ -22,7 +22,7 @@ module ActionController
     end
   end
 
-  class ActionController::UrlGenerationError < ActionControllerError #:nodoc:
+  class UrlGenerationError < ActionControllerError #:nodoc:
   end
 
   class MethodNotAllowed < ActionControllerError #:nodoc:
@@ -49,5 +49,8 @@ module ActionController
   end
 
   class UnknownFormat < ActionControllerError #:nodoc:
+  end
+
+  class MissingExactTemplate < UnknownFormat #:nodoc:
   end
 end

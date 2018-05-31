@@ -3,8 +3,6 @@
 require "active_storage/log_subscriber"
 
 module ActiveStorage
-  class IntegrityError < StandardError; end
-
   # Abstract class serving as an interface for concrete services.
   #
   # The available services are:
@@ -70,6 +68,11 @@ module ActiveStorage
 
     # Return the content of the file at the +key+.
     def download(key)
+      raise NotImplementedError
+    end
+
+    # Return the partial content in the byte +range+ of the file at the +key+.
+    def download_chunk(key, range)
       raise NotImplementedError
     end
 

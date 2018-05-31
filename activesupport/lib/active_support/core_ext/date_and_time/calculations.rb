@@ -60,6 +60,16 @@ module DateAndTime
       !WEEKEND_DAYS.include?(wday)
     end
 
+    # Returns true if the date/time falls before <tt>date_or_time</tt>.
+    def before?(date_or_time)
+      self < date_or_time
+    end
+
+    # Returns true if the date/time falls after <tt>date_or_time</tt>.
+    def after?(date_or_time)
+      self > date_or_time
+    end
+
     # Returns a new date/time the specified number of days ago.
     def days_ago(days)
       advance(days: -days)

@@ -2,7 +2,6 @@
 
 require "tzinfo"
 require "concurrent/map"
-require "active_support/core_ext/object/blank"
 
 module ActiveSupport
   # The TimeZone class serves as a wrapper around TZInfo::Timezone instances.
@@ -268,16 +267,20 @@ module ActiveSupport
           country = TZInfo::Country.get(code)
           country.zone_identifiers.map do |tz_id|
             if MAPPING.value?(tz_id)
-              self[MAPPING.key(tz_id)]
+              MAPPING.inject([]) do |memo, (key, value)|
+                memo << self[key] if value == tz_id
+                memo
+              end
             else
               create(tz_id, nil, TZInfo::Timezone.new(tz_id))
             end
-          end.sort!
+          end.flatten(1).sort!
         end
 
         def zones_map
           @zones_map ||= MAPPING.each_with_object({}) do |(name, _), zones|
-            zones[name] = self[name]
+            timezone = self[name]
+            zones[name] = timezone if timezone
           end
         end
     end
@@ -351,8 +354,13 @@ module ActiveSupport
     #   Time.zone = 'Hawaii'        # => "Hawaii"
     #   Time.utc(2000).to_f         # => 946684800.0
     #   Time.zone.at(946684800.0)   # => Fri, 31 Dec 1999 14:00:00 HST -10:00
-    def at(secs)
-      Time.at(secs).utc.in_time_zone(self)
+    #
+    # A second argument can be supplied to specify sub-second precision.
+    #
+    #   Time.zone = 'Hawaii'                # => "Hawaii"
+    #   Time.at(946684800, 123456.789).nsec # => 123456789
+    def at(*args)
+      Time.at(*args).utc.in_time_zone(self)
     end
 
     # Method for creating new ActiveSupport::TimeWithZone instance in time zone

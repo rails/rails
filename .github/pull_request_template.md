@@ -16,6 +16,6 @@ CHANGELOG files by reviewers, please add the CHANGELOG entry at the top of the f
 
 Finally, if your pull request affects documentation or any non-code
 changes, guidelines for those changes are [available
-here](http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation)
+here](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html#contributing-to-the-rails-documentation)
 
 Thanks for contributing to Rails!

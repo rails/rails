@@ -48,7 +48,7 @@ For example, the index controller action of the `articles_controller.rb` will us
 The complete HTML returned to the client is composed of a combination of this ERB file, a layout template that wraps it, and all the partials that the view may reference. Within this guide you will find more detailed documentation about each of these three components.
 
 
-Templates, Partials and Layouts
+Templates, Partials, and Layouts
 -------------------------------
 
 As mentioned, the final HTML output is a composition of three Rails elements: `Templates`, `Partials` and `Layouts`.
@@ -62,7 +62,7 @@ Rails supports multiple template systems and uses a file extension to distinguis
 
 #### ERB
 
-Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops or blocks, and the `<%= %>` tags are used when you want output.
+Within an ERB template, Ruby code can be included using both `<% %>` and `<%= %>` tags. The `<% %>` tags are used to execute Ruby code that does not return anything, such as conditions, loops, or blocks, and the `<%= %>` tags are used when you want output.
 
 Consider the following loop for names:
 
@@ -760,7 +760,7 @@ time_ago_in_words(3.minutes.from_now)  # => 3 minutes
 
 #### time_select
 
-Returns a set of select tags (one for hour, minute and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
+Returns a set of select tags (one for hour, minute, and optionally second) pre-selected for accessing a specified time-based attribute. The selects are prepared for multi-parameter assignment to an Active Record object.
 
 ```ruby
 # Creates a time select tag that, when POSTed, will be stored in the order variable in the submitted attribute
@@ -1102,7 +1102,7 @@ Possible output:
 </optgroup>
 ```
 
-Note: Only the `optgroup` and `option` tags are returned, so you still have to wrap the output in an appropriate `select` tag.
+NOTE: Only the `optgroup` and `option` tags are returned, so you still have to wrap the output in an appropriate `select` tag.
 
 #### options_for_select
 
@@ -1113,7 +1113,7 @@ options_for_select([ "VISA", "MasterCard" ])
 # => <option>VISA</option> <option>MasterCard</option>
 ```
 
-Note: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
+NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
 
 #### options_from_collection_for_select
 
@@ -1130,7 +1130,7 @@ options_from_collection_for_select(@project.people, "id", "name")
 # => <option value="#{person.id}">#{person.name}</option>
 ```
 
-Note: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
+NOTE: Only the `option` tags are returned, you have to wrap this call in a regular HTML `select` tag.
 
 #### select
 
@@ -1267,8 +1267,8 @@ password_field_tag 'pass'
 Creates a radio button; use groups of radio buttons named the same to allow users to select from a group of options.
 
 ```ruby
-radio_button_tag 'gender', 'male'
-# => <input id="gender_male" name="gender" type="radio" value="male" />
+radio_button_tag 'favorite_color', 'maroon'
+# => <input id="favorite_color_maroon" name="favorite_color" type="radio" value="maroon" />
 ```
 
 #### select_tag

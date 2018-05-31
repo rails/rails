@@ -107,7 +107,7 @@ namespace :changelog do
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
       header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
       contents = header + current_contents
-      File.open(fname, "wb") { |f| f.write contents }
+      File.write(fname, contents)
     end
   end
 
@@ -118,7 +118,7 @@ namespace :changelog do
       fname = File.join fw, "CHANGELOG.md"
 
       contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
-      File.open(fname, "wb") { |f| f.write contents }
+      File.write(fname, contents)
     end
   end
 
@@ -247,6 +247,12 @@ task :announce do
 
     require "erb"
     template = File.read("../tasks/release_announcement_draft.erb")
-    puts ERB.new(template, nil, "<>").result(binding)
+
+    match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
+    if match && match[:version] >= "2.2.0" # Ruby 2.6+
+      puts ERB.new(template, trim_mode: "<>").result(binding)
+    else
+      puts ERB.new(template, nil, "<>").result(binding)
+    end
   end
 end

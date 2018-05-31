@@ -95,11 +95,9 @@ module Rails
     end
 
     def bin_when_updating
-      bin_yarn_exist = File.exist?("bin/yarn")
-
       bin
 
-      if options[:api] && !bin_yarn_exist
+      if options[:skip_yarn]
         remove_file "bin/yarn"
       end
     end
@@ -130,6 +128,8 @@ module Rails
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
 
+      @config_target_version = Rails.application.config.loaded_config_version || "5.0"
+
       config
 
       unless cookie_serializer_config_exist
@@ -144,6 +144,10 @@ module Rails
         template "config/storage.yml"
       end
 
+      if options[:skip_sprockets] && !assets_config_exist
+        remove_file "config/initializers/assets.rb"
+      end
+
       unless rack_cors_config_exist
         remove_file "config/initializers/cors.rb"
       end
@@ -151,10 +155,6 @@ module Rails
       if options[:api]
         unless cookie_serializer_config_exist
           remove_file "config/initializers/cookies_serializer.rb"
-        end
-
-        unless assets_config_exist
-          remove_file "config/initializers/assets.rb"
         end
 
         unless csp_config_exist
@@ -167,7 +167,7 @@ module Rails
       return if options[:pretend] || options[:dummy_app]
 
       require "rails/generators/rails/master_key/master_key_generator"
-      master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet])
+      master_key_generator = Rails::Generators::MasterKeyGenerator.new([], quiet: options[:quiet], force: options[:force])
       master_key_generator.add_master_key_file_silently
       master_key_generator.ignore_master_key_file_silently
     end
@@ -233,6 +233,10 @@ module Rails
     def vendor
       empty_directory_with_keep_file "vendor"
     end
+
+    def config_target_version
+      defined?(@config_target_version) ? @config_target_version : Rails::VERSION::STRING.to_f
+    end
   end
 
   module Generators
@@ -242,7 +246,7 @@ module Rails
     RESERVED_NAMES = %w[application destroy plugin runner test]
 
     class AppGenerator < AppBase # :nodoc:
-      WEBPACKS = %w( react vue angular elm )
+      WEBPACKS = %w( react vue angular elm stimulus )
 
       add_shared_options_for "application"
 
@@ -383,9 +387,13 @@ module Rails
         end
       end
 
-      def delete_application_layout_file_if_api_option
+      def delete_app_views_if_api_option
         if options[:api]
-          remove_file "app/views/layouts/application.html.erb"
+          if options[:skip_action_mailer]
+            remove_dir "app/views"
+          else
+            remove_file "app/views/layouts/application.html.erb"
+          end
         end
       end
 
@@ -449,7 +457,7 @@ module Rails
 
       def delete_new_framework_defaults
         unless options[:update]
-          remove_file "config/initializers/new_framework_defaults_5_2.rb"
+          remove_file "config/initializers/new_framework_defaults_6_0.rb"
         end
       end
 

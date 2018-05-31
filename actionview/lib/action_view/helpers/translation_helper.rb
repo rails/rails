@@ -59,11 +59,9 @@ module ActionView
       # they can provide HTML values for.
       def translate(key, options = {})
         options = options.dup
-        has_default = options.has_key?(:default)
-        remaining_defaults = Array(options.delete(:default)).compact
-
-        if has_default && !remaining_defaults.first.kind_of?(Symbol)
-          options[:default] = remaining_defaults
+        if options.has_key?(:default)
+          remaining_defaults = Array(options.delete(:default)).compact
+          options[:default] = remaining_defaults unless remaining_defaults.first.kind_of?(Symbol)
         end
 
         # If the user has explicitly decided to NOT raise errors, pass that option to I18n.
@@ -122,9 +120,12 @@ module ActionView
 
       private
         def scope_key_by_partial(key)
-          if key.to_s.first == "."
+          stringified_key = key.to_s
+          if stringified_key.first == "."
             if @virtual_path
-              @virtual_path.gsub(%r{/_?}, ".") + key.to_s
+              @_scope_key_by_partial_cache ||= {}
+              @_scope_key_by_partial_cache[@virtual_path] ||= @virtual_path.gsub(%r{/_?}, ".")
+              "#{@_scope_key_by_partial_cache[@virtual_path]}#{stringified_key}"
             else
               raise "Cannot use t(#{key.inspect}) shortcut because path is not available"
             end

@@ -3,8 +3,11 @@
 require "test_helper"
 require "stubs/test_server"
 require "active_support/core_ext/object/json"
+require "active_support/testing/method_call_assertions"
 
 class ActionCable::Connection::BaseTest < ActionCable::TestCase
+  include ActiveSupport::Testing::MethodCallAssertions
+
   class Connection < ActionCable::Connection::Base
     attr_reader :websocket, :subscriptions, :message_buffer, :connected
 
@@ -39,10 +42,10 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = open_connection
       connection.process
 
-      assert connection.websocket.possible?
+      assert_predicate connection.websocket, :possible?
 
       wait_for_async
-      assert connection.websocket.alive?
+      assert_predicate connection.websocket, :alive?
     end
   end
 
@@ -59,11 +62,12 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
     run_in_eventmachine do
       connection = open_connection
 
-      connection.websocket.expects(:transmit).with({ type: "welcome" }.to_json)
-      connection.message_buffer.expects(:process!)
-
-      connection.process
-      wait_for_async
+      assert_called_with(connection.websocket, :transmit, [{ type: "welcome" }.to_json]) do
+        assert_called(connection.message_buffer, :process!) do
+          connection.process
+          wait_for_async
+        end
+      end
 
       assert_equal [ connection ], @server.connections
       assert connection.connected
@@ -76,14 +80,14 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection.process
 
       # Setup the connection
-      connection.server.stubs(:timer).returns(true)
       connection.send :handle_open
       assert connection.connected
 
-      connection.subscriptions.expects(:unsubscribe_from_all)
-      connection.send :handle_close
+      assert_called(connection.subscriptions, :unsubscribe_from_all) do
+        connection.send :handle_close
+      end
 
-      assert ! connection.connected
+      assert_not connection.connected
       assert_equal [], @server.connections
     end
   end
@@ -95,7 +99,7 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
 
       statistics = connection.statistics
 
-      assert statistics[:identifier].blank?
+      assert_predicate statistics[:identifier], :blank?
       assert_kind_of Time, statistics[:started_at]
       assert_equal [], statistics[:subscriptions]
     end
@@ -106,8 +110,9 @@ class ActionCable::Connection::BaseTest < ActionCable::TestCase
       connection = open_connection
       connection.process
 
-      connection.websocket.expects(:close)
-      connection.close
+      assert_called(connection.websocket, :close) do
+        connection.close
+      end
     end
   end
 

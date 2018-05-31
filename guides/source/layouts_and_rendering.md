@@ -170,7 +170,7 @@ render a file, because Windows filenames do not have the same format as Unix fil
 
 #### Wrapping it up
 
-The above three ways of rendering (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually variants of the same action.
+The above three ways of rendering (rendering another template within the controller, rendering a template within another controller, and rendering an arbitrary file on the file system) are actually variants of the same action.
 
 In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
 
@@ -403,7 +403,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 511              | :network_authentication_required |
 
 NOTE:  If you try to render content along with a non-content status code
-(100-199, 204, 205 or 304), it will be dropped from the response.
+(100-199, 204, 205, or 304), it will be dropped from the response.
 
 ##### The `:formats` Option
 

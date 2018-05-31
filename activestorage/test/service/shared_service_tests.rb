@@ -51,13 +51,26 @@ module ActiveStorage::Service::SharedServiceTests
     end
 
     test "downloading in chunks" do
-      chunks = []
+      key = SecureRandom.base58(24)
+      expected_chunks = [ "a" * 5.megabytes, "b" ]
+      actual_chunks = []
 
-      @service.download(FIXTURE_KEY) do |chunk|
-        chunks << chunk
+      begin
+        @service.upload key, StringIO.new(expected_chunks.join)
+
+        @service.download key do |chunk|
+          actual_chunks << chunk
+        end
+
+        assert_equal expected_chunks, actual_chunks, "Downloaded chunks did not match uploaded data"
+      ensure
+        @service.delete key
       end
+    end
 
-      assert_equal [ FIXTURE_DATA ], chunks
+    test "downloading partially" do
+      assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19..21)
+      assert_equal "\x10\x00\x00", @service.download_chunk(FIXTURE_KEY, 19...22)
     end
 
     test "existing" do

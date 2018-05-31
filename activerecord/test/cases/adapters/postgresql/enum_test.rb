@@ -32,10 +32,10 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlEnum.columns_hash["current_mood"]
     assert_equal :enum, column.type
     assert_equal "mood", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlEnum.type_for_attribute("current_mood")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_enum_defaults
@@ -73,7 +73,7 @@ class PostgresqlEnumTest < ActiveRecord::PostgreSQLTestCase
     @connection.execute "INSERT INTO postgresql_enums VALUES (1, 'sad');"
     stderr_output = capture(:stderr) { PostgresqlEnum.first }
 
-    assert stderr_output.blank?
+    assert_predicate stderr_output, :blank?
   end
 
   def test_enum_type_cast

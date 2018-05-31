@@ -252,7 +252,7 @@ class DatabaseConnectedJsonEncodingTest < ActiveRecord::TestCase
     def @david.favorite_quote; "Constraints are liberating"; end
     json = @david.to_json(include: :posts, methods: :favorite_quote)
 
-    assert !@david.posts.first.respond_to?(:favorite_quote)
+    assert_not_respond_to @david.posts.first, :favorite_quote
     assert_match %r{"favorite_quote":"Constraints are liberating"}, json
     assert_equal 1, %r{"favorite_quote":}.match(json).size
   end

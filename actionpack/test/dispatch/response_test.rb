@@ -15,13 +15,13 @@ class ResponseTest < ActiveSupport::TestCase
       @response.await_commit
     }
     @response.commit!
-    assert @response.committed?
+    assert_predicate @response, :committed?
     assert t.join(0.5)
   end
 
   def test_stream_close
     @response.stream.close
-    assert @response.stream.closed?
+    assert_predicate @response.stream, :closed?
   end
 
   def test_stream_write
@@ -158,7 +158,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
+      assert_not headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
     end
   end
 
@@ -177,7 +177,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+      assert_not headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
@@ -191,7 +191,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "does not include Status header" do
     @response.status = "200 OK"
     _, headers, _ = @response.to_a
-    assert !headers.has_key?("Status")
+    assert_not headers.has_key?("Status")
   end
 
   test "response code" do
@@ -257,9 +257,9 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
-    assert resp.etag?
-    assert resp.weak_etag?
-    assert_not resp.strong_etag?
+    assert_predicate resp, :etag?
+    assert_predicate resp, :weak_etag?
+    assert_not_predicate resp, :strong_etag?
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
     assert_equal({ public: true }, resp.cache_control)
 
@@ -275,9 +275,9 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
-    assert resp.etag?
-    assert_not resp.weak_etag?
-    assert resp.strong_etag?
+    assert_predicate resp, :etag?
+    assert_not_predicate resp, :weak_etag?
+    assert_predicate resp, :strong_etag?
     assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
   end
 
@@ -356,7 +356,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "respond_to? accepts include_private" do
-    assert_not @response.respond_to?(:method_missing)
+    assert_not_respond_to @response, :method_missing
     assert @response.respond_to?(:method_missing, true)
   end
 

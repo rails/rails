@@ -2,8 +2,8 @@ language: ruby
 sudo: false
 
 cache:
-  bundler: true
   directories:
+    - vendor/bundle
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
     - node_modules
@@ -24,6 +24,7 @@ addons:
       - ffmpeg
       - mupdf
       - mupdf-tools
+      - poppler-utils
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -32,7 +33,7 @@ before_install:
   - "travis_retry gem install bundler"
   - "[ -f /tmp/beanstalkd-1.10/Makefile ] || (curl -L https://github.com/kr/beanstalkd/archive/v1.10.tar.gz | tar xz -C /tmp)"
   - "pushd /tmp/beanstalkd-1.10 && make && (./beanstalkd &); popd"
-  - "[[ -z $encrypted_8a915ebdd931_key && -z $encrypted_8a915ebdd931_iv ]] || openssl aes-256-cbc -K $encrypted_8a915ebdd931_key -iv $encrypted_8a915ebdd931_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
+  - "[[ -z $encrypted_0fb9444d0374_key && -z $encrypted_0fb9444d0374_iv ]] || openssl aes-256-cbc -K $encrypted_0fb9444d0374_key -iv $encrypted_0fb9444d0374_iv -in activestorage/test/service/configurations.yml.enc -out activestorage/test/service/configurations.yml -d"
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
@@ -60,35 +61,21 @@ env:
     - "GEM=ac:integration"
 
 rvm:
-  - 2.2.8
-  - 2.3.5
-  - 2.4.2
-  - 2.5.0
+  - 2.4.4
+  - 2.5.1
   - ruby-head
 
 matrix:
   include:
-    - rvm: 2.5.0
+    - rvm: 2.5.1
       env: "GEM=av:ujs"
-    - rvm: 2.2.8
+    - rvm: 2.4.4
       env: "GEM=aj:integration"
       services:
         - memcached
         - redis-server
         - rabbitmq
-    - rvm: 2.3.5
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.4.2
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.5.0
+    - rvm: 2.5.1
       env: "GEM=aj:integration"
       services:
         - memcached
@@ -100,30 +87,30 @@ matrix:
         - memcached
         - redis-server
         - rabbitmq
-    - rvm: 2.3.5
+    - rvm: 2.5.1
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
         mariadb: 10.2
-    - rvm: 2.3.5
+    - rvm: 2.5.1
       env:
         - "GEM=ar:sqlite3_mem"
-    - rvm: 2.3.5
+    - rvm: 2.5.1
       env:
         - "GEM=ar:postgresql POSTGRES=9.2"
       addons:
         postgresql: "9.2"
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=ap"
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
       jdk: oraclejdk8
       env:
         - "GEM=am,amo,aj"
   allow_failures:
     - rvm: ruby-head
-    - rvm: jruby-9.1.15.0
+    - rvm: jruby-head
     - env: "GEM=ac:integration"
   fast_finish: true
 

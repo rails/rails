@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/string/strip"
-
 module ActiveRecord
   module ConnectionAdapters
     class AbstractAdapter
@@ -17,9 +15,8 @@ module ActiveRecord
         end
 
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options, to: :@conn
-        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options,
+          to: :@conn, private: true
 
         private
 
@@ -66,7 +63,7 @@ module ActiveRecord
           end
 
           def visit_ForeignKeyDefinition(o)
-            sql = <<-SQL.strip_heredoc
+            sql = +<<~SQL
               CONSTRAINT #{quote_column_name(o.name)}
               FOREIGN KEY (#{quote_column_name(o.column)})
                 REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
@@ -133,7 +130,7 @@ module ActiveRecord
             when :cascade  then "ON #{action} CASCADE"
             when :restrict then "ON #{action} RESTRICT"
             else
-              raise ArgumentError, <<-MSG.strip_heredoc
+              raise ArgumentError, <<~MSG
                 '#{dependency}' is not supported for :on_update or :on_delete.
                 Supported values are: :nullify, :cascade, :restrict
               MSG

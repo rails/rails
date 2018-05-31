@@ -15,6 +15,7 @@ require "models/bulb"
 require "models/engine"
 require "models/wheel"
 require "models/treasure"
+require "models/frog"
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -69,8 +70,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { s2.destroy }
 
     assert s1.destroy
-    assert s1.frozen?
-    assert s1.destroyed?
+    assert_predicate s1, :frozen?
+    assert_predicate s1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { StringKeyObject.find("record1") }
   end
 
@@ -104,8 +105,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) { p2.destroy }
 
     assert p1.destroy
-    assert p1.frozen?
-    assert p1.destroyed?
+    assert_predicate p1, :frozen?
+    assert_predicate p1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(1) }
   end
 
@@ -194,6 +195,45 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_update_with_dirty_primary_key
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      person = Person.find(1)
+      person.id = 2
+      person.save!
+    end
+
+    person = Person.find(1)
+    person.id = 42
+    person.save!
+
+    assert Person.find(42)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_delete_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.delete
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_destroy_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.destroy
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
   def test_explicit_update_lock_column_raise_error
     person = Person.find(1)
 
@@ -201,7 +241,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
       person.first_name = "Douglas Adams"
       person.lock_version = 42
 
-      assert person.lock_version_changed?
+      assert_predicate person, :lock_version_changed?
 
       person.save
     end
@@ -415,7 +455,9 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 1, car.lock_version
 
     previously_car_updated_at = car.updated_at
-    car.wheels.first.update(size: 42)
+    travel(1.day) do
+      car.wheels.first.update(size: 42)
+    end
 
     assert_equal 1, car.reload.wheels_count
     assert_not_equal previously_car_updated_at, car.updated_at
@@ -440,16 +482,16 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_difference "car.wheels.count", -1  do
       car.reload.destroy
     end
-    assert car.destroyed?
+    assert_predicate car, :destroyed?
   end
 
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create! first_name: "Jon"
     p.treasures.create!
-    assert !p.treasures.empty?
+    assert_not_empty p.treasures
     p.destroy
-    assert p.treasures.empty?
-    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+    assert_empty p.treasures
+    assert_empty RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1")
   end
 
   def test_yaml_dumping_with_lock_column
@@ -519,7 +561,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
 
     t1.destroy
 
-    assert t1.destroyed?
+    assert_predicate t1, :destroyed?
   end
 
   def test_destroy_stale_object
@@ -532,7 +574,7 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
       stale_object.destroy!
     end
 
-    refute stale_object.destroyed?
+    assert_not_predicate stale_object, :destroyed?
   end
 
   private
@@ -609,6 +651,16 @@ unless in_memory_db?
       person.first_name = "fooman"
       assert_raises(RuntimeError) do
         person.lock!
+      end
+    end
+
+    def test_locking_in_after_save_callback
+      assert_nothing_raised do
+        frog = ::Frog.create(name: "Old Frog")
+        frog.name = "New Frog"
+        assert_not_deprecated do
+          frog.save!
+        end
       end
     end
 

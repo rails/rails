@@ -63,7 +63,7 @@ module FailureSafetyBehavior
     @cache.write("foo", "bar")
 
     emulating_unavailability do |cache|
-      assert !cache.exist?("foo")
+      assert_not cache.exist?("foo")
     end
   end
 

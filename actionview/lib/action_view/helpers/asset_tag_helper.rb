@@ -55,6 +55,8 @@ module ActionView
       #   that path.
       # * <tt>:skip_pipeline</tt>  - This option is used to bypass the asset pipeline
       #   when it is set to true.
+      # * <tt>:nonce<tt>  - When set to true, adds an automatic nonce value if
+      #   you have Content Security Policy enabled.
       #
       # ==== Examples
       #
@@ -79,6 +81,9 @@ module ActionView
       #
       #   javascript_include_tag "http://www.example.com/xmlhr.js"
       #   # => <script src="http://www.example.com/xmlhr.js"></script>
+      #
+      #   javascript_include_tag "http://www.example.com/xmlhr.js", nonce: true
+      #   # => <script src="http://www.example.com/xmlhr.js" nonce="..."></script>
       def javascript_include_tag(*sources)
         options = sources.extract_options!.stringify_keys
         path_options = options.extract!("protocol", "extname", "host", "skip_pipeline").symbolize_keys
@@ -90,6 +95,9 @@ module ActionView
           tag_options = {
             "src" => href
           }.merge!(options)
+          if tag_options["nonce"] == true
+            tag_options["nonce"] = content_security_policy_nonce
+          end
           content_tag("script".freeze, "", tag_options)
         }.join("\n").html_safe
 
@@ -105,7 +113,7 @@ module ActionView
       # to "screen", so you must explicitly set it to "all" for the stylesheet(s) to
       # apply to all media types.
       #
-      # If the server supports Early Hints header links for these assets  will be
+      # If the server supports Early Hints header links for these assets will be
       # automatically pushed.
       #
       #   stylesheet_link_tag "style"
@@ -133,7 +141,7 @@ module ActionView
 
         sources_tags = sources.uniq.map { |source|
           href = path_to_stylesheet(source, path_options)
-          early_hints_links << "<#{href}>; rel=preload; as=stylesheet"
+          early_hints_links << "<#{href}>; rel=preload; as=style"
           tag_options = {
             "rel" => "stylesheet",
             "media" => "screen",
@@ -325,9 +333,9 @@ module ActionView
       #
       #   image_tag(user.avatar)
       #   # => <img src="/rails/active_storage/blobs/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize: "100x100"))
+      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]))
       #   # => <img src="/rails/active_storage/variants/.../tiger.jpg" />
-      #   image_tag(user.avatar.variant(resize: "100x100"), size: '100')
+      #   image_tag(user.avatar.variant(resize_to_fit: [100, 100]), size: '100')
       #   # => <img width="100" height="100" src="/rails/active_storage/variants/.../tiger.jpg" />
       def image_tag(source, options = {})
         options = options.symbolize_keys

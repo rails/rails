@@ -2,7 +2,6 @@
 
 require "fileutils"
 require "digest/md5"
-require "active_support/core_ext/string/strip"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
@@ -300,7 +299,7 @@ module Rails
       def gem_for_database
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "mysql"          then ["mysql2", ["~> 0.4.4"]]
+        when "mysql"          then ["mysql2", [">= 0.4.4", "< 0.6.0"]]
         when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
@@ -441,7 +440,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev]
+        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
       end
 
       def os_supports_listen_out_of_the_box?

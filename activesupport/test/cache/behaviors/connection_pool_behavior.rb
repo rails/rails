@@ -2,12 +2,14 @@
 
 module ConnectionPoolBehavior
   def test_connection_pool
+    Thread.report_on_exception, original_report_on_exception = false, Thread.report_on_exception
+
+    threads = []
+
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store, pool_size: 2, pool_timeout: 1)
+        cache = ActiveSupport::Cache.lookup_store(store, { pool_size: 2, pool_timeout: 1 }.merge(store_options))
         cache.clear
-
-        threads = []
 
         assert_raises Timeout::Error do
           # One of the three threads will fail in 1 second because our pool size
@@ -24,15 +26,17 @@ module ConnectionPoolBehavior
         threads.each(&:kill)
       end
     end
+  ensure
+    Thread.report_on_exception = original_report_on_exception
   end
 
   def test_no_connection_pool
+    threads = []
+
     emulating_latency do
       begin
-        cache = ActiveSupport::Cache.lookup_store(store)
+        cache = ActiveSupport::Cache.lookup_store(store, store_options)
         cache.clear
-
-        threads = []
 
         assert_nothing_raised do
           # Default connection pool size is 5, assuming 10 will make sure that
@@ -50,4 +54,7 @@ module ConnectionPoolBehavior
       end
     end
   end
+
+  private
+    def store_options; {}; end
 end

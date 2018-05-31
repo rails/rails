@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveRecord
+  # :stopdoc:
   module ConnectionAdapters
     class PostgreSQLTypeMetadata < DelegateClass(SqlTypeMetadata)
       undef to_yaml if method_defined?(:to_yaml)

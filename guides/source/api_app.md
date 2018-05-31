@@ -24,7 +24,7 @@ With the advent of client-side frameworks, more developers are using Rails to
 build a back-end that is shared between their web application and other native
 applications.
 
-For example, Twitter uses its [public API](https://dev.twitter.com) in its web
+For example, Twitter uses its [public API](https://developer.twitter.com/) in its web
 application, which is built as a static site that consumes JSON resources.
 
 Instead of using Rails to generate HTML that communicates with the server
@@ -98,7 +98,7 @@ Handled at the Action Pack layer:
 - Header and Redirection Responses: `head :no_content` and
   `redirect_to user_url(current_user)` come in handy. Sure, you could manually
   add the response headers, but why?
-- Caching: Rails provides page, action and fragment caching. Fragment caching
+- Caching: Rails provides page, action, and fragment caching. Fragment caching
   is especially helpful when building up a nested JSON object.
 - Basic, Digest, and Token Authentication: Rails comes with out-of-the-box support
   for three kinds of HTTP authentication.
@@ -106,7 +106,7 @@ Handled at the Action Pack layer:
   handlers for a variety of events, such as action processing, sending a file or
   data, redirection, and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
-  the controller, action, parameters, request format, request method and the
+  the controller, action, parameters, request format, request method, and the
   request's full path).
 - Generators: It is often handy to generate a resource and get your model,
   controller, test stubs, and routes created for you in a single command for
@@ -148,7 +148,7 @@ This will do three main things for you:
   `ActionController::Base`. As with middleware, this will leave out any Action
   Controller modules that provide functionalities primarily used by browser
   applications.
-- Configure the generators to skip generating views, helpers and assets when
+- Configure the generators to skip generating views, helpers, and assets when
   you generate a new resource.
 
 ### Changing an existing application
@@ -375,7 +375,6 @@ controller modules by default:
 - `ActionController::ConditionalGet`: Support for `stale?`.
 - `ActionController::BasicImplicitRender`: Makes sure to return an empty response, if there isn't an explicit one.
 - `ActionController::StrongParameters`: Support for parameters white-listing in combination with Active Model mass assignment.
-- `ActionController::ForceSSL`: Support for `force_ssl`.
 - `ActionController::DataStreaming`: Support for `send_file` and `send_data`.
 - `AbstractController::Callbacks`: Support for `before_action` and
   similar helpers.
@@ -413,7 +412,7 @@ Some common modules you might want to add:
 
 - `AbstractController::Translation`: Support for the `l` and `t` localization
   and translation methods.
-- Support for basic, digest or token HTTP authentication:
+- Support for basic, digest, or token HTTP authentication:
   * `ActionController::HttpAuthentication::Basic::ControllerMethods`,
   * `ActionController::HttpAuthentication::Digest::ControllerMethods`,
   * `ActionController::HttpAuthentication::Token::ControllerMethods`

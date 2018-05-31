@@ -101,7 +101,7 @@ module ApplicationTests
           task :notes_custom do
             tags = 'TODO|FIXME'
             opts = { dirs: %w(lib test), tag: true }
-            SourceAnnotationExtractor.enumerate(tags, opts)
+            Rails::SourceAnnotationExtractor.enumerate(tags, opts)
           end
         EOS
 

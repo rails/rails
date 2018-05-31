@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
@@ -375,7 +374,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        Array.wrap(value).each do |v|
+        Array.wrap(value).flatten.each do |v|
           v.permit! if v.respond_to? :permit!
         end
       end
@@ -561,12 +560,14 @@ module ActionController
     # Returns a parameter for the given +key+. If the +key+
     # can't be found, there are several options: With no other arguments,
     # it will raise an <tt>ActionController::ParameterMissing</tt> error;
-    # if more arguments are given, then that will be returned; if a block
+    # if a second argument is given, then that is returned (converted to an
+    # instance of ActionController::Parameters if possible); if a block
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
+    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
@@ -581,19 +582,18 @@ module ActionController
       )
     end
 
-    if Hash.method_defined?(:dig)
-      # Extracts the nested parameter from the given +keys+ by calling +dig+
-      # at each step. Returns +nil+ if any intermediate step is +nil+.
-      #
-      #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
-      #   params.dig(:foo, :bar, :baz) # => 1
-      #   params.dig(:foo, :zot, :xyz) # => nil
-      #
-      #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      #   params2.dig(:foo, 1) # => 11
-      def dig(*keys)
-        convert_value_to_parameters(@parameters.dig(*keys))
-      end
+    # Extracts the nested parameter from the given +keys+ by calling +dig+
+    # at each step. Returns +nil+ if any intermediate step is +nil+.
+    #
+    #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+    #   params.dig(:foo, :bar, :baz) # => 1
+    #   params.dig(:foo, :zot, :xyz) # => nil
+    #
+    #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+    #   params2.dig(:foo, 1) # => 11
+    def dig(*keys)
+      convert_hashes_to_parameters(keys.first, @parameters[keys.first])
+      @parameters.dig(*keys)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that

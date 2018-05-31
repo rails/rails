@@ -611,7 +611,7 @@ module ActionDispatch
           end
 
           raise ArgumentError, "A rack application must be specified" unless app.respond_to?(:call)
-          raise ArgumentError, <<-MSG.strip_heredoc unless path
+          raise ArgumentError, <<~MSG unless path
             Must be called with mount point
 
               mount SomeRackApp, at: "some_route"
@@ -664,6 +664,7 @@ module ActionDispatch
           def define_generate_prefix(app, name)
             _route = @set.named_routes.get name
             _routes = @set
+            _url_helpers = @set.url_helpers
 
             script_namer = ->(options) do
               prefix_options = options.slice(*_route.segment_keys)
@@ -675,7 +676,7 @@ module ActionDispatch
 
               # We must actually delete prefix segment keys to avoid passing them to next url_for.
               _route.segment_keys.each { |k| options.delete(k) }
-              _routes.url_helpers.send("#{name}_path", prefix_options)
+              _url_helpers.send("#{name}_path", prefix_options)
             end
 
             app.routes.define_mounted_helper(name, script_namer)

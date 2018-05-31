@@ -12,7 +12,6 @@ require "rake"
   middleware
   misc
   restart
-  routes
   tmp
   yarn
 ).tap { |arr|

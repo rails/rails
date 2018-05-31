@@ -119,11 +119,11 @@ module ActiveRecord
         end
       end
 
-      def migrations_paths
+      def migrations_paths # :nodoc:
         @config[:migrations_paths] || Migrator.migrations_paths
       end
 
-      def migration_context
+      def migration_context # :nodoc:
         MigrationContext.new(migrations_paths)
       end
 
@@ -136,6 +136,10 @@ module ActiveRecord
 
         def <=>(version_string)
           @version <=> version_string.split(".").map(&:to_i)
+        end
+
+        def to_s
+          @version.join(".")
         end
       end
 
@@ -320,9 +324,15 @@ module ActiveRecord
       def supports_multi_insert?
         true
       end
+      deprecate :supports_multi_insert?
 
       # Does this adapter support virtual columns?
       def supports_virtual_columns?
+        false
+      end
+
+      # Does this adapter support foreign/external tables?
+      def supports_foreign_tables?
         false
       end
 

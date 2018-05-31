@@ -20,7 +20,7 @@ module ActiveRecord
         b = Book.create(name: "my \x00 book")
         b.reload
         assert_equal "my \x00 book", b.name
-        b.update_attributes(name: "my other \x00 book")
+        b.update(name: "my other \x00 book")
         b.reload
         assert_equal "my other \x00 book", b.name
       end
@@ -78,13 +78,13 @@ module ActiveRecord
       idx_name = "accounts_idx"
 
       indexes = @connection.indexes("accounts")
-      assert indexes.empty?
+      assert_empty indexes
 
       @connection.add_index :accounts, :firm_id, name: idx_name
       indexes = @connection.indexes("accounts")
       assert_equal "accounts", indexes.first.table
       assert_equal idx_name, indexes.first.name
-      assert !indexes.first.unique
+      assert_not indexes.first.unique
       assert_equal ["firm_id"], indexes.first.columns
     ensure
       @connection.remove_index(:accounts, name: idx_name) rescue nil
@@ -295,6 +295,10 @@ module ActiveRecord
         assert_equal "ы", error.message
       end
     end
+
+    def test_supports_multi_insert_is_deprecated
+      assert_deprecated { @connection.supports_multi_insert? }
+    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase
@@ -368,16 +372,16 @@ module ActiveRecord
     unless in_memory_db?
       test "transaction state is reset after a reconnect" do
         @connection.begin_transaction
-        assert @connection.transaction_open?
+        assert_predicate @connection, :transaction_open?
         @connection.reconnect!
-        assert !@connection.transaction_open?
+        assert_not_predicate @connection, :transaction_open?
       end
 
       test "transaction state is reset after a disconnect" do
         @connection.begin_transaction
-        assert @connection.transaction_open?
+        assert_predicate @connection, :transaction_open?
         @connection.disconnect!
-        assert !@connection.transaction_open?
+        assert_not_predicate @connection, :transaction_open?
       end
     end
 
