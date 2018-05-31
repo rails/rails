@@ -20,7 +20,7 @@
         %i( title body ).index_with(nil)
         # => { title: nil, body: nil }
 
-    Closely linked with its brethen `index_by`.
+    Closely linked with `index_by`, which creates a hash where the keys are extracted from a block.
 
     *Kasper Timm Hansen*
 
