@@ -96,11 +96,17 @@ module ActionCable::StreamTests
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.pubsub.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc))
 
         channel = ChatChannel.new connection, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
+        wait_for_async
+
+        pubsub_call = channel.pubsub.class.class_variable_get "@@subscribe_called"
+
+        assert_equal "action_cable:stream_tests:chat:Room#1-Campfire", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+        assert_instance_of Proc, pubsub_call[:success_callback]
       end
     end
 
