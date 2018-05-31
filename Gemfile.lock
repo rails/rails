@@ -230,7 +230,7 @@ GEM
       loofah (~> 2.2, >= 2.2.2)
     rake (12.3.1)
     rb-fsevent (0.10.3)
-    rdoc (6.0.3)
+    rdoc (6.0.4)
     redcarpet (3.2.3)
     redis (3.3.5)
     redis-namespace (1.6.0)
