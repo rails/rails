@@ -11,7 +11,6 @@ module ActiveRecord
     included do
       class_attribute :_reflections, instance_writer: false, default: {}
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
-      class_attribute :attachment_reflections, instance_writer: false, default: {}
     end
 
     def self.create(macro, name, scope, options, ar)
@@ -29,10 +28,6 @@ module ActiveRecord
         HasOneReflection
       when :belongs_to
         BelongsToReflection
-      when :has_one_attached
-        HasOneAttachedReflection
-      when :has_many_attached
-        HasManyAttachedReflection
       else
         raise "Unsupported Macro: #{macro}"
       end
@@ -48,18 +43,14 @@ module ActiveRecord
       ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
-    def self.add_attachment_reflection(ar, name, reflection)
-      ar.attachment_reflections.merge!(name.to_s => reflection)
-    end
-
     # \Reflection enables the ability to examine the associations and aggregations of
     # Active Record classes and objects. This information, for example,
     # can be used in a form builder that takes an Active Record object
     # and creates input fields for all of the attributes depending on their type
     # and displays the associations to other objects.
     #
-    # MacroReflection class has info for the AggregateReflection and
-    # AssociationReflection classes.
+    # MacroReflection class has info for AggregateReflection and AssociationReflection
+    # classes.
     module ClassMethods
       # Returns an array of AggregateReflection objects for all the aggregations in the class.
       def reflect_on_all_aggregations
@@ -72,21 +63,6 @@ module ActiveRecord
       #
       def reflect_on_aggregation(aggregation)
         aggregate_reflections[aggregation.to_s]
-      end
-
-      # Returns an array of reflection objects for all the attachments in the
-      # class.
-      def reflect_on_all_attachments
-        attachment_reflections.values
-      end
-
-      # Returns the reflection object for the named +attachment+.
-      #
-      #    User.reflect_on_attachment(:avatar)
-      #    # => the avatar reflection
-      #
-      def reflect_on_attachment(attachment)
-        attachment_reflections[attachment.to_s]
       end
 
       # Returns a Hash of name of the reflection as the key and an AssociationReflection as the value.
@@ -161,8 +137,6 @@ module ActiveRecord
     #         HasOneReflection
     #         BelongsToReflection
     #         HasAndBelongsToManyReflection
-    #       HasOneAttachedReflection
-    #       HasManyAttachedReflection
     #     ThroughReflection
     #     PolymorphicReflection
     #     RuntimeReflection
@@ -436,22 +410,6 @@ module ActiveRecord
       def mapping
         mapping = options[:mapping] || [name, name]
         mapping.first.is_a?(Array) ? mapping : [mapping]
-      end
-    end
-
-    # Holds all the metadata about a has_one_attached attachment as it was
-    # specified in the Active Record class.
-    class HasOneAttachedReflection < MacroReflection #:nodoc:
-      def macro
-        :has_one_attached
-      end
-    end
-
-    # Holds all the metadata about a has_many_attached attachment as it was
-    # specified in the Active Record class.
-    class HasManyAttachedReflection < MacroReflection #:nodoc:
-      def macro
-        :has_many_attached
       end
     end
 

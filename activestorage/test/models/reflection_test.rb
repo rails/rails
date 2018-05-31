@@ -6,8 +6,8 @@ class ActiveStorage::ReflectionTest < ActiveSupport::TestCase
   test "allows reflecting for all attachment" do
     expected_classes =
       User.reflect_on_all_attachments.all? do |reflection|
-        reflection.is_a?(ActiveRecord::Reflection::HasOneAttachedReflection) ||
-          reflection.is_a?(ActiveRecord::Reflection::HasManyAttachedReflection)
+        reflection.is_a?(ActiveStorage::Reflection::HasOneAttachedReflection) ||
+          reflection.is_a?(ActiveStorage::Reflection::HasManyAttachedReflection)
       end
 
     assert expected_classes

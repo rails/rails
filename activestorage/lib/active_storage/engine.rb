@@ -10,6 +10,8 @@ require "active_storage/previewer/video_previewer"
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
 
+require "active_storage/reflection"
+
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
@@ -93,6 +95,13 @@ module ActiveStorage
               raise e, "Cannot load `Rails.config.active_storage.service`:\n#{e.message}", e.backtrace
             end
         end
+      end
+    end
+
+    initializer "active_storage.reflection" do
+      ActiveSupport.on_load(:active_record) do
+        include Reflection::ActiveRecordExtensions
+        ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
   end
