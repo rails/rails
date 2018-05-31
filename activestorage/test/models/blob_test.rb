@@ -89,7 +89,6 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
       blob.open do |file|
         assert file.binmode?
         assert_equal 0, file.pos
-        byebug
         assert File.basename(file.path).starts_with?("ActiveStorage-#{blob.id}-")
         assert file.path.ends_with?(".jpg")
         assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
