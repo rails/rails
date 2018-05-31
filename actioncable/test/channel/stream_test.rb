@@ -2,6 +2,7 @@
 
 require "test_helper"
 require "active_support/testing/method_call_assertions"
+require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 
@@ -54,40 +55,58 @@ module ActionCable::StreamTests
     test "streaming start and stop" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.pubsub.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc))
-        channel = ChatChannel.new connection, "{id: 1}", id: 1
-        channel.subscribe_to_channel
+        pubsub = Minitest::Mock.new connection.pubsub
 
-        wait_for_async
+        pubsub.expect(:subscribe, nil, ["test_room_1", Proc, Proc])
+        pubsub.expect(:unsubscribe, nil, ["test_room_1", Proc])
 
-        connection.pubsub.expects(:unsubscribe)
-        channel.unsubscribe_from_channel
+        connection.stub(:pubsub, pubsub) do
+          channel = ChatChannel.new connection, "{id: 1}", id: 1
+          channel.subscribe_to_channel
+
+          wait_for_async
+          channel.unsubscribe_from_channel
+        end
+
+        assert pubsub.verify
       end
     end
 
     test "stream from non-string channel" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.pubsub.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc))
+        pubsub = Minitest::Mock.new connection.pubsub
 
-        channel = SymbolChannel.new connection, ""
-        channel.subscribe_to_channel
+        pubsub.expect(:subscribe, nil, ["channel", Proc, Proc])
+        pubsub.expect(:unsubscribe, nil, ["channel", Proc])
 
-        wait_for_async
+        connection.stub(:pubsub, pubsub) do
+          channel = SymbolChannel.new connection, ""
+          channel.subscribe_to_channel
 
-        connection.pubsub.expects(:unsubscribe)
-        channel.unsubscribe_from_channel
+          wait_for_async
+
+          channel.unsubscribe_from_channel
+        end
+
+        assert pubsub.verify
       end
     end
 
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.pubsub.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc))
 
         channel = ChatChannel.new connection, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
+        wait_for_async
+
+        pubsub_call = channel.pubsub.class.class_variable_get "@@subscribe_called"
+
+        assert_equal "action_cable:stream_tests:chat:Room#1-Campfire", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+        assert_instance_of Proc, pubsub_call[:success_callback]
       end
     end
 

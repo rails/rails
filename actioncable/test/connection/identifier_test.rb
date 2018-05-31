@@ -30,13 +30,16 @@ class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
     run_in_eventmachine do
       server = TestServer.new
 
-      server.pubsub.expects(:subscribe)
-        .with("action_cable/User#lifo", kind_of(Proc))
-      server.pubsub.expects(:unsubscribe)
-        .with("action_cable/User#lifo", kind_of(Proc))
-
       open_connection(server)
       close_connection
+      wait_for_async
+
+      %w[subscribe unsubscribe].each do |method|
+        pubsub_call = server.pubsub.class.class_variable_get "@@#{method}_called"
+
+        assert_equal "action_cable/User#lifo", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+      end
     end
   end
 
