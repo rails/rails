@@ -275,7 +275,7 @@ module ActionController #:nodoc:
 
       # Check for cross-origin JavaScript responses.
       def non_xhr_javascript_response? # :doc:
-        content_type =~ %r(\A(text|application)/javascript) && !request.xhr?
+        content_type =~ %r(\A(?:text|application)/javascript) && !request.xhr?
       end
 
       AUTHENTICITY_TOKEN_LENGTH = 32
