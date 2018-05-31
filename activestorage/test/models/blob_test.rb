@@ -85,11 +85,15 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   end
 
   test "open with integrity" do
-    create_file_blob(filename: "racecar.jpg").open do |file|
-      assert file.binmode?
-      assert_equal 0, file.pos
-      assert_match(/\.jpg\z/, file.path)
-      assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+    create_file_blob(filename: "racecar.jpg").tap do |blob|
+      blob.open do |file|
+        assert file.binmode?
+        assert_equal 0, file.pos
+        byebug
+        assert File.basename(file.path).starts_with?("ActiveStorage-#{blob.id}-")
+        assert file.path.ends_with?(".jpg")
+        assert_equal file_fixture("racecar.jpg").binread, file.read, "Expected downloaded file to match fixture file"
+      end
     end
   end
 

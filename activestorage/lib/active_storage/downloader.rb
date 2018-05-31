@@ -19,7 +19,7 @@ module ActiveStorage
       attr_reader :blob, :tempdir
 
       def open_tempfile
-        file = Tempfile.open([ "ActiveStorage", tempfile_extension_with_delimiter ], tempdir)
+        file = Tempfile.open([ "ActiveStorage-#{blob.id}-", blob.filename.extension_with_delimiter ], tempdir)
 
         begin
           yield file
@@ -39,10 +39,6 @@ module ActiveStorage
         unless Digest::MD5.file(file).base64digest == blob.checksum
           raise ActiveStorage::IntegrityError
         end
-      end
-
-      def tempfile_extension_with_delimiter
-        blob.filename.extension_with_delimiter
       end
   end
 end
