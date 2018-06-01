@@ -18,21 +18,22 @@ module ActiveStorage
       end
     end
 
-    module ReflectionExtension
-      def reflection_class_for(macro)
-        case macro
-        when :has_one_attached
-          HasOneAttachedReflection
-        when :has_many_attached
-          HasManyAttachedReflection
-        else
-          super
-        end
-      end
-
+    module ReflectionExtension # :nodoc:
       def add_attachment_reflection(ar, name, reflection)
         ar.attachment_reflections.merge!(name.to_s => reflection)
       end
+
+      private
+        def reflection_class_for(macro)
+          case macro
+          when :has_one_attached
+            HasOneAttachedReflection
+          when :has_many_attached
+            HasManyAttachedReflection
+          else
+            super
+          end
+        end
     end
 
     module ActiveRecordExtensions
