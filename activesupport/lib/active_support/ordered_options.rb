@@ -27,9 +27,6 @@ module ActiveSupport
   #   h.dog! # => raises KeyError: :dog is blank
   #
   class OrderedOptions < Hash
-    alias_method :_get, :[] # preserve the original #[] method
-    protected :_get # make it protected
-
     def []=(key, value)
       super(key.to_sym, value)
     end
@@ -68,11 +65,8 @@ module ActiveSupport
   #   h.boy  # => 'John'
   class InheritableOptions < OrderedOptions
     def initialize(parent = nil)
-      if parent.kind_of?(OrderedOptions)
-        # use the faster _get when dealing with OrderedOptions
-        super() { |h, k| parent._get(k) }
-      elsif parent
-        super() { |h, k| parent[k] }
+      if parent
+        super() { |h,k| parent[k] }
       else
         super()
       end

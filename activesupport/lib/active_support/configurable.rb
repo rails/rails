@@ -20,7 +20,7 @@ module ActiveSupport
       def self.compile_methods!(keys)
         keys.reject { |m| method_defined?(m) }.each do |key|
           class_eval <<-RUBY, __FILE__, __LINE__ + 1
-            def #{key}; _get(#{key.inspect}); end
+            def #{key}; self[#{key.inspect}]; end
           RUBY
         end
       end
