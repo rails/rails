@@ -1,3 +1,7 @@
+*   Bump minimum SQLite version to 3.8
+
+    *Yasuo Honda*
+
 *   Fix parent record should not get saved with duplicate children records.
 
     Fixes #32940.
