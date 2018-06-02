@@ -2,27 +2,6 @@
 
 module ActiveRecord
   module Tasks # :nodoc:
-    CONFIG_NON_STRING_WHITELIST = ['timeout', 'pool']
-    def verify_configuration!
-      @configuration.all? do |key, value|
-        next if CONFIG_NON_STRING_WHITELIST.include?(key)
-        value.class == String
-      end
-    end
-
-    # def verify_database_name_first_character
-    #   if @configuration["database"][0] =~ /[0-9]/
-    #     msg = "Invalid configuration. Your database name in database.yml must not begin with a number."
-    #     fail msg
-    #   end
-    # end
-    #
-    # def verify_database_name_class
-    #   unless @configuration["database"].class == String
-    #     msg = "Invalid configuration. Your database name in database.yml must be of class String."
-    #     fail msg
-    #   end
-    # end
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
@@ -72,6 +51,7 @@ module ActiveRecord
       attr_accessor :database_configuration
 
       LOCAL_HOSTS = ["127.0.0.1", "localhost"]
+      CONFIGURATION_INTEGER_WHITELIST = ["timeout", "pool", "port"]
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
@@ -256,6 +236,7 @@ module ActiveRecord
 
       def structure_dump(*arguments)
         configuration = arguments.first
+        verify_configuration!(configuration)
         filename = arguments.delete_at 1
         class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
       end
@@ -380,6 +361,19 @@ module ActiveRecord
 
         def local_database?(configuration)
           configuration["host"].blank? || LOCAL_HOSTS.include?(configuration["host"])
+        end
+
+        def verify_configuration!(configuration)
+          unless valid_configuration?(configuration)
+            msg = "Invalid database configuration. All values must be of class String except: #{CONFIGURATION_INTEGER_WHITELIST.join(', ')}."
+            fail msg
+          end
+        end
+
+        def valid_configuration?(configuration)
+          configuration.all? do |key, value|
+            value.is_a?(String) || value.is_a?(Symbol) || CONFIGURATION_INTEGER_WHITELIST.include?(key)
+          end
         end
     end
   end

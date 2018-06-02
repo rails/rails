@@ -5,8 +5,6 @@ require "tempfile"
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
-      include ActiveRecord::Tasks
-      
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1".freeze
       SQL_COMMENT_BEGIN = "--".freeze
@@ -16,7 +14,6 @@ module ActiveRecord
 
       def initialize(configuration)
         @configuration = configuration
-        verify_configuration!
       end
 
       def create(master_established = false)

@@ -232,6 +232,38 @@ if current_adapter?(:Mysql2Adapter)
         end
       end
 
+      def test_database_name_integer
+        filename = "awesome-file.sql"
+        @configuration.merge!({
+          "database" => 123456,
+          "timeout" => 5,
+          "pool" => 5
+        })
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        }
+        white_list = ActiveRecord::Tasks::DatabaseTasks::CONFIGURATION_INTEGER_WHITELIST
+        assert_match(/^Invalid database configuration. All values must be of class String except: #{white_list.join(', ')}.$/, e.message)
+      end
+
+      def test_database_name_string_integer
+        filename = "awesome-file.sql"
+        db_name = "123456"
+        @configuration.merge!({
+          "database" => db_name,
+          "timeout" => 5,
+          "pool" => 5
+        })
+        assert_called_with(
+          Kernel,
+          :system,
+          ["mysqldump", "--result-file", filename, "--no-data", "--routines", "--skip-comments", db_name],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+        end
+      end
+
       def test_structure_dump_with_extra_flags
         filename = "awesome-file.sql"
         expected_command = ["mysqldump", "--noop", "--result-file", filename, "--no-data", "--routines", "--skip-comments", "test-db"]

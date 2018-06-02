@@ -235,21 +235,34 @@ if current_adapter?(:PostgreSQLAdapter)
         FileUtils.rm_f(@filename)
       end
 
-      def test_database_name_fixnum
-        @configuration["database"] = 123456
-
+      def test_database_name_integer
+        @configuration.merge!({
+          "database" => 123456,
+          "timeout" => 5,
+          "pool" => 5
+        })
         e = assert_raise(RuntimeError) {
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
         }
-        assert_match(/^Invalid configuration. Your database name in database.yml must be of class String.$/, e.message)
+        white_list = ActiveRecord::Tasks::DatabaseTasks::CONFIGURATION_INTEGER_WHITELIST
+        assert_match(/^Invalid database configuration. All values must be of class String except: #{white_list.join(', ')}$/, e.message)
       end
 
-      def test_database_name_first_character_numeric
-        @configuration["database"] = "1test-db"
-        e = assert_raise(RuntimeError) {
+      def test_database_name_string_integer
+        db_name = "123456"
+        @configuration.merge!({
+          "database" => db_name,
+          "timeout" => 5,
+          "pool" => 5
+        })
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", @filename, db_name],
+          returns: true
+        ) do
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
-        }
-        assert_match(/^Invalid configuration. Your database name in database.yml must not begin with a number.$/, e.message)
+        end
       end
 
       def test_structure_dump

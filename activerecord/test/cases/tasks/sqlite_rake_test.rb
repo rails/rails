@@ -201,6 +201,40 @@ if current_adapter?(:SQLite3Adapter)
         FileUtils.rm_f(dbfile)
       end
 
+      def test_database_name_integer
+        filename = "awesome-file.sql"
+        @configuration.merge!({
+          "database" => 123456,
+          "timeout" => 5,
+          "pool" => 5
+        })
+        e = assert_raise(RuntimeError) {
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
+        }
+        white_list = ActiveRecord::Tasks::DatabaseTasks::CONFIGURATION_INTEGER_WHITELIST
+        assert_match(/^Invalid database configuration. All values must be of class String except: #{white_list.join(', ')}.$/, e.message)
+      end
+
+      def test_database_name_string_integer
+        dbfile = "123456.sqlite3"
+        filename = "awesome-file-2.sql"
+        @configuration.merge!({
+          "database" => dbfile,
+          "timeout" => 5,
+          "pool" => 5
+        })
+        `sqlite3 #{dbfile} 'CREATE TABLE bar(id INTEGER)'`
+        `sqlite3 #{dbfile} 'CREATE TABLE foo(id INTEGER)'`
+        ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
+        assert File.exist?(dbfile)
+        assert File.exist?(filename)
+        assert_match(/CREATE TABLE foo/, File.read(filename))
+        assert_match(/CREATE TABLE bar/, File.read(filename))
+      ensure
+        FileUtils.rm_f(filename)
+        FileUtils.rm_f(dbfile)
+      end
+
       def test_structure_dump_with_ignore_tables
         dbfile   = @database
         filename = "awesome-file.sql"
