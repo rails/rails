@@ -245,7 +245,7 @@ if current_adapter?(:PostgreSQLAdapter)
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
         }
         white_list = ActiveRecord::Tasks::DatabaseTasks::CONFIGURATION_INTEGER_WHITELIST
-        assert_match(/^Invalid database configuration. All values must be of class String except: #{white_list.join(', ')}$/, e.message)
+        assert_match(/^Invalid database configuration. All values must be of class String except: #{white_list.join(', ')}.$/, e.message)
       end
 
       def test_database_name_string_integer
