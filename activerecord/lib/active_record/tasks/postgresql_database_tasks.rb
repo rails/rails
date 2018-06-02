@@ -3,6 +3,8 @@ require "tempfile"
 module ActiveRecord
   module Tasks # :nodoc:
     class PostgreSQLDatabaseTasks # :nodoc:
+      include ActiveRecord::Tasks
+      
       DEFAULT_ENCODING = ENV["CHARSET"] || "utf8"
       ON_ERROR_STOP_1 = "ON_ERROR_STOP=1".freeze
       SQL_COMMENT_BEGIN = "--".freeze
@@ -136,25 +138,6 @@ module ActiveRecord
             tempfile.close
           end
           FileUtils.mv(tempfile.path, filename)
-        end
-
-        def verify_configuration!
-          verify_database_name_class
-          verify_database_name_first_character
-        end
-
-        def verify_database_name_first_character
-          if @configuration["database"][0] =~ /[0-9]/
-            msg = "Invalid configuration. Your database name in database.yml must not begin with a number."
-            fail msg
-          end
-        end
-
-        def verify_database_name_class
-          unless @configuration["database"].class == String
-            msg = "Invalid configuration. Your database name in database.yml must be of class String."
-            fail msg
-          end
         end
     end
   end

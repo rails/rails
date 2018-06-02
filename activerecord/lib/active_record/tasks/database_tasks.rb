@@ -1,5 +1,26 @@
 module ActiveRecord
   module Tasks # :nodoc:
+    CONFIG_NON_STRING_WHITELIST = ['timeout', 'pool']
+    def verify_configuration!
+      @configuration.all? do |key, value|
+        next if CONFIG_NON_STRING_WHITELIST.include?(key)
+        value.class == String
+      end
+    end
+
+    # def verify_database_name_first_character
+    #   if @configuration["database"][0] =~ /[0-9]/
+    #     msg = "Invalid configuration. Your database name in database.yml must not begin with a number."
+    #     fail msg
+    #   end
+    # end
+    #
+    # def verify_database_name_class
+    #   unless @configuration["database"].class == String
+    #     msg = "Invalid configuration. Your database name in database.yml must be of class String."
+    #     fail msg
+    #   end
+    # end
     class DatabaseAlreadyExists < StandardError; end # :nodoc:
     class DatabaseNotSupported < StandardError; end # :nodoc:
 
