@@ -203,11 +203,11 @@ if current_adapter?(:SQLite3Adapter)
 
       def test_database_name_integer
         filename = "awesome-file.sql"
-        @configuration.merge!({
+        @configuration.merge!(
           "database" => 123456,
           "timeout" => 5,
           "pool" => 5
-        })
+        )
         e = assert_raise(RuntimeError) {
           ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"
         }
@@ -218,11 +218,11 @@ if current_adapter?(:SQLite3Adapter)
       def test_database_name_string_integer
         dbfile = "123456.sqlite3"
         filename = "awesome-file-2.sql"
-        @configuration.merge!({
+        @configuration.merge!(
           "database" => dbfile,
           "timeout" => 5,
           "pool" => 5
-        })
+        )
         `sqlite3 #{dbfile} 'CREATE TABLE bar(id INTEGER)'`
         `sqlite3 #{dbfile} 'CREATE TABLE foo(id INTEGER)'`
         ActiveRecord::Tasks::DatabaseTasks.structure_dump @configuration, filename, "/rails/root"

@@ -236,11 +236,11 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_database_name_integer
-        @configuration.merge!({
+        @configuration.merge!(
           "database" => 123456,
           "timeout" => 5,
           "pool" => 5
-        })
+        )
         e = assert_raise(RuntimeError) {
           ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
         }
@@ -250,11 +250,11 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_database_name_string_integer
         db_name = "123456"
-        @configuration.merge!({
+        @configuration.merge!(
           "database" => db_name,
           "timeout" => 5,
           "pool" => 5
-        })
+        )
         assert_called_with(
           Kernel,
           :system,
