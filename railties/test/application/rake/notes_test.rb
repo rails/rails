@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rails/source_annotation_extractor"
 
@@ -90,7 +92,8 @@ module ApplicationTests
 
       test "custom rake task finds specific notes in specific directories" do
         app_file "app/controllers/some_controller.rb", "# TODO: note in app directory"
-        app_file "lib/some_file.rb", "# OPTIMIZE: note in lib directory\n" << "# FIXME: note in lib directory"
+        app_file "lib/some_file.rb", "# OPTIMIZE: note in lib directory\n" \
+          "# FIXME: note in lib directory"
         app_file "test/some_test.rb", 1000.times.map { "" }.join("\n") << "# TODO: note in test directory"
 
         app_file "lib/tasks/notes_custom.rake", <<-EOS
@@ -98,7 +101,7 @@ module ApplicationTests
           task :notes_custom do
             tags = 'TODO|FIXME'
             opts = { dirs: %w(lib test), tag: true }
-            SourceAnnotationExtractor.enumerate(tags, opts)
+            Rails::SourceAnnotationExtractor.enumerate(tags, opts)
           end
         EOS
 

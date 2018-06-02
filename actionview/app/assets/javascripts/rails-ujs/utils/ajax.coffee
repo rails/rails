@@ -1,7 +1,8 @@
+#= require ./csp
 #= require ./csrf
 #= require ./event
 
-{ CSRFProtection, fire } = Rails
+{ cspNonce, CSRFProtection, fire } = Rails
 
 AcceptHeaders =
   '*': '*/*'
@@ -20,13 +21,12 @@ Rails.ajax = (options) ->
     else
       options.error?(response, xhr.statusText, xhr)
     options.complete?(xhr, xhr.statusText)
-  # Call beforeSend hook
-  options.beforeSend?(xhr, options)
-  # Send the request
+
+  if options.beforeSend? && !options.beforeSend(xhr, options)
+    return false
+
   if xhr.readyState is XMLHttpRequest.OPENED
     xhr.send(options.data)
-  else
-    fire(document, 'ajaxStop') # to be compatible with jQuery.ajax
 
 prepareOptions = (options) ->
   options.url = options.url or location.href
@@ -66,9 +66,10 @@ processResponse = (response, type) ->
       try response = JSON.parse(response)
     else if type.match(/\b(?:java|ecma)script\b/)
       script = document.createElement('script')
+      script.setAttribute('nonce', cspNonce())
       script.text = response
       document.head.appendChild(script).parentNode.removeChild(script)
-    else if type.match(/\b(xml|html|svg)\b/)
+    else if type.match(/\bxml\b/)
       parser = new DOMParser()
       type = type.replace(/;.+/, '') # remove something like ';charset=utf-8'
       try response = parser.parseFromString(response, type)

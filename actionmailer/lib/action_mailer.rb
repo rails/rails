@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2017 David Heinemeier Hansson
+# Copyright (c) 2004-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -50,6 +52,13 @@ module ActionMailer
   autoload :TestHelper
   autoload :MessageDelivery
   autoload :DeliveryJob
+
+  def self.eager_load!
+    super
+
+    require "mail"
+    Mail.eager_autoload!
+  end
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"

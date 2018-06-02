@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/cache"
 require_relative "../behaviors"
@@ -28,6 +30,7 @@ class FileStoreTest < ActiveSupport::TestCase
   include LocalCacheBehavior
   include CacheDeleteMatchedBehavior
   include CacheIncrementDecrementBehavior
+  include CacheInstrumentationBehavior
   include AutoloadingCacheBehavior
 
   def test_clear
@@ -65,7 +68,9 @@ class FileStoreTest < ActiveSupport::TestCase
   def test_filename_max_size
     key = "#{'A' * ActiveSupport::Cache::FileStore::FILENAME_MAX_SIZE}"
     path = @cache.send(:normalize_key, key, {})
-    Dir::Tmpname.create(path) do |tmpname, n, opts|
+    basename = File.basename(path)
+    dirname = File.dirname(path)
+    Dir::Tmpname.create(basename, Dir.tmpdir + dirname) do |tmpname, n, opts|
       assert File.basename(tmpname + ".lock").length <= 255, "Temp filename too long: #{File.basename(tmpname + '.lock').length}"
     end
   end
@@ -96,13 +101,13 @@ class FileStoreTest < ActiveSupport::TestCase
     end
     assert File.exist?(cache_dir), "Parent of top level cache dir was deleted!"
     assert File.exist?(sub_cache_dir), "Top level cache dir was deleted!"
-    assert Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }.empty?
+    assert_empty Dir.entries(sub_cache_dir).reject { |f| ActiveSupport::Cache::FileStore::EXCLUDED_DIRS.include?(f) }
   end
 
   def test_log_exception_when_cache_read_fails
     File.stub(:exist?, -> { raise StandardError.new("failed") }) do
       @cache.send(:read_entry, "winston", {})
-      assert @buffer.string.present?
+      assert_predicate @buffer.string, :present?
     end
   end
 
@@ -116,6 +121,7 @@ class FileStoreTest < ActiveSupport::TestCase
       assert_not @cache.exist?("foo")
       assert @cache.exist?("baz")
       assert @cache.exist?("quux")
+      assert_equal 2, Dir.glob(File.join(cache_dir, "**")).size
     end
   end
 

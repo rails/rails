@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "thread"
 require "concurrent/map"
@@ -83,7 +85,7 @@ module ActiveSupport #:nodoc:
     # handles the new constants.
     #
     # If child.rb is being autoloaded, its constants will be added to
-    # autoloaded_constants. If it was being `require`d, they will be discarded.
+    # autoloaded_constants. If it was being required, they will be discarded.
     #
     # This is handled by walking back up the watch stack and adding the constants
     # found by child.rb to the list of original constants in parent.rb.
@@ -222,6 +224,8 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # :doc:
+
       # Interprets a file using <tt>mechanism</tt> and marks its defined
       # constants as autoloaded. <tt>file_name</tt> can be either a string or
       # respond to <tt>to_path</tt>.
@@ -239,6 +243,8 @@ module ActiveSupport #:nodoc:
 
         Dependencies.depend_on(file_name, message)
       end
+
+      # :nodoc:
 
       def load_dependency(file)
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
@@ -445,6 +451,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
+      autoloaded_constants.uniq!
       mod
     end
 
@@ -613,7 +620,7 @@ module ActiveSupport #:nodoc:
       return false if desc.is_a?(Module) && desc.anonymous?
       name = to_constant_name desc
       return false unless qualified_const_defined?(name)
-      return autoloaded_constants.include?(name)
+      autoloaded_constants.include?(name)
     end
 
     # Will the provided constant descriptor be unloaded?
@@ -668,7 +675,7 @@ module ActiveSupport #:nodoc:
       when Module
         desc.name ||
           raise(ArgumentError, "Anonymous modules have no name to be referenced by")
-        else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
+      else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 

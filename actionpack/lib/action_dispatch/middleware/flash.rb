@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActionDispatch
@@ -71,7 +73,7 @@ module ActionDispatch
         end
       end
 
-      def reset_session # :nodoc
+      def reset_session # :nodoc:
         super
         self.flash = nil
       end

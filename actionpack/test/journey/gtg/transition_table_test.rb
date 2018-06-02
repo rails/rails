@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/json/decoding"
 
@@ -19,7 +21,7 @@ module ActionDispatch
           assert json["accepting"]
         end
 
-        if system("dot -V 2>/dev/null")
+        if system("dot -V", 2 => File::NULL)
           def test_to_svg
             table = tt %w{
               /articles(.:format)

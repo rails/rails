@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/benchmarkable"
 require "active_support/dependencies"
@@ -7,7 +9,6 @@ require "active_support/core_ext/module/attribute_accessors"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/hash/deep_merge"
 require "active_support/core_ext/hash/slice"
-require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/kernel/singleton_class"
 require "active_support/core_ext/module/introspection"
@@ -289,6 +290,7 @@ module ActiveRecord #:nodoc:
     extend CollectionCacheKey
 
     include Core
+    include DatabaseConfigurations
     include Persistence
     include ReadonlyAttributes
     include ModelSchema

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 require "models/topic"
@@ -18,7 +20,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   INTEGER_STRINGS = %w(0 +0 -0 10 +10 -10 0090 -090)
   FLOATS = [0.0, 10.0, 10.5, -10.5, -0.0001] + FLOAT_STRINGS
   INTEGERS = [0, 10, -10] + INTEGER_STRINGS
-  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal.new(bd) }
+  BIGDECIMAL = BIGDECIMAL_STRINGS.collect! { |bd| BigDecimal(bd) }
   JUNK = ["not a number", "42 not a number", "0xdeadbeef", "0xinvalidhex", "0Xdeadbeef", "00-1", "--3", "+-3", "+3-1", "-+019.0", "12.12.13.12", "123\nnot a number"]
   INFINITY = [1.0 / 0.0]
 
@@ -57,7 +59,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_of_with_integer_only_and_symbol_as_value
-    Topic.validates_numericality_of :approved, only_integer: :condition_is_true_but_its_not
+    Topic.validates_numericality_of :approved, only_integer: :condition_is_false
 
     invalid!(NIL + BLANK + JUNK)
     valid!(FLOATS + INTEGERS + BIGDECIMAL + INFINITY)
@@ -79,10 +81,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_greater_than_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, greater_than: BigDecimal.new("97.18")
+    Topic.validates_numericality_of :approved, greater_than: BigDecimal("97.18")
 
-    invalid!([-97.18, BigDecimal.new("97.18"), BigDecimal("-97.18")], "must be greater than 97.18")
-    valid!([97.19, 98, BigDecimal.new("98"), BigDecimal.new("97.19")])
+    invalid!([-97.18, BigDecimal("97.18"), BigDecimal("-97.18")], "must be greater than 97.18")
+    valid!([97.19, 98, BigDecimal("98"), BigDecimal("97.19")])
   end
 
   def test_validates_numericality_with_greater_than_using_string_value
@@ -100,10 +102,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_greater_than_or_equal_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal.new("97.18")
+    Topic.validates_numericality_of :approved, greater_than_or_equal_to: BigDecimal("97.18")
 
-    invalid!([-97.18, 97.17, 97, BigDecimal.new("97.17"), BigDecimal.new("-97.18")], "must be greater than or equal to 97.18")
-    valid!([97.18, 98, BigDecimal.new("97.19")])
+    invalid!([-97.18, 97.17, 97, BigDecimal("97.17"), BigDecimal("-97.18")], "must be greater than or equal to 97.18")
+    valid!([97.18, 98, BigDecimal("97.19")])
   end
 
   def test_validates_numericality_with_greater_than_or_equal_using_string_value
@@ -121,10 +123,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_equal_to_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, equal_to: BigDecimal.new("97.18")
+    Topic.validates_numericality_of :approved, equal_to: BigDecimal("97.18")
 
     invalid!([-97.18], "must be equal to 97.18")
-    valid!([BigDecimal.new("97.18")])
+    valid!([BigDecimal("97.18")])
   end
 
   def test_validates_numericality_with_equal_to_using_string_value
@@ -142,10 +144,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_less_than_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, less_than: BigDecimal.new("97.18")
+    Topic.validates_numericality_of :approved, less_than: BigDecimal("97.18")
 
-    invalid!([97.18, BigDecimal.new("97.18")], "must be less than 97.18")
-    valid!([-97.0, 97.0, -97, 97, BigDecimal.new("-97"), BigDecimal.new("97")])
+    invalid!([97.18, BigDecimal("97.18")], "must be less than 97.18")
+    valid!([-97.0, 97.0, -97, 97, BigDecimal("-97"), BigDecimal("97")])
   end
 
   def test_validates_numericality_with_less_than_using_string_value
@@ -163,10 +165,10 @@ class NumericalityValidationTest < ActiveModel::TestCase
   end
 
   def test_validates_numericality_with_less_than_or_equal_to_using_differing_numeric_types
-    Topic.validates_numericality_of :approved, less_than_or_equal_to: BigDecimal.new("97.18")
+    Topic.validates_numericality_of :approved, less_than_or_equal_to: BigDecimal("97.18")
 
     invalid!([97.19, 98], "must be less than or equal to 97.18")
-    valid!([-97.18, BigDecimal.new("-97.18"), BigDecimal.new("97.18")])
+    valid!([-97.18, BigDecimal("-97.18"), BigDecimal("97.18")])
   end
 
   def test_validates_numericality_with_less_than_or_equal_using_string_value
@@ -235,13 +237,13 @@ class NumericalityValidationTest < ActiveModel::TestCase
     Topic.validates_numericality_of :approved, less_than: 4, message: "smaller than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 10)
 
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["smaller than 4"], topic.errors[:approved]
 
     Topic.validates_numericality_of :approved, greater_than: 4, message: "greater than %{count}"
     topic = Topic.new("title" => "numeric test", "approved" => 1)
 
-    assert !topic.valid?
+    assert_not_predicate topic, :valid?
     assert_equal ["greater than 4"], topic.errors[:approved]
   end
 
@@ -250,12 +252,12 @@ class NumericalityValidationTest < ActiveModel::TestCase
 
     p = Person.new
     p.karma = "Pix"
-    assert p.invalid?
+    assert_predicate p, :invalid?
 
     assert_equal ["is not a number"], p.errors[:karma]
 
     p.karma = "1234"
-    assert p.valid?
+    assert_predicate p, :valid?
   ensure
     Person.clear_validators!
   end
@@ -266,7 +268,7 @@ class NumericalityValidationTest < ActiveModel::TestCase
     topic = Topic.new
     topic.approved = (base + 1).to_s
 
-    assert topic.invalid?
+    assert_predicate topic, :invalid?
   end
 
   def test_validates_numericality_with_invalid_args

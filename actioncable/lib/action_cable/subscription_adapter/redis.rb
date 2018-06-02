@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "thread"
 
-gem "redis", "~> 3.0"
+gem "redis", ">= 3", "< 5"
 require "redis"
 
 module ActionCable
@@ -8,9 +10,11 @@ module ActionCable
     class Redis < Base # :nodoc:
       prepend ChannelPrefix
 
-      # Overwrite this factory method for redis connections if you want to use a different Redis library than Redis.
+      # Overwrite this factory method for Redis connections if you want to use a different Redis library than the redis gem.
       # This is needed, for example, when using Makara proxies for distributed Redis.
-      cattr_accessor :redis_connector, default: ->(config) { ::Redis.new(url: config[:url]) }
+      cattr_accessor :redis_connector, default: ->(config) do
+        ::Redis.new(config.slice(:url, :host, :port, :db, :password))
+      end
 
       def initialize(*)
         super
@@ -72,7 +76,7 @@ module ActionCable
 
           def listen(conn)
             conn.without_reconnect do
-              original_client = conn.client
+              original_client = conn.respond_to?(:_client) ? conn._client : conn.client
 
               conn.subscribe("_action_cable_internal") do |on|
                 on.subscribe do |chan, count|

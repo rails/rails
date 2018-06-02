@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionHandling
     RAILS_ENV   = -> { (Rails.env if defined?(Rails.env)) || ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence }
@@ -54,6 +56,10 @@ module ActiveRecord
       resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(Base.configurations)
       spec = resolver.resolve(config).symbolize_keys
       spec[:name] = spec_name
+
+      # use the primary config if a config is not passed in and
+      # it's a three tier config
+      spec = spec[spec_name.to_sym] if spec[spec_name.to_sym]
 
       connection_handler.establish_connection(spec)
     end
@@ -138,6 +144,6 @@ module ActiveRecord
     end
 
     delegate :clear_active_connections!, :clear_reloadable_connections!,
-      :clear_all_connections!, to: :connection_handler
+      :clear_all_connections!, :flush_idle_connections!, to: :connection_handler
   end
 end

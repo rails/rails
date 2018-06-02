@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class Dog
@@ -57,6 +59,18 @@ class DogValidatorWithOnCondition < Dog
   def set_after_validation_marker;  history << "after_validation_marker" ; end
 end
 
+class DogValidatorWithOnMultipleCondition < Dog
+  before_validation :set_before_validation_marker_on_context_a, on: :context_a
+  before_validation :set_before_validation_marker_on_context_b, on: :context_b
+  after_validation :set_after_validation_marker_on_context_a, on: :context_a
+  after_validation :set_after_validation_marker_on_context_b, on: :context_b
+
+  def set_before_validation_marker_on_context_a; history << "before_validation_marker on context_a"; end
+  def set_before_validation_marker_on_context_b; history << "before_validation_marker on context_b"; end
+  def set_after_validation_marker_on_context_a;  history << "after_validation_marker on context_a" ; end
+  def set_after_validation_marker_on_context_b;  history << "after_validation_marker on context_b" ; end
+end
+
 class DogValidatorWithIfCondition < Dog
   before_validation :set_before_validation_marker1, if: -> { true }
   before_validation :set_before_validation_marker2, if: -> { false }
@@ -92,6 +106,37 @@ class CallbacksWithMethodNamesShouldBeCalled < ActiveModel::TestCase
 
   def test_on_condition_is_respected_for_validation_without_context
     d = DogValidatorWithOnCondition.new
+    d.valid?
+    assert_equal [], d.history
+  end
+
+  def test_on_multiple_condition_is_respected_for_validation_with_matching_context
+    d = DogValidatorWithOnMultipleCondition.new
+    d.valid?(:context_a)
+    assert_equal ["before_validation_marker on context_a", "after_validation_marker on context_a"], d.history
+
+    d = DogValidatorWithOnMultipleCondition.new
+    d.valid?(:context_b)
+    assert_equal ["before_validation_marker on context_b", "after_validation_marker on context_b"], d.history
+
+    d = DogValidatorWithOnMultipleCondition.new
+    d.valid?([:context_a, :context_b])
+    assert_equal([
+      "before_validation_marker on context_a",
+      "before_validation_marker on context_b",
+      "after_validation_marker on context_a",
+      "after_validation_marker on context_b"
+    ], d.history)
+  end
+
+  def test_on_multiple_condition_is_respected_for_validation_without_matching_context
+    d = DogValidatorWithOnMultipleCondition.new
+    d.valid?(:save)
+    assert_equal [], d.history
+  end
+
+  def test_on_multiple_condition_is_respected_for_validation_without_context
+    d = DogValidatorWithOnMultipleCondition.new
     d.valid?
     assert_equal [], d.history
   end

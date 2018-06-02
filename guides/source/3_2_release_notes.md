@@ -30,13 +30,13 @@ TIP: Note that Ruby 1.8.7 p248 and p249 have marshalling bugs that crash Rails. 
 
 ### What to update in your apps
 
-* Update your Gemfile to depend on
+* Update your `Gemfile` to depend on
     * `rails = 3.2.0`
     * `sass-rails ~> 3.2.3`
     * `coffee-rails ~> 3.2.1`
     * `uglifier >= 1.0.3`
 
-* Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your Gemfile. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
+* Rails 3.2 deprecates `vendor/plugins` and Rails 4.0 will remove them completely. You can start replacing these plugins by extracting them as gems and adding them in your `Gemfile`. If you choose not to make them gems, you can move them into, say, `lib/my_plugin/*` and add an appropriate initializer in `config/initializers/my_plugin.rb`.
 
 * There are a couple of new configuration changes you'd want to add in `config/environments/development.rb`:
 
@@ -81,7 +81,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: [Bundler homepage](http://bundler.io/)
+More information: [Bundler homepage](https://bundler.io/)
 
 ### Living on the Edge
 
@@ -156,7 +156,7 @@ Railties
 
     will create indexes for `title` and `author` with the latter being a unique index. Some types such as decimal accept custom options. In the example, `price` will be a decimal column with precision and scale set to 7 and 2 respectively.
 
-* Turn gem has been removed from default Gemfile.
+* Turn gem has been removed from default `Gemfile`.
 
 * Remove old plugin generator `rails generate plugin` in favor of `rails plugin new` command.
 
@@ -295,7 +295,7 @@ Action Pack
     ```ruby
     @items.each do |item|
       content_tag_for(:li, item) do
-         Title: <%= item.title %>
+        Title: <%= item.title %>
       end
     end
     ```

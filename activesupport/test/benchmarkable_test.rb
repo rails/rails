@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class BenchmarkableTest < ActiveSupport::TestCase
@@ -24,7 +26,7 @@ class BenchmarkableTest < ActiveSupport::TestCase
 
   def test_without_block
     assert_raise(LocalJumpError) { benchmark }
-    assert buffer.empty?
+    assert_empty buffer
   end
 
   def test_defaults

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/tasks/database_tasks"
 
@@ -227,7 +229,6 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def teardown
@@ -252,9 +253,14 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump
-        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "my-app-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        end
       end
 
       def test_structure_dump_header_comments_removed
@@ -277,36 +283,75 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_structure_dump_with_ignore_tables
-        ActiveRecord::SchemaDumper.expects(:ignore_tables).returns(["foo", "bar"])
-
-        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called(
+          ActiveRecord::SchemaDumper,
+          :ignore_tables,
+          returns: ["foo", "bar"]
+        ) do
+          assert_called_with(
+            Kernel,
+            :system,
+            ["pg_dump", "-s", "-x", "-O", "-f", @filename, "-T", "foo", "-T", "bar", "my-app-db"],
+            returns: true
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
       end
 
       def test_structure_dump_with_schema_search_path
         @configuration["schema_search_path"] = "foo,bar"
 
-        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db").returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        end
       end
 
       def test_structure_dump_with_schema_search_path_and_dump_schemas_all
         @configuration["schema_search_path"] = "foo,bar"
 
-        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename,  "my-app-db").returns(true)
-
-        with_dump_schemas(:all) do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", @filename,  "my-app-db"],
+          returns: true
+        ) do
+          with_dump_schemas(:all) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
         end
       end
 
       def test_structure_dump_with_dump_schemas_string
-        Kernel.expects(:system).with("pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db").returns(true)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", @filename, "--schema=foo", "--schema=bar", "my-app-db"],
+          returns: true
+        ) do
+          with_dump_schemas("foo,bar") do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+          end
+        end
+      end
 
-        with_dump_schemas("foo,bar") do
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, @filename)
+      def test_structure_dump_execution_fails
+        filename = "awesome-file.sql"
+        assert_called_with(
+          Kernel,
+          :system,
+          ["pg_dump", "-s", "-x", "-O", "-f", filename, "my-app-db"],
+          returns: nil
+        ) do
+          e = assert_raise(RuntimeError) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump(@configuration, filename)
+          end
+          assert_match("failed to execute:", e.message)
         end
       end
 
@@ -338,14 +383,18 @@ if current_adapter?(:PostgreSQLAdapter)
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).returns(true)
-        Kernel.stubs(:system)
       end
 
       def test_structure_load
         filename = "awesome-file.sql"
-        Kernel.expects(:system).with("psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]).returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
       end
 
       def test_structure_load_with_extra_flags
@@ -361,9 +410,14 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_structure_load_accepts_path_with_spaces
         filename = "awesome file.sql"
-        Kernel.expects(:system).with("psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]).returns(true)
-
-        ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        assert_called_with(
+          Kernel,
+          :system,
+          ["psql", "-v", "ON_ERROR_STOP=1", "-q", "-f", filename, @configuration["database"]],
+          returns: true
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.structure_load(@configuration, filename)
+        end
       end
 
       private

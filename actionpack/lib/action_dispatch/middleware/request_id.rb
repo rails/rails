@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "securerandom"
 require "active_support/core_ext/string/access"
 
@@ -28,7 +30,7 @@ module ActionDispatch
     private
       def make_request_id(request_id)
         if request_id.presence
-          request_id.gsub(/[^\w\-]/, "".freeze).first(255)
+          request_id.gsub(/[^\w\-@]/, "".freeze).first(255)
         else
           internal_request_id
         end

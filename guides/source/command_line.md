@@ -102,6 +102,7 @@ Please choose a generator below.
 
 Rails:
   assets
+  channel
   controller
   generator
   ...
@@ -160,7 +161,7 @@ $ bin/rails generate controller Greetings hello
      create      app/assets/stylesheets/greetings.scss
 ```
 
-What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file and a stylesheet file.
+What all did this generate? It made sure a bunch of directories were in our application, and created a controller file, a view file, a functional test file, a helper for the view, a JavaScript file, and a stylesheet file.
 
 Check out the controller and modify it a little (in `app/controllers/greetings_controller.rb`):
 
@@ -241,6 +242,8 @@ $ bin/rails generate scaffold HighScore game:string score:integer
     invoke    jbuilder
     create      app/views/high_scores/index.json.jbuilder
     create      app/views/high_scores/show.json.jbuilder
+    invoke  test_unit
+    create    test/system/high_scores_test.rb
     invoke  assets
     invoke    coffee
     create      app/assets/javascripts/high_scores.coffee
@@ -262,12 +265,12 @@ $ bin/rails db:migrate
 ==  CreateHighScores: migrated (0.0019s) ======================================
 ```
 
-INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions 
-about code. In unit testing, we take a little part of code, say a method of a model, 
-and test its inputs and outputs. Unit tests are your friend. The sooner you make 
-peace with the fact that your quality of life will drastically increase when you unit 
-test your code, the better. Seriously. Please visit 
-[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth 
+INFO: Let's talk about unit tests. Unit tests are code that tests and makes assertions
+about code. In unit testing, we take a little part of code, say a method of a model,
+and test its inputs and outputs. Unit tests are your friend. The sooner you make
+peace with the fact that your quality of life will drastically increase when you unit
+test your code, the better. Seriously. Please visit
+[the testing guide](http://guides.rubyonrails.org/testing.html) for an in-depth
 look at unit testing.
 
 Let's see the interface Rails created for us.
@@ -287,7 +290,7 @@ INFO: You can also use the alias "c" to invoke the console: `rails c`.
 You can specify the environment in which the `console` command should operate.
 
 ```bash
-$ bin/rails console staging
+$ bin/rails console -e staging
 ```
 
 If you wish to test out some code without changing any data, you can do that by invoking `rails console --sandbox`.
@@ -326,7 +329,7 @@ With the `helper` method it is possible to access Rails and your application's h
 
 ### `rails dbconsole`
 
-`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL and SQLite3.
+`rails dbconsole` figures out which database you're using and drops you into whichever command line interface you would use with it (and figures out the command line parameters to give to it, too!). It supports MySQL (including MariaDB), PostgreSQL, and SQLite3.
 
 INFO: You can also use the alias "db" to invoke the dbconsole: `rails db`.
 
@@ -428,16 +431,16 @@ INFO: You can also use `bin/rails -T`  to get the list of tasks.
 ```bash
 $ bin/rails about
 About your application's environment
-Rails version             5.1.0
-Ruby version              2.2.2 (x86_64-linux)
-RubyGems version          2.4.6
-Rack version              2.0.1
+Rails version             6.0.0
+Ruby version              2.5.0 (x86_64-linux)
+RubyGems version          2.7.3
+Rack version              2.0.4
 JavaScript Runtime        Node.js (V8)
 Middleware:               Rack::Sendfile, ActionDispatch::Static, ActionDispatch::Executor, ActiveSupport::Cache::Strategy::LocalCache::Middleware, Rack::Runtime, Rack::MethodOverride, ActionDispatch::RequestId, ActionDispatch::RemoteIp, Sprockets::Rails::QuietAssets, Rails::Rack::Logger, ActionDispatch::ShowExceptions, WebConsole::Middleware, ActionDispatch::DebugExceptions, ActionDispatch::Reloader, ActionDispatch::Callbacks, ActiveRecord::Migration::CheckPending, ActionDispatch::Cookies, ActionDispatch::Session::CookieStore, ActionDispatch::Flash, Rack::Head, Rack::ConditionalGet, Rack::ETag
 Application root          /home/foobar/commandsapp
 Environment               development
 Database adapter          sqlite3
-Database schema version   20110805173523
+Database schema version   20180205173523
 ```
 
 ### `assets`
@@ -454,7 +457,7 @@ More information about migrations can be found in the [Migrations](active_record
 
 ### `notes`
 
-`bin/rails notes` will search through your code for comments beginning with FIXME, OPTIMIZE or TODO. The search is done in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js` and `.erb` for both default and custom annotations.
+`bin/rails notes` will search through your code for comments beginning with FIXME, OPTIMIZE, or TODO. The search is done in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb` for both default and custom annotations.
 
 ```bash
 $ bin/rails notes
@@ -497,7 +500,7 @@ app/models/article.rb:
 
 NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
 
-By default, `rails notes` will look in the `app`, `config`, `db`, `lib` and `test` directories. If you would like to search other directories, you can configure them using `config.annotations.register_directories` option.
+By default, `rails notes` will look in the `app`, `config`, `db`, `lib`, and `test` directories. If you would like to search other directories, you can configure them using `config.annotations.register_directories` option.
 
 ```ruby
 config.annotations.register_directories("spec", "vendor")
@@ -533,8 +536,9 @@ The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` 
 
 * `rails tmp:cache:clear` clears `tmp/cache`.
 * `rails tmp:sockets:clear` clears `tmp/sockets`.
-* `rails tmp:clear` clears all cache and sockets files.
-* `rails tmp:create` creates tmp directories for cache, sockets and pids.
+* `rails tmp:screenshots:clear` clears `tmp/screenshots`.
+* `rails tmp:clear` clears all cache, sockets, and screenshot files.
+* `rails tmp:create` creates tmp directories for cache, sockets, and pids.
 
 ### Miscellaneous
 
@@ -583,7 +587,7 @@ $ bin/rails "task_name[value 1]" # entire argument string should be quoted
 $ bin/rails db:nothing
 ```
 
-NOTE: If your need to interact with your application models, perform database queries and so on, your task should depend on the `environment` task, which will load your application code.
+NOTE: If your need to interact with your application models, perform database queries, and so on, your task should depend on the `environment` task, which will load your application code.
 
 The Rails Advanced Command Line
 -------------------------------
@@ -641,17 +645,20 @@ $ cat config/database.yml
 # Configure Using Gemfile
 # gem 'pg'
 #
-development:
+default: &default
   adapter: postgresql
   encoding: unicode
+  # For details on connection pooling, see Rails configuration guide
+  # http://guides.rubyonrails.org/configuring.html#database-pooling
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+
+development:
+  <<: *default
   database: gitapp_development
-  pool: 5
-  username: gitapp
-  password:
 ...
 ...
 ```
 
-It also generated some lines in our database.yml configuration corresponding to our choice of PostgreSQL for database.
+It also generated some lines in our `database.yml` configuration corresponding to our choice of PostgreSQL for database.
 
 NOTE. The only catch with using the SCM options is that you have to make your application's directory first, then initialize your SCM, then you can run the `rails new` command to generate the basis of your app.

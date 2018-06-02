@@ -1,68 +1,58 @@
-*   Prevent making bind param if casted value is nil.
+*   Bump minimum SQLite version to 3.8
 
-    *Ryuta Kamizono*
+    *Yasuo Honda*
 
-*   Deprecate passing arguments and block at the same time to `count` and `sum` in `ActiveRecord::Calculations`.
+*   Fix parent record should not get saved with duplicate children records.
 
-    *Ryuta Kamizono*
+    Fixes #32940.
 
-*   Loading model schema from database is now thread-safe.
+    *Santosh Wadghule*
 
-    Fixes #28589.
+*   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
-    *Vikrant Chaudhary*, *David Abdemoulaie*
+    *Brian Durand*
 
-*   Add `ActiveRecord::Base#cache_version` to support recyclable cache keys via the new versioned entries
-    in `ActiveSupport::Cache`. This also means that `ActiveRecord::Base#cache_key` will now return a stable key
-    that does not include a timestamp any more.
+*   Ensure `Associations::CollectionAssociation#size` and `Associations::CollectionAssociation#empty?`
+    use loaded association ids if present.
 
-    NOTE: This feature is turned off by default, and `#cache_key` will still return cache keys with timestamps
-    until you set `ActiveRecord::Base.cache_versioning = true`. That's the setting for all new apps on Rails 5.2+
+    *Graham Turner*
+
+*   Add support to preload associations of polymorphic associations when not all the records have the requested associations.
+
+    *Dana Sherson*
+
+*   Add `touch_all` method to `ActiveRecord::Relation`.
+
+    Example:
+
+        Person.where(name: "David").touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+
+    *fatkodima*, *duggiefresh*
+
+*   Add `ActiveRecord::Base.base_class?` predicate.
+
+    *Bogdan Gusiev*
+
+*   Add custom prefix option to ActiveRecord::Store.store_accessor.
+
+    *Tan Huynh*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
+
+*   Deprecate `update_attributes`/`!` in favor of `update`/`!`.
+
+    *Eddie Lebow*
+
+*   Add ActiveRecord::Base.create_or_find_by/! to deal with the SELECT/INSERT race condition in
+    ActiveRecord::Base.find_or_create_by/! by leaning on unique constraints in the database.
 
     *DHH*
 
-*   Respect `SchemaDumper.ignore_tables` in rake tasks for databases structure dump
+*   Add `Relation#pick` as short-hand for single-value plucks.
 
-    *Rusty Geldmacher*, *Guillermo Iguaran*
-
-*   Add type caster to `RuntimeReflection#alias_name`
-
-    Fixes #28959.
-
-    *Jon Moss*
-
-*   Deprecate `supports_statement_cache?`.
-
-    *Ryuta Kamizono*
-
-*   Quote database name in `db:create` grant statement (when database user does not have access to create the database).
-
-    *Rune Philosof*
-
-*   Raise error `UnknownMigrationVersionError` on the movement of migrations
-    when the current migration does not exist.
-
-    *bogdanvlviv*
-
-*   Fix `bin/rails db:forward` first migration.
-
-    *bogdanvlviv*
-
-*   Support Descending Indexes for MySQL.
-
-    MySQL 8.0.1 and higher supports descending indexes: `DESC` in an index definition is no longer ignored.
-    See https://dev.mysql.com/doc/refman/8.0/en/descending-indexes.html.
-
-    *Ryuta Kamizono*
-
-*   Fix inconsistency with changed attributes when overriding AR attribute reader.
-
-    *bogdanvlviv*
-
-*   When calling the dynamic fixture accessor method with no arguments it now returns all fixtures of this type.
-    Previously this method always returned an empty array.
-
-    *Kevin McPhillips*
+    *DHH*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activerecord/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.

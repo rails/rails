@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model"
 
 # Show backtraces for deprecated behavior for quicker cleanup.

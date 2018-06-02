@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::Associations::Builder # :nodoc:
   class HasAndBelongsToMany # :nodoc:
     class JoinTableResolver # :nodoc:
@@ -45,7 +47,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       habtm = JoinTableResolver.build lhs_model, association_name, options
 
       join_model = Class.new(ActiveRecord::Base) {
-        class << self;
+        class << self
           attr_accessor :left_model
           attr_accessor :name
           attr_accessor :table_name_resolver

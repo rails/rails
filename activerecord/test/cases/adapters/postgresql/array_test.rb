@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -37,12 +39,45 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
   def test_column
     assert_equal :string, @column.type
     assert_equal "character varying(255)", @column.sql_type
-    assert @column.array?
-    assert_not @type.binary?
+    assert_predicate @column, :array?
+    assert_not_predicate @type, :binary?
 
     ratings_column = PgArray.columns_hash["ratings"]
     assert_equal :integer, ratings_column.type
-    assert ratings_column.array?
+    assert_predicate ratings_column, :array?
+  end
+
+  def test_not_compatible_with_serialize_array
+    new_klass = Class.new(PgArray) do
+      serialize :tags, Array
+    end
+    assert_raises(ActiveRecord::AttributeMethods::Serialization::ColumnNotSerializableError) do
+      new_klass.new
+    end
+  end
+
+  class MyTags
+    def initialize(tags); @tags = tags end
+    def to_a; @tags end
+    def self.load(tags); new(tags) end
+    def self.dump(object); object.to_a end
+  end
+
+  def test_array_with_serialized_attributes
+    new_klass = Class.new(PgArray) do
+      serialize :tags, MyTags
+    end
+
+    new_klass.create!(tags: MyTags.new(["one", "two"]))
+    record = new_klass.first
+
+    assert_instance_of MyTags, record.tags
+    assert_equal ["one", "two"], record.tags.to_a
+
+    record.tags = MyTags.new(["three", "four"])
+    record.save!
+
+    assert_equal ["three", "four"], record.reload.tags.to_a
   end
 
   def test_default
@@ -74,7 +109,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
 
     assert_equal :text, column.type
     assert_equal [], PgArray.column_defaults["snippets"]
-    assert column.array?
+    assert_predicate column, :array?
   end
 
   def test_change_column_cant_make_non_array_column_to_array
@@ -191,6 +226,14 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert_equal(PgArray.last.tags, tag_values)
   end
 
+  def test_insert_fixtures
+    tag_values = ["val1", "val2", "val3_with_'_multiple_quote_'_chars"]
+    assert_deprecated do
+      @connection.insert_fixtures([{ "tags" => tag_values }], "pg_arrays")
+    end
+    assert_equal(PgArray.last.tags, tag_values)
+  end
+
   def test_attribute_for_inspect_for_array_field
     record = PgArray.new { |a| a.ratings = (1..10).to_a }
     assert_equal("[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]", record.attribute_for_inspect(:ratings))
@@ -214,7 +257,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x = PgArray.create!(tags: tags)
     x.reload
 
-    refute x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_quoting_non_standard_delimiters
@@ -236,7 +279,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     assert_equal %w(one two three), x.tags
-    assert_not x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_mutate_value_in_array
@@ -247,7 +290,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     x.reload
 
     assert_equal [{ "a" => "c" }, { "b" => "b" }], x.hstores
-    assert_not x.changed?
+    assert_not_predicate x, :changed?
   end
 
   def test_datetime_with_timezone_awareness
@@ -310,7 +353,7 @@ class PostgresqlArrayTest < ActiveRecord::PostgreSQLTestCase
     assert e1.persisted?, "Saving e1"
 
     e2 = klass.create("tags" => ["black", "blue"])
-    assert !e2.persisted?, "e2 shouldn't be valid"
+    assert_not e2.persisted?, "e2 shouldn't be valid"
     assert e2.errors[:tags].any?, "Should have errors for tags"
     assert_equal ["has already been taken"], e2.errors[:tags], "Should have uniqueness message for tags"
   end

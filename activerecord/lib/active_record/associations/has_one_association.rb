@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module ActiveRecord
-  # = Active Record Has One Association
   module Associations
+    # = Active Record Has One Association
     class HasOneAssociation < SingularAssociation #:nodoc:
       include ForeignAssociation
 
@@ -21,42 +23,15 @@ module ActiveRecord
         end
       end
 
-      def replace(record, save = true)
-        raise_on_type_mismatch!(record) if record
-        load_target
-
-        return target unless target || record
-
-        assigning_another_record = target != record
-        if assigning_another_record || record.has_changes_to_save?
-          save &&= owner.persisted?
-
-          transaction_if(save) do
-            remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
-
-            if record
-              set_owner_attributes(record)
-              set_inverse_instance(record)
-
-              if save && !record.save
-                nullify_owner_attributes(record)
-                set_owner_attributes(target) if target
-                raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
-              end
-            end
-          end
-        end
-
-        self.target = record
-      end
-
       def delete(method = options[:dependent])
         if load_target
           case method
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
+            throw(:abort) unless target.destroyed?
           when :nullify
             target.update_columns(reflection.foreign_key => nil) if target.persisted?
           end
@@ -64,6 +39,33 @@ module ActiveRecord
       end
 
       private
+        def replace(record, save = true)
+          raise_on_type_mismatch!(record) if record
+
+          return target unless load_target || record
+
+          assigning_another_record = target != record
+          if assigning_another_record || record.has_changes_to_save?
+            save &&= owner.persisted?
+
+            transaction_if(save) do
+              remove_target!(options[:dependent]) if target && !target.destroyed? && assigning_another_record
+
+              if record
+                set_owner_attributes(record)
+                set_inverse_instance(record)
+
+                if save && !record.save
+                  nullify_owner_attributes(record)
+                  set_owner_attributes(target) if target
+                  raise RecordNotSaved, "Failed to save the new associated #{reflection.name}."
+                end
+              end
+            end
+          end
+
+          self.target = record
+        end
 
         # The reason that the save param for replace is false, if for create (not just build),
         # is because the setting of the foreign keys is actually handled by the scoping when
@@ -78,6 +80,7 @@ module ActiveRecord
           when :delete
             target.delete
           when :destroy
+            target.destroyed_by_association = reflection
             target.destroy
           else
             nullify_owner_attributes(target)
@@ -101,6 +104,14 @@ module ActiveRecord
           else
             yield
           end
+        end
+
+        def _create_record(attributes, raise_error = false)
+          unless owner.persisted?
+            raise ActiveRecord::RecordNotSaved, "You cannot call create unless the parent is saved"
+          end
+
+          super
         end
     end
   end

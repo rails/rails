@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
-require "active_support/core_ext/hash/transform_values"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/string/filters"
 require "active_support/core_ext/object/to_query"
@@ -180,6 +181,14 @@ module ActionController
     # Returns a new array of the keys of the parameters.
 
     ##
+    # :method: to_s
+    #
+    # :call-seq:
+    #   to_s()
+    #
+    # Returns the content of the parameters as a string.
+
+    ##
     # :method: value?
     #
     # :call-seq:
@@ -195,7 +204,7 @@ module ActionController
     #
     # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
-      :as_json, to: :@parameters
+      :as_json, :to_s, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -245,7 +254,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_h
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_h # => {"name"=>"Senjougahara Hitagi"}
@@ -265,7 +274,7 @@ module ActionController
     #     oddity: "Heavy stone crab"
     #   })
     #   params.to_hash
-    #   # => ActionController::UnfilteredParameters: unable to convert unfiltered parameters to hash
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
     #
     #   safe_params = params.permit(:name)
     #   safe_params.to_hash # => {"name"=>"Senjougahara Hitagi"}
@@ -281,6 +290,10 @@ module ActionController
     #     nationality: "Danish"
     #   })
     #   params.to_query
+    #   # => ActionController::UnfilteredParameters: unable to convert unpermitted parameters to hash
+    #
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query
     #   # => "name=David&nationality=Danish"
     #
     # An optional namespace can be passed to enclose key names:
@@ -289,7 +302,8 @@ module ActionController
     #     name: "David",
     #     nationality: "Danish"
     #   })
-    #   params.to_query("user")
+    #   safe_params = params.permit(:name, :nationality)
+    #   safe_params.to_query("user")
     #   # => "user%5Bname%5D=David&user%5Bnationality%5D=Danish"
     #
     # The string pairs "key=value" that conform the query string
@@ -320,7 +334,7 @@ module ActionController
     # the same way as <tt>Hash#each_pair</tt>.
     def each_pair(&block)
       @parameters.each_pair do |key, value|
-        yield key, convert_hashes_to_parameters(key, value)
+        yield [key, convert_hashes_to_parameters(key, value)]
       end
     end
     alias_method :each, :each_pair
@@ -360,7 +374,7 @@ module ActionController
     #   Person.new(params) # => #<Person id: nil, name: "Francesco">
     def permit!
       each_pair do |key, value|
-        Array.wrap(value).each do |v|
+        Array.wrap(value).flatten.each do |v|
           v.permit! if v.respond_to? :permit!
         end
       end
@@ -546,12 +560,14 @@ module ActionController
     # Returns a parameter for the given +key+. If the +key+
     # can't be found, there are several options: With no other arguments,
     # it will raise an <tt>ActionController::ParameterMissing</tt> error;
-    # if more arguments are given, then that will be returned; if a block
+    # if a second argument is given, then that is returned (converted to an
+    # instance of ActionController::Parameters if possible); if a block
     # is given, then that will be run and its result returned.
     #
     #   params = ActionController::Parameters.new(person: { name: "Francesco" })
     #   params.fetch(:person)               # => <ActionController::Parameters {"name"=>"Francesco"} permitted: false>
     #   params.fetch(:none)                 # => ActionController::ParameterMissing: param is missing or the value is empty: none
+    #   params.fetch(:none, {})             # => <ActionController::Parameters {} permitted: false>
     #   params.fetch(:none, "Francesco")    # => "Francesco"
     #   params.fetch(:none) { "Francesco" } # => "Francesco"
     def fetch(key, *args)
@@ -566,19 +582,18 @@ module ActionController
       )
     end
 
-    if Hash.method_defined?(:dig)
-      # Extracts the nested parameter from the given +keys+ by calling +dig+
-      # at each step. Returns +nil+ if any intermediate step is +nil+.
-      #
-      #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
-      #   params.dig(:foo, :bar, :baz) # => 1
-      #   params.dig(:foo, :zot, :xyz) # => nil
-      #
-      #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
-      #   params2.dig(:foo, 1) # => 11
-      def dig(*keys)
-        convert_value_to_parameters(@parameters.dig(*keys))
-      end
+    # Extracts the nested parameter from the given +keys+ by calling +dig+
+    # at each step. Returns +nil+ if any intermediate step is +nil+.
+    #
+    #   params = ActionController::Parameters.new(foo: { bar: { baz: 1 } })
+    #   params.dig(:foo, :bar, :baz) # => 1
+    #   params.dig(:foo, :zot, :xyz) # => nil
+    #
+    #   params2 = ActionController::Parameters.new(foo: [10, 11, 12])
+    #   params2.dig(:foo, 1) # => 11
+    def dig(*keys)
+      convert_hashes_to_parameters(keys.first, @parameters[keys.first])
+      @parameters.dig(*keys)
     end
 
     # Returns a new <tt>ActionController::Parameters</tt> instance that
@@ -660,10 +675,10 @@ module ActionController
       self
     end
 
-    # Deletes and returns a key-value pair from +Parameters+ whose key is equal
-    # to key. If the key is not found, returns the default value. If the
-    # optional code block is given and the key is not found, pass in the key
-    # and return the result of block.
+    # Deletes a key-value pair from +Parameters+ and returns the value. If
+    # +key+ is not found, returns +nil+ (or, with optional code block, yields
+    # +key+ and returns the result). Cf. +#extract!+, which returns the
+    # corresponding +ActionController::Parameters+ object.
     def delete(key, &block)
       convert_value_to_parameters(@parameters.delete(key, &block))
     end

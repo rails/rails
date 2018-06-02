@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "time"
 require "base64"
 require "bigdecimal"
@@ -46,10 +48,6 @@ module ActiveSupport
         "Array"      => "array",
         "Hash"       => "hash"
       }
-
-      # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {
@@ -81,7 +79,7 @@ module ActiveSupport
         end,
         "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
-        "yaml"         => Proc.new { |yaml|    YAML::load(yaml) rescue yaml },
+        "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "concurrent"
 
@@ -30,7 +32,7 @@ module CommonSubscriptionAdapterTest
     subscribed = Concurrent::Event.new
     adapter.subscribe(channel, callback, Proc.new { subscribed.set })
     subscribed.wait(WAIT_WHEN_EXPECTING_EVENT)
-    assert subscribed.set?
+    assert_predicate subscribed, :set?
 
     yield queue
 
@@ -110,6 +112,20 @@ module CommonSubscriptionAdapterTest
       @tx_adapter.broadcast("channel", "two")
 
       assert_equal "two", queue.pop
+    end
+  end
+
+  def test_long_identifiers
+    channel_1 = "a" * 100 + "1"
+    channel_2 = "a" * 100 + "2"
+    subscribe_as_queue(channel_1) do |queue|
+      subscribe_as_queue(channel_2) do |queue_2|
+        @tx_adapter.broadcast(channel_1, "apples")
+        @tx_adapter.broadcast(channel_2, "oranges")
+
+        assert_equal "apples", queue.pop
+        assert_equal "oranges", queue_2.pop
+      end
     end
   end
 end

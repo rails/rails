@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thread"
 require "cases/helper"
 require "models/person"
@@ -13,6 +15,7 @@ require "models/bulb"
 require "models/engine"
 require "models/wheel"
 require "models/treasure"
+require "models/frog"
 
 class LockWithoutDefault < ActiveRecord::Base; end
 
@@ -67,8 +70,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::StaleObjectError) { s2.destroy }
 
     assert s1.destroy
-    assert s1.frozen?
-    assert s1.destroyed?
+    assert_predicate s1, :frozen?
+    assert_predicate s1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { StringKeyObject.find("record1") }
   end
 
@@ -102,8 +105,8 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::StaleObjectError) { p2.destroy }
 
     assert p1.destroy
-    assert p1.frozen?
-    assert p1.destroyed?
+    assert_predicate p1, :frozen?
+    assert_predicate p1, :destroyed?
     assert_raises(ActiveRecord::RecordNotFound) { Person.find(1) }
   end
 
@@ -167,6 +170,12 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, p1.lock_version
   end
 
+  def test_lock_new_when_explicitly_passing_value
+    p1 = Person.new(first_name: "Douglas Adams", lock_version: 42)
+    p1.save!
+    assert_equal 42, p1.lock_version
+  end
+
   def test_touch_existing_lock
     p1 = Person.find(1)
     assert_equal 0, p1.lock_version
@@ -183,6 +192,58 @@ class OptimisticLockingTest < ActiveRecord::TestCase
 
     assert_raises(ActiveRecord::StaleObjectError) do
       stale_person.touch
+    end
+  end
+
+  def test_update_with_dirty_primary_key
+    assert_raises(ActiveRecord::RecordNotUnique) do
+      person = Person.find(1)
+      person.id = 2
+      person.save!
+    end
+
+    person = Person.find(1)
+    person.id = 42
+    person.save!
+
+    assert Person.find(42)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_delete_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.delete
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_destroy_with_dirty_primary_key
+    person = Person.find(1)
+    person.id = 2
+    person.destroy
+
+    assert Person.find(2)
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Person.find(1)
+    end
+  end
+
+  def test_explicit_update_lock_column_raise_error
+    person = Person.find(1)
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      person.first_name = "Douglas Adams"
+      person.lock_version = 42
+
+      assert_predicate person, :lock_version_changed?
+
+      person.save
     end
   end
 
@@ -225,10 +286,33 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     assert_equal 0, t1.lock_version_before_type_cast
   end
 
+  def test_touch_existing_lock_without_default_should_work_with_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.touch
+
+    assert_equal 1, t1.lock_version
+  end
+
+  def test_touch_stale_object_with_lock_without_default
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.touch
+    end
+  end
+
   def test_lock_without_default_should_work_with_null_in_the_database
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
     t1 = LockWithoutDefault.last
-    t2 = LockWithoutDefault.last
+    t2 = LockWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.lock_version
     assert_nil t1.lock_version_before_type_cast
@@ -285,7 +369,7 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults_cust(title) VALUES('title1')")
 
     t1 = LockWithCustomColumnWithoutDefault.last
-    t2 = LockWithCustomColumnWithoutDefault.last
+    t2 = LockWithCustomColumnWithoutDefault.find(t1.id)
 
     assert_equal 0, t1.custom_lock_version
     assert_nil t1.custom_lock_version_before_type_cast
@@ -355,25 +439,59 @@ class OptimisticLockingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_counter_cache_with_touch_and_lock_version
+    car = Car.create!
+
+    assert_equal 0, car.wheels_count
+    assert_equal 0, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(2.second) do
+      Wheel.create!(wheelable: car)
+    end
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 1, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(1.day) do
+      car.wheels.first.update(size: 42)
+    end
+
+    assert_equal 1, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 2, car.lock_version
+
+    previously_car_updated_at = car.updated_at
+    travel(2.second) do
+      car.wheels.first.destroy!
+    end
+
+    assert_equal 0, car.reload.wheels_count
+    assert_not_equal previously_car_updated_at, car.updated_at
+    assert_equal 3, car.lock_version
+  end
+
   def test_polymorphic_destroy_with_dependencies_and_lock_version
     car = Car.create!
 
     assert_difference "car.wheels.count"  do
-      car.wheels << Wheel.create!
+      car.wheels.create
     end
     assert_difference "car.wheels.count", -1  do
       car.reload.destroy
     end
-    assert car.destroyed?
+    assert_predicate car, :destroyed?
   end
 
   def test_removing_has_and_belongs_to_many_associations_upon_destroy
     p = RichPerson.create! first_name: "Jon"
     p.treasures.create!
-    assert !p.treasures.empty?
+    assert_not_empty p.treasures
     p.destroy
-    assert p.treasures.empty?
-    assert RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1").empty?
+    assert_empty p.treasures
+    assert_empty RichPerson.connection.select_all("SELECT * FROM peoples_treasures WHERE rich_person_id = 1")
   end
 
   def test_yaml_dumping_with_lock_column
@@ -432,6 +550,31 @@ class OptimisticLockingWithSchemaChangeTest < ActiveRecord::TestCase
   ensure
     remove_counter_column_from(Person, "personal_legacy_things_count")
     PersonalLegacyThing.reset_column_information
+  end
+
+  def test_destroy_existing_object_with_locking_column_value_null_in_the_database
+    ActiveRecord::Base.connection.execute("INSERT INTO lock_without_defaults(title) VALUES('title1')")
+    t1 = LockWithoutDefault.last
+
+    assert_equal 0, t1.lock_version
+    assert_nil t1.lock_version_before_type_cast
+
+    t1.destroy
+
+    assert_predicate t1, :destroyed?
+  end
+
+  def test_destroy_stale_object
+    t1 = LockWithoutDefault.create!(title: "title1")
+    stale_object = LockWithoutDefault.find(t1.id)
+
+    t1.update!(title: "title2")
+
+    assert_raises(ActiveRecord::StaleObjectError) do
+      stale_object.destroy!
+    end
+
+    assert_not_predicate stale_object, :destroyed?
   end
 
   private
@@ -496,17 +639,27 @@ unless in_memory_db?
       end
     end
 
-    # Locking a record reloads it.
-    def test_sane_lock_method
+    def test_lock_does_not_raise_when_the_object_is_not_dirty
+      person = Person.find 1
       assert_nothing_raised do
-        Person.transaction do
-          person = Person.find 1
-          old, person.first_name = person.first_name, "fooman"
-          # Locking a dirty record is deprecated
-          assert_deprecated do
-            person.lock!
-          end
-          assert_equal old, person.first_name
+        person.lock!
+      end
+    end
+
+    def test_lock_raises_when_the_record_is_dirty
+      person = Person.find 1
+      person.first_name = "fooman"
+      assert_raises(RuntimeError) do
+        person.lock!
+      end
+    end
+
+    def test_locking_in_after_save_callback
+      assert_nothing_raised do
+        frog = ::Frog.create(name: "Old Frog")
+        frog.name = "New Frog"
+        assert_not_deprecated do
+          frog.save!
         end
       end
     end
@@ -542,14 +695,12 @@ unless in_memory_db?
       end
     end
 
-    if current_adapter?(:PostgreSQLAdapter, :OracleAdapter)
-      def test_no_locks_no_wait
-        first, second = duel { Person.find 1 }
-        assert first.end > second.end
-      end
+    def test_no_locks_no_wait
+      first, second = duel { Person.find 1 }
+      assert first.end > second.end
+    end
 
-      private
-
+    private
       def duel(zzz = 5)
         t0, t1, t2, t3 = nil, nil, nil, nil
 
@@ -577,6 +728,5 @@ unless in_memory_db?
         assert t3 > t2
         [t0.to_f..t1.to_f, t2.to_f..t3.to_f]
       end
-    end
   end
 end

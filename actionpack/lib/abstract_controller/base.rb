@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/error"
 require "active_support/configurable"
 require "active_support/descendants_tracker"
@@ -178,8 +180,6 @@ module AbstractController
       #
       # ==== Parameters
       # * <tt>name</tt> - The name of an action to be tested
-      #
-      # :api: private
       def action_method?(name)
         self.class.action_methods.include?(name)
       end

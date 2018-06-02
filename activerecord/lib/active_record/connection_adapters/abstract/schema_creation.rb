@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/strip"
+# frozen_string_literal: true
 
 module ActiveRecord
   module ConnectionAdapters
@@ -15,14 +15,13 @@ module ActiveRecord
         end
 
         delegate :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options, to: :@conn
-        private :quote_column_name, :quote_table_name, :quote_default_expression, :type_to_sql,
-          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options
+          :options_include_default?, :supports_indexes_in_create?, :supports_foreign_keys_in_create?, :foreign_key_options,
+          to: :@conn, private: true
 
         private
 
           def visit_AlterTable(o)
-            sql = "ALTER TABLE #{quote_table_name(o.name)} "
+            sql = "ALTER TABLE #{quote_table_name(o.name)} ".dup
             sql << o.adds.map { |col| accept col }.join(" ")
             sql << o.foreign_key_adds.map { |fk| visit_AddForeignKey fk }.join(" ")
             sql << o.foreign_key_drops.map { |fk| visit_DropForeignKey fk }.join(" ")
@@ -30,17 +29,17 @@ module ActiveRecord
 
           def visit_ColumnDefinition(o)
             o.sql_type = type_to_sql(o.type, o.options)
-            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}"
+            column_sql = "#{quote_column_name(o.name)} #{o.sql_type}".dup
             add_column_options!(column_sql, column_options(o)) unless o.type == :primary_key
             column_sql
           end
 
           def visit_AddColumnDefinition(o)
-            "ADD #{accept(o.column)}"
+            "ADD #{accept(o.column)}".dup
           end
 
           def visit_TableDefinition(o)
-            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} "
+            create_sql = "CREATE#{' TEMPORARY' if o.temporary} TABLE #{quote_table_name(o.name)} ".dup
 
             statements = o.columns.map { |c| accept c }
             statements << accept(o.primary_keys) if o.primary_keys
@@ -55,16 +54,16 @@ module ActiveRecord
 
             create_sql << "(#{statements.join(', ')})" if statements.present?
             add_table_options!(create_sql, table_options(o))
-            create_sql << " AS #{@conn.to_sql(o.as)}" if o.as
+            create_sql << " AS #{to_sql(o.as)}" if o.as
             create_sql
           end
 
           def visit_PrimaryKeyDefinition(o)
-            "PRIMARY KEY (#{o.name.join(', ')})"
+            "PRIMARY KEY (#{o.name.map { |name| quote_column_name(name) }.join(', ')})"
           end
 
           def visit_ForeignKeyDefinition(o)
-            sql = <<-SQL.strip_heredoc
+            sql = +<<~SQL
               CONSTRAINT #{quote_column_name(o.name)}
               FOREIGN KEY (#{quote_column_name(o.column)})
                 REFERENCES #{quote_table_name(o.to_table)} (#{quote_column_name(o.primary_key)})
@@ -93,6 +92,7 @@ module ActiveRecord
             if options_sql = options[:options]
               create_sql << " #{options_sql}"
             end
+            create_sql
           end
 
           def column_options(o)
@@ -114,6 +114,11 @@ module ActiveRecord
             sql
           end
 
+          def to_sql(sql)
+            sql = sql.to_sql if sql.respond_to?(:to_sql)
+            sql
+          end
+
           def foreign_key_in_create(from_table, to_table, options)
             options = foreign_key_options(from_table, to_table, options)
             accept ForeignKeyDefinition.new(from_table, to_table, options)
@@ -125,7 +130,7 @@ module ActiveRecord
             when :cascade  then "ON #{action} CASCADE"
             when :restrict then "ON #{action} RESTRICT"
             else
-              raise ArgumentError, <<-MSG.strip_heredoc
+              raise ArgumentError, <<~MSG
                 '#{dependency}' is not supported for :on_update or :on_delete.
                 Supported values are: :nullify, :cascade, :restrict
               MSG

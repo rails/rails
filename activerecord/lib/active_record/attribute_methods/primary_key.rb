@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActiveRecord
@@ -15,13 +17,15 @@ module ActiveRecord
       # Returns the primary key value.
       def id
         sync_with_transaction_state
-        _read_attribute(self.class.primary_key) if self.class.primary_key
+        primary_key = self.class.primary_key
+        _read_attribute(primary_key) if primary_key
       end
 
       # Sets the primary key value.
       def id=(value)
         sync_with_transaction_state
-        write_attribute(self.class.primary_key, value) if self.class.primary_key
+        primary_key = self.class.primary_key
+        _write_attribute(primary_key, value) if primary_key
       end
 
       # Queries the primary key value.
@@ -79,7 +83,7 @@ module ActiveRecord
           end
 
           def reset_primary_key #:nodoc:
-            if self == base_class
+            if base_class?
               self.primary_key = get_primary_key(base_class.name)
             else
               self.primary_key = base_class.primary_key
@@ -127,7 +131,7 @@ module ActiveRecord
             def suppress_composite_primary_key(pk)
               return pk unless pk.is_a?(Array)
 
-              warn <<-WARNING.strip_heredoc
+              warn <<~WARNING
                 WARNING: Active Record does not support composite primary key.
 
                 #{table_name} has composite primary key. Composite primary key is ignored.

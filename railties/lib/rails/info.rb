@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cgi"
 
 module Rails
@@ -39,7 +41,7 @@ module Rails
       alias inspect to_s
 
       def to_html
-        "<table>".tap do |table|
+        "<table>".dup.tap do |table|
           properties.each do |(name, value)|
             table << %(<tr><td class="name">#{CGI.escapeHTML(name.to_s)}</td>)
             formatted_value = if value.kind_of?(Array)
@@ -97,7 +99,7 @@ module Rails
     end
 
     property "Database schema version" do
-      ActiveRecord::Migrator.current_version rescue nil
+      ActiveRecord::Base.connection.migration_context.current_version rescue nil
     end
   end
 end

@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
-require "active_support/core_ext/hash/transform_values"
 
 require "thor"
 
@@ -10,6 +11,7 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
+    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 

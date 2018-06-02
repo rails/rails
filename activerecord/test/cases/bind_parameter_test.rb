@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/author"
@@ -39,8 +41,9 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_binds_are_logged
-        binds = [bind_attribute("id", 1)]
-        sql   = "select * from topics where id = #{bind_param.to_sql}"
+        sub   = Arel::Nodes::BindParam.new(1)
+        binds = [Relation::QueryAttribute.new("id", 1, Type::Value.new)]
+        sql   = "select * from topics where id = #{sub.to_sql}"
 
         @connection.exec_query(sql, "SQL", binds)
 
@@ -55,7 +58,7 @@ if ActiveRecord::Base.connection.prepared_statements
       end
 
       def test_logs_binds_after_type_cast
-        binds = [bind_attribute("id", "10", Type::Integer.new)]
+        binds = [Relation::QueryAttribute.new("id", "10", Type::Integer.new)]
         assert_logs_binds(binds)
       end
 

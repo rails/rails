@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActionCable
@@ -28,7 +30,7 @@ module ActionCable
         config.connection_class.call.new(self, env).process
       end
 
-      # Disconnect all the connections identified by `identifiers` on this server or any others via RemoteConnections.
+      # Disconnect all the connections identified by +identifiers+ on this server or any others via RemoteConnections.
       def disconnect(identifiers)
         remote_connections.where(identifiers).disconnect
       end

@@ -36,7 +36,7 @@ $ cd myapp
 
 Rails now uses a `Gemfile` in the application root to determine the gems you require for your application to start. This `Gemfile` is processed by the [Bundler](https://github.com/carlhuda/bundler) gem, which then installs all your dependencies. It can even install all the dependencies locally to your application so that it doesn't depend on the system gems.
 
-More information: [Bundler homepage](http://bundler.io)
+More information: [Bundler homepage](https://bundler.io)
 
 ### Living on the Edge
 
@@ -55,18 +55,18 @@ $ ruby /path/to/rails/railties/bin/rails new myapp --dev
 Major Features
 --------------
 
-[![Rails 4.0](images/rails4_features.png)](http://guides.rubyonrails.org/images/rails4_features.png)
+[![Rails 4.0](images/4_0_release_notes/rails4_features.png)](http://guides.rubyonrails.org/images/4_0_release_notes/rails4_features.png)
 
 ### Upgrade
 
 * **Ruby 1.9.3** ([commit](https://github.com/rails/rails/commit/a0380e808d3dbd2462df17f5d3b7fcd8bd812496)) - Ruby 2.0 preferred; 1.9.3+ required
-* **[New deprecation policy](http://www.youtube.com/watch?v=z6YgD6tVPQs)** - Deprecated features are warnings in Rails 4.0 and will be removed in Rails 4.1.
+* **[New deprecation policy](https://www.youtube.com/watch?v=z6YgD6tVPQs)** - Deprecated features are warnings in Rails 4.0 and will be removed in Rails 4.1.
 * **ActionPack page and action caching** ([commit](https://github.com/rails/rails/commit/b0a7068564f0c95e7ef28fc39d0335ed17d93e90)) - Page and action caching are extracted to a separate gem. Page and action caching requires too much manual intervention (manually expiring caches when the underlying model objects are updated). Instead, use Russian doll caching.
 * **ActiveRecord observers** ([commit](https://github.com/rails/rails/commit/ccecab3ba950a288b61a516bf9b6962e384aae0b)) - Observers are extracted to a separate gem. Observers are only needed for page and action caching, and can lead to spaghetti code.
 * **ActiveRecord session store** ([commit](https://github.com/rails/rails/commit/0ffe19056c8e8b2f9ae9d487b896cad2ce9387ad)) - The ActiveRecord session store is extracted to a separate gem. Storing sessions in SQL is costly. Instead, use cookie sessions, memcache sessions, or a custom session store.
 * **ActiveModel mass assignment protection** ([commit](https://github.com/rails/rails/commit/f8c9a4d3e88181cee644f91e1342bfe896ca64c6)) - Rails 3 mass assignment protection is deprecated. Instead, use strong parameters.
 * **ActiveResource** ([commit](https://github.com/rails/rails/commit/f1637bf2bb00490203503fbd943b73406e043d1d)) - ActiveResource is extracted to a separate gem. ActiveResource was not widely used.
-* **vendor/plugins removed** ([commit](https://github.com/rails/rails/commit/853de2bd9ac572735fa6cf59fcf827e485a231c3)) - Use a Gemfile to manage installed gems.
+* **vendor/plugins removed** ([commit](https://github.com/rails/rails/commit/853de2bd9ac572735fa6cf59fcf827e485a231c3)) - Use a `Gemfile` to manage installed gems.
 
 ### ActionPack
 

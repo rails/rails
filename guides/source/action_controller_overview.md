@@ -21,9 +21,9 @@ After reading this guide, you will know:
 What Does a Controller Do?
 --------------------------
 
-Action Controller is the C in MVC. After the router has determined which controller to use for a request, the controller is responsible for making sense of the request and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
+Action Controller is the C in [MVC](https://en.wikipedia.org/wiki/Model%E2%80%93view%E2%80%93controller). After the router has determined which controller to use for a request, the controller is responsible for making sense of the request, and producing the appropriate output. Luckily, Action Controller does most of the groundwork for you and uses smart conventions to make this as straightforward as possible.
 
-For most conventional [RESTful](http://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
+For most conventional [RESTful](https://en.wikipedia.org/wiki/Representational_state_transfer) applications, the controller will receive the request (this is invisible to you as the developer), fetch or save data from a model, and use a view to create HTML output. If your controller needs to do things a little differently, that's not a problem, this is just the most common way for a controller to work.
 
 A controller can thus be thought of as a middleman between models and views. It makes the model data available to the view so it can display that data to the user, and it saves or updates user data to the model.
 
@@ -51,7 +51,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. The `new` method could make available to the view a `@client` instance variable by creating a new `Client`:
+As an example, if a user goes to `/clients/new` in your application to add a new client, Rails will create an instance of `ClientsController` and call its `new` method. Note that the empty method from the example above would work just fine because Rails will by default render the `new.html.erb` view unless the action says otherwise. By creating a new `Client`, the `new` method can make a `@client` instance variable accessible in the view:
 
 ```ruby
 def new
@@ -397,34 +397,18 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data. This can be changed in `config/secrets.yml`
+Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
 
 ```ruby
-# Be sure to restart your server when you modify this file.
+# aws:
+#   access_key_id: 123
+#   secret_access_key: 345
 
-# Your secret key is used for verifying the integrity of signed cookies.
-# If you change this key, all old signed cookies will become invalid!
-
-# Make sure the secret is at least 30 characters and all random,
-# no regular words or you'll be exposed to dictionary attacks.
-# You can use `rails secret` to generate a secure secret key.
-
-# Make sure the secrets in this file are kept private
-# if you're sharing your code publicly.
-
-development:
-  secret_key_base: a75d...
-
-test:
-  secret_key_base: 492f...
-
-# Do not keep production secrets in the repository,
-# instead read values from the environment.
-production:
-  secret_key_base: <%= ENV["SECRET_KEY_BASE"] %>
+# Used as the base secret for all MessageVerifiers in Rails, including the one protecting cookies.
+secret_key_base: 492f...
 ```
 
-NOTE: Changing the secret when using the `CookieStore` will invalidate all existing sessions.
+NOTE: Changing the secret_key_base when using the `CookieStore` will invalidate all existing sessions.
 
 ### Accessing the Session
 
@@ -466,14 +450,16 @@ class LoginsController < ApplicationController
 end
 ```
 
-To remove something from the session, assign that key to be `nil`:
+To remove something from the session, delete the key/value pair:
 
 ```ruby
 class LoginsController < ApplicationController
   # "Delete" a login, aka "log the user out"
   def destroy
     # Remove the user id from the session
-    @_current_user = session[:current_user_id] = nil
+    session.delete(:current_user_id)
+    # Clear the memoized current user
+    @_current_user = nil
     redirect_to root_url
   end
 end
@@ -492,7 +478,7 @@ Let's use the act of logging out as an example. The controller can send a messag
 ```ruby
 class LoginsController < ApplicationController
   def destroy
-    session[:current_user_id] = nil
+    session.delete(:current_user_id)
     flash[:notice] = "You have successfully logged out."
     redirect_to root_url
   end
@@ -670,8 +656,8 @@ class UsersController < ApplicationController
     @users = User.all
     respond_to do |format|
       format.html # index.html.erb
-      format.xml  { render xml: @users}
-      format.json { render json: @users}
+      format.xml  { render xml: @users }
+      format.json { render json: @users }
     end
   end
 end
@@ -791,18 +777,18 @@ Again, this is not an ideal example for this filter, because it's not run in the
 Request Forgery Protection
 --------------------------
 
-Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying or deleting data on that site without the user's knowledge or permission.
+Cross-site request forgery is a type of attack in which a site tricks a user into making requests on another site, possibly adding, modifying, or deleting data on that site without the user's knowledge or permission.
 
-The first step to avoid this is to make sure all "destructive" actions (create, update and destroy) can only be accessed with non-GET requests. If you're following RESTful conventions you're already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that's where the request forgery protection comes in. As the name says, it protects from forged requests.
+The first step to avoid this is to make sure all "destructive" actions (create, update, and destroy) can only be accessed with non-GET requests. If you're following RESTful conventions you're already doing this. However, a malicious site can still send a non-GET request to your site quite easily, and that's where the request forgery protection comes in. As the name says, it protects from forged requests.
 
 The way this is done is to add a non-guessable token which is only known to your server to each request. This way, if a request comes in without the proper token, it will be denied access.
 
 If you generate a form like this:
 
 ```erb
-<%= form_for @user do |f| %>
-  <%= f.text_field :username %>
-  <%= f.text_field :password %>
+<%= form_with model: @user, local: true do |form| %>
+  <%= form.text_field :username %>
+  <%= form.text_field :password %>
 <% end %>
 ```
 
@@ -871,7 +857,7 @@ If you want to set custom headers for a response then `response.headers` is the 
 response.headers["Content-Type"] = "application/pdf"
 ```
 
-Note: in the above case it would make more sense to use the `content_type` setter directly.
+NOTE: In the above case it would make more sense to use the `content_type` setter directly.
 
 HTTP Authentications
 --------------------
@@ -1132,7 +1118,7 @@ Rails default exception handling displays a "500 Server Error" message for all e
 
 ### The Default 500 and 404 Templates
 
-By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the `public` folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
+By default a production application will render either a 404 or a 500 error message, in the development environment all unhandled exceptions are raised. These messages are contained in static HTML files in the public folder, in `404.html` and `500.html` respectively. You can customize these files to add some extra information and style, but remember that they are static HTML; i.e. you can't use ERB, SCSS, CoffeeScript, or layouts for them.
 
 ### `rescue_from`
 
@@ -1186,7 +1172,7 @@ class ClientsController < ApplicationController
 end
 ```
 
-WARNING: You shouldn't do `rescue_from Exception` or `rescue_from StandardError` unless you have a particular reason as it will cause serious side-effects (e.g. you won't be able to see exception details and tracebacks during development).
+WARNING: Using `rescue_from` with `Exception` or `StandardError` would cause serious side-effects as it prevents Rails from handling exceptions properly. As such, it is not recommended to do so unless there is a strong reason.
 
 NOTE: When running in the production environment, all
 `ActiveRecord::RecordNotFound` errors render the 404 error page. Unless you need
@@ -1197,22 +1183,6 @@ NOTE: Certain exceptions are only rescuable from the `ApplicationController` cla
 Force HTTPS protocol
 --------------------
 
-Sometime you might want to force a particular controller to only be accessible via an HTTPS protocol for security reasons. You can use the `force_ssl` method in your controller to enforce that:
-
-```ruby
-class DinnerController
-  force_ssl
-end
-```
-
-Just like the filter, you could also pass `:only` and `:except` to enforce the secure connection only to specific actions:
-
-```ruby
-class DinnerController
-  force_ssl only: :cheeseburger
-  # or
-  force_ssl except: :cheeseburger
-end
-```
-
-Please note that if you find yourself adding `force_ssl` to many controllers, you may want to force the whole application to use HTTPS instead. In that case, you can set the `config.force_ssl` in your environment file.
+If you'd like to ensure that communication to your controller is only possible
+via HTTPS, you should do so by enabling the `ActionDispatch::SSL` middleware via
+`config.force_ssl` in your environment configuration.

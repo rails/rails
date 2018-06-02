@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "openssl"
 require "active_support/time"
 require "active_support/json"
+require_relative "metadata/shared_metadata_tests"
 
 class MessageEncryptorTest < ActiveSupport::TestCase
   class JSONSerializer
@@ -104,8 +107,81 @@ class MessageEncryptorTest < ActiveSupport::TestCase
     assert_aead_not_decrypted(encryptor, [text, iv, auth_tag[0..-2]] * "--")
   end
 
-  private
+  def test_backwards_compatibility_decrypt_previously_encrypted_messages_without_metadata
+    secret = "\xB7\xF0\xBCW\xB1\x18`\xAB\xF0\x81\x10\xA4$\xF44\xEC\xA1\xDC\xC1\xDDD\xAF\xA9\xB8\x14\xCD\x18\x9A\x99 \x80)"
+    encryptor = ActiveSupport::MessageEncryptor.new(secret, cipher: "aes-256-gcm")
+    encrypted_message = "9cVnFs2O3lL9SPvIJuxBOLS51nDiBMw=--YNI5HAfHEmZ7VDpl--ddFJ6tXA0iH+XGcCgMINYQ=="
 
+    assert_equal "Ruby on Rails", encryptor.decrypt_and_verify(encrypted_message)
+  end
+
+  def test_rotating_secret
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    encryptor.rotate secrets[:old]
+
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_rotating_serializer
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm", serializer: JSON).
+      encrypt_and_sign(ahoy: :hoy)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm", serializer: JSON)
+    encryptor.rotate secrets[:old]
+
+    assert_equal({ "ahoy" => "hoy" }, encryptor.decrypt_and_verify(old_message))
+  end
+
+  def test_rotating_aes_cbc_secrets
+    old_encryptor = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign", cipher: "aes-256-cbc")
+    old_message = old_encryptor.encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old], "old sign", cipher: "aes-256-cbc"
+
+    assert_equal "old", encryptor.decrypt_and_verify(old_message)
+  end
+
+  def test_multiple_rotations
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign("older")
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], "old sign").encrypt_and_sign("old")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old], "old sign"
+    encryptor.rotate secrets[:older], "older sign"
+
+    assert_equal "new",   encryptor.decrypt_and_verify(encryptor.encrypt_and_sign("new"))
+    assert_equal "old",   encryptor.decrypt_and_verify(old_message)
+    assert_equal "older", encryptor.decrypt_and_verify(older_message)
+  end
+
+  def test_on_rotation_is_called_and_returns_modified_messages
+    older_message = ActiveSupport::MessageEncryptor.new(secrets[:older], "older sign").encrypt_and_sign(encoded: "message")
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret)
+    encryptor.rotate secrets[:old]
+    encryptor.rotate secrets[:older], "older sign"
+
+    rotated = false
+    message = encryptor.decrypt_and_verify(older_message, on_rotation: proc { rotated = true })
+
+    assert_equal({ encoded: "message" }, message)
+    assert rotated
+  end
+
+  def test_with_rotated_metadata
+    old_message = ActiveSupport::MessageEncryptor.new(secrets[:old], cipher: "aes-256-gcm").
+      encrypt_and_sign("metadata", purpose: :rotation)
+
+    encryptor = ActiveSupport::MessageEncryptor.new(@secret, cipher: "aes-256-gcm")
+    encryptor.rotate secrets[:old]
+
+    assert_equal "metadata", encryptor.decrypt_and_verify(old_message, purpose: :rotation)
+  end
+
+  private
     def assert_aead_not_decrypted(encryptor, value)
       assert_raise(ActiveSupport::MessageEncryptor::InvalidMessage) do
         encryptor.decrypt_and_verify(value)
@@ -124,9 +200,47 @@ class MessageEncryptorTest < ActiveSupport::TestCase
       end
     end
 
+    def secrets
+      @secrets ||= Hash.new { |h, k| h[k] = SecureRandom.random_bytes(32) }
+    end
+
     def munge(base64_string)
       bits = ::Base64.strict_decode64(base64_string)
       bits.reverse!
       ::Base64.strict_encode64(bits)
+    end
+end
+
+class MessageEncryptorMetadataTest < ActiveSupport::TestCase
+  include SharedMessageMetadataTests
+
+  setup do
+    @secret    = SecureRandom.random_bytes(32)
+    @encryptor = ActiveSupport::MessageEncryptor.new(@secret, encryptor_options)
+  end
+
+  private
+    def generate(message, **options)
+      @encryptor.encrypt_and_sign(message, options)
+    end
+
+    def parse(data, **options)
+      @encryptor.decrypt_and_verify(data, options)
+    end
+
+    def encryptor_options; end
+end
+
+class MessageEncryptorMetadataMarshalTest < MessageEncryptorMetadataTest
+  private
+    def encryptor_options
+      { serializer: Marshal }
+    end
+end
+
+class MessageEncryptorMetadataJSONTest < MessageEncryptorMetadataTest
+  private
+    def encryptor_options
+      { serializer: MessageEncryptorTest::JSONSerializer.new }
     end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -74,14 +76,27 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     assert_nil column.default
   end
 
+  def test_add_column_with_default_array
+    connection.add_column :uuid_data_type, :thingy, :uuid, array: true, default: []
+
+    UUIDType.reset_column_information
+    column = UUIDType.columns_hash["thingy"]
+
+    assert_predicate column, :array?
+    assert_equal "{}", column.default
+
+    schema = dump_table_schema "uuid_data_type"
+    assert_match %r{t\.uuid "thingy", default: \[\], array: true$}, schema
+  end
+
   def test_data_type_of_uuid_types
     column = UUIDType.columns_hash["guid"]
     assert_equal :uuid, column.type
     assert_equal "uuid", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = UUIDType.type_for_attribute("guid")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_treat_blank_uuid_as_nil
@@ -124,7 +139,9 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
      "Z0000C99-9C0B-4EF8-BB6D-6BB9BD380A11",
      "a0eebc999r0b4ef8ab6d6bb9bd380a11",
      "a0ee-bc99------4ef8-bb6d-6bb9-bd38-0a11",
-     "{a0eebc99-bb6d6bb9-bd380a11}"].each do |invalid_uuid|
+     "{a0eebc99-bb6d6bb9-bd380a11}",
+     "{a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11",
+     "a0eebc99-9c0b4ef8-bb6d6bb9-bd380a11}"].each do |invalid_uuid|
       uuid = UUIDType.new guid: invalid_uuid
       assert_nil uuid.guid
     end
@@ -161,7 +178,7 @@ class PostgresqlUUIDTest < ActiveRecord::PostgreSQLTestCase
     duplicate = klass.new(guid: record.guid)
 
     assert record.guid.present? # Ensure we actually are testing a UUID
-    assert_not duplicate.valid?
+    assert_not_predicate duplicate, :valid?
   end
 end
 
@@ -205,68 +222,66 @@ class PostgresqlUUIDGenerationTest < ActiveRecord::PostgreSQLTestCase
     connection.execute "DROP FUNCTION IF EXISTS my_uuid_generator();"
   end
 
-  if ActiveRecord::Base.connection.supports_extensions?
-    def test_id_is_uuid
-      assert_equal :uuid, UUID.columns_hash["id"].type
-      assert UUID.primary_key
-    end
+  def test_id_is_uuid
+    assert_equal :uuid, UUID.columns_hash["id"].type
+    assert UUID.primary_key
+  end
 
-    def test_id_has_a_default
-      u = UUID.create
-      assert_not_nil u.id
-    end
+  def test_id_has_a_default
+    u = UUID.create
+    assert_not_nil u.id
+  end
 
-    def test_auto_create_uuid
-      u = UUID.create
-      u.reload
-      assert_not_nil u.other_uuid
-    end
+  def test_auto_create_uuid
+    u = UUID.create
+    u.reload
+    assert_not_nil u.other_uuid
+  end
 
-    def test_pk_and_sequence_for_uuid_primary_key
-      pk, seq = connection.pk_and_sequence_for("pg_uuids")
-      assert_equal "id", pk
-      assert_nil seq
-    end
+  def test_pk_and_sequence_for_uuid_primary_key
+    pk, seq = connection.pk_and_sequence_for("pg_uuids")
+    assert_equal "id", pk
+    assert_nil seq
+  end
 
-    def test_schema_dumper_for_uuid_primary_key
-      schema = dump_table_schema "pg_uuids"
-      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: -> { "uuid_generate_v1\(\)" }/, schema)
-      assert_match(/t\.uuid "other_uuid", default: -> { "uuid_generate_v4\(\)" }/, schema)
-    end
+  def test_schema_dumper_for_uuid_primary_key
+    schema = dump_table_schema "pg_uuids"
+    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: -> { "uuid_generate_v1\(\)" }/, schema)
+    assert_match(/t\.uuid "other_uuid", default: -> { "uuid_generate_v4\(\)" }/, schema)
+  end
 
-    def test_schema_dumper_for_uuid_primary_key_with_custom_default
-      schema = dump_table_schema "pg_uuids_2"
-      assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
-      assert_match(/t\.uuid "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
-    end
+  def test_schema_dumper_for_uuid_primary_key_with_custom_default
+    schema = dump_table_schema "pg_uuids_2"
+    assert_match(/\bcreate_table "pg_uuids_2", id: :uuid, default: -> { "my_uuid_generator\(\)" }/, schema)
+    assert_match(/t\.uuid "other_uuid_2", default: -> { "my_uuid_generator\(\)" }/, schema)
+  end
 
-    def test_schema_dumper_for_uuid_primary_key_default
-      schema = dump_table_schema "pg_uuids_3"
-      if connection.supports_pgcrypto_uuid?
-        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
-      else
-        assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+  def test_schema_dumper_for_uuid_primary_key_default
+    schema = dump_table_schema "pg_uuids_3"
+    if connection.supports_pgcrypto_uuid?
+      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "gen_random_uuid\(\)" }/, schema)
+    else
+      assert_match(/\bcreate_table "pg_uuids_3", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+    end
+  end
+
+  def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
+    @verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.verbose = false
+
+    migration = Class.new(ActiveRecord::Migration[5.0]) do
+      def version; 101 end
+      def migrate(x)
+        create_table("pg_uuids_4", id: :uuid)
       end
-    end
+    end.new
+    ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-    def test_schema_dumper_for_uuid_primary_key_default_in_legacy_migration
-      @verbose_was = ActiveRecord::Migration.verbose
-      ActiveRecord::Migration.verbose = false
-
-      migration = Class.new(ActiveRecord::Migration[5.0]) do
-        def version; 101 end
-        def migrate(x)
-          create_table("pg_uuids_4", id: :uuid)
-        end
-      end.new
-      ActiveRecord::Migrator.new(:up, [migration]).migrate
-
-      schema = dump_table_schema "pg_uuids_4"
-      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
-    ensure
-      drop_table "pg_uuids_4"
-      ActiveRecord::Migration.verbose = @verbose_was
-    end
+    schema = dump_table_schema "pg_uuids_4"
+    assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: -> { "uuid_generate_v4\(\)" }/, schema)
+  ensure
+    drop_table "pg_uuids_4"
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 end
 
@@ -285,38 +300,36 @@ class PostgresqlUUIDTestNilDefault < ActiveRecord::PostgreSQLTestCase
     drop_table "pg_uuids"
   end
 
-  if ActiveRecord::Base.connection.supports_extensions?
-    def test_id_allows_default_override_via_nil
-      col_desc = connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
-                                    FROM pg_attribute a
-                                    LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
-                                    WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
-      assert_nil col_desc["default"]
-    end
+  def test_id_allows_default_override_via_nil
+    col_desc = connection.execute("SELECT pg_get_expr(d.adbin, d.adrelid) as default
+                                  FROM pg_attribute a
+                                  LEFT JOIN pg_attrdef d ON a.attrelid = d.adrelid AND a.attnum = d.adnum
+                                  WHERE a.attname='id' AND a.attrelid = 'pg_uuids'::regclass").first
+    assert_nil col_desc["default"]
+  end
 
-    def test_schema_dumper_for_uuid_primary_key_with_default_override_via_nil
-      schema = dump_table_schema "pg_uuids"
-      assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
-    end
+  def test_schema_dumper_for_uuid_primary_key_with_default_override_via_nil
+    schema = dump_table_schema "pg_uuids"
+    assert_match(/\bcreate_table "pg_uuids", id: :uuid, default: nil/, schema)
+  end
 
-    def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
-      @verbose_was = ActiveRecord::Migration.verbose
-      ActiveRecord::Migration.verbose = false
+  def test_schema_dumper_for_uuid_primary_key_with_default_nil_in_legacy_migration
+    @verbose_was = ActiveRecord::Migration.verbose
+    ActiveRecord::Migration.verbose = false
 
-      migration = Class.new(ActiveRecord::Migration[5.0]) do
-        def version; 101 end
-        def migrate(x)
-          create_table("pg_uuids_4", id: :uuid, default: nil)
-        end
-      end.new
-      ActiveRecord::Migrator.new(:up, [migration]).migrate
+    migration = Class.new(ActiveRecord::Migration[5.0]) do
+      def version; 101 end
+      def migrate(x)
+        create_table("pg_uuids_4", id: :uuid, default: nil)
+      end
+    end.new
+    ActiveRecord::Migrator.new(:up, [migration]).migrate
 
-      schema = dump_table_schema "pg_uuids_4"
-      assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
-    ensure
-      drop_table "pg_uuids_4"
-      ActiveRecord::Migration.verbose = @verbose_was
-    end
+    schema = dump_table_schema "pg_uuids_4"
+    assert_match(/\bcreate_table "pg_uuids_4", id: :uuid, default: nil/, schema)
+  ensure
+    drop_table "pg_uuids_4"
+    ActiveRecord::Migration.verbose = @verbose_was
   end
 end
 
@@ -350,23 +363,21 @@ class PostgresqlUUIDTestInverseOf < ActiveRecord::PostgreSQLTestCase
     drop_table "pg_uuid_posts"
   end
 
-  if ActiveRecord::Base.connection.supports_extensions?
-    def test_collection_association_with_uuid
-      post    = UuidPost.create!
-      comment = post.uuid_comments.create!
-      assert post.uuid_comments.find(comment.id)
-    end
+  def test_collection_association_with_uuid
+    post    = UuidPost.create!
+    comment = post.uuid_comments.create!
+    assert post.uuid_comments.find(comment.id)
+  end
 
-    def test_find_with_uuid
-      UuidPost.create!
-      assert_raise ActiveRecord::RecordNotFound do
-        UuidPost.find(123456)
-      end
+  def test_find_with_uuid
+    UuidPost.create!
+    assert_raise ActiveRecord::RecordNotFound do
+      UuidPost.find(123456)
     end
+  end
 
-    def test_find_by_with_uuid
-      UuidPost.create!
-      assert_nil UuidPost.find_by(id: 789)
-    end
+  def test_find_by_with_uuid
+    UuidPost.create!
+    assert_nil UuidPost.find_by(id: 789)
   end
 end

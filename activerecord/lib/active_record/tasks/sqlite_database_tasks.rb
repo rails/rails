@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Tasks # :nodoc:
     class SQLiteDatabaseTasks # :nodoc:
@@ -71,7 +73,7 @@ module ActiveRecord
         end
 
         def run_cmd_error(cmd, args)
-          msg = "failed to execute:\n"
+          msg = "failed to execute:\n".dup
           msg << "#{cmd} #{args.join(' ')}\n\n"
           msg << "Please check the output above for any errors and make sure that `#{cmd}` is installed in your PATH and has proper permissions.\n\n"
           msg

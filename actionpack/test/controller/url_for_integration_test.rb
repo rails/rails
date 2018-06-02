@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
@@ -33,7 +35,6 @@ module ActionPack
         as: "blog"
 
       resources :people
-      #match 'legacy/people' => "people#index", :legacy => "true"
 
       get "symbols", controller: :symbols, action: :show, name: :as_symbol
       get "id_default(/:id)" => "foo#id_default", :id => 1

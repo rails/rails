@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "concurrent/atomic/count_down_latch"
 
@@ -71,7 +73,7 @@ module ActionController
         }
 
         latch.wait
-        assert @response.headers.frozen?
+        assert_predicate @response.headers, :frozen?
         e = assert_raises(ActionDispatch::IllegalStateError) do
           @response.headers["Content-Length"] = "zomg"
         end

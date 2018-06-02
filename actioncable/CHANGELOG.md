@@ -1,8 +1,6 @@
-*   ActionCable socket errors are now logged to the console
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    Previously any socket errors were ignored and this made it hard to diagnose socket issues (e.g. as discussed in #28362).
-
-    *Edward Poot*
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actioncable/CHANGELOG.md) for previous changes.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/cache"
 
@@ -45,7 +47,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_respond_to_cache_key
-    key = "foo"
+    key = "foo".dup
     def key.cache_key
       :foo_key
     end
@@ -53,7 +55,7 @@ class CacheKeyTest < ActiveSupport::TestCase
   end
 
   def test_expand_cache_key_array_with_something_that_responds_to_cache_key
-    key = "foo"
+    key = "foo".dup
     def key.cache_key
       :foo_key
     end

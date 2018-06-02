@@ -1,4 +1,6 @@
-#copied from https://github.com/collectiveidea/delayed_job/blob/master/spec/delayed/backend/test.rb
+# frozen_string_literal: true
+
+# copied from https://github.com/collectiveidea/delayed_job/blob/master/spec/delayed/backend/test.rb
 require "ostruct"
 
 # An in-memory backend suitable only for testing. Tries to behave as if it were an ORM.
@@ -75,7 +77,7 @@ module Delayed
             self.locked_by = worker
           end
 
-          return true
+          true
         end
 
         def self.db_time_now

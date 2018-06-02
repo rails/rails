@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class Date < Value # :nodoc:
@@ -40,7 +42,7 @@ module ActiveModel
         end
 
         def new_date(year, mon, mday)
-          if year && year != 0
+          unless year.nil? || (year == 0 && mon == 0 && mday == 0)
             ::Date.new(year, mon, mday) rescue nil
           end
         end

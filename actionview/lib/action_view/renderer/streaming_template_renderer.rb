@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fiber"
 
 module ActionView
@@ -31,7 +33,7 @@ module ActionView
           logger = ActionView::Base.logger
           return unless logger
 
-          message = "\n#{exception.class} (#{exception.message}):\n"
+          message = "\n#{exception.class} (#{exception.message}):\n".dup
           message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
           message << "  " << exception.backtrace.join("\n  ")
           logger.fatal("#{message}\n\n")
@@ -63,7 +65,9 @@ module ActionView
         yielder = lambda { |*name| view._layout_for(*name) }
 
         instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
+          outer_config = I18n.config
           fiber = Fiber.new do
+            I18n.config = outer_config
             if layout
               layout.render(view, locals, output, &yielder)
             else

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/try"
 
 module DateAndTime
@@ -18,9 +20,9 @@ module DateAndTime
       advance(days: -1)
     end
 
-    # Returns a new date/time representing the previous day.
-    def prev_day
-      advance(days: -1)
+    # Returns a new date/time the specified number of days ago.
+    def prev_day(days = 1)
+      advance(days: -days)
     end
 
     # Returns a new date/time representing tomorrow.
@@ -28,9 +30,9 @@ module DateAndTime
       advance(days: 1)
     end
 
-    # Returns a new date/time representing the next day.
-    def next_day
-      advance(days: 1)
+    # Returns a new date/time the specified number of days in the future.
+    def next_day(days = 1)
+      advance(days: days)
     end
 
     # Returns true if the date/time is today.
@@ -56,6 +58,16 @@ module DateAndTime
     # Returns true if the date/time does not fall on a Saturday or Sunday.
     def on_weekday?
       !WEEKEND_DAYS.include?(wday)
+    end
+
+    # Returns true if the date/time falls before <tt>date_or_time</tt>.
+    def before?(date_or_time)
+      self < date_or_time
+    end
+
+    # Returns true if the date/time falls after <tt>date_or_time</tt>.
+    def after?(date_or_time)
+      self > date_or_time
     end
 
     # Returns a new date/time the specified number of days ago.
@@ -186,9 +198,9 @@ module DateAndTime
       end
     end
 
-    # Short-hand for months_since(1).
-    def next_month
-      months_since(1)
+    # Returns a new date/time the specified number of months in the future.
+    def next_month(months = 1)
+      advance(months: months)
     end
 
     # Short-hand for months_since(3)
@@ -196,9 +208,9 @@ module DateAndTime
       months_since(3)
     end
 
-    # Short-hand for years_since(1).
-    def next_year
-      years_since(1)
+    # Returns a new date/time the specified number of years in the future.
+    def next_year(years = 1)
+      advance(years: years)
     end
 
     # Returns a new date/time representing the given day in the previous week.
@@ -221,11 +233,15 @@ module DateAndTime
     end
     alias_method :last_weekday, :prev_weekday
 
+    # Returns a new date/time the specified number of months ago.
+    def prev_month(months = 1)
+      advance(months: -months)
+    end
+
     # Short-hand for months_ago(1).
-    def prev_month
+    def last_month
       months_ago(1)
     end
-    alias_method :last_month, :prev_month
 
     # Short-hand for months_ago(3).
     def prev_quarter
@@ -233,11 +249,15 @@ module DateAndTime
     end
     alias_method :last_quarter, :prev_quarter
 
+    # Returns a new date/time the specified number of years ago.
+    def prev_year(years = 1)
+      advance(years: -years)
+    end
+
     # Short-hand for years_ago(1).
-    def prev_year
+    def last_year
       years_ago(1)
     end
-    alias_method :last_year, :prev_year
 
     # Returns the number of days to the start of the week on the given day.
     # Week is assumed to start on +start_day+, default is
@@ -320,20 +340,28 @@ module DateAndTime
       beginning_of_year..end_of_year
     end
 
-    # Returns specific next occurring day of week
+    # Returns a new date/time representing the next occurrence of the specified day of week.
+    #
+    #   today = Date.today               # => Thu, 14 Dec 2017
+    #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
+    #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
     def next_occurring(day_of_week)
       current_day_number = wday != 0 ? wday - 1 : 6
       from_now = DAYS_INTO_WEEK.fetch(day_of_week) - current_day_number
       from_now += 7 unless from_now > 0
-      since(from_now.days)
+      advance(days: from_now)
     end
 
-    # Returns specific previous occurring day of week
+    # Returns a new date/time representing the previous occurrence of the specified day of week.
+    #
+    #   today = Date.today               # => Thu, 14 Dec 2017
+    #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
+    #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
     def prev_occurring(day_of_week)
       current_day_number = wday != 0 ? wday - 1 : 6
       ago = current_day_number - DAYS_INTO_WEEK.fetch(day_of_week)
       ago += 7 unless ago > 0
-      ago(ago.days)
+      advance(days: -ago)
     end
 
     private

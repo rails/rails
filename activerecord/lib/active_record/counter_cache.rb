@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Counter Cache
   module CounterCache
@@ -51,7 +53,7 @@ module ActiveRecord
           unscoped.where(primary_key => object.id).update_all(updates)
         end
 
-        return true
+        true
       end
 
       # A generic "counter updater" implementation, intended primarily to be
@@ -109,7 +111,13 @@ module ActiveRecord
           updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
         end
 
-        unscoped.where(primary_key => id).update_all updates.join(", ")
+        if id.is_a?(Relation) && self == id.klass
+          relation = id
+        else
+          relation = unscoped.where!(primary_key => id)
+        end
+
+        relation.update_all updates.join(", ")
       end
 
       # Increment a numeric field by one, via a direct SQL update.
@@ -180,7 +188,6 @@ module ActiveRecord
         each_counter_cached_associations do |association|
           if send(association.reflection.name)
             association.increment_counters
-            @_after_create_counter_called = true
           end
         end
 

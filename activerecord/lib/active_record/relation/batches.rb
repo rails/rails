@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/relation/batches/batch_enumerator"
 
 module ActiveRecord
@@ -45,7 +47,12 @@ module ActiveRecord
     # handle from 10000 and beyond by setting the +:start+ and +:finish+
     # option on each worker.
     #
-    #   # Let's process from record 10_000 on.
+    #   # In worker 1, let's process until 9999 records.
+    #   Person.find_each(finish: 9_999) do |person|
+    #     person.party_all_night!
+    #   end
+    #
+    #   # In worker 2, let's process from record 10_000 and onwards.
     #   Person.find_each(start: 10_000) do |person|
     #     person.party_all_night!
     #   end
@@ -209,6 +216,7 @@ module ActiveRecord
 
       relation = relation.reorder(batch_order).limit(batch_limit)
       relation = apply_limits(relation, start, finish)
+      relation.skip_query_cache! # Retaining the results in the query cache would undermine the point of batching
       batch_relation = relation
 
       loop do
@@ -243,20 +251,33 @@ module ActiveRecord
           end
         end
 
-        batch_relation = relation.where(arel_attribute(primary_key).gt(primary_key_offset))
+        bind = primary_key_bind(primary_key_offset)
+        batch_relation = relation.where(arel_attribute(primary_key).gt(bind))
       end
     end
 
     private
 
       def apply_limits(relation, start, finish)
-        relation = relation.where(arel_attribute(primary_key).gteq(start)) if start
-        relation = relation.where(arel_attribute(primary_key).lteq(finish)) if finish
+        relation = apply_start_limit(relation, start) if start
+        relation = apply_finish_limit(relation, finish) if finish
         relation
       end
 
+      def apply_start_limit(relation, start)
+        relation.where(arel_attribute(primary_key).gteq(primary_key_bind(start)))
+      end
+
+      def apply_finish_limit(relation, finish)
+        relation.where(arel_attribute(primary_key).lteq(primary_key_bind(finish)))
+      end
+
+      def primary_key_bind(value)
+        predicate_builder.build_bind_attribute(primary_key, value)
+      end
+
       def batch_order
-        "#{quoted_table_name}.#{quoted_primary_key} ASC"
+        arel_attribute(primary_key).asc
       end
 
       def act_on_ignored_order(error_on_ignore)

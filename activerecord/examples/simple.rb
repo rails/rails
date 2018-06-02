@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record"
 
 class Person < ActiveRecord::Base

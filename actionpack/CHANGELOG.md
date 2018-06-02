@@ -1,47 +1,44 @@
-*   `driven_by` now registers poltergeist and capybara-webkit
+*   Introduce a new error page to when the implict render page is accessed in the browser.
 
-    If driver poltergeist or capybara-webkit is set for System Tests,
-    `driven_by` will register the driver and set additional options passed via
-    `:options` param.
+    Now instead of showing an error page that with exception and backtraces we now show only
+    one informative page.
 
-    Refer to drivers documentation to learn what options can be passed.
+    *Vinicius Stock*
 
-    *Mario Chavez*
+*   Introduce ActionDispatch::DebugExceptions.register_interceptor
 
-*   AEAD encrypted cookies and sessions with GCM
+    Exception aware plugin authors can use the newly introduced
+    `.register_interceptor` method to get the processed exception, instead of
+    monkey patching DebugExceptions.
 
-    Encrypted cookies now use AES-GCM which couples authentication and
-    encryption in one faster step and produces shorter ciphertexts. Cookies
-    encrypted using AES in CBC HMAC mode will be seamlessly upgraded when
-    this new mode is enabled via the
-    `action_dispatch.use_authenticated_cookie_encryption` configuration value.
+        ActionDispatch::DebugExceptions.register_interceptor do |request, exception|
+          HypoteticalPlugin.capture_exception(request, exception)
+        end
 
-    *Michael J Coyne*
+    *Genadi Samokovarov*
 
-*   Change the cache key format for fragments to make it easier to debug key churn. The new format is:
+*   Output only one Content-Security-Policy nonce header value per request.
 
-        views/template/action.html.erb:7a1156131a6928cb0026877f8b749ac9/projects/123
-              ^template path           ^template tree digest            ^class   ^id
+    Fixes #32597.
 
-    *DHH*
+    *Andrey Novikov*, *Andrew White*
 
-*   Add support for recyclable cache keys with fragment caching. This uses the new versioned entries in the
-    `ActiveSupport::Cache` stores and relies on the fact that Active Record has split `#cache_key` and `#cache_version`
-    to support it.
+*   Move default headers configuration into their own module that can be included in controllers.
 
-    *DHH*
+    *Kevin Deisz*
 
-*   Add `action_controller_api` and `action_controller_base` load hooks to be called in `ActiveSupport.on_load`
+*   Add method `dig` to `session`.
 
-    `ActionController::Base` and `ActionController::API` have differing implementations. This means that
-    the one umbrella hook `action_controller` is not able to address certain situations where a method
-    may not exist in a certain implementation.
+    *claudiob*, *Takumi Shotoku*
 
-    This is fixed by adding two new hooks so you can target `ActionController::Base` vs `ActionController::API`
+*   Controller level `force_ssl` has been deprecated in favor of
+    `config.force_ssl`.
 
-    Fixes #27013.
+    *Derek Prior*
 
-    *Julian Nadeau*
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionpack/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionpack/CHANGELOG.md) for previous changes.

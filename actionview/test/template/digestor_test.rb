@@ -1,17 +1,8 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "fileutils"
 require "action_view/dependency_tracker"
-
-class FixtureTemplate
-  attr_reader :source, :handler
-
-  def initialize(template_path)
-    @source = File.read(template_path)
-    @handler = ActionView::Template.handler_for_extension(:erb)
-  rescue Errno::ENOENT
-    raise ActionView::MissingTemplate.new([], "", [], true, [])
-  end
-end
 
 class FixtureFinder < ActionView::LookupContext
   FIXTURES_DIR = File.expand_path("../fixtures/digestor", __dir__)
@@ -167,6 +158,18 @@ class TemplateDigestorTest < ActionView::TestCase
 
   def test_template_formats_of_dependencies_with_same_logical_name_and_different_rendered_format
     assert_equal [:html], tree_template_formats("messages/show").uniq
+  end
+
+  def test_template_dependencies_with_fallback_from_js_to_html_format
+    finder.rendered_format = :js
+    assert_equal ["comments/comment"], dependencies("comments/show")
+  end
+
+  def test_template_digest_with_fallback_from_js_to_html_format
+    finder.rendered_format = :js
+    assert_digest_difference("comments/show") do
+      change_template("comments/_comment")
+    end
   end
 
   def test_recursion_in_renders

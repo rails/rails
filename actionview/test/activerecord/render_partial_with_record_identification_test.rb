@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record_unit"
 
 class RenderPartialWithRecordIdentificationController < ActionController::Base
@@ -15,19 +17,9 @@ class RenderPartialWithRecordIdentificationController < ActionController::Base
     render partial: Reply.base
   end
 
-  def render_with_has_many_through_association
-    @developer = Developer.first
-    render partial: @developer.topics
-  end
-
   def render_with_has_one_association
     @company = Company.find(1)
     render partial: @company.mascot
-  end
-
-  def render_with_belongs_to_association
-    @reply = Reply.find(1)
-    render partial: @reply.topic
   end
 
   def render_with_record

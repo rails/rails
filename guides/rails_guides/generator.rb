@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 require "fileutils"
 
@@ -139,32 +141,34 @@ module RailsGuides
         puts "Generating #{guide} as #{output_file}"
         layout = @kindle ? "kindle/layout" : "layout"
 
+        view = ActionView::Base.new(
+          @source_dir,
+          edge:     @edge,
+          version:  @version,
+          mobi:     "kindle/#{mobi}",
+          language: @language
+        )
+        view.extend(Helpers)
+
+        if guide =~ /\.(\w+)\.erb$/
+          return if %w[_license _welcome layout].include?($`)
+
+          # Generate the special pages like the home.
+          # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
+          result = view.render(layout: layout, formats: [$1], file: $`)
+        else
+          body = File.read("#{@source_dir}/#{guide}")
+          result = RailsGuides::Markdown.new(
+            view:    view,
+            layout:  layout,
+            edge:    @edge,
+            version: @version
+          ).render(body)
+
+          warn_about_broken_links(result)
+        end
+
         File.open(output_path, "w") do |f|
-          view = ActionView::Base.new(
-            @source_dir,
-            edge:     @edge,
-            version:  @version,
-            mobi:     "kindle/#{mobi}",
-            language: @language
-          )
-          view.extend(Helpers)
-
-          if guide =~ /\.(\w+)\.erb$/
-            # Generate the special pages like the home.
-            # Passing a template handler in the template name is deprecated. So pass the file name without the extension.
-            result = view.render(layout: layout, formats: [$1], file: $`)
-          else
-            body = File.read("#{@source_dir}/#{guide}")
-            result = RailsGuides::Markdown.new(
-              view:    view,
-              layout:  layout,
-              edge:    @edge,
-              version: @version
-            ).render(body)
-
-            warn_about_broken_links(result)
-          end
-
           f.write(result)
         end
       end

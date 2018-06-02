@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Associations
     class SingularAssociation < Association #:nodoc:
@@ -30,24 +32,22 @@ module ActiveRecord
       end
 
       private
-
-        def create_scope
-          scope.scope_for_create.stringify_keys.except(klass.primary_key)
+        def scope_for_create
+          super.except!(klass.primary_key)
         end
 
         def find_target
-          return scope.take if skip_statement_cache?
+          scope = self.scope
+          return scope.take if skip_statement_cache?(scope)
 
           conn = klass.connection
-          sc = reflection.association_scope_cache(conn, owner) do
-            StatementCache.create(conn) { |params|
-              as = AssociationScope.create { params.bind }
-              target_scope.merge(as.scope(self, conn)).limit(1)
-            }
+          sc = reflection.association_scope_cache(conn, owner) do |params|
+            as = AssociationScope.create { params.bind }
+            target_scope.merge!(as.scope(self)).limit(1)
           end
 
           binds = AssociationScope.get_bind_values(owner, reflection.chain)
-          sc.execute(binds, klass, conn) do |record|
+          sc.execute(binds, conn) do |record|
             set_inverse_instance record
           end.first
         rescue ::RangeError

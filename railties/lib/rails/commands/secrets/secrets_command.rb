@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "rails/secrets"
 
@@ -13,7 +15,7 @@ module Rails
       end
 
       def setup
-        generator.start
+        deprecate_in_favor_of_credentials_and_exit
       end
 
       def edit
@@ -40,20 +42,23 @@ module Rails
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       rescue Errno::ENOENT => error
-        raise unless error.message =~ /secrets\.yml\.enc/
-
-        Rails::Secrets.read_template_for_editing do |tmp_path|
-          system("#{ENV["EDITOR"]} #{tmp_path}")
-          generator.skip_secrets_file { setup }
+        if error.message =~ /secrets\.yml\.enc/
+          deprecate_in_favor_of_credentials_and_exit
+        else
+          raise
         end
       end
 
-      private
-        def generator
-          require "rails/generators"
-          require "rails/generators/rails/encrypted_secrets/encrypted_secrets_generator"
+      def show
+        say Rails::Secrets.read
+      end
 
-          Rails::Generators::EncryptedSecretsGenerator
+      private
+        def deprecate_in_favor_of_credentials_and_exit
+          say "Encrypted secrets is deprecated in favor of credentials. Run:"
+          say "bin/rails credentials:help"
+
+          exit 1
         end
     end
   end

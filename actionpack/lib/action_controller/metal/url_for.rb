@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # Includes +url_for+ into the host class. The class has to provide a +RouteSet+ by implementing
   # the <tt>_routes</tt> method. Otherwise, an exception will be raised.

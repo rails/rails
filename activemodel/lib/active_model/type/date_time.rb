@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class DateTime < Value # :nodoc:
@@ -8,6 +10,10 @@ module ActiveModel
 
       def type
         :datetime
+      end
+
+      def serialize(value)
+        super(cast(value))
       end
 
       private

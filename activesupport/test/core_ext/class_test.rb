@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/class"
 require "set"
@@ -28,11 +30,11 @@ class ClassTest < ActiveSupport::TestCase
 
   def test_descendants_excludes_singleton_classes
     klass = Parent.new.singleton_class
-    refute Parent.descendants.include?(klass), "descendants should not include singleton classes"
+    assert_not Parent.descendants.include?(klass), "descendants should not include singleton classes"
   end
 
   def test_subclasses_excludes_singleton_classes
     klass = Parent.new.singleton_class
-    refute Parent.subclasses.include?(klass), "subclasses should not include singleton classes"
+    assert_not Parent.subclasses.include?(klass), "subclasses should not include singleton classes"
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/inflector/methods"
 require "active_support/inflector/transliterate"
 
@@ -92,6 +94,8 @@ class String
       ActiveSupport::Inflector.camelize(self, true)
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
+    else
+      raise ArgumentError, "Invalid option, use either :upper or :lower."
     end
   end
   alias_method :camelcase, :camelize
@@ -170,7 +174,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   #
-  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  # To preserve the case of the characters in a string, use the +preserve_case+ argument.
   #
   #   class Person
   #     def to_param

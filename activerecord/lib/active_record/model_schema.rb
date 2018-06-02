@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "monitor"
 
 module ActiveRecord
@@ -85,19 +87,6 @@ module ActiveRecord
     # Sets the name of the internal metadata table.
 
     ##
-    # :singleton-method: protected_environments
-    # :call-seq: protected_environments
-    #
-    # The array of names of environments where destructive actions should be prohibited. By default,
-    # the value is <tt>["production"]</tt>.
-
-    ##
-    # :singleton-method: protected_environments=
-    # :call-seq: protected_environments=(environments)
-    #
-    # Sets an array of names of environments where destructive actions should be prohibited.
-
-    ##
     # :singleton-method: pluralize_table_names
     # :call-seq: pluralize_table_names
     #
@@ -113,20 +102,6 @@ module ActiveRecord
     # If true, the default table name for a Product class will be "products". If false, it would just be "product".
     # See table_name for the full rules on table/class naming. This is true, by default.
 
-    ##
-    # :singleton-method: ignored_columns
-    # :call-seq: ignored_columns
-    #
-    # The list of columns names the model should ignore. Ignored columns won't have attribute
-    # accessors defined, and won't be referenced in SQL queries.
-
-    ##
-    # :singleton-method: ignored_columns=
-    # :call-seq: ignored_columns=(columns)
-    #
-    # Sets the columns names the model should ignore. Ignored columns won't have attribute
-    # accessors defined, and won't be referenced in SQL queries.
-
     included do
       mattr_accessor :primary_key_prefix_type, instance_writer: false
 
@@ -134,11 +109,11 @@ module ActiveRecord
       class_attribute :table_name_suffix, instance_writer: false, default: ""
       class_attribute :schema_migrations_table_name, instance_accessor: false, default: "schema_migrations"
       class_attribute :internal_metadata_table_name, instance_accessor: false, default: "ar_internal_metadata"
-      class_attribute :protected_environments, instance_accessor: false, default: [ "production" ]
       class_attribute :pluralize_table_names, instance_writer: false, default: true
-      class_attribute :ignored_columns, instance_accessor: false, default: [].freeze
 
+      self.protected_environments = ["production"]
       self.inheritance_column = "type"
+      self.ignored_columns = [].freeze
 
       delegate :type_for_attribute, to: :class
 
@@ -250,6 +225,21 @@ module ActiveRecord
         (parents.detect { |p| p.respond_to?(:table_name_suffix) } || self).table_name_suffix
       end
 
+      # The array of names of environments where destructive actions should be prohibited. By default,
+      # the value is <tt>["production"]</tt>.
+      def protected_environments
+        if defined?(@protected_environments)
+          @protected_environments
+        else
+          superclass.protected_environments
+        end
+      end
+
+      # Sets an array of names of environments where destructive actions should be prohibited.
+      def protected_environments=(environments)
+        @protected_environments = environments.map(&:to_s)
+      end
+
       # Defines the name of the table column which will store the class name on single-table
       # inheritance situations.
       #
@@ -269,8 +259,24 @@ module ActiveRecord
         @explicit_inheritance_column = true
       end
 
+      # The list of columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      def ignored_columns
+        if defined?(@ignored_columns)
+          @ignored_columns
+        else
+          superclass.ignored_columns
+        end
+      end
+
+      # Sets the columns names the model should ignore. Ignored columns won't have attribute
+      # accessors defined, and won't be referenced in SQL queries.
+      def ignored_columns=(columns)
+        @ignored_columns = columns.map(&:to_s)
+      end
+
       def sequence_name
-        if base_class == self
+        if base_class?
           @sequence_name ||= reset_sequence_name
         else
           (@sequence_name ||= nil) || base_class.sequence_name
@@ -319,11 +325,11 @@ module ActiveRecord
       end
 
       def attributes_builder # :nodoc:
-        @attributes_builder ||= AttributeSet::Builder.new(attribute_types, primary_key) do |name|
-          unless columns_hash.key?(name)
-            _default_attributes[name].dup
-          end
+        unless defined?(@attributes_builder) && @attributes_builder
+          defaults = _default_attributes.except(*(column_names - [primary_key]))
+          @attributes_builder = ActiveModel::AttributeSet::Builder.new(attribute_types, defaults)
         end
+        @attributes_builder
       end
 
       def columns_hash # :nodoc:
@@ -342,7 +348,7 @@ module ActiveRecord
       end
 
       def yaml_encoder # :nodoc:
-        @yaml_encoder ||= AttributeSet::YAMLEncoder.new(attribute_types)
+        @yaml_encoder ||= ActiveModel::AttributeSet::YAMLEncoder.new(attribute_types)
       end
 
       # Returns the type of the attribute with the given name, after applying
@@ -355,8 +361,9 @@ module ActiveRecord
       # it).
       #
       # +attr_name+ The name of the attribute to retrieve the type for. Must be
-      # a string
+      # a string or a symbol.
       def type_for_attribute(attr_name, &block)
+        attr_name = attr_name.to_s
         if block
           attribute_types.fetch(attr_name, &block)
         else
@@ -372,7 +379,8 @@ module ActiveRecord
       end
 
       def _default_attributes # :nodoc:
-        @default_attributes ||= AttributeSet.new({})
+        load_schema
+        @default_attributes ||= ActiveModel::AttributeSet.new({})
       end
 
       # Returns an array of column names as strings.
@@ -419,7 +427,7 @@ module ActiveRecord
       #  end
       def reset_column_information
         connection.clear_cache!
-        undefine_attribute_methods
+        ([self] + descendants).each(&:undefine_attribute_methods)
         connection.schema_cache.clear_data_source_cache!(table_name)
 
         reload_schema_from_cache
@@ -467,7 +475,6 @@ module ActiveRecord
         end
 
         def reload_schema_from_cache
-          @arel_engine = nil
           @arel_table = nil
           @column_names = nil
           @attribute_types = nil
@@ -494,8 +501,7 @@ module ActiveRecord
 
         # Computes and returns a table name according to default conventions.
         def compute_table_name
-          base = base_class
-          if self == base
+          if base_class?
             # Nested classes are prefixed with singular parent table name.
             if parent < Base && !parent.abstract_class?
               contained = parent.table_name
@@ -506,7 +512,7 @@ module ActiveRecord
             "#{full_table_name_prefix}#{contained}#{undecorated_table_name(name)}#{full_table_name_suffix}"
           else
             # STI subclasses always use their superclass' table.
-            base.table_name
+            base_class.table_name
           end
         end
     end

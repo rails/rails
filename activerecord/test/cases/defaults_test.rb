@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 require "models/default"
@@ -7,7 +9,7 @@ class DefaultTest < ActiveRecord::TestCase
   def test_nil_defaults_for_not_null_columns
     %w(id name course_id).each do |name|
       column = Entrant.columns_hash[name]
-      assert !column.null, "#{name} column should be NOT NULL"
+      assert_not column.null, "#{name} column should be NOT NULL"
       assert_not column.default, "#{name} column should be DEFAULT 'nil'"
     end
   end
@@ -51,7 +53,7 @@ class DefaultNumbersTest < ActiveRecord::TestCase
 
   def test_default_decimal_number
     record = DefaultNumber.new
-    assert_equal BigDecimal.new("2.78"), record.decimal_number
+    assert_equal BigDecimal("2.78"), record.decimal_number
     assert_equal "2.78", record.decimal_number_before_type_cast
   end
 end

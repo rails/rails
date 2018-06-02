@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/i18n_railtie"
 
@@ -8,9 +10,11 @@ module ActiveSupport
     config.eager_load_namespaces << ActiveSupport
 
     initializer "active_support.set_authenticated_message_encryption" do |app|
-      if app.config.active_support.respond_to?(:use_authenticated_message_encryption)
-        ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
-          app.config.active_support.use_authenticated_message_encryption
+      config.after_initialize do
+        unless app.config.active_support.use_authenticated_message_encryption.nil?
+          ActiveSupport::MessageEncryptor.use_authenticated_message_encryption =
+            app.config.active_support.use_authenticated_message_encryption
+        end
       end
     end
 
@@ -47,10 +51,29 @@ module ActiveSupport
       Date.beginning_of_week_default = beginning_of_week_default
     end
 
+    initializer "active_support.require_master_key" do |app|
+      if app.config.respond_to?(:require_master_key) && app.config.require_master_key
+        begin
+          app.credentials.key
+        rescue ActiveSupport::EncryptedFile::MissingKeyError => error
+          $stderr.puts error.message
+          exit 1
+        end
+      end
+    end
+
     initializer "active_support.set_configs" do |app|
       app.config.active_support.each do |k, v|
         k = "#{k}="
         ActiveSupport.send(k, v) if ActiveSupport.respond_to? k
+      end
+    end
+
+    initializer "active_support.set_hash_digest_class" do |app|
+      config.after_initialize do
+        if app.config.active_support.use_sha1_digests
+          ActiveSupport::Digest.hash_digest_class = ::Digest::SHA1
+        end
       end
     end
   end

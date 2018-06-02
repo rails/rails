@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -390,7 +392,7 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
-            records.each do |record|
+            records.each_with_index do |record, index|
               next if record.destroyed?
 
               saved = true
@@ -398,8 +400,13 @@ module ActiveRecord
               if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
+                elsif !reflection.nested?
+                  if reflection.validate?
+                    valid = association_valid?(reflection, record, index)
+                    saved = valid ? association.insert_record(record, false) : false
+                  else
+                    association.insert_record(record)
+                  end
                 end
               elsif autosave
                 saved = record.save(validate: false)
@@ -434,6 +441,9 @@ module ActiveRecord
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
+                if inverse_reflection = reflection.inverse_of
+                  record.association(inverse_reflection.name).loaded!
+                end
               end
 
               saved = record.save(validate: !autosave)

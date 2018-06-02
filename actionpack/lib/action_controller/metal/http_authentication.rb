@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "base64"
 require "active_support/security_utils"
 
@@ -70,10 +72,10 @@ module ActionController
             before_action(options.except(:name, :password, :realm)) do
               authenticate_or_request_with_http_basic(options[:realm] || "Application") do |name, password|
                 # This comparison uses & so that it doesn't short circuit and
-                # uses `variable_size_secure_compare` so that length information
+                # uses `secure_compare` so that length information
                 # isn't leaked.
-                ActiveSupport::SecurityUtils.variable_size_secure_compare(name, options[:name]) &
-                  ActiveSupport::SecurityUtils.variable_size_secure_compare(password, options[:password])
+                ActiveSupport::SecurityUtils.secure_compare(name, options[:name]) &
+                  ActiveSupport::SecurityUtils.secure_compare(password, options[:password])
               end
             end
           end
@@ -246,7 +248,7 @@ module ActionController
       def decode_credentials(header)
         ActiveSupport::HashWithIndifferentAccess[header.to_s.gsub(/^Digest\s+/, "").split(",").map do |pair|
           key, value = pair.split("=", 2)
-          [key.strip, value.to_s.gsub(/^"|"$/, "").delete('\'')]
+          [key.strip, value.to_s.gsub(/^"|"$/, "").delete("'")]
         end]
       end
 
@@ -348,10 +350,7 @@ module ActionController
     #         authenticate_or_request_with_http_token do |token, options|
     #           # Compare the tokens in a time-constant manner, to mitigate
     #           # timing attacks.
-    #           ActiveSupport::SecurityUtils.secure_compare(
-    #             ::Digest::SHA256.hexdigest(token),
-    #             ::Digest::SHA256.hexdigest(TOKEN)
-    #           )
+    #           ActiveSupport::SecurityUtils.secure_compare(token, TOKEN)
     #         end
     #       end
     #   end
@@ -475,7 +474,7 @@ module ActionController
 
       # This removes the <tt>"</tt> characters wrapping the value.
       def rewrite_param_values(array_params)
-        array_params.each { |param| (param[1] || "").gsub! %r/^"|"$/, "" }
+        array_params.each { |param| (param[1] || "".dup).gsub! %r/^"|"$/, "" }
       end
 
       # This method takes an authorization body and splits up the key-value

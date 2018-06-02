@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "zlib"
 
@@ -29,7 +31,7 @@ module StaticTests
   end
 
   def test_handles_urls_with_ascii_8bit
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_ascii_8bit_on_win_31j
@@ -37,7 +39,7 @@ module StaticTests
       Encoding.default_internal = "Windows-31J"
       Encoding.default_external = "Windows-31J"
     end
-    assert_equal "Hello, World!", get("/doorkeeper%E3E4".force_encoding("ASCII-8BIT")).body
+    assert_equal "Hello, World!", get("/doorkeeper%E3E4".dup.force_encoding("ASCII-8BIT")).body
   end
 
   def test_handles_urls_with_null_byte
@@ -69,7 +71,16 @@ module StaticTests
   end
 
   def test_served_static_file_with_non_english_filename
-    assert_html "means hello in Japanese\n", get("/foo/#{Rack::Utils.escape("こんにちは.html")}")
+    assert_html "means hello in Japanese\n", get("/foo/%E3%81%93%E3%82%93%E3%81%AB%E3%81%A1%E3%81%AF.html")
+  end
+
+  def test_served_gzipped_static_file_with_non_english_filename
+    response = get("/foo/%E3%81%95%E3%82%88%E3%81%86%E3%81%AA%E3%82%89.html", "HTTP_ACCEPT_ENCODING" => "gzip")
+
+    assert_gzip  "/foo/さようなら.html", response
+    assert_equal "text/html",          response.headers["Content-Type"]
+    assert_equal "Accept-Encoding",    response.headers["Vary"]
+    assert_equal "gzip",               response.headers["Content-Encoding"]
   end
 
   def test_serves_static_file_with_exclamation_mark_in_filename

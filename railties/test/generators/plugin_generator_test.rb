@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/plugin/plugin_generator"
 require "generators/shared_generator_tests"
@@ -23,6 +25,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   destination File.join(Rails.root, "tmp/bukkits")
   arguments [destination_root]
+
+  def application_path
+    "#{destination_root}/test/dummy"
+  end
 
   # brings setup, teardown, and some tests
   include SharedGeneratorTests
@@ -68,9 +74,24 @@ class PluginGeneratorTest < Rails::Generators::TestCase
       assert_match(/Minitest\.backtrace_filter = Minitest::BacktraceFilter\.new/, content)
       assert_match(/Rails::TestUnitReporter\.executable = 'bin\/test'/, content)
     end
+    assert_file "lib/bukkits/railtie.rb", /module Bukkits\n  class Railtie < ::Rails::Railtie\n  end\nend/
+    assert_file "lib/bukkits.rb", /require "bukkits\/railtie"/
     assert_file "test/bukkits_test.rb", /assert_kind_of Module, Bukkits/
     assert_file "bin/test"
     assert_no_file "bin/rails"
+  end
+
+  def test_generating_in_full_mode_with_almost_of_all_skip_options
+    run_generator [destination_root, "--full", "-M", "-O", "-C", "-S", "-T", "--skip-active-storage"]
+    assert_file "bin/rails" do |content|
+      assert_no_match(/\s+require\s+["']rails\/all["']/, content)
+    end
+    assert_file "bin/rails", /#\s+require\s+["']active_record\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']active_storage\/engine["']/
+    assert_file "bin/rails", /#\s+require\s+["']action_mailer\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']action_cable\/engine["']/
+    assert_file "bin/rails", /#\s+require\s+["']sprockets\/railtie["']/
+    assert_file "bin/rails", /#\s+require\s+["']rails\/test_unit\/railtie["']/
   end
 
   def test_generating_test_files_in_full_mode
@@ -78,6 +99,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_directory "test/integration/"
 
     assert_file "test/integration/navigation_test.rb", /ActionDispatch::IntegrationTest/
+  end
+
+  def test_inclusion_of_git_source
+    run_generator [destination_root]
+    assert_file "Gemfile", /git_source/
   end
 
   def test_inclusion_of_a_debugger
@@ -95,23 +121,19 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "-T", "--full"]
 
     assert_no_directory "test/integration/"
-    assert_no_file "test"
+    assert_no_directory "test"
     assert_file "Rakefile" do |contents|
       assert_no_match(/APP_RAKEFILE/, contents)
     end
-  end
-
-  def test_generating_adds_dummy_app_in_full_mode_without_sprockets
-    run_generator [destination_root, "-S", "--full"]
-
-    assert_file "test/dummy/config/environments/production.rb" do |contents|
-      assert_no_match(/config\.assets/, contents)
+    assert_file "bin/rails" do |contents|
+      assert_no_match(/APP_PATH/, contents)
     end
   end
 
   def test_generating_adds_dummy_app_rake_tasks_without_unit_test_files
     run_generator [destination_root, "-T", "--mountable", "--dummy-path", "my_dummy_app"]
     assert_file "Rakefile", /APP_RAKEFILE/
+    assert_file "bin/rails", /APP_PATH/
   end
 
   def test_generating_adds_dummy_app_without_javascript_and_assets_deps
@@ -132,8 +154,8 @@ class PluginGeneratorTest < Rails::Generators::TestCase
   def test_ensure_that_test_dummy_can_be_generated_from_a_template
     FileUtils.cd(Rails.root)
     run_generator([destination_root, "-m", "lib/create_test_dummy_template.rb", "--skip-test"])
-    assert_file "spec/dummy"
-    assert_no_file "test"
+    assert_directory "spec/dummy"
+    assert_no_directory "test"
   end
 
   def test_database_entry_is_generated_for_sqlite3_by_default_in_full_mode
@@ -156,44 +178,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_app_generator_without_skips
-    run_generator
-    assert_file "test/dummy/config/application.rb", /\s+require\s+["']rails\/all["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_match(/config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_match(/config\.action_mailer\.delivery_method = :test/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_match(/# config\.action_mailer\.raise_delivery_errors = false/, content)
-    end
-  end
-
-  def test_active_record_is_removed_from_frameworks_if_skip_active_record_is_given
-    run_generator [destination_root, "--skip-active-record"]
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']active_record\/railtie["']/
-  end
-
   def test_ensure_that_skip_active_record_option_is_passed_to_app_generator
     run_generator [destination_root, "--skip_active_record"]
-    assert_no_file "test/dummy/config/database.yml"
     assert_file "test/test_helper.rb" do |contents|
       assert_no_match(/ActiveRecord/, contents)
-    end
-  end
-
-  def test_action_mailer_is_removed_from_frameworks_if_skip_action_mailer_is_given
-    run_generator [destination_root, "--skip-action-mailer"]
-    assert_file "test/dummy/config/application.rb", /#\s+require\s+["']action_mailer\/railtie["']/
-    assert_file "test/dummy/config/environments/development.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/test.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
-    end
-    assert_file "test/dummy/config/environments/production.rb" do |content|
-      assert_no_match(/config\.action_mailer/, content)
     end
   end
 
@@ -229,12 +217,22 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_javascripts_generation
     run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits/application.js"
+    assert_file "app/assets/javascripts/bukkits/application.js" do |content|
+      assert_match "//= require rails-ujs", content
+      assert_match "//= require activestorage", content
+      assert_match "//= require_tree .", content
+    end
+    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
+      assert_match "javascript_include_tag", content
+    end
   end
 
   def test_skip_javascripts
     run_generator [destination_root, "--skip-javascript", "--mountable"]
     assert_no_file "app/assets/javascripts/bukkits/application.js"
+    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
+      assert_no_match "javascript_include_tag", content
+    end
   end
 
   def test_template_from_dir_pwd
@@ -274,7 +272,7 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views"
     assert_file "app/helpers"
     assert_file "app/mailers"
-    assert_file "bin/rails"
+    assert_file "bin/rails", /\s+require\s+["']rails\/all["']/
     assert_file "config/routes.rb", /Rails.application.routes.draw do/
     assert_file "lib/bukkits/engine.rb", /module Bukkits\n  class Engine < ::Rails::Engine\n  end\nend/
     assert_file "lib/bukkits.rb", /require "bukkits\/engine"/
@@ -333,8 +331,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/helpers/bukkits/application_helper.rb", /module Bukkits\n  module ApplicationHelper/
     assert_file "app/views/layouts/bukkits/application.html.erb" do |contents|
       assert_match "<title>Bukkits</title>", contents
+      assert_match "<%= csrf_meta_tags %>", contents
+      assert_match "<%= csp_meta_tag %>", contents
       assert_match(/stylesheet_link_tag\s+['"]bukkits\/application['"]/, contents)
       assert_match(/javascript_include_tag\s+['"]bukkits\/application['"]/, contents)
+      assert_match "<%= yield %>", contents
     end
     assert_file "test/test_helper.rb" do |content|
       assert_match(/ActiveRecord::Migrator\.migrations_paths.+\.\.\/test\/dummy\/db\/migrate/, content)
@@ -456,10 +457,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_dummy_without_tests_but_with_dummy_path
     run_generator [destination_root, "--dummy_path", "spec/dummy", "--skip-test"]
-    assert_file "spec/dummy"
-    assert_file "spec/dummy/config/application.rb"
-    assert_no_file "test"
-    assert_no_file "test/test_helper.rb"
+    assert_directory "spec/dummy"
+    assert_file "spec/dummy/config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
+    assert_no_directory "test"
     assert_file ".gitignore" do |contents|
       assert_match(/spec\/dummy/, contents)
     end
@@ -488,8 +488,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "test/dummy/Gemfile"
     assert_no_file "test/dummy/public/robots.txt"
     assert_no_file "test/dummy/README.md"
+    assert_no_file "test/dummy/config/master.key"
+    assert_no_file "test/dummy/config/credentials.yml.enc"
     assert_no_directory "test/dummy/lib/tasks"
-    assert_no_directory "test/dummy/doc"
     assert_no_directory "test/dummy/test"
     assert_no_directory "test/dummy/vendor"
     assert_no_directory "test/dummy/.git"
@@ -497,9 +498,9 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_skipping_test_files
     run_generator [destination_root, "--skip-test"]
-    assert_no_file "test"
+    assert_no_directory "test"
     assert_file ".gitignore" do |contents|
-      assert_no_match(/test\dummy/, contents)
+      assert_no_match(/test\/dummy/, contents)
     end
   end
 
@@ -528,10 +529,11 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     gemfile_path = "#{Rails.root}/Gemfile"
     Object.const_set("APP_PATH", Rails.root)
     FileUtils.touch gemfile_path
+    File.write(gemfile_path, "#foo")
 
     run_generator
 
-    assert_file gemfile_path, /gem 'bukkits', path: 'tmp\/bukkits'/
+    assert_file gemfile_path, /^gem 'bukkits', path: 'tmp\/bukkits'/
   ensure
     Object.send(:remove_const, "APP_PATH")
     FileUtils.rm gemfile_path
@@ -677,20 +679,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_file "app/models/bukkits/article.rb", /class Article < ApplicationRecord/
   end
 
-  def test_generate_application_record_when_does_not_exist_in_mountable_engine
-    run_generator [destination_root, "--mountable"]
-    FileUtils.rm "#{destination_root}/app/models/bukkits/application_record.rb"
-    capture(:stdout) do
-      `#{destination_root}/bin/rails g model article`
-    end
-
-    assert_file "#{destination_root}/app/models/bukkits/application_record.rb" do |record|
-      assert_match(/module Bukkits/, record)
-      assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-      assert_match(/self\.abstract_class = true/, record)
-    end
-  end
-
   def test_generate_application_mailer_when_does_not_exist_in_mountable_engine
     run_generator [destination_root, "--mountable"]
     FileUtils.rm "#{destination_root}/app/mailers/bukkits/application_mailer.rb"
@@ -745,6 +733,38 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     end
   ensure
     Object.send(:remove_const, "ENGINE_ROOT")
+  end
+
+  def test_after_bundle_callback
+    path = "http://example.org/rails_template"
+    template = %{ after_bundle { run "echo ran after_bundle" } }.dup
+    template.instance_eval "def read; self; end" # Make the string respond to read
+
+    check_open = -> *args do
+      assert_equal [ path, "Accept" => "application/x-thor-template" ], args
+      template
+    end
+
+    sequence = ["echo ran after_bundle"]
+    @sequence_step ||= 0
+    ensure_bundler_first = -> command do
+      assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
+      @sequence_step += 1
+    end
+
+    content = nil
+    generator([destination_root], template: path).stub(:open, check_open, template) do
+      generator.stub(:bundle_command, ensure_bundler_first) do
+        generator.stub(:run, ensure_bundler_first) do
+          silence_stream($stdout) do
+            content = capture(:stderr) { generator.invoke_all }
+          end
+        end
+      end
+    end
+
+    assert_equal 1, @sequence_step
+    assert_match(/DEPRECATION WARNING: `after_bundle` is deprecated/, content)
   end
 
   private

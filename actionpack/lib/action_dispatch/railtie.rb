@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
+require "active_support/messages/rotation_configuration"
 
 module ActionDispatch
   class Railtie < Rails::Railtie # :nodoc:
@@ -16,14 +19,20 @@ module ActionDispatch
     config.action_dispatch.signed_cookie_salt = "signed cookie"
     config.action_dispatch.encrypted_cookie_salt = "encrypted cookie"
     config.action_dispatch.encrypted_signed_cookie_salt = "signed encrypted cookie"
+    config.action_dispatch.authenticated_encrypted_cookie_salt = "authenticated encrypted cookie"
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.perform_deep_munge = true
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
       "X-XSS-Protection" => "1; mode=block",
-      "X-Content-Type-Options" => "nosniff"
+      "X-Content-Type-Options" => "nosniff",
+      "X-Download-Options" => "noopen",
+      "X-Permitted-Cross-Domain-Policies" => "none",
+      "Referrer-Policy" => "strict-origin-when-cross-origin"
     }
+
+    config.action_dispatch.cookies_rotations = ActiveSupport::Messages::RotationConfiguration.new
 
     config.eager_load_namespaces << ActionDispatch
 
@@ -36,8 +45,6 @@ module ActionDispatch
 
       ActionDispatch::ExceptionWrapper.rescue_responses.merge!(config.action_dispatch.rescue_responses)
       ActionDispatch::ExceptionWrapper.rescue_templates.merge!(config.action_dispatch.rescue_templates)
-
-      config.action_dispatch.authenticated_encrypted_cookie_salt = "authenticated encrypted cookie" if config.action_dispatch.use_authenticated_cookie_encryption
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie

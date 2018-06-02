@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
@@ -656,13 +658,13 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_without_implicit_rendering_from_browser
-    assert_raises(ActionController::UnknownFormat) do
+    assert_raises(ActionController::MissingExactTemplate) do
       get :variant_without_implicit_template_rendering, params: { v: :does_not_matter }
     end
   end
 
   def test_variant_variant_not_set_and_without_implicit_rendering_from_browser
-    assert_raises(ActionController::UnknownFormat) do
+    assert_raises(ActionController::MissingExactTemplate) do
       get :variant_without_implicit_template_rendering
     end
   end

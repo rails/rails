@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "strscan"
 require "active_support/core_ext/regexp"
 
@@ -5,7 +7,7 @@ module ActiveSupport
   class Duration
     # Parses a string formatted according to ISO 8601 Duration into the hash.
     #
-    # See {ISO 8601}[http://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
+    # See {ISO 8601}[https://en.wikipedia.org/wiki/ISO_8601#Durations] for more information.
     #
     # This parser allows negative parts to be present in pattern.
     class ISO8601Parser # :nodoc:
@@ -116,7 +118,7 @@ module ActiveSupport
             raise_parsing_error "(only last part can be fractional)"
           end
 
-          return true
+          true
         end
     end
   end

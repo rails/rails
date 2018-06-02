@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/tags/checkable"
 
 module ActionView
@@ -16,7 +18,7 @@ module ActionView
           options = @options.stringify_keys
           options["type"]     = "checkbox"
           options["value"]    = @checked_value
-          options["checked"] = "checked" if input_checked?(object, options)
+          options["checked"] = "checked" if input_checked?(options)
 
           if options["multiple"]
             add_default_name_and_id_for_value(@checked_value, options)

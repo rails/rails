@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "ostruct"
 
 module DeveloperProjectsAssociationExtension2
@@ -83,6 +85,17 @@ class Developer < ActiveRecord::Base
     self.class.instance_count += 1
   end
   private :track_instance_count
+end
+
+class SubDeveloper < Developer
+end
+
+class SymbolIgnoredDeveloper < ActiveRecord::Base
+  self.table_name = "developers"
+  self.ignored_columns = [:first_name, :last_name]
+
+  attr_accessor :last_name
+  define_attribute_method "last_name"
 end
 
 class AuditLog < ActiveRecord::Base

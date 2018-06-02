@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class PredicateBuilder # :nodoc:
     delegate :resolve_column_aliases, to: :table
@@ -6,22 +8,17 @@ module ActiveRecord
       @table = table
       @handlers = []
 
-      register_handler(BasicObject, BasicObjectHandler.new)
+      register_handler(BasicObject, BasicObjectHandler.new(self))
       register_handler(Base, BaseHandler.new(self))
-      register_handler(Range, RangeHandler.new)
-      register_handler(RangeHandler::RangeWithBinds, RangeHandler.new)
+      register_handler(Range, RangeHandler.new(self))
       register_handler(Relation, RelationHandler.new)
       register_handler(Array, ArrayHandler.new(self))
+      register_handler(Set, ArrayHandler.new(self))
     end
 
     def build_from_hash(attributes)
       attributes = convert_dot_notation_to_hash(attributes)
       expand_from_hash(attributes)
-    end
-
-    def create_binds(attributes)
-      attributes = convert_dot_notation_to_hash(attributes)
-      create_binds_for_hash(attributes)
     end
 
     def self.references(attributes)
@@ -51,44 +48,34 @@ module ActiveRecord
     end
 
     def build(attribute, value)
-      handler_for(value).call(attribute, value)
+      # FIXME: Deprecate this and provide a public API to force equality
+      if table.type(attribute.name).force_equality?(value)
+        bind = build_bind_attribute(attribute.name, value)
+        attribute.eq(bind)
+      else
+        handler_for(value).call(attribute, value)
+      end
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
+    def build_bind_attribute(column_name, value)
+      attr = Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
+      Arel::Nodes::BindParam.new(attr)
+    end
+
     protected
-
-      attr_reader :table
-
       def expand_from_hash(attributes)
         return ["1=0"] if attributes.empty?
 
         attributes.flat_map do |key, value|
           if value.is_a?(Hash) && !table.has_column?(key)
             associated_predicate_builder(key).expand_from_hash(value)
-          else
-            build(table.arel_attribute(key), value)
-          end
-        end
-      end
-
-      def create_binds_for_hash(attributes)
-        result = attributes.dup
-        binds = []
-
-        attributes.each do |column_name, value|
-          case
-          when value.is_a?(Hash) && !table.has_column?(column_name)
-            attrs, bvs = associated_predicate_builder(column_name).create_binds_for_hash(value)
-            result[column_name] = attrs
-            binds += bvs
-          when table.associated_with?(column_name)
+          elsif table.associated_with?(key)
             # Find the foreign key when using queries such as:
             # Post.where(author: author)
             #
             # For polymorphic relationships, find the foreign key and type:
             # PriceEstimate.where(estimate_of: treasure)
-            associated_table = table.associated_table(column_name)
+            associated_table = table.associated_table(key)
             if associated_table.polymorphic_association?
               case value.is_a?(Array) ? value.first : value
               when Base, Relation
@@ -98,43 +85,30 @@ module ActiveRecord
             end
 
             klass ||= AssociationQueryValue
-            result[column_name] = klass.new(associated_table, value).queries.map do |query|
-              attrs, bvs = create_binds_for_hash(query)
-              binds.concat(bvs)
-              attrs
+            queries = klass.new(associated_table, value).queries.map do |query|
+              expand_from_hash(query).reduce(&:and)
             end
-          when value.is_a?(Range) && !table.type(column_name).respond_to?(:subtype)
-            first = value.begin
-            last = value.end
-            unless first.respond_to?(:infinite?) && first.infinite?
-              binds << build_bind_attribute(column_name, first)
-              first = Arel::Nodes::BindParam.new
+            queries.reduce(&:or)
+          elsif table.aggregated_with?(key)
+            mapping = table.reflect_on_aggregation(key).mapping
+            queries = Array.wrap(value).map do |object|
+              mapping.map do |field_attr, aggregate_attr|
+                if mapping.size == 1 && !object.respond_to?(aggregate_attr)
+                  build(table.arel_attribute(field_attr), object)
+                else
+                  build(table.arel_attribute(field_attr), object.send(aggregate_attr))
+                end
+              end.reduce(&:and)
             end
-            unless last.respond_to?(:infinite?) && last.infinite?
-              binds << build_bind_attribute(column_name, last)
-              last = Arel::Nodes::BindParam.new
-            end
-
-            result[column_name] = RangeHandler::RangeWithBinds.new(first, last, value.exclude_end?)
-          when value.is_a?(Relation)
-            binds.concat(value.bound_attributes)
+            queries.reduce(&:or)
           else
-            if can_be_bound?(column_name, value)
-              bind_attribute = build_bind_attribute(column_name, value)
-              if value.is_a?(StatementCache::Substitute) || !bind_attribute.value_for_database.nil?
-                result[column_name] = Arel::Nodes::BindParam.new
-                binds << bind_attribute
-              else
-                result[column_name] = nil
-              end
-            end
+            build(table.arel_attribute(key), value)
           end
         end
-
-        [result, binds]
       end
 
     private
+      attr_reader :table
 
       def associated_predicate_builder(association_name)
         self.class.new(table.associated_table(association_name))
@@ -158,19 +132,6 @@ module ActiveRecord
 
       def handler_for(object)
         @handlers.detect { |klass, _| klass === object }.last
-      end
-
-      def can_be_bound?(column_name, value)
-        case value
-        when Array, Range
-          table.type(column_name).respond_to?(:subtype)
-        else
-          !value.nil? && handler_for(value).is_a?(BasicObjectHandler)
-        end
-      end
-
-      def build_bind_attribute(column_name, value)
-        Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
       end
   end
 end

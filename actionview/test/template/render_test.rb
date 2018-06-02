@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_models"
 
@@ -439,7 +441,7 @@ module RenderTestCases
   end
 
   CustomHandler = lambda do |template|
-    "@output_buffer = ''\n" \
+    "@output_buffer = ''.dup\n" \
       "@output_buffer << 'source: #{template.source.inspect}'\n"
   end
 
@@ -583,7 +585,7 @@ module RenderTestCases
 
   def test_render_with_passing_couple_extensions_to_one_register_template_handler_function_call
     ActionView::Template.register_template_handler :foo1, :foo2, CustomHandler
-    assert_equal @view.render(inline: "Hello, World!", type: :foo1), @view.render(inline: "Hello, World!", type: :foo2)
+    assert_equal @view.render(inline: "Hello, World!".dup, type: :foo1), @view.render(inline: "Hello, World!".dup, type: :foo2)
   ensure
     ActionView::Template.unregister_template_handler :foo1, :foo2
   end

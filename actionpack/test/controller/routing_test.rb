@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "active_support/core_ext/object/with_options"
@@ -21,7 +23,7 @@ class UriReservedCharactersRoutingTest < ActiveSupport::TestCase
     end
 
     safe, unsafe = %w(: @ & = + $ , ;), %w(^ ? # [ ])
-    hex = unsafe.map { |char| "%" + char.unpack("H2").first.upcase }
+    hex = unsafe.map { |char| "%" + char.unpack1("H2").upcase }
 
     @segment = "#{safe.join}#{unsafe.join}".freeze
     @escaped = "#{safe.join}#{hex.join}".freeze
@@ -92,6 +94,22 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
     hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/faithfully-omg"))
     assert_equal({ "artist" => "journey", "song" => "faithfully" }, hash)
+  end
+
+  def test_id_encoding
+    rs.draw do
+      get "/journey/:id", to: lambda { |env|
+        param = ActionDispatch::Request.new(env).path_parameters
+        resp = ActiveSupport::JSON.encode param
+        [200, {}, [resp]]
+      }
+    end
+
+    # The encoding of the URL in production is *binary*, so we add a
+    # .b here.
+    hash = ActiveSupport::JSON.decode get(URI("http://example.org/journey/%E5%A4%AA%E9%83%8E".b))
+    assert_equal({ "id" => "太郎" }, hash)
+    assert_equal ::Encoding::UTF_8, hash["id"].encoding
   end
 
   def test_id_with_dash
@@ -195,7 +213,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal expected, ActiveSupport::JSON.decode(get(u))
   end
 
-  def test_regexp_precidence
+  def test_regexp_precedence
     rs.draw do
       get "/whois/:domain", constraints: {
         domain: /\w+\.[\w\.]+/ },
@@ -656,9 +674,9 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
     assert_equal "/page/foo", url_for(rs, controller: "content", action: "show_page", id: "foo")
     assert_equal({ controller: "content", action: "show_page", id: "foo" }, rs.recognize_path("/page/foo"))
 
-    token = "\321\202\320\265\320\272\321\201\321\202" # 'text' in Russian
+    token = "\321\202\320\265\320\272\321\201\321\202".dup # 'text' in Russian
     token.force_encoding(Encoding::BINARY)
-    escaped_token = CGI::escape(token)
+    escaped_token = CGI.escape(token)
 
     assert_equal "/page/" + escaped_token, url_for(rs, controller: "content", action: "show_page", id: token)
     assert_equal({ controller: "content", action: "show_page", id: token }, rs.recognize_path("/page/#{escaped_token}"))
@@ -1270,14 +1288,14 @@ class RouteSetTest < ActiveSupport::TestCase
   end
 
   def test_routing_traversal_does_not_load_extra_classes
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
     set.draw do
       get "/profile" => "profile#index"
     end
 
     request_path_params("/profile") rescue nil
 
-    assert !Object.const_defined?("Profiler__"), "Profiler should not be loaded"
+    assert_not Object.const_defined?("Profiler__"), "Profiler should not be loaded"
   end
 
   def test_recognize_with_conditions_and_format
@@ -1669,7 +1687,7 @@ class RouteSetTest < ActiveSupport::TestCase
   def test_routes_with_symbols
     set.draw do
       get "unnamed", controller: :pages, action: :show, name: :as_symbol
-      get "named"  , controller: :pages, action: :show, name: :as_symbol, as: :named
+      get "named", controller: :pages, action: :show, name: :as_symbol, as: :named
     end
     assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/unnamed"))
     assert_equal({ controller: "pages", action: "show", name: :as_symbol }, set.recognize_path("/named"))
@@ -1875,7 +1893,7 @@ class RouteSetTest < ActiveSupport::TestCase
     assert_equal({ controller: "blog",  action: "show_date", year: "2006", month: "07", day: "28" }, controller.request.path_parameters)
     assert_equal("/blog/2006/07/25", controller.url_for(day: 25, only_path: true))
     assert_equal("/blog/2005",       controller.url_for(year: 2005, only_path: true))
-    assert_equal("/blog/show/123",   controller.url_for(action: "show" , id: 123, only_path: true))
+    assert_equal("/blog/show/123",   controller.url_for(action: "show", id: 123, only_path: true))
     assert_equal("/blog/2006",       controller.url_for(year: 2006, only_path: true))
     assert_equal("/blog/2006",       controller.url_for(year: 2006, month: nil, only_path: true))
   end

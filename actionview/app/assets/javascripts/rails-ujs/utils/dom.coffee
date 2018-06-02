@@ -5,6 +5,13 @@ m = Element.prototype.matches or
     Element.prototype.oMatchesSelector or
     Element.prototype.webkitMatchesSelector
 
+# Checks if the given native dom element matches the selector
+# element::
+#   native DOM element
+# selector::
+#   css selector string or
+#   a javascript object with `selector` and `exclude` properties
+#   Examples: "form", { selector: "form", exclude: "form[data-remote='true']"}
 Rails.matches = (element, selector) ->
   if selector.exclude?
     m.call(element, selector.selector) and not m.call(element, selector.exclude)

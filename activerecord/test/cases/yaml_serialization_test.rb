@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
@@ -94,7 +96,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_deserializing_rails_41_yaml
     topic = YAML.load(yaml_fixture("rails_4_1"))
 
-    assert topic.new_record?
+    assert_predicate topic, :new_record?
     assert_nil topic.id
     assert_equal "The First Topic", topic.title
     assert_equal({ omg: :lol }, topic.content)
@@ -103,7 +105,7 @@ class YamlSerializationTest < ActiveRecord::TestCase
   def test_deserializing_rails_4_2_0_yaml
     topic = YAML.load(yaml_fixture("rails_4_2_0"))
 
-    assert_not topic.new_record?
+    assert_not_predicate topic, :new_record?
     assert_equal 1, topic.id
     assert_equal "The First Topic", topic.title
     assert_equal("Have a nice day", topic.content)
@@ -117,6 +119,14 @@ class YamlSerializationTest < ActiveRecord::TestCase
     assert_equal "Sean", dumped.name
     assert_equal author.name_was, dumped.name_was
     assert_equal author.changes, dumped.changes
+  end
+
+  def test_yaml_encoding_keeps_false_values
+    topic = Topic.first
+    topic.approved = false
+    dumped = YAML.load(YAML.dump(topic))
+
+    assert_equal false, dumped.approved
   end
 
   private

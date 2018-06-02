@@ -61,7 +61,7 @@ person.age_highest?  # => false
 
 `ActiveModel::Callbacks` gives Active Record style callbacks. This provides an
 ability to define callbacks which run at appropriate times.
-After defining callbacks, you can wrap them with before, after and around
+After defining callbacks, you can wrap them with before, after, and around
 custom methods.
 
 ```ruby
@@ -464,7 +464,7 @@ a `password` accessor with certain validations on it.
 #### Requirements
 
 `ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
-so include this gem in your Gemfile to use `ActiveModel::SecurePassword` correctly.
+so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword` correctly.
 In order to make this work, the model must have an accessor named `password_digest`.
 The `has_secure_password` will add the following validations on the `password` accessor:
 

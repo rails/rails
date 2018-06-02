@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/tags/collection_helpers"
 
 module ActionView

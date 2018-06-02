@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "yaml"
 require "active_support/message_encryptor"
-require "active_support/core_ext/string/strip"
 
 module Rails
   # Greatly inspired by Ara T. Howard's magnificent sekrets gem. 😘
@@ -30,21 +31,8 @@ module Rails
         end
       end
 
-      def generate_key
-        SecureRandom.hex(OpenSSL::Cipher.new(@cipher).key_len)
-      end
-
       def key
         ENV["RAILS_MASTER_KEY"] || read_key_file || handle_missing_key
-      end
-
-      def template
-        <<-end_of_template.strip_heredoc
-          # See `secrets.yml` for tips on generating suitable keys.
-          # production:
-          #  external_api_key: 1466aac22e6a869134be3d09b9e89232fc2c2289
-
-        end_of_template
       end
 
       def encrypt(data)
@@ -66,10 +54,6 @@ module Rails
 
       def read_for_editing(&block)
         writing(read, &block)
-      end
-
-      def read_template_for_editing(&block)
-        writing(template, &block)
       end
 
       private
@@ -100,12 +84,15 @@ module Rails
         end
 
         def writing(contents)
-          tmp_path = File.join(Dir.tmpdir, File.basename(path))
-          File.write(tmp_path, contents)
+          tmp_file = "#{File.basename(path)}.#{Process.pid}"
+          tmp_path = File.join(Dir.tmpdir, tmp_file)
+          IO.binwrite(tmp_path, contents)
 
           yield tmp_path
 
-          write(File.read(tmp_path))
+          updated_contents = IO.binread(tmp_path)
+
+          write(updated_contents) if updated_contents != contents
         ensure
           FileUtils.rm(tmp_path) if File.exist?(tmp_path)
         end

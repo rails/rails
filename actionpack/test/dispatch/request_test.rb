@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class BaseRequestTest < ActiveSupport::TestCase
@@ -327,20 +329,20 @@ class RequestPort < BaseRequestTest
 
   test "standard_port?" do
     request = stub_request
-    assert !request.ssl?
-    assert request.standard_port?
+    assert_not_predicate request, :ssl?
+    assert_predicate request, :standard_port?
 
     request = stub_request "HTTPS" => "on"
-    assert request.ssl?
-    assert request.standard_port?
+    assert_predicate request, :ssl?
+    assert_predicate request, :standard_port?
 
     request = stub_request "HTTP_HOST" => "www.example.org:8080"
-    assert !request.ssl?
-    assert !request.standard_port?
+    assert_not_predicate request, :ssl?
+    assert_not_predicate request, :standard_port?
 
     request = stub_request "HTTP_HOST" => "www.example.org:8443", "HTTPS" => "on"
-    assert request.ssl?
-    assert !request.standard_port?
+    assert_predicate request, :ssl?
+    assert_not_predicate request, :standard_port?
   end
 
   test "optional port" do
@@ -569,7 +571,7 @@ end
 class LocalhostTest < BaseRequestTest
   test "IPs that match localhost" do
     request = stub_request("REMOTE_IP" => "127.1.1.1", "REMOTE_ADDR" => "127.1.1.1")
-    assert request.local?
+    assert_predicate request, :local?
   end
 end
 
@@ -641,37 +643,37 @@ class RequestProtocol < BaseRequestTest
   test "xml http request" do
     request = stub_request
 
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    assert_not_predicate request, :xml_http_request?
+    assert_not_predicate request, :xhr?
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "DefinitelyNotAjax1.0"
-    assert !request.xml_http_request?
-    assert !request.xhr?
+    assert_not_predicate request, :xml_http_request?
+    assert_not_predicate request, :xhr?
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    assert request.xml_http_request?
-    assert request.xhr?
+    assert_predicate request, :xml_http_request?
+    assert_predicate request, :xhr?
   end
 
   test "reports ssl" do
-    assert !stub_request.ssl?
-    assert stub_request("HTTPS" => "on").ssl?
+    assert_not_predicate stub_request, :ssl?
+    assert_predicate stub_request("HTTPS" => "on"), :ssl?
   end
 
   test "reports ssl when proxied via lighttpd" do
-    assert stub_request("HTTP_X_FORWARDED_PROTO" => "https").ssl?
+    assert_predicate stub_request("HTTP_X_FORWARDED_PROTO" => "https"), :ssl?
   end
 
   test "scheme returns https when proxied" do
     request = stub_request "rack.url_scheme" => "http"
-    assert !request.ssl?
+    assert_not_predicate request, :ssl?
     assert_equal "http", request.scheme
 
     request = stub_request(
       "rack.url_scheme" => "http",
       "HTTP_X_FORWARDED_PROTO" => "https"
     )
-    assert request.ssl?
+    assert_predicate request, :ssl?
     assert_equal "https", request.scheme
   end
 end
@@ -698,7 +700,7 @@ class RequestMethod < BaseRequestTest
 
     assert_equal "GET", request.request_method
     assert_equal "GET", request.env["REQUEST_METHOD"]
-    assert request.get?
+    assert_predicate request, :get?
   end
 
   test "invalid http method raises exception" do
@@ -746,7 +748,7 @@ class RequestMethod < BaseRequestTest
 
     assert_equal "POST", request.method
     assert_equal "PATCH",  request.request_method
-    assert request.patch?
+    assert_predicate request, :patch?
   end
 
   test "post masquerading as put" do
@@ -756,12 +758,12 @@ class RequestMethod < BaseRequestTest
     )
     assert_equal "POST", request.method
     assert_equal "PUT",  request.request_method
-    assert request.put?
+    assert_predicate request, :put?
   end
 
   test "post uneffected by local inflections" do
     existing_acronyms = ActiveSupport::Inflector.inflections.acronyms.dup
-    existing_acronym_regex = ActiveSupport::Inflector.inflections.acronym_regex.dup
+    assert_deprecated { ActiveSupport::Inflector.inflections.acronym_regex.dup }
     begin
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.acronym "POS"
@@ -770,12 +772,12 @@ class RequestMethod < BaseRequestTest
       request = stub_request "REQUEST_METHOD" => "POST"
       assert_equal :post, ActionDispatch::Request::HTTP_METHOD_LOOKUP["POST"]
       assert_equal :post, request.method_symbol
-      assert request.post?
+      assert_predicate request, :post?
     ensure
       # Reset original acronym set
       ActiveSupport::Inflector.inflections do |inflect|
         inflect.send(:instance_variable_set, "@acronyms", existing_acronyms)
-        inflect.send(:instance_variable_set, "@acronym_regex", existing_acronym_regex)
+        inflect.send(:define_acronym_regex_patterns)
       end
     end
   end
@@ -783,50 +785,44 @@ end
 
 class RequestFormat < BaseRequestTest
   test "xml format" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :xml }) do
-      assert_equal Mime[:xml], request.format
-    end
+    request = stub_request "QUERY_STRING" => "format=xml"
+
+    assert_equal Mime[:xml], request.format
   end
 
   test "xhtml format" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :xhtml }) do
-      assert_equal Mime[:html], request.format
-    end
+    request = stub_request "QUERY_STRING" => "format=xhtml"
+
+    assert_equal Mime[:html], request.format
   end
 
   test "txt format" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
-      assert_equal Mime[:text], request.format
-    end
+    request = stub_request "QUERY_STRING" => "format=txt"
+
+    assert_equal Mime[:text], request.format
   end
 
   test "XMLHttpRequest" do
     request = stub_request(
       "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
-      "HTTP_ACCEPT" => [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(",")
+      "HTTP_ACCEPT" => [Mime[:js], Mime[:html], Mime[:xml], "text/xml", "*/*"].join(","),
+      "QUERY_STRING" => ""
     )
 
-    assert_called(request, :parameters, times: 1, returns: {}) do
-      assert request.xhr?
-      assert_equal Mime[:js], request.format
-    end
+    assert_predicate request, :xhr?
+    assert_equal Mime[:js], request.format
   end
 
   test "can override format with parameter negative" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
-      assert !request.format.xml?
-    end
+    request = stub_request("QUERY_STRING" => "format=txt")
+
+    assert_not_predicate request.format, :xml?
   end
 
   test "can override format with parameter positive" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :xml }) do
-      assert request.format.xml?
-    end
+    request = stub_request("QUERY_STRING" => "format=xml")
+
+    assert_predicate request.format, :xml?
   end
 
   test "formats text/html with accept header" do
@@ -851,40 +847,37 @@ class RequestFormat < BaseRequestTest
   end
 
   test "formats format:text with accept header" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :txt }) do
-      assert_equal [Mime[:text]], request.formats
-    end
+    request = stub_request("QUERY_STRING" => "format=txt")
+
+    assert_equal [Mime[:text]], request.formats
   end
 
   test "formats format:unknown with accept header" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :unknown }) do
-      assert_instance_of Mime::NullType, request.format
-    end
+    request = stub_request("QUERY_STRING" => "format=unknown")
+
+    assert_instance_of Mime::NullType, request.format
   end
 
   test "format is not nil with unknown format" do
-    request = stub_request
-    assert_called(request, :parameters, times: 2, returns: { format: :hello }) do
-      assert request.format.nil?
-      assert_not request.format.html?
-      assert_not request.format.xml?
-      assert_not request.format.json?
-    end
+    request = stub_request("QUERY_STRING" => "format=hello")
+
+    assert_nil request.format
+    assert_not_predicate request.format, :html?
+    assert_not_predicate request.format, :xml?
+    assert_not_predicate request.format, :json?
   end
 
   test "format does not throw exceptions when malformed parameters" do
     request = stub_request("QUERY_STRING" => "x[y]=1&x[y][][w]=2")
     assert request.formats
-    assert request.format.html?
+    assert_predicate request.format, :html?
   end
 
   test "formats with xhr request" do
-    request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    assert_called(request, :parameters, times: 1, returns: {}) do
-      assert_equal [Mime[:js]], request.formats
-    end
+    request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+                           "QUERY_STRING" => ""
+
+    assert_equal [Mime[:js]], request.formats
   end
 
   test "ignore_accept_header" do
@@ -892,62 +885,58 @@ class RequestFormat < BaseRequestTest
     ActionDispatch::Request.ignore_accept_header = true
 
     begin
-      request = stub_request "HTTP_ACCEPT" => "application/xml"
-      assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime[:html] ], request.formats
-      end
+      request = stub_request "HTTP_ACCEPT" => "application/xml",
+                             "QUERY_STRING" => ""
 
-      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-crazy"
-      assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime[:html] ], request.formats
-      end
+      assert_equal [ Mime[:html] ], request.formats
 
-      request = stub_request "HTTP_ACCEPT" => "*/*;q=0.1"
-      assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime[:html] ], request.formats
-      end
+      request = stub_request "HTTP_ACCEPT" => "koz-asked/something-crazy",
+                             "QUERY_STRING" => ""
 
-      request = stub_request "HTTP_ACCEPT" => "application/jxw"
-      assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime[:html] ], request.formats
-      end
+      assert_equal [ Mime[:html] ], request.formats
+
+      request = stub_request "HTTP_ACCEPT" => "*/*;q=0.1",
+                             "QUERY_STRING" => ""
+
+      assert_equal [ Mime[:html] ], request.formats
+
+      request = stub_request "HTTP_ACCEPT" => "application/jxw",
+                             "QUERY_STRING" => ""
+
+      assert_equal [ Mime[:html] ], request.formats
 
       request = stub_request "HTTP_ACCEPT" => "application/xml",
-                             "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
+                             "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+                             "QUERY_STRING" => ""
 
-      assert_called(request, :parameters, times: 1, returns: {}) do
-        assert_equal [ Mime[:js] ], request.formats
-      end
+      assert_equal [ Mime[:js] ], request.formats
 
       request = stub_request "HTTP_ACCEPT" => "application/xml",
-                             "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-      assert_called(request, :parameters, times: 2, returns: { format: :json }) do
-        assert_equal [ Mime[:json] ], request.formats
-      end
+                             "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest",
+                             "QUERY_STRING" => "format=json"
+
+      assert_equal [ Mime[:json] ], request.formats
     ensure
       ActionDispatch::Request.ignore_accept_header = old_ignore_accept_header
     end
   end
 
   test "format taken from the path extension" do
-    request = stub_request "PATH_INFO" => "/foo.xml"
-    assert_called(request, :parameters, times: 1, returns: {}) do
-      assert_equal [Mime[:xml]], request.formats
-    end
+    request = stub_request "PATH_INFO" => "/foo.xml", "QUERY_STRING" => ""
 
-    request = stub_request "PATH_INFO" => "/foo.123"
-    assert_called(request, :parameters, times: 1, returns: {}) do
-      assert_equal [Mime[:html]], request.formats
-    end
+    assert_equal [Mime[:xml]], request.formats
+
+    request = stub_request "PATH_INFO" => "/foo.123", "QUERY_STRING" => ""
+
+    assert_equal [Mime[:html]], request.formats
   end
 
   test "formats from accept headers have higher precedence than path extension" do
     request = stub_request "HTTP_ACCEPT" => "application/json",
-                           "PATH_INFO" => "/foo.xml"
+                           "PATH_INFO" => "/foo.xml",
+                           "QUERY_STRING" => ""
 
-    assert_called(request, :parameters, times: 1, returns: {}) do
-      assert_equal [Mime[:json]], request.formats
-    end
+    assert_equal [Mime[:json]], request.formats
   end
 end
 
@@ -995,15 +984,14 @@ end
 
 class RequestParameters < BaseRequestTest
   test "parameters" do
-    request = stub_request
+    request = stub_request "CONTENT_TYPE" => "application/json",
+                           "CONTENT_LENGTH" => 9,
+                           "RAW_POST_DATA" => '{"foo":1}',
+                           "QUERY_STRING" => "bar=2"
 
-    assert_called(request, :request_parameters, times: 2, returns: { "foo" => 1 }) do
-      assert_called(request, :query_parameters, times: 2, returns: { "bar" => 2 }) do
-        assert_equal({ "foo" => 1, "bar" => 2 }, request.parameters)
-        assert_equal({ "foo" => 1 }, request.request_parameters)
-        assert_equal({ "bar" => 2 }, request.query_parameters)
-      end
-    end
+    assert_equal({ "foo" => 1, "bar" => "2" }, request.parameters)
+    assert_equal({ "foo" => 1 }, request.request_parameters)
+    assert_equal({ "bar" => "2" }, request.query_parameters)
   end
 
   test "parameters not accessible after rack parse error" do
@@ -1024,7 +1012,8 @@ class RequestParameters < BaseRequestTest
       request.path_parameters = { foo: "\xBE" }
     end
 
-    assert_equal "Invalid path parameters: Non UTF-8 value: \xBE", err.message
+    assert_predicate err.message, :valid_encoding?
+    assert_equal "Invalid path parameters: Invalid encoding for parameter: �", err.message
   end
 
   test "parameters not accessible after rack parse error of invalid UTF8 character" do
@@ -1095,6 +1084,19 @@ class RequestParameterFilter < BaseRequestTest
       after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
+    end
+  end
+
+  test "parameter filter should maintain hash with indifferent access" do
+    test_hashes = [
+      [{ "foo" => "bar" }.with_indifferent_access, ["blah"]],
+      [{ "foo" => "bar" }.with_indifferent_access, []]
+    ]
+
+    test_hashes.each do |before_filter, filter_words|
+      parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
+      assert_instance_of ActiveSupport::HashWithIndifferentAccess,
+                         parameter_filter.filter(before_filter)
     end
   end
 
@@ -1232,8 +1234,8 @@ class RequestVariant < BaseRequestTest
   test "setting variant to a symbol" do
     @request.variant = :phone
 
-    assert @request.variant.phone?
-    assert_not @request.variant.tablet?
+    assert_predicate @request.variant, :phone?
+    assert_not_predicate @request.variant, :tablet?
     assert @request.variant.any?(:phone, :tablet)
     assert_not @request.variant.any?(:tablet, :desktop)
   end
@@ -1241,9 +1243,9 @@ class RequestVariant < BaseRequestTest
   test "setting variant to an array of symbols" do
     @request.variant = [:phone, :tablet]
 
-    assert @request.variant.phone?
-    assert @request.variant.tablet?
-    assert_not @request.variant.desktop?
+    assert_predicate @request.variant, :phone?
+    assert_predicate @request.variant, :tablet?
+    assert_not_predicate @request.variant, :desktop?
     assert @request.variant.any?(:tablet, :desktop)
     assert_not @request.variant.any?(:desktop, :watch)
   end
@@ -1251,8 +1253,8 @@ class RequestVariant < BaseRequestTest
   test "clearing variant" do
     @request.variant = nil
 
-    assert @request.variant.empty?
-    assert_not @request.variant.phone?
+    assert_empty @request.variant
+    assert_not_predicate @request.variant, :phone?
     assert_not @request.variant.any?(:phone, :tablet)
   end
 
@@ -1271,13 +1273,13 @@ end
 
 class RequestFormData < BaseRequestTest
   test "media_type is from the FORM_DATA_MEDIA_TYPES array" do
-    assert stub_request("CONTENT_TYPE" => "application/x-www-form-urlencoded").form_data?
-    assert stub_request("CONTENT_TYPE" => "multipart/form-data").form_data?
+    assert_predicate stub_request("CONTENT_TYPE" => "application/x-www-form-urlencoded"), :form_data?
+    assert_predicate stub_request("CONTENT_TYPE" => "multipart/form-data"), :form_data?
   end
 
   test "media_type is not from the FORM_DATA_MEDIA_TYPES array" do
-    assert !stub_request("CONTENT_TYPE" => "application/xml").form_data?
-    assert !stub_request("CONTENT_TYPE" => "multipart/related").form_data?
+    assert_not_predicate stub_request("CONTENT_TYPE" => "application/xml"), :form_data?
+    assert_not_predicate stub_request("CONTENT_TYPE" => "multipart/related"), :form_data?
   end
 
   test "no Content-Type header is provided and the request_method is POST" do
@@ -1285,6 +1287,21 @@ class RequestFormData < BaseRequestTest
 
     assert_equal "", request.media_type
     assert_equal "POST", request.request_method
-    assert !request.form_data?
+    assert_not_predicate request, :form_data?
+  end
+end
+
+class EarlyHintsRequestTest < BaseRequestTest
+  def setup
+    super
+    @env["rack.early_hints"] = lambda { |links| links }
+    @request = stub_request
+  end
+
+  test "when early hints is set in the env link headers are sent" do
+    early_hints = @request.send_early_hints("Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload")
+    expected_hints = { "Link" => "</style.css>; rel=preload; as=style\n</script.js>; rel=preload" }
+
+    assert_equal expected_hints, early_hints
   end
 end

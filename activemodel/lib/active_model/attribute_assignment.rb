@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActiveModel
@@ -33,6 +35,8 @@ module ActiveModel
       _assign_attributes(sanitize_for_mass_assignment(attributes))
     end
 
+    alias attributes= assign_attributes
+
     private
 
       def _assign_attributes(attributes)
@@ -42,8 +46,9 @@ module ActiveModel
       end
 
       def _assign_attribute(k, v)
-        if respond_to?("#{k}=")
-          public_send("#{k}=", v)
+        setter = :"#{k}="
+        if respond_to?(setter)
+          public_send(setter, v)
         else
           raise UnknownAttributeError.new(self, k)
         end

@@ -1,6 +1,14 @@
+# frozen_string_literal: true
+
 module ActiveSupport::RangeWithFormat
   RANGE_FORMATS = {
-    db: Proc.new { |start, stop| "BETWEEN '#{start.to_s(:db)}' AND '#{stop.to_s(:db)}'" }
+    db: -> (start, stop) do
+      case start
+      when String then "BETWEEN '#{start}' AND '#{stop}'"
+      else
+        "BETWEEN '#{start.to_s(:db)}' AND '#{stop.to_s(:db)}'"
+      end
+    end
   }
 
   # Convert range to a formatted string. See RANGE_FORMATS for predefined formats.

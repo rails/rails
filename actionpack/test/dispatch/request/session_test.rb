@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_dispatch/middleware/session/abstract_store"
 
@@ -20,6 +22,7 @@ module ActionDispatch
         s["foo"] = "bar"
         assert_equal "bar", s["foo"]
         assert_equal({ "foo" => "bar" }, s.to_hash)
+        assert_equal({ "foo" => "bar" }, s.to_h)
       end
 
       def test_create_merges_old
@@ -113,6 +116,18 @@ module ActionDispatch
         assert_raise KeyError do
           session.fetch(:three)
         end
+      end
+
+      def test_dig
+        session = Session.create(store, req, {})
+        session["one"] = { "two" => "3" }
+
+        assert_equal "3", session.dig("one", "two")
+        assert_equal "3", session.dig(:one, "two")
+
+        assert_nil session.dig("three", "two")
+        assert_nil session.dig("one", "three")
+        assert_nil session.dig("one", :two)
       end
 
       private

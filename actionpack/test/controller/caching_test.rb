@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "lib/controller/fake_models"
@@ -92,14 +94,14 @@ class FragmentCachingTest < ActionController::TestCase
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @controller.perform_caching = false
     @store.write("views/name", "value")
-    assert !@controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -142,7 +144,7 @@ class FragmentCachingTest < ActionController::TestCase
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 
@@ -157,7 +159,7 @@ class FragmentCachingTest < ActionController::TestCase
 
     html_safe = @controller.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -169,6 +171,9 @@ class FunctionalCachingController < CachingController
     respond_to do |format|
       format.html
     end
+  end
+
+  def xml_fragment_cached_with_html_partial
   end
 
   def formatted_fragment_cached
@@ -306,6 +311,11 @@ CACHED
       @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
   end
 
+  def test_fragment_caching_with_html_partials_in_xml
+    get :xml_fragment_cached_with_html_partial, format: "*/*"
+    assert_response :success
+  end
+
   private
     def template_digest(name)
       ActionView::Digestor.digest(name: name, finder: @controller.lookup_context)
@@ -315,7 +325,7 @@ end
 class CacheHelperOutputBufferTest < ActionController::TestCase
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -331,9 +341,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -352,9 +362,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -380,7 +390,7 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesController.new.view_cache_dependencies.empty?
+    assert_empty NoDependenciesController.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order

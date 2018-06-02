@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class LengthValidator < EachValidator # :nodoc:
@@ -29,8 +31,8 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY
-            raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
+          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Symbol) || value.is_a?(Proc)
+            raise ArgumentError, ":#{key} must be a nonnegative Integer, Infinity, Symbol, or Proc"
           end
         end
       end
@@ -43,6 +45,12 @@ module ActiveModel
           next unless check_value = options[key]
 
           if !value.nil? || skip_nil_check?(key)
+            case check_value
+            when Proc
+              check_value = check_value.call(record)
+            when Symbol
+              check_value = record.send(check_value)
+            end
             next if value_length.send(validity_check, check_value)
           end
 

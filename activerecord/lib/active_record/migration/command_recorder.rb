@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
@@ -83,7 +85,7 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+        raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
           This migration uses #{command}, which is not automatically reversible.
           To make the migration reversible you can either:
           1. Define #up and #down methods in place of the #change method.
@@ -108,7 +110,7 @@ module ActiveRecord
 
       private
 
-        module StraightReversions
+        module StraightReversions # :nodoc:
           private
             { transaction:       :transaction,
               execute_block:     :execute_block,
@@ -159,8 +161,8 @@ module ActiveRecord
           table, columns, options = *args
           options ||= {}
 
-          index_name = options[:name]
-          options_hash = index_name ? { name: index_name } : { column: columns }
+          options_hash = options.slice(:name, :algorithm)
+          options_hash[:column] = columns if !options_hash[:name]
 
           [:remove_index, [table, options_hash]]
         end

@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 require "active_record/connection_adapters/postgresql/oid/array"
 require "active_record/connection_adapters/postgresql/oid/bit"
 require "active_record/connection_adapters/postgresql/oid/bit_varying"
 require "active_record/connection_adapters/postgresql/oid/bytea"
 require "active_record/connection_adapters/postgresql/oid/cidr"
+require "active_record/connection_adapters/postgresql/oid/date"
 require "active_record/connection_adapters/postgresql/oid/date_time"
 require "active_record/connection_adapters/postgresql/oid/decimal"
 require "active_record/connection_adapters/postgresql/oid/enum"
 require "active_record/connection_adapters/postgresql/oid/hstore"
 require "active_record/connection_adapters/postgresql/oid/inet"
-require "active_record/connection_adapters/postgresql/oid/json"
 require "active_record/connection_adapters/postgresql/oid/jsonb"
 require "active_record/connection_adapters/postgresql/oid/money"
 require "active_record/connection_adapters/postgresql/oid/oid"

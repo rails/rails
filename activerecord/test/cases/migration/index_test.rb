@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -31,10 +33,8 @@ module ActiveRecord
         connection.add_index(table_name, [:foo], name: "old_idx")
         connection.rename_index(table_name, "old_idx", "new_idx")
 
-        assert_deprecated do
-          assert_not connection.index_name_exists?(table_name, "old_idx", false)
-          assert connection.index_name_exists?(table_name, "new_idx", true)
-        end
+        assert_not connection.index_name_exists?(table_name, "old_idx")
+        assert connection.index_name_exists?(table_name, "new_idx")
       end
 
       def test_rename_index_too_long
@@ -99,7 +99,7 @@ module ActiveRecord
         connection.add_index :testings, :foo
 
         assert connection.index_exists?(:testings, :foo)
-        assert !connection.index_exists?(:testings, :bar)
+        assert_not connection.index_exists?(:testings, :bar)
       end
 
       def test_index_exists_on_multiple_columns
@@ -131,15 +131,18 @@ module ActiveRecord
 
         assert connection.index_exists?(:testings, :foo)
         assert connection.index_exists?(:testings, :foo, name: "custom_index_name")
-        assert !connection.index_exists?(:testings, :foo, name: "other_index_name")
+        assert_not connection.index_exists?(:testings, :foo, name: "other_index_name")
       end
 
       def test_remove_named_index
-        connection.add_index :testings, :foo, name: "custom_index_name"
+        connection.add_index :testings, :foo, name: "index_testings_on_custom_index_name"
 
         assert connection.index_exists?(:testings, :foo)
+
+        assert_raise(ArgumentError) { connection.remove_index(:testings, "custom_index_name") }
+
         connection.remove_index :testings, :foo
-        assert !connection.index_exists?(:testings, :foo)
+        assert_not connection.index_exists?(:testings, :foo)
       end
 
       def test_add_index_attribute_length_limit
@@ -203,7 +206,7 @@ module ActiveRecord
           assert connection.index_exists?("testings", "last_name")
 
           connection.remove_index("testings", "last_name")
-          assert !connection.index_exists?("testings", "last_name")
+          assert_not connection.index_exists?("testings", "last_name")
         end
       end
 

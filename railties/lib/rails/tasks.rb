@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rake"
 
 # Load Rails Rakefile extensions
@@ -10,7 +12,6 @@ require "rake"
   middleware
   misc
   restart
-  routes
   tmp
   yarn
 ).tap { |arr|

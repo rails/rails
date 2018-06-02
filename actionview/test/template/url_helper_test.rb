@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class UrlHelperTest < ActiveSupport::TestCase
@@ -15,6 +17,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     get "/other" => "foo#other"
     get "/article/:id" => "foo#article", :as => :article
     get "/category/:category" => "foo#category"
+
+    scope :engine do
+      get "/" => "foo#bar"
+    end
   end
 
   include ActionView::Helpers::UrlHelper
@@ -502,16 +508,16 @@ class UrlHelperTest < ActiveSupport::TestCase
   def test_current_page_considering_params
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(url_hash, check_parameters: true)
-    assert !current_page?(url_hash.merge(check_parameters: true))
-    assert !current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
-    assert !current_page?("http://www.example.com/", check_parameters: true)
+    assert_not current_page?(url_hash, check_parameters: true)
+    assert_not current_page?(url_hash.merge(check_parameters: true))
+    assert_not current_page?(ActionController::Parameters.new(url_hash.merge(check_parameters: true)).permit!)
+    assert_not current_page?("http://www.example.com/", check_parameters: true)
   end
 
   def test_current_page_considering_params_when_options_does_not_respond_to_to_hash
     @request = request_for_url("/?order=desc&page=1")
 
-    assert !current_page?(:back, check_parameters: false)
+    assert_not current_page?(:back, check_parameters: false)
   end
 
   def test_current_page_with_params_that_match
@@ -521,10 +527,10 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/?order=desc&page=1")
   end
 
-  def test_current_page_with_not_get_verb
-    @request = request_for_url("/events", method: :post)
+  def test_current_page_with_scope_that_match
+    @request = request_for_url("/engine/")
 
-    assert !current_page?("/events")
+    assert current_page?("/engine")
   end
 
   def test_current_page_with_escaped_params
@@ -535,7 +541,7 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_current_page_with_escaped_params_with_different_encoding
     @request = request_for_url("/")
-    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".force_encoding(Encoding::ASCII_8BIT)) do
+    @request.stub(:path, "/category/administra%c3%a7%c3%a3o".dup.force_encoding(Encoding::ASCII_8BIT)) do
       assert current_page?(controller: "foo", action: "category", category: "administração")
       assert current_page?("http://www.example.com/category/administra%c3%a7%c3%a3o")
     end
@@ -551,6 +557,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     @request = request_for_url("/posts")
 
     assert current_page?("/posts/")
+  end
+
+  def test_current_page_with_not_get_verb
+    @request = request_for_url("/events", method: :post)
+
+    assert_not current_page?("/events")
   end
 
   def test_link_unless_current
@@ -651,7 +663,7 @@ class UrlHelperTest < ActiveSupport::TestCase
   end
 
   def test_mail_to_returns_html_safe_string
-    assert mail_to("david@loudthinking.com").html_safe?
+    assert_predicate mail_to("david@loudthinking.com"), :html_safe?
   end
 
   def test_mail_to_with_block

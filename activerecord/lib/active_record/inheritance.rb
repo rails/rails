@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/indifferent_access"
 
 module ActiveRecord
@@ -30,7 +32,7 @@ module ActiveRecord
   # for differentiating between them or reloading the right type with find.
   #
   # Note, all the attributes for all the cases are kept in the same table. Read more:
-  # http://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
+  # https://www.martinfowler.com/eaaCatalog/singleTableInheritance.html
   #
   module Inheritance
     extend ActiveSupport::Concern
@@ -45,22 +47,21 @@ module ActiveRecord
       # Determines if one of the attributes passed in is the inheritance column,
       # and if the inheritance column is attr accessible, it initializes an
       # instance of the given subclass instead of the base class.
-      def new(*args, &block)
+      def new(attributes = nil, &block)
         if abstract_class? || self == Base
           raise NotImplementedError, "#{self} is an abstract class and cannot be instantiated."
         end
 
-        attrs = args.first
         if has_attribute?(inheritance_column)
-          subclass = subclass_from_attributes(attrs)
+          subclass = subclass_from_attributes(attributes)
 
-          if subclass.nil? && base_class == self
+          if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end
         end
 
         if subclass && subclass != self
-          subclass.new(*args, &block)
+          subclass.new(attributes, &block)
         else
           super
         end
@@ -103,21 +104,53 @@ module ActiveRecord
         end
       end
 
-      # Set this to true if this is an abstract class (see <tt>abstract_class?</tt>).
-      # If you are using inheritance with ActiveRecord and don't want child classes
-      # to utilize the implied STI table name of the parent class, this will need to be true.
-      # For example, given the following:
+      # Returns whether the class is a base class.
+      # See #base_class for more information.
+      def base_class?
+        base_class == self
+      end
+
+      # Set this to +true+ if this is an abstract class (see
+      # <tt>abstract_class?</tt>).
+      # If you are using inheritance with Active Record and don't want a class
+      # to be considered as part of the STI hierarchy, you must set this to
+      # true.
+      # +ApplicationRecord+, for example, is generated as an abstract class.
       #
-      #   class SuperClass < ActiveRecord::Base
+      # Consider the following default behaviour:
+      #
+      #   Shape = Class.new(ActiveRecord::Base)
+      #   Polygon = Class.new(Shape)
+      #   Square = Class.new(Polygon)
+      #
+      #   Shape.table_name   # => "shapes"
+      #   Polygon.table_name # => "shapes"
+      #   Square.table_name  # => "shapes"
+      #   Shape.create!      # => #<Shape id: 1, type: nil>
+      #   Polygon.create!    # => #<Polygon id: 2, type: "Polygon">
+      #   Square.create!     # => #<Square id: 3, type: "Square">
+      #
+      # However, when using <tt>abstract_class</tt>, +Shape+ is omitted from
+      # the hierarchy:
+      #
+      #   class Shape < ActiveRecord::Base
       #     self.abstract_class = true
       #   end
-      #   class Child < SuperClass
-      #     self.table_name = 'the_table_i_really_want'
-      #   end
+      #   Polygon = Class.new(Shape)
+      #   Square = Class.new(Polygon)
       #
+      #   Shape.table_name   # => nil
+      #   Polygon.table_name # => "polygons"
+      #   Square.table_name  # => "polygons"
+      #   Shape.create!      # => NotImplementedError: Shape is an abstract class and cannot be instantiated.
+      #   Polygon.create!    # => #<Polygon id: 1, type: nil>
+      #   Square.create!     # => #<Square id: 2, type: "Square">
       #
-      # <tt>self.abstract_class = true</tt> is required to make <tt>Child<.find,.create, or any Arel method></tt> use <tt>the_table_i_really_want</tt> instead of a table called <tt>super_classes</tt>
-      #
+      # Note that in the above example, to disallow the creation of a plain
+      # +Polygon+, you should use <tt>validates :type, presence: true</tt>,
+      # instead of setting it as an abstract class. This way, +Polygon+ will
+      # stay in the hierarchy, and Active Record will continue to correctly
+      # derive the table name.
       attr_accessor :abstract_class
 
       # Returns whether this class is an abstract class or not.
@@ -127,6 +160,10 @@ module ActiveRecord
 
       def sti_name
         store_full_sti_class ? name : name.demodulize
+      end
+
+      def polymorphic_name
+        base_class.name
       end
 
       def inherited(subclass)
@@ -245,7 +282,7 @@ module ActiveRecord
       def ensure_proper_type
         klass = self.class
         if klass.finder_needs_type_condition?
-          write_attribute(klass.inheritance_column, klass.sti_name)
+          _write_attribute(klass.inheritance_column, klass.sti_name)
         end
       end
   end

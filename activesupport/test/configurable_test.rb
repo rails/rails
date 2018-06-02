@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/configurable"
 
@@ -41,11 +43,11 @@ class ConfigurableActiveSupport < ActiveSupport::TestCase
   test "configuration accessors are not available on instance" do
     instance = Parent.new
 
-    assert !instance.respond_to?(:bar)
-    assert !instance.respond_to?(:bar=)
+    assert_not_respond_to instance, :bar
+    assert_not_respond_to instance, :bar=
 
-    assert !instance.respond_to?(:baz)
-    assert !instance.respond_to?(:baz=)
+    assert_not_respond_to instance, :baz
+    assert_not_respond_to instance, :baz=
   end
 
   test "configuration accessors can take a default value" do

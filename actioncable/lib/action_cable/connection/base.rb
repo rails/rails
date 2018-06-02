@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 
 module ActionCable
@@ -24,7 +26,7 @@ module ActionCable
     #
     #       private
     #         def find_verified_user
-    #           User.find_by_identity(cookies.signed[:identity_id]) ||
+    #           User.find_by_identity(cookies.encrypted[:identity_id]) ||
     #             reject_unauthorized_connection
     #         end
     #     end
@@ -134,13 +136,10 @@ module ActionCable
         send_async :handle_close
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
+      private
         attr_reader :websocket
         attr_reader :message_buffer
 
-      private
         # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
         def request # :doc:
           @request ||= begin

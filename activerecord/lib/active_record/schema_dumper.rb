@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "stringio"
 
 module ActiveRecord
@@ -15,9 +17,15 @@ module ActiveRecord
     # Only strings are accepted if ActiveRecord::Base.schema_format == :sql.
     cattr_accessor :ignore_tables, default: []
 
+    ##
+    # :singleton-method:
+    # Specify a custom regular expression matching foreign keys which name
+    # should not be dumped to db/schema.rb.
+    cattr_accessor :fk_ignore_pattern, default: /^fk_rails_[0-9a-f]{10}$/
+
     class << self
       def dump(connection = ActiveRecord::Base.connection, stream = STDOUT, config = ActiveRecord::Base)
-        new(connection, generate_options(config)).dump(stream)
+        connection.create_schema_dumper(generate_options(config)).dump(stream)
         stream
       end
 
@@ -42,7 +50,7 @@ module ActiveRecord
 
       def initialize(connection, options = {})
         @connection = connection
-        @version = Migrator::current_version rescue nil
+        @version = connection.migration_context.current_version rescue nil
         @options = options
       end
 
@@ -63,11 +71,11 @@ module ActiveRecord
 # of editing this file, please use the migrations feature of Active Record to
 # incrementally modify your database, and then regenerate this schema definition.
 #
-# Note that this schema.rb definition is the authoritative source for your
-# database schema. If you need to create the application database on another
-# system, you should be using db:schema:load, not running all the migrations
-# from scratch. The latter is a flawed and unsustainable approach (the more migrations
-# you'll amass, the slower it'll run and the greater likelihood for issues).
+# This file is the source Rails uses to define your schema when running `rails
+# db:schema:load`. When creating a new database, `rails db:schema:load` tends to
+# be faster and is potentially less error prone than running all of your
+# migrations from scratch. Old migrations may fail to apply correctly if those
+# migrations use external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
@@ -80,16 +88,8 @@ HEADER
         stream.puts "end"
       end
 
+      # extensions are only supported by PostgreSQL
       def extensions(stream)
-        return unless @connection.supports_extensions?
-        extensions = @connection.extensions
-        if extensions.any?
-          stream.puts "  # These are extensions that must be enabled in order to support this database"
-          extensions.each do |extension|
-            stream.puts "  enable_extension #{extension.inspect}"
-          end
-          stream.puts
-        end
       end
 
       def tables(stream)
@@ -121,7 +121,7 @@ HEADER
           when String
             tbl.print ", primary_key: #{pk.inspect}" unless pk == "id"
             pkcol = columns.detect { |c| c.name == pk }
-            pkcolspec = @connection.column_spec_for_primary_key(pkcol)
+            pkcolspec = column_spec_for_primary_key(pkcol)
             if pkcolspec.present?
               tbl.print ", #{format_colspec(pkcolspec)}"
             end
@@ -130,20 +130,19 @@ HEADER
           else
             tbl.print ", id: false"
           end
-          tbl.print ", force: :cascade"
 
           table_options = @connection.table_options(table)
           if table_options.present?
             tbl.print ", #{format_options(table_options)}"
           end
 
-          tbl.puts " do |t|"
+          tbl.puts ", force: :cascade do |t|"
 
           # then dump all non-primary key columns
           columns.each do |column|
             raise StandardError, "Unknown type '#{column.sql_type}' for column '#{column.name}'" unless @connection.valid_type?(column.type)
             next if column.name == pk
-            type, colspec = @connection.column_spec(column)
+            type, colspec = column_spec(column)
             tbl.print "    t.#{type} #{column.name.inspect}"
             tbl.print ", #{format_colspec(colspec)}" if colspec.present?
             tbl.puts
@@ -161,8 +160,6 @@ HEADER
           stream.puts "#   #{e.message}"
           stream.puts
         end
-
-        stream
       end
 
       # Keep it for indexing materialized views
@@ -193,8 +190,9 @@ HEADER
           "name: #{index.name.inspect}",
         ]
         index_parts << "unique: true" if index.unique
-        index_parts << "length: { #{format_options(index.lengths)} }" if index.lengths.present?
-        index_parts << "order: { #{format_options(index.orders)} }" if index.orders.present?
+        index_parts << "length: #{format_index_parts(index.lengths)}" if index.lengths.present?
+        index_parts << "order: #{format_index_parts(index.orders)}" if index.orders.present?
+        index_parts << "opclass: #{format_index_parts(index.opclasses)}" if index.opclasses.present?
         index_parts << "where: #{index.where.inspect}" if index.where
         index_parts << "using: #{index.using.inspect}" if !@connection.default_index_type?(index)
         index_parts << "type: #{index.type.inspect}" if index.type
@@ -218,7 +216,7 @@ HEADER
               parts << "primary_key: #{foreign_key.primary_key.inspect}"
             end
 
-            if foreign_key.name !~ /^fk_rails_[0-9a-f]{10}$/
+            if foreign_key.export_name_on_schema_dump?
               parts << "name: #{foreign_key.name.inspect}"
             end
 
@@ -240,8 +238,18 @@ HEADER
         options.map { |key, value| "#{key}: #{value.inspect}" }.join(", ")
       end
 
+      def format_index_parts(options)
+        if options.is_a?(Hash)
+          "{ #{format_options(options)} }"
+        else
+          options.inspect
+        end
+      end
+
       def remove_prefix_and_suffix(table)
-        table.gsub(/^(#{@options[:table_name_prefix]})(.+)(#{@options[:table_name_suffix]})$/,  "\\2")
+        prefix = Regexp.escape(@options[:table_name_prefix].to_s)
+        suffix = Regexp.escape(@options[:table_name_suffix].to_s)
+        table.sub(/\A#{prefix}(.+)#{suffix}\z/, "\\1")
       end
 
       def ignored?(table_name)

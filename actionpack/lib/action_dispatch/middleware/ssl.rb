@@ -1,48 +1,56 @@
+# frozen_string_literal: true
+
 module ActionDispatch
-  # This middleware is added to the stack when `config.force_ssl = true`, and is passed
-  # the options set in `config.ssl_options`. It does three jobs to enforce secure HTTP
+  # This middleware is added to the stack when <tt>config.force_ssl = true</tt>, and is passed
+  # the options set in +config.ssl_options+. It does three jobs to enforce secure HTTP
   # requests:
   #
-  #   1. TLS redirect: Permanently redirects http:// requests to https://
-  #      with the same URL host, path, etc. Enabled by default. Set `config.ssl_options`
-  #      to modify the destination URL
-  #      (e.g. `redirect: { host: "secure.widgets.com", port: 8080 }`), or set
-  #      `redirect: false` to disable this feature.
+  # 1. <b>TLS redirect</b>: Permanently redirects +http://+ requests to +https://+
+  #    with the same URL host, path, etc. Enabled by default. Set +config.ssl_options+
+  #    to modify the destination URL
+  #    (e.g. <tt>redirect: { host: "secure.widgets.com", port: 8080 }</tt>), or set
+  #    <tt>redirect: false</tt> to disable this feature.
   #
-  #   2. Secure cookies: Sets the `secure` flag on cookies to tell browsers they
-  #      mustn't be sent along with http:// requests. Enabled by default. Set
-  #      `config.ssl_options` with `secure_cookies: false` to disable this feature.
+  #    Requests can opt-out of redirection with +exclude+:
   #
-  #   3. HTTP Strict Transport Security (HSTS): Tells the browser to remember
-  #      this site as TLS-only and automatically redirect non-TLS requests.
-  #      Enabled by default. Configure `config.ssl_options` with `hsts: false` to disable.
+  #      config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
   #
-  # Set `config.ssl_options` with `hsts: { … }` to configure HSTS:
-  #   * `expires`: How long, in seconds, these settings will stick. The minimum
-  #     required to qualify for browser preload lists is `18.weeks`. Defaults to
-  #     `180.days` (recommended).
-  #   * `subdomains`: Set to `true` to tell the browser to apply these settings
-  #     to all subdomains. This protects your cookies from interception by a
-  #     vulnerable site on a subdomain. Defaults to `true`.
-  #   * `preload`: Advertise that this site may be included in browsers'
-  #     preloaded HSTS lists. HSTS protects your site on every visit *except the
-  #     first visit* since it hasn't seen your HSTS header yet. To close this
-  #     gap, browser vendors include a baked-in list of HSTS-enabled sites.
-  #     Go to https://hstspreload.appspot.com to submit your site for inclusion.
-  #     Defaults to `false`.
+  #    Cookies will not be flagged as secure for excluded requests.
   #
-  # To turn off HSTS, omitting the header is not enough. Browsers will remember the
-  # original HSTS directive until it expires. Instead, use the header to tell browsers to
-  # expire HSTS immediately. Setting `hsts: false` is a shortcut for
-  # `hsts: { expires: 0 }`.
+  # 2. <b>Secure cookies</b>: Sets the +secure+ flag on cookies to tell browsers they
+  #    must not be sent along with +http://+ requests. Enabled by default. Set
+  #    +config.ssl_options+ with <tt>secure_cookies: false</tt> to disable this feature.
   #
-  # Requests can opt-out of redirection with `exclude`:
+  # 3. <b>HTTP Strict Transport Security (HSTS)</b>: Tells the browser to remember
+  #    this site as TLS-only and automatically redirect non-TLS requests.
+  #    Enabled by default. Configure +config.ssl_options+ with <tt>hsts: false</tt> to disable.
   #
-  #    config.ssl_options = { redirect: { exclude: -> request { request.path =~ /healthcheck/ } } }
+  #    Set +config.ssl_options+ with <tt>hsts: { ... }</tt> to configure HSTS:
+  #
+  #    * +expires+: How long, in seconds, these settings will stick. The minimum
+  #      required to qualify for browser preload lists is 1 year. Defaults to
+  #      1 year (recommended).
+  #
+  #    * +subdomains+: Set to +true+ to tell the browser to apply these settings
+  #      to all subdomains. This protects your cookies from interception by a
+  #      vulnerable site on a subdomain. Defaults to +true+.
+  #
+  #    * +preload+: Advertise that this site may be included in browsers'
+  #      preloaded HSTS lists. HSTS protects your site on every visit <i>except the
+  #      first visit</i> since it hasn't seen your HSTS header yet. To close this
+  #      gap, browser vendors include a baked-in list of HSTS-enabled sites.
+  #      Go to https://hstspreload.org to submit your site for inclusion.
+  #      Defaults to +false+.
+  #
+  #    To turn off HSTS, omitting the header is not enough. Browsers will remember the
+  #    original HSTS directive until it expires. Instead, use the header to tell browsers to
+  #    expire HSTS immediately. Setting <tt>hsts: false</tt> is a shortcut for
+  #    <tt>hsts: { expires: 0 }</tt>.
   class SSL
-    # Default to 180 days, the low end for https://www.ssllabs.com/ssltest/
-    # and greater than the 18-week requirement for browser preload lists.
-    HSTS_EXPIRES_IN = 15552000
+    # :stopdoc:
+
+    # Default to 1 year, the minimum for browser preload lists.
+    HSTS_EXPIRES_IN = 31536000
 
     def self.default_hsts_options
       { expires: HSTS_EXPIRES_IN, subdomains: true, preload: false }
@@ -65,7 +73,7 @@ module ActionDispatch
       if request.ssl?
         @app.call(env).tap do |status, headers, body|
           set_hsts_header! headers
-          flag_cookies_as_secure! headers if @secure_cookies
+          flag_cookies_as_secure! headers if @secure_cookies && !@exclude.call(request)
         end
       else
         return redirect_to_https request unless @exclude.call(request)
@@ -92,9 +100,9 @@ module ActionDispatch
         end
       end
 
-      # http://tools.ietf.org/html/rfc6797#section-6.1
+      # https://tools.ietf.org/html/rfc6797#section-6.1
       def build_hsts_header(hsts)
-        value = "max-age=#{hsts[:expires].to_i}"
+        value = "max-age=#{hsts[:expires].to_i}".dup
         value << "; includeSubDomains" if hsts[:subdomains]
         value << "; preload" if hsts[:preload]
         value
@@ -133,7 +141,7 @@ module ActionDispatch
         host = @redirect[:host] || request.host
         port = @redirect[:port] || request.port
 
-        location = "https://#{host}"
+        location = "https://#{host}".dup
         location << ":#{port}" if port != 80 && port != 443
         location << request.fullpath
         location

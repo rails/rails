@@ -179,7 +179,7 @@ change your code to use the explicit form (`render file: "foo/bar"`) instead.
 
 `respond_with` and the corresponding class-level `respond_to` have been moved
 to the [responders](https://github.com/plataformatec/responders) gem. Add
-`gem 'responders', '~> 2.0'` to your Gemfile to use it:
+`gem 'responders', '~> 2.0'` to your `Gemfile` to use it:
 
 ```ruby
 # app/controllers/users_controller.rb
@@ -368,7 +368,7 @@ Please refer to the [Changelog][railties] for detailed changes.
 
 ### Notable changes
 
-*   Introduced `web-console` in the default application Gemfile.
+*   Introduced `web-console` in the default application `Gemfile`.
     ([Pull Request](https://github.com/rails/rails/pull/11667))
 
 *   Added a `required` option to the model generator for associations.

@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/output_safety"
 
 module ActionView
   # = Action View Capture Helper
-  module Helpers
+  module Helpers #:nodoc:
     # CaptureHelper exposes methods to let you extract generated markup which
     # can be used in other parts of a template or layout file.
     #
     # It provides a method to capture blocks into variables through capture and
-    # a way to capture a block of markup for use in a layout through content_for.
+    # a way to capture a block of markup for use in a layout through {content_for}[rdoc-ref:ActionView::Helpers::CaptureHelper#content_for].
     module CaptureHelper
       # The capture method extracts part of a template as a String object.
       # You can then use this object anywhere in your templates, layout, or helpers.
@@ -42,7 +44,7 @@ module ActionView
         end
       end
 
-      # Calling content_for stores a block of markup in an identifier for later use.
+      # Calling <tt>content_for</tt> stores a block of markup in an identifier for later use.
       # In order to access this stored content in other templates, helper modules
       # or the layout, you would pass the identifier as an argument to <tt>content_for</tt>.
       #
@@ -108,7 +110,7 @@ module ActionView
       # That will place +script+ tags for your default set of JavaScript files on the page;
       # this technique is useful if you'll only be using these scripts in a few views.
       #
-      # Note that content_for concatenates (default) the blocks it is given for a particular
+      # Note that <tt>content_for</tt> concatenates (default) the blocks it is given for a particular
       # identifier in order. For example:
       #
       #   <% content_for :navigation do %>
@@ -125,7 +127,7 @@ module ActionView
       #
       #   <ul><%= content_for :navigation %></ul>
       #
-      # If the flush parameter is true content_for replaces the blocks it is given. For example:
+      # If the flush parameter is +true+ <tt>content_for</tt> replaces the blocks it is given. For example:
       #
       #   <% content_for :navigation do %>
       #     <li><%= link_to 'Home', action: 'index' %></li>
@@ -145,7 +147,7 @@ module ActionView
       #
       #   <% content_for :script, javascript_include_tag(:defaults) %>
       #
-      # WARNING: content_for is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
+      # WARNING: <tt>content_for</tt> is ignored in caches. So you shouldn't use it for elements that will be fragment cached.
       def content_for(name, content = nil, options = {}, &block)
         if content || block_given?
           if block_given?
@@ -172,7 +174,7 @@ module ActionView
         result unless content
       end
 
-      # content_for? checks whether any content has been captured yet using `content_for`.
+      # <tt>content_for?</tt> checks whether any content has been captured yet using <tt>content_for</tt>.
       # Useful to render parts of your layout differently based on what is in your views.
       #
       #   <%# This is the layout %>

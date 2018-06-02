@@ -8,7 +8,7 @@ This guide documents how constant autoloading and reloading works.
 After reading this guide, you will know:
 
 * Key aspects of Ruby constants
-* What is `autoload_paths`
+* What are the `autoload_paths` and how does eager loading work in production?
 * How constant autoloading works
 * What is `require_dependency`
 * How constant reloading works
@@ -230,10 +230,12 @@ is not entirely equivalent to the one of the body of the definitions using the
 `class` and `module` keywords. But both idioms result in the same constant
 assignment.
 
-Thus, when one informally says "the `String` class", that really means: the
-class object stored in the constant called "String" in the class object stored
-in the `Object` constant. `String` is otherwise an ordinary Ruby constant and
-everything related to constants such as resolution algorithms applies to it.
+Thus, an informal expression like "the `String` class" technically means the
+class object stored in the constant called "String". That constant, in turn,
+belongs to the class object stored in the constant called "Object".
+
+`String` is an ordinary constant, and everything related to them such as
+resolution algorithms applies to it.
 
 Likewise, in the controller
 
@@ -330,10 +332,16 @@ its resolution next. Let's define *parent* to be that qualifying class or module
 object, that is, `Billing` in the example above. The algorithm for qualified
 constants goes like this:
 
-1. The constant is looked up in the parent and its ancestors.
+1. The constant is looked up in the parent and its ancestors. In Ruby >= 2.5,
+`Object` is skipped if present among the ancestors. `Kernel` and `BasicObject`
+are still checked though.
 
 2. If the lookup fails, `const_missing` is invoked in the parent. The default
 implementation of `const_missing` raises `NameError`, but it can be overridden.
+
+INFO. In Ruby < 2.5 `String::Hash` evaluates to `Hash` and the interpreter
+issues a warning: "toplevel constant Hash referenced by String::Hash". Starting
+with 2.5, `String::Hash` raises `NameError` because `Object` is skipped.
 
 As you see, this algorithm is simpler than the one for relative constants. In
 particular, the nesting plays no role here, and modules are not special-cased,
@@ -424,8 +432,8 @@ if `House` is still unknown when `app/models/beach_house.rb` is being eager
 loaded, Rails autoloads it.
 
 
-autoload_paths
---------------
+autoload_paths and eager_load_paths
+-----------------------------------
 
 As you probably know, when `require` gets a relative file name:
 
@@ -445,7 +453,7 @@ the idea is that when a constant like `Post` is hit and missing, if there's a
 `post.rb` file for example in `app/models` Rails is going to find it, evaluate
 it, and have `Post` defined as a side-effect.
 
-Alright, Rails has a collection of directories similar to `$LOAD_PATH` in which
+All right, Rails has a collection of directories similar to `$LOAD_PATH` in which
 to look up `post.rb`. That collection is called `autoload_paths` and by
 default it contains:
 
@@ -459,28 +467,42 @@ default it contains:
 
 * The directory `test/mailers/previews`.
 
-Also, this collection is configurable via `config.autoload_paths`. For example,
-`lib` was in the list years ago, but no longer is. An application can opt-in
-by adding this to `config/application.rb`:
+`eager_load_paths` is initially the `app` paths above
 
-```ruby
-config.autoload_paths << "#{Rails.root}/lib"
-```
+How files are autoloaded depends on `eager_load` and `cache_classes` config settings which typically vary in development, production, and test modes:
+ 
+ * In **development**, you want quicker startup with incremental loading of application code.  So `eager_load` should be set to `false`, and Rails will autoload files as needed (see [Autoloading Algorithms](#autoloading-algorithms) below) -- and then reload them when they change (see [Constant Reloading](#constant-reloading) below).
+ * In **production**, however you want consistency and thread-safety and can live with a longer boot time. So `eager_load` is set to `true`, and then during boot (before the app is ready to receive requests) Rails loads all files in the `eager_load_paths`  and then turns off auto loading (NB: autoloading may be needed during eager loading). Not autoloading after boot is a `good thing`, as autoloading can cause the app to be have thread-safety problems. 
+ * In **test**, for speed of execution (of individual tests) `eager_load` is `false`, so Rails follows development behaviour. 
+
+What is described above are the defaults with a newly generated Rails app. There are multiple ways this can be configured differently (see [Configuring Rails Applications](configuring.html#rails-general-configuration).
+). But using `autoload_paths` on its own  in the past (before Rails 5) developers might configure `autoload_paths` to add in extra locations (e.g. `lib` which used to be an autoload path list years ago, but no longer is).  However this is now discouraged for most purposes, as it is likely to lead to production-only errors. It is possible to add new locations to both `config.eager_load_paths` and `config.autoload_paths` but use at your own risk.
+
+See also [Autoloading in the Test Environment](#autoloading-in-the-test-environment).
 
 `config.autoload_paths` is not changeable from environment-specific configuration files.
 
-The value of `autoload_paths` can be inspected. In a just generated application
+The value of `autoload_paths` can be inspected. In a just-generated application
 it is (edited):
 
 ```
 $ bin/rails r 'puts ActiveSupport::Dependencies.autoload_paths'
 .../app/assets
+.../app/channels
 .../app/controllers
+.../app/controllers/concerns
 .../app/helpers
+.../app/jobs
 .../app/mailers
 .../app/models
-.../app/controllers/concerns
 .../app/models/concerns
+.../activestorage/app/assets
+.../activestorage/app/controllers
+.../activestorage/app/javascript
+.../activestorage/app/jobs
+.../activestorage/app/models
+.../actioncable/app/assets
+.../actionview/app/assets
 .../test/mailers/previews
 ```
 
@@ -945,7 +967,7 @@ to work on some subclass, things get interesting.
 While working with `Polygon` you do not need to be aware of all its descendants,
 because anything in the table is by definition a polygon, but when working with
 subclasses Active Record needs to be able to enumerate the types it is looking
-for. Let’s see an example.
+for. Let's see an example.
 
 `Rectangle.all` only loads rectangles by adding a type constraint to the query:
 
@@ -954,7 +976,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle")
 ```
 
-Let’s introduce now a subclass of `Rectangle`:
+Let's introduce now a subclass of `Rectangle`:
 
 ```ruby
 # app/models/square.rb
@@ -969,7 +991,7 @@ SELECT "polygons".* FROM "polygons"
 WHERE "polygons"."type" IN ("Rectangle", "Square")
 ```
 
-But there’s a caveat here: How does Active Record know that the class `Square`
+But there's a caveat here: How does Active Record know that the class `Square`
 exists at all?
 
 Even if the file `app/models/square.rb` exists and defines the `Square` class,
@@ -1040,7 +1062,7 @@ end
 
 The purpose of this setup would be that the application uses the class that
 corresponds to the environment via `AUTH_SERVICE`. In development mode
-`MockedAuthService` gets autoloaded when the initializer runs. Let’s suppose
+`MockedAuthService` gets autoloaded when the initializer runs. Let's suppose
 we do some requests, change its implementation, and hit the application again.
 To our surprise the changes are not reflected. Why?
 
@@ -1168,6 +1190,8 @@ end
 ```
 
 #### Qualified References
+
+WARNING. This gotcha is only possible in Ruby < 2.5.
 
 Given
 
@@ -1312,3 +1336,17 @@ class C < BasicObject
   end
 end
 ```
+
+### Autoloading in the Test Environment
+ 
+When configuring the `test` environment for autoloading you might consider multiple factors. 
+
+For example it might be worth running your tests with an identical setup to production (`config.eager_load = true`, `config.cache_classes = true`) in order to catch any problems before they hit production (this is compensation for the lack of dev-prod parity). However this will slow down the boot time for individual tests on a dev machine (and is not immediately compatible with spring see below). So one possibility is to do this on a 
+[CI](https://en.wikipedia.org/wiki/Continuous_integration) machine only (which should run without spring). 
+
+On a development machine you can then have your tests running with whatever is fastest (ideally `config.eager_load = false`). 
+
+With the [Spring](https://github.com/rails/spring) pre-loader (included with new Rails apps), you ideally keep `config.eager_load = false` as per development. Sometimes you may end up with a hybrid configuration (`config.eager_load = true`, `config.cache_classes = true` AND `config.enable_dependency_loading = true`), see [spring issue](https://github.com/rails/spring/issues/519#issuecomment-348324369). However it might be simpler to keep the same configuration as development, and work out whatever it is that is causing autoloading to fail (perhaps by the results of your CI test results). 
+
+Occasionally you may need to explicitly eager_load by using `Rails
+.application.eager_load!` in the setup of your tests -- this might occur if your [tests involve multithreading](https://stackoverflow.com/questions/25796409/in-rails-how-can-i-eager-load-all-code-before-a-specific-rspec-test). 

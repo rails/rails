@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Locking
     # == What is Optimistic Locking
@@ -59,13 +61,6 @@ module ActiveRecord
       end
 
       private
-
-        def increment_lock
-          lock_col = self.class.locking_column
-          previous_lock_value = send(lock_col).to_i
-          send(lock_col + "=", previous_lock_value + 1)
-        end
-
         def _create_record(attribute_names = self.attribute_names, *)
           if locking_enabled?
             # We always want to persist the locking version, even if we don't detect
@@ -75,62 +70,56 @@ module ActiveRecord
           super
         end
 
-        def _update_record(attribute_names = self.attribute_names)
+        def _touch_row(attribute_names, time)
+          super
+        ensure
+          clear_attribute_change(self.class.locking_column) if locking_enabled?
+        end
+
+        def _update_row(attribute_names, attempted_action = "update")
           return super unless locking_enabled?
-          return 0 if attribute_names.empty?
 
           begin
-            lock_col = self.class.locking_column
+            locking_column = self.class.locking_column
+            previous_lock_value = read_attribute_before_type_cast(locking_column)
+            attribute_names << locking_column
 
-            previous_lock_value = read_attribute_before_type_cast(lock_col)
+            self[locking_column] += 1
 
-            increment_lock
-
-            attribute_names.push(lock_col)
-
-            relation = self.class.unscoped
-
-            affected_rows = relation.where(
-              self.class.primary_key => id,
-              lock_col => previous_lock_value
-            ).update_all(
-              attributes_for_update(attribute_names).map do |name|
-                [name, _read_attribute(name)]
-              end.to_h
+            affected_rows = self.class._update_record(
+              attributes_with_values(attribute_names),
+              self.class.primary_key => id_in_database,
+              locking_column => previous_lock_value
             )
 
-            unless affected_rows == 1
-              raise ActiveRecord::StaleObjectError.new(self, "update")
+            if affected_rows != 1
+              raise ActiveRecord::StaleObjectError.new(self, attempted_action)
             end
 
             affected_rows
 
           # If something went wrong, revert the locking_column value.
           rescue Exception
-            send(lock_col + "=", previous_lock_value.to_i)
+            self[locking_column] = previous_lock_value.to_i
             raise
           end
         end
 
         def destroy_row
-          affected_rows = super
+          return super unless locking_enabled?
 
-          if locking_enabled? && affected_rows != 1
+          locking_column = self.class.locking_column
+
+          affected_rows = self.class._delete_record(
+            self.class.primary_key => id_in_database,
+            locking_column => read_attribute_before_type_cast(locking_column)
+          )
+
+          if affected_rows != 1
             raise ActiveRecord::StaleObjectError.new(self, "destroy")
           end
 
           affected_rows
-        end
-
-        def relation_for_destroy
-          relation = super
-
-          if locking_enabled?
-            locking_column = self.class.locking_column
-            relation = relation.where(locking_column => _read_attribute(locking_column))
-          end
-
-          relation
         end
 
         module ClassMethods

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/string/conversions"
 require "active_support/core_ext/module/remove_method"
@@ -138,26 +140,6 @@ module ActiveRecord
   class HasOneThroughCantAssociateThroughHasOneOrManyReflection < ThroughCantAssociateThroughHasOneOrManyReflection #:nodoc:
   end
 
-  class HasManyThroughCantAssociateNewRecords < ActiveRecordError #:nodoc:
-    def initialize(owner = nil, reflection = nil)
-      if owner && reflection
-        super("Cannot associate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to create the has_many :through record associating them.")
-      else
-        super("Cannot associate new records.")
-      end
-    end
-  end
-
-  class HasManyThroughCantDissociateNewRecords < ActiveRecordError #:nodoc:
-    def initialize(owner = nil, reflection = nil)
-      if owner && reflection
-        super("Cannot dissociate new records through '#{owner.class.name}##{reflection.name}' on '#{reflection.source_reflection.class_name rescue nil}##{reflection.source_reflection.name rescue nil}'. Both records must have an id in order to delete the has_many :through record associating them.")
-      else
-        super("Cannot dissociate new records.")
-      end
-    end
-  end
-
   class ThroughNestedAssociationsAreReadonly < ActiveRecordError #:nodoc:
     def initialize(owner = nil, reflection = nil)
       if owner && reflection
@@ -187,16 +169,6 @@ module ActiveRecord
     end
   end
 
-  class ReadOnlyAssociation < ActiveRecordError #:nodoc:
-    def initialize(reflection = nil)
-      if reflection
-        super("Cannot add to a has_many :through association. Try adding to #{reflection.through_reflection.name.inspect}.")
-      else
-        super("Read-only reflection error.")
-      end
-    end
-  end
-
   # This error is raised when trying to destroy a parent instance in N:1 or 1:1 associations
   # (has_many, has_one) when there is at least 1 child associated instance.
   # ex: if @project.tasks.size > 0, DeleteRestrictionError will be raised when trying to destroy @project
@@ -222,13 +194,6 @@ module ActiveRecord
     autoload :CollectionAssociation
     autoload :ForeignAssociation
     autoload :CollectionProxy
-
-    autoload :BelongsToAssociation
-    autoload :BelongsToPolymorphicAssociation
-    autoload :HasManyAssociation
-    autoload :HasManyThroughAssociation
-    autoload :HasOneAssociation
-    autoload :HasOneThroughAssociation
     autoload :ThroughAssociation
 
     module Builder #:nodoc:
@@ -243,6 +208,13 @@ module ActiveRecord
     end
 
     eager_autoload do
+      autoload :BelongsToAssociation
+      autoload :BelongsToPolymorphicAssociation
+      autoload :HasManyAssociation
+      autoload :HasManyThroughAssociation
+      autoload :HasOneAssociation
+      autoload :HasOneThroughAssociation
+
       autoload :Preloader
       autoload :JoinDependency
       autoload :AssociationScope
@@ -269,7 +241,7 @@ module ActiveRecord
       association
     end
 
-    def association_cached?(name) # :nodoc
+    def association_cached?(name) # :nodoc:
       @association_cache.key?(name)
     end
 
@@ -320,13 +292,13 @@ module ActiveRecord
       #
       # The project class now has the following methods (and more) to ease the traversal and
       # manipulation of its relationships:
-      # * <tt>Project#portfolio, Project#portfolio=(portfolio), Project#portfolio.nil?</tt>
-      # * <tt>Project#project_manager, Project#project_manager=(project_manager), Project#project_manager.nil?,</tt>
-      # * <tt>Project#milestones.empty?, Project#milestones.size, Project#milestones, Project#milestones<<(milestone),</tt>
-      #   <tt>Project#milestones.delete(milestone), Project#milestones.destroy(milestone), Project#milestones.find(milestone_id),</tt>
-      #   <tt>Project#milestones.build, Project#milestones.create</tt>
-      # * <tt>Project#categories.empty?, Project#categories.size, Project#categories, Project#categories<<(category1),</tt>
-      #   <tt>Project#categories.delete(category1), Project#categories.destroy(category1)</tt>
+      # * <tt>Project#portfolio</tt>, <tt>Project#portfolio=(portfolio)</tt>, <tt>Project#reload_portfolio</tt>
+      # * <tt>Project#project_manager</tt>, <tt>Project#project_manager=(project_manager)</tt>, <tt>Project#reload_project_manager</tt>
+      # * <tt>Project#milestones.empty?</tt>, <tt>Project#milestones.size</tt>, <tt>Project#milestones</tt>, <tt>Project#milestones<<(milestone)</tt>,
+      #   <tt>Project#milestones.delete(milestone)</tt>, <tt>Project#milestones.destroy(milestone)</tt>, <tt>Project#milestones.find(milestone_id)</tt>,
+      #   <tt>Project#milestones.build</tt>, <tt>Project#milestones.create</tt>
+      # * <tt>Project#categories.empty?</tt>, <tt>Project#categories.size</tt>, <tt>Project#categories</tt>, <tt>Project#categories<<(category1)</tt>,
+      #   <tt>Project#categories.delete(category1)</tt>, <tt>Project#categories.destroy(category1)</tt>
       #
       # === A word of warning
       #
@@ -347,6 +319,7 @@ module ActiveRecord
       #   build_other(attributes={})        |     X      |              |    X
       #   create_other(attributes={})       |     X      |              |    X
       #   create_other!(attributes={})      |     X      |              |    X
+      #   reload_other                      |     X      |      X       |    X
       #
       # === Collection associations (one-to-many / many-to-many)
       #                                     |       |          | has_many
@@ -376,6 +349,7 @@ module ActiveRecord
       #   others.exists?                    |   X   |    X     |    X
       #   others.distinct                   |   X   |    X     |    X
       #   others.reset                      |   X   |    X     |    X
+      #   others.reload                     |   X   |    X     |    X
       #
       # === Overriding generated methods
       #
@@ -479,14 +453,14 @@ module ActiveRecord
       # The tables for these classes could look something like:
       #
       #   CREATE TABLE users (
-      #     id int NOT NULL auto_increment,
-      #     account_id int default NULL,
+      #     id bigint NOT NULL auto_increment,
+      #     account_id bigint default NULL,
       #     name varchar default NULL,
       #     PRIMARY KEY  (id)
       #   )
       #
       #   CREATE TABLE accounts (
-      #     id int NOT NULL auto_increment,
+      #     id bigint NOT NULL auto_increment,
       #     name varchar default NULL,
       #     PRIMARY KEY  (id)
       #   )
@@ -553,9 +527,8 @@ module ActiveRecord
       #     has_many :birthday_events, ->(user) { where(starts_on: user.birthday) }, class_name: 'Event'
       #   end
       #
-      # Note: Joining, eager loading and preloading of these associations is not fully possible.
+      # Note: Joining, eager loading and preloading of these associations is not possible.
       # These operations happen before instance creation and the scope will be called with a +nil+ argument.
-      # This can lead to unexpected behavior and is deprecated.
       #
       # == Association callbacks
       #
@@ -846,7 +819,7 @@ module ActiveRecord
       #   project.milestones             # fetches milestones from the database
       #   project.milestones.size        # uses the milestone cache
       #   project.milestones.empty?      # uses the milestone cache
-      #   project.milestones(true).size  # fetches milestones from the database
+      #   project.milestones.reload.size # fetches milestones from the database
       #   project.milestones             # uses the milestone cache
       #
       # == Eager loading of associations
@@ -1088,12 +1061,6 @@ module ActiveRecord
       #      belongs_to :dungeon, inverse_of: :evil_wizard
       #    end
       #
-      # There are limitations to <tt>:inverse_of</tt> support:
-      #
-      # * does not work with <tt>:through</tt> associations.
-      # * does not work with <tt>:polymorphic</tt> associations.
-      # * inverse associations for #belongs_to associations #has_many are ignored.
-      #
       # For more information, see the documentation for the +:inverse_of+ option.
       #
       # == Deleting from associations
@@ -1188,8 +1155,8 @@ module ActiveRecord
         # <tt>has_many :clients</tt> would add among others <tt>clients.empty?</tt>.
         #
         # [collection]
-        #   Returns an array of all the associated objects.
-        #   An empty array is returned if none are found.
+        #   Returns a Relation of all the associated objects.
+        #   An empty Relation is returned if none are found.
         # [collection<<(object, ...)]
         #   Adds one or more objects to the collection by setting their foreign keys to the collection's primary key.
         #   Note that this operation instantly fires update SQL without waiting for the save or update call on the
@@ -1246,6 +1213,9 @@ module ActiveRecord
         # [collection.create!(attributes = {})]
         #   Does the same as <tt>collection.create</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
+        # [collection.reload]
+        #   Returns a Relation of all of the associated objects, forcing a database read.
+        #   An empty Relation is returned if none are found.
         #
         # === Example
         #
@@ -1265,6 +1235,7 @@ module ActiveRecord
         # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
         # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
         # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
+        # * <tt>Firm#clients.reload</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
@@ -1302,6 +1273,9 @@ module ActiveRecord
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_many
         #   association will use "person_id" as the default <tt>:foreign_key</tt>.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1375,8 +1349,7 @@ module ActiveRecord
         #   <tt>:autosave</tt> to <tt>true</tt>.
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
-        #   that is the inverse of this #has_many association. Does not work in combination
-        #   with <tt>:through</tt> or <tt>:as</tt> options.
+        #   that is the inverse of this #has_many association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:extend]
         #   Specifies a module or array of modules that will be extended into the association object returned.
@@ -1392,7 +1365,7 @@ module ActiveRecord
         #   has_many :tags, as: :taggable
         #   has_many :reports, -> { readonly }
         #   has_many :subscribers, through: :subscriptions, source: :user
-        def has_many(name, scope = nil, options = {}, &extension)
+        def has_many(name, scope = nil, **options, &extension)
           reflection = Builder::HasMany.build(self, name, scope, options, &extension)
           Reflection.add_reflection self, name, reflection
         end
@@ -1424,6 +1397,8 @@ module ActiveRecord
         # [create_association!(attributes = {})]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
+        # [reload_association]
+        #   Returns the associated object, forcing a database read.
         #
         # === Example
         #
@@ -1433,6 +1408,7 @@ module ActiveRecord
         # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
         # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
         # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
+        # * <tt>Account#reload_beneficiary</tt>
         #
         # === Scopes
         #
@@ -1469,6 +1445,9 @@ module ActiveRecord
         #   Specify the foreign key used for the association. By default this is guessed to be the name
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes a #has_one association
         #   will use "person_id" as the default <tt>:foreign_key</tt>.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the polymorphic association
@@ -1484,6 +1463,9 @@ module ActiveRecord
         #   <tt>:primary_key</tt>, and <tt>:foreign_key</tt> are ignored, as the association uses the
         #   source reflection. You can only use a <tt>:through</tt> query through a #has_one
         #   or #belongs_to association on the join model.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option.
         # [:source]
         #   Specifies the source association name used by #has_one <tt>:through</tt> queries.
         #   Only use it if the name cannot be inferred from the association.
@@ -1504,8 +1486,7 @@ module ActiveRecord
         #   <tt>:autosave</tt> to <tt>true</tt>.
         # [:inverse_of]
         #   Specifies the name of the #belongs_to association on the associated object
-        #   that is the inverse of this #has_one association. Does not work in combination
-        #   with <tt>:through</tt> or <tt>:as</tt> options.
+        #   that is the inverse of this #has_one association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:required]
         #   When set to +true+, the association will also have its presence validated.
@@ -1523,7 +1504,7 @@ module ActiveRecord
         #   has_one :club, through: :membership
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
-        def has_one(name, scope = nil, options = {})
+        def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
         end
@@ -1553,6 +1534,8 @@ module ActiveRecord
         # [create_association!(attributes = {})]
         #   Does the same as <tt>create_association</tt>, but raises ActiveRecord::RecordInvalid
         #   if the record is invalid.
+        # [reload_association]
+        #   Returns the associated object, forcing a database read.
         #
         # === Example
         #
@@ -1562,6 +1545,7 @@ module ActiveRecord
         # * <tt>Post#build_author</tt> (similar to <tt>post.author = Author.new</tt>)
         # * <tt>Post#create_author</tt> (similar to <tt>post.author = Author.new; post.author.save; post.author</tt>)
         # * <tt>Post#create_author!</tt> (similar to <tt>post.author = Author.new; post.author.save!; post.author</tt>)
+        # * <tt>Post#reload_author</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
@@ -1587,6 +1571,9 @@ module ActiveRecord
         #   association will use "person_id" as the default <tt>:foreign_key</tt>. Similarly,
         #   <tt>belongs_to :favorite_person, class_name: "Person"</tt> will use a foreign key
         #   of "favorite_person_id".
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option.
         # [:foreign_type]
         #   Specify the column used to store the associated object's type, if this is a polymorphic
         #   association. By default this is guessed to be the name of the association with a "_type"
@@ -1636,8 +1623,7 @@ module ActiveRecord
         #   +after_commit+ and +after_rollback+ callbacks are executed.
         # [:inverse_of]
         #   Specifies the name of the #has_one or #has_many association on the associated
-        #   object that is the inverse of this #belongs_to association. Does not work in
-        #   combination with the <tt>:polymorphic</tt> options.
+        #   object that is the inverse of this #belongs_to association.
         #   See ActiveRecord::Associations::ClassMethods's overview on Bi-directional associations for more detail.
         # [:optional]
         #   When set to +true+, the association will not have its presence validated.
@@ -1664,7 +1650,7 @@ module ActiveRecord
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
         #   belongs_to :account, default: -> { company.account }
-        def belongs_to(name, scope = nil, options = {})
+        def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
         end
@@ -1702,8 +1688,8 @@ module ActiveRecord
         # <tt>has_and_belongs_to_many :categories</tt> would add among others <tt>categories.empty?</tt>.
         #
         # [collection]
-        #   Returns an array of all the associated objects.
-        #   An empty array is returned if none are found.
+        #   Returns a Relation of all the associated objects.
+        #   An empty Relation is returned if none are found.
         # [collection<<(object, ...)]
         #   Adds one or more objects to the collection by creating associations in the join table
         #   (<tt>collection.push</tt> and <tt>collection.concat</tt> are aliases to this method).
@@ -1741,6 +1727,9 @@ module ActiveRecord
         #   Returns a new object of the collection type that has been instantiated
         #   with +attributes+, linked to this object through the join table, and that has already been
         #   saved (if it passed the validation).
+        # [collection.reload]
+        #   Returns a Relation of all of the associated objects, forcing a database read.
+        #   An empty Relation is returned if none are found.
         #
         # === Example
         #
@@ -1759,6 +1748,7 @@ module ActiveRecord
         # * <tt>Developer#projects.exists?(...)</tt>
         # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
         # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
+        # * <tt>Developer#projects.reload</tt>
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #
         # === Scopes
@@ -1802,6 +1792,9 @@ module ActiveRecord
         #   of this class in lower-case and "_id" suffixed. So a Person class that makes
         #   a #has_and_belongs_to_many association to Project will use "person_id" as the
         #   default <tt>:foreign_key</tt>.
+        #
+        #   If you are going to modify the association (rather than just read from it), then it is
+        #   a good idea to set the <tt>:inverse_of</tt> option.
         # [:association_foreign_key]
         #   Specify the foreign key used for the association on the receiving side of the association.
         #   By default this is guessed to be the name of the associated class in lower-case and "_id" suffixed.
@@ -1830,7 +1823,7 @@ module ActiveRecord
 
           builder = Builder::HasAndBelongsToMany.new name, self, options
 
-          join_model = ActiveSupport::Deprecation.silence { builder.through_model }
+          join_model = builder.through_model
 
           const_set join_model.name, join_model
           private_constant join_model.name
@@ -1859,7 +1852,7 @@ module ActiveRecord
             hm_options[k] = options[k] if options.key? k
           end
 
-          ActiveSupport::Deprecation.silence { has_many name, scope, hm_options, &extension }
+          has_many name, scope, hm_options, &extension
           _reflections[name.to_s].parent_reflection = habtm_reflection
         end
       end

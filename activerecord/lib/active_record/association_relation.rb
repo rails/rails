@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class AssociationRelation < Relation
-    def initialize(klass, table, predicate_builder, association)
-      super(klass, table, predicate_builder)
+    def initialize(klass, association)
+      super(klass)
       @association = association
     end
 

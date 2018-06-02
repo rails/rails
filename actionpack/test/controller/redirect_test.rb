@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class Workshop
@@ -33,7 +35,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_with_status_hash
-    redirect_to({ action: "hello_world" }, status: 301)
+    redirect_to({ action: "hello_world" }, { status: 301 })
   end
 
   def redirect_with_protocol
@@ -58,6 +60,10 @@ class RedirectController < ActionController::Base
 
   def redirect_back_with_status
     redirect_back(fallback_location: "/things/stuff", status: 307)
+  end
+
+  def safe_redirect_back_with_status
+    redirect_back(fallback_location: "/things/stuff", status: 307, allow_other_host: false)
   end
 
   def host_redirect
@@ -255,6 +261,23 @@ class RedirectTest < ActionController::TestCase
 
     assert_response 307
     assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_safe_redirect_back_from_other_host
+    @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_safe_redirect_back_from_the_same_host
+    referer = "http://test.host/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
   end
 
   def test_redirect_to_record

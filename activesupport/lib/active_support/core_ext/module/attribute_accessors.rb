@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/regexp"
 
@@ -161,10 +163,10 @@ class Module
   # parent class. Similarly if parent class changes the value then that would
   # change the value of subclasses too.
   #
-  #   class Male < Person
+  #   class Citizen < Person
   #   end
   #
-  #   Male.new.hair_colors << :blue
+  #   Citizen.new.hair_colors << :blue
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.

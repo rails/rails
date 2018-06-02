@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Most objects are cloneable, but not all. For example you can't dup methods:
 #
@@ -73,8 +75,11 @@ end
 
 class Symbol
   begin
-    :symbol.dup # Ruby 2.4.x.
-    "symbol_from_string".to_sym.dup # Some symbols can't `dup` in Ruby 2.4.0.
+    :symbol.dup
+
+    # Some symbols couldn't be duped in Ruby 2.4.0 only, due to a bug.
+    # This feature check catches any regression.
+    "symbol_from_string".to_sym.dup
   rescue TypeError
 
     # Symbols are not duplicable:
@@ -106,8 +111,8 @@ require "bigdecimal"
 class BigDecimal
   # BigDecimals are duplicable:
   #
-  #   BigDecimal.new("1.2").duplicable? # => true
-  #   BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
+  #   BigDecimal("1.2").duplicable? # => true
+  #   BigDecimal("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
   def duplicable?
     true
   end
