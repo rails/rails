@@ -194,15 +194,29 @@ module ActionCable
         def allow_request_origin?
           return true if server.config.disable_request_forgery_protection
 
-          proto = Rack::Request.new(env).ssl? ? "https" : "http"
-          if server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+          if is_allowed_same_origin?
             true
-          elsif Array(server.config.allowed_request_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
+          elsif is_allowed_remote_origin?
             true
           else
             logger.error("Request origin not allowed: #{env['HTTP_ORIGIN']}")
             false
           end
+        end
+
+        def is_allowed_same_origin?
+          proto = Rack::Request.new(env).ssl? ? "https" : "http"
+          server.config.allow_same_origin_as_host && env["HTTP_ORIGIN"] == "#{proto}://#{env['HTTP_HOST']}"
+        end
+
+        def is_allowed_remote_origin?
+          allowed_origins = if server.config.allowed_request_origins.is_a?(Proc)
+            server.config.allowed_request_origins.call
+          else
+            server.config.allowed_request_origins
+          end
+
+          Array(allowed_origins).any? { |allowed_origin|  allowed_origin === env["HTTP_ORIGIN"] }
         end
 
         def respond_to_successful_request

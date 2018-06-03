@@ -1,3 +1,7 @@
+*   server.config.allowed_request_origins can now be assigned a proc for dynamically allowed origins
+
+    *Georges Gabereau*
+
 *   Rails 6 requires Ruby 2.4.1 or newer.
 
     *Jeremy Daer*
