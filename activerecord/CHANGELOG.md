@@ -1,3 +1,9 @@
+*   Fix `save` in `after_create_commit` won't invoke extra `after_create_commit`.
+
+    Fixes #32831.
+
+    *Ryuta Kamizono*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*
