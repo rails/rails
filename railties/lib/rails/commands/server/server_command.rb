@@ -293,10 +293,10 @@ module Rails
               Run `rails server --help` for more options.
             MSG
           else
-            suggestions = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
+            suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
 
             <<~MSG
-              Could not find server "#{server}". Maybe you meant #{suggestions.inspect}?
+              Could not find server "#{server}". Maybe you meant #{suggestion.inspect}?
               Run `rails server --help` for more options.
             MSG
           end
