@@ -328,10 +328,12 @@ module ActiveRecord
     # but call it after the commit of a destroyed object.
     def committed!(should_run_callbacks: true) #:nodoc:
       if should_run_callbacks && (destroyed? || persisted?)
+        @_committed_already_called = true
         _run_commit_without_transaction_enrollment_callbacks
         _run_commit_callbacks
       end
     ensure
+      @_committed_already_called = false
       force_clear_transaction_record_state
     end
 
@@ -380,6 +382,7 @@ module ActiveRecord
     end
 
     private
+      attr_reader :_committed_already_called, :_trigger_update_callback, :_trigger_destroy_callback
 
       # Save the new record state and id of a record so it can be restored later if a transaction fails.
       def remember_transaction_record_state
@@ -390,6 +393,15 @@ module ActiveRecord
           frozen?: frozen?,
         )
         @_start_transaction_state[:level] = (@_start_transaction_state[:level] || 0) + 1
+        remember_new_record_before_last_commit
+      end
+
+      def remember_new_record_before_last_commit
+        if _committed_already_called
+          @_new_record_before_last_commit = false
+        else
+          @_new_record_before_last_commit = @_start_transaction_state[:new_record]
+        end
       end
 
       # Clear the new record state and id of a record.
@@ -421,22 +433,16 @@ module ActiveRecord
         end
       end
 
-      # Determine if a record was created or destroyed in a transaction. State should be one of :new_record or :destroyed.
-      def transaction_record_state(state)
-        @_start_transaction_state[state]
-      end
-
       # Determine if a transaction included an action for :create, :update, or :destroy. Used in filtering callbacks.
       def transaction_include_any_action?(actions)
         actions.any? do |action|
           case action
           when :create
-            persisted? && transaction_record_state(:new_record)
-          when :destroy
-            defined?(@_trigger_destroy_callback) && @_trigger_destroy_callback
+            persisted? && @_new_record_before_last_commit
           when :update
-            !(transaction_record_state(:new_record) || destroyed?) &&
-              (defined?(@_trigger_update_callback) && @_trigger_update_callback)
+            !(@_new_record_before_last_commit || destroyed?) && _trigger_update_callback
+          when :destroy
+            _trigger_destroy_callback
           end
         end
       end
