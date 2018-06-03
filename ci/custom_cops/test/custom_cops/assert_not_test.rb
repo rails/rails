@@ -15,6 +15,11 @@ class AssertNotTest < ActiveSupport::TestCase
     assert_offense @cop, "^^^^^^^^^ Prefer `assert_not` over `assert !`"
   end
 
+  test "rejects 'assert !' with a failure message" do
+    inspect_source @cop, "assert !x, 'a failure message'"
+    assert_offense @cop, "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Prefer `assert_not` over `assert !`"
+  end
+
   test "rejects 'assert !' with a complex value" do
     inspect_source @cop, "assert !a.b(c)"
     assert_offense @cop, "^^^^^^^^^^^^^^ Prefer `assert_not` over `assert !`"
@@ -23,6 +28,11 @@ class AssertNotTest < ActiveSupport::TestCase
   test "autocorrects `assert !`" do
     corrected = autocorrect_source(@cop, "assert !false")
     assert_equal "assert_not false", corrected
+  end
+
+  test "autocorrects 'assert !' with a failure message" do
+    corrected = autocorrect_source(@cop, "assert !x, 'a failure message'")
+    assert_equal "assert_not x, 'a failure message'", corrected
   end
 
   test "autocorrects `assert !` with extra spaces" do
