@@ -2621,6 +2621,17 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_children_could_be_rolled_back_by_after_save
+    firm = Firm.create!(name: "A New Firm, Inc")
+    assert_no_difference "Client.count" do
+      client = firm.clients.create(name: "New Client") do |cli|
+        cli.rollback_on_save = true
+        assert_not cli.rollback_on_create_called
+      end
+      assert client.rollback_on_create_called
+    end
+  end
+
   private
 
     def force_signal37_to_load_all_clients_of_firm

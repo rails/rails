@@ -354,14 +354,18 @@ module ActiveRecord
           if attributes.is_a?(Array)
             attributes.collect { |attr| _create_record(attr, raise, &block) }
           else
+            record = build_record(attributes, &block)
             transaction do
-              add_to_target(build_record(attributes, &block)) do |record|
-                insert_record(record, true, raise) {
+              result = nil
+              add_to_target(record) do
+                result = insert_record(record, true, raise) {
                   @_was_loaded = loaded?
                   @association_ids = nil
                 }
               end
+              raise ActiveRecord::Rollback unless result
             end
+            record
           end
         end
 
@@ -439,7 +443,9 @@ module ActiveRecord
             end
           end
 
-          result && records
+          raise ActiveRecord::Rollback unless result
+
+          records
         end
 
         def replace_on_target(record, index, skip_callbacks)
