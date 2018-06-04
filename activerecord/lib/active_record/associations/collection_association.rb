@@ -105,9 +105,7 @@ module ActiveRecord
         if attributes.is_a?(Array)
           attributes.collect { |attr| build(attr, &block) }
         else
-          add_to_target(build_record(attributes)) do |record|
-            yield(record) if block_given?
-          end
+          add_to_target(build_record(attributes, &block))
         end
       end
 
@@ -361,8 +359,7 @@ module ActiveRecord
             attributes.collect { |attr| _create_record(attr, raise, &block) }
           else
             transaction do
-              add_to_target(build_record(attributes)) do |record|
-                yield(record) if block_given?
+              add_to_target(build_record(attributes, &block)) do |record|
                 insert_record(record, true, raise) {
                   @_was_loaded = loaded?
                   @association_ids = nil
