@@ -8,10 +8,15 @@ module Enumerable
   # and fall back to the compatible implementation, but that's much slower than
   # just calling the compat method in the first place.
   if Enumerable.instance_methods(false).include?(:sum) && !((?a..?b).sum rescue false)
+    # :stopdoc:
+
     # We can't use Refinements here because Refinements with Module which will be prepended
     # doesn't work well https://bugs.ruby-lang.org/issues/13446
-    alias :_original_sum_with_required_identity :sum # :nodoc:
+    alias :_original_sum_with_required_identity :sum
     private :_original_sum_with_required_identity
+
+    # :startdoc:
+
     # Calculates a sum from the elements.
     #
     #  payments.sum { |p| p.price * p.tax_rate }
