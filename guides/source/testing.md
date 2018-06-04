@@ -1476,7 +1476,7 @@ Testing Helpers
 ---------------
 
 A helper is just a simple module where you can define methods which are
-available into your views.
+available in your views.
 
 In order to test helpers, all you need to do is check that the output of the
 helper method matches what you'd expect. Tests related to the helpers are
