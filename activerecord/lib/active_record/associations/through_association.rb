@@ -114,7 +114,7 @@ module ActiveRecord
             attributes[inverse.foreign_key] = target.id
           end
 
-          super(attributes)
+          super
         end
     end
   end

@@ -738,6 +738,18 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       [:added, :before, "Roger"],
       [:added, :after, "Roger"]
     ], log.last(4)
+
+    post.people_with_callbacks.build { |person| person.first_name = "Ted" }
+    assert_equal [
+      [:added, :before, "Ted"],
+      [:added, :after, "Ted"]
+    ], log.last(2)
+
+    post.people_with_callbacks.create { |person| person.first_name = "Sam" }
+    assert_equal [
+      [:added, :before, "Sam"],
+      [:added, :after, "Sam"]
+    ], log.last(2)
   end
 
   def test_dynamic_find_should_respect_association_include
