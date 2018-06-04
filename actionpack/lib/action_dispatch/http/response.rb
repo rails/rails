@@ -221,8 +221,9 @@ module ActionDispatch # :nodoc:
 
     # Sets the HTTP status code.
     def status=(status)
-      raise ArgumentError, "#{status} is not a valid response code identifier. See Rack::Utils::SYMBOL_TO_STATUS_CODE "\
-        "for valid values" unless valid_http_status?(status)
+      raise ArgumentError, "#{status} is not a valid response code identifier. See " \
+      "http://guides.rubyonrails.org/layouts_and_rendering.html#the-status-option " \
+      "for valid values" unless valid_http_status?(status)
       @status = Rack::Utils.status_code(status)
     end
 
