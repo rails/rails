@@ -17,9 +17,8 @@ module ActiveRecord
         replace(record)
       end
 
-      def build(attributes = {})
-        record = build_record(attributes)
-        yield(record) if block_given?
+      def build(attributes = {}, &block)
+        record = build_record(attributes, &block)
         set_new_record(record)
         record
       end
@@ -62,9 +61,8 @@ module ActiveRecord
           replace(record)
         end
 
-        def _create_record(attributes, raise_error = false)
-          record = build_record(attributes)
-          yield(record) if block_given?
+        def _create_record(attributes, raise_error = false, &block)
+          record = build_record(attributes, &block)
           saved = record.save
           set_new_record(record)
           raise RecordInvalid.new(record) if !saved && raise_error

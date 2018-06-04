@@ -275,6 +275,7 @@ module ActiveRecord
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
             initialize_attributes(record, attributes)
+            yield(record) if block_given?
           end
         end
 

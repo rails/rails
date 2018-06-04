@@ -248,13 +248,13 @@ end
 Call `avatar.attach` to attach an avatar to an existing user:
 
 ```ruby
-Current.user.avatar.attach(params[:avatar])
+user.avatar.attach(params[:avatar])
 ```
 
 Call `avatar.attached?` to determine whether a particular user has an avatar:
 
 ```ruby
-Current.user.avatar.attached?
+user.avatar.attached?
 ```
 
 ### `has_many_attached`

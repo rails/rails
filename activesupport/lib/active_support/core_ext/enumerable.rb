@@ -7,10 +7,14 @@ module Enumerable
   # Enumerable#sum was added in Ruby 2.4, but it only works with Numeric elements
   # when we omit an identity.
 
+  # :stopdoc:
+
   # We can't use Refinements here because Refinements with Module which will be prepended
   # doesn't work well https://bugs.ruby-lang.org/issues/13446
-  alias :_original_sum_with_required_identity :sum # :nodoc:
+  alias :_original_sum_with_required_identity :sum
   private :_original_sum_with_required_identity
+
+  # :startdoc:
 
   # Calculates a sum from the elements.
   #

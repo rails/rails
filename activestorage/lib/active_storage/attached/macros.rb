@@ -48,6 +48,12 @@ module ActiveStorage
       else
         before_destroy { public_send(name).detach }
       end
+
+      ActiveRecord::Reflection.add_attachment_reflection(
+        self,
+        name,
+        ActiveRecord::Reflection.create(:has_one_attached, name, nil, { dependent: dependent }, self)
+      )
     end
 
     # Specifies the relation between multiple attachments and the model.
@@ -105,6 +111,12 @@ module ActiveStorage
       else
         before_destroy { public_send(name).detach }
       end
+
+      ActiveRecord::Reflection.add_attachment_reflection(
+        self,
+        name,
+        ActiveRecord::Reflection.create(:has_many_attached, name, nil, { dependent: dependent }, self)
+      )
     end
   end
 end

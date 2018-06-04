@@ -1,3 +1,8 @@
+*   Add the ability to reflect on defined attachments using the existing
+    ActiveRecord reflection mechanism.
+
+    *Kevin Deisz*
+
 *   Variant arguments of `false` or `nil` will no longer be passed to the
     processor. For example, the following will not have the monochrome
     variation applied:
