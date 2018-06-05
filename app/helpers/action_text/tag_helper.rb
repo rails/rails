@@ -6,6 +6,8 @@ module ActionText
       options = options.symbolize_keys
 
       options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
+      options[:class] ||= "trix-content"
+
       options[:data] ||= {}
       options[:data][:direct_upload_url] = rails_direct_uploads_url
       options[:data][:blob_url_template] = rails_service_blob_url(":signed_id", ":filename")
