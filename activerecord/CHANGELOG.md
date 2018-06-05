@@ -1,3 +1,7 @@
+*   Back port Rails 5.2 `reverse_order` Arel SQL literal fix.
+
+    *Matt Jones*, *Brooke Kuhlmann*
+
 *   `becomes` should clear the mutation tracker which is created in `after_initialize`.
 
     Fixes #32867.

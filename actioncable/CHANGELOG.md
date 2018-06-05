@@ -1,7 +1,3 @@
-*   Back port Rails 5.2 `reverse_order` Arel SQL literal fix.
-
-    *Matt Jones*, *Brooke Kuhlmann*
-
 ## Rails 5.1.6 (March 29, 2018) ##
 
 *   No changes.
