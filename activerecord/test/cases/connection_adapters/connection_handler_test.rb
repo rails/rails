@@ -261,71 +261,74 @@ module ActiveRecord
             # Outer connection is unaffected
             assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) FROM people")
           end
-        end
 
-        def test_handles_collision_with_grandparent_pid
-          grandparent_pid = Process.pid
-          ActiveRecord::Base.establish_connection(:arunit)
-          assert_predicate ActiveRecord::Base.connection, :active?
-          grandparent_object_id = ActiveRecord::Base.connection.object_id
-
-          rd1, wr1 = IO.pipe
-          rd1.binmode
-          wr1.binmode
-
-          # Parent process
-          parent_pid = fork {
-            ActiveRecord::Base.establish_connection(:arunit)
+          def test_handles_collision_with_grandparent_pid
+            grandparent_pid = Process.pid
             assert_predicate ActiveRecord::Base.connection, :active?
-            parent_object_id = ActiveRecord::Base.connection.object_id
+            grandparent_object_id = ActiveRecord::Base.connection.object_id
+            config = ActiveRecord::Base.connection_pool.spec.config
 
-            rd2, wr2 = IO.pipe
-            rd2.binmode
-            wr2.binmode
+            rd1, wr1 = IO.pipe
+            rd1.binmode
+            wr1.binmode
 
-            # Force child process pid collision with grandparent pid. This can
-            # happen if grandparent process is short-lived and its pid is
-            # recycled.
-            child_pid = nil
-            Process.stub(:pid, grandparent_pid) {
-              child_pid = fork {
-                rd2.close
-                assert_equal grandparent_pid, Process.pid
-                ActiveRecord::Base.establish_connection(:arunit)
-                assert_predicate ActiveRecord::Base.connection, :active?
-                pair = [ActiveRecord::Base.connection.object_id,
-                        ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
-                wr2.write Marshal.dump pair
-                wr2.close
+            # Parent process
+            parent_pid = fork {
+              ActiveRecord::Base.establish_connection(config)
+              assert_predicate ActiveRecord::Base.connection, :active?
+              parent_object_id = ActiveRecord::Base.connection.object_id
 
-                exit # allow finalizers to run
+              rd2, wr2 = IO.pipe
+              rd2.binmode
+              wr2.binmode
+
+              # Force child process pid collision with grandparent pid. This can
+              # happen if grandparent process is short-lived and its pid is
+              # recycled.
+              child_pid = nil
+              Process.stub(:pid, grandparent_pid) {
+                child_pid = fork {
+                  rd2.close
+                  assert_equal grandparent_pid, Process.pid
+                  ActiveRecord::Base.establish_connection(config)
+                  assert_predicate ActiveRecord::Base.connection, :active?
+                  pair = [ActiveRecord::Base.connection.object_id,
+                          ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
+                  wr2.write Marshal.dump pair
+                  wr2.close
+
+                  exit # allow finalizers to run
+                }
               }
+
+              assert_not_equal grandparent_pid, Process.pid
+
+              Process.waitpid child_pid
+
+              wr2.close
+              child_object_id, child_select_count = Marshal.load(rd2.read)
+              rd2.close
+
+              assert_not_equal grandparent_object_id, parent_object_id
+              assert_not_equal grandparent_object_id, child_object_id
+              assert_not_equal parent_object_id, child_object_id
+
+              assert_equal 3, child_select_count
+
+              # Parent connection is unaffected
+              parent_select_count = ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) from people")
+              assert_equal 6, parent_select_count
+              wr1.write Marshal.dump parent_select_count
+              wr1.close
             }
-            Process.waitpid child_pid
 
-            wr2.close
-            child_object_id, child_select_count = Marshal.load(rd2.read)
-            rd2.close
-
-            assert_not_equal grandparent_object_id, parent_object_id
-            assert_not_equal grandparent_object_id, child_object_id
-            assert_not_equal parent_object_id, child_object_id
-
-            assert_equal 3, child_select_count
-
-            # Parent connection is unaffected
-            parent_select_count = ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) from people")
-            assert_equal 6, parent_select_count
-            wr1.write Marshal.dump parent_select_count
+            Process.waitpid parent_pid
             wr1.close
-          }
+            parent_select_count = Marshal.load(rd1.read)
+            rd1.close
 
-          Process.waitpid parent_pid
-          wr1.close
-          parent_select_count = Marshal.load(rd1.read)
-          rd1.close
-
-          assert_equal 6, parent_select_count
+            assert_equal 6, parent_select_count
+          end
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
