@@ -919,7 +919,7 @@ module ActiveRecord
         end
       end
 
-      def self.discard_unowned_pools(pid_map , ancestor_map) # :nodoc:
+      def self.discard_unowned_pools(pid_map, ancestor_map) # :nodoc:
         ancestor_pids = []
         pid_map.each do |pid, pools|
           next if pid == Process.pid
