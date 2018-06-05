@@ -253,6 +253,20 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal topics(:fifth).title, topics.first.title
   end
 
+  def test_reverse_order_with_string
+    result = Topic.order("id").reverse_order
+    proof = [5, 4, 3, 2, 1]
+
+    assert_equal result.pluck(:id), proof
+  end
+
+  def test_reverse_order_with_arel_literal
+    result = Topic.order(Arel::Nodes::SqlLiteral.new("id")).reverse_order
+    proof = [5, 4, 3, 2, 1]
+
+    assert_equal result.pluck(:id), proof
+  end
+
   def test_reverse_order_with_multiargument_function
     assert_raises(ActiveRecord::IrreversibleOrderError) do
       Topic.order("concat(author_name, title)").reverse_order
