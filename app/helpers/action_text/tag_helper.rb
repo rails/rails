@@ -32,7 +32,7 @@ module ActionView::Helpers
     end
 
     def editable_value
-      value.try(:to_trix_html)
+      value.body.try(:to_trix_html)
     end
   end
 
