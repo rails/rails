@@ -263,6 +263,58 @@ module ActiveRecord
           end
         end
 
+        def test_handles_collision_with_grandparent_pid
+          grandparent_pid = Process.pid
+          ActiveRecord::Base.establish_connection(:arunit)
+          assert_predicate ActiveRecord::Base.connection, :active?
+          grandparent_object_id = ActiveRecord::Base.connection.object_id
+
+          # Parent process
+          parent_pid = fork {
+            ActiveRecord::Base.establish_connection(:arunit)
+            assert_predicate ActiveRecord::Base.connection, :active?
+            parent_object_id = ActiveRecord::Base.connection.object_id
+
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
+
+            # Force child process pid collision with grandparent pid. This can
+            # happen if grandparent process is short-lived and its pid is
+            # recycled.
+            Process.stub(:pid, grandparent_pid) {
+              child_pid = fork {
+                rd.close
+                assert_equal grandparent_pid, Process.pid
+                ActiveRecord::Base.establish_connection(:arunit)
+                assert_predicate ActiveRecord::Base.connection, :active?
+                pair = [ActiveRecord::Base.connection.object_id,
+                        ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
+                wr.write Marshal.dump pair
+                wr.close
+
+                exit # allow finalizers to run
+              }
+              Process.waitpid child_pid
+            }
+            wr.close
+
+            child_object_id, child_select_count = Marshal.load(rd.read)
+
+            assert_not_equal grandparent_object_id, parent_object_id
+            assert_not_equal grandparent_object_id, child_object_id
+            assert_not_equal parent_object_id, child_object_id
+            rd.close
+
+            assert_equal 3, child_select_count
+
+            # Parent connection is unaffected
+            assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) from people")
+          }
+
+          Process.waitpid parent_pid
+        end
+
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
           @pool.schema_cache = @pool.connection.schema_cache
           @pool.schema_cache.add("posts")

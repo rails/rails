@@ -920,9 +920,13 @@ module ActiveRecord
       end
 
       def self.discard_unowned_pools(pid_map) # :nodoc:
+        ancestor_pids = []
         pid_map.each do |pid, pools|
-          pools.values.compact.each(&:discard!) unless pid == Process.pid
+          next unless pid == Process.pid
+          pools.values.compact.each(&:discard!)
+          ancestor_pids << pid
         end
+        ancestor_pids.each { |pid| pid_map.delete(pid) }
       end
 
       def initialize
