@@ -50,12 +50,12 @@ module ActionView
             name_and_id["id"] = name_and_id["for"]
           else
             name_and_id.delete("id")
+            options["for"] = nil
           end
 
           add_default_name_and_id_for_value(tag_value, name_and_id)
           options.delete("index")
           options.delete("namespace")
-          options["for"] = name_and_id["id"] unless options.key?("for")
 
           builder = LabelBuilder.new(@template_object, @object_name, @method_name, @object, tag_value)
 
