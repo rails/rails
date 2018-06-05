@@ -41,7 +41,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     end
     ```
 
-1. Replace form `text_area`s with `rich_text_field`s:
+1. Replace form `text_area`s with `rich_text_area`s:
 
     ```erb
     <%# app/views/messages/_form.html.erb %>
@@ -49,7 +49,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
       …
       <div class="field">
         <%= form.label :content %>
-        <%= form.rich_text_field :content %>
+        <%= form.rich_text_area :content %>
       </div>
       …
     <% end %>

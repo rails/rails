@@ -2,7 +2,7 @@ module ActionText
   module TagHelper
     cattr_accessor(:id, instance_accessor: false) { 0 }
 
-    def rich_text_field_tag(name, value = nil, options = {})
+    def rich_text_area_tag(name, value = nil, options = {})
       options = options.symbolize_keys
 
       options[:input] ||= "trix_input_#{ActionText::TagHelper.id += 1}"
@@ -26,7 +26,7 @@ module ActionView::Helpers
       options = @options.stringify_keys
       add_default_name_and_id(options)
       options["input"] ||= dom_id(object, [options["id"], :trix_input].compact.join("_"))
-      @template_object.rich_text_field_tag(options.delete("name"), editable_value, options)
+      @template_object.rich_text_area_tag(options.delete("name"), editable_value, options)
     end
 
     def editable_value
@@ -35,14 +35,14 @@ module ActionView::Helpers
   end
 
   module FormHelper
-    def rich_text_field(object_name, method, options = {})
+    def rich_text_area(object_name, method, options = {})
       Tags::ActionText.new(object_name, method, self, options).render
     end
   end
 
   class FormBuilder
-    def rich_text_field(method, options = {})
-      @template.rich_text_field(@object_name, method, objectify_options(options))
+    def rich_text_area(method, options = {})
+      @template.rich_text_area(@object_name, method, objectify_options(options))
     end
   end
 end
