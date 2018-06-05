@@ -56,11 +56,11 @@ class QueryCacheTest < ActiveRecord::TestCase
   private def with_temporary_connection_pool
     old_pool = ActiveRecord::Base.connection_handler.retrieve_connection_pool(ActiveRecord::Base.connection_specification_name)
     new_pool = ActiveRecord::ConnectionAdapters::ConnectionPool.new ActiveRecord::Base.connection_pool.spec
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = new_pool
+    ActiveRecord::Base.connection_handler.send(:pools)["primary"] = new_pool
 
     yield
   ensure
-    ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
+    ActiveRecord::Base.connection_handler.send(:pools)["primary"] = old_pool
   end
 
   def test_query_cache_across_threads

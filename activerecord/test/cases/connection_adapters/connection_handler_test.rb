@@ -269,50 +269,63 @@ module ActiveRecord
           assert_predicate ActiveRecord::Base.connection, :active?
           grandparent_object_id = ActiveRecord::Base.connection.object_id
 
+          rd1, wr1 = IO.pipe
+          rd1.binmode
+          wr1.binmode
+
           # Parent process
           parent_pid = fork {
             ActiveRecord::Base.establish_connection(:arunit)
             assert_predicate ActiveRecord::Base.connection, :active?
             parent_object_id = ActiveRecord::Base.connection.object_id
 
-            rd, wr = IO.pipe
-            rd.binmode
-            wr.binmode
+            rd2, wr2 = IO.pipe
+            rd2.binmode
+            wr2.binmode
 
             # Force child process pid collision with grandparent pid. This can
             # happen if grandparent process is short-lived and its pid is
             # recycled.
+            child_pid = nil
             Process.stub(:pid, grandparent_pid) {
               child_pid = fork {
-                rd.close
+                rd2.close
                 assert_equal grandparent_pid, Process.pid
                 ActiveRecord::Base.establish_connection(:arunit)
                 assert_predicate ActiveRecord::Base.connection, :active?
                 pair = [ActiveRecord::Base.connection.object_id,
                         ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
-                wr.write Marshal.dump pair
-                wr.close
+                wr2.write Marshal.dump pair
+                wr2.close
 
                 exit # allow finalizers to run
               }
-              Process.waitpid child_pid
             }
-            wr.close
+            Process.waitpid child_pid
 
-            child_object_id, child_select_count = Marshal.load(rd.read)
+            wr2.close
+            child_object_id, child_select_count = Marshal.load(rd2.read)
+            rd2.close
 
             assert_not_equal grandparent_object_id, parent_object_id
             assert_not_equal grandparent_object_id, child_object_id
             assert_not_equal parent_object_id, child_object_id
-            rd.close
 
             assert_equal 3, child_select_count
 
             # Parent connection is unaffected
-            assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) from people")
+            parent_select_count = ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) from people")
+            assert_equal 6, parent_select_count
+            wr1.write Marshal.dump parent_select_count
+            wr1.close
           }
 
           Process.waitpid parent_pid
+          wr1.close
+          parent_select_count = Marshal.load(rd1.read)
+          rd1.close
+
+          assert_equal 6, parent_select_count
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
