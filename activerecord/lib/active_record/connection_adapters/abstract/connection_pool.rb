@@ -919,9 +919,11 @@ module ActiveRecord
 
         # We keep track of the pid of the current process. When a fork occurs,
         # the child process may not re-use the connection pools from its
-        # parent, but it can re-establish connections by copying the specs from
-        # its parent.
+        # parent, but it can re-establish connections by copying
+        # configurations from its parent.
         @pid = Process.pid
+        @parent_pool_configs = Concurrent::Map.new(initial_capacity: 2)
+        @reinit_lock = Monitor.new
       end
 
       def connection_pool_list
@@ -1015,26 +1017,46 @@ module ActiveRecord
       # This makes retrieving the connection pool O(1) once the process is warm.
       # When a connection is established or removed, we invalidate the cache.
       def retrieve_connection_pool(spec_name)
-        pools[spec_name]
+        pools.fetch(spec_name) do
+         # Check if a connection was previously established in an ancestor process,
+         # which may have been forked.
+         if parent_pool_config = @parent_pool_configs[spec_name]
+           # A connection was established in an ancestor process that must have
+           # subsequently forked. We can't reuse the connection, but we can copy
+           # the specification and establish a new connection with it.
+           establish_connection(parent_pool_config[:spec_hash]).tap do |pool|
+             schema_cache = parent_pool_config[:schema_cache]
+             pool.schema_cache = schema_cache if schema_cache
+           end
+         else
+           pools[spec_name] = nil
+         end
+        end
       end
 
       private
 
         def pools
-          initialize_pools_from_ancestor_specs! if @pid != Process.pid
+          reinitialize_pools! if @pid != Process.pid
           @pools
         end
 
-        def initialize_pools_from_ancestor_specs!
-          ancestor_pools = @pools.values.compact
-          ancestor_pools.each(&:discard!)
-          @pools = Concurrent::Map.new(initial_capacity: ancestor_pools.size)
-          @pid = Process.pid
-          ancestor_pools.each do |ancestor_pool|
-            spec = ancestor_pool.spec.to_hash
-            establish_connection(spec).tap do |new_pool|
-              new_pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
+        def reinitialize_pools!
+          @reinit_lock.synchronize do
+            # return early if another thread has already reinitialized pools
+            return if @pid == Process.pid
+            parent_pools = @pools.values.compact
+            @pools.clear
+            @parent_pool_configs.clear
+            parent_pools.each do |parent_pool|
+              parent_pool.discard!
+              spec = parent_pool.spec
+              @parent_pool_configs[spec.name] = {
+                spec_hash: spec.to_hash,
+                schema_cache: parent_pool.schema_cache
+              }
             end
+            @pid = Process.pid
           end
         end
     end
