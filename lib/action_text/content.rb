@@ -54,7 +54,7 @@ module ActionText
     end
 
     def to_s
-      to_html.html_safe
+      "<div class='trix-content'>#{to_html}</div>".html_safe
     end
 
     def as_json(*)
