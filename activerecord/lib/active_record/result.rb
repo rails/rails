@@ -125,7 +125,7 @@ module ActiveRecord
           begin
             # We freeze the strings to prevent them getting duped when
             # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map { |c| c.dup.freeze }
+            columns = @columns.map(&:-@)
             @rows.map { |row|
               # In the past we used Hash[columns.zip(row)]
               #  though elegant, the verbose way is much more efficient
