@@ -66,5 +66,9 @@ module ActiveRecord
     def count_by_sql(sql)
       connection.select_value(sanitize_sql(sql), "#{name} Count").to_i
     end
+
+    def sql(text, *params)
+      connection.execute sanitize_sql(text, *params)
+    end
   end
 end
