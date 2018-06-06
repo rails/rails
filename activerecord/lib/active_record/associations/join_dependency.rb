@@ -88,7 +88,7 @@ module ActiveRecord
             walk join_root, oj.join_root
           else
             oj.join_root.children.flat_map { |child|
-              make_join_constraints(oj.join_root, child, join_type)
+              make_join_constraints(oj.join_root, child, join_type, true)
             }
           end
         }
