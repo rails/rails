@@ -202,8 +202,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Enqueues an ActiveStorage::PurgeJob job that'll call +purge+. This is the recommended way to purge blobs when the call
   # needs to be made from a transaction, a callback, or any other real-time scenario.
-  def purge_later
-    ActiveStorage::PurgeJob.perform_later(self)
+  def purge_later(check_unattached: false)
+    ActiveStorage::PurgeJob.perform_later(self, check_unattached: check_unattached)
   end
 
   private
