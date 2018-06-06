@@ -48,7 +48,6 @@ module ActiveRecord
     end
 
     def build(attribute, value)
-      # FIXME: Deprecate this and provide a public API to force equality
       if table.type(attribute.name).force_equality?(value)
         bind = build_bind_attribute(attribute.name, value)
         attribute.eq(bind)
