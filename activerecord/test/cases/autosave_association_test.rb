@@ -27,7 +27,6 @@ require "models/member_detail"
 require "models/organization"
 require "models/guitar"
 require "models/tuning_peg"
-require "models/topic"
 require "models/reply"
 
 class TestAutosaveAssociationsInGeneral < ActiveRecord::TestCase
@@ -560,19 +559,18 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
   end
 
   def test_parent_should_not_get_saved_with_duplicate_children_records
-    Topic.delete_all
+    assert_no_difference "Reply.count" do
+      assert_no_difference "SillyUniqueReply.count" do
+        reply = Reply.new
+        reply.silly_unique_replies.build([
+          { content: "Best content" },
+          { content: "Best content" }
+        ])
 
-    content = "Best content"
-    reply1 = ValidateUniqueContentReply.new(content: content)
-    reply2 = ValidateUniqueContentReply.new(content: content)
-
-    topic = Topic.new(validate_unique_content_replies: [reply1, reply2])
-
-    assert_not topic.save
-    assert topic.errors.any?
-
-    assert_equal 0, Topic.count
-    assert_equal 0, ValidateUniqueContentReply.count
+        assert_not reply.save
+        assert_not_empty reply.errors
+      end
+    end
   end
 
   def test_invalid_build

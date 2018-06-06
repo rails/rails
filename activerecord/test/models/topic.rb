@@ -47,7 +47,6 @@ class Topic < ActiveRecord::Base
 
   has_many :unique_replies, dependent: :destroy, foreign_key: "parent_id"
   has_many :silly_unique_replies, dependent: :destroy, foreign_key: "parent_id"
-  has_many :validate_unique_content_replies, dependent: :destroy, foreign_key: "parent_id"
 
   serialize :content
 
