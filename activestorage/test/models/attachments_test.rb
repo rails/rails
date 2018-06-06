@@ -456,4 +456,20 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.exists?(key: first_blob.key)
     assert ActiveStorage::Blob.exists?(key: second_blob.key)
   end
+
+  test "old blobs not purged on transaction rollback" do
+    @user.avatar.attach create_blob(filename: "funky.jpg", data: "funky.jpg")
+
+    perform_enqueued_jobs do
+      e = assert_raises NoMethodError do
+        ActiveRecord::Base.transaction do
+          @user.avatar.attach create_blob(filename: "town.jpg", data: "town.jpg")
+          foo!
+        end
+      end
+    end
+
+    assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
+    assert_equal "funky.jpg", @user.reload.avatar.download
+  end
 end
