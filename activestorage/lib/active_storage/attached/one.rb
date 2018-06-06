@@ -33,7 +33,7 @@ module ActiveStorage
           write_attachment build_attachment(blob: blob)
         end
 
-        blob_was.purge_later if blob_was && dependent == :purge_later
+        blob_was.purge_later(check_unattached: true) if blob_was && dependent == :purge_later
       end
     end
 
