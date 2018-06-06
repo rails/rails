@@ -49,6 +49,10 @@ module ActiveRecord
         end
       end
 
+      def force_equality?(value)
+        coder.respond_to?(:object_class) && value.is_a?(coder.object_class)
+      end
+
       private
 
         def default_value?(value)
