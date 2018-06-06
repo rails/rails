@@ -421,7 +421,7 @@ module ActiveModel
 
       options = {
         default: defaults,
-        model: @base.model_name.human,
+        model: @base.class.model_name.human,
         attribute: @base.class.human_attribute_name(attribute),
         value: value,
         object: @base
