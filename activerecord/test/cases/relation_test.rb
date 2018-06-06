@@ -5,10 +5,11 @@ require "models/post"
 require "models/comment"
 require "models/author"
 require "models/rating"
+require "models/categorization"
 
 module ActiveRecord
   class RelationTest < ActiveRecord::TestCase
-    fixtures :posts, :comments, :authors, :author_addresses, :ratings
+    fixtures :posts, :comments, :authors, :author_addresses, :ratings, :categorizations
 
     def test_construction
       relation = Relation.new(FakeKlass, table: :b)
@@ -221,6 +222,30 @@ module ActiveRecord
 
       assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.count
       assert_equal manual_comments_on_post_that_have_author.size, merged_authors_with_commented_posts_relation.to_a.size
+    end
+
+    def test_relation_merging_with_merged_symbol_joins_is_aliased
+      categorizations_with_authors = Categorization.joins(:author)
+      queries = capture_sql { Post.joins(:author, :categorizations).merge(Author.select(:id)).merge(categorizations_with_authors).to_a }
+
+      nb_inner_join = queries.sum { |sql| sql.scan(/INNER\s+JOIN/i).size }
+      assert_equal 3, nb_inner_join, "Wrong amount of INNER JOIN in query"
+
+      # using `\W` as the column separator
+      assert queries.any? { |sql| %r[INNER\s+JOIN\s+#{Author.quoted_table_name}\s+\Wauthors_categorizations\W]i.match?(sql) }, "Should be aliasing the child INNER JOINs in query"
+    end
+
+    def test_relation_with_merged_joins_aliased_works
+      categorizations_with_authors = Categorization.joins(:author)
+      posts_with_joins_and_merges = Post.joins(:author, :categorizations)
+                                        .merge(Author.select(:id)).merge(categorizations_with_authors)
+
+      author_with_posts = Author.joins(:posts).ids
+      categorizations_with_author = Categorization.joins(:author).ids
+      posts_with_author_and_categorizations = Post.joins(:categorizations).where(author_id: author_with_posts, categorizations: { id: categorizations_with_author }).ids
+
+      assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.count
+      assert_equal posts_with_author_and_categorizations.size, posts_with_joins_and_merges.to_a.size
     end
 
     def test_relation_merging_with_joins_as_join_dependency_pick_proper_parent
