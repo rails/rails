@@ -15,4 +15,12 @@ Turbolinks.start()
 import * as ActiveStorage from "activestorage"
 ActiveStorage.start()
 <%- end -%>
+<%- unless options[:skip_action_cable] -%>
 
+import ActionCable from "actioncable"
+const cable = ActionCable.createConsumer()
+ 
+cable.subscriptions.create('AppearanceChannel', {
+  // normal channel code goes here...
+})
+<%- end -%>
