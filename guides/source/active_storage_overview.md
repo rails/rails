@@ -171,6 +171,16 @@ google:
   bucket: ""
 ```
 
+Optionally provide a Base64 encoded private key:
+
+```yaml
+google:
+  service: GCS
+  credentials: <%= Base64.decode64(Rails.application.credentials.dig(:gcs, :private_key)) %>
+  project: ""
+  bucket: ""
+```
+
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
