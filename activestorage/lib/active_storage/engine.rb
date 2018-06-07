@@ -57,7 +57,7 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.attached" do
+    initializer "active_storage.attached", before: :load_config_initializers do
       require "active_storage/attached"
 
       ActiveSupport.on_load(:active_record) do
@@ -98,7 +98,7 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.reflection" do
+    initializer "active_storage.reflection", before: :load_config_initializers do
       ActiveSupport.on_load(:active_record) do
         include Reflection::ActiveRecordExtensions
         ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
