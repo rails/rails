@@ -19,7 +19,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.all/, m)
+        assert_match(/users = User\.all/, m)
       end
 
       assert_instance_method :show, content
@@ -31,8 +31,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_instance_method :edit, content
 
       assert_instance_method :create, content do |m|
-        assert_match(/@user = User\.new\(user_params\)/, m)
-        assert_match(/@user\.save/, m)
+        assert_match(/user = User\.new\(user_params\)/, m)
+        assert_match(/user\.save/, m)
       end
 
       assert_instance_method :update, content do |m|
@@ -108,8 +108,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "test/controllers/users_controller_test.rb" do |content|
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
-      assert_match(/post users_url, params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
-      assert_match(/patch user_url\(@user\), params: \{ user: \{ age: @user\.age, name: @user\.name, organization_id: @user\.organization_id, organization_type: @user\.organization_type \} \}/, content)
+      assert_match(/post users_url, params: \{ user: \{ age: user\.age, name: user\.name, organization_id: user\.organization_id, organization_type: user\.organization_type \} \}/, content)
+      assert_match(/patch user_url\(user\), params: \{ user: \{ age: user\.age, name: user\.name, organization_id: user\.organization_id, organization_type: user\.organization_type \} \}/, content)
     end
   end
 
@@ -120,7 +120,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersControllerTest < ActionDispatch::IntegrationTest/, content)
       assert_match(/test "should get index"/, content)
       assert_match(/post users_url, params: \{ user: \{  \} \}/, content)
-      assert_match(/patch user_url\(@user\), params: \{ user: \{  \} \}/, content)
+      assert_match(/patch user_url\(user\), params: \{ user: \{  \} \}/, content)
     end
   end
 
@@ -141,7 +141,7 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.all/, m)
+        assert_match(/users = User\.all/, m)
       end
     end
   end
@@ -160,8 +160,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/class UsersController < ApplicationController/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.find\(:all\)/, m)
-        assert_no_match(/@users = User\.all/, m)
+        assert_match(/users = User\.find\(:all\)/, m)
+        assert_no_match(/users = User\.all/, m)
       end
     end
   ensure
@@ -172,11 +172,11 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
     run_generator ["Admin::User", "--model-name=User"]
     assert_file "app/controllers/admin/users_controller.rb" do |content|
       assert_instance_method :index, content do |m|
-        assert_match("@users = User.all", m)
+        assert_match("users = User.all", m)
       end
 
       assert_instance_method :create, content do |m|
-        assert_match("redirect_to [:admin, @user]", m)
+        assert_match("redirect_to [:admin, user]", m)
       end
 
       assert_instance_method :update, content do |m|
@@ -234,8 +234,8 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       assert_match(/before_action :set_user, only: \[:show, :update, :destroy\]/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@users = User\.all/, m)
-        assert_match(/render json: @users/, m)
+        assert_match(/users = User\.all/, m)
+        assert_match(/render json: users/, m)
       end
 
       assert_instance_method :show, content do |m|
@@ -243,9 +243,9 @@ class ScaffoldControllerGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :create, content do |m|
-        assert_match(/@user = User\.new\(user_params\)/, m)
-        assert_match(/@user\.save/, m)
-        assert_match(/@user\.errors/, m)
+        assert_match(/user = User\.new\(user_params\)/, m)
+        assert_match(/user\.save/, m)
+        assert_match(/user\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
