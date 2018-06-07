@@ -4,6 +4,8 @@ require "test_helper"
 require "database/setup"
 
 class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
+  include ActiveJob::TestHelper
+
   setup do
     @user = User.create!(name: "Josh")
   end
@@ -17,18 +19,16 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     # inherited only
     assert_equal "funky.jpg", @user.avatar.filename.to_s
 
-    begin
-      User.class_eval do
-        def avatar
-          super.filename.to_s.reverse
-        end
+    User.class_eval do
+      def avatar
+        super.filename.to_s.reverse
       end
-
-      # override with super
-      assert_equal "funky.jpg".reverse, @user.avatar
-    ensure
-      User.remove_method :avatar
     end
+
+    # override with super
+    assert_equal "funky.jpg".reverse, @user.avatar
+
+    User.send(:remove_method, :avatar)
   end
 
   test "overriding has_many_attached methods works" do
@@ -39,18 +39,16 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
     assert_equal "wonky.jpg", @user.highlights.second.filename.to_s
 
-    begin
-      User.class_eval do
-        def highlights
-          super.reverse
-        end
+    User.class_eval do
+      def highlights
+        super.reverse
       end
-
-      # override with super
-      assert_equal "wonky.jpg", @user.highlights.first.filename.to_s
-      assert_equal "funky.jpg", @user.highlights.second.filename.to_s
-    ensure
-      User.remove_method :highlights
     end
+
+    # override with super
+    assert_equal "wonky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "funky.jpg", @user.highlights.second.filename.to_s
+
+    User.send(:remove_method, :highlights)
   end
 end
