@@ -320,7 +320,6 @@ module SharedGeneratorTests
 
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
-      assert_no_match(/uglifier/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
@@ -329,7 +328,6 @@ module SharedGeneratorTests
 
     assert_file "#{application_path}/config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.digest/, content)
-      assert_no_match(/config\.assets\.js_compressor/, content)
       assert_no_match(/config\.assets\.css_compressor/, content)
       assert_no_match(/config\.assets\.compile/, content)
     end

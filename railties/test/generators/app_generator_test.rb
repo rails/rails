@@ -536,7 +536,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_gem "sass-rails"
-    assert_gem "uglifier"
   end
 
   def test_action_cable_redis_gems
@@ -605,14 +604,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
       assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
-
-    assert_no_gem "coffee-rails"
-    assert_no_gem "uglifier"
-
-    assert_file "config/environments/production.rb" do |content|
-      assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
-    end
-  end
 
   def test_coffeescript_is_skipped_if_required
     run_generator [destination_root, "--skip-coffee"]

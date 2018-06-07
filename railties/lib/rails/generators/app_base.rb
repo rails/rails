@@ -327,17 +327,7 @@ module Rails
       def assets_gemfile_entry
         return [] if options[:skip_sprockets]
 
-        gems = []
-        gems << GemfileEntry.version("sass-rails", "~> 5.0",
-                                     "Use SCSS for stylesheets")
-
-        if !options[:skip_javascript]
-          gems << GemfileEntry.version("uglifier",
-                                     ">= 1.3.0",
-                                     "Use Uglifier as compressor for JavaScript assets")
-        end
-
-        gems
+        GemfileEntry.version("sass-rails", "~> 5.0", "Use SCSS for stylesheets")
       end
 
       def webpacker_gemfile_entry
