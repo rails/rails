@@ -576,13 +576,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_rails_ujs_is_the_default_ujs_library
-    run_generator
-    assert_file "app/assets/javascripts/application.js" do |contents|
-      assert_match %r{^//= require rails-ujs}, contents
-    end
-  end
-
   def test_javascript_is_skipped_if_required
     run_generator [destination_root, "--skip-javascript"]
 
