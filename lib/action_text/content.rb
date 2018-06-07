@@ -53,8 +53,12 @@ module ActionText
       end.to_html
     end
 
+    def to_html_with_layout
+      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_html.html_safe }).html_safe
+    end
+
     def to_s
-      "<div class='trix-content'>#{to_html}</div>".html_safe
+      to_html_with_layout
     end
 
     def as_json(*)
