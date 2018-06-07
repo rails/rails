@@ -782,7 +782,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "spring"
   end
 
-  def test_skip_webpack_option
+  def test_skip_javascript_option
     command_check = -> command, *_ do
       @called ||= 0
       if command == "webpacker:install"
@@ -791,7 +791,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    generator([destination_root], skip_webpack: true).stub(:rails_command, command_check) do
+    generator([destination_root], skip_javascript: true).stub(:rails_command, command_check) do
       generator.stub :bundle_command, nil do
         quietly { generator.invoke_all }
       end
