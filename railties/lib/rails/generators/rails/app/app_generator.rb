@@ -410,7 +410,7 @@ module Rails
 
       def delete_js_folder_skipping_javascript
         if options[:skip_javascript]
-          remove_dir "app/assets/javascripts"
+          remove_dir "app/javascript"
         end
       end
 

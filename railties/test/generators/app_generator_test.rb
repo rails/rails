@@ -13,10 +13,9 @@ DEFAULT_APP_FILES = %w(
   config.ru
   app/assets/config/manifest.js
   app/assets/images
-  app/assets/javascripts
-  app/assets/javascripts/application.js
-  app/assets/javascripts/cable.js
-  app/assets/javascripts/channels
+  app/javascript
+  app/javascript/channels
+  app/javascript/packs/application.js
   app/assets/stylesheets
   app/assets/stylesheets/application.css
   app/channels/application_cable/channel.rb
@@ -118,9 +117,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
-    assert_file("app/views/layouts/application.html.erb", /javascript_include_tag\s+'application', 'data-turbolinks-track': 'reload'/)
+    assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
     assert_file("app/assets/stylesheets/application.css")
-    assert_file("app/assets/javascripts/application.js")
+    assert_file("app/javascript/packs/application.js")
   end
 
   def test_application_job_file_present
@@ -819,7 +818,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
     end
-    assert_file "app/assets/javascripts/application.js" do |content|
+    assert_file "app/javascript/packs/application.js" do |content|
       assert_no_match(/turbolinks/, content)
     end
   end

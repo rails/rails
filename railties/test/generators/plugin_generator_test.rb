@@ -210,28 +210,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     assert_no_file "#{destination_root}/Gemfile.lock"
   end
 
-  def test_skipping_javascripts_without_mountable_option
-    run_generator
-    assert_no_file "app/assets/javascripts/bukkits/application.js"
-  end
-
-  def test_javascripts_generation
-    run_generator [destination_root, "--mountable"]
-    assert_file "app/assets/javascripts/bukkits/application.js" do |content|
-      assert_match "//= require rails-ujs", content
-      assert_match "//= require activestorage", content
-      assert_match "//= require_tree .", content
-    end
-    assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
-      assert_match "javascript_include_tag", content
-    end
-  end
-
-  def test_skip_javascripts
+  def test_skip_javascript
     run_generator [destination_root, "--skip-javascript", "--mountable"]
-    assert_no_file "app/assets/javascripts/bukkits/application.js"
     assert_file "app/views/layouts/bukkits/application.html.erb" do |content|
-      assert_no_match "javascript_include_tag", content
+      assert_no_match "javascript_pack_tag", content
     end
   end
 
@@ -264,7 +246,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
 
   def test_creating_engine_in_full_mode
     run_generator [destination_root, "--full"]
-    assert_file "app/assets/javascripts/bukkits"
     assert_file "app/assets/stylesheets/bukkits"
     assert_file "app/assets/images/bukkits"
     assert_file "app/models"
