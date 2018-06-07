@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module ActiveSupport
-  module CompareWithRange #:nodoc:
+  module CompareWithRange
     # Extends the default Range#=== to support range comparisons.
     #  (1..5) === (1..5) # => true
     #  (1..5) === (2..3) # => true
