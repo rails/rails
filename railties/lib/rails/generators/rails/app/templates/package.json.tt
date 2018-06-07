@@ -2,6 +2,7 @@
   "name": "<%= app_name %>",
   "private": true,
   "dependencies": {
-    "rails-ujs": "<%= Rails::VERSION::STRING %>"
+    "rails-ujs": "<%= Rails::VERSION::STRING %>"<% unless skip_active_storage? %>,
+    "activestorage": "<%= Rails::VERSION::STRING %>"<% end -%>
   }
 }

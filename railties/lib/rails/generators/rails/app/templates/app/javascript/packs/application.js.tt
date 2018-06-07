@@ -5,3 +5,8 @@
 
 import Rails from 'rails-ujs'
 Rails.start()
+
+<%- unless skip_active_storage? -%>
+import * as ActiveStorage from "activestorage"
+ActiveStorage.start()
+<%- end -%>
