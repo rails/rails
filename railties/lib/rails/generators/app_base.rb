@@ -86,6 +86,9 @@ module Rails
         class_option :skip_bootsnap,       type: :boolean, default: false,
                                            desc: "Skip bootsnap gem"
 
+        class_option :skip_webpack,        type: :boolean, default: false,
+                                           desc: "Skip Webpacker gem and files"
+
         class_option :dev,                 type: :boolean, default: false,
                                            desc: "Setup the #{name} with Gemfile pointing to your Rails checkout"
 
@@ -341,10 +344,9 @@ module Rails
       end
 
       def webpacker_gemfile_entry
-        return [] unless options[:webpack]
+        return [] if options[:skip_webpack]
 
-        comment = "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
-        GemfileEntry.new "webpacker", nil, comment
+        GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
       def jbuilder_gemfile_entry
@@ -452,9 +454,9 @@ module Rails
       end
 
       def run_webpack
-        if !(webpack = options[:webpack]).nil?
+        unless options[:skip_webpack]
           rails_command "webpacker:install"
-          rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
+          rails_command "webpacker:install:#{options[:webpack]}" if options[:webpack] && options[:webpack] != "webpack"
         end
       end
 

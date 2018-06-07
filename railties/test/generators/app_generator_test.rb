@@ -799,22 +799,22 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_no_gem "spring"
   end
 
-  def test_webpack_option
+  def test_skip_webpack_option
     command_check = -> command, *_ do
       @called ||= 0
       if command == "webpacker:install"
         @called += 1
-        assert_equal 1, @called, "webpacker:install expected to be called once, but was called #{@called} times."
+        assert_equal 0, @called, "webpacker:install expected not to be called once, but was called #{@called} times."
       end
     end
 
-    generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
+    generator([destination_root], skip_webpack: true).stub(:rails_command, command_check) do
       generator.stub :bundle_command, nil do
         quietly { generator.invoke_all }
       end
     end
 
-    assert_gem "webpacker"
+    assert_no_gem "webpacker"
   end
 
   def test_webpack_option_with_js_framework
@@ -836,6 +836,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
         quietly { generator.invoke_all }
       end
     end
+
+    assert_gem "webpacker"
   end
 
   def test_generator_if_skip_turbolinks_is_given
