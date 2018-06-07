@@ -5,7 +5,7 @@ class ActiveStorage::PurgeJob < ActiveStorage::BaseJob
   # FIXME: Limit this to a custom ActiveStorage error
   retry_on StandardError
 
-  def perform(blob, check_unattached: false)
-    blob.purge unless check_unattached && blob.attachments.any?
+  def perform(blob)
+    blob.purge unless blob.attachments.any?
   end
 end
