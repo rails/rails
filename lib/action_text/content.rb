@@ -54,7 +54,7 @@ module ActionText
     end
 
     def to_html_with_layout
-      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_html }).html_safe
+      ActionText.renderer.render(partial: "action_text/content/layout", locals: { document: to_html })
     end
 
     def to_s
