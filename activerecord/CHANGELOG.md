@@ -1,3 +1,9 @@
+*   Fix Collection cache key with limit and custom select
+
+    Fixes #33056.
+
+    *Federico Martinez*
+
 *   Add basic API for connection switching to support multiple databases.
 
     1) Adds a `connects_to` method for models to connect to multiple databases. Example:
