@@ -577,17 +577,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_inclusion_of_javascript_runtime
-    run_generator
-    if defined?(JRUBY_VERSION)
-      assert_gem "therubyrhino"
-    elsif RUBY_PLATFORM =~ /mingw|mswin/
-      assert_gem "duktape"
-    else
-      assert_file "Gemfile", /# gem 'mini_racer', platforms: :ruby/
-    end
-  end
-
   def test_rails_ujs_is_the_default_ujs_library
     run_generator
     assert_file "app/assets/javascripts/application.js" do |contents|

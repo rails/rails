@@ -339,28 +339,11 @@ module Rails
       end
 
       def javascript_gemfile_entry
-        if options[:skip_javascript] || options[:skip_sprockets]
+        if options[:skip_javascript] || options[:skip_turbolinks]
           []
         else
-          gems = [javascript_runtime_gemfile_entry]
-
-          unless options[:skip_turbolinks]
-            gems << GemfileEntry.version("turbolinks", "~> 5",
-             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks")
-          end
-
-          gems
-        end
-      end
-
-      def javascript_runtime_gemfile_entry
-        comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
-        if defined?(JRUBY_VERSION)
-          GemfileEntry.version "therubyrhino", nil, comment
-        elsif RUBY_PLATFORM =~ /mingw|mswin/
-          GemfileEntry.version "duktape", nil, comment
-        else
-          GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
+          [ GemfileEntry.version("turbolinks", "~> 5",
+             "Turbolinks makes navigating your web application faster. Read more: https://github.com/turbolinks/turbolinks") ]
         end
       end
 
