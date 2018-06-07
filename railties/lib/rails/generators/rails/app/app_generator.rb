@@ -261,7 +261,7 @@ module Rails
                                  desc: "Don't run bundle install"
 
       class_option :webpack, type: :string, default: nil,
-                             desc: "Preconfigure for app-like JavaScript with Webpack (options: #{WEBPACKS.join('/')})"
+                             desc: "Preconfigure Webpack with a particular framework (options: #{WEBPACKS.join('/')})"
 
       def initialize(*args)
         super
