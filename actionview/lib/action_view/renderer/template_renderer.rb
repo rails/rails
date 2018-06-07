@@ -11,9 +11,13 @@ module ActionView
 
       prepend_formats(template.formats)
 
-      @lookup_context.rendered_format ||= (template.formats.first || formats.first)
+      @lookup_context.rendered_format = (template.formats.first || formats.first)
 
-      render_template(template, options[:layout], options[:locals])
+      rendered_template = render_template(template, options[:layout], options[:locals])
+
+      pop_formats(formats)
+
+      rendered_template
     end
 
     private
