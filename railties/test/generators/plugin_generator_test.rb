@@ -140,10 +140,6 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     run_generator
 
     assert_file "test/dummy/app/assets/stylesheets/application.css"
-
-    assert_file "test/dummy/app/assets/javascripts/application.js" do |contents|
-      assert_no_match(/jquery/, contents)
-    end
   end
 
   def test_ensure_that_plugin_options_are_not_passed_to_app_generator
