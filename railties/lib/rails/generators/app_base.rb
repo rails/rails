@@ -68,9 +68,6 @@ module Rails
         class_option :skip_listen,         type: :boolean, default: false,
                                            desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_coffee,         type: :boolean, default: false,
-                                           desc: "Don't use CoffeeScript"
-
         class_option :skip_javascript,     type: :boolean, aliases: "-J", default: false,
                                            desc: "Skip JavaScript files"
 
@@ -354,16 +351,11 @@ module Rails
         GemfileEntry.new "jbuilder", "~> 2.5", comment, {}, options[:api]
       end
 
-      def coffee_gemfile_entry
-        GemfileEntry.version "coffee-rails", "~> 4.2", "Use CoffeeScript for .coffee assets and views"
-      end
-
       def javascript_gemfile_entry
         if options[:skip_javascript] || options[:skip_sprockets]
           []
         else
           gems = [javascript_runtime_gemfile_entry]
-          gems << coffee_gemfile_entry unless options[:skip_coffee]
 
           unless options[:skip_turbolinks]
             gems << GemfileEntry.version("turbolinks", "~> 5",

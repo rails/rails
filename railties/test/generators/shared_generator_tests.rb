@@ -321,7 +321,6 @@ module SharedGeneratorTests
     assert_file "Gemfile" do |content|
       assert_no_match(/sass-rails/, content)
       assert_no_match(/uglifier/, content)
-      assert_no_match(/coffee-rails/, content)
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
