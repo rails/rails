@@ -1,5 +1,7 @@
 {
   "name": "<%= app_name %>",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "rails-ujs": "<%= Rails::VERSION::STRING %>"
+  }
 }
