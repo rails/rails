@@ -604,14 +604,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/stylesheet_link_tag\s+'application', media: 'all' %>/, contents)
       assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
-
-  def test_coffeescript_is_skipped_if_required
-    run_generator [destination_root, "--skip-coffee"]
-
-    assert_file "Gemfile" do |content|
-      assert_no_match(/coffee-rails/, content)
-      assert_match(/uglifier/, content)
-    end
   end
 
   def test_inclusion_of_jbuilder
