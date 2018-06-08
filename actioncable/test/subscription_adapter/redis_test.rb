@@ -30,7 +30,7 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
   end
 end
 
-class RedisAdapterTest::Connector < ActiveSupport::TestCase
+class RedisAdapterTest::Connector < ActionCable::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   test "slices url, host, port, db, and password from config" do

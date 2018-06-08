@@ -5,7 +5,7 @@ require "stubs/test_server"
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/testing/method_call_assertions"
 
-class BaseTest < ActiveSupport::TestCase
+class BaseTest < ActionCable::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   def setup

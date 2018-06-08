@@ -6,7 +6,7 @@ require "stubs/room"
 require "active_support/time"
 require "active_support/testing/method_call_assertions"
 
-class ActionCable::Channel::PeriodicTimersTest < ActiveSupport::TestCase
+class ActionCable::Channel::PeriodicTimersTest < ActionCable::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
   class ChatChannel < ActionCable::Channel::Base
