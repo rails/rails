@@ -11,7 +11,8 @@ module ActiveStorage
   #   # => { width: 4104, height: 2736 }
   #
   # This analyzer relies on the third-party {MiniMagick}[https://github.com/minimagick/minimagick] gem. MiniMagick requires
-  # the {ImageMagick}[http://www.imagemagick.org] system library.
+  # the {ImageMagick}[http://www.imagemagick.org] system library and if you want to analyze webP images,
+  # the {dwebp}[https://developers.google.com/speed/webp/docs/dwebp] command is also required.
   class Analyzer::ImageAnalyzer < Analyzer
     def self.accept?(blob)
       blob.image?
