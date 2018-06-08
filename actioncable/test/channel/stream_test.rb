@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "active_support/testing/method_call_assertions"
 require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
@@ -164,8 +163,6 @@ module ActionCable::StreamTests
   end
 
   class StreamFromTest < ActionCable::TestCase
-    include ActiveSupport::Testing::MethodCallAssertions
-
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )

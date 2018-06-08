@@ -4,7 +4,6 @@ require "test_helper"
 require_relative "common"
 require_relative "channel_prefix"
 
-require "active_support/testing/method_call_assertions"
 require "action_cable/subscription_adapter/redis"
 
 class RedisAdapterTest < ActionCable::TestCase
@@ -31,8 +30,6 @@ class RedisAdapterTest::AlternateConfiguration < RedisAdapterTest
 end
 
 class RedisAdapterTest::Connector < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   test "slices url, host, port, db, and password from config" do
     config = { url: 1, host: 2, port: 3, db: 4, password: 5 }
 

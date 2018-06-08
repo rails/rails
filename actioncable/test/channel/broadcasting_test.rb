@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "active_support/testing/method_call_assertions"
 require "stubs/test_connection"
 require "stubs/room"
 
 class ActionCable::Channel::BroadcastingTest < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class ChatChannel < ActionCable::Channel::Base
   end
 

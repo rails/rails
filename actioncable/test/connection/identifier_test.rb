@@ -1,13 +1,10 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "active_support/testing/method_call_assertions"
 require "stubs/test_server"
 require "stubs/user"
 
 class ActionCable::Connection::IdentifierTest < ActionCable::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class Connection < ActionCable::Connection::Base
     identified_by :current_user
     attr_reader :websocket
