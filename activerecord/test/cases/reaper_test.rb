@@ -24,6 +24,10 @@ module ActiveRecord
           @reaped = false
         end
 
+        def connections
+          []
+        end
+
         def reap
           @reaped = true
         end

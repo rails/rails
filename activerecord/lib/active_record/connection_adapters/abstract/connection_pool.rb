@@ -292,15 +292,26 @@ module ActiveRecord
         def initialize(pool, frequency)
           @pool      = pool
           @frequency = frequency
+          @stopped = false
+        end
+
+        def stop
+          @stopped = true
         end
 
         def run
           return unless frequency && frequency > 0
+          @stopped = false
+
           Thread.new(frequency, pool) { |t, p|
             loop do
+              break if @stopped
               sleep t
-              p.reap
-              p.flush
+
+              unless p.connections.nil?
+                p.reap
+                p.flush
+              end
             end
           }
         end
@@ -466,6 +477,7 @@ module ActiveRecord
           @connections.each do |conn|
             conn.discard!
           end
+          @reaper.stop
           @connections = @available = @thread_cached_conns = nil
         end
       end

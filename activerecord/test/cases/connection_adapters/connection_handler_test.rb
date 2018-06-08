@@ -224,6 +224,27 @@ module ActiveRecord
           assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
         end
 
+        def test_discard_should_stop_reaper
+          handler = ConnectionHandler.new
+
+          default_threads = Thread.list
+
+          pool = handler.establish_connection(
+            ActiveRecord::Base.configurations["arunit"].merge(
+              reaping_frequency: 0.001
+            )
+          )
+
+          new_threads = Thread.list - default_threads
+          assert_equal 1, (new_threads).size
+          reaper_thread = new_threads.first
+
+          pool.discard!
+          reaper_thread.join(0.002)
+
+          assert_equal 0, (Thread.list - default_threads).size
+        end
+
         unless in_memory_db?
           def test_forked_child_recovers_from_disconnected_parent
             object_id = ActiveRecord::Base.connection.object_id
