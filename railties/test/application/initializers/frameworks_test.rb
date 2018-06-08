@@ -268,5 +268,23 @@ module ApplicationTests
       require "#{app_path}/config/environment"
       assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
+
+    # ASt
+    test "active storage's initializers run before 'load_config_initializers'" do
+      rails %w(generate model user email:string)
+      rails %w(db:migrate)
+
+      app_file "app/models/user.rb", <<-RUBY
+        class User < ApplicationRecord
+          has_one_attached :avatar
+        end
+      RUBY
+
+      app_file "config/initializers/load_models.rb", <<-RUBY
+        User.to_s
+      RUBY
+
+      assert_nothing_raised { app "development" }
+    end
   end
 end
