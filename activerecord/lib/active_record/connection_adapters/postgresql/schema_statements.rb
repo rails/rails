@@ -765,7 +765,7 @@ module ActiveRecord
             type = \
               case type
               when "BASE TABLE"
-                "'r'"
+                "'r','p'"
               when "VIEW"
                 "'v','m'"
               when "FOREIGN TABLE"
