@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
 require "abstract_unit"
-require "active_support/testing/method_call_assertions"
 
 class MethodCallAssertionsTest < ActiveSupport::TestCase
-  include ActiveSupport::Testing::MethodCallAssertions
-
   class Level
     def increment; 1; end
     def decrement; end
