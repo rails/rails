@@ -1,3 +1,7 @@
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+
+    *Ryuta Kamizono*
+
 *   Fix `save` in `after_create_commit` won't invoke extra `after_create_commit`.
 
     Fixes #32831.

@@ -53,6 +53,13 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
+      def touch_attributes_with_time(*names, time: nil)
+        attribute_names = timestamp_attributes_for_update_in_model
+        attribute_names |= names.map(&:to_s)
+        time ||= current_time_from_proper_timezone
+        attribute_names.each_with_object({}) { |attr_name, result| result[attr_name] = time }
+      end
+
       private
         def timestamp_attributes_for_create_in_model
           timestamp_attributes_for_create.select { |c| column_names.include?(c) }
