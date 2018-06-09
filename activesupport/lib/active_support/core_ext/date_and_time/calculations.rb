@@ -5,13 +5,13 @@ require "active_support/core_ext/object/try"
 module DateAndTime
   module Calculations
     DAYS_INTO_WEEK = {
-      monday: 0,
-      tuesday: 1,
-      wednesday: 2,
-      thursday: 3,
-      friday: 4,
-      saturday: 5,
-      sunday: 6
+      sunday: 0,
+      monday: 1,
+      tuesday: 2,
+      wednesday: 3,
+      thursday: 4,
+      friday: 5,
+      saturday: 6,
     }
     WEEKEND_DAYS = [ 6, 0 ]
 
@@ -264,8 +264,7 @@ module DateAndTime
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     def days_to_week_start(start_day = Date.beginning_of_week)
       start_day_number = DAYS_INTO_WEEK[start_day]
-      current_day_number = wday != 0 ? wday - 1 : 6
-      (current_day_number - start_day_number) % 7
+      (wday - start_day_number) % 7
     end
 
     # Returns a new date/time representing the start of this week on the given day.
@@ -346,8 +345,7 @@ module DateAndTime
     #   today.next_occurring(:monday)    # => Mon, 18 Dec 2017
     #   today.next_occurring(:thursday)  # => Thu, 21 Dec 2017
     def next_occurring(day_of_week)
-      current_day_number = wday != 0 ? wday - 1 : 6
-      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - current_day_number
+      from_now = DAYS_INTO_WEEK.fetch(day_of_week) - wday
       from_now += 7 unless from_now > 0
       advance(days: from_now)
     end
@@ -358,8 +356,7 @@ module DateAndTime
     #   today.prev_occurring(:monday)    # => Mon, 11 Dec 2017
     #   today.prev_occurring(:thursday)  # => Thu, 07 Dec 2017
     def prev_occurring(day_of_week)
-      current_day_number = wday != 0 ? wday - 1 : 6
-      ago = current_day_number - DAYS_INTO_WEEK.fetch(day_of_week)
+      ago = wday - DAYS_INTO_WEEK.fetch(day_of_week)
       ago += 7 unless ago > 0
       advance(days: -ago)
     end
