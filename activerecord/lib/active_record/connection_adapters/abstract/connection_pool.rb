@@ -460,17 +460,12 @@ module ActiveRecord
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
         synchronize do
-          return if discarded?
+          return if @connections.nil? # already discarded
           @connections.each do |conn|
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
         end
-      end
-
-      # Returns true if the connection pool has been discarded.
-      def discarded?
-        @connections.nil?
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -1025,9 +1020,13 @@ module ActiveRecord
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(spec_name)
-        if pool = owner_to_pool.delete(spec_name)
+        pool = owner_to_pool.delete(spec_name)
+        if ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
+          ancestor_owner_to_pool.delete(spec_name)
+        end
+        if pool
           pool.automatic_reconnect = false
-          pool.disconnect! unless pool.discarded?
+          pool.disconnect!
           pool.spec.config
         end
       end
