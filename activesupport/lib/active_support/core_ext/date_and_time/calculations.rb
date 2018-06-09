@@ -263,7 +263,7 @@ module DateAndTime
     # Week is assumed to start on +start_day+, default is
     # +Date.beginning_of_week+ or +config.beginning_of_week+ when set.
     def days_to_week_start(start_day = Date.beginning_of_week)
-      start_day_number = DAYS_INTO_WEEK[start_day]
+      start_day_number = DAYS_INTO_WEEK.fetch(start_day)
       (wday - start_day_number) % 7
     end
 
@@ -371,7 +371,7 @@ module DateAndTime
       end
 
       def days_span(day)
-        (DAYS_INTO_WEEK[day] - DAYS_INTO_WEEK[Date.beginning_of_week]) % 7
+        (DAYS_INTO_WEEK.fetch(day) - DAYS_INTO_WEEK.fetch(Date.beginning_of_week)) % 7
       end
 
       def copy_time_to(other)
