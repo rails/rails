@@ -1,3 +1,7 @@
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+
+    *Ryuta Kamizono*
+
 *   Migrations raise when duplicate column definition.
 
     Fixes #33024.
