@@ -460,12 +460,17 @@ module ActiveRecord
       # See AbstractAdapter#discard!
       def discard! # :nodoc:
         synchronize do
-          return if @connections.nil? # already discarded
+          return if discarded?
           @connections.each do |conn|
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
         end
+      end
+
+      # Returns true if the connection pool has been discarded.
+      def discarded?
+        @connections.nil?
       end
 
       # Clears the cache which maps classes and re-connects connections that
@@ -913,41 +918,31 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
-      def self.unowned_pool_finalizer(pid_map, ancestor_map) # :nodoc:
+      def self.unowned_pool_finalizer(pid_map) # :nodoc:
         lambda do |_|
-          discard_unowned_pools(pid_map, ancestor_map)
+          discard_unowned_pools(pid_map)
         end
       end
 
-      def self.discard_unowned_pools(pid_map, ancestor_map) # :nodoc:
-        ancestor_pids = []
+      def self.discard_unowned_pools(pid_map) # :nodoc:
         pid_map.each do |pid, pools|
-          next if pid == Process.pid
-          ancestor_pids << pid
-          pools.values.compact.each(&:discard!)
-          ancestor_map[pid] = pools
+          pools.values.compact.each(&:discard!) unless pid == Process.pid
         end
-        ancestor_pids.each { |pid| pid_map.delete(pid) }
       end
 
       def initialize
-        # Stores discarded connection pools from ancestor processes. We can use
-        # the specifications from these discarded connections to establish new
-        # connections.
-        @ancestor_to_pool = Concurrent::Map.new(initial_capacity: 2)
-
         # These caches are keyed by spec.name (ConnectionSpecification#name).
         @owner_to_pool = Concurrent::Map.new(initial_capacity: 2) do |h, k|
           # Discard the parent's connection pools immediately; we have no need
           # of them
-          ConnectionHandler.discard_unowned_pools(h, @ancestor_to_pool)
+          ConnectionHandler.discard_unowned_pools(h)
 
           h[k] = Concurrent::Map.new(initial_capacity: 2)
         end
 
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
-        ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool, @ancestor_to_pool)
+        ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
       end
 
       def connection_pool_list
@@ -1032,7 +1027,7 @@ module ActiveRecord
       def remove_connection(spec_name)
         if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
-          pool.disconnect!
+          pool.disconnect! unless pool.discarded?
           pool.spec.config
         end
       end
@@ -1044,12 +1039,14 @@ module ActiveRecord
         owner_to_pool.fetch(spec_name) do
           # Check if a connection was previously established in an ancestor process,
           # which may have been forked.
-          if ancestor_pool = pool_from_any_process_for(spec_name)
+          if ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
+            ancestor_pool = ancestor_owner_to_pool[spec_name]
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
             establish_connection(ancestor_pool.spec.to_hash).tap do |pool|
               pool.schema_cache = ancestor_pool.schema_cache if ancestor_pool.schema_cache
+              ancestor_owner_to_pool.delete(spec_name)
             end
           else
             owner_to_pool[spec_name] = nil
@@ -1063,9 +1060,8 @@ module ActiveRecord
           @owner_to_pool[Process.pid]
         end
 
-        def pool_from_any_process_for(spec_name)
-          owner_to_pool = @ancestor_to_pool.values.reverse.find { |v| v[spec_name] }
-          owner_to_pool && owner_to_pool[spec_name]
+        def owner_to_pool_from_any_process_for(spec_name)
+          @owner_to_pool.values.reverse.find { |v| v[spec_name] }
         end
     end
   end
