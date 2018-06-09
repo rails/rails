@@ -17,10 +17,7 @@ ActiveStorage.start()
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
 
-import ActionCable from "actioncable"
-const cable = ActionCable.createConsumer()
- 
-cable.subscriptions.create('AppearanceChannel', {
-  // normal channel code goes here...
-})
+// Require all channels
+channels = require.context('./../channels/', false, /\_channel\.js$/)
+channels.keys().forEach(channels)
 <%- end -%>

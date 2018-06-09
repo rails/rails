@@ -81,7 +81,6 @@ module Rails
       directory "app"
 
       keep_file "app/assets/images"
-      empty_directory_with_keep_file "app/assets/javascripts/channels" unless options[:skip_action_cable]
 
       keep_file  "app/controllers/concerns"
       keep_file  "app/models/concerns"
@@ -437,7 +436,8 @@ module Rails
 
       def delete_action_cable_files_skipping_action_cable
         if options[:skip_action_cable]
-          remove_file "app/assets/javascripts/cable.js"
+          remove_file "app/javascript/channels/consumer.js"
+          remove_dir "app/javascript/channels"
           remove_dir "app/channels"
         end
       end
