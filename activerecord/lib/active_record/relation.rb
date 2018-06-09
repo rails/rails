@@ -393,10 +393,7 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
-      time ||= klass.current_time_from_proper_timezone
-      updates = {}
-      attributes.each { |column| updates[column] = time }
+      updates = touch_attributes_with_time(*names, time: time)
 
       if klass.locking_enabled?
         quoted_locking_column = connection.quote_column_name(klass.locking_column)
