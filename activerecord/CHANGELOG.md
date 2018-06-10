@@ -3,7 +3,7 @@
     Fixes #33024.
 
     *Federico Martinez*
-    
+
 *   Bump minimum SQLite version to 3.8
 
     *Yasuo Honda*
