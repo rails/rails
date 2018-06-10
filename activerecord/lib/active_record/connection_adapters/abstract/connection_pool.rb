@@ -1022,7 +1022,7 @@ module ActiveRecord
       def remove_connection(spec_name)
         pool = owner_to_pool.delete(spec_name)
         if ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
-          ancestor_owner_to_pool.delete(spec_name)
+          ancestor_owner_to_pool.delete(spec_name).discard!
         end
         if pool
           pool.automatic_reconnect = false
@@ -1040,6 +1040,7 @@ module ActiveRecord
           # which may have been forked.
           if ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
             ancestor_pool = ancestor_owner_to_pool[spec_name]
+            ancestor_pool.discard!
             # A connection was established in an ancestor process that must have
             # subsequently forked. We can't reuse the connection, but we can copy
             # the specification and establish a new connection with it.
