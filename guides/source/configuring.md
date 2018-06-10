@@ -774,7 +774,7 @@ normal Rails server.
    config.active_storage.paths[:ffprobe] = '/usr/local/bin/ffprobe'
    ```
 
-* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop)`.
+* `config.active_storage.variable_content_types` accepts an array of strings indicating the content types that Active Storage can transform through ImageMagick. The default is `%w(image/png image/gif image/jpg image/jpeg image/vnd.adobe.photoshop image/vnd.microsoft.icon)`.
 
 * `config.active_storage.content_types_to_serve_as_binary` accepts an array of strings indicating the content types that Active Storage will always serve as an attachment, rather than inline. The default is `%w(text/html
 text/javascript image/svg+xml application/postscript application/x-shockwave-flash text/xml application/xml application/xhtml+xml)`.
