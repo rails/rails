@@ -1020,14 +1020,12 @@ module ActiveRecord
       # can be used as an argument for #establish_connection, for easily
       # re-establishing the connection.
       def remove_connection(spec_name)
-        pool = owner_to_pool.delete(spec_name)
-        if ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
-          ancestor_owner_to_pool.delete(spec_name).discard!
-        end
-        if pool
+        if pool = owner_to_pool.delete(spec_name)
           pool.automatic_reconnect = false
           pool.disconnect!
           pool.spec.config
+        elsif ancestor_owner_to_pool = owner_to_pool_from_any_process_for(spec_name)
+          ancestor_owner_to_pool.delete(spec_name).discard!
         end
       end
 
