@@ -357,7 +357,7 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       posts(:welcome).people.delete(people(:michael))
     end
 
-    assert_queries(0) do
+    assert_queries(1) do
       assert_empty posts(:welcome).people
     end
 

@@ -400,7 +400,7 @@ module ActiveRecord
           records.each { |record| callback(:before_remove, record) }
 
           delete_records(existing_records, method) if existing_records.any?
-          self.target -= records
+          @target -= records
 
           records.each { |record| callback(:after_remove, record) }
         end
