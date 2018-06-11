@@ -182,11 +182,7 @@ module ActiveRecord
         end
 
         def next_key
-          key = "a#{@counter + 1}"
-
-          dealloc(key)
-
-          key
+          "a#{@counter + 1}"
         end
 
         def []=(sql, key)
@@ -195,16 +191,8 @@ module ActiveRecord
 
         private
           def dealloc(key)
-            @connection.query "DEALLOCATE #{key}" if connection_active? && has_prepared_statement?(key)
+            @connection.query "DEALLOCATE #{key}"
           rescue PG::Error
-          end
-
-          def has_prepared_statement?(key)
-            result = @connection.query "SELECT COUNT(name) AS key_count FROM pg_prepared_statements WHERE name = '#{key}'"
-
-            result.num_tuples > 0 && result[0]["key_count"].to_i > 0
-          rescue PG::Error
-            false
           end
 
           def connection_active?
@@ -679,6 +667,9 @@ module ActiveRecord
               next_key = @statements.next_key
               begin
                 @connection.prepare next_key, sql
+              rescue PG::DuplicatePstatement
+                @statements.dealloc(next_key)
+                retry
               rescue => e
                 raise translate_exception_class(e, sql)
               end

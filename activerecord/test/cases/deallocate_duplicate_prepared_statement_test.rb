@@ -5,6 +5,10 @@ require "cases/helper"
 module ActiveRecord
   module ConnectionAdapters
     class PostgreSQLAdapter < AbstractAdapter
+      attr_accessor :statements
+
+      public :prepare_statement
+
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         attr_accessor :counter
       end
@@ -13,8 +17,7 @@ module ActiveRecord
         NOOP = "SELECT 1;"
 
         def setup
-          @connection = ActiveRecord::Base.connection.raw_connection
-          @statement_pool = StatementPool.new(@connection, 10)
+          @connection = ActiveRecord::Base.connection
         end
 
         def test_duplicate_prepared_statement
@@ -26,13 +29,9 @@ module ActiveRecord
         private
 
           def generate_keys
-            first_key = @statement_pool.next_key
-            @connection.prepare first_key, NOOP
-
-            @statement_pool.counter = 0
-
-            second_key = @statement_pool.next_key
-            @connection.prepare second_key, NOOP
+            first_key = @connection.prepare_statement NOOP
+            @connection.statements.counter = 0
+            second_key = @connection.prepare_statement NOOP
 
             [first_key, second_key]
           end
