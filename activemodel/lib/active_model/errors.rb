@@ -370,7 +370,7 @@ module ActiveModel
     #
     #   person.errors.full_message(:name, 'is invalid') # => "Name is invalid"
     #
-    #   The `"%{attribute} %{message}"` error format can be overridden with either
+    # The `"%{attribute} %{message}"` error format can be overridden with either
     #
     # * <tt>activemodel.errors.models.person/contacts/addresses.attributes.street.format</tt>
     # * <tt>activemodel.errors.models.person/contacts/addresses.format</tt>
