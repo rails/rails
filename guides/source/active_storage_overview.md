@@ -326,7 +326,7 @@ You can bypass the content type inference from the data by passing in
 @message.image.attach(
   io: File.open('/path/to/file'),
   filename: 'file.pdf',
-  content_type: 'application/pdf'
+  content_type: 'application/pdf',
   identify: false
 )
 ```
