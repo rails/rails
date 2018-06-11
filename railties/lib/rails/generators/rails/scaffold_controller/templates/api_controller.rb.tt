@@ -8,9 +8,9 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # GET <%= route_url %>
   def index
-    @<%= plural_table_name %> = <%= orm_class.all(class_name) %>
+    <%= plural_table_name %> = <%= orm_class.all(class_name) %>
 
-    render json: <%= "@#{plural_table_name}" %>
+    render json: <%= "#{plural_table_name}" %>
   end
 
   # GET <%= route_url %>/1
@@ -20,12 +20,12 @@ class <%= controller_class_name %>Controller < ApplicationController
 
   # POST <%= route_url %>
   def create
-    @<%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
+    <%= singular_table_name %> = <%= orm_class.build(class_name, "#{singular_table_name}_params") %>
 
-    if @<%= orm_instance.save %>
-      render json: <%= "@#{singular_table_name}" %>, status: :created, location: <%= "@#{singular_table_name}" %>
+    if <%= orm_instance.save %>
+      render json: <%= "#{singular_table_name}" %>, status: :created, location: <%= "#{singular_table_name}" %>
     else
-      render json: <%= "@#{orm_instance.errors}" %>, status: :unprocessable_entity
+      render json: <%= "#{orm_instance.errors}" %>, status: :unprocessable_entity
     end
   end
 

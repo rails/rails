@@ -120,8 +120,8 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       assert_match(/before_action :set_product_line, only: \[:show, :update, :destroy\]/, content)
 
       assert_instance_method :index, content do |m|
-        assert_match(/@product_lines = ProductLine\.all/, m)
-        assert_match(/render json: @product_lines/, m)
+        assert_match(/product_lines = ProductLine\.all/, m)
+        assert_match(/render json: product_lines/, m)
       end
 
       assert_instance_method :show, content do |m|
@@ -129,9 +129,9 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
       end
 
       assert_instance_method :create, content do |m|
-        assert_match(/@product_line = ProductLine\.new\(product_line_params\)/, m)
-        assert_match(/@product_line\.save/, m)
-        assert_match(/@product_line\.errors/, m)
+        assert_match(/product_line = ProductLine\.new\(product_line_params\)/, m)
+        assert_match(/product_line\.save/, m)
+        assert_match(/product_line\.errors/, m)
       end
 
       assert_instance_method :update, content do |m|
