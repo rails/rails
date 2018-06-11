@@ -102,7 +102,7 @@ module ActionController
           when :xml
             data = non_path_parameters.to_xml
           when :url_encoded_form
-            data = non_path_parameters.to_query
+            data = Rack::Utils.build_nested_query(non_path_parameters)
           else
             @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
