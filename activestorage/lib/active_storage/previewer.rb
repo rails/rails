@@ -31,7 +31,7 @@ module ActiveStorage
 
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
-      # Use this method to shell out to a system library (e.g. mupdf or ffmpeg) for preview image
+      # Use this method to shell out to a system library (e.g. muPDF or FFmpeg) for preview image
       # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
       #
       #   def preview
