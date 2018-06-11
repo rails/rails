@@ -202,7 +202,7 @@ module ActiveRecord
           def has_prepared_statement?(key)
             result = @connection.query "SELECT COUNT(name) AS key_count FROM pg_prepared_statements WHERE name = '#{key}'"
 
-            result.num_tuples > 0 && result[0]['key_count'].to_i > 0
+            result.num_tuples > 0 && result[0]["key_count"].to_i > 0
           rescue PG::Error
             false
           end

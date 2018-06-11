@@ -25,17 +25,17 @@ module ActiveRecord
 
         private
 
-        def generate_keys
-          first_key = @statement_pool.next_key
-          @connection.prepare first_key, NOOP
+          def generate_keys
+            first_key = @statement_pool.next_key
+            @connection.prepare first_key, NOOP
 
-          @statement_pool.counter = 0
+            @statement_pool.counter = 0
 
-          second_key = @statement_pool.next_key
-          @connection.prepare second_key, NOOP
+            second_key = @statement_pool.next_key
+            @connection.prepare second_key, NOOP
 
-          [first_key, second_key]
-        end
+            [first_key, second_key]
+          end
       end
 
       class DeallocatePreparedStatementTestWithoutTransactions < DeallocateDuplicatePreparedStatementTestWithTransactions
