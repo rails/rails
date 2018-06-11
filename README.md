@@ -93,7 +93,7 @@ Trying to report a possible security vulnerability in Rails? Please
 check out our [security policy](http://rubyonrails.org/security/) for
 guidelines about how to proceed.
 
-Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+Everyone interacting in Rails and its sub-project's codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
 
 ## Code Status
 
