@@ -378,9 +378,9 @@ yarn install
 ```
 
 Extracting previews, tested in ActiveStorage's test suite requires third-party
-applications, `FFmpeg` for video and `muPDF` for PDFs, and on macOS also
-`XQuartz` and `Poppler`.. Without these applications installed, ActiveStorage
-tests will raise errors.
+applications, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz
+and Poppler. Without these applications installed, ActiveStorage tests will
+raise errors.
 
 On macOS you can run:
 
