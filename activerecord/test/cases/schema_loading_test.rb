@@ -36,10 +36,25 @@ class SchemaLoadingTest < ActiveRecord::TestCase
     klass = define_model do |c|
       c.table_name = :lock_without_defaults_cust
     end
+    custom_lock_version = :custom_lock_version
     klass.new
-    klass.locking_column = :custom_lock_version
+    klass.locking_column = custom_lock_version
     klass.new
     assert_equal 2, klass.load_schema_calls
+    assert_equal klass.locking_column, custom_lock_version.to_s
+  end
+
+  def test_model_has_lock_version_column_returns_lock_version
+    klass = define_model
+    assert klass.column_names.include? ActiveRecord::Locking::Optimistic::ClassMethods::DEFAULT_LOCKING_COLUMN
+    assert_equal klass.locking_column, ActiveRecord::Locking::Optimistic::ClassMethods::DEFAULT_LOCKING_COLUMN
+  end
+
+  def test_return_nil_when_model_have_not_locking_column
+    klass = define_model do |c|
+      c.table_name = :lions
+    end
+    assert_nil klass.locking_column
   end
 
   private
