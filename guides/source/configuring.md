@@ -305,6 +305,10 @@ All these configuration options are delegated to the `I18n` library.
     config.i18n.fallbacks.map = { az: :tr, da: [:de, :en] }
     ```
 
+### Configuring Active Model
+
+* `config.active_model.i18n_full_message` is a boolean value which controls whether the `full_message` error format can be overridden at the attribute or model level in the locale files
+
 ### Configuring Active Record
 
 `config.active_record` includes a variety of configuration options:
