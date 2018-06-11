@@ -134,10 +134,25 @@ module ActiveRecord
         end
       end
 
+      using Module.new {
+        refine String do
+          if RUBY_VERSION >= "2.6"
+            def fstring? # :nodoc:
+              frozen? && equal?(-self)
+            end
+          else
+            def fstring? # :nodoc:
+              frozen? && equal?(-+self)
+            end
+          end
+        end
+      }
+
       def disallow_raw_sql!(args, permit: connection.column_name_matcher) # :nodoc:
         unexpected = nil
         args.each do |arg|
-          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) || permit.match?(arg.to_s)
+          next if arg.is_a?(Symbol) || Arel.arel_node?(arg) ||
+            arg.is_a?(String) && arg.fstring? || permit.match?(arg.to_s)
           (unexpected ||= []) << arg
         end
 

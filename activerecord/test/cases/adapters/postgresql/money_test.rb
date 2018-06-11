@@ -73,7 +73,7 @@ class PostgresqlMoneyTest < ActiveRecord::PostgreSQLTestCase
   def test_pluck_with_type_cast
     @connection.execute("INSERT INTO postgresql_moneys (id, wealth) VALUES (1, '123.45'::money)")
 
-    assert_equal [BigDecimal("123.45")], PostgresqlMoney.pluck(Arel.sql("id * wealth"))
+    assert_equal [BigDecimal("123.45")], PostgresqlMoney.pluck("id * wealth")
   end
 
   def test_schema_dumping
