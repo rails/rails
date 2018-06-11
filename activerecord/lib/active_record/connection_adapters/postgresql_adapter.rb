@@ -191,7 +191,7 @@ module ActiveRecord
 
         private
           def dealloc(key)
-            @connection.query "DEALLOCATE #{key}"
+            @connection.query "DEALLOCATE #{key}" if connection_active?
           rescue PG::Error
           end
 
