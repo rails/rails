@@ -25,6 +25,7 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/node"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -461,6 +462,20 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     comment.post = nil
 
     assert_equal 1, Post.find(post.id).comments.size
+  end
+
+  def test_belongs_to_counter_with_updating_to_nil
+    root = Node.create(name: 'parent')
+
+    Node.create(name: 'child1', parent: root)
+    Node.create(name: 'child2', parent: root)
+
+    assert_equal 2, root.children_count
+
+    root.children.last.update(parent: nil)
+    root.reload
+
+    assert_equal 1, root.children_count
   end
 
   def test_belongs_to_with_primary_key_counter
