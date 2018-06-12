@@ -189,6 +189,12 @@ module ActiveRecord
           super.tap { @counter += 1 }
         end
 
+        def dealloc!(key)
+          cache.delete_if { |_, value| value.eql?(key) }
+
+          dealloc(key)
+        end
+
         private
           def dealloc(key)
             @connection.query "DEALLOCATE #{key}" if connection_active?
@@ -663,12 +669,28 @@ module ActiveRecord
         def prepare_statement(sql)
           @lock.synchronize do
             sql_key = sql_key(sql)
+
             unless @statements.key? sql_key
               next_key = @statements.next_key
+              failed_prepared_statement_retried = false
+
               begin
                 @connection.prepare next_key, sql
+              rescue PG::InFailedSqlTransaction => e
+                if !failed_prepared_statement_retried
+                  failed_prepared_statement_retried = true
+
+                  rollback_transaction
+
+                  retry
+                else
+                  raise translate_exception_class(e, sql)
+                end
               rescue PG::DuplicatePstatement
-                @statements.dealloc(next_key)
+                # Prepared statements may have previously been stored with the same
+                # identifier, but an interrupt occurred before execution.
+
+                @statements.dealloc! next_key
                 retry
               rescue => e
                 raise translate_exception_class(e, sql)

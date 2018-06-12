@@ -9,29 +9,27 @@ module ActiveRecord
 
       public :prepare_statement
 
-      class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
-        attr_accessor :counter
-      end
-
       class DeallocateDuplicatePreparedStatementTestWithTransactions < ActiveRecord::PostgreSQLTestCase
-        NOOP = "SELECT 1;"
+        NOOP_1 = "SELECT 1;"
+        NOOP_2 = "SELECT 2;"
 
         def setup
           @connection = ActiveRecord::Base.connection
         end
 
         def test_duplicate_prepared_statement
-          first_key, second_key = generate_keys
+          @connection.statements.stub :next_key, "a0" do
+            first_key, second_key = generate_keys
 
-          assert_equal first_key, second_key
+            assert_equal first_key, second_key
+          end
         end
 
         private
 
           def generate_keys
-            first_key = @connection.prepare_statement NOOP
-            @connection.statements.counter = 0
-            second_key = @connection.prepare_statement NOOP
+            first_key = @connection.prepare_statement NOOP_1
+            second_key = @connection.prepare_statement NOOP_2
 
             [first_key, second_key]
           end
