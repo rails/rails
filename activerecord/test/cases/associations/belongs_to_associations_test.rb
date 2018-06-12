@@ -465,10 +465,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_belongs_to_counter_with_updating_to_nil
-    root = Node.create(name: 'parent')
+    root = Node.create(name: "parent")
 
-    Node.create(name: 'child1', parent: root)
-    Node.create(name: 'child2', parent: root)
+    Node.create(name: "child1", parent: root)
+    Node.create(name: "child2", parent: root)
 
     assert_equal 2, root.children_count
 
