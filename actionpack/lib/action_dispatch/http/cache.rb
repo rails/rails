@@ -202,13 +202,17 @@ module ActionDispatch
               self._cache_control = _cache_control + ", #{control[:extras].join(', ')}"
             end
           else
-            extras  = control[:extras]
+            extras = control[:extras]
             max_age = control[:max_age]
+            stale_while_revalidate = control[:stale_while_revalidate]
+            stale_if_error = control[:stale_if_error]
 
             options = []
             options << "max-age=#{max_age.to_i}" if max_age
             options << (control[:public] ? PUBLIC : PRIVATE)
             options << MUST_REVALIDATE if control[:must_revalidate]
+            options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
+            options << "stale-if-error=#{stale_if_error.to_i}" if stale_if_error
             options.concat(extras) if extras
 
             self._cache_control = options.join(", ")
