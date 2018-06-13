@@ -12,7 +12,7 @@ class PostgreSQLPartitionsTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_partitions_table_exists
-    skip unless ActiveRecord::Base.connection.postgresql_version >= 10000
+    skip unless ActiveRecord::Base.connection.postgresql_version >= 100000
     @connection.create_table :partitioned_events, force: true, id: false,
       options: "partition by range (issued_at)" do |t|
       t.timestamp :issued_at
