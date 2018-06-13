@@ -242,7 +242,7 @@ XML
 
     assert_deprecated { post :render_body, params.dup }
 
-    assert_equal params.to_query, @response.body
+    assert_equal Rack::Utils.build_nested_query(params), @response.body
   end
 
   def test_document_body_and_params_with_post
