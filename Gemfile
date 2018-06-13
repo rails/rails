@@ -14,7 +14,7 @@ gem "rake", ">= 11.1"
 gem "mocha", require: false
 
 if RUBY_VERSION < "2.3"
-  gem "capybara", ">= 2.15" , "< 3.2"
+  gem "capybara", ">= 2.15", "< 3.2"
 else
   gem "capybara", ">= 2.15"
 end
