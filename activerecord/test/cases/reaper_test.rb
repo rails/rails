@@ -33,6 +33,13 @@ module ActiveRecord
         end
       end
 
+      class FakeConnection
+        attr_accessor :pool, :owner
+
+        def close
+        end
+      end
+
       # A reaper with nil time should never reap connections
       def test_nil_time
         fp = FakePool.new
@@ -58,6 +65,20 @@ module ActiveRecord
       def test_pool_has_reaper
         assert pool.reaper
       end
+
+      def test_pool_empty_reaper_not_running
+        assert_not pool.reaper.running?
+      end
+
+      def test_pool_reaper_not_running_after_last_conn
+        conn = FakeConnection.new
+        pool.send :adopt_connection, conn
+        assert pool.reaper.running?
+
+        pool.remove(conn)
+        assert_not pool.reaper.running?
+      end
+
 
       def test_reaping_frequency_configuration
         spec = ActiveRecord::Base.connection_pool.spec.dup

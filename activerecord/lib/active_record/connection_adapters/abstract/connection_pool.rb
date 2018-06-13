@@ -290,11 +290,13 @@ module ActiveRecord
         def initialize(pool, frequency)
           @pool      = pool
           @frequency = frequency
+          @thread    = nil
         end
 
         def run
           return unless frequency && frequency > 0
-          Thread.new(frequency, pool) { |t, p|
+          return if running?
+          @thread = Thread.new(frequency, pool) { |t, p|
             loop do
               sleep t
               p.reap
@@ -302,13 +304,23 @@ module ActiveRecord
             end
           }
         end
+
+        def running?
+          !!@thread && @thread.alive?
+        end
+
+        def stop
+          return unless running?
+          @thread.kill
+          @thread = nil
+        end
       end
 
       include MonitorMixin
       include QueryCache::ConnectionPoolConfiguration
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
-      attr_reader :spec, :connections, :size, :reaper
+      attr_reader :spec, :connections, :size
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -358,9 +370,8 @@ module ActiveRecord
 
         # +reaping_frequency+ is configurable mostly for historical reasons, but it could
         # also be useful if someone wants a very low +idle_timeout+.
-        reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
-        @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
-        @reaper.run
+        @reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
+                              .yield_self { |rf| rf && rf.to_f }
       end
 
       def lock_thread=(lock_thread)
@@ -439,6 +450,7 @@ module ActiveRecord
             end
             @connections = []
             @available.clear
+            reaper_stop_if_needed
           end
         end
       end
@@ -465,6 +477,8 @@ module ActiveRecord
             conn.discard!
           end
           @connections = @available = @thread_cached_conns = nil
+          reaper.stop
+          @reaper = nil
         end
       end
 
@@ -550,6 +564,7 @@ module ActiveRecord
 
           @connections.delete conn
           @available.delete conn
+          reaper_stop_if_needed
 
           # @available.any_waiting? => true means that prior to removing this
           # conn, the pool was at its max size (@connections.size == @size).
@@ -607,6 +622,7 @@ module ActiveRecord
 
             @available.delete conn
             @connections.delete conn
+            reaper_stop_if_needed
           end
         end
 
@@ -642,6 +658,10 @@ module ActiveRecord
             checkout_timeout: checkout_timeout
           }
         end
+      end
+
+      def reaper
+        @reaper ||= Reaper.new(self, @reaping_frequency)
       end
 
       private
@@ -845,6 +865,7 @@ module ActiveRecord
 
         def adopt_connection(conn)
           conn.pool = self
+          reaper.run
           @connections << conn
         end
 
@@ -862,6 +883,10 @@ module ActiveRecord
           remove c
           c.disconnect!
           raise
+        end
+
+        def reaper_stop_if_needed
+          reaper.stop if @connections.empty?
         end
     end
 
