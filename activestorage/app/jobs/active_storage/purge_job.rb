@@ -6,6 +6,6 @@ class ActiveStorage::PurgeJob < ActiveStorage::BaseJob
   retry_on StandardError
 
   def perform(blob)
-    blob.purge
+    blob.purge unless blob.attachments.any?
   end
 end
