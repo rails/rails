@@ -3,7 +3,6 @@
 require "cases/helper"
 
 class PostgreSQLPartitionsTest < ActiveRecord::PostgreSQLTestCase
-
   def setup
     @connection = ActiveRecord::Base.connection
   end
