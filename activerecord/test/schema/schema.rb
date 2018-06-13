@@ -23,6 +23,7 @@ ActiveRecord::Schema.define do
     t.string :settings, null: true, limit: 1024
     t.string :parent, null: true, limit: 1024
     t.string :spouse, null: true, limit: 1024
+    t.string :configs, null: true, limit: 1024
     # MySQL does not allow default values for blobs. Fake it out with a
     # big varchar below.
     t.string :preferences, null: true, default: "", limit: 1024
