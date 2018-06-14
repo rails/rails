@@ -36,6 +36,10 @@ module ActiveStorage
         def #{name}=(attachable)
           #{name}.attach(attachable)
         end
+
+        def #{name}_attached
+          return #{name}.filename.to_s if #{name}.attached?
+        end
       CODE
 
       has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: false
@@ -89,6 +93,10 @@ module ActiveStorage
         def #{name}=(attachables)
           #{name}.attach(attachables)
         end
+
+        def #{name}_attached
+          return #{name}.collect { |file| file.filename.to_s } if #{name}.attached?
+        end
       CODE
 
       has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: false do
@@ -117,6 +125,24 @@ module ActiveStorage
         name,
         ActiveRecord::Reflection.create(:has_many_attached, name, nil, { dependent: dependent }, self)
       )
+    end
+
+    # specifies which file fields will be added for serialization
+    #
+    # example
+    # class Foo < ApplicationRecord
+    #   has_one_attached :image
+    #   has_many_attached :musics
+    #   serialize_attachments :image,:musics
+    # end
+
+    def serialize_attachments(*attachments)
+      generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
+        def as_json(options={})
+          options[:methods] = #{attachments}.collect { |attachment| attachment.to_s+"_attached" }
+          super
+        end
+      CODE
     end
   end
 end
