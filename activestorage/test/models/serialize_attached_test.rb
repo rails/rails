@@ -26,5 +26,4 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
     assert_not_nil @user.as_json.has_value?("avatar_attached")
   end
-
 end

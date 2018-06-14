@@ -92,5 +92,5 @@ class User < ActiveRecord::Base
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false
 
-  serialize_attachments :avatar,:cover_photo
+  serialize_attachments :avatar, :cover_photo
 end
