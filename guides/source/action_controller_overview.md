@@ -334,25 +334,23 @@ with a `has_many` association:
 params.require(:book).permit(:title, chapters_attributes: [:title])
 ```
 
+Imagine a scenario where you have parameters representing a product
+name and a hash of arbitrary data associated with that product, and
+you want to whitelist the product name attribute and also the whole
+data hash:
+
+```ruby
+def product_params
+  params.require(:product).permit(:name, data: {})
+end
+```
+
 #### Outside the Scope of Strong Parameters
 
 The strong parameter API was designed with the most common use cases
 in mind. It is not meant as a silver bullet to handle all of your
 whitelisting problems. However, you can easily mix the API with your
 own code to adapt to your situation.
-
-Imagine a scenario where you have parameters representing a product
-name and a hash of arbitrary data associated with that product, and
-you want to whitelist the product name attribute and also the whole
-data hash. The strong parameters API doesn't let you directly
-whitelist the whole of a nested hash with any keys, but you can use
-the keys of your nested hash to declare what to whitelist:
-
-```ruby
-def product_params
-  params.require(:product).permit(:name, data: params[:product][:data].try(:keys))
-end
-```
 
 Session
 -------
