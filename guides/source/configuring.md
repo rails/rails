@@ -667,6 +667,12 @@ There are a number of settings available on `config.action_mailer`:
     config.action_mailer.interceptors = ["MailInterceptor"]
     ```
 
+* `config.action_mailer.preview_interceptors` registers interceptors which will be called before mail is previewed.
+
+    ```ruby
+    config.action_mailer.preview_interceptors = ["MyPreviewMailInterceptor"]
+    ```
+
 * `config.action_mailer.preview_path` specifies the location of mailer previews.
 
     ```ruby
