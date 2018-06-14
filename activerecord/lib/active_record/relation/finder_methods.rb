@@ -373,9 +373,8 @@ module ActiveRecord
 
       def construct_join_dependency
         including = eager_load_values + includes_values
-        joins = joins_values.select { |join| join.is_a?(Arel::Nodes::Join) }
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including, alias_tracker(joins)
+          klass, table, including
         )
       end
 
@@ -392,7 +391,6 @@ module ActiveRecord
         end
 
         if block_given?
-          relation._select!(join_dependency.aliases.columns)
           yield relation, join_dependency
         else
           relation

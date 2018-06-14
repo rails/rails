@@ -67,39 +67,28 @@ module ActiveRecord
         end
       end
 
-      def initialize(base, table, associations, alias_tracker)
-        @alias_tracker = alias_tracker
+      def initialize(base, table, associations)
         tree = self.class.make_tree associations
         @join_root = JoinBase.new(base, table, build(tree, base))
-        @join_root.children.each { |child| construct_tables! @join_root, child }
       end
 
       def reflections
         join_root.drop(1).map!(&:reflection)
       end
 
-      def join_constraints(joins_to_add, join_type)
-        joins = join_root.children.flat_map { |child|
-          make_join_constraints(join_root, child, join_type)
-        }
+      def join_constraints(joins_to_add, join_type, alias_tracker)
+        @alias_tracker = alias_tracker
+
+        construct_tables!(join_root)
+        joins = make_join_constraints(join_root, join_type)
 
         joins.concat joins_to_add.flat_map { |oj|
+          construct_tables!(oj.join_root)
           if join_root.match? oj.join_root
             walk join_root, oj.join_root
           else
-            oj.join_root.children.flat_map { |child|
-              make_join_constraints(oj.join_root, child, join_type, true)
-            }
+            make_join_constraints(oj.join_root, join_type)
           end
-        }
-      end
-
-      def aliases
-        @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
-          columns = join_part.column_names.each_with_index.map { |column_name, j|
-            Aliases::Column.new column_name, "t#{i}_r#{j}"
-          }
-          Aliases::Table.new(join_part, columns)
         }
       end
 
@@ -134,28 +123,42 @@ module ActiveRecord
         parents.values
       end
 
+      def apply_column_aliases(relation)
+        relation._select!(-> { aliases.columns })
+      end
+
       protected
-        attr_reader :alias_tracker, :base_klass, :join_root
+        attr_reader :join_root
 
       private
+        attr_reader :alias_tracker
 
-        def make_constraints(parent, child, tables, join_type)
-          chain         = child.reflection.chain
+        def aliases
+          @aliases ||= Aliases.new join_root.each_with_index.map { |join_part, i|
+            columns = join_part.column_names.each_with_index.map { |column_name, j|
+              Aliases::Column.new column_name, "t#{i}_r#{j}"
+            }
+            Aliases::Table.new(join_part, columns)
+          }
+        end
+
+        def construct_tables!(join_root)
+          join_root.each_children do |parent, child|
+            child.tables = table_aliases_for(parent, child)
+          end
+        end
+
+        def make_join_constraints(join_root, join_type)
+          join_root.children.flat_map do |child|
+            make_constraints(join_root, child, join_type)
+          end
+        end
+
+        def make_constraints(parent, child, join_type = Arel::Nodes::OuterJoin)
           foreign_table = parent.table
           foreign_klass = parent.base_klass
-          child.join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
-        end
-
-        def make_outer_joins(parent, child)
-          join_type = Arel::Nodes::OuterJoin
-          make_join_constraints(parent, child, join_type, true)
-        end
-
-        def make_join_constraints(parent, child, join_type, aliasing = false)
-          tables = aliasing ? table_aliases_for(parent, child) : child.tables
-          joins  = make_constraints(parent, child, tables, join_type)
-
-          joins.concat child.children.flat_map { |c| make_join_constraints(child, c, join_type, aliasing) }
+          joins = child.join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
+          joins.concat child.children.flat_map { |c| make_constraints(child, c, join_type) }
         end
 
         def table_aliases_for(parent, node)
@@ -168,11 +171,6 @@ module ActiveRecord
           }
         end
 
-        def construct_tables!(parent, node)
-          node.tables = table_aliases_for(parent, node)
-          node.children.each { |child| construct_tables! node, child }
-        end
-
         def table_alias_for(reflection, parent, join)
           name = "#{reflection.plural_name}_#{parent.table_name}"
           join ? "#{name}_join" : name
@@ -183,8 +181,8 @@ module ActiveRecord
             [left.children.find { |node2| node1.match? node2 }, node1]
           }.partition(&:first)
 
-          ojs = missing.flat_map { |_, n| make_outer_joins left, n }
-          intersection.flat_map { |l, r| walk l, r }.concat ojs
+          joins = intersection.flat_map { |l, r| r.table = l.table; walk(l, r) }
+          joins.concat missing.flat_map { |_, n| make_constraints(left, n) }
         end
 
         def find_reflection(klass, name)
@@ -202,7 +200,7 @@ module ActiveRecord
               raise EagerLoadPolymorphicError.new(reflection)
             end
 
-            JoinAssociation.new(reflection, build(right, reflection.klass), alias_tracker)
+            JoinAssociation.new(reflection, build(right, reflection.klass))
           end
         end
 
