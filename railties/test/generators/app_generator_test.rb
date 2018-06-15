@@ -990,6 +990,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_html_lang_attribute
+    run_generator
+
+    assert_file("app/views/layouts/application.html.erb", /<html lang="<%= locale %>">/)
+  end
+
   private
     def stub_rails_application(root)
       Rails.application.config.root = root

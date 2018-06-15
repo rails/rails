@@ -1,3 +1,10 @@
+*   Specify lang attribute in generated application layout
+
+    W3C recommends the use of the lang attribute on the html tag. This uses
+    the `locale` view helper to specify the current app's language.
+
+    *Edward Loveall*
+
 *   Don't generate unused files in `app:update` task
 
      Skip the assets' initializer when sprockets isn't loaded.

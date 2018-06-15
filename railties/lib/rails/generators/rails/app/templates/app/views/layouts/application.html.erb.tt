@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="<%%= locale %>">
   <head>
     <title><%= camelized %></title>
     <%%= csrf_meta_tags %>
