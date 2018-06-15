@@ -639,7 +639,7 @@ module ActionController
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
     #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
-    def transform_values(&block)
+    def transform_values
       return to_enum(:transform_values) unless block_given?
       new_instance_with_inherited_permitted_status(
         @parameters.transform_values { |v| yield convert_value_to_parameters(v) }
@@ -648,7 +648,7 @@ module ActionController
 
     # Performs values transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
-    def transform_values!(&block)
+    def transform_values!
       return to_enum(:transform_values!) unless block_given?
       @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
       self
