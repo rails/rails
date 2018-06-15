@@ -224,7 +224,7 @@ XML
   end
 
   def test_params_round_trip
-    params = {"foo"=>{"contents"=>[{"name"=>"gorby", "id"=>"123"}, {"name"=>"puff", "d"=>"true"}]}}
+    params = { "foo" => { "contents" => [{ "name" => "gorby", "id" => "123" }, { "name" => "puff", "d" => "true" }] } }
     post :test_params, params: params.dup
 
     controller_info = { "controller" => "test_case_test/test", "action" => "test_params" }
