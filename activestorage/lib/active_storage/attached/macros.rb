@@ -133,7 +133,7 @@ module ActiveStorage
     # class Foo < ApplicationRecord
     #   has_one_attached :image
     #   has_many_attached :musics
-    #   serialize_attachments :image,:musics
+    #   serialize_attachments :image, :musics
     # end
 
     def serialize_attachments(*attachments)
