@@ -811,13 +811,13 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 * `config.active_storage.queue` can be used to set the name of the Active Job queue used to perform jobs like analyzing the content of a blob or purging a blog.
 
   ```ruby
-  config.active_job.queue = :low_priority
+  config.active_storage.queue = :low_priority
   ```
 
 * `config.active_storage.logger` can be used to set the logger used by Active Storage. Accepts a logger conforming to the interface of Log4r or the default Ruby Logger class.
 
   ```ruby
-  config.active_job.logger = ActiveSupport::Logger.new(STDOUT)
+  config.active_storage.logger = ActiveSupport::Logger.new(STDOUT)
   ```
 
 ### Configuring a Database
