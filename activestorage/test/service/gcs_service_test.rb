@@ -44,7 +44,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         url = @service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
         response = Net::HTTP.get_response(URI(url))
-        assert_equal "text/plain", response.header["Content-Type"]
+        assert_equal "text/plain", response.content_type
       ensure
         @service.delete key
       end
