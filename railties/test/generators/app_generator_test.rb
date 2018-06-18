@@ -886,8 +886,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
         assert_match(/#{ENV["RBENV_VERSION"]}/, content)
       elsif ENV["rvm_ruby_string"]
         assert_match(/#{ENV["rvm_ruby_string"]}/, content)
+      elsif defined?(JRUBY_VERSION)
+        assert_match(/jruby-#{JRUBY_VERSION}/, content)
       else
-        assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
+        assert_match(/#{RUBY_ENGINE}-#{RUBY_VERSION}/, content)
       end
     end
   end
