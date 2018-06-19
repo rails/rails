@@ -1,3 +1,7 @@
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+
+    *Ryuta Kamizono*
+
 *   Back port Rails 5.2 `reverse_order` Arel SQL literal fix.
 
     *Matt Jones*, *Brooke Kuhlmann*
