@@ -238,6 +238,7 @@ module ActionController
     def expires_in(seconds, options = {})
       response.cache_control.merge!(
         max_age: seconds,
+        s_max_age: options.delete(:s_max_age),
         public: options.delete(:public),
         must_revalidate: options.delete(:must_revalidate),
         stale_while_revalidate: options.delete(:stale_while_revalidate),

@@ -206,11 +206,13 @@ module ActionDispatch
           else
             extras = control[:extras]
             max_age = control[:max_age]
+            s_max_age = control[:s_max_age]
             stale_while_revalidate = control[:stale_while_revalidate]
             stale_if_error = control[:stale_if_error]
 
             options = []
             options << "max-age=#{max_age.to_i}" if max_age
+            options << "s-maxage=#{s_max_age.to_i}" if s_max_age
             options << (control[:public] ? PUBLIC : PRIVATE)
             options << MUST_REVALIDATE if control[:must_revalidate]
             options << "stale-while-revalidate=#{stale_while_revalidate.to_i}" if stale_while_revalidate
