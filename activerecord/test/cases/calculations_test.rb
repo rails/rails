@@ -77,6 +77,14 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal 55, Account.where("companies.name != 'Summit'").references(:companies).includes(:firm).maximum(Account.arel_table[:credit_limit])
   end
 
+  def test_should_get_maximum_of_datetime_with_time_zone_conversion
+    with_timezone_config default: :utc, aware_attributes: true, zone: "Eastern Time (US & Canada)" do
+      Comment.reset_column_information
+
+      assert_equal ActiveSupport::TimeWithZone, Comment.maximum(:updated_at).class
+    end
+  end
+
   def test_should_get_minimum_of_field
     assert_equal 50, Account.minimum(:credit_limit)
   end
