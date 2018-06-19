@@ -67,8 +67,10 @@ module ActiveJob
           result = serialize_hash(argument)
           result[SYMBOL_KEYS_KEY] = symbol_keys
           result
+        when Symbol
+          argument.to_s
         else
-          raise SerializationError.new("Unsupported argument type: #{argument.class.name}")
+          raise SerializationError.new("Unsupported argument #{argument} of type: #{argument.class.name}")
         end
       end
 
