@@ -191,6 +191,27 @@ class ParametersAccessorsTest < ActiveSupport::TestCase
     assert_not_predicate @params.transform_values { |v| v }, :permitted?
   end
 
+  test "transform_values converts hashes to parameters" do
+    @params.transform_values do |value|
+      assert_kind_of ActionController::Parameters, value
+      value
+    end
+  end
+
+  test "transform_values without block yieds an enumerator" do
+    assert_kind_of Enumerator, @params.transform_values
+  end
+
+  test "transform_values! converts hashes to parameters" do
+    @params.transform_values! do |value|
+      assert_kind_of ActionController::Parameters, value
+    end
+  end
+
+  test "transform_values! without block yields an enumerator" do
+    assert_kind_of Enumerator, @params.transform_values!
+  end
+
   test "value? returns true if the given value is present in the params" do
     params = ActionController::Parameters.new(city: "Chicago", state: "Illinois")
     assert params.value?("Chicago")
