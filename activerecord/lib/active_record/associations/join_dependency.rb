@@ -230,7 +230,7 @@ module ActiveRecord
             if model
               construct(model, node, row, seen, model_cache)
             else
-              model = construct_model(ar_parent, node, row, model_cache, id, aliases)
+              model = construct_model(ar_parent, node, row, model_cache, id)
 
               if node.reflection.scope &&
                   node.reflection.scope_for(node.base_klass.unscoped).readonly_value
@@ -243,7 +243,7 @@ module ActiveRecord
           end
         end
 
-        def construct_model(record, node, row, model_cache, id, aliases)
+        def construct_model(record, node, row, model_cache, id)
           other = record.association(node.reflection.name)
 
           model = model_cache[node][id] ||=
