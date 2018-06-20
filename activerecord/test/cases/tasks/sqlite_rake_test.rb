@@ -9,15 +9,12 @@ if current_adapter?(:SQLite3Adapter)
     class SqliteDBCreateTest < ActiveRecord::TestCase
       def setup
         @database      = "db_create.sqlite3"
-        @connection    = stub :connection
         @configuration = {
           "adapter"  => "sqlite3",
           "database" => @database
         }
 
-        File.stubs(:exist?).returns(false)
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -49,7 +46,6 @@ if current_adapter?(:SQLite3Adapter)
 
       def test_db_create_with_file_does_nothing
         File.stubs(:exist?).returns(true)
-        $stderr.stubs(:puts).returns(nil)
 
         ActiveRecord::Base.expects(:establish_connection).never
 
@@ -84,7 +80,7 @@ if current_adapter?(:SQLite3Adapter)
 
         Pathname.stubs(:new).returns(@path)
         File.stubs(:join).returns("/former/relative/path")
-        FileUtils.stubs(:rm).returns(true)
+        FileUtils.stubs(:rm)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -101,16 +97,13 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_removes_file_with_absolute_path
-        File.stubs(:exist?).returns(true)
-        @path.stubs(:absolute?).returns(true)
-
         FileUtils.expects(:rm).with("/absolute/path")
 
         ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
       end
 
       def test_generates_absolute_path_with_given_root
-        @path.stubs(:absolute?).returns(false)
+        @path.stubs(:absolute?)
 
         File.expects(:join).with("/rails/root", @path).
           returns("/former/relative/path")
@@ -119,8 +112,7 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_removes_file_with_relative_path
-        File.stubs(:exist?).returns(true)
-        @path.stubs(:absolute?).returns(false)
+        @path.stubs(:absolute?)
 
         FileUtils.expects(:rm).with("/former/relative/path")
 
@@ -143,9 +135,7 @@ if current_adapter?(:SQLite3Adapter)
           "database" => @database
         }
 
-        File.stubs(:exist?).returns(false)
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_charset
@@ -157,15 +147,10 @@ if current_adapter?(:SQLite3Adapter)
     class SqliteDBCollationTest < ActiveRecord::TestCase
       def setup
         @database      = "db_create.sqlite3"
-        @connection    = stub :connection
         @configuration = {
           "adapter"  => "sqlite3",
           "database" => @database
         }
-
-        File.stubs(:exist?).returns(false)
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_collation

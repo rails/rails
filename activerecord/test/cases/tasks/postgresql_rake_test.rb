@@ -14,7 +14,7 @@ if current_adapter?(:PostgreSQLAdapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -66,7 +66,7 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_db_create_with_error_prints_message
         ActiveRecord::Base.stubs(:establish_connection).raises(Exception)
 
-        $stderr.stubs(:puts).returns(true)
+        $stderr.stubs(:puts)
         $stderr.expects(:puts).
           with("Couldn't create database for #{@configuration.inspect}")
 
@@ -99,7 +99,7 @@ if current_adapter?(:PostgreSQLAdapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -141,8 +141,7 @@ if current_adapter?(:PostgreSQLAdapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:clear_active_connections!).returns(true)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
       end
 
       def test_clears_active_connections
@@ -190,7 +189,7 @@ if current_adapter?(:PostgreSQLAdapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
       end
 
       def test_db_retrieves_charset
@@ -208,7 +207,6 @@ if current_adapter?(:PostgreSQLAdapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_collation
@@ -219,16 +217,12 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLStructureDumpTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(schema_search_path: nil, structure_dump: true)
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
         }
         @filename = "/tmp/awesome-file.sql"
         FileUtils.touch(@filename)
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def teardown
@@ -358,14 +352,10 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLStructureLoadTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
         }
-
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_structure_load
