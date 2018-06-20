@@ -61,11 +61,8 @@ if current_adapter?(:SQLite3Adapter)
       def test_db_create_with_error_prints_message
         ActiveRecord::Base.stubs(:establish_connection).raises(Exception)
 
-        $stderr.stubs(:puts).returns(true)
-        $stderr.expects(:puts).
-          with("Couldn't create database for #{@configuration.inspect}")
-
         assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root" }
+        assert_match "Couldn't create database for #{@configuration.inspect}", $stderr.string
       end
     end
 

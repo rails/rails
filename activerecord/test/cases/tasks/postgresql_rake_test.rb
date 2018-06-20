@@ -66,11 +66,8 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_db_create_with_error_prints_message
         ActiveRecord::Base.stubs(:establish_connection).raises(Exception)
 
-        $stderr.stubs(:puts)
-        $stderr.expects(:puts).
-          with("Couldn't create database for #{@configuration.inspect}")
-
         assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
+        assert_match "Couldn't create database for #{@configuration.inspect}", $stderr.string
       end
 
       def test_when_database_created_successfully_outputs_info_to_stdout

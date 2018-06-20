@@ -123,6 +123,13 @@ module ActiveRecord
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
       # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
       ActiveRecord::Base.connection_handler.stubs(:establish_connection)
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
 
     def test_ignores_configurations_without_databases
@@ -145,9 +152,10 @@ module ActiveRecord
     def test_warning_for_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
 
-      assert_called_with($stderr, :puts, ["This task only modifies local databases. my-db is on a remote host."]) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
-      end
+      ActiveRecord::Tasks::DatabaseTasks.create_all
+
+      assert_match "This task only modifies local databases. my-db is on a remote host.",
+        $stderr.string
     end
 
     def test_creates_configurations_with_local_ip
@@ -345,6 +353,13 @@ module ActiveRecord
       @configurations = { development: { "database" => "my-db" } }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
+
+      $stdout, @original_stdout = StringIO.new, $stdout
+      $stderr, @original_stderr = StringIO.new, $stderr
+    end
+
+    def teardown
+      $stdout, $stderr = @original_stdout, @original_stderr
     end
 
     def test_ignores_configurations_without_databases
@@ -367,13 +382,10 @@ module ActiveRecord
     def test_warning_for_remote_databases
       @configurations[:development].merge!("host" => "my.server.tld")
 
-      assert_called_with(
-        $stderr,
-        :puts,
-        ["This task only modifies local databases. my-db is on a remote host."],
-      ) do
-        ActiveRecord::Tasks::DatabaseTasks.drop_all
-      end
+      ActiveRecord::Tasks::DatabaseTasks.drop_all
+
+      assert_match "This task only modifies local databases. my-db is on a remote host.",
+        $stderr.string
     end
 
     def test_drops_configurations_with_local_ip
