@@ -7,6 +7,14 @@ require "models/task"
 class DateTimeTest < ActiveRecord::TestCase
   include InTimeZone
 
+  def test_with_timezone_config_sets_aware_attributes
+    assert_not ActiveRecord::Base.time_zone_aware_attributes
+    with_timezone_config aware_attributes: true do
+      assert ActiveRecord::Base.time_zone_aware_attributes
+      assert Task.time_zone_aware_attributes
+    end
+  end
+
   def test_saves_both_date_and_time
     with_env_tz "America/New_York" do
       with_timezone_config default: :utc do

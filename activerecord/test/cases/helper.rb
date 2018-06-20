@@ -75,6 +75,7 @@ def with_timezone_config(cfg)
   if cfg.has_key?(:zone)
     Time.zone = cfg[:zone]
   end
+  ActiveRecord::Base.connection.clear_cache!
   yield
 ensure
   ActiveRecord::Base.default_timezone = old_default_zone
