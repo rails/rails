@@ -241,7 +241,7 @@ GEM
     ffi (1.9.21-java)
     ffi (1.9.21-x64-mingw32)
     ffi (1.9.21-x86-mingw32)
-    fugit (1.1.1)
+    fugit (1.1.3)
       et-orbi (~> 1.1, >= 1.1.1)
       raabro (~> 1.1)
     globalid (0.4.1)
@@ -575,4 +575,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.1
+   1.16.2
