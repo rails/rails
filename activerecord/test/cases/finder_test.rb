@@ -355,6 +355,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where("1=1").find(9999999999999999999999999999999)
+    end
+  end
+
+  def test_find_by_on_relation_with_large_number
     assert_nil Topic.where("1=1").find_by(id: 9999999999999999999999999999999)
   end
 
