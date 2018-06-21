@@ -205,6 +205,7 @@ module ActionView
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
+      # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -274,6 +275,9 @@ module ActionView
       #
       #   # Generates a date select with custom prompts.
       #   date_select("article", "written_on", prompt: { day: 'Select day', month: 'Select month', year: 'Select year' })
+      #
+      #   # Generates a date select with custom year format.
+      #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
