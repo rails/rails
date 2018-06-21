@@ -39,8 +39,6 @@ module ActiveStorage
     extend ActiveSupport::Autoload
     autoload :Configurator
 
-    class_attribute :url_expires_in, default: 5.minutes
-
     class << self
       # Configure an Active Storage service by name from a set of configurations,
       # typically loaded from a YAML file. The Active Storage engine uses this

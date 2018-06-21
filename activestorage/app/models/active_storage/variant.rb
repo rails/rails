@@ -79,7 +79,7 @@ class ActiveStorage::Variant
   # Use <tt>url_for(variant)</tt> (or the implied form, like +link_to variant+ or +redirect_to variant+) to get the stable URL
   # for a variant that points to the ActiveStorage::RepresentationsController, which in turn will use this +service_call+ method
   # for its redirection.
-  def service_url(expires_in: service.url_expires_in, disposition: :inline)
+  def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline)
     service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
   end
 

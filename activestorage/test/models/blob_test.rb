@@ -151,16 +151,16 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "urls allow for custom options" do
     blob = create_blob(filename: "original.txt")
 
-    options = [
+    arguments = [
       blob.key,
-      expires_in: blob.service.url_expires_in,
+      expires_in: ActiveStorage.service_urls_expire_in,
       disposition: :inline,
       content_type: blob.content_type,
       filename: blob.filename,
       thumb_size: "300x300",
       thumb_mode: "crop"
     ]
-    assert_called_with(blob.service, :url, options) do
+    assert_called_with(blob.service, :url, arguments) do
       blob.service_url(thumb_size: "300x300", thumb_mode: "crop")
     end
   end
