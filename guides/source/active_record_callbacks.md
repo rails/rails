@@ -429,7 +429,7 @@ end
 
 WARNING. The `after_commit` and `after_rollback` callbacks are called for all models created, updated, or destroyed within a transaction block. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
 
-WARNING. Using both `after_create_commit` and `after_update_commit` in the same model will only allow the last callback defined to take effect, and will override all others.
+WARNING. Using both `after_create_commit` and `after_update_commit` with the same method in the same model will only allow the last callback defined to take effect, and will override all others.
 
 ```ruby
 class User < ApplicationRecord
