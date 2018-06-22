@@ -22,15 +22,6 @@ module ActiveRecord
       delegate :column_for_attribute, to: :class
     end
 
-    AttrNames = Module.new {
-      def self.set_name_cache(name, value)
-        const_name = "ATTR_#{name}"
-        unless const_defined? const_name
-          const_set const_name, -value
-        end
-      end
-    }
-
     RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class GeneratedAttributeMethods < Module #:nodoc:

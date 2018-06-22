@@ -29,17 +29,16 @@ module ActiveModel
       private
 
         def define_method_attribute=(name)
-          safe_name = name.unpack1("h*")
-          ActiveModel::AttributeMethods::AttrNames.set_name_cache safe_name, name
-
-          generated_attribute_methods.module_eval <<-STR, __FILE__, __LINE__ + 1
-            def __temp__#{safe_name}=(value)
-              name = ::ActiveModel::AttributeMethods::AttrNames::ATTR_#{safe_name}
-              write_attribute(name, value)
-            end
-            alias_method #{(name + '=').inspect}, :__temp__#{safe_name}=
-            undef_method :__temp__#{safe_name}=
-          STR
+          ActiveModel::AttributeMethods::AttrNames.define_attribute_accessor_method(
+            generated_attribute_methods, name, writer: true,
+          ) do |temp_method_name, attr_name_expr|
+            generated_attribute_methods.module_eval <<-RUBY, __FILE__, __LINE__ + 1
+              def #{temp_method_name}(value)
+                name = #{attr_name_expr}
+                write_attribute(name, value)
+              end
+            RUBY
+          end
         end
 
         NO_DEFAULT_PROVIDED = Object.new # :nodoc:
@@ -96,16 +95,5 @@ module ActiveModel
       def attribute=(attribute_name, value)
         write_attribute(attribute_name, value)
       end
-  end
-
-  module AttributeMethods #:nodoc:
-    AttrNames = Module.new {
-      def self.set_name_cache(name, value)
-        const_name = "ATTR_#{name}"
-        unless const_defined? const_name
-          const_set const_name, -value
-        end
-      end
-    }
   end
 end
