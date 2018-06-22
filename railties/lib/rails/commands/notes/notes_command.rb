@@ -8,6 +8,8 @@ module Rails
       class_option :annotations, aliases: "-a", desc: "Filter by specific annotations, e.g. Foobar TODO", type: :array, default: %w(OPTIMIZE FIXME TODO)
 
       def perform(*)
+        require_application_and_environment!
+
         deprecation_warning
         display_annotations
       end

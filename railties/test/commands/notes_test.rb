@@ -77,6 +77,50 @@ class Rails::Command::NotesTest < ActiveSupport::TestCase
     OUTPUT
   end
 
+  test "displays results from additional directories added to the default directories from a config file" do
+    app_file "db/some_seeds.rb", "# FIXME: note in db directory"
+    app_file "lib/some_file.rb", "# TODO: note in lib directory"
+    app_file "spec/spec_helper.rb", "# TODO: note in spec"
+    app_file "spec/models/user_spec.rb", "# TODO: note in model spec"
+
+    add_to_config "config.annotations.register_directories \"spec\""
+
+    assert_equal <<~OUTPUT, run_notes_command
+      db/some_seeds.rb:
+        * [1] [FIXME] note in db directory
+
+      lib/some_file.rb:
+        * [1] [TODO] note in lib directory
+
+      spec/models/user_spec.rb:
+        * [1] [TODO] note in model spec
+
+      spec/spec_helper.rb:
+        * [1] [TODO] note in spec
+
+    OUTPUT
+  end
+
+  test "displays results from additional file extensions added to the default extensions from a config file" do
+    add_to_config "config.assets.precompile = []"
+    add_to_config %q{ config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ } }
+    app_file "db/some_seeds.rb", "# FIXME: note in db directory"
+    app_file "app/assets/stylesheets/application.css.scss", "// TODO: note in scss"
+    app_file "app/assets/stylesheets/application.css.sass", "// TODO: note in sass"
+
+    assert_equal <<~OUTPUT, run_notes_command
+      app/assets/stylesheets/application.css.sass:
+        * [1] [TODO] note in sass
+
+      app/assets/stylesheets/application.css.scss:
+        * [1] [TODO] note in scss
+
+      db/some_seeds.rb:
+        * [1] [FIXME] note in db directory
+
+    OUTPUT
+  end
+
   private
     def run_notes_command(args = [])
       rails "notes", args
