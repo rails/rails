@@ -153,11 +153,11 @@ module Rails
       end
 
       if options[:api]
-        unless cookie_serializer_config_exist
+        if cookie_serializer_config_exist
           remove_file "config/initializers/cookies_serializer.rb"
         end
 
-        unless csp_config_exist
+        if csp_config_exist
           remove_file "config/initializers/content_security_policy.rb"
         end
       end
