@@ -422,7 +422,7 @@ module ActiveRecord
   # It's possible to set the fixture's model class directly in the YAML file.
   # This is helpful when fixtures are loaded outside tests and
   # +set_fixture_class+ is not available (e.g.
-  # when running <tt>rails db:fixtures:load</tt>).
+  # when running <tt>bin/rails db:fixtures:load</tt>).
   #
   #   _fixture:
   #     model_class: User

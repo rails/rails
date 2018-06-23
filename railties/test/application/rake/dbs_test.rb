@@ -288,7 +288,7 @@ module ApplicationTests
 
       test "db:schema:load fails if schema.rb doesn't exist yet" do
         stderr_output = capture(:stderr) { rails("db:schema:load", stderr: true, allow_failure: true) }
-        assert_match(/Run `rails db:migrate` to create it/, stderr_output)
+        assert_match(/Run `bin\/rails db:migrate` to create it/, stderr_output)
       end
 
       def db_test_load_structure

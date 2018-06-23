@@ -75,7 +75,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.consider_all_requests_local` is a flag. If `true` then any error will cause detailed debugging information to be dumped in the HTTP response, and the `Rails::Info` controller will show the application runtime context in `/rails/info/properties`. `true` by default in development and test environments, and `false` in production mode. For finer-grained control, set this to `false` and implement `local_request?` in controllers to specify which requests should provide debugging information on errors.
 
-* `config.console` allows you to set class that will be used as console you run `rails console`. It's best to run it in `console` block:
+* `config.console` allows you to set class that will be used as console you run `bin/rails console`. It's best to run it in `console` block:
 
     ```ruby
     console do
@@ -204,10 +204,10 @@ The full set of methods that can be used in this block are as follows:
 * `javascripts` turns on the hook for JavaScript files in generators. Used in Rails for when the `scaffold` generator is run. Defaults to `true`.
 * `javascript_engine` configures the engine to be used (for eg. coffee) when generating assets. Defaults to `:js`.
 * `orm` defines which orm to use. Defaults to `false` and will use Active Record by default.
-* `resource_controller` defines which generator to use for generating a controller when using `rails generate resource`. Defaults to `:controller`.
+* `resource_controller` defines which generator to use for generating a controller when using `bin/rails generate resource`. Defaults to `:controller`.
 * `resource_route` defines whether a resource route definition should be generated
   or not. Defaults to `true`.
-* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `rails generate scaffold`. Defaults to `:scaffold_controller`.
+* `scaffold_controller` different from `resource_controller`, defines which generator to use for generating a _scaffolded_ controller when using `bin/rails generate scaffold`. Defaults to `:scaffold_controller`.
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
@@ -1062,7 +1062,7 @@ By default Rails ships with three environments: "development", "test", and "prod
 
 Imagine you have a server which mirrors the production environment but is only used for testing. Such a server is commonly called a "staging server". To define an environment called "staging" for this server, just create a file called `config/environments/staging.rb`. Please use the contents of any existing file in `config/environments` as a starting point and make the necessary changes from there.
 
-That environment is no different than the default ones, start a server with `rails server -e staging`, a console with `rails console -e staging`, `Rails.env.staging?` works, etc.
+That environment is no different than the default ones, start a server with `bin/rails server -e staging`, a console with `bin/rails console -e staging`, `Rails.env.staging?` works, etc.
 
 
 ### Deploy to a subdirectory (relative url root)

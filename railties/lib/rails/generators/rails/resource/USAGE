@@ -18,6 +18,6 @@ Description:
     views or add any methods to the generated controller.
 
 Examples:
-    `rails generate resource post` # no attributes
-    `rails generate resource post title:string body:text published:boolean`
-    `rails generate resource purchase order_id:integer amount:decimal`
+    `bin/rails generate resource post` # no attributes
+    `bin/rails generate resource post title:string body:text published:boolean`
+    `bin/rails generate resource purchase order_id:integer amount:decimal`

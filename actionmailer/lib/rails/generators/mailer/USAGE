@@ -8,7 +8,7 @@ Description:
 
 Example:
 ========
-    rails generate mailer Notifications signup forgot_password invoice
+    bin/rails generate mailer Notifications signup forgot_password invoice
 
     creates a Notifications mailer class, views, and test:
         Mailer:     app/mailers/notifications_mailer.rb

@@ -730,7 +730,7 @@ Running Migrations
 Rails provides a set of bin/rails tasks to run certain sets of migrations.
 
 The very first migration related bin/rails task you will use will probably be
-`rails db:migrate`. In its most basic form it just runs the `change` or `up`
+`bin/rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
@@ -788,17 +788,17 @@ version to migrate to.
 
 ### Setup the Database
 
-The `rails db:setup` task will create the database, load the schema, and initialize
+The `bin/rails db:setup` task will create the database, load the schema, and initialize
 it with the seed data.
 
 ### Resetting the Database
 
-The `rails db:reset` task will drop the database and set it up again. This is
-functionally equivalent to `rails db:drop db:setup`.
+The `bin/rails db:reset` task will drop the database and set it up again. This is
+functionally equivalent to `bin/rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
 contents of the current `db/schema.rb` or `db/structure.sql` file. If a migration can't be rolled back,
-`rails db:reset` may not help you. To find out more about dumping the schema see
+`bin/rails db:reset` may not help you. To find out more about dumping the schema see
 [Schema Dumping and You](#schema-dumping-and-you) section.
 
 ### Running Specific Migrations
@@ -886,8 +886,8 @@ generates the following output
 ==  CreateProducts: migrated (10.0054s) =======================================
 ```
 
-If you want Active Record to not output anything, then running `rails db:migrate
-VERBOSE=false` will suppress all output.
+If you want Active Record to not output anything, then running `bin/rails
+db:migrate VERBOSE=false` will suppress all output.
 
 Changing Existing Migrations
 ----------------------------
@@ -895,9 +895,9 @@ Changing Existing Migrations
 Occasionally you will make a mistake when writing a migration. If you have
 already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
-nothing when you run `rails db:migrate`. You must rollback the migration (for
+nothing when you run `bin/rails db:migrate`. You must rollback the migration (for
 example with `bin/rails db:rollback`), edit your migration, and then run
-`rails db:migrate` to run the corrected version.
+`bin/rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be
 creating extra work for yourself and your co-workers and cause major headaches
@@ -922,7 +922,7 @@ Rails generates `db/schema.rb` which attempts to capture the current state of
 your database schema.
 
 It tends to be faster and less error prone to create a new instance of your
-application's database by loading the schema file via `rails db:schema:load`
+application's database by loading the schema file via `bin/rails db:schema:load`
 than it is to replay the entire migration history. Old migrations may fail to
 apply correctly if those migrations use changing external dependencies or rely
 on application code which evolves separately from your migrations.
@@ -976,7 +976,7 @@ using a tool specific to the database into `db/structure.sql`. For example, for
 PostgreSQL, the `pg_dump` utility is used. For MySQL and MariaDB, this file will
 contain the output of `SHOW CREATE TABLE` for the various tables.
 
-To load the schema from `db/structure.sql`, run `rails db:structure:load`.
+To load the schema from `db/structure.sql`, run `bin/rails db:structure:load`.
 Loading this file is done by executing the SQL statements it contains. By
 definition, this will create a perfect copy of the database's structure.
 
@@ -986,7 +986,7 @@ Because schema files are commonly used to create new databases, it is strongly
 recommended that you check your schema file into source control.
 
 Merge conflicts can occur in your schema file when two branches modify schema.
-To resolve these conflicts run `rails db:migrate` to regenerate the schema file.
+To resolve these conflicts run `bin/rails db:migrate` to regenerate the schema file.
 
 Active Record and Referential Integrity
 ---------------------------------------
@@ -1032,7 +1032,7 @@ To add initial data after a database is created, Rails has a built-in
 'seeds' feature that makes the process quick and easy. This is especially
 useful when reloading the database frequently in development and test environments.
 It's easy to get started with this feature: just fill up `db/seeds.rb` with some
-Ruby code, and run `rails db:seed`:
+Ruby code, and run `bin/rails db:seed`:
 
 ```ruby
 5.times do |i|

@@ -264,7 +264,7 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server [thin/puma/webrick] [options]"
+          "bin/rails server [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
@@ -289,14 +289,14 @@ module Rails
 
                 gem "#{server}"
 
-              Run `rails server --help` for more options.
+              Run `bin/rails server --help` for more options.
             MSG
           else
             suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
 
             <<~MSG
               Could not find server "#{server}". Maybe you meant #{suggestion.inspect}?
-              Run `rails server --help` for more options.
+              Run `bin/rails server --help` for more options.
             MSG
           end
         end
@@ -305,7 +305,7 @@ module Rails
           say <<~MSG
             => Booting #{ActiveSupport::Inflector.demodulize(server)}
             => Rails #{Rails.version} application starting in #{Rails.env} #{url}
-            => Run `rails server --help` for more startup options
+            => Run `bin/rails server --help` for more startup options
           MSG
         end
     end

@@ -4,6 +4,6 @@ Description:
     This generates a task file in lib/tasks.
 
 Example:
-    `rails generate task feeds fetch erase add`
+    `bin/rails generate task feeds fetch erase add`
 
         Task:      lib/tasks/feeds.rake

@@ -241,7 +241,7 @@ module ActionDispatch
   #
   # == View a list of all your routes
   #
-  #   rails routes
+  #   bin/rails routes
   #
   # Target a specific controller with <tt>-c</tt>, or grep routes
   # using <tt>-g</tt>. Useful in conjunction with <tt>--expanded</tt>

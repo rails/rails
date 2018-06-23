@@ -139,7 +139,7 @@ information.
 
 __Do not use a trivial secret for the `secret_key_base`, i.e. a word
 from a dictionary, or one which is shorter than 30 characters! Instead
-use `rails secret` to generate secret keys!__
+use `bin/rails secret` to generate secret keys!__
 
 It is also important to use different salt values for encrypted and
 signed cookies. Using the same value for different salt configuration
