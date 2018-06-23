@@ -362,7 +362,7 @@ GEM
     qunit-selenium (0.0.4)
       selenium-webdriver
       thor
-    raabro (1.1.5)
+    raabro (1.1.6)
     racc (1.4.14)
     rack (2.0.5)
     rack-cache (1.7.2)
