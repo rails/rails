@@ -739,17 +739,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    assert_generates_with_bundler
+    generator([destination_root], {})
+
+    assert_bundler_command_called("install")
   end
 
   def test_dev_option
-    assert_generates_with_bundler dev: true
+    generator([destination_root], dev: true)
+
+    assert_bundler_command_called("install")
     rails_path = File.expand_path("../../..", Rails.root)
     assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    assert_generates_with_bundler edge: true
+    generator([destination_root], edge: true)
+
+    assert_bundler_command_called("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
@@ -1024,12 +1030,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)
       end
-    end
-
-    def assert_generates_with_bundler(options = {})
-      generator([destination_root], options)
-
-      assert_bundler_command_called("install")
     end
 
     def assert_bundler_command_called(target_command)
