@@ -760,21 +760,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_spring_binstubs
     jruby_skip "spring doesn't run on JRuby"
-    command_check = -> command do
-      @binstub_called ||= 0
 
-      case command
-      when "install"
-        # Called when running bundle, we just want to stub it so nothing to do here.
-      when "exec spring binstub --all"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "exec spring binstub --all expected to be called once, but was called #{@install_called} times."
-      end
-    end
-
-    generator.stub :bundle_command, command_check do
-      quietly { generator.invoke_all }
-    end
+    assert_bundler_command_called("exec spring binstub --all")
   end
 
   def test_spring_no_fork
@@ -1042,15 +1029,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
     def assert_generates_with_bundler(options = {})
       generator([destination_root], options)
 
+      assert_bundler_command_called("install")
+    end
+
+    def assert_bundler_command_called(target_command)
       command_check = -> command do
-        @install_called ||= 0
+        @command_called ||= 0
 
         case command
-        when "install"
-          @install_called += 1
-          assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
-        when "exec spring binstub --all"
-          # Called when running tests with spring, let through unscathed.
+        when target_command
+          @command_called += 1
+          assert_equal 1, @command_called, "#{command} expected to be called once, but was called #{@command_called} times."
         end
       end
 
