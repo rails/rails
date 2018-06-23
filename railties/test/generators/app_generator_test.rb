@@ -37,7 +37,6 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
-  bin/bundle
   bin/rails
   bin/rake
   bin/setup
@@ -764,6 +763,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "spring"
   end
 
+  def test_bundler_binstub
+    assert_bundler_command_called("binstubs bundler")
+  end
+
   def test_spring_binstubs
     jruby_skip "spring doesn't run on JRuby"
 
@@ -945,7 +948,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "binstubs bundler", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -962,7 +965,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
   end
 
   def test_gitignore
