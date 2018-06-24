@@ -2,21 +2,8 @@
 
 require "active_support/duration"
 require "active_support/core_ext/numeric/time"
+require "active_support/deprecation"
 
-class Integer
-  # Returns a Duration instance matching the number of months provided.
-  #
-  #   2.months # => 2 months
-  def months
-    ActiveSupport::Duration.months(self)
-  end
-  alias :month :months
-
-  # Returns a Duration instance matching the number of years provided.
-  #
-  #   2.years # => 2 years
-  def years
-    ActiveSupport::Duration.years(self)
-  end
-  alias :year :years
-end
+ActiveSupport::Deprecation.warn "You have required `active_support/core_ext/integer/time`. " \
+"This file will be removed in Rails 6.1. You should require `active_support/core_ext/numeric/time` " \
+  "instead."

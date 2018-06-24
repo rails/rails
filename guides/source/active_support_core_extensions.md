@@ -1958,7 +1958,7 @@ as well as adding or subtracting their results from a Time object. For example:
 
 WARNING. For other durations please refer to the time extensions to `Numeric`.
 
-NOTE: Defined in `active_support/core_ext/integer/time.rb`.
+NOTE: Defined in `active_support/core_ext/numeric/time.rb`.
 
 Extensions to `BigDecimal`
 --------------------------

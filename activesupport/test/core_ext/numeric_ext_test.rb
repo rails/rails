@@ -10,8 +10,34 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     @now = Time.local(2005, 2, 10, 15, 30, 45)
     @dtnow = DateTime.civil(2005, 2, 10, 15, 30, 45)
     @seconds = {
-      1.minute   => 60,
-      10.minutes => 600,
+      1.second     => ActiveSupport::Duration::PARTS_IN_SECONDS[:seconds],
+      1.minute     => ActiveSupport::Duration::PARTS_IN_SECONDS[:minutes],
+      1.hour       => ActiveSupport::Duration::PARTS_IN_SECONDS[:hours],
+      1.day        => ActiveSupport::Duration::PARTS_IN_SECONDS[:days],
+      1.week       => ActiveSupport::Duration::PARTS_IN_SECONDS[:weeks],
+      1.month      => ActiveSupport::Duration::PARTS_IN_SECONDS[:months],
+      1.year       => ActiveSupport::Duration::PARTS_IN_SECONDS[:years],
+      1.0.second   => ActiveSupport::Duration::PARTS_IN_SECONDS[:seconds],
+      1.0.minute   => ActiveSupport::Duration::PARTS_IN_SECONDS[:minutes],
+      1.0.hour     => ActiveSupport::Duration::PARTS_IN_SECONDS[:hours],
+      1.0.day      => ActiveSupport::Duration::PARTS_IN_SECONDS[:days],
+      1.0.week     => ActiveSupport::Duration::PARTS_IN_SECONDS[:weeks],
+      1.0.month    => ActiveSupport::Duration::PARTS_IN_SECONDS[:months],
+      1.0.year     => ActiveSupport::Duration::PARTS_IN_SECONDS[:years],
+      10.seconds   => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:seconds],
+      10.minutes   => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:minutes],
+      10.hours     => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:hours],
+      10.days      => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:days],
+      10.weeks     => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:weeks],
+      10.months    => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:months],
+      10.years     => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:years],
+      10.0.seconds => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:seconds],
+      10.0.minutes => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:minutes],
+      10.0.hours   => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:hours],
+      10.0.days    => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:days],
+      10.0.weeks   => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:weeks],
+      10.0.months  => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:months],
+      10.0.years   => 10 * ActiveSupport::Duration::PARTS_IN_SECONDS[:years],
       1.hour + 15.minutes => 4500,
       2.days + 4.hours + 30.minutes => 189000,
       5.years + 1.month + 1.fortnight => 161624106
@@ -22,6 +48,10 @@ class NumericExtTimeAndDateTimeTest < ActiveSupport::TestCase
     @seconds.each do |actual, expected|
       assert_equal expected, actual
     end
+  end
+
+  def test_in_milliseconds
+    assert_equal 10_000, 10.seconds.in_milliseconds
   end
 
   def test_irregular_durations
@@ -400,10 +430,6 @@ class NumericExtFormattingTest < ActiveSupport::TestCase
     assert_raises TypeError do
       1.to_s({})
     end
-  end
-
-  def test_in_milliseconds
-    assert_equal 10_000, 10.seconds.in_milliseconds
   end
 
   def test_requiring_inquiry_is_deprecated

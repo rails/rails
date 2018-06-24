@@ -101,6 +101,16 @@
 
     *Jason Lee*
 
+*   Support months and years in Numeric, not only Integer
+
+    `.month(s)` and `.year(s)` now be added to Numeric, not only Integer.
+    e.g. `1.5.months`
+
+    *Requiring active_support/core_ext/integer/time is now deprecated.*
+    *Use `require "active_support/core_ext/numeric/time"` instead.*
+
+    *jychen7*
+
 *   Allow `Range#===` and `Range#cover?` on Range.
 
     `Range#cover?` can now accept a range argument like `Range#include?` and

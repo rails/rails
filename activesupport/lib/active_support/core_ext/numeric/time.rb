@@ -47,6 +47,22 @@ class Numeric
   end
   alias :week :weeks
 
+  # Returns a Duration instance matching the number of months provided.
+  #
+  #   2.months # => 2 months
+  def months
+    ActiveSupport::Duration.months(self)
+  end
+  alias :month :months
+
+  # Returns a Duration instance matching the number of years provided.
+  #
+  #   2.years # => 2 years
+  def years
+    ActiveSupport::Duration.years(self)
+  end
+  alias :year :years
+
   # Returns a Duration instance matching the number of fortnights provided.
   #
   #   2.fortnights # => 4 weeks
