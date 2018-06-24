@@ -9,7 +9,7 @@ module ActiveStorage
     #
     # All methods called on this proxy object that aren't listed here will automatically be delegated to +attachments+.
     def attachments
-      record.public_send("#{name}_attachments")
+      change.present? ? change.attachments : record.public_send("#{name}_attachments")
     end
 
     # Associates one or several attachments with the current record, saving them to the database.
@@ -50,10 +50,14 @@ module ActiveStorage
     # Directly purges each associated attachment (i.e. destroys the blobs and
     # attachments and deletes the files on the service).
 
-
     ##
     # :method: purge_later
     #
     # Purges each associated attachment through the queuing system.
+
+    private
+      def change
+        record.public_send("#{name}_change")
+      end
   end
 end

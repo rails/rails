@@ -38,3 +38,4 @@ end
 require "active_storage/attached/one"
 require "active_storage/attached/many"
 require "active_storage/attached/macros"
+require "active_storage/attached/changes"

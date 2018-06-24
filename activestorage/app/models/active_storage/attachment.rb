@@ -15,17 +15,18 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   delegate_missing_to :blob
 
   after_create_commit :analyze_blob_later, :identify_blob
+  after_destroy_commit :purge_dependent_blob_later
 
-  # Synchronously purges the blob (deletes it from the configured service) and destroys the attachment.
+  # Synchronously purges the blob (deletes it from the configured service) and deletes the attachment.
   def purge
     blob.purge
-    destroy
+    delete
   end
 
-  # Destroys the attachment and asynchronously purges the blob (deletes it from the configured service).
+  # Deletes the attachment and queues a background job to purge the blob (delete it from the configured service).
   def purge_later
     blob.purge_later
-    destroy
+    delete
   end
 
   private
@@ -35,5 +36,14 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
     def analyze_blob_later
       blob.analyze_later unless blob.analyzed?
+    end
+
+    def purge_dependent_blob_later
+      blob.purge_later if dependent == :purge_later
+    end
+
+
+    def dependent
+      record.attachment_reflections[name]&.options[:dependent]
     end
 end

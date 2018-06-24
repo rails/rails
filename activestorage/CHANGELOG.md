@@ -1,3 +1,17 @@
+*   Uploaded files assigned to a record are persisted to storage when the record
+    is saved instead of immediately.
+
+    In Rails 5.2, the following causes an uploaded file in `params[:avatar]` to
+    be stored:
+
+    ```ruby
+    @user.avatar = params[:avatar]
+    ```
+
+    In Rails 6, the uploaded file is stored when `@user` is successfully saved.
+
+    *George Claghorn*
+
 *   Add the ability to reflect on defined attachments using the existing
     ActiveRecord reflection mechanism.
 

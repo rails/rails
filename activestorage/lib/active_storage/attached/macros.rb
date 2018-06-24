@@ -34,19 +34,36 @@ module ActiveStorage
         end
 
         def #{name}=(attachable)
-          #{name}.attach(attachable)
+          @active_storage_attached_#{name}_change =
+            if attachable.nil?
+              ActiveStorage::Attached::Changes::DeleteOne.new("#{name}", self)
+            else
+              ActiveStorage::Attached::Changes::CreateOne.new("#{name}", self, attachable)
+            end
+        end
+
+        def #{name}_change
+          @active_storage_attached_#{name}_change
+        end
+
+        def clear_#{name}_change
+          @active_storage_attached_#{name}_change = nil
         end
       CODE
 
-      has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: false
+      has_one :"#{name}_attachment", -> { where(name: name) }, class_name: "ActiveStorage::Attachment", as: :record, inverse_of: :record, dependent: :destroy
       has_one :"#{name}_blob", through: :"#{name}_attachment", class_name: "ActiveStorage::Blob", source: :blob
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachment": :blob) }
 
-      if dependent == :purge_later
-        after_destroy_commit { public_send(name).purge_later }
-      else
-        before_destroy { public_send(name).detach }
+      after_save { public_send("#{name}_change")&.save }
+
+      after_commit(on: [:create, :update]) do
+        begin
+          public_send("#{name}_change").try(:upload)
+        ensure
+          public_send("clear_#{name}_change")
+        end
       end
 
       ActiveRecord::Reflection.add_attachment_reflection(
@@ -87,11 +104,24 @@ module ActiveStorage
         end
 
         def #{name}=(attachables)
-          #{name}.attach(attachables)
+          @active_storage_attached_#{name}_change =
+            if attachables.nil? || Array(attachables).none?
+              ActiveStorage::Attached::Changes::DeleteMany.new("#{name}", self)
+            else
+              ActiveStorage::Attached::Changes::CreateMany.new("#{name}", self, attachables)
+            end
+        end
+
+        def #{name}_change
+          @active_storage_attached_#{name}_change
+        end
+
+        def clear_#{name}_change
+          @active_storage_attached_#{name}_change = nil
         end
       CODE
 
-      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: false do
+      has_many :"#{name}_attachments", -> { where(name: name) }, as: :record, class_name: "ActiveStorage::Attachment", inverse_of: :record, dependent: :destroy do
         def purge
           each(&:purge)
           reset
@@ -106,10 +136,14 @@ module ActiveStorage
 
       scope :"with_attached_#{name}", -> { includes("#{name}_attachments": :blob) }
 
-      if dependent == :purge_later
-        after_destroy_commit { public_send(name).purge_later }
-      else
-        before_destroy { public_send(name).detach }
+      after_save { public_send("#{name}_change")&.save }
+
+      after_commit(on: [:create, :update]) do
+        begin
+          public_send("#{name}_change").try(:upload)
+        ensure
+          public_send("clear_#{name}_change")
+        end
       end
 
       ActiveRecord::Reflection.add_attachment_reflection(

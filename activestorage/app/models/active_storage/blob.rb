@@ -48,12 +48,14 @@ class ActiveStorage::Blob < ActiveRecord::Base
     # Returns a new, unsaved blob instance after the +io+ has been uploaded to the service.
     # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
     def build_after_upload(io:, filename:, content_type: nil, metadata: nil, identify: true)
-      new.tap do |blob|
-        blob.filename     = filename
-        blob.content_type = content_type
-        blob.metadata     = metadata
-
+      new(filename: filename, content_type: content_type, metadata: metadata).tap do |blob|
         blob.upload(io, identify: identify)
+      end
+    end
+
+    def build_after_unfurling(io:, filename:, content_type: nil, metadata: nil, identify: true) #:nodoc:
+      new(filename: filename, content_type: content_type, metadata: metadata).tap do |blob|
+        blob.unfurl(io, identify: identify)
       end
     end
 
@@ -152,12 +154,19 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
   # and +create_after_upload!+.
   def upload(io, identify: true)
+    unfurl io, identify: identify
+    upload_without_unfurling io
+  end
+
+  def unfurl(io, identify: true) #:nodoc:
     self.checksum     = compute_checksum_in_chunks(io)
     self.content_type = extract_content_type(io) if content_type.nil? || identify
     self.byte_size    = io.size
     self.identified   = true
+  end
 
-    service.upload(key, io, checksum: checksum)
+  def upload_without_unfurling(io) #:nodoc:
+    service.upload key, io, checksum: checksum
   end
 
   # Downloads the file associated with this blob. If no block is given, the entire file is read into memory and returned.
