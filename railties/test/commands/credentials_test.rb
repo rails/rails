@@ -55,6 +55,15 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit_command_does_not_add_master_key_when config/credentials.yml.enc exists" do
+    Dir.chdir(app_path) do
+      FileUtils.rm("config/master.key")
+
+      assert_match(/Encrypted credentials already exist but master key is missing./, run_edit_command)
+      assert_not File.exist?("config/master.key")
+    end
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end

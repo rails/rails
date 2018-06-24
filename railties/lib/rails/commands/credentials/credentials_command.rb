@@ -20,6 +20,13 @@ module Rails
         require_application_and_environment!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
+
+        if File.exist?("config/credentials.yml.enc") && !File.exist?("config/master.key")
+          say "Encrypted credentials already exist but master key is missing."
+          say "Put master key to decrypt the encrypted."
+          return
+        end
+
         ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
         ensure_credentials_have_been_added
 
