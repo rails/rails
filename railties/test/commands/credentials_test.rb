@@ -55,7 +55,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
-  test "edit command does not add master key when config/credentials.yml.enc exists" do
+  test "edit command does not add master key when credentials exists but master key file and env do not exist" do
     Dir.chdir(app_path) do
       FileUtils.rm("config/master.key")
 

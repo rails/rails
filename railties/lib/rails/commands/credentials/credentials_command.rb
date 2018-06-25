@@ -21,7 +21,7 @@ module Rails
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
-        if File.exist?("config/credentials.yml.enc") && !File.exist?("config/master.key")
+        if File.exist?("config/credentials.yml.enc") && !master_key_defined?
           say "Encrypted credentials already exist but master key is missing."
           say "Put master key to decrypt the encrypted."
           return
@@ -59,6 +59,9 @@ module Rails
           end
         end
 
+        def master_key_defined?
+          ENV["RAILS_MASTER_KEY"] || File.exist?("config/master.key")
+        end
 
         def master_key_generator
           require "rails/generators"
