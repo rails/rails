@@ -9,6 +9,6 @@ class ActiveStorage::Service::DiskServiceTest < ActiveSupport::TestCase
 
   test "url generation" do
     assert_match(/^https:\/\/example.com\/rails\/active_storage\/disk\/.*\/avatar\.png\?content_type=image%2Fpng&disposition=inline/,
-      @service.url(FIXTURE_KEY, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
+      @service.url(@key, expires_in: 5.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png"))
   end
 end
