@@ -172,7 +172,7 @@ module ActiveRecord
         end
 
         def table_alias_for(reflection, parent, join)
-          name = "#{reflection.plural_name}_#{parent.table_name}"
+          name = reflection.alias_candidate(parent.table_name)
           join ? "#{name}_join" : name
         end
 
