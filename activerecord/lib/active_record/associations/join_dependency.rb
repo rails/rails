@@ -223,7 +223,7 @@ module ActiveRecord
               next
             end
 
-            model = seen[ar_parent.object_id][node.base_klass][id]
+            model = seen[ar_parent.object_id][node][id]
 
             if model
               construct(model, node, row, rs, seen, model_cache, aliases)
@@ -235,7 +235,7 @@ module ActiveRecord
                 model.readonly!
               end
 
-              seen[ar_parent.object_id][node.base_klass][id] = model
+              seen[ar_parent.object_id][node][id] = model
               construct(model, node, row, rs, seen, model_cache, aliases)
             end
           end

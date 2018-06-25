@@ -123,6 +123,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_equal memberships(:membership_of_boring_club), member.current_membership
   end
 
+  def test_loading_associations_dont_leak_instance_state
+    assertions = ->(firm) {
+      assert_equal companies(:first_firm), firm
+
+      assert_predicate firm.association(:readonly_account), :loaded?
+      assert_predicate firm.association(:accounts), :loaded?
+
+      assert_equal accounts(:signals37), firm.readonly_account
+      assert_equal [accounts(:signals37)], firm.accounts
+
+      assert_predicate firm.readonly_account, :readonly?
+      assert firm.accounts.none?(&:readonly?)
+    }
+
+    assertions.call(Firm.preload(:readonly_account, :accounts).first)
+    assertions.call(Firm.eager_load(:readonly_account, :accounts).first)
+  end
+
   def test_with_ordering
     list = Post.all.merge!(includes: :comments, order: "posts.id DESC").to_a
     [:other_by_mary, :other_by_bob, :misc_by_mary, :misc_by_bob, :eager_other,
