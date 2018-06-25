@@ -17,5 +17,5 @@ ActiveStorage.start()
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
 
-require("channels")
+import "channels"
 <%- end -%>
