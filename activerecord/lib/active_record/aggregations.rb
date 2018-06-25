@@ -225,6 +225,10 @@ module ActiveRecord
         def composed_of(part_id, options = {})
           options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
 
+          unless self < Aggregations
+            include Aggregations
+          end
+
           name        = part_id.id2name
           class_name  = options[:class_name]  || name.camelize
           mapping     = options[:mapping]     || [ name, name ]
