@@ -67,6 +67,10 @@ module ActiveRecord
           MySQL::SchemaDumper.create(self, options)
         end
 
+        def find_migration_compatibility(version)
+          Migration::Compatibility.find(version)
+        end
+
         private
           CHARSETS_OF_4BYTES_MAXLEN = ["utf8mb4", "utf16", "utf16le", "utf32"]
 

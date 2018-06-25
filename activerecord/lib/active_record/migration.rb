@@ -534,7 +534,7 @@ module ActiveRecord
     end
 
     def self.[](version)
-      Compatibility.find(version)
+      find_migration_compatibility(version)
     end
 
     def self.current_version

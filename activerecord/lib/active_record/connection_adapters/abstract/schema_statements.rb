@@ -1185,6 +1185,10 @@ module ActiveRecord
         SchemaDumper.create(self, options)
       end
 
+      def find_migration_compatibility(version) # :nodoc:
+        ActiveRecord::Migration::Compatibility.find(version)
+      end
+
       private
         def column_options_keys
           [:limit, :precision, :scale, :default, :null, :collation, :comment]

@@ -2,6 +2,7 @@
 
 require "active_record/connection_adapters/abstract_mysql_adapter"
 require "active_record/connection_adapters/mysql/database_statements"
+require "active_record/connection_adapters/mysql/migration/compatibility"
 
 gem "mysql2", ">= 0.4.4", "< 0.6.0"
 require "mysql2"

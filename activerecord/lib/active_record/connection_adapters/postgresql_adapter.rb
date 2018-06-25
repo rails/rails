@@ -18,6 +18,7 @@ require "active_record/connection_adapters/postgresql/schema_dumper"
 require "active_record/connection_adapters/postgresql/schema_statements"
 require "active_record/connection_adapters/postgresql/type_metadata"
 require "active_record/connection_adapters/postgresql/utils"
+require "active_record/connection_adapters/postgresql/migration/compatibility"
 
 module ActiveRecord
   module ConnectionHandling # :nodoc:

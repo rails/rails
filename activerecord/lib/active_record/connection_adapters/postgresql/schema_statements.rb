@@ -631,6 +631,10 @@ module ActiveRecord
           validate_constraint from_table, fk_name_to_validate
         end
 
+        def find_migration_compatibility(version)
+          Migration::Compatibility.find(version)
+        end
+
         private
           def schema_creation
             PostgreSQL::SchemaCreation.new(self)
