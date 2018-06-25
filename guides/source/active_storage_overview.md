@@ -477,7 +477,7 @@ directly from the client to the cloud.
     Using the npm package:
 
     ```js
-    import * as ActiveStorage from "activestorage"
+    import ActiveStorage from "activestorage"
     ActiveStorage.start()
     ```
 
