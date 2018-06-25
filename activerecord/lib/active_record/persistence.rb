@@ -67,8 +67,14 @@ module ActiveRecord
       # how this "single-table" inheritance mapping is implemented.
       def instantiate(attributes, column_types = {}, &block)
         klass = discriminate_class_for_record(attributes)
+        instantiate_instance_of(klass, attributes, column_types, &block)
+      end
+
+      # Given a class, an attributes hash, +instantiate+ returns a new instance
+      # of the class. Accepts only keys as strings.
+      def instantiate_instance_of(klass, attributes, column_types = {}, &block)
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
-        klass.allocate.init_with("attributes" => attributes, "new_record" => false, &block)
+        klass.allocate.init_from_db(attributes, &block)
       end
 
       # Updates an object (or multiple objects) and saves it to the database, if validations pass.

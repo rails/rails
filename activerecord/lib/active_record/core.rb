@@ -350,6 +350,26 @@ module ActiveRecord
     end
 
     ##
+    # Initializer used for instantiating objects that have been read from the
+    # database.  +attributes+ should be an attributes object, and unlike the
+    # `initialize` method, no assignment calls are made per attribute.
+    #
+    # :nodoc:
+    def init_from_db(attributes)
+      init_internals
+
+      @new_record = false
+      @attributes = attributes
+
+      yield self if block_given?
+
+      _run_find_callbacks
+      _run_initialize_callbacks
+
+      self
+    end
+
+    ##
     # :method: clone
     # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
     # That means that modifying attributes of the clone will modify the original, since they will both point to the
