@@ -76,7 +76,7 @@ class AppLoaderTest < ActiveSupport::TestCase
 
         # Compare the realpath in case either of them has symlinks.
         #
-        # This happens in particular in Mac OS X, where @tmp starts
+        # This happens in particular in macOS, where @tmp starts
         # with "/var", and Dir.pwd with "/private/var", due to a
         # default system symlink var -> private/var.
         assert_equal File.realpath("#@tmp/foo"), File.realpath(Dir.pwd)

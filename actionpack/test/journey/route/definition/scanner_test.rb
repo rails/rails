@@ -30,6 +30,12 @@ module ActionDispatch
           ["/~page",  [[:SLASH, "/"], [:LITERAL, "~page"]]],
           ["/pa-ge",  [[:SLASH, "/"], [:LITERAL, "pa-ge"]]],
           ["/:page",  [[:SLASH, "/"], [:SYMBOL, ":page"]]],
+          ["/:page|*foo", [
+                            [:SLASH, "/"],
+                            [:SYMBOL, ":page"],
+                            [:OR, "|"],
+                            [:STAR, "*foo"]
+                          ]],
           ["/(:page)", [
                         [:SLASH, "/"],
                         [:LPAREN, "("],

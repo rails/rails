@@ -53,17 +53,19 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def timestamp_attributes_for_update_in_model
-        timestamp_attributes_for_update.select { |c| column_names.include?(c) }
-      end
-
-      def current_time_from_proper_timezone
-        default_timezone == :utc ? Time.now.utc : Time.now
+      def touch_attributes_with_time(*names, time: nil)
+        attribute_names = timestamp_attributes_for_update_in_model
+        attribute_names |= names.map(&:to_s)
+        attribute_names.index_with(time ||= current_time_from_proper_timezone)
       end
 
       private
         def timestamp_attributes_for_create_in_model
           timestamp_attributes_for_create.select { |c| column_names.include?(c) }
+        end
+
+        def timestamp_attributes_for_update_in_model
+          timestamp_attributes_for_update.select { |c| column_names.include?(c) }
         end
 
         def all_timestamp_attributes_in_model
@@ -76,6 +78,10 @@ module ActiveRecord
 
         def timestamp_attributes_for_update
           ["updated_at", "updated_on"]
+        end
+
+        def current_time_from_proper_timezone
+          default_timezone == :utc ? Time.now.utc : Time.now
         end
     end
 
@@ -116,7 +122,7 @@ module ActiveRecord
     end
 
     def timestamp_attributes_for_update_in_model
-      self.class.timestamp_attributes_for_update_in_model
+      self.class.send(:timestamp_attributes_for_update_in_model)
     end
 
     def all_timestamp_attributes_in_model
@@ -124,7 +130,7 @@ module ActiveRecord
     end
 
     def current_time_from_proper_timezone
-      self.class.current_time_from_proper_timezone
+      self.class.send(:current_time_from_proper_timezone)
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)

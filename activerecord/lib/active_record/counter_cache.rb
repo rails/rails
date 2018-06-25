@@ -47,8 +47,12 @@ module ActiveRecord
           reflection   = child_class._reflections.values.find { |e| e.belongs_to? && e.foreign_key.to_s == foreign_key && e.options[:counter_cache].present? }
           counter_name = reflection.counter_cache_column
 
-          updates = { counter_name.to_sym => object.send(counter_association).count(:all) }
-          updates.merge!(touch_updates(touch)) if touch
+          updates = { counter_name => object.send(counter_association).count(:all) }
+
+          if touch
+            names = touch if touch != true
+            updates.merge!(touch_attributes_with_time(*names))
+          end
 
           unscoped.where(primary_key => object.id).update_all(updates)
         end
@@ -68,8 +72,8 @@ module ActiveRecord
       # * +counters+ - A Hash containing the names of the fields
       #   to update as keys and the amount to update the field by as values.
       # * <tt>:touch</tt> option - Touch timestamp columns when updating.
-      #   Pass +true+ to touch +updated_at+ and/or +updated_on+. Pass a symbol to
-      #   touch that column or an array of symbols to touch just those ones.
+      #   If attribute names are passed, they are updated along with updated_at/on
+      #   attributes.
       #
       # ==== Examples
       #
@@ -107,7 +111,8 @@ module ActiveRecord
         end
 
         if touch
-          touch_updates = touch_updates(touch)
+          names = touch if touch != true
+          touch_updates = touch_attributes_with_time(*names)
           updates << sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
         end
 
@@ -171,13 +176,6 @@ module ActiveRecord
       def decrement_counter(counter_name, id, touch: nil)
         update_counters(id, counter_name => -1, touch: touch)
       end
-
-      private
-        def touch_updates(touch)
-          touch = timestamp_attributes_for_update_in_model if touch == true
-          touch_time = current_time_from_proper_timezone
-          Array(touch).map { |column| [ column, touch_time ] }.to_h
-        end
     end
 
     private

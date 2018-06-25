@@ -235,7 +235,9 @@ module ActionController
       response.cache_control.merge!(
         max_age: seconds,
         public: options.delete(:public),
-        must_revalidate: options.delete(:must_revalidate)
+        must_revalidate: options.delete(:must_revalidate),
+        stale_while_revalidate: options.delete(:stale_while_revalidate),
+        stale_if_error: options.delete(:stale_if_error),
       )
       options.delete(:private)
 

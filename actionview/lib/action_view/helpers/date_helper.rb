@@ -205,6 +205,7 @@ module ActionView
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
+      # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -274,6 +275,9 @@ module ActionView
       #
       #   # Generates a date select with custom prompts.
       #   date_select("article", "written_on", prompt: { day: 'Select day', month: 'Select month', year: 'Select year' })
+      #
+      #   # Generates a date select with custom year format.
+      #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -850,7 +854,7 @@ module ActionView
             raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
-          build_options_and_select(:year, val, options)
+          build_select(:year, build_year_options(val, options))
         end
       end
 
@@ -933,6 +937,21 @@ module ActionView
           end
         end
 
+        # Looks up year names by number.
+        #
+        #   year_name(1998) # => 1998
+        #
+        # If the <tt>:year_format</tt> option is passed:
+        #
+        #   year_name(1998) # => "Heisei 10"
+        def year_name(number)
+          if year_format_lambda = @options[:year_format]
+            year_format_lambda.call(number)
+          else
+            number
+          end
+        end
+
         def date_order
           @date_order ||= @options[:order] || translated_date_order
         end
@@ -989,6 +1008,34 @@ module ActionView
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
+            select_options << content_tag("option".freeze, text, tag_options)
+          end
+
+          (select_options.join("\n") + "\n").html_safe
+        end
+
+        # Build select option HTML for year.
+        # If <tt>year_format</tt> option is not passed
+        #  build_year_options(1998, start: 1998, end: 2000)
+        #  => "<option value="1998" selected="selected">1998</option>
+        #      <option value="1999">1999</option>
+        #      <option value="2000">2000</option>"
+        #
+        # If <tt>year_format</tt> option is passed
+        #  build_year_options(1998, start: 1998, end: 2000, year_format: ->year { "Heisei #{ year - 1988 }" })
+        #  => "<option value="1998" selected="selected">Heisei 10</option>
+        #      <option value="1999">Heisei 11</option>
+        #      <option value="2000">Heisei 12</option>"
+        def build_year_options(selected, options = {})
+          start = options.delete(:start)
+          stop = options.delete(:end)
+          step = options.delete(:step)
+
+          select_options = []
+          start.step(stop, step) do |value|
+            tag_options = { value: value }
+            tag_options[:selected] = "selected" if selected == value
+            text = year_name(value)
             select_options << content_tag("option".freeze, text, tag_options)
           end
 

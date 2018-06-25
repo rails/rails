@@ -1,9 +1,13 @@
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+
+    *Ryuta Kamizono*
+
 *   Migrations raise when duplicate column definition.
 
     Fixes #33024.
 
     *Federico Martinez*
-    
+
 *   Bump minimum SQLite version to 3.8
 
     *Yasuo Honda*
@@ -39,9 +43,9 @@
 
     *Bogdan Gusiev*
 
-*   Add custom prefix option to ActiveRecord::Store.store_accessor.
+*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
 
-    *Tan Huynh*
+    *Tan Huynh*, *Yukio Mizuta*
 
 *   Rails 6 requires Ruby 2.4.1 or newer.
 

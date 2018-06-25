@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class SuccessAdapter < ActionCable::SubscriptionAdapter::Base
-  class << self; attr_accessor :subscribe_called, :unsubscribe_called end
-
   def broadcast(channel, payload)
   end
 

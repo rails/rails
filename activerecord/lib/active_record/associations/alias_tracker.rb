@@ -33,7 +33,7 @@ module ActiveRecord
           elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0
           elsif join.is_a?(Hash)
-            join.fetch(name, 0)
+            join[name]
           else
             raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"
           end

@@ -376,3 +376,31 @@ command inside of the `activestorage` directory to install the dependencies:
 ```bash
 yarn install
 ```
+
+Extracting previews, tested in ActiveStorage's test suite requires third-party
+applications, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz
+and Poppler. Without these applications installed, ActiveStorage tests will
+raise errors.
+
+On macOS you can run:
+
+```bash
+brew install ffmpeg
+brew cask install xquartz
+brew install mupdf-tools
+brew install poppler
+```
+
+On Ubuntu, you can run:
+
+```bash
+sudo apt-get update && install ffmpeg
+sudo apt-get update && install mupdf mupdf-tools
+```
+
+On Fedora or CentOS, just run:
+
+```bash
+sudo yum install ffmpeg
+sudo yum install mupdf
+```

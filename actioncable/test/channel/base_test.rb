@@ -5,7 +5,7 @@ require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 
-class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
+class ActionCable::Channel::BaseTest < ActionCable::TestCase
   class ActionCable::Channel::Base
     def kick
       @last_action = [ :kick ]

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require "fileutils"
+require "open-uri"
+require "tmpdir"
+
 module MultibyteTestHelpers
   class Downloader
     def self.download(from, to)

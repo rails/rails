@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "optparse"
 require "action_dispatch"
 require "rails"
 require "active_support/deprecation"
