@@ -17,7 +17,5 @@ ActiveStorage.start()
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
 
-// Require all channels
-channels = require.context('./../channels/', false, /\_channel\.js$/)
-channels.keys().forEach(channels)
+require("channels")
 <%- end -%>
