@@ -23,12 +23,12 @@ chdir APP_ROOT do
 <% unless options.skip_active_record? -%>
 
   puts "\n== Updating database =="
-  system! 'bin/rails db:migrate'
+  system! 'rails db:migrate'
 <% end -%>
 
   puts "\n== Removing old logs and tempfiles =="
-  system! 'bin/rails log:clear tmp:clear'
+  system! 'rails log:clear tmp:clear'
 
   puts "\n== Restarting application server =="
-  system! 'bin/rails restart'
+  system! 'rails restart'
 end

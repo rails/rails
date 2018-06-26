@@ -29,7 +29,7 @@ For each controller there is an associated directory in the `app/views` director
 Let's take a look at what Rails does by default when creating a new resource using the scaffold generator:
 
 ```bash
-$ bin/rails generate scaffold article
+$ rails generate scaffold article
       [...]
       invoke  scaffold_controller
       create    app/controllers/articles_controller.rb

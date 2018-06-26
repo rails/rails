@@ -1191,18 +1191,18 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ bin/rails routes -g new_comment
-$ bin/rails routes -g POST
-$ bin/rails routes -g admin
+$ rails routes -g new_comment
+$ rails routes -g POST
+$ rails routes -g admin
 ```
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ bin/rails routes -c users
-$ bin/rails routes -c admin/users
-$ bin/rails routes -c Comments
-$ bin/rails routes -c Articles::CommentsController
+$ rails routes -c users
+$ rails routes -c admin/users
+$ rails routes -c Comments
+$ rails routes -c Articles::CommentsController
 ```
 
 TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.

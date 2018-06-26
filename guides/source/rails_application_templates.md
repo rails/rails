@@ -25,8 +25,8 @@ $ rails new blog -m http://example.com/template.rb
 You can use the `app:template` Rake task to apply templates to an existing Rails application. The location of the template needs to be passed in via the LOCATION environment variable. Again, this can either be path to a file or a URL.
 
 ```bash
-$ bin/rails app:template LOCATION=~/template.rb
-$ bin/rails app:template LOCATION=http://example.com/template.rb
+$ rails app:template LOCATION=~/template.rb
+$ rails app:template LOCATION=http://example.com/template.rb
 ```
 
 Template API

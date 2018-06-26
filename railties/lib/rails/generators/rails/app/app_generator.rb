@@ -249,7 +249,7 @@ module Rails
 
       add_shared_options_for "application"
 
-      # Add bin/rails options
+      # Add rails command options
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 

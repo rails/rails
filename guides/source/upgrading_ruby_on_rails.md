@@ -257,16 +257,18 @@ it.
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
-### Use bin/rails for running tasks and tests
+### Use `rails` for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in parallel with rake, but some were ported over altogether.
+these changes are in parallel with rake, but some were ported over altogether. As the `rails`
+command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
+over `bin/rails.
 
-To use the new test runner simply type `bin/rails test`.
+To use the new test runner simply type `rails test`.
 
 `rake dev:cache` is now `rails dev:cache`.
 
-Run `bin/rails` to see the list of commands available.
+Run `rails` inside your application's directory to see the list of commands available.
 
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 

@@ -686,7 +686,7 @@ information on compiling locally.
 The task is:
 
 ```bash
-$ RAILS_ENV=production bin/rails assets:precompile
+$ RAILS_ENV=production rails assets:precompile
 ```
 
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
