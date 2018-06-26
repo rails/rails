@@ -139,11 +139,6 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def allocate
-        define_attribute_methods
-        super
-      end
-
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end

@@ -3,8 +3,6 @@
 module ActiveRecord
   # See ActiveRecord::Aggregations::ClassMethods for documentation
   module Aggregations
-    extend ActiveSupport::Concern
-
     def initialize_dup(*) # :nodoc:
       @aggregation_cache = {}
       super

@@ -163,19 +163,6 @@ class AttributeMethodsTest < ActiveRecord::TestCase
     assert_equal "10", keyboard.read_attribute_before_type_cast(:key_number)
   end
 
-  # Syck calls respond_to? before actually calling initialize.
-  test "respond_to? with an allocated object" do
-    klass = Class.new(ActiveRecord::Base) do
-      self.table_name = "topics"
-    end
-
-    topic = klass.allocate
-    assert_not_respond_to topic, "nothingness"
-    assert_not_respond_to topic, :nothingness
-    assert_respond_to topic, "title"
-    assert_respond_to topic, :title
-  end
-
   # IRB inspects the return value of MyModel.allocate.
   test "allocated objects can be inspected" do
     topic = Topic.allocate
