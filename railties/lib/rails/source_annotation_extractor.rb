@@ -20,7 +20,7 @@ module Rails
   class SourceAnnotationExtractor
     class Annotation < Struct.new(:line, :tag, :text)
       def self.directories
-        @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
+        @@directories ||= %w(app config db lib test)
       end
 
       # Registers additional directories to be included
@@ -53,6 +53,13 @@ module Rails
         s = "[#{line.to_s.rjust(options[:indent])}] ".dup
         s << "[#{tag}] " if options[:tag]
         s << text
+      end
+
+      # Used in annotations.rake
+      #:nodoc:
+      def self.notes_task_deprecation_warning
+        ActiveSupport::Deprecation.warn("This rake task is deprecated and will be removed in Rails 6.1. \nRefer to `rails notes --help` for more information.\n")
+        puts "\n"
       end
     end
 
