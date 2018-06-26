@@ -1,3 +1,7 @@
+*   Allow passing multiple exceptions to `retry_on`, and `discard_on`.
+
+    *George Claghorn*
+
 *   Pass the error instance as the second parameter of block executed by `discard_on`.
 
     Fixes #32853.
