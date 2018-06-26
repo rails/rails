@@ -46,7 +46,7 @@ namespace :test do
       # We could run these in parallel, but pretty much all of the
       # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
       Process.waitpid fork {
-        ARGV.clear
+        ARGV.clear.push ENV["TESTOPTS"]
         Rake.application = nil
 
         load file
