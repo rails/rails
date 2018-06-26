@@ -356,6 +356,8 @@ module ActiveRecord
       @new_record = false
       @attributes = attributes
 
+      self.class.define_attribute_methods
+
       yield self if block_given?
 
       _run_find_callbacks
