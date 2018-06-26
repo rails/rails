@@ -70,8 +70,12 @@ module ActiveRecord
         instantiate_instance_of(klass, attributes, column_types, &block)
       end
 
-      # Given a class, an attributes hash, +instantiate+ returns a new instance
-      # of the class. Accepts only keys as strings.
+      # Given a class, an attributes hash, +instantiate_instance_of+ returns a
+      # new instance of the class. Accepts only keys as strings.
+      #
+      # This is private, don't call it. :)
+      #
+      # :nodoc:
       def instantiate_instance_of(klass, attributes, column_types = {}, &block)
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
         klass.allocate.init_from_db(attributes, &block)

@@ -43,7 +43,7 @@ module ActiveRecord
       @column_types = column_types
     end
 
-    # Does this result set include the column named +name+ ?
+    # Returns true if this result set includes the column named +name+
     def includes_column?(name)
       @columns.include? name
     end
