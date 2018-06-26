@@ -330,7 +330,7 @@ module ActiveRecord
   # The Rails package has several tools to help create and apply migrations.
   #
   # To generate a new migration, you can use
-  #   rails generate migration MyNewMigration
+  #   bin/rails generate migration MyNewMigration
   #
   # where MyNewMigration is the name of your migration. The generator will
   # create an empty migration file <tt>timestamp_my_new_migration.rb</tt>
@@ -339,7 +339,7 @@ module ActiveRecord
   #
   # There is a special syntactic shortcut to generate migrations that add fields to a table.
   #
-  #   rails generate migration add_fieldname_to_tablename fieldname:string
+  #   bin/rails generate migration add_fieldname_to_tablename fieldname:string
   #
   # This will generate the file <tt>timestamp_add_fieldname_to_tablename.rb</tt>, which will look like this:
   #   class AddFieldnameToTablename < ActiveRecord::Migration[5.0]
@@ -349,16 +349,16 @@ module ActiveRecord
   #   end
   #
   # To run migrations against the currently configured database, use
-  # <tt>rails db:migrate</tt>. This will update the database by running all of the
+  # <tt>bin/rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
   # invoke the db:schema:dump task, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use
-  # <tt>rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
+  # <tt>bin/rails db:rollback VERSION=X</tt> where <tt>X</tt> is the version to which
   # you wish to downgrade. Alternatively, you can also use the STEP option if you
-  # wish to rollback last few migrations. <tt>rails db:rollback STEP=2</tt> will rollback
+  # wish to rollback last few migrations. <tt>bin/rails db:rollback STEP=2</tt> will rollback
   # the latest two migrations.
   #
   # If any of the migrations throw an <tt>ActiveRecord::IrreversibleMigration</tt> exception,

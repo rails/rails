@@ -29,7 +29,7 @@ Available field types:
     Just after the field name you can specify a type like text or boolean.
     It will generate the column with the associated SQL type. For instance:
 
-        `rails generate model post title:string body:text`
+        `bin/rails generate model post title:string body:text`
 
     will generate a title column with a varchar type and a body column with a text
     type. If no type is specified the string type will be used by default.
@@ -49,47 +49,47 @@ Available field types:
 
     You can also consider `references` as a kind of type. For instance, if you run:
 
-        `rails generate model photo title:string album:references`
+        `bin/rails generate model photo title:string album:references`
 
     It will generate an `album_id` column. You should generate these kinds of fields when
     you will use a `belongs_to` association, for instance. `references` also supports
     polymorphism, you can enable polymorphism like this:
 
-        `rails generate model product supplier:references{polymorphic}`
+        `bin/rails generate model product supplier:references{polymorphic}`
 
     For integer, string, text and binary fields, an integer in curly braces will
     be set as the limit:
 
-        `rails generate model user pseudo:string{30}`
+        `bin/rails generate model user pseudo:string{30}`
 
     For decimal, two integers separated by a comma in curly braces will be used
     for precision and scale:
 
-        `rails generate model product 'price:decimal{10,2}'`
+        `bin/rails generate model product 'price:decimal{10,2}'`
 
     You can add a `:uniq` or `:index` suffix for unique or standard indexes
     respectively:
 
-        `rails generate model user pseudo:string:uniq`
-        `rails generate model user pseudo:string:index`
+        `bin/rails generate model user pseudo:string:uniq`
+        `bin/rails generate model user pseudo:string:index`
 
     You can combine any single curly brace option with the index options:
 
-        `rails generate model user username:string{30}:uniq`
-        `rails generate model product supplier:references{polymorphic}:index`
+        `bin/rails generate model user username:string{30}:uniq`
+        `bin/rails generate model product supplier:references{polymorphic}:index`
 
     If you require a `password_digest` string column for use with
     has_secure_password, you can specify `password:digest`:
 
-        `rails generate model user password:digest`
+        `bin/rails generate model user password:digest`
 
     If you require a `token` string column for use with
     has_secure_token, you can specify `auth_token:token`:
 
-        `rails generate model user auth_token:token`
+        `bin/rails generate model user auth_token:token`
 
 Examples:
-    `rails generate model account`
+    `bin/rails generate model account`
 
         For Active Record and TestUnit it creates:
 
@@ -98,11 +98,11 @@ Examples:
             Fixtures:   test/fixtures/accounts.yml
             Migration:  db/migrate/XXX_create_accounts.rb
 
-    `rails generate model post title:string body:text published:boolean`
+    `bin/rails generate model post title:string body:text published:boolean`
 
         Creates a Post model with a string title, text body, and published flag.
 
-    `rails generate model admin/account`
+    `bin/rails generate model admin/account`
 
         For Active Record and TestUnit it creates:
 

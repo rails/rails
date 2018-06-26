@@ -6,7 +6,7 @@ Description:
     path like 'parent_module/helper_name'.
 
 Example:
-    `rails generate helper CreditCard`
+    `bin/rails generate helper CreditCard`
 
     Credit card helper.
         Helper:     app/helpers/credit_card_helper.rb

@@ -35,7 +35,7 @@ module Rails
         end
 
         # This method creates nested route entry for namespaced resources.
-        # For eg. rails g controller foo/bar/baz index show
+        # For eg. bin/rails g controller foo/bar/baz index show
         # Will generate -
         # namespace :foo do
         #   namespace :bar do

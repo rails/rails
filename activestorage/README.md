@@ -14,7 +14,7 @@ A key difference to how Active Storage works compared to other attachment soluti
 
 ## Installation
 
-Run `rails active_storage:install` to copy over active_storage migrations.
+Run `bin/rails active_storage:install` to copy over active_storage migrations.
 
 ## Examples
 

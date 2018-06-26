@@ -93,7 +93,7 @@ INFO: You can also use the alias "g" to invoke the generator command: `rails g`.
 
 ```bash
 $ bin/rails generate
-Usage: rails generate GENERATOR [args] [options]
+Usage: bin/rails generate GENERATOR [args] [options]
 
 ...
 ...
@@ -132,7 +132,7 @@ Description:
     ...
 
 Example:
-    `rails generate controller CreditCards open debit credit close`
+    `bin/rails generate controller CreditCards open debit credit close`
 
     Credit card controller with URLs like /credit_cards/debit.
         Controller: app/controllers/credit_cards_controller.rb
@@ -196,7 +196,7 @@ Rails comes with a generator for data models too.
 ```bash
 $ bin/rails generate model
 Usage:
-  rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
+  bin/rails generate model NAME [field[:type][:index] field[:type][:index]] [options]
 
 ...
 

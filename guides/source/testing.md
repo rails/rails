@@ -65,7 +65,7 @@ NOTE: Your tests are run under `RAILS_ENV=test`.
 
 ### Rails meets Minitest
 
-If you remember, we used the `rails generate model` command in the
+If you remember, we used the `bin/rails generate model` command in the
 [Getting Started with Rails](getting_started.html) guide. We created our first
 model, and among other things it created test stubs in the `test` directory:
 
@@ -581,7 +581,7 @@ _Fixtures_ is a fancy word for sample data. Fixtures allow you to populate your 
 
 NOTE: Fixtures are not designed to create every object that your tests need, and are best managed when only used for default data that can be applied to the common case.
 
-You'll find fixtures under your `test/fixtures` directory. When you run `rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
+You'll find fixtures under your `test/fixtures` directory. When you run `bin/rails generate model` to create a new model, Rails automatically creates fixture stubs in this directory.
 
 #### YAML
 

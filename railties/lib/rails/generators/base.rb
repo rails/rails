@@ -73,7 +73,7 @@ module Rails
       #
       # For example, if the user invoke the controller generator as:
       #
-      #   rails generate controller Account --test-framework=test_unit
+      #   bin/rails generate controller Account --test-framework=test_unit
       #
       # The controller generator will then try to invoke the following generators:
       #
@@ -128,11 +128,11 @@ module Rails
       # All hooks come with switches for user interface. If you do not want
       # to use any test framework, you can do:
       #
-      #   rails generate controller Account --skip-test-framework
+      #   bin/rails generate controller Account --skip-test-framework
       #
       # Or similarly:
       #
-      #   rails generate controller Account --no-test-framework
+      #   bin/rails generate controller Account --no-test-framework
       #
       # ==== Boolean hooks
       #
@@ -144,7 +144,7 @@ module Rails
       #
       # Then, if you want webrat to be invoked, just supply:
       #
-      #   rails generate controller Account --webrat
+      #   bin/rails generate controller Account --webrat
       #
       # The hooks lookup is similar as above:
       #

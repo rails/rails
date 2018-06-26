@@ -12,7 +12,7 @@ Description:
     If Sass 3 is available, stylesheets will be generated with the .scss extension.
 
 Example:
-    `rails generate assets posts`
+    `bin/rails generate assets posts`
 
     Posts assets.
         JavaScript:     app/assets/javascripts/posts.js

@@ -10,8 +10,8 @@ SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
 module Rails
   # Implements the logic behind the rake tasks for annotations like
   #
-  #   rails notes
-  #   rails notes:optimize
+  #   bin/rails notes
+  #   bin/rails notes:optimize
   #
   # and friends. See <tt>rails -T notes</tt> and <tt>railties/lib/rails/tasks/annotations.rake</tt>.
   #

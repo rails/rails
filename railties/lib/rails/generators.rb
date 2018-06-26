@@ -179,7 +179,7 @@ module Rails
 
       # Show help message with available generators.
       def help(command = "generate")
-        puts "Usage: rails #{command} GENERATOR [args] [options]"
+        puts "Usage: bin/rails #{command} GENERATOR [args] [options]"
         puts
         puts "General options:"
         puts "  -h, [--help]     # Print generator's options and usage"
@@ -279,7 +279,7 @@ module Rails
           suggestion  = Rails::Command::Spellchecker.suggest(namespace.to_s, from: options)
           puts <<~MSG
             Could not find generator '#{namespace}'. Maybe you meant #{suggestion.inspect}?
-            Run `rails generate --help` for more options.
+            Run `bin/rails generate --help` for more options.
           MSG
         end
       end

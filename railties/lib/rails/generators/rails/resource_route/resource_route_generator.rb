@@ -5,7 +5,7 @@ module Rails
     class ResourceRouteGenerator < NamedBase # :nodoc:
       # Properly nests namespaces passed into a generator
       #
-      #   $ rails generate resource admin/users/products
+      #   $ bin/rails generate resource admin/users/products
       #
       # should give you
       #

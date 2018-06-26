@@ -3,7 +3,7 @@ Description:
     either CamelCased or snake_cased.
 
 Example:
-    `rails generate generator Awesome`
+    `bin/rails generate generator Awesome`
 
     creates a standard awesome generator:
         lib/generators/awesome/

@@ -21,7 +21,7 @@ After reading this guide, you will know:
 First Contact
 -------------
 
-When you create an application using the `rails` command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking `rails generate`:
+When you create an application using the `rails` command, you are in fact using a Rails generator. After that, you can get a list of all available generators by just invoking `bin/rails generate`:
 
 ```bash
 $ rails new myapp
@@ -109,7 +109,7 @@ We can see that by invoking the description of this new generator (don't forget 
 ```bash
 $ bin/rails generate initializer --help
 Usage:
-  rails generate initializer NAME [options]
+  bin/rails generate initializer NAME [options]
 ```
 
 We can also see that our new generator has a class method called `source_root`. This method points to where our generator templates will be placed, if any, and by default it points to the created directory `lib/generators/initializer/templates`.
@@ -145,7 +145,7 @@ The methods that are available for generators are covered in the [final section]
 Generators Lookup
 -----------------
 
-When you run `rails generate initializer core_extensions` Rails requires these files in turn until one is found:
+When you run `bin/rails generate initializer core_extensions` Rails requires these files in turn until one is found:
 
 ```bash
 rails/generators/initializer/initializer_generator.rb
