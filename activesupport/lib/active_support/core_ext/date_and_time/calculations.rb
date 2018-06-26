@@ -361,6 +361,13 @@ module DateAndTime
       advance(days: -ago)
     end
 
+    # Returns the number of complete years passed since
+    def age
+      age = ::Date.current.year - year
+      age -= 1 if self > ::Date.current.years_ago(age)
+      age
+    end
+
     private
       def first_hour(date_or_time)
         date_or_time.acts_like?(:time) ? date_or_time.beginning_of_day : date_or_time

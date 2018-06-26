@@ -404,4 +404,16 @@ module DateAndTimeBehavior
   ensure
     Date.beginning_of_week = old_bw
   end
+
+  def test_age
+    Date.stub(:current, Date.new(2016, 3, 10)) do
+      assert_equal 16, date_time_init(2000, 3, 6, 12, 0, 0).age
+    end
+  end
+
+  def test_age_upcoming_date
+    Date.stub(:current, Date.new(2016, 3, 3)) do
+      assert_equal 15, date_time_init(2000, 3, 6, 12, 0, 0).age
+    end
+  end
 end
