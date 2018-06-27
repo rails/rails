@@ -21,12 +21,51 @@ There are a few commands that are absolutely critical to your everyday usage of 
 
 * `rails console`
 * `rails server`
-* `rails`
+* `rails test`
 * `rails generate`
+* `rails db:migrate`
+* `rails db:create`
+* `rails routes`
 * `rails dbconsole`
 * `rails new app_name`
 
-All commands can run with `-h` or `--help` to list more information.
+You can get a list of rails commands available to you, which will often depend on your current directory, by typing `rails --help`. Each command has a description, and should help you find the thing you need.
+
+```bash
+$ rails --help
+Usage: rails COMMAND [ARGS]
+
+The most common rails commands are:
+generate    Generate new code (short-cut alias: "g")
+console     Start the Rails console (short-cut alias: "c")
+server      Start the Rails server (short-cut alias: "s")
+...
+
+All commands can be run with -h (or --help) for more information.
+
+In addition to those commands, there are:
+about                               List versions of all Rails ...
+assets:clean[keep]                  Remove old compiled assets
+assets:clobber                      Remove compiled assets
+assets:environment                  Load asset compile environment
+assets:precompile                   Compile all the assets ...
+...
+db:fixtures:load                    Loads fixtures into the ...
+db:migrate                          Migrate the database ...
+db:migrate:status                   Display status of migrations
+db:rollback                         Rolls the schema back to ...
+db:schema:cache:clear               Clears a db/schema_cache.yml file
+db:schema:cache:dump                Creates a db/schema_cache.yml file
+db:schema:dump                      Creates a db/schema.rb file ...
+db:schema:load                      Loads a schema.rb file ...
+db:seed                             Loads the seed data ...
+db:structure:dump                   Dumps the database structure ...
+db:structure:load                   Recreates the databases ...
+db:version                          Retrieves the current schema ...
+...
+restart                             Restart app by touching ...
+tmp:create                          Creates tmp directories ...
+```
 
 Let's create a simple Rails application to step through each of these commands in context.
 
@@ -255,7 +294,7 @@ $ rails generate scaffold HighScore game:string score:integer
 
 The generator checks that there exist the directories for models, controllers, helpers, layouts, functional and unit tests, stylesheets, creates the views, controller, model and database migration for HighScore (creating the `high_scores` table and fields), takes care of the route for the **resource**, and new tests for everything.
 
-The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `rails db:migrate` command.
+The migration requires that we **migrate**, that is, run some Ruby code (living in that `20130717151933_create_high_scores.rb`) to modify the schema of our database. Which database? The SQLite3 database that Rails will create for you when we run the `rails db:migrate` command. We'll talk more about that command below.
 
 ```bash
 $ rails db:migrate
@@ -380,51 +419,7 @@ $ rails destroy model Oops
       remove      test/fixtures/oops.yml
 ```
 
-rails
----------
-
-Since Rails 5.0+ has rake commands built into the rails executable, `rails` is the new default for running commands.
-
-You can get a list of rails tasks available to you, which will often depend on your current directory, by typing `rails --help`. Each task has a description, and should help you find the thing you need.
-
-```bash
-$ rails --help
-Usage: rails COMMAND [ARGS]
-
-The most common rails commands are:
-generate    Generate new code (short-cut alias: "g")
-console     Start the Rails console (short-cut alias: "c")
-server      Start the Rails server (short-cut alias: "s")
-...
-
-All commands can be run with -h (or --help) for more information.
-
-In addition to those commands, there are:
-about                               List versions of all Rails ...
-assets:clean[keep]                  Remove old compiled assets
-assets:clobber                      Remove compiled assets
-assets:environment                  Load asset compile environment
-assets:precompile                   Compile all the assets ...
-...
-db:fixtures:load                    Loads fixtures into the ...
-db:migrate                          Migrate the database ...
-db:migrate:status                   Display status of migrations
-db:rollback                         Rolls the schema back to ...
-db:schema:cache:clear               Clears a db/schema_cache.yml file
-db:schema:cache:dump                Creates a db/schema_cache.yml file
-db:schema:dump                      Creates a db/schema.rb file ...
-db:schema:load                      Loads a schema.rb file ...
-db:seed                             Loads the seed data ...
-db:structure:dump                   Dumps the database structure ...
-db:structure:load                   Recreates the databases ...
-db:version                          Retrieves the current schema ...
-...
-restart                             Restart app by touching ...
-tmp:create                          Creates tmp directories ...
-```
-INFO: You can also use `rails -T`  to get the list of tasks.
-
-### `about`
+### `rails about`
 
 `rails about` gives information about version numbers for Ruby, RubyGems, Rails, the Rails subcomponents, your application's folder, the current Rails environment name, your app's database adapter, and schema version. It is useful when you need to ask for help, check if a security patch might affect you, or when you need some stats for an existing Rails installation.
 
@@ -443,19 +438,19 @@ Database adapter          sqlite3
 Database schema version   20180205173523
 ```
 
-### `assets`
+### `rails assets:`
 
-You can precompile the assets in `app/assets` using `rails assets:precompile`, and remove older compiled assets using `rails assets:clean`. The `assets:clean` task allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
+You can precompile the assets in `app/assets` using `rails assets:precompile`, and remove older compiled assets using `rails assets:clean`. The `assets:clean` command allows for rolling deploys that may still be linking to an old asset while the new assets are being built.
 
 If you want to clear `public/assets` completely, you can use `rails assets:clobber`.
 
-### `db`
+### `rails db:`
 
-The most common tasks of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails tasks (`up`, `down`, `redo`, `reset`). `rails db:version` is useful when troubleshooting, telling you the current version of the database.
+The most common commands of the `db:` rails namespace are `migrate` and `create`, and it will pay off to try out all of the migration rails commands (`up`, `down`, `redo`, `reset`). `rails db:version` is useful when troubleshooting, telling you the current version of the database.
 
 More information about migrations can be found in the [Migrations](active_record_migrations.html) guide.
 
-### `notes`
+### `rails notes`
 
 `rails notes` searches through your code for comments beginning with a specific keyword. You can refer to `rails notes --help` for information about usage.
 
@@ -543,21 +538,21 @@ vendor/tools.rb:
   * [ 56] [TODO] Get rid of this dependency
 ```
 
-### `routes`
+### `rails routes`
 
 `rails routes` will list all of your defined routes, which is useful for tracking down routing problems in your app, or giving you a good overview of the URLs in an app you're trying to get familiar with.
 
-### `test`
+### `rails test`
 
 INFO: A good description of unit testing in Rails is given in [A Guide to Testing Rails Applications](testing.html)
 
-Rails comes with a test suite called Minitest. Rails owes its stability to the use of tests. The tasks available in the `test:` namespace helps in running the different tests you will hopefully write.
+Rails comes with a test suite called Minitest. Rails owes its stability to the use of tests. The commands available in the `test:` namespace helps in running the different tests you will hopefully write.
 
-### `tmp`
+### `rails tmp:`
 
 The `Rails.root/tmp` directory is, like the *nix /tmp directory, the holding place for temporary files like process id files and cached actions.
 
-The `tmp:` namespaced tasks will help you clear and create the `Rails.root/tmp` directory:
+The `tmp:` namespaced commands will help you clear and create the `Rails.root/tmp` directory:
 
 * `rails tmp:cache:clear` clears `tmp/cache`.
 * `rails tmp:sockets:clear` clears `tmp/sockets`.
