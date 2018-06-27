@@ -10,8 +10,8 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
 
     ```ruby
     # Gemfile
-    gem "activetext", github: "basecamp/activetext", require: "action_text"
-    gem "mini_magick" # for Active Storage variants
+    gem "actiontext", github: "basecamp/actiontext", require: "action_text"
+    gem "image_processing", "~> 1.2" # for Active Storage variants
     ```
    
 1. Install the npm package:
@@ -19,7 +19,7 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     ```js
     // package.json
     "dependencies": {
-      "activetext": "basecamp/activetext"
+      "actiontext": "basecamp/actiontext"
     }
     ```
     
@@ -29,8 +29,16 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     
     ```js
     // app/javascript/packs/application.js
-    import "activetext"
+    import "actiontext"
     ```
+
+1. Migrate the database
+
+   ```
+   ./bin/rails active_storage:install
+   ./bin/rails action_text:install
+   ./bin/rails db:migrate
+   ```
 
 1. Declare text columns as Action Text attributes:
 
