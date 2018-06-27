@@ -59,7 +59,7 @@ module ActiveSupport
         if secret.blank?
           raise ArgumentError, "A secret is required to generate an integrity hash " \
             "for cookie session data. Set a secret_key_base of at least " \
-            "#{SECRET_MIN_LENGTH} characters in via `rails credentials:edit`."
+            "#{SECRET_MIN_LENGTH} characters by running `rails credentials:edit`."
         end
 
         if secret.length < SECRET_MIN_LENGTH
