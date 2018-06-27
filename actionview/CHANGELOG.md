@@ -1,3 +1,9 @@
+*   Respect the `path_only` option passed to `url_for` when the options are passed in as an array
+    
+    Fixes #33237.
+
+    *Joel Ambass*
+
 *   Add `year_format` option to date_select tag. This option makes it possible to customize year
     names. Lambda should be passed to use this option.
 
