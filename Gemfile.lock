@@ -71,7 +71,7 @@ GEM
     mini_mime (1.0.0)
     mini_portile2 (2.3.0)
     minitest (5.11.3)
-    nio4r (2.3.0)
+    nio4r (2.3.1)
     nokogiri (1.8.2)
       mini_portile2 (~> 2.3.0)
     rack (2.0.4)
@@ -135,4 +135,4 @@ DEPENDENCIES
   webpacker (~> 3.2.2)
 
 BUNDLED WITH
-   1.16.1
+   1.16.2
