@@ -295,7 +295,7 @@ objects.
 
 `ActiveModel::Serialization` provides basic serialization for your object.
 You need to declare an attributes Hash which contains the attributes you want to
-serialize. Attributes must be strings, not symbols.
+serialize.
 
 ```ruby
 class Person
