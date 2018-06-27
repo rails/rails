@@ -31,6 +31,7 @@ require "global_id"
 module ActiveJob
   extend ActiveSupport::Autoload
 
+  autoload :Arguments
   autoload :Base
   autoload :QueueAdapters
   autoload :Serializers
