@@ -504,6 +504,39 @@ module ActiveRecord
         assert_deprecated { @conn.valid_alter_table_type?(:string) }
       end
 
+      def test_db_is_not_readonly_when_readonly_option_is_false
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                        adapter: "sqlite3",
+                                        readonly: false
+
+        assert_not_predicate(@conn.raw_connection, :readonly?)
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_unspecified
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                        adapter: "sqlite3"
+
+        assert_not_predicate(@conn.raw_connection, :readonly?)
+      end
+
+      def test_db_is_readonly_when_readonly_option_is_true
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                        adapter: "sqlite3",
+                                        readonly: true
+
+        assert_predicate(@conn.raw_connection, :readonly?)
+      end
+
+      def test_writes_are_not_permitted_to_readonly_databases
+        @conn = Base.sqlite3_connection database: ":memory:",
+                                        adapter: "sqlite3",
+                                        readonly: true
+
+        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+          @conn.execute("CREATE TABLE test(id integer)")
+        end
+      end
+
       private
 
         def assert_logged(logs)

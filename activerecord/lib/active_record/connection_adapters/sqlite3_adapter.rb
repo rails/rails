@@ -29,9 +29,11 @@ module ActiveRecord
         Dir.mkdir(dirname) unless File.directory?(dirname)
       end
 
+      db_opts = config.symbolize_keys.merge(results_as_hash: true)
+
       db = SQLite3::Database.new(
         config[:database].to_s,
-        results_as_hash: true
+        db_opts
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
