@@ -1,3 +1,7 @@
+*   Add DateAndTime::Calculations#age
+
+    *Mike DeRosa*
+
 *   Allow Range#=== and Range#cover? on Range
 
     `Range#cover?` can now accept a range argument like `Range#include?` and
