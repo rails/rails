@@ -1,3 +1,8 @@
+*   Fix bug where integer division of `ActiveSupport::Duration` would
+    result in zero seconds in cases like `1.day / 24` or `1.hour / 60`.
+
+    *Aaron Gough*
+
 *   Allow Range#=== and Range#cover? on Range
 
     `Range#cover?` can now accept a range argument like `Range#include?` and

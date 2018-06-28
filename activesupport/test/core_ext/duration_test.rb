@@ -96,6 +96,12 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 1.second + 1
   end
 
+  def test_plus_parts
+    assert_equal({ years: 1, days: 1 }, (1.year + 1.day).parts)
+    assert_equal({ months: 1, hours: 1.5 }, (1.month + 1.5.hours).parts)
+    assert_equal({ years: 1, days: -1 }, (1.year + -1.day).parts)
+  end
+
   def test_minus
     assert_equal 1.second, 2.seconds - 1.second
     assert_instance_of ActiveSupport::Duration, 2.seconds - 1.second
@@ -105,10 +111,22 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 2.seconds - 1
   end
 
+  def test_minus_parts
+    assert_equal({ years: 1, days: -1 }, (1.year - 1.day).parts)
+    assert_equal({ months: 1, hours: -1.5 }, (1.month - 1.5.hours).parts)
+    assert_equal({ years: 1, days: 1 }, (1.year - -1.day).parts)
+  end
+
   def test_multiply
     assert_equal 7.days, 1.day * 7
     assert_instance_of ActiveSupport::Duration, 1.day * 7
     assert_equal 86400, 1.day * 1.second
+  end
+
+  def test_multiply_parts
+    assert_equal({ years: 2 }, (1.year * 2).parts)
+    assert_equal({ months: 2.5 }, (1.month * 2.5).parts)
+    assert_equal({ years: -2 }, (1.year * -2).parts)
   end
 
   def test_divide
@@ -126,6 +144,12 @@ class DurationTest < ActiveSupport::TestCase
 
     assert_equal 1, 1.day / 1.day
     assert_kind_of Integer, 1.day / 1.hour
+  end
+
+  def test_divide_parts
+    assert_equal({ years: 0.5 }, (1.year / 2).parts)
+    assert_equal({ months: 0.4 }, (1.month / 2.5).parts)
+    assert_equal({ years: -0.5 }, (1.year / -2).parts)
   end
 
   def test_modulo
@@ -154,6 +178,11 @@ class DurationTest < ActiveSupport::TestCase
     assert_instance_of ActiveSupport::Duration, 13.months % 1.year
   end
 
+  def test_modulo_parts
+    assert_equal({ months: 1 }, (13.months % 1.year).parts)
+    assert_equal({ days: 1 }, (36.days % 7.days).parts)
+  end
+
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
   end
@@ -168,6 +197,10 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_date_added_with_divided_duration_larger_than_one_month
     assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+  end
+
+  def test_date_minused_by_divided_duration
+    assert_equal Date.civil(2017, 12, 31), Date.civil(2018, 1, 1) - (1.week / 7)
   end
 
   def test_plus_with_time
@@ -471,6 +504,17 @@ class DurationTest < ActiveSupport::TestCase
     end
 
     assert_equal "no implicit conversion of String into ActiveSupport::Duration::Scalar", exception.message
+  end
+
+  def test_scalar_divide_parts
+    scalar = ActiveSupport::Duration::Scalar.new(2)
+
+    assert_equal({ years: 0.5 }, (1.year / scalar).parts)
+    assert_equal({ years: -0.5 }, (1.year / -scalar).parts)
+  end
+
+  def test_date_minused_by_divided_duration_by_scalar
+    assert_equal Date.civil(2017, 12, 31), Date.civil(2018, 1, 1) - (1.week / ActiveSupport::Duration::Scalar.new(7))
   end
 
   def test_scalar_modulo
