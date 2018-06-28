@@ -65,16 +65,12 @@
       url: routing.html
       description: This guide covers the user-facing features of Rails routing. If you want to understand how to use routing in your own Rails applications, start here.
 -
-  name: Digging Deeper
+  name: Other Components
   documents:
     -
       name: Active Support Core Extensions
       url: active_support_core_extensions.html
       description: This guide documents the Ruby core extensions defined in Active Support.
-    -
-      name: Rails Internationalization (I18n) API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
@@ -87,6 +83,18 @@
       name: Active Storage Overview
       url: active_storage_overview.html
       description: This guide covers how to attach files to your Active Record models.
+    -
+      name: Action Cable Overview
+      url: action_cable_overview.html
+      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
+
+-
+  name: Digging Deeper
+  documents:
+    -
+      name: Rails Internationalization (I18n) API
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Testing Rails Applications
       url: testing.html
@@ -137,10 +145,6 @@
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
-    -
-      name: Action Cable Overview
-      url: action_cable_overview.html
-      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
 
 -
   name: Extending Rails
