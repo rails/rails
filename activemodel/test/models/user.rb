@@ -7,6 +7,7 @@ class User
   define_model_callbacks :create
 
   has_secure_password
+  has_secure_password :activation_token, validations: false
 
-  attr_accessor :password_digest
+  attr_accessor :password_digest, :activation_token_digest
 end
