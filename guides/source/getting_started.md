@@ -1203,14 +1203,15 @@ it look as follows:
 This time we point the form to the `update` action, which is not defined yet
 but will be very soon.
 
-Passing the article object to the method will automatically set the URL for
+Passing the article object to the `form_with` method will automatically set the URL for
 submitting the edited article form. This option tells Rails that we want this
 form to be submitted via the `PATCH` HTTP method, which is the HTTP method you're
 expected to use to **update** resources according to the REST protocol.
 
-The arguments to `form_with` could be model objects, say, `model: @article` which would
-cause the helper to fill in the form with the fields of the object. Passing in a
-symbol scope (`scope: :article`) just creates the fields but without anything filled into them.
+Also, passing a model object to `form_with`, like `model: @article` in the edit
+view above, will cause form helpers to fill in form fields with the corresponding
+values of the object.  Passing in a symbol scope such as `scope: :article`, as
+was done in the new view, only creates empty form fields.
 More details can be found in [form_with documentation]
 (http://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with).
 
