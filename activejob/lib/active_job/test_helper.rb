@@ -301,7 +301,7 @@ module ActiveJob
       original_enqueued_jobs_count = enqueued_jobs.count
       expected = { job: job, args: args, at: at, queue: queue }.compact
       serialized_args = serialize_args_for_assertion(expected)
-      yield if block_given?
+      yield
       in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
       matching_job = in_block_jobs.find do |in_block_job|
         serialized_args.all? { |key, value| value == in_block_job[key] }
