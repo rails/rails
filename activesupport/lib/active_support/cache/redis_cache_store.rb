@@ -256,9 +256,19 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+        expires_in = options[:expires_in].to_i
+
         instrument :increment, name, amount: amount do
           failsafe :increment do
-            redis.with { |c| c.incrby normalize_key(name, options), amount }
+            redis.with do |c|
+              val = c.incrby key, amount
+              if expires_in > 0 && c.ttl(key) == -2
+                c.expire key, expires_in
+              end
+              val
+            end
           end
         end
       end
@@ -272,9 +282,19 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
+        options = merged_options(options)
+        key = normalize_key(name, options)
+        expires_in = options[:expires_in].to_i
+
         instrument :decrement, name, amount: amount do
           failsafe :decrement do
-            redis.with { |c| c.decrby normalize_key(name, options), amount }
+            redis.with do |c|
+              val = c.decrby key, amount
+              if expires_in > 0 && c.ttl(key) == -2
+                c.expire key, expires_in
+              end
+              val
+            end
           end
         end
       end
