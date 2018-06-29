@@ -1,3 +1,7 @@
+*   Remove undocumented `params` option from `url_from` helper
+
+    *Ilkka Oksanen*
+
 *   Purpose metadata for signed/encrypted cookies.
 
     Rails can now thwart attacks that attempt to copy signed/encrypted value

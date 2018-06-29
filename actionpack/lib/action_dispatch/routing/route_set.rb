@@ -820,10 +820,6 @@ module ActionDispatch
 
         path, params = generate(route_name, path_options, recall)
 
-        if options.key? :params
-          params.merge! options[:params]
-        end
-
         options[:path]        = path
         options[:script_name] = script_name
         options[:params]      = params
