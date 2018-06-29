@@ -79,9 +79,6 @@ module ActiveSupport #:nodoc:
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants, default: []
 
-    # A mutex to ensure that there is only one instance of any given module at a time
-    mattr_accessor :module_autoloading_mutex, default: Mutex.new
-
     # The WatchStack keeps a stack of the modules being watched as files are
     # loaded. If a file in the process of being loaded (parent.rb) triggers the
     # load of another file (child.rb) the stack will ensure that child.rb
@@ -450,7 +447,7 @@ module ActiveSupport #:nodoc:
     # the directory was loaded from a reloadable base path, it is added to the
     # set of constants that are to be unloaded.
     def autoload_module!(into, const_name, qualified_name, path_suffix)
-      module_autoloading_mutex.synchronize do
+      Dependencies.load_interlock do
         return nil unless base_path = autoloadable_module?(path_suffix)
         return into.const_get(const_name) if into.const_defined?(const_name, false)
         mod = Module.new
