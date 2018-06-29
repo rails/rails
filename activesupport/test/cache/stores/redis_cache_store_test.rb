@@ -141,6 +141,30 @@ module ActiveSupport::Cache::RedisCacheStoreTests
         end
       end
     end
+
+    def test_increment_expires_in
+      assert_called_with @cache.redis, :incrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+          @cache.increment("foo", 1, expires_in: 60)
+        end
+      end
+
+      assert_not_called @cache.redis, :expire do
+        @cache.decrement("foo", 1, expires_in: 60)
+      end
+    end
+
+    def test_decrement_expires_in
+      assert_called_with @cache.redis, :decrby, [ "#{@namespace}:foo", 1 ] do
+        assert_called_with @cache.redis, :expire, [ "#{@namespace}:foo", 60 ] do
+          @cache.decrement("foo", 1, expires_in: 60)
+        end
+      end
+
+      assert_not_called @cache.redis, :expire do
+        @cache.decrement("foo", 1, expires_in: 60)
+      end
+    end
   end
 
   class ConnectionPoolBehaviourTest < StoreTest
