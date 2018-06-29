@@ -1,3 +1,18 @@
+*   Allow call `assert_enqueued_with` with no block.
+
+    Example:
+    ```
+    def test_assert_enqueued_with
+      MyJob.perform_later(1,2,3)
+      assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
+
+      MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+      assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    end
+    ```
+
+    *bogdanvlviv*
+
 *   Allow passing multiple exceptions to `retry_on`, and `discard_on`.
 
     *George Claghorn*
