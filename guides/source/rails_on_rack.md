@@ -94,7 +94,7 @@ but is built for better flexibility and more features to meet Rails' requirement
 
 ### Inspecting Middleware Stack
 
-Rails has a handy task for inspecting the middleware stack in use:
+Rails has a handy command for inspecting the middleware stack in use:
 
 ```bash
 $ rails middleware

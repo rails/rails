@@ -352,7 +352,7 @@ module ActiveRecord
   # <tt>rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
-  # invoke the db:schema:dump task, which will update your db/schema.rb file
+  # invoke the db:schema:dump command, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use

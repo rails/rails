@@ -12,7 +12,7 @@ After reading this guide, you will know:
 
 * The generators you can use to create them.
 * The methods Active Record provides to manipulate your database.
-* The rails tasks that manipulate migrations and your schema.
+* The rails commands that manipulate migrations and your schema.
 * How migrations relate to `schema.rb`.
 
 --------------------------------------------------------------------------------
@@ -727,15 +727,15 @@ you will have to use `structure.sql` as dump method. See
 Running Migrations
 ------------------
 
-Rails provides a set of rails tasks to run certain sets of migrations.
+Rails provides a set of rails commands to run certain sets of migrations.
 
-The very first migration related rails task you will use will probably be
+The very first migration related rails command you will use will probably be
 `rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
 
-Note that running the `db:migrate` task also invokes the `db:schema:dump` task, which
+Note that running the `db:migrate` command also invokes the `db:schema:dump` command, which
 will update your `db/schema.rb` file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
@@ -774,26 +774,26 @@ $ rails db:rollback STEP=3
 
 will revert the last 3 migrations.
 
-The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating
-back up again. As with the `db:rollback` task, you can use the `STEP` parameter
+The `db:migrate:redo` command is a shortcut for doing a rollback and then migrating
+back up again. As with the `db:rollback` command, you can use the `STEP` parameter
 if you need to go more than one version back, for example:
 
 ```bash
 $ rails db:migrate:redo STEP=3
 ```
 
-Neither of these rails tasks do anything you could not do with `db:migrate`. They
+Neither of these rails commands do anything you could not do with `db:migrate`. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
 ### Setup the Database
 
-The `rails db:setup` task will create the database, load the schema, and initialize
+The `rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
 ### Resetting the Database
 
-The `rails db:reset` task will drop the database and set it up again. This is
+The `rails db:reset` command will drop the database and set it up again. This is
 functionally equivalent to `rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
@@ -804,7 +804,7 @@ contents of the current `db/schema.rb` or `db/structure.sql` file. If a migratio
 ### Running Specific Migrations
 
 If you need to run a specific migration up or down, the `db:migrate:up` and
-`db:migrate:down` tasks will do that. Just specify the appropriate version and
+`db:migrate:down` commands will do that. Just specify the appropriate version and
 the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
@@ -813,7 +813,7 @@ $ rails db:migrate:up VERSION=20080906120000
 ```
 
 will run the 20080906120000 migration by running the `change` method (or the
-`up` method). This task will
+`up` method). This command will
 first check whether the migration is already performed and will do nothing if
 Active Record believes that it has already been run.
 

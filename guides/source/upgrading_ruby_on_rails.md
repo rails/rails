@@ -45,8 +45,8 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
-in the `Gemfile`, run this task.
+Rails provides the `app:update` command (`rake rails:update` on 4.2 and earlier). After updating the Rails version
+in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
@@ -85,7 +85,7 @@ For more information on changes made to Rails 5.2 please see the [release notes]
 ### Bootsnap
 
 Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
-The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
 otherwise change the `boot.rb` to not use bootsnap.
 
 ### Expiry in signed or encrypted cookie is now embedded in the cookies values
