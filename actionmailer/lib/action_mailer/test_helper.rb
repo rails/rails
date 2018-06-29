@@ -60,7 +60,7 @@ module ActionMailer
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_emails 0
+    #   assert_emails 0, &block
     def assert_no_emails(&block)
       assert_emails 0, &block
     end
@@ -93,20 +93,7 @@ module ActionMailer
       assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
     end
 
-    # Asserts that a specific email has been enqueued, optionally
-    # matching arguments.
-    #
-    #   def test_email
-    #     ContactMailer.welcome.deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome
-    #   end
-    #
-    #   def test_email_with_arguments
-    #     ContactMailer.welcome("Hello", "Goodbye").deliver_later
-    #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
-    #   end
-    #
-    # If a block is passed, that block should cause the specified email
+    # Asserts that block should cause the specified email
     # to be enqueued.
     #
     #   def test_email_in_block
