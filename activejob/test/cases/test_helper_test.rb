@@ -471,6 +471,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_with_at_option
+    assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon) do
+      HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
+    end
+  end
+
   def test_assert_enqueued_with_with_no_block_with_at_option
     HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
     assert_enqueued_with(job: HelloJob, at: Date.tomorrow.noon)
@@ -501,7 +507,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
 
-  def test_assert_enqueued_with_with_failure_with_no_block_with_global_id_args
+  def test_assert_enqueued_with_failure_with_no_block_with_global_id_args
     ricardo = Person.new(9)
     wilma = Person.new(11)
     error = assert_raise ActiveSupport::TestCase::Assertion do
@@ -512,7 +518,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_equal "No enqueued job found with {:job=>HelloJob, :args=>[#{wilma.inspect}]}", error.message
   end
 
-  def test_assert_enqueued_job_does_not_change_jobs_count
+  def test_assert_enqueued_with_does_not_change_jobs_count
     HelloJob.perform_later
     assert_enqueued_with(job: HelloJob) do
       HelloJob.perform_later

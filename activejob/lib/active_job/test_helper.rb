@@ -322,8 +322,8 @@ module ActiveJob
         jobs = enqueued_jobs
       end
 
-      matching_job = jobs.find do |in_block_job|
-        serialized_args.all? { |key, value| value == in_block_job[key] }
+      matching_job = jobs.find do |enqueued_job|
+        serialized_args.all? { |key, value| value == enqueued_job[key] }
       end
 
       assert matching_job, "No enqueued job found with #{expected}"
