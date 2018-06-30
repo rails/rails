@@ -59,7 +59,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     Dir.chdir(app_path) do
       FileUtils.rm("config/master.key")
 
-      assert_match(/Encrypted credentials already exist but master key is missing./, run_edit_command)
+      assert_match(/Missing master key to decrypt credentials/, run_edit_command)
       assert_not File.exist?("config/master.key")
     end
   end

@@ -21,10 +21,8 @@ module Rails
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
-        if Rails.application.credentials.content_path.exist? && Rails.application.credentials.key.nil?
-          say "Encrypted credentials already exist but master key is missing."
-          say "Put master key to decrypt the encrypted."
-          return
+        if Rails.application.credentials.key.nil?
+          return say missing_credentials_message if Rails.application.credentials.content_path.exist?
         end
 
         ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
