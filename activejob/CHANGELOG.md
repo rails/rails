@@ -1,3 +1,16 @@
+*   Allow `queue` option to `assert_no_enqueued_jobs`.
+
+    Example:
+    ```
+    def test_no_logging
+      assert_no_enqueued_jobs queue: 'default' do
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+    ```
+
+    *bogdanvlviv*
+
 *   Allow call `assert_enqueued_with` with no block.
 
     Example:
