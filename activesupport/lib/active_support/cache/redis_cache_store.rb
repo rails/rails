@@ -264,7 +264,7 @@ module ActiveSupport
           failsafe :increment do
             redis.with do |c|
               val = c.incrby key, amount
-              if expires_in > 0 && c.ttl(key) == -2
+              if expires_in > 0 && c.ttl(key) < 0
                 c.expire key, expires_in
               end
               val
@@ -290,7 +290,7 @@ module ActiveSupport
           failsafe :decrement do
             redis.with do |c|
               val = c.decrby key, amount
-              if expires_in > 0 && c.ttl(key) == -2
+              if expires_in > 0 && c.ttl(key) < 0
                 c.expire key, expires_in
               end
               val
