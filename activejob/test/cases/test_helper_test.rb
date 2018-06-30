@@ -389,6 +389,79 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     assert_match(/`:only` and `:except`/, error.message)
   end
 
+  def test_assert_no_enqueued_jobs_with_queue_option
+    assert_nothing_raised do
+      assert_no_enqueued_jobs queue: :default do
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.set(queue: :other_queue).perform_later
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_with_queue_option_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_jobs queue: :other_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_and_queue_option
+    assert_nothing_raised do
+      assert_no_enqueued_jobs only: HelloJob, queue: :some_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_and_queue_option_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_jobs only: HelloJob, queue: :some_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+        HelloJob.set(queue: :some_queue).perform_later
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_enqueued_jobs_with_except_and_queue_option
+    assert_nothing_raised do
+      assert_no_enqueued_jobs except: LoggingJob, queue: :some_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+        HelloJob.set(queue: :other_queue).perform_later
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+  end
+
+  def test_assert_no_enqueued_jobs_with_except_and_queue_option_failure
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_enqueued_jobs except: LoggingJob, queue: :some_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+        HelloJob.set(queue: :some_queue).perform_later
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_enqueued_jobs_with_only_and_except_and_queue_option
+    error = assert_raise ArgumentError do
+      assert_no_enqueued_jobs only: HelloJob, except: HelloJob, queue: :some_queue do
+        HelloJob.set(queue: :other_queue).perform_later
+      end
+    end
+
+    assert_match(/`:only` and `:except`/, error.message)
+  end
+
   def test_assert_enqueued_with
     assert_enqueued_with(job: LoggingJob, queue: "default") do
       LoggingJob.set(wait_until: Date.tomorrow.noon).perform_later
