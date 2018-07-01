@@ -240,6 +240,8 @@ module ActiveRecord
             if transaction
               rollback_transaction
               after_failure_actions(transaction, error)
+            elsif error.is_a? KeyError
+              @connection.exec_rollback_db_transaction
             end
             raise
           ensure
