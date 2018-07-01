@@ -93,16 +93,18 @@ module ActiveRecord
         end
 
         def exec_query(sql, name = "SQL", binds = [], prepare: false)
-          execute_and_clear(sql, name, binds, prepare: prepare) do |result|
-            types = {}
-            fields = result.fields
-            fields.each_with_index do |fname, i|
-              ftype = result.ftype i
-              fmod  = result.fmod i
-              types[fname] = get_oid_type(ftype, fmod, fname)
-            end
-            ActiveRecord::Result.new(fields, result.values, types)
+          if preventing_writes? && write_query?(sql)
+            raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
+
+          result = if without_prepared_statement?(binds)
+            exec_no_cache(sql, name, [])
+          elsif !prepare
+            exec_no_cache(sql, name, binds)
+          else
+            exec_cache(sql, name, binds)
+          end
+          ActiveRecord::ConnectionAdapters::PostgreSQL::Result.new(result, self)
         end
 
         def exec_delete(sql, name = nil, binds = [])

@@ -111,7 +111,7 @@ module ActiveRecord
 
     def test_exec_query_returns_an_empty_result
       result = @connection.exec_query "INSERT INTO subscribers(nick) VALUES('me')"
-      assert_instance_of(ActiveRecord::Result, result)
+      assert_kind_of(ActiveRecord::Result, result)
     end
 
     if current_adapter?(:Mysql2Adapter)
@@ -301,7 +301,7 @@ module ActiveRecord
 
         @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first.to_h)
 
         @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -317,7 +317,7 @@ module ActiveRecord
 
         @connection.update("UPDATE events SET title = 'foo' WHERE id = #{bind_param.to_sql}", nil, binds)
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
-        assert_equal({ "id" => 1, "title" => "foo" }, result.first)
+        assert_equal({ "id" => 1, "title" => "foo" }, result.first.to_h)
 
         @connection.delete("DELETE FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
         result = @connection.select_all("SELECT * FROM events WHERE id = #{bind_param.to_sql}", nil, binds)
@@ -329,7 +329,7 @@ module ActiveRecord
       author = Author.create!(name: "john")
       Post.create!(author: author, title: "foo", body: "bar")
       query = author.posts.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query))
+      assert_equal({ "title" => "foo" }, @connection.select_one(query).to_h)
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
       assert_equal ["foo"], @connection.select_values(query)
@@ -338,7 +338,7 @@ module ActiveRecord
     def test_select_methods_passing_a_relation
       Post.create!(title: "foo", body: "bar")
       query = Post.where(title: "foo").select(:title)
-      assert_equal({ "title" => "foo" }, @connection.select_one(query))
+      assert_equal({ "title" => "foo" }, @connection.select_one(query).to_h)
       assert @connection.select_all(query).is_a?(ActiveRecord::Result)
       assert_equal "foo", @connection.select_value(query)
       assert_equal ["foo"], @connection.select_values(query)

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-# Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
-gem "pg", ">= 0.18", "< 2.0"
+# Make sure we're using pg high enough for PG::Tuple
+gem "pg", "~> 1.1"
 require "pg"
 
 # Use async_exec instead of exec_params on pg versions before 1.1
@@ -20,6 +20,7 @@ require "active_record/connection_adapters/postgresql/explain_pretty_printer"
 require "active_record/connection_adapters/postgresql/oid"
 require "active_record/connection_adapters/postgresql/quoting"
 require "active_record/connection_adapters/postgresql/referential_integrity"
+require "active_record/connection_adapters/postgresql/result"
 require "active_record/connection_adapters/postgresql/schema_creation"
 require "active_record/connection_adapters/postgresql/schema_definitions"
 require "active_record/connection_adapters/postgresql/schema_dumper"
@@ -380,11 +381,11 @@ module ActiveRecord
 
       def extension_enabled?(name)
         res = exec_query("SELECT EXISTS(SELECT * FROM pg_available_extensions WHERE name = '#{name}' AND installed_version IS NOT NULL) as enabled", "SCHEMA")
-        res.cast_values.first
+        res.column_values(0)[0]
       end
 
       def extensions
-        exec_query("SELECT extname FROM pg_extension", "SCHEMA").cast_values
+        exec_query("SELECT extname FROM pg_extension", "SCHEMA").column_values(0)
       end
 
       # Returns the configured supported identifier length supported by PostgreSQL
@@ -480,6 +481,7 @@ module ActiveRecord
             end
           }
         end
+        public :get_oid_type
 
         def initialize_type_map(m = type_map)
           m.register_type "int2", Type::Integer.new(limit: 2)
@@ -608,18 +610,12 @@ module ActiveRecord
 
         FEATURE_NOT_SUPPORTED = "0A000" #:nodoc:
 
-        def execute_and_clear(sql, name, binds, prepare: false)
+        def execute_and_clear(sql, name, binds)
           if preventing_writes? && write_query?(sql)
             raise ActiveRecord::ReadOnlyError, "Write query attempted while in readonly mode: #{sql}"
           end
 
-          if without_prepared_statement?(binds)
-            result = exec_no_cache(sql, name, [])
-          elsif !prepare
-            result = exec_no_cache(sql, name, binds)
-          else
-            result = exec_cache(sql, name, binds)
-          end
+          result = exec_no_cache(sql, name, binds)
           ret = yield result
           result.clear
           ret

@@ -295,8 +295,8 @@ module ActiveRecord
 
         result = skip_query_cache_if_necessary { @klass.connection.select_all(query_builder, nil) }
         row    = result.first
-        value  = row && row.values.first
-        type   = result.column_types.fetch(column_alias) do
+        value  = row && row.each_value.first
+        type   = result.column_type(column_alias) do
           type_for(column_name)
         end
 
@@ -355,14 +355,14 @@ module ActiveRecord
         Hash[calculated_data.map do |row|
           key = group_columns.map { |aliaz, col_name|
             type = type_for(col_name) do
-              calculated_data.column_types.fetch(aliaz, Type.default_value)
+              calculated_data.column_type(aliaz)
             end
             type_cast_calculated_value(row[aliaz], type)
           }
           key = key.first if key.size == 1
           key = key_records[key] if associated
 
-          type = calculated_data.column_types.fetch(aggregate_alias) { type_for(column_name) }
+          type = calculated_data.column_type(aggregate_alias) { type_for(column_name) }
           [key, type_cast_calculated_value(row[aggregate_alias], type, operation)]
         end]
       end

@@ -19,7 +19,7 @@ module ActiveRecord
         #
         def pp(result)
           header = result.columns.first
-          lines  = result.rows.map(&:first)
+          lines  = result.column_values(0)
 
           # We add 2 because there's one char of padding at both sides, note
           # the extra hyphens in the example above.

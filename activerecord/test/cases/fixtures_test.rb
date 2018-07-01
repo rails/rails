@@ -298,7 +298,7 @@ class FixturesTest < ActiveRecord::TestCase
       conn.insert_fixtures_set({ "aircraft" => fixtures }, ["aircraft"])
     end
     result = conn.select_all("SELECT name, wheels_count FROM aircraft ORDER BY id")
-    assert_equal fixtures, result.to_a
+    assert_equal fixtures, result.to_a.map(&:to_h)
   end
 
   def test_broken_yaml_exception

@@ -34,7 +34,7 @@ module ActiveRecord
   class Result
     include Enumerable
 
-    attr_reader :columns, :rows, :column_types
+    attr_reader :columns, :rows
 
     def initialize(columns, rows, column_types = {})
       @columns      = columns
@@ -109,14 +109,15 @@ module ActiveRecord
     def cast_values(type_overrides = {}) # :nodoc:
       if columns.one?
         # Separated to avoid allocating an array per row
-
-        type = column_type(columns.first, type_overrides)
+        type = type_overrides.fetch(columns.first) { column_type(columns.first) }
 
         rows.map do |(value)|
           type.deserialize(value)
         end
       else
-        types = columns.map { |name| column_type(name, type_overrides) }
+        types = columns.map do |name|
+          type_overrides.fetch(name) { column_type(name) }
+        end
 
         rows.map do |values|
           Array.new(values.size) { |i| types[i].deserialize(values[i]) }
@@ -127,17 +128,23 @@ module ActiveRecord
     def initialize_copy(other)
       @columns      = columns.dup
       @rows         = rows.dup
-      @column_types = column_types.dup
+      @column_types = @column_types.dup
       @hash_rows    = nil
     end
 
-    private
-
-      def column_type(name, type_overrides = {})
-        type_overrides.fetch(name) do
-          column_types.fetch(name, Type.default_value)
-        end
+    def column_type(name, &block)
+      if block_given?
+        @column_types.fetch(name, &block)
+      else
+        @column_types.fetch(name, Type.default_value)
       end
+    end
+
+    def column_values(i)
+      @rows.map { |row| row[i] }
+    end
+
+    private
 
       def hash_rows
         @hash_rows ||=

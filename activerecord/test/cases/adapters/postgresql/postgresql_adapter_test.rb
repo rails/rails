@@ -320,7 +320,7 @@ module ActiveRecord
         @connection.execute "CREATE TYPE feeling AS ENUM ('good', 'bad')"
         result = @connection.select_all "SELECT 'good'::feeling"
         assert_instance_of(PostgreSQLAdapter::OID::Enum,
-                           result.column_types["feeling"])
+                           result.column_type("feeling"))
       ensure
         @connection.execute "DROP TYPE IF EXISTS feeling"
         reset_connection
@@ -332,13 +332,13 @@ module ActiveRecord
 
         silence_warnings do
           assert_queries 2, ignore_none: true do
-            connection.select_all "select 'pg_catalog.pg_class'::regclass"
+            connection.select_all("select 'pg_catalog.pg_class'::regclass").cast_values
           end
           assert_queries 1, ignore_none: true do
-            connection.select_all "select 'pg_catalog.pg_class'::regclass"
+            connection.select_all("select 'pg_catalog.pg_class'::regclass").cast_values
           end
           assert_queries 2, ignore_none: true do
-            connection.select_all "SELECT NULL::anyarray"
+            connection.select_all("SELECT NULL::anyarray").cast_values
           end
         end
       ensure
@@ -350,9 +350,9 @@ module ActiveRecord
         connection = ActiveRecord::Base.connection
 
         warning = capture(:stderr) {
-          connection.select_all "select 'pg_catalog.pg_class'::regclass"
-          connection.select_all "select 'pg_catalog.pg_class'::regclass"
-          connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          connection.select_all("select 'pg_catalog.pg_class'::regclass").cast_values
+          connection.select_all("select 'pg_catalog.pg_class'::regclass").cast_values
+          connection.select_all("select 'pg_catalog.pg_class'::regclass").cast_values
         }
         assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure

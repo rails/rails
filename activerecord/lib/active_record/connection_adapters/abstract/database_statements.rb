@@ -71,13 +71,13 @@ module ActiveRecord
 
       # Returns a single value from a record
       def select_value(arel, name = nil, binds = [])
-        single_value_from_rows(select_rows(arel, name, binds))
+        single_value_from_result(select_all(arel, name, binds))
       end
 
       # Returns an array of the values of the first column in a select:
       #   select_values("SELECT id FROM companies LIMIT 3") => [1,2,3]
       def select_values(arel, name = nil, binds = [])
-        select_rows(arel, name, binds).map(&:first)
+        select_all(arel, name, binds).column_values(0)
       end
 
       # Returns an array of arrays containing the field values.
@@ -87,11 +87,11 @@ module ActiveRecord
       end
 
       def query_value(sql, name = nil) # :nodoc:
-        single_value_from_rows(query(sql, name))
+        single_value_from_result(exec_query(sql, name))
       end
 
       def query_values(sql, name = nil) # :nodoc:
-        query(sql, name).map(&:first)
+        exec_query(sql, name).column_values(0)
       end
 
       def query(sql, name = nil) # :nodoc:
@@ -450,12 +450,12 @@ module ActiveRecord
         end
 
         def last_inserted_id(result)
-          single_value_from_rows(result.rows)
+          single_value_from_result(result)
         end
 
-        def single_value_from_rows(rows)
-          row = rows.first
-          row && row.first
+        def single_value_from_result(result)
+          row = result.first
+          row && row.each_value.first
         end
 
         def arel_from_relation(relation)
