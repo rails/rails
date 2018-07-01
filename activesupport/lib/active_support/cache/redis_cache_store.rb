@@ -256,18 +256,15 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def increment(name, amount = 1, options = nil)
-        options = merged_options(options)
-        key = normalize_key(name, options)
-        expires_in = options[:expires_in].to_i
-
         instrument :increment, name, amount: amount do
           failsafe :increment do
+            options = merged_options(options)
+            key = normalize_key(name, options)
+
             redis.with do |c|
-              val = c.incrby key, amount
-              if expires_in > 0 && c.ttl(key) < 0
-                c.expire key, expires_in
+              c.incrby(key, amount).tap do
+                write_key_expiry(c, key, options)
               end
-              val
             end
           end
         end
@@ -282,18 +279,15 @@ module ActiveSupport
       #
       # Failsafe: Raises errors.
       def decrement(name, amount = 1, options = nil)
-        options = merged_options(options)
-        key = normalize_key(name, options)
-        expires_in = options[:expires_in].to_i
-
         instrument :decrement, name, amount: amount do
           failsafe :decrement do
+            options = merged_options(options)
+            key = normalize_key(name, options)
+
             redis.with do |c|
-              val = c.decrby key, amount
-              if expires_in > 0 && c.ttl(key) < 0
-                c.expire key, expires_in
+              c.decrby(key, amount).tap do
+                write_key_expiry(c, key, options)
               end
-              val
             end
           end
         end
@@ -402,6 +396,12 @@ module ActiveSupport
             else
               redis.with { |c| c.set key, serialized_entry }
             end
+          end
+        end
+
+        def write_key_expiry(client, key, options)
+          if options[:expires_in] && client.ttl(key).negative?
+            client.expire key, options[:expires_in].to_i
           end
         end
 

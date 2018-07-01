@@ -152,7 +152,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
       assert_not_called @cache.redis, :expire do
-        @cache.increment "bar", 1, expires_in: 120
+        @cache.increment "bar", 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
@@ -172,7 +172,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
       # key and ttl exist
       @cache.redis.setex "#{@namespace}:bar", 120, 1
       assert_not_called @cache.redis, :expire do
-        @cache.decrement "bar", 1, expires_in: 120
+        @cache.decrement "bar", 1, expires_in: 2.minutes
       end
 
       # key exist but not have expire
