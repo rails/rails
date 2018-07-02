@@ -232,11 +232,6 @@ module ActiveRecord
             else
               model = construct_model(ar_parent, node, row, model_cache, id)
 
-              if node.reflection.scope &&
-                  node.reflection.scope_for(node.base_klass.unscoped).readonly_value
-                model.readonly!
-              end
-
               seen[ar_parent.object_id][node][id] = model
               construct(model, node, row, seen, model_cache)
             end
@@ -257,6 +252,7 @@ module ActiveRecord
             other.target = model
           end
 
+          model.readonly! if node.readonly?
           model
         end
     end
