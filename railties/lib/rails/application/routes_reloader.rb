@@ -5,7 +5,7 @@ module Rails
     class RoutesReloader
       attr_reader :route_sets, :paths
       attr_accessor :eager_load
-      delegate :updated?, to: :updater
+      delegate :execute_if_updated, :execute, :updated?, to: :updater
 
       def initialize
         @paths      = []
@@ -17,31 +17,15 @@ module Rails
         clear!
         load_paths
         finalize!
+        route_sets.each(&:eager_load!) if eager_load
       ensure
         revert
-      end
-
-      def execute
-        ret = updater.execute
-        route_sets.each(&:eager_load!) if eager_load
-        ret
-      end
-
-      def execute_if_updated
-        if updated = updater.execute_if_updated
-          route_sets.each(&:eager_load!) if eager_load
-        end
-        updated
       end
 
     private
 
       def updater
-        @updater ||= begin
-          updater = ActiveSupport::FileUpdateChecker.new(paths) { reload! }
-          updater.execute
-          updater
-        end
+        @updater ||= ActiveSupport::FileUpdateChecker.new(paths) { reload! }
       end
 
       def clear!

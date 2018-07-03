@@ -125,7 +125,7 @@ module Rails
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
         reloader.eager_load = app.config.eager_load
-        reloader.execute_if_updated
+        reloader.execute
         reloaders << reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if
