@@ -24,6 +24,52 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_equal [blob_1, blob_2].map(&:id).sort, ActiveStorage::Blob.unattached.pluck(:id).sort
   end
 
+  test "blob generates key according to custom key_format in has_one_attached" do
+    class UserWithHasOneAttachedCustomKeyFormat < User
+      has_one_attached :avatar, key_format: ":hash/:filename.:extension"
+    end
+
+    user = UserWithHasOneAttachedCustomKeyFormat.create!
+
+    file = file_fixture "racecar.jpg"
+    user.avatar.attach Rack::Test::UploadedFile.new file.to_s
+
+    assert_match(/[A-Za-z0-9]+\/racecar.jpg/, user.avatar.key)
+  end
+
+  test "blob generates key according to custom key_format in has_many_attached" do
+    class UserWithHasManyAttachedCustomKeyFormat < User
+      has_many_attached :avatars, key_format: ":hash/:filename.:extension"
+    end
+
+    user = UserWithHasManyAttachedCustomKeyFormat.create!
+
+    file = file_fixture "racecar.jpg"
+    user.avatars.attach Rack::Test::UploadedFile.new file.to_s
+
+    assert_match(/[A-Za-z0-9]+\/racecar.jpg/, user.avatars[0].key)
+  end
+
+  test "blob saves key_format used to generate key" do
+    class UserWithHasOneAttachedCustomKeyFormat < User
+      has_one_attached :avatar, key_format: ":hash/:filename.:extension"
+    end
+
+    user = UserWithHasOneAttachedCustomKeyFormat.create!
+
+    file = file_fixture "racecar.jpg"
+    user.avatar.attach Rack::Test::UploadedFile.new file.to_s
+
+    assert_match(":hash/:filename.:extension", user.avatar.key_format)
+  end
+
+  test "blob by default returns key_format defined in configuration" do
+    blob = ActiveStorage::Blob.new
+    default_key_format = ActiveStorage.default_key_format
+
+    assert_equal blob.key_format, default_key_format
+  end
+
   test "create after upload sets byte size and checksum" do
     data = "Hello world!"
     blob = create_blob data: data
