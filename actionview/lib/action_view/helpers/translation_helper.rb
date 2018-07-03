@@ -85,8 +85,11 @@ module ActionView
             end
           end
           translation = I18n.translate(scope_key_by_partial(key), html_safe_options.merge(raise: i18n_raise))
-
-          translation.respond_to?(:html_safe) ? translation.html_safe : translation
+          if translation.respond_to?(:map)
+            translation.map { |element| element.respond_to?(:html_safe) ? element.html_safe : element }
+          else
+            translation.respond_to?(:html_safe) ? translation.html_safe : translation
+          end
         else
           I18n.translate(scope_key_by_partial(key), options.merge(raise: i18n_raise))
         end
