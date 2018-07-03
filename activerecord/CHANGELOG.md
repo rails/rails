@@ -1,3 +1,7 @@
+*   Fix default value for mysql time types with specified precision
+
+    *Nikolay Kondratyev*
+
 *   Fix `touch` option to behave consistently with `Persistence#touch` method.
 
     *Ryuta Kamizono*
