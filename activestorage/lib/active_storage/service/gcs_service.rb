@@ -6,7 +6,6 @@ require "google/cloud/storage"
 require "net/http"
 
 require "active_support/core_ext/object/to_query"
-require "active_storage/filename"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
