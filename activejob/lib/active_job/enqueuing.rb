@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_job/arguments"
+
 module ActiveJob
   # Provides behavior for enqueuing jobs.
   module Enqueuing

@@ -60,7 +60,7 @@ module ActionMailer
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_emails 0
+    #   assert_emails 0, &block
     def assert_no_emails(&block)
       assert_emails 0, &block
     end

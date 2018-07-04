@@ -8,5 +8,6 @@ class Visitor
 
   has_secure_password(validations: false)
 
-  attr_accessor :password_digest, :password_confirmation
+  attr_accessor :password_digest
+  attr_reader :password_confirmation
 end

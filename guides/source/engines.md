@@ -695,7 +695,7 @@ pre-defined path which may be customizable.
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
 engine's models can query them correctly. To copy these migrations into the
-application run the following command from the `test/dummy` directory of your Rails engine:
+application run the following command from the application's root:
 
 ```bash
 $ bin/rails blorgh:install:migrations

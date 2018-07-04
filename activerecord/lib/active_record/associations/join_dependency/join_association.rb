@@ -54,6 +54,12 @@ module ActiveRecord
           @tables = tables
           @table  = tables.first
         end
+
+        def readonly?
+          return @readonly if defined?(@readonly)
+
+          @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
+        end
       end
     end
   end
