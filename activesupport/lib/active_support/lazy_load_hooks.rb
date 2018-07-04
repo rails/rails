@@ -68,7 +68,7 @@ module ActiveSupport
           if options[:yield]
             block.call(base)
           else
-            if base.is_a?(Class) || base.is_a?(Module)
+            if base.is_a?(Module)
               base.class_eval(&block)
             else
               base.instance_eval(&block)
