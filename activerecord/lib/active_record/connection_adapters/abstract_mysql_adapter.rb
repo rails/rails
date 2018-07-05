@@ -11,8 +11,6 @@ require "active_record/connection_adapters/mysql/schema_dumper"
 require "active_record/connection_adapters/mysql/schema_statements"
 require "active_record/connection_adapters/mysql/type_metadata"
 
-require "active_support/core_ext/string/strip"
-
 module ActiveRecord
   module ConnectionAdapters
     class AbstractMysqlAdapter < AbstractAdapter
@@ -46,7 +44,7 @@ module ActiveRecord
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private def dealloc(stmt)
-          stmt[:stmt].close
+          stmt.close
         end
       end
 
@@ -117,11 +115,11 @@ module ActiveRecord
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
-        query_value("SELECT GET_LOCK(#{quote(lock_name)}, #{timeout})") == 1
+        query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
 
       def release_advisory_lock(lock_name) # :nodoc:
-        query_value("SELECT RELEASE_LOCK(#{quote(lock_name)})") == 1
+        query_value("SELECT RELEASE_LOCK(#{quote(lock_name.to_s)})") == 1
       end
 
       def native_database_types
@@ -225,7 +223,7 @@ module ActiveRecord
         end
       end
 
-      def empty_insert_statement_value
+      def empty_insert_statement_value(primary_key = nil)
         "VALUES ()"
       end
 
@@ -249,7 +247,7 @@ module ActiveRecord
       #   create_database 'matt_development', charset: :big5
       def create_database(name, options = {})
         if options[:collation]
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')} COLLATE #{quote_table_name(options[:collation])}"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         else
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
         end
@@ -284,16 +282,12 @@ module ActiveRecord
       def table_comment(table_name) # :nodoc:
         scope = quoted_scope(table_name)
 
-        query_value(<<-SQL.strip_heredoc, "SCHEMA").presence
+        query_value(<<~SQL, "SCHEMA").presence
           SELECT table_comment
           FROM information_schema.tables
           WHERE table_schema = #{scope[:schema]}
             AND table_name = #{scope[:name]}
         SQL
-      end
-
-      def create_table(table_name, **options) #:nodoc:
-        super(table_name, options: "ENGINE=InnoDB", **options)
       end
 
       def bulk_change_table(table_name, operations) #:nodoc:
@@ -396,7 +390,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
+        fk_info = exec_query(<<~SQL, "SCHEMA")
           SELECT fk.referenced_table_name AS 'to_table',
                  fk.referenced_column_name AS 'primary_key',
                  fk.column_name AS 'column',
@@ -484,7 +478,7 @@ module ActiveRecord
 
         scope = quoted_scope(table_name)
 
-        query_values(<<-SQL.strip_heredoc, "SCHEMA")
+        query_values(<<~SQL, "SCHEMA")
           SELECT column_name
           FROM information_schema.key_column_usage
           WHERE constraint_name = 'PRIMARY'
@@ -519,7 +513,7 @@ module ActiveRecord
           s.gsub(/\s+(?:ASC|DESC)\b/i, "")
         }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-        [super, *order_columns].join(", ")
+        (order_columns << super).join(", ")
       end
 
       def strict_mode?
@@ -530,23 +524,49 @@ module ActiveRecord
         index.using == :btree || super
       end
 
-      def insert_fixtures(*)
-        without_sql_mode("NO_AUTO_VALUE_ON_ZERO") { super }
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        with_multi_statements do
+          super { discard_remaining_results }
+        end
       end
 
       private
+        def combine_multi_statements(total_sql)
+          total_sql.each_with_object([]) do |sql, total_sql_chunks|
+            previous_packet = total_sql_chunks.last
+            sql << ";\n"
+            if max_allowed_packet_reached?(sql, previous_packet) || total_sql_chunks.empty?
+              total_sql_chunks << sql
+            else
+              previous_packet << sql
+            end
+          end
+        end
 
-        def without_sql_mode(mode)
-          result = execute("SELECT @@SESSION.sql_mode")
-          current_mode = result.first[0]
-          return yield unless current_mode.include?(mode)
+        def max_allowed_packet_reached?(current_packet, previous_packet)
+          if current_packet.bytesize > max_allowed_packet
+            raise ActiveRecordError, "Fixtures set is too large #{current_packet.bytesize}. Consider increasing the max_allowed_packet variable."
+          elsif previous_packet.nil?
+            false
+          else
+            (current_packet.bytesize + previous_packet.bytesize) > max_allowed_packet
+          end
+        end
 
-          sql_mode = "REPLACE(@@sql_mode, '#{mode}', '')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+        def max_allowed_packet
+          bytes_margin = 2
+          @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
+        end
+
+        def with_multi_statements
+          previous_flags = @config[:flags]
+          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+          reconnect!
+
           yield
         ensure
-          sql_mode = "CONCAT(@@sql_mode, ',#{mode}')"
-          execute("SET @@SESSION.sql_mode = #{sql_mode}")
+          @config[:flags] = previous_flags
+          reconnect!
         end
 
         def initialize_type_map(m = type_map)

@@ -133,10 +133,6 @@ module ActiveModel
     end
 
     protected
-
-      attr_reader :original_attribute
-      alias_method :assigned?, :original_attribute
-
       def original_value_for_database
         if assigned?
           original_attribute.original_value_for_database
@@ -146,6 +142,9 @@ module ActiveModel
       end
 
     private
+      attr_reader :original_attribute
+      alias :assigned? :original_attribute
+
       def initialize_dup(other)
         if defined?(@value) && @value.duplicable?
           @value = @value.dup
@@ -231,6 +230,10 @@ module ActiveModel
 
         def initialized?
           false
+        end
+
+        def forgetting_assignment
+          dup
         end
 
         def with_type(type)

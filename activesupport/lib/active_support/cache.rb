@@ -91,16 +91,11 @@ module ActiveSupport
       private
         def retrieve_cache_key(key)
           case
-          when key.respond_to?(:cache_key_with_version)
-            key.cache_key_with_version
-          when key.respond_to?(:cache_key)
-            key.cache_key
-          when key.is_a?(Hash)
-            key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }.to_param
-          when key.respond_to?(:to_a)
-            key.to_a.collect { |element| retrieve_cache_key(element) }.to_param
-          else
-            key.to_param
+          when key.respond_to?(:cache_key_with_version) then key.cache_key_with_version
+          when key.respond_to?(:cache_key)              then key.cache_key
+          when key.is_a?(Array)                         then key.map { |element| retrieve_cache_key(element) }.to_param
+          when key.respond_to?(:to_a)                   then retrieve_cache_key(key.to_a)
+          else                                               key.to_param
           end.to_s
         end
 
@@ -164,6 +159,23 @@ module ActiveSupport
 
       attr_reader :silence, :options
       alias :silence? :silence
+
+      class << self
+        private
+          def retrieve_pool_options(options)
+            {}.tap do |pool_options|
+              pool_options[:size] = options.delete(:pool_size) if options[:pool_size]
+              pool_options[:timeout] = options.delete(:pool_timeout) if options[:pool_timeout]
+            end
+          end
+
+          def ensure_connection_pool_added!
+            require "connection_pool"
+          rescue LoadError => e
+            $stderr.puts "You don't have connection_pool installed in your application. Please add it to your Gemfile and run bundle install"
+            raise e
+          end
+      end
 
       # Creates a new cache. The options will be passed to any write method calls
       # except for <tt>:namespace</tt> which can be used to set the global
@@ -321,8 +333,9 @@ module ActiveSupport
       # the cache with the given key, then that data is returned. Otherwise,
       # +nil+ is returned.
       #
-      # Note, if data was written with the <tt>:expires_in<tt> or <tt>:version</tt> options,
-      # both of these conditions are applied before the data is returned.
+      # Note, if data was written with the <tt>:expires_in</tt> or
+      # <tt>:version</tt> options, both of these conditions are applied before
+      # the data is returned.
       #
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
@@ -362,23 +375,11 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        results = {}
-        names.each do |name|
-          key     = normalize_key(name, options)
-          version = normalize_version(name, options)
-          entry   = read_entry(key, options)
-
-          if entry
-            if entry.expired?
-              delete_entry(key, options)
-            elsif entry.mismatched?(version)
-              # Skip mismatched versions
-            else
-              results[name] = entry.value
-            end
+        instrument :read_multi, names, options do |payload|
+          read_multi_entries(names, options).tap do |results|
+            payload[:hits] = results.keys
           end
         end
-        results
       end
 
       # Cache Storage API to write multiple values at once.
@@ -419,14 +420,19 @@ module ActiveSupport
         options = names.extract_options!
         options = merged_options(options)
 
-        read_multi(*names, options).tap do |results|
-          writes = {}
+        instrument :read_multi, names, options do |payload|
+          read_multi_entries(names, options).tap do |results|
+            payload[:hits] = results.keys
+            payload[:super_operation] = :fetch_multi
 
-          (names - results.keys).each do |name|
-            results[name] = writes[name] = yield(name)
+            writes = {}
+
+            (names - results.keys).each do |name|
+              results[name] = writes[name] = yield(name)
+            end
+
+            write_multi writes, options
           end
-
-          write_multi writes, options
         end
       end
 
@@ -543,6 +549,28 @@ module ActiveSupport
           raise NotImplementedError.new
         end
 
+        # Reads multiple entries from the cache implementation. Subclasses MAY
+        # implement this method.
+        def read_multi_entries(names, options)
+          results = {}
+          names.each do |name|
+            key     = normalize_key(name, options)
+            version = normalize_version(name, options)
+            entry   = read_entry(key, options)
+
+            if entry
+              if entry.expired?
+                delete_entry(key, options)
+              elsif entry.mismatched?(version)
+                # Skip mismatched versions
+              else
+                results[name] = entry.value
+              end
+            end
+          end
+          results
+        end
+
         # Writes multiple entries to the cache implementation. Subclasses MAY
         # implement this method.
         def write_multi_entries(hash, options)
@@ -569,7 +597,7 @@ module ActiveSupport
         # Expands and namespaces the cache key. May be overridden by
         # cache stores to do additional normalization.
         def normalize_key(key, options = nil)
-          namespace_key Cache.expand_cache_key(key), options
+          namespace_key expanded_key(key), options
         end
 
         # Prefix the key with a namespace string:
@@ -594,6 +622,26 @@ module ActiveSupport
           else
             key
           end
+        end
+
+        # Expands key to be a consistent string value. Invokes +cache_key+ if
+        # object responds to +cache_key+. Otherwise, +to_param+ method will be
+        # called. If the key is a Hash, then keys will be sorted alphabetically.
+        def expanded_key(key)
+          return key.cache_key.to_s if key.respond_to?(:cache_key)
+
+          case key
+          when Array
+            if key.size > 1
+              key = key.collect { |element| expanded_key(element) }
+            else
+              key = key.first
+            end
+          when Hash
+            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
+          end
+
+          key.to_param
         end
 
         def normalize_version(key, options = nil)
@@ -665,19 +713,14 @@ module ActiveSupport
       DEFAULT_COMPRESS_LIMIT = 1.kilobyte
 
       # Creates a new cache entry for the specified value. Options supported are
-      # +:compress+, +:compress_threshold+, and +:expires_in+.
-      def initialize(value, options = {})
-        if should_compress?(value, options)
-          @value = compress(value)
-          @compressed = true
-        else
-          @value = value
-        end
-
-        @version    = options[:version]
+      # +:compress+, +:compress_threshold+, +:version+ and +:expires_in+.
+      def initialize(value, compress: true, compress_threshold: DEFAULT_COMPRESS_LIMIT, version: nil, expires_in: nil, **)
+        @value      = value
+        @version    = version
         @created_at = Time.now.to_f
-        @expires_in = options[:expires_in]
-        @expires_in = @expires_in.to_f if @expires_in
+        @expires_in = expires_in && expires_in.to_f
+
+        compress!(compress_threshold) if compress
       end
 
       def value
@@ -709,17 +752,13 @@ module ActiveSupport
       # Returns the size of the cached value. This could be less than
       # <tt>value.size</tt> if the data is compressed.
       def size
-        if defined?(@s)
-          @s
+        case value
+        when NilClass
+          0
+        when String
+          @value.bytesize
         else
-          case value
-          when NilClass
-            0
-          when String
-            @value.bytesize
-          else
-            @s = Marshal.dump(@value).bytesize
-          end
+          @s ||= Marshal.dump(@value).bytesize
         end
       end
 
@@ -736,23 +775,30 @@ module ActiveSupport
       end
 
       private
-        def should_compress?(value, options)
-          if value && options.fetch(:compress, true)
-            compress_threshold = options.fetch(:compress_threshold, DEFAULT_COMPRESS_LIMIT)
-            serialized_value_size = (value.is_a?(String) ? value : Marshal.dump(value)).bytesize
-
-            return true if serialized_value_size >= compress_threshold
+        def compress!(compress_threshold)
+          case @value
+          when nil, true, false, Numeric
+            uncompressed_size = 0
+          when String
+            uncompressed_size = @value.bytesize
+          else
+            serialized = Marshal.dump(@value)
+            uncompressed_size = serialized.bytesize
           end
 
-          false
+          if uncompressed_size >= compress_threshold
+            serialized ||= Marshal.dump(@value)
+            compressed = Zlib::Deflate.deflate(serialized)
+
+            if compressed.bytesize < uncompressed_size
+              @value = compressed
+              @compressed = true
+            end
+          end
         end
 
         def compressed?
-          defined?(@compressed) ? @compressed : false
-        end
-
-        def compress(value)
-          Zlib::Deflate.deflate(Marshal.dump(value))
+          defined?(@compressed)
         end
 
         def uncompress(value)

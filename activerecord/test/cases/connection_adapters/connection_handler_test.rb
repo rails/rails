@@ -71,6 +71,56 @@ module ActiveRecord
         ENV["RAILS_ENV"] = previous_env
       end
 
+      unless in_memory_db?
+        def test_establish_connection_using_3_level_config_defaults_to_default_env_primary_db
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "primary"  => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" },
+              "readonly" => { "adapter" => "sqlite3", "database" => "db/readonly.sqlite3" }
+            },
+            "another_env" => {
+              "primary"  => { "adapter" => "sqlite3", "database" => "db/another-primary.sqlite3" },
+              "readonly" => { "adapter" => "sqlite3", "database" => "db/another-readonly.sqlite3" }
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.establish_connection
+
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ENV["RAILS_ENV"] = previous_env
+          ActiveRecord::Base.establish_connection(:arunit)
+          FileUtils.rm_rf "db"
+        end
+
+        def test_establish_connection_using_2_level_config_defaults_to_default_env_primary_db
+          previous_env, ENV["RAILS_ENV"] = ENV["RAILS_ENV"], "default_env"
+
+          config = {
+            "default_env" => {
+              "adapter" => "sqlite3", "database" => "db/primary.sqlite3"
+            },
+            "another_env" => {
+              "adapter" => "sqlite3", "database" => "db/bad-primary.sqlite3"
+            }
+          }
+          @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
+
+          ActiveRecord::Base.establish_connection
+
+          assert_match "db/primary.sqlite3", ActiveRecord::Base.connection.pool.spec.config[:database]
+        ensure
+          ActiveRecord::Base.configurations = @prev_configs
+          ENV["RAILS_ENV"] = previous_env
+          ActiveRecord::Base.establish_connection(:arunit)
+          FileUtils.rm_rf "db"
+        end
+      end
+
       def test_establish_connection_using_two_level_configurations
         config = { "development" => { "adapter" => "sqlite3", "database" => "db/primary.sqlite3" } }
         @prev_configs, ActiveRecord::Base.configurations = ActiveRecord::Base.configurations, config
@@ -103,11 +153,11 @@ module ActiveRecord
       end
 
       def test_active_connections?
-        assert !@handler.active_connections?
+        assert_not_predicate @handler, :active_connections?
         assert @handler.retrieve_connection(@spec_name)
-        assert @handler.active_connections?
+        assert_predicate @handler, :active_connections?
         @handler.clear_active_connections!
-        assert !@handler.active_connections?
+        assert_not_predicate @handler, :active_connections?
       end
 
       def test_retrieve_connection_pool
@@ -146,7 +196,7 @@ module ActiveRecord
 
         def test_forked_child_doesnt_mangle_parent_connection
           object_id = ActiveRecord::Base.connection.object_id
-          assert ActiveRecord::Base.connection.active?
+          assert_predicate ActiveRecord::Base.connection, :active?
 
           rd, wr = IO.pipe
           rd.binmode
@@ -169,6 +219,48 @@ module ActiveRecord
           rd.close
 
           assert_equal 3, ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")
+        end
+
+        unless in_memory_db?
+          def test_forked_child_recovers_from_disconnected_parent
+            object_id = ActiveRecord::Base.connection.object_id
+            assert_predicate ActiveRecord::Base.connection, :active?
+
+            rd, wr = IO.pipe
+            rd.binmode
+            wr.binmode
+
+            outer_pid = fork {
+              ActiveRecord::Base.connection.disconnect!
+
+              pid = fork {
+                rd.close
+                if ActiveRecord::Base.connection.active?
+                  pair = [ActiveRecord::Base.connection.object_id,
+                          ActiveRecord::Base.connection.select_value("SELECT COUNT(*) FROM people")]
+                  wr.write Marshal.dump pair
+                end
+                wr.close
+
+                exit # allow finalizers to run
+              }
+
+              Process.waitpid pid
+            }
+
+            wr.close
+
+            Process.waitpid outer_pid
+            child_id, child_count = Marshal.load(rd.read)
+
+            assert_not_equal object_id, child_id
+            rd.close
+
+            assert_equal 3, child_count
+
+            # Outer connection is unaffected
+            assert_equal 6, ActiveRecord::Base.connection.select_value("SELECT 2 * COUNT(*) FROM people")
+          end
         end
 
         def test_retrieve_connection_pool_copies_schema_cache_from_ancestor_pool
@@ -232,15 +324,15 @@ module ActiveRecord
         def test_a_class_using_custom_pool_and_switching_back_to_primary
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
 
           pool = klass2.establish_connection(ActiveRecord::Base.connection_pool.spec.config)
-          assert_equal klass2.connection.object_id, pool.connection.object_id
-          refute_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, pool.connection
+          assert_not_same klass2.connection, ActiveRecord::Base.connection
 
           klass2.remove_connection
 
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
 
         def test_connection_specification_name_should_fallback_to_parent
@@ -255,8 +347,8 @@ module ActiveRecord
         def test_remove_connection_should_not_remove_parent
           klass2 = Class.new(Base) { def self.name; "klass2"; end }
           klass2.remove_connection
-          refute_nil ActiveRecord::Base.connection.object_id
-          assert_equal klass2.connection.object_id, ActiveRecord::Base.connection.object_id
+          assert_not_nil ActiveRecord::Base.connection
+          assert_same klass2.connection, ActiveRecord::Base.connection
         end
       end
     end

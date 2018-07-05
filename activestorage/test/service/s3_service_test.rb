@@ -3,7 +3,7 @@
 require "service/shared_service_tests"
 require "net/http"
 
-if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].present?
+if SERVICE_CONFIGURATIONS[:s3]
   class ActiveStorage::Service::S3ServiceTest < ActiveSupport::TestCase
     SERVICE = ActiveStorage::Service.configure(:s3, SERVICE_CONFIGURATIONS)
 
@@ -32,10 +32,10 @@ if SERVICE_CONFIGURATIONS[:s3] && SERVICE_CONFIGURATIONS[:s3][:access_key_id].pr
     end
 
     test "signed URL generation" do
-      url = @service.url(FIXTURE_KEY, expires_in: 5.minutes,
+      url = @service.url(@key, expires_in: 5.minutes,
         disposition: :inline, filename: ActiveStorage::Filename.new("avatar.png"), content_type: "image/png")
 
-      assert_match(/s3\.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
+      assert_match(/s3(-[-a-z0-9]+)?\.(\S+)?amazonaws.com.*response-content-disposition=inline.*avatar\.png.*response-content-type=image%2Fpng/, url)
       assert_match SERVICE_CONFIGURATIONS[:s3][:bucket], url
     end
 

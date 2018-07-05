@@ -9,8 +9,8 @@ module ActionDispatch
     # sub-hashes of the params hash to filter. Filtering only certain sub-keys
     # from a hash is possible by using the dot notation: 'credit_card.number'.
     # If a block is given, each key and value of the params hash and all
-    # sub-hashes is passed to it, where the value or the key can be replaced using
-    # String#replace or similar method.
+    # sub-hashes are passed to it, where the value or the key can be replaced using
+    # String#replace or similar methods.
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"

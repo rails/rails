@@ -38,7 +38,7 @@ module ActiveRecord
                       " TABLESPACE = \"#{value}\""
                     when :connection_limit
                       " CONNECTION LIMIT = #{value}"
-            else
+                    else
                       ""
             end
           end
@@ -107,7 +107,7 @@ module ActiveRecord
             oid = row[4]
             comment = row[5]
 
-            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/).flatten
+            using, expressions, where = inddef.scan(/ USING (\w+?) \((.+?)\)(?: WHERE (.+))?\z/m).flatten
 
             orders = {}
             opclasses = {}
@@ -115,7 +115,7 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = Hash[query(<<-SQL.strip_heredoc, "SCHEMA")].values_at(*indkey).compact
+              columns = Hash[query(<<~SQL, "SCHEMA")].values_at(*indkey).compact
                 SELECT a.attnum, a.attname
                 FROM pg_attribute a
                 WHERE a.attrelid = #{oid}
@@ -124,9 +124,13 @@ module ActiveRecord
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
-              expressions.scan(/(\w+)(?: (?!DESC)(\w+))?(?: (DESC))?/).each do |column, opclass, desc|
+              expressions.scan(/(?<column>\w+)\s?(?<opclass>\w+_ops)?\s?(?<desc>DESC)?\s?(?<nulls>NULLS (?:FIRST|LAST))?/).each do |column, opclass, desc, nulls|
                 opclasses[column] = opclass.to_sym if opclass
-                orders[column] = :desc if desc
+                if nulls
+                  orders[column] = [desc, nulls].compact.join(" ")
+                else
+                  orders[column] = :desc if desc
+                end
               end
             end
 
@@ -154,7 +158,7 @@ module ActiveRecord
         def table_comment(table_name) # :nodoc:
           scope = quoted_scope(table_name, type: "BASE TABLE")
           if scope[:name]
-            query_value(<<-SQL.strip_heredoc, "SCHEMA")
+            query_value(<<~SQL, "SCHEMA")
               SELECT pg_catalog.obj_description(c.oid, 'pg_class')
               FROM pg_catalog.pg_class c
                 LEFT JOIN pg_namespace n ON n.oid = c.relnamespace
@@ -349,7 +353,7 @@ module ActiveRecord
         end
 
         def primary_keys(table_name) # :nodoc:
-          query_values(<<-SQL.strip_heredoc, "SCHEMA")
+          query_values(<<~SQL, "SCHEMA")
             SELECT a.attname
               FROM (
                      SELECT indrelid, indkey, generate_subscripts(indkey, 1) idx
@@ -362,6 +366,31 @@ module ActiveRecord
                AND a.attnum = i.indkey[i.idx]
              ORDER BY i.idx
           SQL
+        end
+
+        def bulk_change_table(table_name, operations)
+          sql_fragments = []
+          non_combinable_operations = []
+
+          operations.each do |command, args|
+            table, arguments = args.shift, args
+            method = :"#{command}_for_alter"
+
+            if respond_to?(method, true)
+              sqls, procs = Array(send(method, table, *arguments)).partition { |v| v.is_a?(String) }
+              sql_fragments << sqls
+              non_combinable_operations.concat(procs)
+            else
+              execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+              non_combinable_operations.each(&:call)
+              sql_fragments = []
+              non_combinable_operations = []
+              send(command, table, *arguments)
+            end
+          end
+
+          execute "ALTER TABLE #{quote_table_name(table_name)} #{sql_fragments.join(", ")}" unless sql_fragments.empty?
+          non_combinable_operations.each(&:call)
         end
 
         # Renames a table.
@@ -394,7 +423,7 @@ module ActiveRecord
 
         def change_column(table_name, column_name, type, options = {}) #:nodoc:
           clear_cache!
-          sqls, procs = change_column_for_alter(table_name, column_name, type, options)
+          sqls, procs = Array(change_column_for_alter(table_name, column_name, type, options)).partition { |v| v.is_a?(String) }
           execute "ALTER TABLE #{quote_table_name(table_name)} #{sqls.join(", ")}"
           procs.each(&:call)
         end
@@ -473,7 +502,7 @@ module ActiveRecord
 
         def foreign_keys(table_name)
           scope = quoted_scope(table_name)
-          fk_info = exec_query(<<-SQL.strip_heredoc, "SCHEMA")
+          fk_info = exec_query(<<~SQL, "SCHEMA")
             SELECT t2.oid::regclass::text AS to_table, a1.attname AS column, a2.attname AS primary_key, c.conname AS name, c.confupdtype AS on_update, c.confdeltype AS on_delete, c.convalidated AS valid
             FROM pg_constraint c
             JOIN pg_class t1 ON c.conrelid = t1.oid
@@ -500,6 +529,14 @@ module ActiveRecord
 
             ForeignKeyDefinition.new(table_name, row["to_table"], options)
           end
+        end
+
+        def foreign_tables
+          query_values(data_source_sql(type: "FOREIGN TABLE"), "SCHEMA")
+        end
+
+        def foreign_table_exists?(table_name)
+          query_values(data_source_sql(table_name, type: "FOREIGN TABLE"), "SCHEMA").any? if table_name.present?
         end
 
         # Maps logical Rails types to PostgreSQL-specific data types.
@@ -546,7 +583,7 @@ module ActiveRecord
                .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
             }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
-          [super, *order_columns].join(", ")
+          (order_columns << super).join(", ")
         end
 
         def update_table_definition(table_name, base) # :nodoc:
@@ -665,12 +702,10 @@ module ActiveRecord
 
           def change_column_for_alter(table_name, column_name, type, options = {})
             sqls = [change_column_sql(table_name, column_name, type, options)]
-            procs = []
             sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
             sqls << change_column_null_for_alter(table_name, column_name, options[:null], options[:default]) if options.key?(:null)
-            procs << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
-
-            [sqls, procs]
+            sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
+            sqls
           end
 
 
@@ -694,6 +729,14 @@ module ActiveRecord
             "ALTER #{quote_column_name(column_name)} #{null ? 'DROP' : 'SET'} NOT NULL"
           end
 
+          def add_timestamps_for_alter(table_name, options = {})
+            [add_column_for_alter(table_name, :created_at, :datetime, options), add_column_for_alter(table_name, :updated_at, :datetime, options)]
+          end
+
+          def remove_timestamps_for_alter(table_name, options = {})
+            [remove_column_for_alter(table_name, :updated_at), remove_column_for_alter(table_name, :created_at)]
+          end
+
           def add_index_opclass(quoted_columns, **options)
             opclasses = options_for_index_columns(options[:opclass])
             quoted_columns.each do |name, column|
@@ -708,7 +751,7 @@ module ActiveRecord
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
-            scope[:type] ||= "'r','v','m'" # (r)elation/table, (v)iew, (m)aterialized view
+            scope[:type] ||= "'r','v','m','f'" # (r)elation/table, (v)iew, (m)aterialized view, (f)oreign table
 
             sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
@@ -725,6 +768,8 @@ module ActiveRecord
                 "'r'"
               when "VIEW"
                 "'v','m'"
+              when "FOREIGN TABLE"
+                "'f'"
               end
             scope = {}
             scope[:schema] = schema ? quote(schema) : "ANY (current_schemas(false))"

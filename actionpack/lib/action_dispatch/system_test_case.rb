@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
-gem "capybara", "~> 2.15"
+gem "capybara", ">= 2.15"
 
 require "capybara/dsl"
 require "capybara/minitest"
 require "action_controller"
 require "action_dispatch/system_testing/driver"
+require "action_dispatch/system_testing/browser"
 require "action_dispatch/system_testing/server"
 require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "action_dispatch/system_testing/test_helpers/setup_and_teardown"

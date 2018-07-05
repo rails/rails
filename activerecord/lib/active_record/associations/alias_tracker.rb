@@ -30,20 +30,12 @@ module ActiveRecord
             join.left.scan(
               /JOIN(?:\s+\w+)?\s+(?:\S+\s+)?(?:#{quoted_name}|#{name})\sON/i
             ).size
-          elsif join.respond_to? :left
+          elsif join.is_a?(Arel::Nodes::Join)
             join.left.name == name ? 1 : 0
           elsif join.is_a?(Hash)
-            join.fetch(name, 0)
+            join[name]
           else
-            # this branch is reached by two tests:
-            #
-            # activerecord/test/cases/associations/cascaded_eager_loading_test.rb:37
-            #   with :posts
-            #
-            # activerecord/test/cases/associations/eager_test.rb:1133
-            #   with :comments
-            #
-            0
+            raise ArgumentError, "joins list should be initialized by list of Arel::Nodes::Join"
           end
         end
 

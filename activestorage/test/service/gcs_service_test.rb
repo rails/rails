@@ -19,7 +19,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
         uri = URI.parse url
         request = Net::HTTP::Put.new uri.request_uri
         request.body = data
-        request.add_field "Content-Type", "text/plain"
+        request.add_field "Content-Type", ""
         request.add_field "Content-MD5", checksum
         Net::HTTP.start(uri.host, uri.port, use_ssl: true) do |http|
           http.request request
@@ -33,7 +33,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
     test "signed URL generation" do
       assert_match(/storage\.googleapis\.com\/.*response-content-disposition=inline.*test\.txt.*response-content-type=text%2Fplain/,
-        @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
+        @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain"))
     end
 
     test "signed URL response headers" do
@@ -44,7 +44,7 @@ if SERVICE_CONFIGURATIONS[:gcs]
 
         url = @service.url(key, expires_in: 2.minutes, disposition: :inline, filename: ActiveStorage::Filename.new("test.txt"), content_type: "text/plain")
         response = Net::HTTP.get_response(URI(url))
-        assert_equal "text/plain", response.header["Content-Type"]
+        assert_equal "text/plain", response.content_type
       ensure
         @service.delete key
       end

@@ -97,7 +97,7 @@ If we want to display the properties of all the books in our view, we can do so 
 <%= link_to "New book", new_book_path %>
 ```
 
-NOTE: The actual rendering is done by subclasses of `ActionView::TemplateHandlers`. This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler. Beginning with Rails 2, the standard extensions are `.erb` for ERB (HTML with embedded Ruby), and `.builder` for Builder (XML generator).
+NOTE: The actual rendering is done by nested classes of the module [`ActionView::Template::Handlers`](http://api.rubyonrails.org/classes/ActionView/Template/Handlers.html). This guide does not dig into that process, but it's important to know that the file extension on your view controls the choice of template handler.
 
 ### Using `render`
 
@@ -170,7 +170,7 @@ render a file, because Windows filenames do not have the same format as Unix fil
 
 #### Wrapping it up
 
-The above three ways of rendering (rendering another template within the controller, rendering a template within another controller and rendering an arbitrary file on the file system) are actually variants of the same action.
+The above three ways of rendering (rendering another template within the controller, rendering a template within another controller, and rendering an arbitrary file on the file system) are actually variants of the same action.
 
 In fact, in the BooksController class, inside of the update action where we want to render the edit template if the book does not update successfully, all of the following render calls would all render the `edit.html.erb` template in the `views/books` directory:
 
@@ -403,7 +403,7 @@ Rails understands both numeric status codes and the corresponding symbols shown 
 |                     | 511              | :network_authentication_required |
 
 NOTE:  If you try to render content along with a non-content status code
-(100-199, 204, 205 or 304), it will be dropped from the response.
+(100-199, 204, 205, or 304), it will be dropped from the response.
 
 ##### The `:formats` Option
 
@@ -1210,7 +1210,7 @@ Partials are very useful in rendering collections. When you pass a collection to
 
 When a partial is called with a pluralized collection, then the individual instances of the partial have access to the member of the collection being rendered via a variable named after the partial. In this case, the partial is `_product`, and within the `_product` partial, you can refer to `product` to get the instance that is being rendered.
 
-There is also a shorthand for this. Assuming `@products` is a collection of `product` instances, you can simply write this in the `index.html.erb` to produce the same result:
+There is also a shorthand for this. Assuming `@products` is a collection of `Product` instances, you can simply write this in the `index.html.erb` to produce the same result:
 
 ```html+erb
 <h1>Products</h1>

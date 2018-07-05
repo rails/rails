@@ -4,8 +4,7 @@ module ActiveRecord
   module ConnectionAdapters
     module MySQL
       class SchemaCreation < AbstractAdapter::SchemaCreation # :nodoc:
-        delegate :add_sql_comment!, :mariadb?, to: :@conn
-        private :add_sql_comment!, :mariadb?
+        delegate :add_sql_comment!, :mariadb?, to: :@conn, private: true
 
         private
 

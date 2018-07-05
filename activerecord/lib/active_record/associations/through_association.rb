@@ -4,9 +4,24 @@ module ActiveRecord
   module Associations
     # = Active Record Through Association
     module ThroughAssociation #:nodoc:
-      delegate :source_reflection, :through_reflection, to: :reflection
+      delegate :source_reflection, to: :reflection
 
       private
+        def through_reflection
+          @through_reflection ||= begin
+            refl = reflection.through_reflection
+
+            while refl.through_reflection?
+              refl = refl.through_reflection
+            end
+
+            refl
+          end
+        end
+
+        def through_association
+          @through_association ||= owner.association(through_reflection.name)
+        end
 
         # We merge in these scopes for two reasons:
         #
@@ -38,24 +53,22 @@ module ActiveRecord
         def construct_join_attributes(*records)
           ensure_mutable
 
-          if source_reflection.association_primary_key(reflection.klass) == reflection.klass.primary_key
+          association_primary_key = source_reflection.association_primary_key(reflection.klass)
+
+          if association_primary_key == reflection.klass.primary_key && !options[:source_type]
             join_attributes = { source_reflection.name => records }
           else
             join_attributes = {
-              source_reflection.foreign_key =>
-                records.map { |record|
-                  record.send(source_reflection.association_primary_key(reflection.klass))
-                }
+              source_reflection.foreign_key => records.map(&association_primary_key.to_sym)
             }
           end
 
           if options[:source_type]
-            join_attributes[source_reflection.foreign_type] =
-              records.map { |record| record.class.base_class.name }
+            join_attributes[source_reflection.foreign_type] = [ options[:source_type] ]
           end
 
           if records.count == 1
-            Hash[join_attributes.map { |k, v| [k, v.first] }]
+            join_attributes.transform_values!(&:first)
           else
             join_attributes
           end
@@ -101,7 +114,7 @@ module ActiveRecord
             attributes[inverse.foreign_key] = target.id
           end
 
-          super(attributes)
+          super
         end
     end
   end

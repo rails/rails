@@ -224,6 +224,8 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # :doc:
+
       # Interprets a file using <tt>mechanism</tt> and marks its defined
       # constants as autoloaded. <tt>file_name</tt> can be either a string or
       # respond to <tt>to_path</tt>.
@@ -241,6 +243,8 @@ module ActiveSupport #:nodoc:
 
         Dependencies.depend_on(file_name, message)
       end
+
+      # :nodoc:
 
       def load_dependency(file)
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
@@ -447,6 +451,7 @@ module ActiveSupport #:nodoc:
       mod = Module.new
       into.const_set const_name, mod
       autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
+      autoloaded_constants.uniq!
       mod
     end
 
@@ -670,7 +675,7 @@ module ActiveSupport #:nodoc:
       when Module
         desc.name ||
           raise(ArgumentError, "Anonymous modules have no name to be referenced by")
-        else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
+      else raise TypeError, "Not a valid constant descriptor: #{desc.inspect}"
       end
     end
 

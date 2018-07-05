@@ -70,7 +70,7 @@ class CreateMigrationTest < Rails::Generators::TestCase
     create_migration
 
     assert_match(/identical  db\/migrate\/1_create_articles\.rb\n/, invoke!)
-    assert @migration.identical?
+    assert_predicate @migration, :identical?
   end
 
   def test_invoke_when_exists_not_identical

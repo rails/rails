@@ -21,7 +21,7 @@ require "models/comment"
 require "models/rating"
 
 class CalculationsTest < ActiveRecord::TestCase
-  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books
+  fixtures :companies, :accounts, :topics, :speedometers, :minivans, :books, :posts, :comments
 
   def test_should_sum_field
     assert_equal 318, Account.sum(:credit_limit)
@@ -234,6 +234,24 @@ class CalculationsTest < ActiveRecord::TestCase
       next if query == "SHOW max_identifier_length"
       assert_match %r{\ASELECT(?! DISTINCT) COUNT\(DISTINCT\b}, query
     end
+  end
+
+  def test_count_with_eager_loading_and_custom_order
+    posts = Post.includes(:comments).order("comments.id")
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_count_with_eager_loading_and_custom_order_and_distinct
+    posts = Post.includes(:comments).order("comments.id").distinct
+    assert_queries(1) { assert_equal 11, posts.count }
+    assert_queries(1) { assert_equal 11, posts.count(:all) }
+  end
+
+  def test_distinct_count_all_with_custom_select_and_order
+    accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
+    assert_queries(1) { assert_equal 3, accounts.count(:all) }
+    assert_queries(1) { assert_equal 3, accounts.load.size }
   end
 
   def test_distinct_count_with_order_and_limit
@@ -624,6 +642,18 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal [ topic.written_on ], relation.pluck(:written_on)
   end
 
+  def test_pluck_with_type_cast_does_not_corrupt_the_query_cache
+    topic = topics(:first)
+    relation = Topic.where(id: topic.id)
+    assert_queries 1 do
+      Topic.cache do
+        kind = relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on).class
+        relation.pluck(:written_on)
+        assert_kind_of kind, relation.select(:written_on).load.first.read_attribute_before_type_cast(:written_on)
+      end
+    end
+  end
+
   def test_pluck_and_distinct
     assert_equal [50, 53, 55, 60], Account.order(:credit_limit).distinct.pluck(:credit_limit)
   end
@@ -680,6 +710,29 @@ class CalculationsTest < ActiveRecord::TestCase
   def test_pluck_with_includes_limit_and_empty_result
     assert_equal [], Topic.includes(:replies).limit(0).pluck(:id)
     assert_equal [], Topic.includes(:replies).limit(1).where("0 = 1").pluck(:id)
+  end
+
+  def test_pluck_with_includes_offset
+    assert_equal [5], Topic.includes(:replies).order(:id).offset(4).pluck(:id)
+    assert_equal [], Topic.includes(:replies).order(:id).offset(5).pluck(:id)
+  end
+
+  def test_group_by_with_limit
+    expected = { "Post" => 8, "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).limit(2).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_offset
+    expected = { "SpecialPost" => 1, "StiPost" => 2 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).count("comments.id")
+    assert_equal expected, actual
+  end
+
+  def test_group_by_with_limit_and_offset
+    expected = { "SpecialPost" => 1 }
+    actual = Post.includes(:comments).group(:type).order(:type).offset(1).limit(1).count("comments.id")
+    assert_equal expected, actual
   end
 
   def test_pluck_not_auto_table_name_prefix_if_column_included
@@ -774,6 +827,23 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries 1 do
       assert_equal ["37signals", "Apex", "Ex Nihilo"], companies.pluck(Arel.sql("DISTINCT name"))
     end
+  end
+
+  def test_pick_one
+    assert_equal "The First Topic", Topic.order(:id).pick(:heading)
+    assert_nil Topic.none.pick(:heading)
+    assert_nil Topic.where("1=0").pick(:heading)
+  end
+
+  def test_pick_two
+    assert_equal ["David", "david@loudthinking.com"], Topic.order(:id).pick(:author_name, :author_email_address)
+    assert_nil Topic.none.pick(:author_name, :author_email_address)
+    assert_nil Topic.where("1=0").pick(:author_name, :author_email_address)
+  end
+
+  def test_pick_delegate_to_all
+    cool_first = minivans(:cool_first)
+    assert_equal cool_first.color, Minivan.pick(:color)
   end
 
   def test_grouped_calculation_with_polymorphic_relation

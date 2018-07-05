@@ -116,7 +116,7 @@ class ReservedWordTest < ActiveRecord::TestCase
   end
 
   def test_activerecord_introspection
-    assert Group.table_exists?
+    assert_predicate Group, :table_exists?
     assert_equal ["id", "order", "select_id"], Group.columns.map(&:name).sort
   end
 

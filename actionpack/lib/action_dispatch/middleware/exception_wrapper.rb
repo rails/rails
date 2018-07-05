@@ -12,6 +12,7 @@ module ActionDispatch
       "ActionController::UnknownHttpMethod"          => :method_not_allowed,
       "ActionController::NotImplemented"             => :not_implemented,
       "ActionController::UnknownFormat"              => :not_acceptable,
+      "ActionController::MissingExactTemplate"       => :not_acceptable,
       "ActionController::InvalidAuthenticityToken"   => :unprocessable_entity,
       "ActionController::InvalidCrossOriginRequest"  => :unprocessable_entity,
       "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
@@ -22,10 +23,12 @@ module ActionDispatch
     )
 
     cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
-      "ActionView::MissingTemplate"         => "missing_template",
-      "ActionController::RoutingError"      => "routing_error",
-      "AbstractController::ActionNotFound"  => "unknown_action",
-      "ActionView::Template::Error"         => "template_error"
+      "ActionView::MissingTemplate"            => "missing_template",
+      "ActionController::RoutingError"         => "routing_error",
+      "AbstractController::ActionNotFound"     => "unknown_action",
+      "ActiveRecord::StatementInvalid"         => "invalid_statement",
+      "ActionView::Template::Error"            => "template_error",
+      "ActionController::MissingExactTemplate" => "missing_exact_template",
     )
 
     attr_reader :backtrace_cleaner, :exception, :line_number, :file

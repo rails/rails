@@ -55,4 +55,11 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
 
     assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
   end
+
+  def test_quoted_time_normalizes_date_qualified_time
+    value = ::Time.utc(2018, 3, 11, 12, 30, 0, 999999)
+    type = ActiveRecord::Type::Time.new
+
+    assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
+  end
 end

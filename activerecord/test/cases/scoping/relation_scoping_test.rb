@@ -105,7 +105,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     Developer.select("id, name").scoping do
       developer = Developer.where("name = 'David'").first
       assert_equal "David", developer.name
-      assert !developer.has_attribute?(:salary)
+      assert_not developer.has_attribute?(:salary)
     end
   end
 
@@ -213,21 +213,21 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_current_scope_does_not_pollute_sibling_subclasses
     Comment.none.scoping do
-      assert_not SpecialComment.all.any?
-      assert_not VerySpecialComment.all.any?
-      assert_not SubSpecialComment.all.any?
+      assert_not_predicate SpecialComment.all, :any?
+      assert_not_predicate VerySpecialComment.all, :any?
+      assert_not_predicate SubSpecialComment.all, :any?
     end
 
     SpecialComment.none.scoping do
-      assert Comment.all.any?
-      assert VerySpecialComment.all.any?
-      assert_not SubSpecialComment.all.any?
+      assert_predicate Comment.all, :any?
+      assert_predicate VerySpecialComment.all, :any?
+      assert_not_predicate SubSpecialComment.all, :any?
     end
 
     SubSpecialComment.none.scoping do
-      assert Comment.all.any?
-      assert VerySpecialComment.all.any?
-      assert SpecialComment.all.any?
+      assert_predicate Comment.all, :any?
+      assert_predicate VerySpecialComment.all, :any?
+      assert_predicate SpecialComment.all, :any?
     end
   end
 
@@ -334,7 +334,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_nested_exclusive_scope_for_create
     comment = Comment.create_with(body: "Hey guys, nested scopes are broken. Please fix!").scoping do
       Comment.unscoped.create_with(post_id: 1).scoping do
-        assert Comment.new.body.blank?
+        assert_predicate Comment.new.body, :blank?
         Comment.create body: "Hey guys"
       end
     end

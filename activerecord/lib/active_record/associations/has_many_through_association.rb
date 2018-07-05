@@ -8,9 +8,7 @@ module ActiveRecord
 
       def initialize(owner, reflection)
         super
-
-        @through_records     = {}
-        @through_association = nil
+        @through_records = {}
       end
 
       def concat(*records)
@@ -50,11 +48,6 @@ module ActiveRecord
       end
 
       private
-
-        def through_association
-          @through_association ||= owner.association(through_reflection.name)
-        end
-
         # The through record (built with build_record) is temporarily cached
         # so that it may be reused if insert_record is subsequently called.
         #
@@ -97,7 +90,7 @@ module ActiveRecord
         def build_record(attributes)
           ensure_not_nested
 
-          record = super(attributes)
+          record = super
 
           inverse = source_reflection.inverse_of
           if inverse
@@ -140,21 +133,15 @@ module ActiveRecord
 
           scope = through_association.scope
           scope.where! construct_join_attributes(*records)
+          scope = scope.where(through_scope_attributes)
 
           case method
           when :destroy
             if scope.klass.primary_key
-              count = scope.destroy_all.length
+              count = scope.destroy_all.count(&:destroyed?)
             else
               scope.each(&:_run_destroy_callbacks)
-
-              arel = scope.arel
-
-              stmt = Arel::DeleteManager.new
-              stmt.from scope.klass.arel_table
-              stmt.wheres = arel.constraints
-
-              count = scope.klass.connection.delete(stmt, "SQL")
+              count = scope.delete_all
             end
           when :nullify
             count = scope.update_all(source_reflection.foreign_key => nil)

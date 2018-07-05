@@ -87,6 +87,8 @@ class Firm < Company
 
   has_many :association_with_references, -> { references(:foo) }, class_name: "Client"
 
+  has_many :developers_with_select, -> { select("id, name, first_name") }, class_name: "Developer"
+
   has_one :lead_developer, class_name: "Developer"
   has_many :projects
 
@@ -141,6 +143,21 @@ class Client < Company
   attr_accessor :raise_on_save
   before_save do
     raise RaisedOnSave if raise_on_save
+  end
+
+  attr_accessor :throw_on_save
+  before_save do
+    throw :abort if throw_on_save
+  end
+
+  attr_accessor :rollback_on_save
+  after_save do
+    raise ActiveRecord::Rollback if rollback_on_save
+  end
+
+  attr_accessor :rollback_on_create_called
+  after_rollback(on: :create) do |client|
+    client.rollback_on_create_called = true
   end
 
   class RaisedOnDestroy < RuntimeError; end

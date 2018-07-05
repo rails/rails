@@ -745,7 +745,7 @@ class Person < ApplicationRecord
 end
 ```
 
-The block receives the record, the attribute's name and the attribute's value.
+The block receives the record, the attribute's name, and the attribute's value.
 You can do anything you like to check for valid data within the block. If your
 validation fails, you should add an error message to the model, therefore
 making it invalid.
@@ -953,7 +953,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: [Proc.new  { |c| c.market.retail? }, :desktop?],
+                    if: [Proc.new { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```

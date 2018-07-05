@@ -20,10 +20,9 @@ What is the Asset Pipeline?
 
 The asset pipeline provides a framework to concatenate and minify or compress
 JavaScript and CSS assets. It also adds the ability to write these assets in
-other languages and pre-processors such as CoffeeScript, Sass and ERB.
+other languages and pre-processors such as CoffeeScript, Sass, and ERB.
 It allows assets in your application to be automatically combined with assets
-from other gems. For example, jquery-rails includes a copy of jquery.js
-and enables AJAX features in Rails.
+from other gems.
 
 The asset pipeline is implemented by the
 [sprockets-rails](https://github.com/rails/sprockets-rails) gem,
@@ -225,7 +224,7 @@ Pipeline assets can be placed inside an application in one of three locations:
 `app/assets`, `lib/assets` or `vendor/assets`.
 
 * `app/assets` is for assets that are owned by the application, such as custom
-images, JavaScript files or stylesheets.
+images, JavaScript files, or stylesheets.
 
 * `lib/assets` is for your own libraries' code that doesn't really fit into the
 scope of the application or those libraries which are shared across applications.
@@ -435,7 +434,7 @@ Sprockets uses manifest files to determine which assets to include and serve.
 These manifest files contain _directives_ - instructions that tell Sprockets
 which files to require in order to build a single CSS or JavaScript file. With
 these directives, Sprockets loads the files specified, processes them if
-necessary, concatenates them into one single file and then compresses them
+necessary, concatenates them into one single file, and then compresses them
 (based on value of `Rails.application.config.assets.js_compressor`). By serving
 one file rather than many, the load time of pages can be greatly reduced because
 the browser makes fewer requests. Compression also reduces file size, enabling
@@ -729,8 +728,8 @@ Rails.application.config.assets.precompile += %w( admin.js admin.css )
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The task also generates a `.sprockets-manifest-md5hash.json` (where `md5hash` is
-an MD5 hash) that contains a list with all your assets and their respective
+The task also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
+a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
 
@@ -846,7 +845,7 @@ signals all caches between your server and the client browser that this content
 number of requests for this asset from your server; the asset has a good chance
 of being in the local browser cache or some intermediate cache.
 
-This mode uses more memory, performs more poorly than the default and is not
+This mode uses more memory, performs more poorly than the default, and is not
 recommended.
 
 If you are deploying a production application to a system without any
@@ -918,7 +917,7 @@ config.action_controller.asset_host = ENV['CDN_HOST']
 
 
 
-Note: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
+NOTE: You would need to set `CDN_HOST` on your server to `mycdnsubdomain
 .fictional-cdn.com` for this to work.
 
 Once you have configured your server and your CDN when you serve a webpage that
@@ -1205,10 +1204,10 @@ Adding Assets to Your Gems
 
 Assets can also come from external sources in the form of gems.
 
-A good example of this is the `jquery-rails` gem which comes with Rails as the
-standard JavaScript library gem. This gem contains an engine class which
-inherits from `Rails::Engine`. By doing this, Rails is informed that the
-directory for this gem may contain assets and the `app/assets`, `lib/assets` and
+A good example of this is the `jquery-rails` gem.
+This gem contains an engine class which inherits from `Rails::Engine`.
+By doing this, Rails is informed that the directory for this
+gem may contain assets and the `app/assets`, `lib/assets` and
 `vendor/assets` directories of this engine are added to the search path of
 Sprockets.
 
@@ -1244,11 +1243,7 @@ moving the files from `public/` to the new locations. See [Asset
 Organization](#asset-organization) above for guidance on the correct locations
 for different file types.
 
-Next will be avoiding duplicate JavaScript files. Since jQuery is the default
-JavaScript library from Rails 3.1 onwards, you don't need to copy `jquery.js`
-into `app/assets` and it will be included automatically.
-
-The third is updating the various environment files with the correct default
+Next is updating the various environment files with the correct default
 options.
 
 In `application.rb`:

@@ -19,6 +19,12 @@ class Admin::User < ActiveRecord::Base
   store :params, accessors: [ :token ], coder: YAML
   store :settings, accessors: [ :color, :homepage ]
   store_accessor :settings, :favorite_food
+  store :parent, accessors: [:birthday, :name], prefix: true
+  store :spouse, accessors: [:birthday], prefix: :partner
+  store_accessor :spouse, :name, prefix: :partner
+  store :configs, accessors: [ :secret_question ]
+  store :configs, accessors: [ :two_factor_auth ], suffix: true
+  store_accessor :configs, :login_retry, suffix: :config
   store :preferences, accessors: [ :remember_login ]
   store :json_data, accessors: [ :height, :weight ], coder: Coder.new
   store :json_data_empty, accessors: [ :is_a_good_guy ], coder: Coder.new

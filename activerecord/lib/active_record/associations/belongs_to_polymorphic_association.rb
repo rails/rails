@@ -9,16 +9,14 @@ module ActiveRecord
         type.presence && type.constantize
       end
 
-      private
+      def target_changed?
+        super || owner.saved_change_to_attribute?(reflection.foreign_type)
+      end
 
+      private
         def replace_keys(record)
           super
-          owner[reflection.foreign_type] = record.class.base_class.name
-        end
-
-        def remove_keys
-          super
-          owner[reflection.foreign_type] = nil
+          owner[reflection.foreign_type] = record ? record.class.polymorphic_name : nil
         end
 
         def different_target?(record)

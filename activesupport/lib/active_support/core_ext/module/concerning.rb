@@ -30,7 +30,6 @@ class Module
   #     has_many :events
   #
   #     before_create :track_creation
-  #     after_destroy :track_deletion
   #
   #     private
   #       def track_creation
@@ -52,7 +51,6 @@ class Module
   #       included do
   #         has_many :events
   #         before_create :track_creation
-  #         after_destroy :track_deletion
   #       end
   #
   #       private
@@ -90,7 +88,6 @@ class Module
   #       included do
   #         has_many :events
   #         before_create :track_creation
-  #         after_destroy :track_deletion
   #       end
   #
   #       private

@@ -231,6 +231,7 @@ module ActiveRecord
     end
 
     def _select!(*fields) # :nodoc:
+      fields.reject!(&:blank?)
       fields.flatten!
       fields.map! do |field|
         klass.attribute_alias?(field) ? klass.attribute_alias(field).to_sym : field
@@ -327,8 +328,8 @@ module ActiveRecord
     end
 
     VALID_UNSCOPING_VALUES = Set.new([:where, :select, :group, :order, :lock,
-                                     :limit, :offset, :joins, :includes, :from,
-                                     :readonly, :having])
+                                     :limit, :offset, :joins, :left_outer_joins,
+                                     :includes, :from, :readonly, :having])
 
     # Removes an unwanted relation that is already defined on a chain of relations.
     # This is useful when passing around chains of relations and would like to
@@ -375,10 +376,11 @@ module ActiveRecord
       args.each do |scope|
         case scope
         when Symbol
+          scope = :left_outer_joins if scope == :left_joins
           if !VALID_UNSCOPING_VALUES.include?(scope)
             raise ArgumentError, "Called unscope() with invalid unscoping argument ':#{scope}'. Valid arguments are :#{VALID_UNSCOPING_VALUES.to_a.join(", :")}."
           end
-          set_value(scope, nil)
+          set_value(scope, DEFAULT_VALUES[scope])
         when Hash
           scope.each do |key, target_value|
             if key != :where
@@ -444,15 +446,13 @@ module ActiveRecord
     #
     def left_outer_joins(*args)
       check_if_method_has_arguments!(__callee__, args)
-
-      args.compact!
-      args.flatten!
-
       spawn.left_outer_joins!(*args)
     end
     alias :left_joins :left_outer_joins
 
     def left_outer_joins!(*args) # :nodoc:
+      args.compact!
+      args.flatten!
       self.left_outer_joins_values += args
       self
     end
@@ -894,8 +894,13 @@ module ActiveRecord
       self
     end
 
-    def skip_query_cache! # :nodoc:
-      self.skip_query_cache_value = true
+    def skip_query_cache!(value = true) # :nodoc:
+      self.skip_query_cache_value = value
+      self
+    end
+
+    def skip_preloading! # :nodoc:
+      self.skip_preloading_value = true
       self
     end
 
@@ -904,11 +909,12 @@ module ActiveRecord
       @arel ||= build_arel(aliases)
     end
 
+    # Returns a relation value with a given name
+    def get_value(name) # :nodoc:
+      @values.fetch(name, DEFAULT_VALUES[name])
+    end
+
     protected
-      # Returns a relation value with a given name
-      def get_value(name) # :nodoc:
-        @values[name] || default_value_for(name)
-      end
 
       # Sets the relation value with the given name
       def set_value(name, value) # :nodoc:
@@ -980,6 +986,8 @@ module ActiveRecord
           case join
           when Hash, Symbol, Array
             :association_join
+          when ActiveRecord::Associations::JoinDependency
+            :stashed_join
           else
             raise ArgumentError, "only Hash, Symbol and Array are allowed"
           end
@@ -1010,19 +1018,17 @@ module ActiveRecord
       def build_join_query(manager, buckets, join_type, aliases)
         buckets.default = []
 
-        association_joins         = buckets[:association_join]
-        stashed_association_joins = buckets[:stashed_join]
-        join_nodes                = buckets[:join_node].uniq
-        string_joins              = buckets[:string_join].map(&:strip).uniq
+        association_joins = buckets[:association_join]
+        stashed_joins     = buckets[:stashed_join]
+        join_nodes        = buckets[:join_node].uniq
+        string_joins      = buckets[:string_join].map(&:strip).uniq
 
-        join_list = join_nodes + convert_join_strings_to_ast(manager, string_joins)
+        join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
-        join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          klass, table, association_joins, alias_tracker
-        )
+        join_dependency = construct_join_dependency(association_joins)
 
-        joins = join_dependency.join_constraints(stashed_association_joins, join_type)
+        joins = join_dependency.join_constraints(stashed_joins, join_type, alias_tracker)
         joins.each { |join| manager.from(join) }
 
         manager.join_sources.concat(join_list)
@@ -1030,7 +1036,7 @@ module ActiveRecord
         alias_tracker.aliases
       end
 
-      def convert_join_strings_to_ast(table, joins)
+      def convert_join_strings_to_ast(joins)
         joins
           .flatten
           .reject(&:blank?)
@@ -1048,11 +1054,13 @@ module ActiveRecord
       end
 
       def arel_columns(columns)
-        columns.map do |field|
+        columns.flat_map do |field|
           if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
             arel_attribute(field)
           elsif Symbol === field
             connection.quote_table_name(field.to_s)
+          elsif Proc === field
+            field.call
           else
             field
           end
@@ -1192,7 +1200,6 @@ module ActiveRecord
 
       DEFAULT_VALUES = {
         create_with: FROZEN_EMPTY_HASH,
-        readonly: false,
         where: Relation::WhereClause.empty,
         having: Relation::WhereClause.empty,
         from: Relation::FromClause.empty
@@ -1200,16 +1207,6 @@ module ActiveRecord
 
       Relation::MULTI_VALUE_METHODS.each do |value|
         DEFAULT_VALUES[value] ||= FROZEN_EMPTY_ARRAY
-      end
-
-      Relation::SINGLE_VALUE_METHODS.each do |value|
-        DEFAULT_VALUES[value] = nil if DEFAULT_VALUES[value].nil?
-      end
-
-      def default_value_for(name)
-        DEFAULT_VALUES.fetch(name) do
-          raise ArgumentError, "unknown relation value #{name.inspect}"
-        end
       end
   end
 end

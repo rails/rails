@@ -15,6 +15,8 @@ require "sqlite3"
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     def sqlite3_connection(config)
+      config = config.symbolize_keys
+
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -31,7 +33,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        results_as_hash: true
+        config.merge(results_as_hash: true)
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -60,7 +62,7 @@ module ActiveRecord
       include SQLite3::SchemaStatements
 
       NATIVE_DATABASE_TYPES = {
-        primary_key:  "INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL",
+        primary_key:  "integer PRIMARY KEY AUTOINCREMENT NOT NULL",
         string:       { name: "varchar" },
         text:         { name: "text" },
         integer:      { name: "integer" },
@@ -94,15 +96,19 @@ module ActiveRecord
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
         private
           def dealloc(stmt)
-            stmt[:stmt].close unless stmt[:stmt].closed?
+            stmt.close unless stmt.closed?
           end
       end
 
       def initialize(connection, logger, connection_options, config)
         super(connection, logger, config)
 
-        @active     = nil
+        @active     = true
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
+
+        if sqlite_version < "3.8.0"
+          raise "Your version of SQLite (#{sqlite_version}) is too old. Active Record supports SQLite >= 3.8."
+        end
 
         configure_connection
       end
@@ -116,7 +122,7 @@ module ActiveRecord
       end
 
       def supports_partial_index?
-        sqlite_version >= "3.8.0"
+        true
       end
 
       def requires_reloading?
@@ -124,7 +130,7 @@ module ActiveRecord
       end
 
       def supports_foreign_keys_in_create?
-        sqlite_version >= "3.6.19"
+        true
       end
 
       def supports_views?
@@ -139,12 +145,8 @@ module ActiveRecord
         true
       end
 
-      def supports_multi_insert?
-        sqlite_version >= "3.7.11"
-      end
-
       def active?
-        @active != false
+        @active
       end
 
       # Disconnects from the database if already connected. Otherwise, this
@@ -187,13 +189,16 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = query_value("PRAGMA foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys")
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 
         begin
+          execute("PRAGMA defer_foreign_keys = ON")
           execute("PRAGMA foreign_keys = OFF")
           yield
         ensure
-          execute("PRAGMA foreign_keys = #{old}")
+          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
+          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
       end
 
@@ -224,11 +229,8 @@ module ActiveRecord
                 stmt.close
               end
             else
-              cache = @statements[sql] ||= {
-                stmt: @connection.prepare(sql)
-              }
-              stmt = cache[:stmt]
-              cols = cache[:cols] ||= stmt.columns
+              stmt = @statements[sql] ||= @connection.prepare(sql)
+              cols = stmt.columns
               stmt.reset!
               stmt.bind_params(type_casted_binds)
               records = stmt.to_a
@@ -290,19 +292,18 @@ module ActiveRecord
         rename_table_indexes(table_name, new_name)
       end
 
-      # See: https://www.sqlite.org/lang_altertable.html
-      # SQLite has an additional restriction on the ALTER TABLE statement
-      def valid_alter_table_type?(type)
-        type.to_sym != :primary_key
+      def valid_alter_table_type?(type, options = {})
+        !invalid_alter_table_type?(type, options)
       end
+      deprecate :valid_alter_table_type?
 
       def add_column(table_name, column_name, type, options = {}) #:nodoc:
-        if valid_alter_table_type?(type)
-          super(table_name, column_name, type, options)
-        else
+        if invalid_alter_table_type?(type, options)
           alter_table(table_name) do |definition|
             definition.column(column_name, type, options)
           end
+        else
+          super
         end
       end
 
@@ -368,8 +369,22 @@ module ActiveRecord
       end
 
       def insert_fixtures(rows, table_name)
-        rows.each do |row|
-          insert_fixture(row, table_name)
+        ActiveSupport::Deprecation.warn(<<-MSG.squish)
+          `insert_fixtures` is deprecated and will be removed in the next version of Rails.
+          Consider using `insert_fixtures_set` for performance improvement.
+        MSG
+        insert_fixtures_set(table_name => rows)
+      end
+
+      def insert_fixtures_set(fixture_set, tables_to_delete = [])
+        disable_referential_integrity do
+          transaction(requires_new: true) do
+            tables_to_delete.each { |table| delete "DELETE FROM #{quote_table_name(table)}", "Fixture Delete" }
+
+            fixture_set.each do |table_name, rows|
+              rows.each { |row| insert_fixture(row, table_name) }
+            end
+          end
         end
       end
 
@@ -386,14 +401,22 @@ module ActiveRecord
         end
         alias column_definitions table_structure
 
+        # See: https://www.sqlite.org/lang_altertable.html
+        # SQLite has an additional restriction on the ALTER TABLE statement
+        def invalid_alter_table_type?(type, options)
+          type.to_sym == :primary_key || options[:primary_key]
+        end
+
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
           caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(temporary: true))
-            move_table(altered_table_name, table_name, &caller)
+            disable_referential_integrity do
+              move_table(table_name, altered_table_name,
+                options.merge(temporary: true))
+              move_table(altered_table_name, table_name, &caller)
+            end
           end
         end
 
@@ -452,6 +475,7 @@ module ActiveRecord
               # index name can't be the same
               opts = { name: name.gsub(/(^|_)(#{from})_/, "\\1#{to}_"), internal: true }
               opts[:unique] = true if index.unique
+              opts[:where] = index.where if index.where
               add_index(to, columns, opts)
             end
           end

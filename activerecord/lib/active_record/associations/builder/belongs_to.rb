@@ -36,7 +36,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
           if (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
-          elsif saved_change_to_attribute?(foreign_key) && !new_record?
+          elsif association(reflection.name).target_changed?
             if reflection.polymorphic?
               model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
@@ -49,14 +49,22 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key     = attribute_in_database foreign_key
 
             if foreign_key && model.respond_to?(:increment_counter)
+              foreign_key = counter_cache_target(reflection, model, foreign_key)
               model.increment_counter(cache_column, foreign_key)
             end
 
             if foreign_key_was && model_was.respond_to?(:decrement_counter)
+              foreign_key_was = counter_cache_target(reflection, model_was, foreign_key_was)
               model_was.decrement_counter(cache_column, foreign_key_was)
             end
           end
         end
+
+        private
+          def counter_cache_target(reflection, model, foreign_key)
+            primary_key = reflection.association_primary_key(model)
+            model.unscoped.where!(primary_key => foreign_key)
+          end
       end
     end
 
@@ -84,7 +92,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         else
           klass = association.klass
         end
-        old_record = klass.find_by(klass.primary_key => old_foreign_id)
+        primary_key = reflection.association_primary_key(klass)
+        old_record = klass.find_by(primary_key => old_foreign_id)
 
         if old_record
           if touch != true

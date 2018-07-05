@@ -7,38 +7,31 @@ module ActiveRecord
       # Enable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def cache(&block)
-        if configurations.empty?
-          yield
-        else
+        if connected? || !configurations.empty?
           connection.cache(&block)
+        else
+          yield
         end
       end
 
       # Disable the query cache within the block if Active Record is configured.
       # If it's not, it will execute the given block.
       def uncached(&block)
-        if configurations.empty?
-          yield
-        else
+        if connected? || !configurations.empty?
           connection.uncached(&block)
+        else
+          yield
         end
       end
     end
 
     def self.run
-      ActiveRecord::Base.connection_handler.connection_pool_list.map do |pool|
-        caching_was_enabled = pool.query_cache_enabled
-
-        pool.enable_query_cache!
-
-        [pool, caching_was_enabled]
-      end
+      ActiveRecord::Base.connection_handler.connection_pool_list.
+        reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! }
     end
 
-    def self.complete(caching_pools)
-      caching_pools.each do |pool, caching_was_enabled|
-        pool.disable_query_cache! unless caching_was_enabled
-      end
+    def self.complete(pools)
+      pools.each { |pool| pool.disable_query_cache! }
 
       ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
         pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?

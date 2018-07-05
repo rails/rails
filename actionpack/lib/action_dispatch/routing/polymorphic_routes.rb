@@ -120,8 +120,7 @@ module ActionDispatch
                                                opts
       end
 
-      # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
+      # Returns the path component of a URL for the given record.
       def polymorphic_path(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
           options = record_or_hash_or_array.merge(options)

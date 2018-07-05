@@ -110,12 +110,7 @@ module ActiveRecord
               if @query_cache[sql].key?(binds)
                 ActiveSupport::Notifications.instrument(
                   "sql.active_record",
-                  sql: sql,
-                  binds: binds,
-                  type_casted_binds: -> { type_casted_binds(binds) },
-                  name: name,
-                  connection_id: object_id,
-                  cached: true,
+                  cache_notification_info(sql, name, binds)
                 )
                 @query_cache[sql][binds]
               else
@@ -123,6 +118,19 @@ module ActiveRecord
               end
             result.dup
           end
+        end
+
+        # Database adapters can override this method to
+        # provide custom cache information.
+        def cache_notification_info(sql, name, binds)
+          {
+            sql: sql,
+            binds: binds,
+            type_casted_binds: -> { type_casted_binds(binds) },
+            name: name,
+            connection_id: object_id,
+            cached: true
+          }
         end
 
         # If arel is locked this is a SELECT ... FOR UPDATE or somesuch. Such

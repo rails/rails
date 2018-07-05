@@ -3153,7 +3153,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       after = has_named_route?(:hello)
     end
 
-    assert !before, "expected to not have named route :hello before route definition"
+    assert_not before, "expected to not have named route :hello before route definition"
     assert after, "expected to have named route :hello after route definition"
   end
 
@@ -3166,7 +3166,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
       end
     end
 
-    assert !respond_to?(:routes_no_collision_path)
+    assert_not respond_to?(:routes_no_collision_path)
   end
 
   def test_controller_name_with_leading_slash_raise_error
@@ -3313,7 +3313,7 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     end
 
     get "/search"
-    assert !@request.params[:action].frozen?
+    assert_not_predicate @request.params[:action], :frozen?
   end
 
   def test_multiple_positional_args_with_the_same_name
@@ -4267,7 +4267,7 @@ class TestOptimizedNamedRoutes < ActionDispatch::IntegrationTest
   def app; APP end
 
   test "enabled when not mounted and default_url_options is empty" do
-    assert Routes.url_helpers.optimize_routes_generation?
+    assert_predicate Routes.url_helpers, :optimize_routes_generation?
   end
 
   test "named route called as singleton method" do
@@ -4500,7 +4500,7 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
 
       get "/integer", to: ok, constraints: { port: 8080  }
       get "/string",  to: ok, constraints: { port: "8080" }
-      get "/array",   to: ok, constraints: { port: [8080] }
+      get "/array/:idx",   to: ok, constraints: { port: [8080], idx: %w[first last] }
       get "/regexp",  to: ok, constraints: { port: /8080/ }
     end
   end
@@ -4529,7 +4529,10 @@ class TestPortConstraints < ActionDispatch::IntegrationTest
     get "http://www.example.com/array"
     assert_response :not_found
 
-    get "http://www.example.com:8080/array"
+    get "http://www.example.com:8080/array/middle"
+    assert_response :not_found
+
+    get "http://www.example.com:8080/array/first"
     assert_response :success
   end
 

@@ -1,10 +1,10 @@
 # Active Storage
 
-Active Storage makes it simple to upload and reference files in cloud services like Amazon S3, Google Cloud Storage, or Microsoft Azure Storage, and attach those files to Active Records. Supports having one main service and mirrors in other services for redundancy. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
+Active Storage makes it simple to upload and reference files in cloud services like [Amazon S3](https://aws.amazon.com/s3/), [Google Cloud Storage](https://cloud.google.com/storage/docs/), or [Microsoft Azure Storage](https://azure.microsoft.com/en-us/services/storage/), and attach those files to Active Records. Supports having one main service and mirrors in other services for redundancy. It also provides a disk service for testing or local deployments, but the focus is on cloud storage.
 
 Files can be uploaded from the server to the cloud or directly from the client to the cloud.
 
-Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) supported transformation.
+Image files can furthermore be transformed using on-demand variants for quality, aspect ratio, size, or any other [MiniMagick](https://github.com/minimagick/minimagick) or [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image) supported transformation.
 
 ## Compared to other storage solutions
 
@@ -99,7 +99,7 @@ Variation of image attachment:
 
 ```erb
 <%# Hitting the variant URL will lazy transform the original blob and then redirect to its new service location %>
-<%= image_tag user.avatar.variant(resize: "100x100") %>
+<%= image_tag user.avatar.variant(resize_to_fit: [100, 100]) %>
 ```
 
 ## Direct uploads
@@ -144,7 +144,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
 
 Active Storage is released under the [MIT License](https://opensource.org/licenses/MIT).
 
- ## Support
+## Support
 
 API documentation is at:
 

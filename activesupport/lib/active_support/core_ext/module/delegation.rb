@@ -22,8 +22,9 @@ class Module
   # ==== Options
   # * <tt>:to</tt> - Specifies the target object
   # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
-  # * <tt>:allow_nil</tt> - if set to true, prevents a +Module::DelegationError+
+  # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
   #   from being raised
+  # * <tt>:private</tt> - If set to true, changes method visibility to private
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -114,6 +115,23 @@ class Module
   #   invoice.customer_name    # => 'John Doe'
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
+  # The delegated methods are public by default.
+  # Pass <tt>private: true</tt> to change that.
+  #
+  #   class User < ActiveRecord::Base
+  #     has_one :profile
+  #     delegate :first_name, to: :profile
+  #     delegate :date_of_birth, to: :profile, private: true
+  #
+  #     def age
+  #       Date.today.year - date_of_birth.year
+  #     end
+  #   end
+  #
+  #   User.new.first_name # => "Tomas"
+  #   User.new.date_of_birth # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
+  #   User.new.age # => 2
+  #
   # If the target is +nil+ and does not respond to the delegated method a
   # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
   # use the <tt>:allow_nil</tt> option.
@@ -151,7 +169,7 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
@@ -173,7 +191,7 @@ class Module
     to = to.to_s
     to = "self.#{to}" if DELEGATION_RESERVED_METHOD_NAMES.include?(to)
 
-    methods.map do |method|
+    method_names = methods.map do |method|
       # Attribute writer methods only accept one argument. Makes sure []=
       # methods still accept two arguments.
       definition = /[^\]]=$/.match?(method) ? "arg" : "*args, &block"
@@ -213,6 +231,9 @@ class Module
 
       module_eval(method_def, file, line)
     end
+
+    private(*method_names) if private
+    method_names
   end
 
   # When building decorators, a common pattern may emerge:

@@ -102,7 +102,7 @@ Secrets will be decrypted in production, using a key stored either in the
 [Pull Request](https://github.com/rails/rails/pull/27825)
 
 Allows specifying common parameters used for all methods in a mailer class in
-order to share instance variables, headers and other common setup.
+order to share instance variables, headers, and other common setup.
 
 ``` ruby
 class InvitationsMailer < ApplicationMailer
@@ -170,7 +170,7 @@ Before Rails 5.1, there were two interfaces for handling HTML forms:
 `form_for` for model instances and `form_tag` for custom URLs.
 
 Rails 5.1 combines both of these interfaces with `form_with`, and
-can generate form tags based on URLs, scopes or models.
+can generate form tags based on URLs, scopes, or models.
 
 Using just a URL:
 
@@ -354,6 +354,9 @@ Please refer to the [Changelog][action-pack] for detailed changes.
 *   Removed deprecated support to `:text` and `:nothing` in `render`.
     ([Commit](https://github.com/rails/rails/commit/79a5ea9eadb4d43b62afacedc0706cbe88c54496), 
     [Commit](https://github.com/rails/rails/commit/57e1c99a280bdc1b324936a690350320a1cd8111))
+
+*   Removed deprecated support for calling `HashWithIndifferentAccess` methods on `ActionController::Parameters`.
+    ([Commit](https://github.com/rails/rails/pull/26746/commits/7093ceb480ad6a0a91b511832dad4c6a86981b93))
 
 ### Deprecations
 

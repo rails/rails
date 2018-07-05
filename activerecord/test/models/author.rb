@@ -8,6 +8,7 @@ class Author < ActiveRecord::Base
   has_many :posts_with_comments, -> { includes(:comments) }, class_name: "Post"
   has_many :popular_grouped_posts, -> { includes(:comments).group("type").having("SUM(comments_count) > 1").select("type") }, class_name: "Post"
   has_many :posts_with_comments_sorted_by_comment_id, -> { includes(:comments).order("comments.id") }, class_name: "Post"
+  has_many :posts_sorted_by_id, -> { order(:id) }, class_name: "Post"
   has_many :posts_sorted_by_id_limited, -> { order("posts.id").limit(1) }, class_name: "Post"
   has_many :posts_with_categories, -> { includes(:categories) }, class_name: "Post"
   has_many :posts_with_comments_and_categories, -> { includes(:comments, :categories).order("posts.id") }, class_name: "Post"
@@ -40,7 +41,7 @@ class Author < ActiveRecord::Base
            -> { where(title: "Welcome to the weblog").where(Post.arel_table[:comments_count].gt(0)) },
            class_name: "Post"
 
-  has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts, source: :comments
+  has_many :comments_desc, -> { order("comments.id DESC") }, through: :posts_sorted_by_id, source: :comments
   has_many :unordered_comments, -> { unscope(:order).distinct }, through: :posts_sorted_by_id_limited, source: :comments
   has_many :funky_comments, through: :posts, source: :comments
   has_many :ordered_uniq_comments, -> { distinct.order("comments.id") }, through: :posts, source: :comments
@@ -87,6 +88,9 @@ class Author < ActiveRecord::Base
   has_many :special_categorizations
   has_many :special_categories, through: :special_categorizations, source: :category
   has_one  :special_category,   through: :special_categorizations, source: :category
+
+  has_many :special_categories_with_conditions, -> { where(categorizations: { special: true }) }, through: :categorizations, source: :category
+  has_many :nonspecial_categories_with_conditions, -> { where(categorizations: { special: false }) }, through: :categorizations, source: :category
 
   has_many :categories_like_general, -> { where(name: "General") }, through: :categorizations, source: :category, class_name: "Category"
 
@@ -157,6 +161,9 @@ class Author < ActiveRecord::Base
   has_many :posts_with_extension_and_instance, ->(record) { order(:title) }, class_name: "Post" do
     def extension_method; end
   end
+
+  has_many :top_posts, -> { order(id: :asc) }, class_name: "Post"
+  has_many :other_top_posts, -> { order(id: :asc) }, class_name: "Post"
 
   attr_accessor :post_log
   after_initialize :set_post_log

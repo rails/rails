@@ -5,6 +5,7 @@ require "active_support/inflector"
 require "active_support/time"
 require "active_support/json"
 require "time_zone_test_helpers"
+require "yaml"
 
 class DurationTest < ActiveSupport::TestCase
   include TimeZoneTestHelpers
@@ -15,30 +16,30 @@ class DurationTest < ActiveSupport::TestCase
     assert_kind_of ActiveSupport::Duration, d
     assert_kind_of Numeric, d
     assert_kind_of Integer, d
-    assert !d.is_a?(Hash)
+    assert_not d.is_a?(Hash)
 
     k = Class.new
     class << k; undef_method :== end
-    assert !d.is_a?(k)
+    assert_not d.is_a?(k)
   end
 
   def test_instance_of
-    assert 1.minute.instance_of?(1.class)
+    assert 1.minute.instance_of?(Integer)
     assert 2.days.instance_of?(ActiveSupport::Duration)
-    assert !3.second.instance_of?(Numeric)
+    assert_not 3.second.instance_of?(Numeric)
   end
 
   def test_threequals
     assert ActiveSupport::Duration === 1.day
-    assert !(ActiveSupport::Duration === 1.day.to_i)
-    assert !(ActiveSupport::Duration === "foo")
+    assert_not (ActiveSupport::Duration === 1.day.to_i)
+    assert_not (ActiveSupport::Duration === "foo")
   end
 
   def test_equals
     assert 1.day == 1.day
     assert 1.day == 1.day.to_i
     assert 1.day.to_i == 1.day
-    assert !(1.day == "foo")
+    assert_not (1.day == "foo")
   end
 
   def test_to_s
@@ -52,11 +53,11 @@ class DurationTest < ActiveSupport::TestCase
     assert 1.minute.eql?(1.minute)
     assert 1.minute.eql?(60.seconds)
     assert 2.days.eql?(48.hours)
-    assert !1.second.eql?(1)
-    assert !1.eql?(1.second)
+    assert_not 1.second.eql?(1)
+    assert_not 1.eql?(1.second)
     assert 1.minute.eql?(180.seconds - 2.minutes)
-    assert !1.minute.eql?(60)
-    assert !1.minute.eql?("foo")
+    assert_not 1.minute.eql?(60)
+    assert_not 1.minute.eql?("foo")
   end
 
   def test_inspect
@@ -71,6 +72,8 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal "7 days",                          7.days.inspect
     assert_equal "1 week",                          1.week.inspect
     assert_equal "2 weeks",                         1.fortnight.inspect
+    assert_equal "0 seconds",                       (10 % 5.seconds).inspect
+    assert_equal "10 minutes",                      (10.minutes + 0.seconds).inspect
   end
 
   def test_inspect_locale
@@ -153,6 +156,18 @@ class DurationTest < ActiveSupport::TestCase
 
   def test_date_added_with_multiplied_duration
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
+  end
+
+  def test_date_added_with_multiplied_duration_larger_than_one_month
+    assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+  end
+
+  def test_date_added_with_divided_duration
+    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+  end
+
+  def test_date_added_with_divided_duration_larger_than_one_month
+    assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
   end
 
   def test_plus_with_time
@@ -638,6 +653,12 @@ class DurationTest < ActiveSupport::TestCase
     d2 = 2.months - 2.months
 
     assert_equal time + d1, time + d2
+  end
+
+  def test_durations_survive_yaml_serialization
+    d1 = YAML.load(YAML.dump(10.minutes))
+    assert_equal 600, d1.to_i
+    assert_equal 660, (d1 + 60).to_i
   end
 
   private

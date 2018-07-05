@@ -5,6 +5,7 @@ require "multibyte_test_helpers"
 require "stringio"
 require "fileutils"
 require "tempfile"
+require "tmpdir"
 require "concurrent/atomics"
 
 class LoggerTest < ActiveSupport::TestCase

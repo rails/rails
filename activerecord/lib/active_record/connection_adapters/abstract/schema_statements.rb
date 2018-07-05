@@ -305,7 +305,7 @@ module ActiveRecord
         yield td if block_given?
 
         if options[:force]
-          drop_table(table_name, **options, if_exists: true)
+          drop_table(table_name, options.merge(if_exists: true))
         end
 
         result = execute schema_creation.accept td
@@ -406,7 +406,7 @@ module ActiveRecord
       #
       #   Defaults to false.
       #
-      #   Only supported on the MySQL adapter, ignored elsewhere.
+      #   Only supported on the MySQL and PostgreSQL adapter, ignored elsewhere.
       #
       # ====== Add a column
       #
@@ -715,7 +715,7 @@ module ActiveRecord
       #
       #   CREATE INDEX by_branch_desc_party ON accounts(branch_id DESC, party_id ASC, surname)
       #
-      # Note: MySQL doesn't yet support index order (it accepts the syntax but ignores it).
+      # Note: MySQL only supports index order from 8.0.1 onwards (earlier versions accepted the syntax but ignored it).
       #
       # ====== Creating a partial index
       #
@@ -908,7 +908,7 @@ module ActiveRecord
             foreign_key_options = { to_table: reference_name }
           end
           foreign_key_options[:column] ||= "#{ref_name}_id"
-          remove_foreign_key(table_name, **foreign_key_options)
+          remove_foreign_key(table_name, foreign_key_options)
         end
 
         remove_column(table_name, "#{ref_name}_id")
@@ -1049,8 +1049,8 @@ module ActiveRecord
         sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
         migrated = ActiveRecord::SchemaMigration.all_versions.map(&:to_i)
-        versions = ActiveRecord::Migrator.migration_files(migrations_paths).map do |file|
-          ActiveRecord::Migrator.parse_migration_filename(file).first.to_i
+        versions = migration_context.migration_files.map do |file|
+          migration_context.parse_migration_filename(file).first.to_i
         end
 
         unless migrated.include?(version)
@@ -1062,13 +1062,7 @@ module ActiveRecord
           if (duplicate = inserting.detect { |v| inserting.count(v) > 1 })
             raise "Duplicate migration #{duplicate}. Please renumber your migrations to resolve the conflict."
           end
-          if supports_multi_insert?
-            execute insert_versions_sql(inserting)
-          else
-            inserting.each do |v|
-              execute insert_versions_sql(v)
-            end
-          end
+          execute insert_versions_sql(inserting)
         end
       end
 

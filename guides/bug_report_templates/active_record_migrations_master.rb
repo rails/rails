@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-gem "bundler", "< 1.16"
-
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -38,7 +36,7 @@ end
 class Payment < ActiveRecord::Base
 end
 
-class ChangeAmountToAddScale < ActiveRecord::Migration[5.2]
+class ChangeAmountToAddScale < ActiveRecord::Migration[6.0]
   def change
     reversible do |dir|
       dir.up do

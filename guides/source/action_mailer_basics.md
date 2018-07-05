@@ -20,9 +20,18 @@ Introduction
 ------------
 
 Action Mailer allows you to send emails from your application using mailer classes
-and views. Mailers work very similarly to controllers. They inherit from
-`ActionMailer::Base` and live in `app/mailers`, and they have associated views
-that appear in `app/views`.
+and views.
+
+#### Mailers are similar to controllers
+
+They inherit from `ActionMailer::Base` and live in `app/mailers`. Mailers also work
+very similarly to controllers. Some examples of similarities are enumerated below.
+Mailers have:
+
+* Actions, and also, associated views that appear in `app/views`.
+* Instance variables that are accessible in views.
+* The ability to utilise layouts and partials.
+* The ability to access a params hash.
 
 Sending Emails
 --------------
@@ -60,8 +69,7 @@ end
 ```
 
 As you can see, you can generate mailers just like you use other generators with
-Rails. Mailers are conceptually similar to controllers, and so we get a mailer,
-a directory for views, and a test.
+Rails.
 
 If you didn't want to use a generator, you could create your own file inside of
 `app/mailers`, just make sure that it inherits from `ActionMailer::Base`:
@@ -73,10 +81,9 @@ end
 
 #### Edit the Mailer
 
-Mailers are very similar to Rails controllers. They also have methods called
-"actions" and use views to structure the content. Where a controller generates
-content like HTML to send back to the client, a Mailer creates a message to be
-delivered via email.
+Mailers have methods called "actions" and they use views to structure their content.
+Where a controller generates content like HTML to send back to the client, a Mailer
+creates a message to be delivered via email.
 
 `app/mailers/user_mailer.rb` contains an empty mailer:
 
@@ -109,9 +116,6 @@ this mailer. In this case we are setting the `:from` header to a value for all
 messages in this class. This can be overridden on a per-email basis.
 * `mail` - The actual email message, we are passing the `:to` and `:subject`
 headers in.
-
-Just like controllers, any instance variables we define in the method become
-available for use in the views.
 
 #### Create a Mailer View
 
@@ -213,6 +217,8 @@ pending jobs on restart.
 If you need a persistent backend, you will need to use an Active Job adapter
 that has a persistent backend (Sidekiq, Resque, etc).
 
+NOTE: When calling `deliver_later` the job will be placed under `mailers` queue. Make sure Active Job adapter support it otherwise the job may be silently ignored preventing email delivery. You can change that by specifying `config.action_mailer.deliver_later_queue_name` option.
+
 If you want to send emails right away (from a cronjob for example) just call
 `deliver_now`:
 
@@ -234,7 +240,7 @@ params.
 The method `welcome_email` returns an `ActionMailer::MessageDelivery` object which
 can then just be told `deliver_now` or `deliver_later` to send itself out. The
 `ActionMailer::MessageDelivery` object is just a wrapper around a `Mail::Message`. If
-you want to inspect, alter or do anything else with the `Mail::Message` object you can
+you want to inspect, alter, or do anything else with the `Mail::Message` object you can
 access it with the `message` method on the `ActionMailer::MessageDelivery` object.
 
 ### Auto encoding header values
@@ -266,7 +272,7 @@ Action Mailer makes it very easy to add attachments.
 
 * Pass the file name and content and Action Mailer and the
   [Mail gem](https://github.com/mikel/mail) will automatically guess the
-  mime_type, set the encoding and create the attachment.
+  mime_type, set the encoding, and create the attachment.
 
     ```ruby
     attachments['filename.jpg'] = File.read('/path/to/filename.jpg')
@@ -805,9 +811,9 @@ config.action_mailer.smtp_settings = {
   user_name:            '<username>',
   password:             '<password>',
   authentication:       'plain',
-  enable_starttls_auto: true  }
+  enable_starttls_auto: true }
 ```
-Note: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
+NOTE: As of July 15, 2014, Google increased [its security measures](https://support.google.com/accounts/answer/6010255) and now blocks attempts from apps it deems less secure.
 You can change your Gmail settings [here](https://www.google.com/settings/security/lesssecureapps) to allow the attempts. If your Gmail account has 2-factor authentication enabled,
 then you will need to set an [app password](https://myaccount.google.com/apppasswords) and use that instead of your regular password. Alternatively, you can
 use another ESP to send email by replacing 'smtp.gmail.com' above with the address of your provider.

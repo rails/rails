@@ -45,7 +45,7 @@ load Gem.bin_path('railties', 'rails', version)
 ```
 
 If you try out this command in a Rails console, you would see that this loads
-`railties/exe/rails`. A part of the file `railties/exe/rails.rb` has the
+`railties/exe/rails`. A part of the file `railties/exe/rails` has the
 following code:
 
 ```ruby
@@ -532,12 +532,12 @@ require "rails"
 
 %w(
   active_record/railtie
+  active_storage/engine
   action_controller/railtie
   action_view/railtie
   action_mailer/railtie
   active_job/railtie
   action_cable/engine
-  active_storage/engine
   rails/test_unit/railtie
   sprockets/railtie
 ).each do |railtie|

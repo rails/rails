@@ -2,8 +2,7 @@
 
 module ActiveRecord
   class TableMetadata # :nodoc:
-    delegate :foreign_type, :foreign_key, :join_keys, :join_foreign_key, to: :association, prefix: true
-    delegate :association_primary_key, to: :association
+    delegate :foreign_type, :foreign_key, :join_primary_key, :join_foreign_key, to: :association, prefix: true
 
     def initialize(klass, arel_table, association = nil)
       @klass = klass
@@ -31,7 +30,7 @@ module ActiveRecord
 
     def type(column_name)
       if klass
-        klass.type_for_attribute(column_name.to_s)
+        klass.type_for_attribute(column_name)
       else
         Type.default_value
       end
@@ -66,10 +65,15 @@ module ActiveRecord
       association && association.polymorphic?
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
+    def aggregated_with?(aggregation_name)
+      klass && reflect_on_aggregation(aggregation_name)
+    end
 
+    def reflect_on_aggregation(aggregation_name)
+      klass.reflect_on_aggregation(aggregation_name)
+    end
+
+    private
       attr_reader :klass, :arel_table, :association
   end
 end

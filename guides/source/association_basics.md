@@ -94,7 +94,7 @@ class Book < ApplicationRecord
 end
 ```
 
-![belongs_to Association Diagram](images/belongs_to.png)
+![belongs_to Association Diagram](images/association_basics/belongs_to.png)
 
 NOTE: `belongs_to` associations _must_ use the singular term. If you used the pluralized form in the above example for the `author` association in the `Book` model, you would be told that there was an "uninitialized constant Book::Authors". This is because Rails automatically infers the class name from the association name. If the association name is wrongly pluralized, then the inferred class will be wrongly pluralized too.
 
@@ -127,7 +127,7 @@ class Supplier < ApplicationRecord
 end
 ```
 
-![has_one Association Diagram](images/has_one.png)
+![has_one Association Diagram](images/association_basics/has_one.png)
 
 The corresponding migration might look like this:
 
@@ -171,7 +171,7 @@ end
 
 NOTE: The name of the other model is pluralized when declaring a `has_many` association.
 
-![has_many Association Diagram](images/has_many.png)
+![has_many Association Diagram](images/association_basics/has_many.png)
 
 The corresponding migration might look like this:
 
@@ -213,7 +213,7 @@ class Patient < ApplicationRecord
 end
 ```
 
-![has_many :through Association Diagram](images/has_many_through.png)
+![has_many :through Association Diagram](images/association_basics/has_many_through.png)
 
 The corresponding migration might look like this:
 
@@ -299,7 +299,7 @@ class AccountHistory < ApplicationRecord
 end
 ```
 
-![has_one :through Association Diagram](images/has_one_through.png)
+![has_one :through Association Diagram](images/association_basics/has_one_through.png)
 
 The corresponding migration might look like this:
 
@@ -340,7 +340,7 @@ class Part < ApplicationRecord
 end
 ```
 
-![has_and_belongs_to_many Association Diagram](images/habtm.png)
+![has_and_belongs_to_many Association Diagram](images/association_basics/habtm.png)
 
 The corresponding migration might look like this:
 
@@ -439,7 +439,7 @@ end
 
 The simplest rule of thumb is that you should set up a `has_many :through` relationship if you need to work with the relationship model as an independent entity. If you don't need to do anything with the relationship model, it may be simpler to set up a `has_and_belongs_to_many` relationship (though you'll need to remember to create the joining table in the database).
 
-You should use `has_many :through` if you need validations, callbacks or extra attributes on the join model.
+You should use `has_many :through` if you need validations, callbacks, or extra attributes on the join model.
 
 ### Polymorphic Associations
 
@@ -494,7 +494,7 @@ class CreatePictures < ActiveRecord::Migration[5.0]
 end
 ```
 
-![Polymorphic Association Diagram](images/polymorphic.png)
+![Polymorphic Association Diagram](images/association_basics/polymorphic.png)
 
 ### Self Joins
 
@@ -505,7 +505,7 @@ class Employee < ApplicationRecord
   has_many :subordinates, class_name: "Employee",
                           foreign_key: "manager_id"
 
-  belongs_to :manager, class_name: "Employee"
+  belongs_to :manager, class_name: "Employee", optional: true
 end
 ```
 
@@ -572,39 +572,31 @@ class Book < ApplicationRecord
 end
 ```
 
-This declaration needs to be backed up by the proper foreign key declaration on the books table:
+This declaration needs to be backed up by a corresponding foreign key column in the books table. For a brand new table, the migration might look something like this:
 
 ```ruby
 class CreateBooks < ActiveRecord::Migration[5.0]
   def change
     create_table :books do |t|
-      t.datetime :published_at
-      t.string   :book_number
-      t.integer  :author_id
+      t.datetime   :published_at
+      t.string     :book_number
+      t.references :author
     end
   end
 end
 ```
 
-If you create an association some time after you build the underlying model, you need to remember to create an `add_column` migration to provide the necessary foreign key.
-
-It's a good practice to add an index on the foreign key to improve queries
-performance and a foreign key constraint to ensure referential data integrity:
+Whereas for an existing table, it might look like this:
 
 ```ruby
-class CreateBooks < ActiveRecord::Migration[5.0]
+class AddAuthorToBooks < ActiveRecord::Migration[5.0]
   def change
-    create_table :books do |t|
-      t.datetime :published_at
-      t.string   :book_number
-      t.integer  :author_id
-    end
-
-    add_index :books, :author_id
-    add_foreign_key :books, :authors
+    add_reference :books, :author
   end
 end
 ```
+
+NOTE: If you wish to [enforce referential integrity at the database level](/active_record_migrations.html#foreign-keys), add the `foreign_key: true` option to the ‘reference’ column declarations above.
 
 #### Creating Join Tables for `has_and_belongs_to_many` Associations
 
@@ -735,12 +727,9 @@ a.first_name = 'David'
 a.first_name == b.author.first_name # => true
 ```
 
-Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain any of the following options:
+Active Record supports automatic identification for most associations with standard names. However, Active Record will not automatically identify bi-directional associations that contain a scope or any of the following options:
 
-* `:conditions`
 * `:through`
-* `:polymorphic`
-* `:class_name`
 * `:foreign_key`
 
 For example, consider the following model declarations:
@@ -787,12 +776,6 @@ a.first_name = 'David'
 a.first_name == b.writer.first_name # => true
 ```
 
-There are a few limitations to `:inverse_of` support:
-
-* They do not work with `:through` associations.
-* They do not work with `:polymorphic` associations.
-* They do not work with `:as` associations.
-
 Detailed Association Reference
 ------------------------------
 
@@ -804,7 +787,7 @@ The `belongs_to` association creates a one-to-one match with another model. In d
 
 #### Methods Added by `belongs_to`
 
-When you declare a `belongs_to` association, the declaring class automatically gains five methods related to the association:
+When you declare a `belongs_to` association, the declaring class automatically gains 6 methods related to the association:
 
 * `association`
 * `association=(associate)`
@@ -1012,7 +995,7 @@ When we execute `@user.todos.create` then the `@todo` record will have its
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association. Does not work in combination with the `:polymorphic` options.
+The `:inverse_of` option specifies the name of the `has_many` or `has_one` association that is the inverse of this association.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1082,7 +1065,7 @@ You can use any of the standard [querying methods](active_record_querying.html) 
 The `where` method lets you specify the conditions that the associated object must meet.
 
 ```ruby
-class book < ApplicationRecord
+class Book < ApplicationRecord
   belongs_to :author, -> { where active: true }
 end
 ```
@@ -1155,7 +1138,7 @@ The `has_one` association creates a one-to-one match with another model. In data
 
 #### Methods Added by `has_one`
 
-When you declare a `has_one` association, the declaring class automatically gains five methods related to the association:
+When you declare a `has_one` association, the declaring class automatically gains 6 methods related to the association:
 
 * `association`
 * `association=(associate)`
@@ -1299,7 +1282,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association. Does not work in combination with the `:through` or `:as` options.
+The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
 
 ```ruby
 class Supplier < ApplicationRecord
@@ -1428,7 +1411,7 @@ The `has_many` association creates a one-to-many relationship with another model
 
 #### Methods Added by `has_many`
 
-When you declare a `has_many` association, the declaring class automatically gains 16 methods related to the association:
+When you declare a `has_many` association, the declaring class automatically gains 17 methods related to the association:
 
 * `collection`
 * `collection<<(object, ...)`
@@ -1694,7 +1677,7 @@ TIP: In any case, Rails will not create foreign key columns for you. You need to
 
 ##### `:inverse_of`
 
-The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association. Does not work in combination with the `:through` or `:as` options.
+The `:inverse_of` option specifies the name of the `belongs_to` association that is the inverse of this association.
 
 ```ruby
 class Author < ApplicationRecord
@@ -1961,7 +1944,7 @@ The `has_and_belongs_to_many` association creates a many-to-many relationship wi
 
 #### Methods Added by `has_and_belongs_to_many`
 
-When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 16 methods related to the association:
+When you declare a `has_and_belongs_to_many` association, the declaring class automatically gains 17 methods related to the association:
 
 * `collection`
 * `collection<<(object, ...)`
@@ -2408,7 +2391,7 @@ Single Table Inheritance
 ------------------------
 
 Sometimes, you may want to share fields and behavior between different models.
-Let's say we have Car, Motorcycle and Bicycle models. We will want to share
+Let's say we have Car, Motorcycle, and Bicycle models. We will want to share
 the `color` and `price` fields and some methods for all of them, but having some
 specific behavior for each, and separated controllers too.
 

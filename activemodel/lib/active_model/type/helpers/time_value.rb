@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/string/zones"
 require "active_support/core_ext/time/zones"
 
 module ActiveModel

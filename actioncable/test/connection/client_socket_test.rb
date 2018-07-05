@@ -40,10 +40,12 @@ class ActionCable::Connection::ClientSocketTest < ActionCable::TestCase
 
       # Internal hax = :(
       client = connection.websocket.send(:websocket)
-      client.instance_variable_get("@stream").expects(:write).raises("foo")
-      client.expects(:client_gone).never
+      client.instance_variable_get("@stream").stub(:write, proc { raise "foo" }) do
 
-      client.write("boo")
+        assert_not_called(client, :client_gone) do
+          client.write("boo")
+        end
+      end
       assert_equal %w[ foo ], connection.errors
     end
   end

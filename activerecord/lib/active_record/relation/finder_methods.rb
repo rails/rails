@@ -148,7 +148,7 @@ module ActiveRecord
     #
     #   [#<Person id:4>, #<Person id:3>, #<Person id:2>]
     def last(limit = nil)
-      return find_last(limit) if loaded? || limit_value
+      return find_last(limit) if loaded? || has_limit_or_offset?
 
       result = ordered_relation.limit(limit)
       result = result.reverse_order!
@@ -313,7 +313,7 @@ module ActiveRecord
       return false if !conditions || limit_value == 0
 
       if eager_loading?
-        relation = apply_join_dependency(construct_join_dependency(eager_loading: false))
+        relation = apply_join_dependency(eager_loading: false)
         return relation.exists?(conditions)
       end
 
@@ -358,24 +358,6 @@ module ActiveRecord
         offset_value || 0
       end
 
-      def find_with_associations
-        # NOTE: the JoinDependency constructed here needs to know about
-        #       any joins already present in `self`, so pass them in
-        #
-        # failing to do so means that in cases like activerecord/test/cases/associations/inner_join_association_test.rb:136
-        # incorrect SQL is generated. In that case, the join dependency for
-        # SpecialCategorizations is constructed without knowledge of the
-        # preexisting join in joins_values to categorizations (by way of
-        # the `has_many :through` for categories).
-        #
-        join_dependency = construct_join_dependency
-
-        relation = apply_join_dependency(join_dependency)
-        relation._select!(join_dependency.aliases.columns)
-
-        yield relation, join_dependency
-      end
-
       def construct_relation_for_exists(conditions)
         relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
 
@@ -389,24 +371,28 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency(eager_loading: true)
-        including = eager_load_values + includes_values
+      def construct_join_dependency(associations)
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including, alias_tracker(joins_values), eager_loading: eager_loading
+          klass, table, associations
         )
       end
 
-      def apply_join_dependency(join_dependency = construct_join_dependency)
+      def apply_join_dependency(eager_loading: group_values.empty?)
+        join_dependency = construct_join_dependency(eager_load_values + includes_values)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
-        if using_limitable_reflections?(join_dependency.reflections)
-          relation
-        else
-          if relation.limit_value
+        if eager_loading && !using_limitable_reflections?(join_dependency.reflections)
+          if has_limit_or_offset?
             limited_ids = limited_ids_for(relation)
             limited_ids.empty? ? relation.none! : relation.where!(primary_key => limited_ids)
           end
-          relation.except(:limit, :offset)
+          relation.limit_value = relation.offset_value = nil
+        end
+
+        if block_given?
+          yield relation, join_dependency
+        else
+          relation
         end
       end
 
@@ -532,7 +518,11 @@ module ActiveRecord
         else
           relation = ordered_relation
 
-          if limit_value.nil? || index < limit_value
+          if limit_value
+            limit = [limit_value - index, limit].min
+          end
+
+          if limit > 0
             relation = relation.offset(offset_index + index) unless index.zero?
             relation.limit(limit).to_a
           else
@@ -547,12 +537,11 @@ module ActiveRecord
         else
           relation = ordered_relation
 
-          relation.to_a[-index]
-          # TODO: can be made more performant on large result sets by
-          # for instance, last(index)[-index] (which would require
-          # refactoring the last(n) finder method to make test suite pass),
-          # or by using a combination of reverse_order, limit, and offset,
-          # e.g., reverse_order.offset(index-1).first
+          if equal?(relation) || has_limit_or_offset?
+            relation.records[-index]
+          else
+            relation.last(index)[-index]
+          end
         end
       end
 

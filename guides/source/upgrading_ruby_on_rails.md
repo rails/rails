@@ -35,6 +35,7 @@ You can find a list of all released Rails versions [here](https://rubygems.org/g
 
 Rails generally stays close to the latest released Ruby version when it's released:
 
+* Rails 6 requires Ruby 2.4.1 or newer.
 * Rails 5 requires Ruby 2.2.2 or newer.
 * Rails 4 prefers Ruby 2.0 and requires 1.9.3 or newer.
 * Rails 3.2.x is the last branch to support Ruby 1.8.7.
@@ -65,6 +66,38 @@ Overwrite /myapp/config/application.rb? (enter "h" for help) [Ynaqdh]
 
 Don't forget to review the difference, to see if there were any unexpected changes.
 
+Upgrading from Rails 5.2 to Rails 6.0
+-------------------------------------
+
+### Force SSL
+
+The `force_ssl` method on controllers has been deprecated and will be removed in
+Rails 6.1. You are encouraged to enable `config.force_ssl` to enforce HTTPS
+connections throughout your application. If you need to exempt certain endpoints
+from redirection, you can use `config.ssl_options` to configure that behavior.
+
+
+Upgrading from Rails 5.1 to Rails 5.2
+-------------------------------------
+
+For more information on changes made to Rails 5.2 please see the [release notes](5_2_release_notes.html).
+
+### Bootsnap
+
+Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
+The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+otherwise change the `boot.rb` to not use bootsnap.
+
+### Expiry in signed or encrypted cookie is now embedded in the cookies values
+
+To improve security, Rails now embeds the expiry information also in encrypted or signed cookies value.
+
+This new embed information make those cookies incompatible with versions of Rails older than 5.2.
+
+If you require your cookies to be read by 5.1 and older, or you are still validating your 5.2 deploy and want
+to allow you to rollback set
+`Rails.application.config.action_dispatch.use_authenticated_cookie_encryption` to `false`.
+
 Upgrading from Rails 5.0 to Rails 5.1
 -------------------------------------
 
@@ -72,7 +105,7 @@ For more information on changes made to Rails 5.1 please see the [release notes]
 
 ### Top-level `HashWithIndifferentAccess` is soft-deprecated
 
-If your application uses the the top-level `HashWithIndifferentAccess` class, you
+If your application uses the top-level `HashWithIndifferentAccess` class, you
 should slowly move your code to instead use `ActiveSupport::HashWithIndifferentAccess`.
 
 It is only soft-deprecated, which means that your code will not break at the
@@ -567,7 +600,7 @@ gem 'rails-deprecated_sanitizer'
 
 ### Rails DOM Testing
 
-The [`TagAssertions` module](http://api.rubyonrails.org/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
+The [`TagAssertions` module](http://api.rubyonrails.org/v4.1/classes/ActionDispatch/Assertions/TagAssertions.html) (containing methods such as `assert_tag`), [has been deprecated](https://github.com/rails/rails/blob/6061472b8c310158a2a2e8e9a6b81a1aef6b60fe/actionpack/lib/action_dispatch/testing/assertions/dom.rb) in favor of the `assert_select` methods from the `SelectorAssertions` module, which has been extracted into the [rails-dom-testing gem](https://github.com/rails/rails-dom-testing).
 
 
 ### Masked Authenticity Tokens
@@ -648,7 +681,7 @@ xhr :get, :index, format: :js
 
 to explicitly test an `XmlHttpRequest`.
 
-Note: Your own `<script>` tags are treated as cross-origin and blocked by
+NOTE: Your own `<script>` tags are treated as cross-origin and blocked by
 default, too. If you really mean to load JavaScript from `<script>` tags,
 you must now explicitly skip CSRF protection on those actions.
 
@@ -1099,7 +1132,7 @@ being used, you can update your form to use the `PUT` method instead:
 <%= form_for [ :update_name, @user ], method: :put do |f| %>
 ```
 
-For more on PATCH and why this change was made, see [this post](http://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
+For more on PATCH and why this change was made, see [this post](https://weblog.rubyonrails.org/2012/2/26/edge-rails-patch-is-the-new-primary-http-method-for-updates/)
 on the Rails blog.
 
 #### A note about media types

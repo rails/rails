@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "active_storage/analyzer/null_analyzer"
+require "active_storage/downloader"
 
 # A blob is a record that contains the metadata about a file and a key for where that file resides on the service.
 # Blobs can be created in two ways:
@@ -16,20 +16,24 @@ require "active_storage/analyzer/null_analyzer"
 # update a blob's metadata on a subsequent pass, but you should not update the key or change the uploaded file.
 # If you need to create a derivative or otherwise change the blob, simply create a new blob and purge the old one.
 class ActiveStorage::Blob < ActiveRecord::Base
-  class InvariableError < StandardError; end
-  class UnpreviewableError < StandardError; end
-  class UnrepresentableError < StandardError; end
+  require_dependency "active_storage/blob/analyzable"
+  require_dependency "active_storage/blob/identifiable"
+  require_dependency "active_storage/blob/representable"
+
+  include Analyzable
+  include Identifiable
+  include Representable
 
   self.table_name = "active_storage_blobs"
 
   has_secure_token :key
-  store :metadata, accessors: [ :analyzed ], coder: JSON
+  store :metadata, accessors: [ :analyzed, :identified ], coder: ActiveRecord::Coders::JSON
 
   class_attribute :service
 
   has_many :attachments
 
-  has_one_attached :preview_image
+  scope :unattached, -> { left_joins(:attachments).where(ActiveStorage::Attachment.table_name => { blob_id: nil }) }
 
   class << self
     # You can used the signed ID of a blob to refer to it on the client side without fear of tampering.
@@ -42,21 +46,23 @@ class ActiveStorage::Blob < ActiveRecord::Base
     end
 
     # Returns a new, unsaved blob instance after the +io+ has been uploaded to the service.
-    def build_after_upload(io:, filename:, content_type: nil, metadata: nil)
+    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
+    def build_after_upload(io:, filename:, content_type: nil, metadata: nil, identify: true)
       new.tap do |blob|
         blob.filename     = filename
         blob.content_type = content_type
         blob.metadata     = metadata
 
-        blob.upload io
+        blob.upload(io, identify: identify)
       end
     end
 
     # Returns a saved blob instance after the +io+ has been uploaded to the service. Note, the blob is first built,
     # then the +io+ is uploaded, then the blob is saved. This is done this way to avoid uploading (which may take
     # time), while having an open database transaction.
-    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil)
-      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata).tap(&:save!)
+    # When providing a content type, pass <tt>identify: false</tt> to bypass automatic content type inference.
+    def create_after_upload!(io:, filename:, content_type: nil, metadata: nil, identify: true)
+      build_after_upload(io: io, filename: filename, content_type: content_type, metadata: metadata, identify: identify).tap(&:save!)
     end
 
     # Returns a saved blob _without_ uploading a file to the service. This blob will point to a key where there is
@@ -68,7 +74,6 @@ class ActiveStorage::Blob < ActiveRecord::Base
       create! filename: filename, byte_size: byte_size, checksum: checksum, content_type: content_type, metadata: metadata
     end
   end
-
 
   # Returns a signed ID for this blob that's suitable for reference on the client-side without fear of tampering.
   # It uses the framework-wide verifier on <tt>ActiveStorage.verifier</tt>, but with a dedicated purpose.
@@ -112,102 +117,20 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
 
-  # Returns an ActiveStorage::Variant instance with the set of +transformations+ provided. This is only relevant for image
-  # files, and it allows any image to be transformed for size, colors, and the like. Example:
-  #
-  #   avatar.variant(resize: "100x100").processed.service_url
-  #
-  # This will create and process a variant of the avatar blob that's constrained to a height and width of 100px.
-  # Then it'll upload said variant to the service according to a derivative key of the blob and the transformations.
-  #
-  # Frequently, though, you don't actually want to transform the variant right away. But rather simply refer to a
-  # specific variant that can be created by a controller on-demand. Like so:
-  #
-  #   <%= image_tag Current.user.avatar.variant(resize: "100x100") %>
-  #
-  # This will create a URL for that specific blob with that specific variant, which the ActiveStorage::VariantsController
-  # can then produce on-demand.
-  #
-  # Raises ActiveStorage::Blob::InvariableError if ImageMagick cannot transform the blob. To determine whether a blob is
-  # variable, call ActiveStorage::Blob#previewable?.
-  def variant(transformations)
-    if variable?
-      ActiveStorage::Variant.new(self, ActiveStorage::Variation.wrap(transformations))
-    else
-      raise InvariableError
-    end
-  end
-
-  # Returns true if ImageMagick can transform the blob (its content type is in +ActiveStorage.variable_content_types+).
-  def variable?
-    ActiveStorage.variable_content_types.include?(content_type)
-  end
-
-
-  # Returns an ActiveStorage::Preview instance with the set of +transformations+ provided. A preview is an image generated
-  # from a non-image blob. Active Storage comes with built-in previewers for videos and PDF documents. The video previewer
-  # extracts the first frame from a video and the PDF previewer extracts the first page from a PDF document.
-  #
-  #   blob.preview(resize: "100x100").processed.service_url
-  #
-  # Avoid processing previews synchronously in views. Instead, link to a controller action that processes them on demand.
-  # Active Storage provides one, but you may want to create your own (for example, if you need authentication). Here’s
-  # how to use the built-in version:
-  #
-  #   <%= image_tag video.preview(resize: "100x100") %>
-  #
-  # This method raises ActiveStorage::Blob::UnpreviewableError if no previewer accepts the receiving blob. To determine
-  # whether a blob is accepted by any previewer, call ActiveStorage::Blob#previewable?.
-  def preview(transformations)
-    if previewable?
-      ActiveStorage::Preview.new(self, ActiveStorage::Variation.wrap(transformations))
-    else
-      raise UnpreviewableError
-    end
-  end
-
-  # Returns true if any registered previewer accepts the blob. By default, this will return true for videos and PDF documents.
-  def previewable?
-    ActiveStorage.previewers.any? { |klass| klass.accept?(self) }
-  end
-
-
-  # Returns an ActiveStorage::Preview for a previewable blob or an ActiveStorage::Variant for a variable image blob.
-  #
-  #   blob.representation(resize: "100x100").processed.service_url
-  #
-  # Raises ActiveStorage::Blob::UnrepresentableError if the receiving blob is neither variable nor previewable. Call
-  # ActiveStorage::Blob#representable? to determine whether a blob is representable.
-  #
-  # See ActiveStorage::Blob#preview and ActiveStorage::Blob#variant for more information.
-  def representation(transformations)
-    case
-    when previewable?
-      preview transformations
-    when variable?
-      variant transformations
-    else
-      raise UnrepresentableError
-    end
-  end
-
-  # Returns true if the blob is variable or previewable.
-  def representable?
-    variable? || previewable?
-  end
-
-
   # Returns the URL of the blob on the service. This URL is intended to be short-lived for security and not used directly
   # with users. Instead, the +service_url+ should only be exposed as a redirect from a stable, possibly authenticated URL.
   # Hiding the +service_url+ behind a redirect also gives you the power to change services without updating all URLs. And
   # it allows permanent URLs that redirect to the +service_url+ to be cached in the view.
-  def service_url(expires_in: service.url_expires_in, disposition: "inline")
-    service.url key, expires_in: expires_in, disposition: disposition, filename: filename, content_type: content_type
+  def service_url(expires_in: ActiveStorage.service_urls_expire_in, disposition: :inline, filename: nil, **options)
+    filename = ActiveStorage::Filename.wrap(filename || self.filename)
+
+    service.url key, expires_in: expires_in, filename: filename, content_type: content_type,
+      disposition: forcibly_serve_as_binary? ? :attachment : disposition, **options
   end
 
   # Returns a URL that can be used to directly upload a file for this blob on the service. This URL is intended to be
   # short-lived for security and only generated on-demand by the client-side JavaScript responsible for doing the uploading.
-  def service_url_for_direct_upload(expires_in: service.url_expires_in)
+  def service_url_for_direct_upload(expires_in: ActiveStorage.service_urls_expire_in)
     service.url_for_direct_upload key, expires_in: expires_in, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
@@ -216,19 +139,23 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
+
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,
   # you should instead simply create a new blob based on the old one.
   #
   # Prior to uploading, we compute the checksum, which is sent to the service for transit integrity validation. If the
   # checksum does not match what the service receives, an exception will be raised. We also measure the size of the +io+
-  # and store that in +byte_size+ on the blob record.
+  # and store that in +byte_size+ on the blob record. The content type is automatically extracted from the +io+ unless
+  # you specify a +content_type+ and pass +identify+ as false.
   #
   # Normally, you do not have to call this method directly at all. Use the factory class methods of +build_after_upload+
   # and +create_after_upload!+.
-  def upload(io)
-    self.checksum  = compute_checksum_in_chunks(io)
-    self.byte_size = io.size
+  def upload(io, identify: true)
+    self.checksum     = compute_checksum_in_chunks(io)
+    self.content_type = extract_content_type(io) if content_type.nil? || identify
+    self.byte_size    = io.size
+    self.identified   = true
 
     service.upload(key, io, checksum: checksum)
   end
@@ -239,44 +166,21 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.download key, &block
   end
 
-
-  # Extracts and stores metadata from the file associated with this blob using a relevant analyzer. Active Storage comes
-  # with built-in analyzers for images and videos. See ActiveStorage::Analyzer::ImageAnalyzer and
-  # ActiveStorage::Analyzer::VideoAnalyzer for information about the specific attributes they extract and the third-party
-  # libraries they require.
+  # Downloads the blob to a tempfile on disk. Yields the tempfile.
   #
-  # To choose the analyzer for a blob, Active Storage calls +accept?+ on each registered analyzer in order. It uses the
-  # first analyzer for which +accept?+ returns true when given the blob. If no registered analyzer accepts the blob, no
-  # metadata is extracted from it.
+  # The tempfile's name is prefixed with +ActiveStorage-+ and the blob's ID. Its extension matches that of the blob.
   #
-  # In a Rails application, add or remove analyzers by manipulating +Rails.application.config.active_storage.analyzers+
-  # in an initializer:
+  # By default, the tempfile is created in <tt>Dir.tmpdir</tt>. Pass +tempdir:+ to create it in a different directory:
   #
-  #   # Add a custom analyzer for Microsoft Office documents:
-  #   Rails.application.config.active_storage.analyzers.append DOCXAnalyzer
+  #   blob.open(tempdir: "/path/to/tmp") do |file|
+  #     # ...
+  #   end
   #
-  #   # Remove the built-in video analyzer:
-  #   Rails.application.config.active_storage.analyzers.delete ActiveStorage::Analyzer::VideoAnalyzer
+  # The tempfile is automatically closed and unlinked after the given block is executed.
   #
-  # Outside of a Rails application, manipulate +ActiveStorage.analyzers+ instead.
-  #
-  # You won't ordinarily need to call this method from a Rails application. New blobs are automatically and asynchronously
-  # analyzed via #analyze_later when they're attached for the first time.
-  def analyze
-    update! metadata: metadata.merge(extract_metadata_via_analyzer)
-  end
-
-  # Enqueues an ActiveStorage::AnalyzeJob which calls #analyze.
-  #
-  # This method is automatically called for a blob when it's attached for the first time. You can call it to analyze a blob
-  # again (e.g. if you add a new analyzer or modify an existing one).
-  def analyze_later
-    ActiveStorage::AnalyzeJob.perform_later(self)
-  end
-
-  # Returns true if the blob has been analyzed.
-  def analyzed?
-    analyzed
+  # Raises ActiveStorage::IntegrityError if the downloaded data does not match the blob's checksum.
+  def open(tempdir: nil, &block)
+    ActiveStorage::Downloader.new(self, tempdir: tempdir).download_blob_to_tempfile(&block)
   end
 
 
@@ -313,16 +217,13 @@ class ActiveStorage::Blob < ActiveRecord::Base
       end.base64digest
     end
 
-
-    def extract_metadata_via_analyzer
-      analyzer.metadata.merge(analyzed: true)
+    def extract_content_type(io)
+      Marcel::MimeType.for io, name: filename.to_s, declared_type: content_type
     end
 
-    def analyzer
-      analyzer_class.new(self)
+    def forcibly_serve_as_binary?
+      ActiveStorage.content_types_to_serve_as_binary.include?(content_type)
     end
 
-    def analyzer_class
-      ActiveStorage.analyzers.detect { |klass| klass.accept?(self) } || ActiveStorage::Analyzer::NullAnalyzer
-    end
+    ActiveSupport.run_load_hooks(:active_storage_blob, self)
 end

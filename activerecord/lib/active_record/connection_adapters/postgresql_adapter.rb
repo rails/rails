@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 # Make sure we're using pg high enough for type casts and Ruby 2.2+ compatibility
-gem "pg", "~> 0.18"
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
 require "active_record/connection_adapters/abstract_adapter"
@@ -121,6 +121,10 @@ module ActiveRecord
       include PostgreSQL::ReferentialIntegrity
       include PostgreSQL::SchemaStatements
       include PostgreSQL::DatabaseStatements
+
+      def supports_bulk_alter?
+        true
+      end
 
       def supports_index_sort_order?
         true
@@ -277,7 +281,7 @@ module ActiveRecord
       end
 
       def discard! # :nodoc:
-        @connection.socket_io.reopen(IO::NULL)
+        @connection.socket_io.reopen(IO::NULL) rescue nil
         @connection = nil
       end
 
@@ -311,6 +315,10 @@ module ActiveRecord
       end
 
       def supports_materialized_views?
+        postgresql_version >= 90300
+      end
+
+      def supports_foreign_tables?
         postgresql_version >= 90300
       end
 
@@ -457,7 +465,7 @@ module ActiveRecord
           register_class_with_limit m, "bit", OID::Bit
           register_class_with_limit m, "varbit", OID::BitVarying
           m.alias_type "timestamptz", "timestamp"
-          m.register_type "date", Type::Date.new
+          m.register_type "date", OID::Date.new
 
           m.register_type "money", OID::Money.new
           m.register_type "bytea", OID::Bytea.new
@@ -829,6 +837,7 @@ module ActiveRecord
         ActiveRecord::Type.register(:bit_varying, OID::BitVarying, adapter: :postgresql)
         ActiveRecord::Type.register(:binary, OID::Bytea, adapter: :postgresql)
         ActiveRecord::Type.register(:cidr, OID::Cidr, adapter: :postgresql)
+        ActiveRecord::Type.register(:date, OID::Date, adapter: :postgresql)
         ActiveRecord::Type.register(:datetime, OID::DateTime, adapter: :postgresql)
         ActiveRecord::Type.register(:decimal, OID::Decimal, adapter: :postgresql)
         ActiveRecord::Type.register(:enum, OID::Enum, adapter: :postgresql)

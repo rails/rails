@@ -13,32 +13,37 @@ module ActiveRecord
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
-    def self.create(macro, name, scope, options, ar)
-      klass = \
-        case macro
-        when :composed_of
-          AggregateReflection
-        when :has_many
-          HasManyReflection
-        when :has_one
-          HasOneReflection
-        when :belongs_to
-          BelongsToReflection
-        else
-          raise "Unsupported Macro: #{macro}"
+    class << self
+      def create(macro, name, scope, options, ar)
+        reflection = reflection_class_for(macro).new(name, scope, options, ar)
+        options[:through] ? ThroughReflection.new(reflection) : reflection
+      end
+
+      def add_reflection(ar, name, reflection)
+        ar.clear_reflections_cache
+        name = name.to_s
+        ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+      end
+
+      def add_aggregate_reflection(ar, name, reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
+      end
+
+      private
+        def reflection_class_for(macro)
+          case macro
+          when :composed_of
+            AggregateReflection
+          when :has_many
+            HasManyReflection
+          when :has_one
+            HasOneReflection
+          when :belongs_to
+            BelongsToReflection
+          else
+            raise "Unsupported Macro: #{macro}"
+          end
         end
-
-      reflection = klass.new(name, scope, options, ar)
-      options[:through] ? ThroughReflection.new(reflection) : reflection
-    end
-
-    def self.add_reflection(ar, name, reflection)
-      ar.clear_reflections_cache
-      ar._reflections = ar._reflections.merge(name.to_s => reflection)
-    end
-
-    def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
     # \Reflection enables the ability to examine the associations and aggregations of
@@ -192,7 +197,7 @@ module ActiveRecord
         klass_scope       = klass_join_scope(table, predicate_builder)
 
         if type
-          klass_scope.where!(type => foreign_klass.base_class.sti_name)
+          klass_scope.where!(type => foreign_klass.polymorphic_name)
         end
 
         scope_chain_items.inject(klass_scope, &:merge!)
@@ -290,10 +295,14 @@ module ActiveRecord
       end
 
       def build_scope(table, predicate_builder = predicate_builder(table))
-        Relation.create(klass, table, predicate_builder)
+        Relation.create(
+          klass,
+          table: table,
+          predicate_builder: predicate_builder
+        )
       end
 
-      def join_primary_key(_)
+      def join_primary_key(*)
         foreign_key
       end
 
@@ -411,6 +420,9 @@ module ActiveRecord
     # Active Record class.
     class AssociationReflection < MacroReflection #:nodoc:
       def compute_class(name)
+        if polymorphic?
+          raise ArgumentError, "Polymorphic associations do not support computing the class."
+        end
         active_record.send(:compute_type, name)
       end
 
@@ -456,10 +468,6 @@ module ActiveRecord
       # klass option is necessary to support loading polymorphic associations
       def association_primary_key(klass = nil)
         options[:primary_key] || primary_key(klass || self.klass)
-      end
-
-      def association_primary_key_type
-        klass.type_for_attribute(association_primary_key.to_s)
       end
 
       def active_record_primary_key
@@ -567,7 +575,7 @@ module ActiveRecord
       end
 
       VALID_AUTOMATIC_INVERSE_MACROS = [:has_many, :has_one, :belongs_to]
-      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:conditions, :through, :foreign_key]
+      INVALID_AUTOMATIC_INVERSE_OPTIONS = [:through, :foreign_key]
 
       def add_as_source(seed)
         seed
@@ -625,9 +633,6 @@ module ActiveRecord
         # +automatic_inverse_of+ method is a valid reflection. We must
         # make sure that the reflection's active_record name matches up
         # with the current reflection's klass name.
-        #
-        # Note: klass will always be valid because when there's a NameError
-        # from calling +klass+, +reflection+ will already be set to false.
         def valid_inverse_reflection?(reflection)
           reflection &&
             klass <= reflection.active_record &&
@@ -722,7 +727,7 @@ module ActiveRecord
         end
       end
 
-      def join_primary_key(klass)
+      def join_primary_key(klass = nil)
         polymorphic? ? association_primary_key(klass) : association_primary_key
       end
 
@@ -731,6 +736,9 @@ module ActiveRecord
       end
 
       private
+        def can_find_inverse_of_automatically?(_)
+          !polymorphic? && super
+        end
 
         def calculate_constructable(macro, options)
           !polymorphic?
@@ -859,10 +867,6 @@ module ActiveRecord
         actual_source_reflection.options[:primary_key] || primary_key(klass || self.klass)
       end
 
-      def association_primary_key_type
-        klass.type_for_attribute(association_primary_key.to_s)
-      end
-
       # Gets an array of possible <tt>:through</tt> source reflection names in both singular and plural form.
       #
       #   class Post < ActiveRecord::Base
@@ -965,16 +969,14 @@ module ActiveRecord
         collect_join_reflections(seed + [self])
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
-        attr_reader :delegate_reflection
-
         def actual_source_reflection # FIXME: this is a horrible name
           source_reflection.actual_source_reflection
         end
 
       private
+        attr_reader :delegate_reflection
+
         def collect_join_reflections(seed)
           a = source_reflection.add_as_source seed
           if options[:source_type]

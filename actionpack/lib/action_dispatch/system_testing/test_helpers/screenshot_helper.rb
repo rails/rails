@@ -43,7 +43,7 @@ module ActionDispatch
           end
 
           def image_path
-            @image_path ||= absolute_image_path.relative_path_from(Pathname.pwd).to_s
+            @image_path ||= absolute_image_path.to_s
           end
 
           def absolute_image_path
@@ -80,7 +80,7 @@ module ActionDispatch
           end
 
           def inline_base64(path)
-            Base64.encode64(path).gsub("\n", "")
+            Base64.strict_encode64(path)
           end
 
           def failed?

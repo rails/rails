@@ -3,6 +3,7 @@
 require "openssl"
 require "base64"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/module/attribute_accessors"
 require "active_support/message_verifier"
 require "active_support/messages/metadata"
 
@@ -81,9 +82,9 @@ module ActiveSupport
   class MessageEncryptor
     prepend Messages::Rotator::Encryptor
 
-    class << self
-      attr_accessor :use_authenticated_message_encryption #:nodoc:
+    cattr_accessor :use_authenticated_message_encryption, instance_accessor: false, default: false
 
+    class << self
       def default_cipher #:nodoc:
         if use_authenticated_message_encryption
           "aes-256-gcm"

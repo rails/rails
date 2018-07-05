@@ -23,7 +23,7 @@ module Rails
 
       private
         def file_name # :doc:
-          @_file_name ||= super.gsub(/_mailer/i, "")
+          @_file_name ||= super.sub(/_mailer\z/i, "")
         end
 
         def application_mailer_file_name

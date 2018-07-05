@@ -4,10 +4,6 @@ require "abstract_unit"
 require "active_model"
 require "controller/fake_models"
 
-class ApplicationController < ActionController::Base
-  self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-end
-
 module Quiz
   # Models
   Question = Struct.new(:name, :id) do
@@ -20,7 +16,7 @@ module Quiz
   end
 
   # Controller
-  class QuestionsController < ApplicationController
+  class QuestionsController < ActionController::Base
     def new
       render partial: Quiz::Question.new("Namespaced Partial")
     end
@@ -28,7 +24,7 @@ module Quiz
 end
 
 module Fun
-  class GamesController < ApplicationController
+  class GamesController < ActionController::Base
     def hello_world; end
 
     def nested_partial_with_form_builder
@@ -37,7 +33,7 @@ module Fun
   end
 end
 
-class TestController < ApplicationController
+class TestController < ActionController::Base
   protect_from_forgery
 
   before_action :set_variable_for_layout
@@ -489,6 +485,10 @@ class TestController < ApplicationController
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
+  def partial_with_string_locals
+    render partial: "customer", locals: { "customer" => Customer.new("david") }
+  end
+
   def partial_with_form_builder
     render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
@@ -640,10 +640,15 @@ class RenderTest < ActionController::TestCase
     ActionView::Base.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
+
+    @old_view_paths = ActionController::Base.view_paths
+    ActionController::Base.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
   end
 
   def teardown
     ActionView::Base.logger = nil
+
+    ActionController::Base.view_paths = @old_view_paths
   end
 
   # :ported:
@@ -1166,6 +1171,11 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_locals
     get :partial_with_locals
+    assert_equal "Hello: david", @response.body
+  end
+
+  def test_partial_with_string_locals
+    get :partial_with_string_locals
     assert_equal "Hello: david", @response.body
   end
 

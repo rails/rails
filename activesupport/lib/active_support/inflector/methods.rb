@@ -341,18 +341,7 @@ module ActiveSupport
     #   ordinal(-11)   # => "th"
     #   ordinal(-1021) # => "st"
     def ordinal(number)
-      abs_number = number.to_i.abs
-
-      if (11..13).include?(abs_number % 100)
-        "th"
-      else
-        case abs_number % 10
-        when 1; "st"
-        when 2; "nd"
-        when 3; "rd"
-          else    "th"
-        end
-      end
+      I18n.translate("number.nth.ordinals", number: number)
     end
 
     # Turns a number into an ordinal string used to denote the position in an
@@ -365,7 +354,7 @@ module ActiveSupport
     #   ordinalize(-11)   # => "-11th"
     #   ordinalize(-1021) # => "-1021st"
     def ordinalize(number)
-      "#{number}#{ordinal(number)}"
+      I18n.translate("number.nth.ordinalized", number: number)
     end
 
     private

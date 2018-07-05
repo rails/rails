@@ -14,7 +14,6 @@ require "models/computer"
 require "models/project"
 require "models/default"
 require "models/auto_id"
-require "models/boolean"
 require "models/column_name"
 require "models/subscriber"
 require "models/comment"
@@ -104,7 +103,7 @@ class BasicsTest < ActiveRecord::TestCase
     pk = Author.columns_hash["id"]
     ref = Post.columns_hash["author_id"]
 
-    assert_equal pk.bigint?, ref.bigint?
+    assert_equal pk.sql_type, ref.sql_type
   end
 
   def test_many_mutations
@@ -147,8 +146,8 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_table_exists
-    assert !NonExistentTable.table_exists?
-    assert Topic.table_exists?
+    assert_not_predicate NonExistentTable, :table_exists?
+    assert_predicate Topic, :table_exists?
   end
 
   def test_preserving_date_objects
@@ -307,7 +306,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal "Dude", cbs[0].name
     assert_equal "Bob", cbs[1].name
     assert cbs[0].frickinawesome
-    assert !cbs[1].frickinawesome
+    assert_not cbs[1].frickinawesome
   end
 
   def test_load
@@ -450,7 +449,7 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_default_values
     topic = Topic.new
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.written_on
     assert_nil topic.bonus_time
     assert_nil topic.last_read
@@ -458,7 +457,7 @@ class BasicsTest < ActiveRecord::TestCase
     topic.save
 
     topic = Topic.find(topic.id)
-    assert topic.approved?
+    assert_predicate topic, :approved?
     assert_nil topic.last_read
 
     # Oracle has some funky default handling, so it requires a bit of
@@ -716,48 +715,6 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal expected_attributes, category.attributes
   end
 
-  def test_boolean
-    b_nil = Boolean.create("value" => nil)
-    nil_id = b_nil.id
-    b_false = Boolean.create("value" => false)
-    false_id = b_false.id
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    b_nil = Boolean.find(nil_id)
-    assert_nil b_nil.value
-    b_false = Boolean.find(false_id)
-    assert !b_false.value?
-    b_true = Boolean.find(true_id)
-    assert b_true.value?
-  end
-
-  def test_boolean_without_questionmark
-    b_true = Boolean.create("value" => true)
-    true_id = b_true.id
-
-    subclass   = Class.new(Boolean).find true_id
-    superclass = Boolean.find true_id
-
-    assert_equal superclass.read_attribute(:has_fun), subclass.read_attribute(:has_fun)
-  end
-
-  def test_boolean_cast_from_string
-    b_blank = Boolean.create("value" => "")
-    blank_id = b_blank.id
-    b_false = Boolean.create("value" => "0")
-    false_id = b_false.id
-    b_true = Boolean.create("value" => "1")
-    true_id = b_true.id
-
-    b_blank = Boolean.find(blank_id)
-    assert_nil b_blank.value
-    b_false = Boolean.find(false_id)
-    assert !b_false.value?
-    b_true = Boolean.find(true_id)
-    assert b_true.value?
-  end
-
   def test_new_record_returns_boolean
     assert_equal false, Topic.new.persisted?
     assert_equal true, Topic.find(1).persisted?
@@ -768,7 +725,7 @@ class BasicsTest < ActiveRecord::TestCase
     duped_topic = nil
     assert_nothing_raised { duped_topic = topic.dup }
     assert_equal topic.title, duped_topic.title
-    assert !duped_topic.persisted?
+    assert_not_predicate duped_topic, :persisted?
 
     # test if the attributes have been duped
     topic.title = "a"
@@ -786,7 +743,7 @@ class BasicsTest < ActiveRecord::TestCase
 
     # test if saved clone object differs from original
     duped_topic.save
-    assert duped_topic.persisted?
+    assert_predicate duped_topic, :persisted?
     assert_not_equal duped_topic.id, topic.id
 
     duped_topic.reload
@@ -807,7 +764,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_nothing_raised { dup = dev.dup }
     assert_kind_of DeveloperSalary, dup.salary
     assert_equal dev.salary.amount, dup.salary.amount
-    assert !dup.persisted?
+    assert_not_predicate dup, :persisted?
 
     # test if the attributes have been duped
     original_amount = dup.salary.amount
@@ -815,7 +772,7 @@ class BasicsTest < ActiveRecord::TestCase
     assert_equal original_amount, dup.salary.amount
 
     assert dup.save
-    assert dup.persisted?
+    assert_predicate dup, :persisted?
     assert_not_equal dup.id, dev.id
   end
 
@@ -835,52 +792,52 @@ class BasicsTest < ActiveRecord::TestCase
 
   def test_clone_of_new_object_with_defaults
     developer = Developer.new
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert !cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?
+    assert_not_predicate cloned_developer, :name_changed?
+    assert_not_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_attributes_as_dirty
     developer = Developer.new name: "Bjorn", salary: 100000
-    assert developer.name_changed?
-    assert developer.salary_changed?
+    assert_predicate developer, :name_changed?
+    assert_predicate developer, :salary_changed?
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :name_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_clone_of_new_object_marks_as_dirty_only_changed_attributes
     developer = Developer.new name: "Bjorn"
     assert developer.name_changed?            # obviously
-    assert !developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
+    assert_not developer.salary_changed?         # attribute has non-nil default value, so treated as not changed
 
     cloned_developer = developer.clone
-    assert cloned_developer.name_changed?
-    assert !cloned_developer.salary_changed?  # ... and cloned instance should behave same
+    assert_predicate cloned_developer, :name_changed?
+    assert_not cloned_developer.salary_changed?  # ... and cloned instance should behave same
   end
 
   def test_dup_of_saved_object_marks_attributes_as_dirty
     developer = Developer.create! name: "Bjorn", salary: 100000
-    assert !developer.name_changed?
-    assert !developer.salary_changed?
+    assert_not_predicate developer, :name_changed?
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # both attributes differ from defaults
-    assert cloned_developer.salary_changed?
+    assert_predicate cloned_developer, :salary_changed?
   end
 
   def test_dup_of_saved_object_marks_as_dirty_only_changed_attributes
     developer = Developer.create! name: "Bjorn"
-    assert !developer.name_changed?           # both attributes of saved object should be treated as not changed
-    assert !developer.salary_changed?
+    assert_not developer.name_changed?           # both attributes of saved object should be treated as not changed
+    assert_not_predicate developer, :salary_changed?
 
     cloned_developer = developer.dup
     assert cloned_developer.name_changed?     # ... but on cloned object should be
-    assert !cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
+    assert_not cloned_developer.salary_changed?  # ... BUT salary has non-nil default which should be treated as not changed on cloned instance
   end
 
   def test_bignum
@@ -951,14 +908,14 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   def test_toggle_attribute
-    assert !topics(:first).approved?
+    assert_not_predicate topics(:first), :approved?
     topics(:first).toggle!(:approved)
-    assert topics(:first).approved?
+    assert_predicate topics(:first), :approved?
     topic = topics(:first)
     topic.toggle(:approved)
-    assert !topic.approved?
+    assert_not_predicate topic, :approved?
     topic.reload
-    assert topic.approved?
+    assert_predicate topic, :approved?
   end
 
   def test_reload
@@ -982,7 +939,7 @@ class BasicsTest < ActiveRecord::TestCase
     end
   end
 
-  def test_clear_cash_when_setting_table_name
+  def test_clear_cache_when_setting_table_name
     original_table_name = Joke.table_name
 
     Joke.table_name = "funny_jokes"
@@ -1431,11 +1388,11 @@ class BasicsTest < ActiveRecord::TestCase
   test "resetting column information doesn't remove attribute methods" do
     topic = topics(:first)
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
 
     Topic.reset_column_information
 
-    assert_not topic.id_changed?
+    assert_not_predicate topic, :id_changed?
   end
 
   test "ignored columns are not present in columns_hash" do
@@ -1447,27 +1404,27 @@ class BasicsTest < ActiveRecord::TestCase
   end
 
   test "ignored columns have no attribute methods" do
-    refute Developer.new.respond_to?(:first_name)
-    refute Developer.new.respond_to?(:first_name=)
-    refute Developer.new.respond_to?(:first_name?)
-    refute SubDeveloper.new.respond_to?(:first_name)
-    refute SubDeveloper.new.respond_to?(:first_name=)
-    refute SubDeveloper.new.respond_to?(:first_name?)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name=)
-    refute SymbolIgnoredDeveloper.new.respond_to?(:first_name?)
+    assert_not_respond_to Developer.new, :first_name
+    assert_not_respond_to Developer.new, :first_name=
+    assert_not_respond_to Developer.new, :first_name?
+    assert_not_respond_to SubDeveloper.new, :first_name
+    assert_not_respond_to SubDeveloper.new, :first_name=
+    assert_not_respond_to SubDeveloper.new, :first_name?
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name=
+    assert_not_respond_to SymbolIgnoredDeveloper.new, :first_name?
   end
 
   test "ignored columns don't prevent explicit declaration of attribute methods" do
-    assert Developer.new.respond_to?(:last_name)
-    assert Developer.new.respond_to?(:last_name=)
-    assert Developer.new.respond_to?(:last_name?)
-    assert SubDeveloper.new.respond_to?(:last_name)
-    assert SubDeveloper.new.respond_to?(:last_name=)
-    assert SubDeveloper.new.respond_to?(:last_name?)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name=)
-    assert SymbolIgnoredDeveloper.new.respond_to?(:last_name?)
+    assert_respond_to Developer.new, :last_name
+    assert_respond_to Developer.new, :last_name=
+    assert_respond_to Developer.new, :last_name?
+    assert_respond_to SubDeveloper.new, :last_name
+    assert_respond_to SubDeveloper.new, :last_name=
+    assert_respond_to SubDeveloper.new, :last_name?
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name=
+    assert_respond_to SymbolIgnoredDeveloper.new, :last_name?
   end
 
   test "ignored columns are stored as an array of string" do
@@ -1477,31 +1434,31 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "when #reload called, ignored columns' attribute methods are not defined" do
     developer = Developer.create!(name: "Developer")
-    refute developer.respond_to?(:first_name)
-    refute developer.respond_to?(:first_name=)
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
 
     developer.reload
 
-    refute developer.respond_to?(:first_name)
-    refute developer.respond_to?(:first_name=)
+    assert_not_respond_to developer, :first_name
+    assert_not_respond_to developer, :first_name=
   end
 
   test "ignored columns not included in SELECT" do
     query = Developer.all.to_sql.downcase
 
     # ignored column
-    refute query.include?("first_name")
+    assert_not query.include?("first_name")
 
     # regular column
     assert query.include?("name")
   end
 
   test "column names are quoted when using #from clause and model has ignored columns" do
-    refute_empty Developer.ignored_columns
+    assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
     quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
 
-    assert_match(/SELECT #{quoted_id}.* FROM developers/, query)
+    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
   end
 
   test "using table name qualified column names unless having SELECT list explicitly" do

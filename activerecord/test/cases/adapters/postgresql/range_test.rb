@@ -341,6 +341,12 @@ _SQL
       assert_equal record, PostgresqlRange.where(int4_range: range).take
     end
 
+    def test_where_by_attribute_with_range_in_array
+      range = 1..100
+      record = PostgresqlRange.create!(int4_range: range)
+      assert_equal record, PostgresqlRange.where(int4_range: [range]).take
+    end
+
     def test_update_all_with_ranges
       PostgresqlRange.create!
 
@@ -356,6 +362,18 @@ _SQL
       assert_nothing_raised do
         PostgresqlRange.first
       end
+    end
+
+    def test_infinity_values
+      PostgresqlRange.create!(int4_range: 1..Float::INFINITY,
+                              int8_range: -Float::INFINITY..0,
+                              float_range: -Float::INFINITY..Float::INFINITY)
+
+      record = PostgresqlRange.first
+
+      assert_equal(1...Float::INFINITY, record.int4_range)
+      assert_equal(-Float::INFINITY...1, record.int8_range)
+      assert_equal(-Float::INFINITY...Float::INFINITY, record.float_range)
     end
 
     private

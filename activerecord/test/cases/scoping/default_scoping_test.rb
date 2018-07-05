@@ -193,7 +193,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_order_to_unscope_reordering
     scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
-    assert !/order/i.match?(scope.to_sql)
+    assert_no_match(/order/i, scope.to_sql)
   end
 
   def test_unscope_reverse_order
@@ -221,6 +221,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_joins_and_select_on_developers_projects
     expected = Developer.all.collect(&:name)
     received = Developer.joins("JOIN developers_projects ON id = developer_id").select(:id).unscope(:joins, :select).collect(&:name)
+    assert_equal expected, received
+  end
+
+  def test_unscope_left_outer_joins
+    expected = Developer.all.collect(&:name)
+    received = Developer.left_outer_joins(:projects).select(:id).unscope(:left_outer_joins, :select).collect(&:name)
+    assert_equal expected, received
+  end
+
+  def test_unscope_left_joins
+    expected = Developer.all.collect(&:name)
+    received = Developer.left_joins(:projects).select(:id).unscope(:left_joins, :select).collect(&:name)
     assert_equal expected, received
   end
 
@@ -290,8 +302,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_clause.empty?
-    assert !merged.where(name: "Jon").where_clause.empty?
+    assert_empty merged.where_clause
+    assert_not_empty merged.where(name: "Jon").where_clause
   end
 
   def test_order_in_default_scope_should_not_prevail

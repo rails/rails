@@ -109,7 +109,7 @@ module ActionController
           when :xml
             data = non_path_parameters.to_xml
           when :url_encoded_form
-            data = non_path_parameters.to_query
+            data = Rack::Utils.build_nested_query(non_path_parameters)
           else
             @custom_param_parsers[content_mime_type.symbol] = ->(_) { non_path_parameters }
             data = non_path_parameters.to_query
@@ -256,7 +256,7 @@ module ActionController
   #
   #   def test_create
   #     json = {book: { title: "Love Hina" }}.to_json
-  #     post :create, json
+  #     post :create, body: json
   #   end
   #
   # == Special instance variables
@@ -460,10 +460,6 @@ module ActionController
       def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
 
-        if body
-          @request.set_header "RAW_POST_DATA", body
-        end
-
         http_method = method.to_s.upcase
 
         @html_document = nil
@@ -477,6 +473,10 @@ module ActionController
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
+
+        if body
+          @request.set_header "RAW_POST_DATA", body
+        end
 
         @request.set_header "REQUEST_METHOD", http_method
 
@@ -604,6 +604,8 @@ module ActionController
           env.delete "action_dispatch.request.query_parameters"
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new
+          env.delete "CONTENT_LENGTH"
+          env.delete "RAW_POST_DATA"
           env
         end
 

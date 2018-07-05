@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 #--
-# Copyright (c) 2004-2017 David Heinemeier Hansson
+# Copyright (c) 2004-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,6 +40,7 @@ module ActiveRecord
   autoload :Core
   autoload :ConnectionHandling
   autoload :CounterCache
+  autoload :DatabaseConfigurations
   autoload :DynamicMatchers
   autoload :Enum
   autoload :InternalMetadata
@@ -163,6 +164,7 @@ module ActiveRecord
       "active_record/tasks/postgresql_database_tasks"
   end
 
+  autoload :TestDatabases, "active_record/test_databases"
   autoload :TestFixtures, "active_record/fixtures"
 
   def self.eager_load!

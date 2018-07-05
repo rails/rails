@@ -1,56 +1,30 @@
-## Rails 5.2.0.beta2 (November 28, 2017) ##
-
-*   No changes.
-
-
-## Rails 5.2.0.beta1 (November 27, 2017) ##
-
-*   Execute `ConfirmationValidator` validation when `_confirmation`'s value is `false`.
-
-    *bogdanvlviv*
-
-*   Allow passing a Proc or Symbol to length validator options.
-
-    *Matt Rohrer*
-
-*   Add method `#merge!` for `ActiveModel::Errors`.
-
-    *Jahfer Husain*
-
-*   Fix regression in numericality validator when comparing Decimal and Float input
-    values with more scale than the schema.
-
-    *Bradley Priest*
-
-*   Fix methods `#keys`, `#values` in `ActiveModel::Errors`.
-
-    Change `#keys` to only return the keys that don't have empty messages.
-
-    Change `#values` to only return the not empty values.
-
+*   Allows configurable attribute name for `#has_secure_password`. This
+    still defaults to an attribute named 'password', causing no breaking
+    change. There is a new method `#authenticate_XXX` where XXX is the
+    configured attribute name, making the existing `#authenticate` now an
+    alias for this when the attribute is the default 'password'.
     Example:
 
-        # Before
-        person = Person.new
-        person.errors.keys     # => []
-        person.errors.values   # => []
-        person.errors.messages # => {}
-        person.errors[:name]   # => []
-        person.errors.messages # => {:name => []}
-        person.errors.keys     # => [:name]
-        person.errors.values   # => [[]]
+        class User < ActiveRecord::Base
+            has_secure_password :activation_token, validations: false
+        end
 
-        # After
-        person = Person.new
-        person.errors.keys     # => []
-        person.errors.values   # => []
-        person.errors.messages # => {}
-        person.errors[:name]   # => []
-        person.errors.messages # => {:name => []}
-        person.errors.keys     # => []
-        person.errors.values   # => []
+        user = User.new()
+        user.activation_token = "a_new_token"
+        user.activation_token_digest                        # => "$2a$10$0Budk0Fi/k2CDm2PEwa3Be..."
+        user.authenticate_activation_token('a_new_token')   # => user
 
-    *bogdanvlviv*
+     *Unathi Chonco*
+
+*   Add `config.active_model.i18n_full_message` in order to control whether
+    the `full_message` error format can be overridden at the attribute or model
+    level in the locale files. This is `false` by default.
+
+    *Martin Larochelle*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
 
 
-Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activemodel/CHANGELOG.md) for previous changes.

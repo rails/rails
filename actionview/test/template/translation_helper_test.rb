@@ -75,7 +75,7 @@ class TranslationHelperTest < ActiveSupport::TestCase
   def test_returns_missing_translation_message_with_unescaped_interpolation
     expected = '<span class="translation_missing" title="translation missing: en.translations.missing, name: Kir, year: 2015, vulnerable: &amp;quot; onclick=&amp;quot;alert()&amp;quot;">Missing</span>'
     assert_equal expected, translate(:"translations.missing", name: "Kir", year: "2015", vulnerable: %{" onclick="alert()"})
-    assert translate(:"translations.missing").html_safe?
+    assert_predicate translate(:"translations.missing"), :html_safe?
   end
 
   def test_returns_missing_translation_message_does_filters_out_i18n_options
@@ -145,11 +145,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
   end
 
   def test_translate_marks_translations_named_html_as_safe_html
-    assert translate(:'translations.html').html_safe?
+    assert_predicate translate(:'translations.html'), :html_safe?
   end
 
   def test_translate_marks_translations_with_a_html_suffix_as_safe_html
-    assert translate(:'translations.hello_html').html_safe?
+    assert_predicate translate(:'translations.hello_html'), :html_safe?
   end
 
   def test_translate_escapes_interpolations_in_translations_with_a_html_suffix
@@ -164,8 +164,11 @@ class TranslationHelperTest < ActiveSupport::TestCase
     assert_equal "<a>Other &lt;One&gt;</a>", translate(:'translations.count_html', count: "<One>")
   end
 
-  def test_translation_returning_an_array_ignores_html_suffix
-    assert_equal ["foo", "bar"], translate(:'translations.array_html')
+  def test_translate_marks_array_of_translations_with_a_html_safe_suffix_as_safe_html
+    translate(:'translations.array_html').tap do |translated|
+      assert_equal %w( foo bar ), translated
+      assert translated.all?(&:html_safe?)
+    end
   end
 
   def test_translate_with_default_named_html

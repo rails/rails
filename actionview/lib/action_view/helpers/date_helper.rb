@@ -116,7 +116,7 @@ module ActionView
             when 10..19 then locale.t :less_than_x_seconds, count: 20
             when 20..39 then locale.t :half_a_minute
             when 40..59 then locale.t :less_than_x_minutes, count: 1
-              else             locale.t :x_minutes,           count: 1
+            else             locale.t :x_minutes,           count: 1
             end
 
           when 2...45           then locale.t :x_minutes,      count: distance_in_minutes
@@ -131,7 +131,7 @@ module ActionView
           when 43200...86400    then locale.t :about_x_months, count: (distance_in_minutes.to_f / 43200.0).round
             # 60 days up to 365 days
           when 86400...525600   then locale.t :x_months,       count: (distance_in_minutes.to_f / 43200.0).round
-            else
+          else
             from_year = from_time.year
             from_year += 1 if from_time.month >= 3
             to_year = to_time.year
@@ -205,6 +205,7 @@ module ActionView
       # * <tt>:end_year</tt>          - Set the end year for the year select. Default is <tt>Date.today.year + 5</tt> if
       #   you are creating new record. While editing existing record, <tt>:end_year</tt> defaults to
       #   the current selected year plus 5.
+      # * <tt>:year_format</tt>       - Set format of years for year select. Lambda should be passed.
       # * <tt>:discard_day</tt>       - Set to true if you don't want to show a day select. This includes the day
       #   as a hidden field instead of showing a select field. Also note that this implicitly sets the day to be the
       #   first of the given month in order to not create invalid dates like 31 February.
@@ -275,6 +276,9 @@ module ActionView
       #   # Generates a date select with custom prompts.
       #   date_select("article", "written_on", prompt: { day: 'Select day', month: 'Select month', year: 'Select year' })
       #
+      #   # Generates a date select with custom year format.
+      #   date_select("article", "written_on", year_format: ->(year) { "Heisei #{year - 1988}" })
+      #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
       # Note: If the day is not included as an option but the month is, the day will be set to the 1st to ensure that
@@ -302,15 +306,15 @@ module ActionView
       #   time_select("article", "start_time", include_seconds: true)
       #
       #   # You can set the <tt>:minute_step</tt> to 15 which will give you: 00, 15, 30, and 45.
-      #   time_select 'game', 'game_time', {minute_step: 15}
+      #   time_select 'game', 'game_time', { minute_step: 15 }
       #
       #   # Creates a time select tag with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   time_select("article", "written_on", prompt: {hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds'})
-      #   time_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   time_select("article", "written_on", prompt: { hour: 'Choose hour', minute: 'Choose minute', second: 'Choose seconds' })
+      #   time_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   time_select("article", "written_on", prompt: true) # generic prompts for all
       #
       #   # You can set :ampm option to true which will show the hours as: 12 PM, 01 AM .. 11 PM.
-      #   time_select 'game', 'game_time', {ampm: true}
+      #   time_select 'game', 'game_time', { ampm: true }
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
       #
@@ -346,8 +350,8 @@ module ActionView
       #   datetime_select("article", "written_on", discard_type: true)
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   datetime_select("article", "written_on", prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   datetime_select("article", "written_on", prompt: {hour: true}) # generic prompt for hours
+      #   datetime_select("article", "written_on", prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   datetime_select("article", "written_on", prompt: { hour: true }) # generic prompt for hours
       #   datetime_select("article", "written_on", prompt: true) # generic prompts for all
       #
       # The selects are prepared for multi-parameter assignment to an Active Record object.
@@ -397,8 +401,8 @@ module ActionView
       #   select_datetime(my_date_time, prefix: 'payday')
       #
       #   # Generates a datetime select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_datetime(my_date_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_datetime(my_date_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_datetime(my_date_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_datetime(my_date_time, prompt: { hour: true }) # generic prompt for hours
       #   select_datetime(my_date_time, prompt: true) # generic prompts for all
       def select_datetime(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_datetime
@@ -436,8 +440,8 @@ module ActionView
       #   select_date(my_date, prefix: 'payday')
       #
       #   # Generates a date select with a custom prompt. Use <tt>prompt: true</tt> for generic prompts.
-      #   select_date(my_date, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_date(my_date, prompt: {hour: true}) # generic prompt for hours
+      #   select_date(my_date, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_date(my_date, prompt: { hour: true }) # generic prompt for hours
       #   select_date(my_date, prompt: true) # generic prompts for all
       def select_date(date = Date.current, options = {}, html_options = {})
         DateTimeSelector.new(date, options, html_options).select_date
@@ -476,8 +480,8 @@ module ActionView
       #   select_time(my_time, start_hour: 2, end_hour: 14)
       #
       #   # Generates a time select with a custom prompt. Use <tt>:prompt</tt> to true for generic prompts.
-      #   select_time(my_time, prompt: {day: 'Choose day', month: 'Choose month', year: 'Choose year'})
-      #   select_time(my_time, prompt: {hour: true}) # generic prompt for hours
+      #   select_time(my_time, prompt: { day: 'Choose day', month: 'Choose month', year: 'Choose year' })
+      #   select_time(my_time, prompt: { hour: true }) # generic prompt for hours
       #   select_time(my_time, prompt: true) # generic prompts for all
       def select_time(datetime = Time.current, options = {}, html_options = {})
         DateTimeSelector.new(datetime, options, html_options).select_time
@@ -681,9 +685,8 @@ module ActionView
         options  = args.extract_options!
         format   = options.delete(:format) || :long
         content  = args.first || I18n.l(date_or_time, format: format)
-        datetime = date_or_time.acts_like?(:time) ? date_or_time.xmlschema : date_or_time.iso8601
 
-        content_tag("time".freeze, content, options.reverse_merge(datetime: datetime), &block)
+        content_tag("time".freeze, content, options.reverse_merge(datetime: date_or_time.iso8601), &block)
       end
 
       private
@@ -851,7 +854,7 @@ module ActionView
             raise ArgumentError, "There are too many years options to be built. Are you sure you haven't mistyped something? You can provide the :max_years_allowed parameter."
           end
 
-          build_options_and_select(:year, val, options)
+          build_select(:year, build_year_options(val, options))
         end
       end
 
@@ -934,6 +937,21 @@ module ActionView
           end
         end
 
+        # Looks up year names by number.
+        #
+        #   year_name(1998) # => 1998
+        #
+        # If the <tt>:year_format</tt> option is passed:
+        #
+        #   year_name(1998) # => "Heisei 10"
+        def year_name(number)
+          if year_format_lambda = @options[:year_format]
+            year_format_lambda.call(number)
+          else
+            number
+          end
+        end
+
         def date_order
           @date_order ||= @options[:order] || translated_date_order
         end
@@ -990,6 +1008,34 @@ module ActionView
             tag_options[:selected] = "selected" if selected == i
             text = options[:use_two_digit_numbers] ? sprintf("%02d", i) : value
             text = options[:ampm] ? AMPM_TRANSLATION[i] : text
+            select_options << content_tag("option".freeze, text, tag_options)
+          end
+
+          (select_options.join("\n") + "\n").html_safe
+        end
+
+        # Build select option HTML for year.
+        # If <tt>year_format</tt> option is not passed
+        #  build_year_options(1998, start: 1998, end: 2000)
+        #  => "<option value="1998" selected="selected">1998</option>
+        #      <option value="1999">1999</option>
+        #      <option value="2000">2000</option>"
+        #
+        # If <tt>year_format</tt> option is passed
+        #  build_year_options(1998, start: 1998, end: 2000, year_format: ->year { "Heisei #{ year - 1988 }" })
+        #  => "<option value="1998" selected="selected">Heisei 10</option>
+        #      <option value="1999">Heisei 11</option>
+        #      <option value="2000">Heisei 12</option>"
+        def build_year_options(selected, options = {})
+          start = options.delete(:start)
+          stop = options.delete(:end)
+          step = options.delete(:step)
+
+          select_options = []
+          start.step(stop, step) do |value|
+            tag_options = { value: value }
+            tag_options[:selected] = "selected" if selected == value
+            text = year_name(value)
             select_options << content_tag("option".freeze, text, tag_options)
           end
 

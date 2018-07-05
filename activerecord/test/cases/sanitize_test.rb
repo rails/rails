@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/binary"
 require "models/author"
 require "models/post"
+require "models/customer"
 
 class SanitizeTest < ActiveRecord::TestCase
   def setup
@@ -72,13 +73,21 @@ class SanitizeTest < ActiveRecord::TestCase
 
   def test_sanitize_sql_like_example_use_case
     searchable_post = Class.new(Post) do
-      def self.search(term)
+      def self.search_as_method(term)
         where("title LIKE ?", sanitize_sql_like(term, "!"))
       end
+
+      scope :search_as_scope, -> (term) {
+        where("title LIKE ?", sanitize_sql_like(term, "!"))
+      }
     end
 
     assert_sql(/LIKE '20!% !_reduction!_!!'/) do
-      searchable_post.search("20% _reduction_!").to_a
+      searchable_post.search_as_method("20% _reduction_!").to_a
+    end
+
+    assert_sql(/LIKE '20!% !_reduction!_!!'/) do
+      searchable_post.search_as_scope("20% _reduction_!").to_a
     end
   end
 
@@ -157,6 +166,12 @@ class SanitizeTest < ActiveRecord::TestCase
     l = Proc.new { bind(":a::integer '2009-01-01'::date", a: "10") }
     assert_nothing_raised(&l)
     assert_equal "#{ActiveRecord::Base.connection.quote('10')}::integer '2009-01-01'::date", l.call
+  end
+
+  def test_deprecated_expand_hash_conditions_for_aggregates
+    assert_deprecated do
+      assert_equal({ "balance" => 50 }, Customer.send(:expand_hash_conditions_for_aggregates, balance: Money.new(50)))
+    end
   end
 
   private

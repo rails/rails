@@ -385,60 +385,60 @@ class CallbacksTest < ActiveRecord::TestCase
   end
 
   def assert_save_callbacks_not_called(someone)
-    assert !someone.after_save_called
-    assert !someone.after_create_called
-    assert !someone.after_update_called
+    assert_not someone.after_save_called
+    assert_not someone.after_create_called
+    assert_not someone.after_update_called
   end
   private :assert_save_callbacks_not_called
 
   def test_before_create_throwing_abort
     someone = CallbackHaltedDeveloper.new
     someone.cancel_before_create = true
-    assert someone.valid?
-    assert !someone.save
+    assert_predicate someone, :valid?
+    assert_not someone.save
     assert_save_callbacks_not_called(someone)
   end
 
   def test_before_save_throwing_abort
     david = DeveloperWithCanceledCallbacks.find(1)
-    assert david.valid?
-    assert !david.save
+    assert_predicate david, :valid?
+    assert_not david.save
     exc = assert_raise(ActiveRecord::RecordNotSaved) { david.save! }
     assert_equal david, exc.record
 
     david = DeveloperWithCanceledCallbacks.find(1)
     david.salary = 10_000_000
-    assert !david.valid?
-    assert !david.save
+    assert_not_predicate david, :valid?
+    assert_not david.save
     assert_raise(ActiveRecord::RecordInvalid) { david.save! }
 
     someone = CallbackHaltedDeveloper.find(1)
     someone.cancel_before_save = true
-    assert someone.valid?
-    assert !someone.save
+    assert_predicate someone, :valid?
+    assert_not someone.save
     assert_save_callbacks_not_called(someone)
   end
 
   def test_before_update_throwing_abort
     someone = CallbackHaltedDeveloper.find(1)
     someone.cancel_before_update = true
-    assert someone.valid?
-    assert !someone.save
+    assert_predicate someone, :valid?
+    assert_not someone.save
     assert_save_callbacks_not_called(someone)
   end
 
   def test_before_destroy_throwing_abort
     david = DeveloperWithCanceledCallbacks.find(1)
-    assert !david.destroy
+    assert_not david.destroy
     exc = assert_raise(ActiveRecord::RecordNotDestroyed) { david.destroy! }
     assert_equal david, exc.record
     assert_not_nil ImmutableDeveloper.find_by_id(1)
 
     someone = CallbackHaltedDeveloper.find(1)
     someone.cancel_before_destroy = true
-    assert !someone.destroy
+    assert_not someone.destroy
     assert_raise(ActiveRecord::RecordNotDestroyed) { someone.destroy! }
-    assert !someone.after_destroy_called
+    assert_not someone.after_destroy_called
   end
 
   def test_callback_throwing_abort
@@ -467,12 +467,12 @@ class CallbacksTest < ActiveRecord::TestCase
 
   def test_inheritance_of_callbacks
     parent = ParentDeveloper.new
-    assert !parent.after_save_called
+    assert_not parent.after_save_called
     parent.save
     assert parent.after_save_called
 
     child = ChildDeveloper.new
-    assert !child.after_save_called
+    assert_not child.after_save_called
     child.save
     assert child.after_save_called
   end

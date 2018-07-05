@@ -159,11 +159,25 @@ class SerializedAttributeTest < ActiveRecord::TestCase
     assert_equal(settings, Topic.find(topic.id).content)
   end
 
+  def test_where_by_serialized_attribute_with_array
+    settings = [ "color" => "green" ]
+    Topic.serialize(:content, Array)
+    topic = Topic.create!(content: settings)
+    assert_equal topic, Topic.where(content: settings).take
+  end
+
   def test_where_by_serialized_attribute_with_hash
     settings = { "color" => "green" }
     Topic.serialize(:content, Hash)
     topic = Topic.create!(content: settings)
     assert_equal topic, Topic.where(content: settings).take
+  end
+
+  def test_where_by_serialized_attribute_with_hash_in_array
+    settings = { "color" => "green" }
+    Topic.serialize(:content, Hash)
+    topic = Topic.create!(content: settings)
+    assert_equal topic, Topic.where(content: [settings]).take
   end
 
   def test_serialized_default_class
@@ -279,7 +293,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = Topic.new(content: nil)
 
-    assert_not topic.content_changed?
+    assert_not_predicate topic, :content_changed?
   end
 
   def test_classes_without_no_arg_constructors_are_not_supported
@@ -349,7 +363,7 @@ class SerializedAttributeTest < ActiveRecord::TestCase
 
     topic = model.create!(foo: "bar")
     topic.foo
-    refute topic.changed?
+    assert_not_predicate topic, :changed?
   end
 
   def test_serialized_attribute_works_under_concurrent_initial_access

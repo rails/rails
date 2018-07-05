@@ -27,10 +27,9 @@ module ActiveRecord
           end
         end
 
-        protected
+        private
           attr_reader :owners, :reflection, :preload_scope, :model, :klass
 
-        private
           # The name of the key on the associated records
           def association_key_name
             reflection.join_primary_key(klass)
@@ -43,11 +42,11 @@ module ActiveRecord
 
           def associate_records_to_owner(owner, records)
             association = owner.association(reflection.name)
+            association.loaded!
             if reflection.collection?
-              association.loaded!
               association.target.concat(records)
             else
-              association.target = records.first
+              association.target = records.first unless records.empty?
             end
           end
 
@@ -82,11 +81,11 @@ module ActiveRecord
           end
 
           def association_key_type
-            @klass.type_for_attribute(association_key_name.to_s).type
+            @klass.type_for_attribute(association_key_name).type
           end
 
           def owner_key_type
-            @model.type_for_attribute(owner_key_name.to_s).type
+            @model.type_for_attribute(owner_key_name).type
           end
 
           def load_records(&block)
@@ -118,7 +117,7 @@ module ActiveRecord
             scope = klass.scope_for_association
 
             if reflection.type
-              scope.where!(reflection.type => model.base_class.sti_name)
+              scope.where!(reflection.type => model.polymorphic_name)
             end
 
             scope.merge!(reflection_scope) if reflection.scope

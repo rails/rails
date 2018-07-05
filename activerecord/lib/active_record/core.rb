@@ -139,11 +139,6 @@ module ActiveRecord
     end
 
     module ClassMethods # :nodoc:
-      def allocate
-        define_attribute_methods
-        super
-      end
-
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
@@ -281,7 +276,7 @@ module ActiveRecord
         end
 
         def relation
-          relation = Relation.create(self, arel_table, predicate_builder)
+          relation = Relation.create(self)
 
           if finder_needs_type_condition? && !ignore_default_scope?
             relation.where!(type_condition)
@@ -350,6 +345,28 @@ module ActiveRecord
     end
 
     ##
+    # Initializer used for instantiating objects that have been read from the
+    # database.  +attributes+ should be an attributes object, and unlike the
+    # `initialize` method, no assignment calls are made per attribute.
+    #
+    # :nodoc:
+    def init_from_db(attributes)
+      init_internals
+
+      @new_record = false
+      @attributes = attributes
+
+      self.class.define_attribute_methods
+
+      yield self if block_given?
+
+      _run_find_callbacks
+      _run_initialize_callbacks
+
+      self
+    end
+
+    ##
     # :method: clone
     # Identical to Ruby's clone method.  This is a "shallow" copy.  Be warned that your attributes are not copied.
     # That means that modifying attributes of the clone will modify the original, since they will both point to the
@@ -382,8 +399,10 @@ module ActiveRecord
 
       _run_initialize_callbacks
 
-      @new_record  = true
-      @destroyed   = false
+      @new_record               = true
+      @destroyed                = false
+      @_start_transaction_state = {}
+      @transaction_state        = nil
 
       super
     end

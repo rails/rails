@@ -82,7 +82,7 @@ class QueuingTest < ActiveSupport::TestCase
   end
 
   test "should supply a provider_job_id when available for immediate jobs" do
-    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :qu, :que, :queue_classic)
+    skip unless adapter_is?(:async, :delayed_job, :sidekiq, :que, :queue_classic)
     test_job = TestJob.perform_later @id
     assert test_job.provider_job_id, "Provider job id should be set by provider"
   end
@@ -107,6 +107,22 @@ class QueuingTest < ActiveSupport::TestCase
     ensure
       I18n.available_locales = [:en]
       I18n.locale = :en
+    end
+  end
+
+  test "current timezone is kept while running perform_later" do
+    skip if adapter_is?(:inline)
+
+    begin
+      current_zone = Time.zone
+      Time.zone = "Hawaii"
+
+      TestJob.perform_later @id
+      wait_for_jobs_to_finish_for(5.seconds)
+      assert job_executed
+      assert_equal "Hawaii", job_executed_in_timezone
+    ensure
+      Time.zone = current_zone
     end
   end
 

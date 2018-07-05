@@ -183,7 +183,7 @@ module ActiveRecord
           if body.respond_to?(:to_proc)
             singleton_class.send(:define_method, name) do |*args|
               scope = all
-              scope = scope.instance_exec(*args, &body) || scope
+              scope = scope._exec_scope(*args, &body)
               scope = scope.extending(extension) if extension
               scope
             end

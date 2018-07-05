@@ -159,7 +159,7 @@ class MimeTypeTest < ActiveSupport::TestCase
 
     types.each do |type|
       mime = Mime[type]
-      assert mime.respond_to?("#{type}?"), "#{mime.inspect} does not respond to #{type}?"
+      assert_respond_to mime, "#{type}?"
       assert_equal type, mime.symbol, "#{mime.inspect} is not #{type}?"
       invalid_types = types - [type]
       invalid_types.delete(:html)
@@ -180,8 +180,8 @@ class MimeTypeTest < ActiveSupport::TestCase
     assert Mime[:js] =~ "text/javascript"
     assert Mime[:js] =~ "application/javascript"
     assert Mime[:js] !~ "text/html"
-    assert !(Mime[:js] !~ "text/javascript")
-    assert !(Mime[:js] !~ "application/javascript")
+    assert_not (Mime[:js] !~ "text/javascript")
+    assert_not (Mime[:js] !~ "application/javascript")
     assert Mime[:html] =~ "application/xhtml+xml"
   end
 end

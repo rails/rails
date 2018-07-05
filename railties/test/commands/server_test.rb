@@ -1,15 +1,15 @@
 # frozen_string_literal: true
 
-require "abstract_unit"
+require "isolation/abstract_unit"
 require "env_helpers"
 require "rails/command"
 require "rails/commands/server/server_command"
 
-class Rails::ServerTest < ActiveSupport::TestCase
+class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
   include EnvHelpers
 
   def test_environment_with_server_option
-    args = ["thin", "-e", "production"]
+    args = ["-u", "thin", "-e", "production"]
     options = parse_arguments(args)
     assert_equal "production", options[:environment]
     assert_equal "thin", options[:server]
@@ -20,6 +20,24 @@ class Rails::ServerTest < ActiveSupport::TestCase
     options = parse_arguments(args)
     assert_equal "production", options[:environment]
     assert_nil options[:server]
+  end
+
+  def test_explicit_using_option
+    args = ["-u", "thin"]
+    options = parse_arguments(args)
+    assert_equal "thin", options[:server]
+  end
+
+  def test_using_server_mistype
+    assert_match(/Could not find server "tin". Maybe you meant "thin"?/, run_command("--using", "tin"))
+  end
+
+  def test_using_positional_argument_deprecation
+    assert_match(/DEPRECATION WARNING/, run_command("tin"))
+  end
+
+  def test_using_known_server_that_isnt_in_the_gemfile
+    assert_match(/Could not load server "unicorn". Maybe you need to the add it to the Gemfile/, run_command("-u", "unicorn"))
   end
 
   def test_daemon_with_option
@@ -35,7 +53,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
   end
 
   def test_server_option_without_environment
-    args = ["thin"]
+    args = ["-u", "thin"]
     with_rack_env nil do
       with_rails_env nil do
         options = parse_arguments(args)
@@ -72,6 +90,15 @@ class Rails::ServerTest < ActiveSupport::TestCase
 
   def test_environment_with_host
     switch_env "HOST", "1.2.3.4" do
+      assert_deprecated do
+        options = parse_arguments
+        assert_equal "1.2.3.4", options[:Host]
+      end
+    end
+  end
+
+  def test_environment_with_binding
+    switch_env "BINDING", "1.2.3.4" do
       options = parse_arguments
       assert_equal "1.2.3.4", options[:Host]
     end
@@ -178,7 +205,7 @@ class Rails::ServerTest < ActiveSupport::TestCase
       assert_equal 3000, options[:Port]
     end
 
-    switch_env "HOST", "1.2.3.4" do
+    switch_env "BINDING", "1.2.3.4" do
       args = ["-b", "127.0.0.1"]
       options = parse_arguments(args)
       assert_equal "127.0.0.1", options[:Host]
@@ -197,6 +224,11 @@ class Rails::ServerTest < ActiveSupport::TestCase
 
     server_options = parse_arguments(["--port=3001"])
     assert_equal [:Port], server_options[:user_supplied_options]
+
+    switch_env "BINDING", "1.2.3.4" do
+      server_options = parse_arguments
+      assert_equal [:Host], server_options[:user_supplied_options]
+    end
   end
 
   def test_default_options
@@ -221,7 +253,20 @@ class Rails::ServerTest < ActiveSupport::TestCase
     ARGV.replace original_args
   end
 
+  def test_served_url
+    args = %w(-u webrick -b 127.0.0.1 -p 4567)
+    server = Rails::Server.new(parse_arguments(args))
+    assert_equal "http://127.0.0.1:4567", server.served_url
+  end
+
   private
+    def run_command(*args)
+      build_app
+      rails "server", *args
+    ensure
+      teardown_app
+    end
+
     def parse_arguments(args = [])
       Rails::Command::ServerCommand.new([], args).server_options
     end

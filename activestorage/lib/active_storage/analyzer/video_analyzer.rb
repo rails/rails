@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require "active_support/core_ext/hash/compact"
-
 module ActiveStorage
   # Extracts the following from a video blob:
   #
@@ -9,41 +7,40 @@ module ActiveStorage
   # * Height (pixels)
   # * Duration (seconds)
   # * Angle (degrees)
-  # * Aspect ratio
+  # * Display aspect ratio
   #
   # Example:
   #
   #   ActiveStorage::VideoAnalyzer.new(blob).metadata
-  #   # => { width: 640, height: 480, duration: 5.0, angle: 0, aspect_ratio: [4, 3] }
+  #   # => { width: 640.0, height: 480.0, duration: 5.0, angle: 0, display_aspect_ratio: [4, 3] }
   #
-  # This analyzer requires the {ffmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails. You must
-  # install ffmpeg yourself to use this analyzer.
+  # When a video's angle is 90 or 270 degrees, its width and height are automatically swapped for convenience.
+  #
+  # This analyzer requires the {FFmpeg}[https://www.ffmpeg.org] system library, which is not provided by Rails.
   class Analyzer::VideoAnalyzer < Analyzer
-    class_attribute :ffprobe_path, default: "ffprobe"
-
     def self.accept?(blob)
       blob.video?
     end
 
     def metadata
-      { width: width, height: height, duration: duration, angle: angle, aspect_ratio: aspect_ratio }.compact
+      { width: width, height: height, duration: duration, angle: angle, display_aspect_ratio: display_aspect_ratio }.compact
     end
 
     private
       def width
-        rotated? ? raw_height : raw_width
+        if rotated?
+          computed_height || encoded_height
+        else
+          encoded_width
+        end
       end
 
       def height
-        rotated? ? raw_width : raw_height
-      end
-
-      def raw_width
-        Integer(video_stream["width"]) if video_stream["width"]
-      end
-
-      def raw_height
-        Integer(video_stream["height"]) if video_stream["height"]
+        if rotated?
+          encoded_width
+        else
+          computed_height || encoded_height
+        end
       end
 
       def duration
@@ -54,14 +51,38 @@ module ActiveStorage
         Integer(tags["rotate"]) if tags["rotate"]
       end
 
-      def aspect_ratio
+      def display_aspect_ratio
         if descriptor = video_stream["display_aspect_ratio"]
-          descriptor.split(":", 2).collect(&:to_i)
+          if terms = descriptor.split(":", 2)
+            numerator   = Integer(terms[0])
+            denominator = Integer(terms[1])
+
+            [numerator, denominator] unless numerator == 0
+          end
         end
       end
 
+
       def rotated?
         angle == 90 || angle == 270
+      end
+
+      def computed_height
+        if encoded_width && display_height_scale
+          encoded_width * display_height_scale
+        end
+      end
+
+      def encoded_width
+        @encoded_width ||= Float(video_stream["width"]) if video_stream["width"]
+      end
+
+      def encoded_height
+        @encoded_height ||= Float(video_stream["height"]) if video_stream["height"]
+      end
+
+      def display_height_scale
+        @display_height_scale ||= Float(display_aspect_ratio.last) / display_aspect_ratio.first if display_aspect_ratio
       end
 
 
@@ -86,8 +107,12 @@ module ActiveStorage
           JSON.parse(output.read)
         end
       rescue Errno::ENOENT
-        logger.info "Skipping video analysis because ffmpeg isn't installed"
+        logger.info "Skipping video analysis because FFmpeg isn't installed"
         {}
+      end
+
+      def ffprobe_path
+        ActiveStorage.paths[:ffprobe] || "ffprobe"
       end
   end
 end

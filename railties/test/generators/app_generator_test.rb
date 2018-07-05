@@ -105,6 +105,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
     ::DEFAULT_APP_FILES
   end
 
+  def test_skip_bundle
+    assert_not_called(generator([destination_root], skip_bundle: true), :bundle_command) do
+      quietly { generator.invoke_all }
+      # skip_bundle is only about running bundle install, ensure the Gemfile is still
+      # generated.
+      assert_file "Gemfile"
+    end
+  end
+
   def test_assets
     run_generator
 
@@ -202,13 +211,15 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_new_application_doesnt_need_defaults
-    assert_no_file "config/initializers/new_framework_defaults_5_2.rb"
+    assert_no_file "config/initializers/new_framework_defaults_6_0.rb"
   end
 
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
     run_generator [app_root]
     output = nil
+
+    assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
 
     Dir.chdir(app_root) do
       output = `./bin/rails r "puts Rails.application.config.assets.unknown_asset_fallback"`
@@ -248,14 +259,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
+    assert_no_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], { update: true }, { destination_root: app_root, shell: @shell }
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
 
-      assert_file "#{app_root}/config/initializers/new_framework_defaults_5_2.rb"
+      assert_file "#{app_root}/config/initializers/new_framework_defaults_6_0.rb"
     end
   end
 
@@ -285,6 +296,51 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_app_update_does_not_generate_yarn_contents_when_bin_yarn_is_not_used
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-yarn"]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_yarn: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_bin_files) }
+
+      assert_no_file "#{app_root}/bin/yarn"
+
+      assert_file "#{app_root}/bin/setup" do |content|
+        assert_no_match(/system\('bin\/yarn'\)/, content)
+      end
+
+      assert_file "#{app_root}/bin/update" do |content|
+        assert_no_match(/system\('bin\/yarn'\)/, content)
+      end
+    end
+  end
+
+  def test_app_update_does_not_generate_assets_initializer_when_skip_sprockets_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-sprockets"]
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], { update: true, skip_sprockets: true }, { destination_root: app_root, shell: @shell }
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+
+      assert_no_file "#{app_root}/config/initializers/assets.rb"
+    end
+  end
+
+  def test_app_update_does_not_generate_spring_contents_when_skip_spring_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-spring"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_no_file "#{app_root}/config/spring.rb"
+  end
+
   def test_app_update_does_not_generate_action_cable_contents_when_skip_action_cable_is_given
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root, "--skip-action-cable"]
@@ -299,24 +355,28 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_active_storage_mini_magick_gem
-    run_generator
-    assert_file "Gemfile", /^# gem 'mini_magick'/
+  def test_app_update_does_not_generate_bootsnap_contents_when_skip_bootsnap_is_given
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root, "--skip-bootsnap"]
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/boot.rb" do |content|
+      assert_no_match(/require 'bootsnap\/setup'/, content)
+    end
   end
 
-  def test_active_storage_install
-    command_check = -> command, _ do
-      @binstub_called ||= 0
-      case command
-      when "active_storage:install"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "active_storage:install expected to be called once, but was called #{@binstub_called} times"
-      end
-    end
+  def test_gem_for_active_storage
+    run_generator
+    assert_file "Gemfile", /^# gem 'image_processing'/
+  end
 
-    generator.stub :rails_command, command_check do
-      quietly { generator.invoke_all }
-    end
+  def test_gem_for_active_storage_when_skip_active_storage_is_given
+    run_generator [destination_root, "--skip-active-storage"]
+
+    assert_no_gem "image_processing"
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_storage_is_given
@@ -340,10 +400,6 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
-
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
-    end
   end
 
   def test_app_update_does_not_generate_active_storage_contents_when_skip_active_record_is_given
@@ -367,9 +423,42 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_no_file "#{app_root}/config/storage.yml"
+  end
 
-    assert_file "#{app_root}/Gemfile" do |content|
-      assert_no_match(/gem 'mini_magick'/, content)
+  def test_app_update_does_not_change_config_target_version
+    run_generator
+
+    FileUtils.cd(destination_root) do
+      config = "config/application.rb"
+      content = File.read(config)
+      File.write(config, content.gsub(/config\.load_defaults #{Rails::VERSION::STRING.to_f}/, "config.load_defaults 5.1"))
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
+  end
+
+  def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
+    app_root = File.join(destination_root, "hyphenated-app")
+    run_generator [app_root, "-d", "postgresql"]
+
+    assert_file "#{app_root}/config/database.yml" do |content|
+      assert_match(/hyphenated_app_development/, content)
+      assert_no_match(/hyphenated-app_development/, content)
+    end
+
+    assert_file "#{app_root}/config/cable.yml" do |content|
+      assert_match(/hyphenated_app/, content)
+      assert_no_match(/hyphenated-app/, content)
+    end
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/cable.yml" do |content|
+      assert_match(/hyphenated_app/, content)
+      assert_no_match(/hyphenated-app/, content)
     end
   end
 
@@ -398,13 +487,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_config_another_database
+  def test_config_mysql_database
     run_generator([destination_root, "-d", "mysql"])
     assert_file "config/database.yml", /mysql/
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcmysql-adapter"
     else
-      assert_gem "mysql2", "'~> 0.4.4'"
+      assert_gem "mysql2", "'>= 0.4.4', '< 0.6.0'"
     end
   end
 
@@ -419,7 +508,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     if defined?(JRUBY_VERSION)
       assert_gem "activerecord-jdbcpostgresql-adapter"
     else
-      assert_gem "pg", "'~> 0.18'"
+      assert_gem "pg", "'>= 0.18', '< 2.0'"
     end
   end
 
@@ -464,9 +553,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_generator_if_skip_puma_is_given
     run_generator [destination_root, "--skip-puma"]
     assert_no_file "config/puma.rb"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/puma/, content)
-    end
+    assert_no_gem "puma"
   end
 
   def test_generator_has_assets_gems
@@ -486,22 +573,18 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
     assert_file "config/application.rb", /#\s+require\s+["']rails\/test_unit\/railtie["']/
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/capybara/, content)
-      assert_no_match(/selenium-webdriver/, content)
-      assert_no_match(/chromedriver-helper/, content)
-    end
+    assert_no_gem "capybara"
+    assert_no_gem "selenium-webdriver"
+    assert_no_gem "chromedriver-helper"
 
     assert_no_directory("test")
   end
 
   def test_generator_if_skip_system_test_is_given
     run_generator [destination_root, "--skip-system-test"]
-    assert_file "Gemfile" do |content|
-      assert_no_match(/capybara/, content)
-      assert_no_match(/selenium-webdriver/, content)
-      assert_no_match(/chromedriver-helper/, content)
-    end
+    assert_no_gem "capybara"
+    assert_no_gem "selenium-webdriver"
+    assert_no_gem "chromedriver-helper"
 
     assert_directory("test")
 
@@ -547,10 +630,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_no_match(/javascript_include_tag\s+'application' \%>/, contents)
     end
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/coffee-rails/, content)
-      assert_no_match(/uglifier/, content)
-    end
+    assert_no_gem "coffee-rails"
+    assert_no_gem "uglifier"
 
     assert_file "config/environments/production.rb" do |content|
       assert_no_match(/config\.assets\.js_compressor = :uglifier/, content)
@@ -574,9 +655,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_inclusion_of_a_debugger
     run_generator
     if defined?(JRUBY_VERSION) || RUBY_ENGINE == "rbx"
-      assert_file "Gemfile" do |content|
-        assert_no_match(/byebug/, content)
-      end
+      assert_no_gem "byebug"
     else
       assert_gem "byebug"
     end
@@ -642,6 +721,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_quiet_option
     output = run_generator [File.join(destination_root, "myapp"), "--quiet"]
     assert_empty output
+  end
+
+  def test_force_option_overwrites_every_file_except_master_key
+    run_generator [File.join(destination_root, "myapp")]
+    output = run_generator [File.join(destination_root, "myapp"), "--force"]
+    assert_match(/force/, output)
+    assert_no_match("force  config/master.key", output)
   end
 
   def test_application_name_with_spaces
@@ -720,9 +806,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_called_with(Process, :respond_to?, [[:fork], [:fork]], returns: false) do
       run_generator
 
-      assert_file "Gemfile" do |content|
-        assert_no_match(/spring/, content)
-      end
+      assert_no_gem "spring"
     end
   end
 
@@ -730,17 +814,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     run_generator [destination_root, "--skip-spring"]
 
     assert_no_file "config/spring.rb"
-    assert_file "Gemfile" do |content|
-      assert_no_match(/spring/, content)
-    end
+    assert_no_gem "spring"
   end
 
   def test_spring_with_dev_option
     run_generator [destination_root, "--dev"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/spring/, content)
-    end
+    assert_no_gem "spring"
   end
 
   def test_webpack_option
@@ -753,7 +833,9 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "webpack").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
 
     assert_gem "webpacker"
@@ -774,16 +856,16 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     generator([destination_root], webpack: "react").stub(:rails_command, command_check) do
-      quietly { generator.invoke_all }
+      generator.stub :bundle_command, nil do
+        quietly { generator.invoke_all }
+      end
     end
   end
 
   def test_generator_if_skip_turbolinks_is_given
     run_generator [destination_root, "--skip-turbolinks"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/turbolinks/, content)
-    end
+    assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|
       assert_no_match(/data-turbolinks-track/, content)
     end
@@ -795,18 +877,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bootsnap
     run_generator
 
-    assert_gem "bootsnap"
-    assert_file "config/boot.rb" do |content|
-      assert_match(/require 'bootsnap\/setup'/, content)
+    unless defined?(JRUBY_VERSION)
+      assert_gem "bootsnap"
+      assert_file "config/boot.rb" do |content|
+        assert_match(/require 'bootsnap\/setup'/, content)
+      end
+    else
+      assert_no_gem "bootsnap"
+      assert_file "config/boot.rb" do |content|
+        assert_no_match(/require 'bootsnap\/setup'/, content)
+      end
     end
   end
 
   def test_skip_bootsnap
     run_generator [destination_root, "--skip-bootsnap"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/bootsnap/, content)
-    end
+    assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
       assert_no_match(/require 'bootsnap\/setup'/, content)
     end
@@ -815,9 +902,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_bootsnap_with_dev_option
     run_generator [destination_root, "--dev"]
 
-    assert_file "Gemfile" do |content|
-      assert_no_match(/bootsnap/, content)
-    end
+    assert_no_gem "bootsnap"
     assert_file "config/boot.rb" do |content|
       assert_no_match(/require 'bootsnap\/setup'/, content)
     end
@@ -830,7 +915,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ruby '#{RUBY_VERSION}'/, content)
     end
     assert_file ".ruby-version" do |content|
-      assert_match(/#{RUBY_VERSION}/, content)
+      if ENV["RBENV_VERSION"]
+        assert_match(/#{ENV["RBENV_VERSION"]}/, content)
+      elsif ENV["rvm_ruby_string"]
+        assert_match(/#{ENV["rvm_ruby_string"]}/, content)
+      else
+        assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
+      end
     end
   end
 
@@ -885,7 +976,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "active_storage:install", "echo ran after_bundle"]
+    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -902,7 +993,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 4, @sequence_step
   end
 
   def test_gitignore
@@ -916,8 +1007,17 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_system_tests_directory_generated
     run_generator
 
-    assert_file("test/system/.keep")
     assert_directory("test/system")
+    assert_file("test/system/.keep")
+  end
+
+  unless Gem.win_platform?
+    def test_master_key_is_only_readable_by_the_owner
+      run_generator
+
+      stat = File.stat("config/master.key")
+      assert_equal "100600", sprintf("%o", stat.mode)
+    end
   end
 
   private
@@ -940,6 +1040,12 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
+    def assert_no_gem(gem)
+      assert_file "Gemfile" do |content|
+        assert_no_match(gem, content)
+      end
+    end
+
     def assert_listen_related_configuration
       assert_gem "listen"
       assert_gem "spring-watcher-listen"
@@ -950,9 +1056,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
     end
 
     def assert_no_listen_related_configuration
-      assert_file "Gemfile" do |content|
-        assert_no_match(/listen/, content)
-      end
+      assert_no_gem "listen"
 
       assert_file "config/environments/development.rb" do |content|
         assert_match(/^\s*# config\.file_watcher = ActiveSupport::EventedFileUpdateChecker/, content)

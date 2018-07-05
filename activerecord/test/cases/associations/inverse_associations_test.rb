@@ -119,17 +119,17 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
-    assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
+    assert_not sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
 
     club_reflection = Club.reflect_on_association(:members)
 
-    assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
+    assert_not club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
   def test_polymorphic_has_one_should_find_inverse_automatically
     man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
 
-    assert man_reflection.has_inverse?
+    assert_predicate man_reflection, :has_inverse?
   end
 end
 
@@ -150,22 +150,22 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
     has_one_with_inverse_ref = Man.reflect_on_association(:face)
-    assert has_one_with_inverse_ref.has_inverse?
+    assert_predicate has_one_with_inverse_ref, :has_inverse?
 
     has_many_with_inverse_ref = Man.reflect_on_association(:interests)
-    assert has_many_with_inverse_ref.has_inverse?
+    assert_predicate has_many_with_inverse_ref, :has_inverse?
 
     belongs_to_with_inverse_ref = Face.reflect_on_association(:man)
-    assert belongs_to_with_inverse_ref.has_inverse?
+    assert_predicate belongs_to_with_inverse_ref, :has_inverse?
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
-    assert !has_one_without_inverse_ref.has_inverse?
+    assert_not_predicate has_one_without_inverse_ref, :has_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
-    assert !has_many_without_inverse_ref.has_inverse?
+    assert_not_predicate has_many_without_inverse_ref, :has_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert !belongs_to_without_inverse_ref.has_inverse?
+    assert_not_predicate belongs_to_without_inverse_ref, :has_inverse?
   end
 
   def test_inverse_of_method_should_supply_the_actual_reflection_instance_it_is_the_inverse_of
@@ -187,6 +187,16 @@ class InverseAssociationTests < ActiveRecord::TestCase
     assert_nil has_many_ref.inverse_of
 
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
+    assert_nil belongs_to_ref.inverse_of
+  end
+
+  def test_polymorphic_associations_dont_attempt_to_find_inverse_of
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsor)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
+    assert_nil belongs_to_ref.inverse_of
+
+    belongs_to_ref = Face.reflect_on_association(:human)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
     assert_nil belongs_to_ref.inverse_of
   end
 
@@ -464,7 +474,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     interest = Interest.create!(man: man)
 
     man.interests.find(interest.id)
-    assert_not man.interests.loaded?
+    assert_not_predicate man.interests, :loaded?
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
@@ -504,16 +514,16 @@ class InverseHasManyTests < ActiveRecord::TestCase
     i.man.name = "Charles"
     assert_equal i.man.name, man.name
 
-    assert !man.persisted?
+    assert_not_predicate man, :persisted?
   end
 
   def test_inverse_instance_should_be_set_before_find_callbacks_are_run
     reset_callbacks(Interest, :find) do
       Interest.after_find { raise unless association(:man).loaded? && man.present? }
 
-      assert Man.first.interests.reload.any?
-      assert Man.includes(:interests).first.interests.any?
-      assert Man.joins(:interests).includes(:interests).first.interests.any?
+      assert_predicate Man.first.interests.reload, :any?
+      assert_predicate Man.includes(:interests).first.interests, :any?
+      assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
 
@@ -521,9 +531,9 @@ class InverseHasManyTests < ActiveRecord::TestCase
     reset_callbacks(Interest, :initialize) do
       Interest.after_initialize { raise unless association(:man).loaded? && man.present? }
 
-      assert Man.first.interests.reload.any?
-      assert Man.includes(:interests).first.interests.any?
-      assert Man.joins(:interests).includes(:interests).first.interests.any?
+      assert_predicate Man.first.interests.reload, :any?
+      assert_predicate Man.includes(:interests).first.interests, :any?
+      assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
 

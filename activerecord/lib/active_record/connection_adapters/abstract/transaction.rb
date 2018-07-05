@@ -17,11 +17,19 @@ module ActiveRecord
       end
 
       def committed?
-        @state == :committed
+        @state == :committed || @state == :fully_committed
+      end
+
+      def fully_committed?
+        @state == :fully_committed
       end
 
       def rolledback?
-        @state == :rolledback
+        @state == :rolledback || @state == :fully_rolledback
+      end
+
+      def fully_rolledback?
+        @state == :fully_rolledback
       end
 
       def fully_completed?
@@ -55,8 +63,17 @@ module ActiveRecord
         @state = :rolledback
       end
 
+      def full_rollback!
+        @children.each { |c| c.rollback! }
+        @state = :fully_rolledback
+      end
+
       def commit!
         @state = :committed
+      end
+
+      def full_commit!
+        @state = :fully_committed
       end
 
       def nullify!
@@ -75,7 +92,6 @@ module ActiveRecord
 
     class Transaction #:nodoc:
       attr_reader :connection, :state, :records, :savepoint_name
-      attr_writer :joinable
 
       def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
@@ -89,10 +105,6 @@ module ActiveRecord
         records << record
       end
 
-      def rollback
-        @state.rollback!
-      end
-
       def rollback_records
         ite = records.uniq
         while record = ite.shift
@@ -102,10 +114,6 @@ module ActiveRecord
         ite.each do |i|
           i.rolledback!(force_restore_state: full_rollback?, should_run_callbacks: false)
         end
-      end
-
-      def commit
-        @state.commit!
       end
 
       def before_commit_records
@@ -146,12 +154,12 @@ module ActiveRecord
 
       def rollback
         connection.rollback_to_savepoint(savepoint_name)
-        super
+        @state.rollback!
       end
 
       def commit
         connection.release_savepoint(savepoint_name)
-        super
+        @state.commit!
       end
 
       def full_rollback?; false; end
@@ -169,12 +177,12 @@ module ActiveRecord
 
       def rollback
         connection.rollback_db_transaction
-        super
+        @state.full_rollback!
       end
 
       def commit
         connection.commit_db_transaction
-        super
+        @state.full_commit!
       end
     end
 

@@ -38,4 +38,8 @@ class ActiveSupport::TestCase
   private def jruby_skip(message = "")
     skip message if defined?(JRUBY_VERSION)
   end
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end

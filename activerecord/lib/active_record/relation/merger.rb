@@ -23,7 +23,11 @@ module ActiveRecord
       # build a relation to merge in rather than directly merging
       # the values.
       def other
-        other = Relation.create(relation.klass, relation.table, relation.predicate_builder)
+        other = Relation.create(
+          relation.klass,
+          table: relation.table,
+          predicate_builder: relation.predicate_builder
+        )
         hash.each { |k, v|
           if k == :joins
             if Hash === v
@@ -52,7 +56,7 @@ module ActiveRecord
 
       NORMAL_VALUES = Relation::VALUE_METHODS -
                       Relation::CLAUSE_METHODS -
-                      [:includes, :preload, :joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
+                      [:includes, :preload, :joins, :left_outer_joins, :order, :reverse_order, :lock, :create_with, :reordering] # :nodoc:
 
       def normal_values
         NORMAL_VALUES
@@ -79,6 +83,7 @@ module ActiveRecord
         merge_clauses
         merge_preloads
         merge_joins
+        merge_outer_joins
 
         relation
       end
@@ -112,20 +117,35 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            alias_tracker = nil
             joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
             end
 
             relation.joins!(*joins_dependency)
+          end
+        end
+
+        def merge_outer_joins
+          return if other.left_outer_joins_values.blank?
+
+          if other.klass == relation.klass
+            relation.left_outer_joins!(*other.left_outer_joins_values)
+          else
+            joins_dependency = other.left_outer_joins_values.map do |join|
+              case join
+              when Hash, Symbol, Array
+                other.send(:construct_join_dependency, join)
+              else
+                join
+              end
+            end
+
+            relation.left_outer_joins!(*joins_dependency)
           end
         end
 

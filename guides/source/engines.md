@@ -188,7 +188,7 @@ inside the application, performing tasks such as adding the `app` directory of
 the engine to the load path for models, mailers, controllers, and views.
 
 The `isolate_namespace` method here deserves special notice. This call is
-responsible for isolating the controllers, models, routes and other things into
+responsible for isolating the controllers, models, routes, and other things into
 their own namespace, away from similar components inside the application.
 Without this, there is a possibility that the engine's components could "leak"
 into the application, causing unwanted disruption, or that important engine
@@ -461,7 +461,7 @@ rather than visiting `/articles`. This means that instead of
 
 Now that the engine can create new articles, it only makes sense to add
 commenting functionality as well. To do this, you'll need to generate a comment
-model, a comment controller and then modify the articles scaffold to display
+model, a comment controller, and then modify the articles scaffold to display
 comments and allow people to create new ones.
 
 From the application root, run the model generator. Tell it to generate a
@@ -695,7 +695,7 @@ pre-defined path which may be customizable.
 The engine contains migrations for the `blorgh_articles` and `blorgh_comments`
 table which need to be created in the application's database so that the
 engine's models can query them correctly. To copy these migrations into the
-application run the following command from the `test/dummy` directory of your Rails engine:
+application run the following command from the application's root:
 
 ```bash
 $ bin/rails blorgh:install:migrations
@@ -998,7 +998,7 @@ some sort of identifier by which it can be referenced.
 #### General Engine Configuration
 
 Within an engine, there may come a time where you wish to use things such as
-initializers, internationalization or other configuration options. The great
+initializers, internationalization, or other configuration options. The great
 news is that these things are entirely possible, because a Rails engine shares
 much the same functionality as a Rails application. In fact, a Rails
 application's functionality is actually a superset of what is provided by
@@ -1020,11 +1020,11 @@ Testing an engine
 When an engine is generated, there is a smaller dummy application created inside
 it at `test/dummy`. This application is used as a mounting point for the engine,
 to make testing the engine extremely simple. You may extend this application by
-generating controllers, models or views from within the directory, and then use
+generating controllers, models, or views from within the directory, and then use
 those to test your engine.
 
 The `test` directory should be treated like a typical Rails testing environment,
-allowing for unit, functional and integration tests.
+allowing for unit, functional, and integration tests.
 
 ### Functional Tests
 
@@ -1516,12 +1516,12 @@ To hook into the initialization process of one of the following classes use the 
 
 These are the available configuration hooks. They do not hook into any particular framework, but instead they run in context of the entire application.
 
-| Hook                   | Use Case                                                                              |
-| ---------------------- | ------------------------------------------------------------------------------------- |
-| `before_configuration` | First configurable block to run. Called before any initializers are run.              |
-| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.                |
-| `before_eager_load`    | Third configurable block to run. Does not run if `config.cache_classes` set to false. |
-| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                   |
+| Hook                   | Use Case                                                                           |
+| ---------------------- | ---------------------------------------------------------------------------------- |
+| `before_configuration` | First configurable block to run. Called before any initializers are run.           |
+| `before_initialize`    | Second configurable block to run. Called before frameworks initialize.             |
+| `before_eager_load`    | Third configurable block to run. Does not run if `config.eager_load` set to false. |
+| `after_initialize`     | Last configurable block to run. Called after frameworks initialize.                |
 
 ### Example
 

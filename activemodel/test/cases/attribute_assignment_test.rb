@@ -18,10 +18,7 @@ class AttributeAssignmentTest < ActiveModel::TestCase
       raise ErrorFromAttributeWriter
     end
 
-    # TODO Change this to private once we've dropped Ruby 2.2 support.
-    # Workaround for Ruby 2.2 "private attribute?" warning.
-    protected
-
+    private
       attr_writer :metadata
   end
 
@@ -67,6 +64,14 @@ class AttributeAssignmentTest < ActiveModel::TestCase
     model = Model.new
 
     model.assign_attributes(name: "hello", description: "world")
+    assert_equal "hello", model.name
+    assert_equal "world", model.description
+  end
+
+  test "simple assignment alias" do
+    model = Model.new
+
+    model.attributes = { name: "hello", description: "world" }
     assert_equal "hello", model.name
     assert_equal "world", model.description
   end

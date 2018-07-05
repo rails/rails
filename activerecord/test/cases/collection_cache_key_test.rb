@@ -60,7 +60,11 @@ module ActiveRecord
       table_metadata = ActiveRecord::TableMetadata.new(Developer, table_alias)
       predicate_builder = ActiveRecord::PredicateBuilder.new(table_metadata)
 
-      developers = ActiveRecord::Relation.create(Developer, table_alias, predicate_builder)
+      developers = ActiveRecord::Relation.create(
+        Developer,
+        table: table_alias,
+        predicate_builder: predicate_builder
+      )
       developers = developers.where(salary: 100000).order(updated_at: :desc)
       last_developer_timestamp = developers.first.updated_at
 
@@ -138,6 +142,18 @@ module ActiveRecord
 
     test "cache_key with a relation having selected columns" do
       developers = Developer.select(:salary)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having distinct and order" do
+      developers = Developer.distinct.order(:salary).limit(5)
+
+      assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
+    end
+
+    test "cache_key with a relation having custom select and order" do
+      developers = Developer.select("name AS dev_name").order("dev_name DESC").limit(5)
 
       assert_match(/\Adevelopers\/query-(\h+)-(\d+)-(\d+)\z/, developers.cache_key)
     end

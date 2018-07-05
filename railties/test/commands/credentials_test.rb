@@ -43,6 +43,18 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     assert_match(/api_key: abc/, run_show_command)
   end
 
+  test "edit command does not add master key when `RAILS_MASTER_KEY` env specified" do
+    Dir.chdir(app_path) do
+      key = IO.binread("config/master.key").strip
+      FileUtils.rm("config/master.key")
+
+      switch_env("RAILS_MASTER_KEY", key) do
+        assert_match(/access_key_id: 123/, run_edit_command)
+        assert_not File.exist?("config/master.key")
+      end
+    end
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end

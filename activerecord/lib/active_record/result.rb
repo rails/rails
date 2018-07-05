@@ -43,6 +43,11 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    # Returns true if this result set includes the column named +name+
+    def includes_column?(name)
+      @columns.include? name
+    end
+
     # Returns the number of elements in the rows array.
     def length
       @rows.length
@@ -97,12 +102,21 @@ module ActiveRecord
     end
 
     def cast_values(type_overrides = {}) # :nodoc:
-      types = columns.map { |name| column_type(name, type_overrides) }
-      result = rows.map do |values|
-        types.zip(values).map { |type, value| type.deserialize(value) }
-      end
+      if columns.one?
+        # Separated to avoid allocating an array per row
 
-      columns.one? ? result.map!(&:first) : result
+        type = column_type(columns.first, type_overrides)
+
+        rows.map do |(value)|
+          type.deserialize(value)
+        end
+      else
+        types = columns.map { |name| column_type(name, type_overrides) }
+
+        rows.map do |values|
+          Array.new(values.size) { |i| types[i].deserialize(values[i]) }
+        end
+      end
     end
 
     def initialize_copy(other)
@@ -125,7 +139,7 @@ module ActiveRecord
           begin
             # We freeze the strings to prevent them getting duped when
             # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map { |c| c.dup.freeze }
+            columns = @columns.map(&:-@)
             @rows.map { |row|
               # In the past we used Hash[columns.zip(row)]
               #  though elegant, the verbose way is much more efficient

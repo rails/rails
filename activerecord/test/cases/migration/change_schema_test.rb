@@ -84,7 +84,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
 
         def test_create_table_with_array_column
@@ -95,7 +95,7 @@ module ActiveRecord
           columns = connection.columns(:testings)
           array_column = columns.detect { |c| c.name == "foo" }
 
-          assert array_column.array?
+          assert_predicate array_column, :array?
         end
       end
 
@@ -196,6 +196,17 @@ module ActiveRecord
         assert_equal "you can't redefine the primary key column 'testing_id'. To define a custom primary key, pass { id: false } to create_table.", error.message
       end
 
+      def test_create_table_raises_when_defining_existing_column
+        error = assert_raise(ArgumentError) do
+          connection.create_table :testings do |t|
+            t.column :testing_column, :string
+            t.column :testing_column, :integer
+          end
+        end
+
+        assert_equal "you can't define an already defined column 'testing_column'.", error.message
+      end
+
       def test_create_table_with_timestamps_should_create_datetime_columns
         connection.create_table table_name do |t|
           t.timestamps
@@ -205,8 +216,8 @@ module ActiveRecord
         created_at_column = created_columns.detect { |c| c.name == "created_at" }
         updated_at_column = created_columns.detect { |c| c.name == "updated_at" }
 
-        assert !created_at_column.null
-        assert !updated_at_column.null
+        assert_not created_at_column.null
+        assert_not updated_at_column.null
       end
 
       def test_create_table_with_timestamps_should_create_datetime_columns_with_options
@@ -408,7 +419,7 @@ module ActiveRecord
         end
         connection.change_table :testings do |t|
           assert t.column_exists?(:foo)
-          assert !(t.column_exists?(:bar))
+          assert_not (t.column_exists?(:bar))
         end
       end
 

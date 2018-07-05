@@ -61,7 +61,7 @@ module ActiveRecord
           WHERE  #{Owner.primary_key} = #{owner.id}
         esql
 
-        assert(!result.rows.first.include?("blob"), "should not store blobs")
+        assert_not(result.rows.first.include?("blob"), "should not store blobs")
       ensure
         owner.delete
       end
@@ -401,16 +401,85 @@ module ActiveRecord
         Barcode.reset_column_information
       end
 
+      def test_custom_primary_key_in_create_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_custom_primary_key_in_change_table
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.change_table :barcodes do |t|
+          t.primary_key :id, :string
+        end
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_add_column_with_custom_primary_key
+        connection = Barcode.connection
+        connection.create_table :barcodes, id: false, force: true do |t|
+          t.integer :dummy
+        end
+        connection.add_column :barcodes, :id, :string, primary_key: true
+
+        assert_equal "id", connection.primary_key("barcodes")
+
+        custom_pk = Barcode.columns_hash["id"]
+
+        assert_equal :string, custom_pk.type
+        assert_not custom_pk.null
+      ensure
+        Barcode.reset_column_information
+      end
+
+      def test_remove_column_preserves_partial_indexes
+        connection = Barcode.connection
+        connection.create_table :barcodes, force: true do |t|
+          t.string :code
+          t.string :region
+          t.boolean :bool_attr
+
+          t.index :code, unique: true, where: :bool_attr, name: "partial"
+        end
+        connection.remove_column :barcodes, :region
+
+        index = connection.indexes("barcodes").find { |idx| idx.name == "partial" }
+        assert_equal "bool_attr", index.where
+      ensure
+        Barcode.reset_column_information
+      end
+
       def test_supports_extensions
         assert_not @conn.supports_extensions?, "does not support extensions"
       end
 
       def test_respond_to_enable_extension
-        assert @conn.respond_to?(:enable_extension)
+        assert_respond_to @conn, :enable_extension
       end
 
       def test_respond_to_disable_extension
-        assert @conn.respond_to?(:disable_extension)
+        assert_respond_to @conn, :disable_extension
       end
 
       def test_statement_closed
@@ -428,6 +497,43 @@ module ActiveRecord
               end
             end
           end
+        end
+      end
+
+      def test_deprecate_valid_alter_table_type
+        assert_deprecated { @conn.valid_alter_table_type?(:string) }
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_false
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: false
+
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_not_readonly_when_readonly_option_is_unspecified
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3"
+
+        assert_not_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_db_is_readonly_when_readonly_option_is_true
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_predicate conn.raw_connection, :readonly?
+      end
+
+      def test_writes_are_not_permitted_to_readonly_databases
+        conn = Base.sqlite3_connection database: ":memory:",
+                                       adapter: "sqlite3",
+                                       readonly: true
+
+        assert_raises(ActiveRecord::StatementInvalid, /SQLite3::ReadOnlyException/) do
+          conn.execute("CREATE TABLE test(id integer)")
         end
       end
 

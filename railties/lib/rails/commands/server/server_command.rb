@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require "fileutils"
-require "optparse"
 require "action_dispatch"
 require "rails"
 require "active_support/deprecation"
@@ -27,7 +26,7 @@ module Rails
         app = super
         if app.is_a?(Class)
           ActiveSupport::Deprecation.warn(<<-MSG.squish)
-            Use `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
+            Using `Rails::Application` subclass to start the server is deprecated and will be removed in Rails 6.0.
             Please change `run #{app}` to `run Rails.application` in config.ru.
           MSG
         end
@@ -43,18 +42,22 @@ module Rails
       ENV["RAILS_ENV"] ||= options[:environment]
     end
 
-    def start
-      print_boot_information
+    def start(after_stop_callback = nil)
       trap(:INT) { exit }
       create_tmp_directories
       setup_dev_caching
       log_to_stdout if options[:log_stdout]
 
-      super
+      super()
     ensure
-      # The '-h' option calls exit before @options is set.
-      # If we call 'options' with it unset, we get double help banners.
-      puts "Exiting" unless @options && options[:daemonize]
+      after_stop_callback.call if after_stop_callback
+    end
+
+    def serveable? # :nodoc:
+      server
+      true
+    rescue LoadError, NameError
+      false
     end
 
     def middleware
@@ -65,18 +68,15 @@ module Rails
       super.merge(@default_options)
     end
 
+    def served_url
+      "#{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
+    end
+
     private
       def setup_dev_caching
         if options[:environment] == "development"
           Rails::DevCaching.enable_by_argument(options[:caching])
         end
-      end
-
-      def print_boot_information
-        url = "on #{options[:SSLEnable] ? 'https' : 'http'}://#{options[:Host]}:#{options[:Port]}" unless use_puma?
-        puts "=> Booting #{ActiveSupport::Inflector.demodulize(server)}"
-        puts "=> Rails #{Rails.version} application starting in #{Rails.env} #{url}"
-        puts "=> Run `rails server -h` for more startup options"
       end
 
       def create_tmp_directories
@@ -108,8 +108,14 @@ module Rails
 
   module Command
     class ServerCommand < Base # :nodoc:
+      # Hard-coding a bunch of handlers here as we don't have a public way of
+      # querying them from the Rack::Handler registry.
+      RACK_SERVERS = %w(cgi fastcgi webrick lsws scgi thin puma unicorn)
+
       DEFAULT_PORT = 3000
       DEFAULT_PID_PATH = "tmp/pids/server.pid".freeze
+
+      argument :using, optional: true
 
       class_option :port, aliases: "-p", type: :numeric,
         desc: "Runs Rails on the specified port - defaults to 3000.", banner: :port
@@ -122,6 +128,8 @@ module Rails
         desc: "Runs server as a Daemon."
       class_option :environment, aliases: "-e", type: :string,
         desc: "Specifies the environment to run this server under (development/test/production).", banner: :name
+      class_option :using, aliases: "-u", type: :string,
+        desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string, default: DEFAULT_PID_PATH,
         desc: "Specifies the PID file."
       class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
@@ -132,19 +140,27 @@ module Rails
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
         super
-        @server = self.args.shift
+        @using = deprecated_positional_rack_server(using) || options[:using]
         @log_stdout = options[:daemon].blank? && (options[:environment] || Rails.env) == "development"
       end
 
       def perform
         set_application_directory!
         prepare_restart
+
         Rails::Server.new(server_options).tap do |server|
           # Require application after server sets environment to propagate
           # the --environment option.
           require APP_PATH
           Dir.chdir(Rails.application.root)
-          server.start
+
+          if server.serveable?
+            print_boot_information(server.server, server.served_url)
+            after_stop_callback = -> { say "Exiting" unless options[:daemon] }
+            server.start(after_stop_callback)
+          else
+            say rack_server_suggestion(using)
+          end
         end
       end
 
@@ -152,7 +168,7 @@ module Rails
         def server_options
           {
             user_supplied_options: user_supplied_options,
-            server:                @server,
+            server:                using,
             log_stdout:            @log_stdout,
             Port:                  port,
             Host:                  host,
@@ -202,7 +218,7 @@ module Rails
                 user_supplied_options << name
               end
             end
-            user_supplied_options << :Host if ENV["HOST"]
+            user_supplied_options << :Host if ENV["HOST"] || ENV["BINDING"]
             user_supplied_options << :Port if ENV["PORT"]
             user_supplied_options.uniq
           end
@@ -217,7 +233,17 @@ module Rails
             options[:binding]
           else
             default_host = environment == "development" ? "localhost" : "0.0.0.0"
-            ENV.fetch("HOST", default_host)
+
+            if ENV["HOST"] && !ENV["BINDING"]
+              ActiveSupport::Deprecation.warn(<<-MSG.squish)
+                Using the `HOST` environment to specify the IP is deprecated and will be removed in Rails 6.1.
+                Please use `BINDING` environment instead.
+              MSG
+
+              return ENV["HOST"]
+            end
+
+            ENV.fetch("BINDING", default_host)
           end
         end
 
@@ -226,7 +252,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{@server} #{@original_options.join(" ")} --restart"
+          "bin/rails server #{using} #{@original_options.join(" ")} --restart"
         end
 
         def early_hints
@@ -238,11 +264,49 @@ module Rails
         end
 
         def self.banner(*)
-          "rails server [puma, thin etc] [options]"
+          "rails server [thin/puma/webrick] [options]"
         end
 
         def prepare_restart
           FileUtils.rm_f(options[:pid]) if options[:restart]
+        end
+
+        def deprecated_positional_rack_server(value)
+          if value
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Passing the Rack server name as a regular argument is deprecated
+              and will be removed in the next Rails version. Please, use the -u
+              option instead.
+            MSG
+            value
+          end
+        end
+
+        def rack_server_suggestion(server)
+          if server.in?(RACK_SERVERS)
+            <<~MSG
+              Could not load server "#{server}". Maybe you need to the add it to the Gemfile?
+
+                gem "#{server}"
+
+              Run `rails server --help` for more options.
+            MSG
+          else
+            suggestion = Rails::Command::Spellchecker.suggest(server, from: RACK_SERVERS)
+
+            <<~MSG
+              Could not find server "#{server}". Maybe you meant #{suggestion.inspect}?
+              Run `rails server --help` for more options.
+            MSG
+          end
+        end
+
+        def print_boot_information(server, url)
+          say <<~MSG
+            => Booting #{ActiveSupport::Inflector.demodulize(server)}
+            => Rails #{Rails.version} application starting in #{Rails.env} #{url}
+            => Run `rails server --help` for more startup options
+          MSG
         end
     end
   end

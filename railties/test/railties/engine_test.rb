@@ -34,7 +34,7 @@ module RailtiesTest
 
     def migrations
       migration_root = File.expand_path(ActiveRecord::Migrator.migrations_paths.first, app_path)
-      ActiveRecord::Migrator.migrations(migration_root)
+      ActiveRecord::MigrationContext.new(migration_root).migrations
     end
 
     test "serving sprocket's assets" do
@@ -226,7 +226,7 @@ module RailtiesTest
       require "rdoc/task"
       require "rake/testtask"
       Rails.application.load_tasks
-      assert !Rake::Task.task_defined?("bukkits:install:migrations")
+      assert_not Rake::Task.task_defined?("bukkits:install:migrations")
     end
 
     test "puts its lib directory on load path" do
@@ -745,7 +745,7 @@ YAML
       assert_equal "bukkits", Bukkits::Engine.engine_name
       assert_equal Bukkits.railtie_namespace, Bukkits::Engine
       assert ::Bukkits::MyMailer.method_defined?(:foo_url)
-      assert !::Bukkits::MyMailer.method_defined?(:bar_url)
+      assert_not ::Bukkits::MyMailer.method_defined?(:bar_url)
 
       get("/bukkits/from_app")
       assert_equal "false", last_response.body

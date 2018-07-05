@@ -5,22 +5,20 @@ module ActiveRecord
     # = Active Record Belongs To Association
     class BelongsToAssociation < SingularAssociation #:nodoc:
       def handle_dependency
-        target.send(options[:dependent]) if load_target
+        return unless load_target
+
+        case options[:dependent]
+        when :destroy
+          target.destroy
+          raise ActiveRecord::Rollback unless target.destroyed?
+        else
+          target.send(options[:dependent])
+        end
       end
 
-      def replace(record)
-        if record
-          raise_on_type_mismatch!(record)
-          update_counters_on_replace(record)
-          replace_keys(record)
-          set_inverse_instance(record)
-          @updated = true
-        else
-          decrement_counters
-          remove_keys
-        end
-
-        self.target = record
+      def inversed_from(record)
+        replace_keys(record)
+        super
       end
 
       def default(&block)
@@ -44,7 +42,25 @@ module ActiveRecord
         update_counters(1)
       end
 
+      def target_changed?
+        owner.saved_change_to_attribute?(reflection.foreign_key)
+      end
+
       private
+        def replace(record)
+          if record
+            raise_on_type_mismatch!(record)
+            update_counters_on_replace(record)
+            set_inverse_instance(record)
+            @updated = true
+          else
+            decrement_counters
+          end
+
+          replace_keys(record)
+
+          self.target = record
+        end
 
         def update_counters(by)
           if require_counter_update? && foreign_key_present?
@@ -67,22 +83,22 @@ module ActiveRecord
         def update_counters_on_replace(record)
           if require_counter_update? && different_target?(record)
             owner.instance_variable_set :@_after_replace_counter_called, true
-            record.increment!(reflection.counter_cache_column)
+            record.increment!(reflection.counter_cache_column, touch: reflection.options[:touch])
             decrement_counters
           end
         end
 
         # Checks whether record is different to the current target, without loading it
         def different_target?(record)
-          record.id != owner._read_attribute(reflection.foreign_key)
+          record._read_attribute(primary_key(record)) != owner._read_attribute(reflection.foreign_key)
         end
 
         def replace_keys(record)
-          owner[reflection.foreign_key] = record._read_attribute(reflection.association_primary_key(record.class))
+          owner[reflection.foreign_key] = record ? record._read_attribute(primary_key(record)) : nil
         end
 
-        def remove_keys
-          owner[reflection.foreign_key] = nil
+        def primary_key(record)
+          reflection.association_primary_key(record.class)
         end
 
         def foreign_key_present?

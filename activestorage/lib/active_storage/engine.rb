@@ -3,31 +3,58 @@
 require "rails"
 require "active_storage"
 
-require "active_storage/previewer/pdf_previewer"
+require "active_storage/previewer/poppler_pdf_previewer"
+require "active_storage/previewer/mupdf_previewer"
 require "active_storage/previewer/video_previewer"
 
 require "active_storage/analyzer/image_analyzer"
 require "active_storage/analyzer/video_analyzer"
+
+require "active_storage/reflection"
 
 module ActiveStorage
   class Engine < Rails::Engine # :nodoc:
     isolate_namespace ActiveStorage
 
     config.active_storage = ActiveSupport::OrderedOptions.new
-    config.active_storage.previewers = [ ActiveStorage::Previewer::PDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
+    config.active_storage.previewers = [ ActiveStorage::Previewer::PopplerPDFPreviewer, ActiveStorage::Previewer::MuPDFPreviewer, ActiveStorage::Previewer::VideoPreviewer ]
     config.active_storage.analyzers = [ ActiveStorage::Analyzer::ImageAnalyzer, ActiveStorage::Analyzer::VideoAnalyzer ]
-    config.active_storage.variable_content_types = [ "image/png", "image/gif", "image/jpg", "image/jpeg", "image/vnd.adobe.photoshop" ]
     config.active_storage.paths = ActiveSupport::OrderedOptions.new
+
+    config.active_storage.variable_content_types = %w(
+      image/png
+      image/gif
+      image/jpg
+      image/jpeg
+      image/vnd.adobe.photoshop
+      image/vnd.microsoft.icon
+    )
+
+    config.active_storage.content_types_to_serve_as_binary = %w(
+      text/html
+      text/javascript
+      image/svg+xml
+      application/postscript
+      application/x-shockwave-flash
+      text/xml
+      application/xml
+      application/xhtml+xml
+    )
 
     config.eager_load_namespaces << ActiveStorage
 
     initializer "active_storage.configs" do
       config.after_initialize do |app|
-        ActiveStorage.logger     = app.config.active_storage.logger || Rails.logger
-        ActiveStorage.queue      = app.config.active_storage.queue
-        ActiveStorage.previewers = app.config.active_storage.previewers || []
-        ActiveStorage.analyzers  = app.config.active_storage.analyzers || []
+        ActiveStorage.logger            = app.config.active_storage.logger || Rails.logger
+        ActiveStorage.queue             = app.config.active_storage.queue
+        ActiveStorage.variant_processor = app.config.active_storage.variant_processor || :mini_magick
+        ActiveStorage.previewers        = app.config.active_storage.previewers || []
+        ActiveStorage.analyzers         = app.config.active_storage.analyzers || []
+        ActiveStorage.paths             = app.config.active_storage.paths || {}
+
         ActiveStorage.variable_content_types = app.config.active_storage.variable_content_types || []
+        ActiveStorage.content_types_to_serve_as_binary = app.config.active_storage.content_types_to_serve_as_binary || []
+        ActiveStorage.service_urls_expire_in = app.config.active_storage.service_urls_expire_in || 5.minutes
       end
     end
 
@@ -46,7 +73,7 @@ module ActiveStorage
     end
 
     initializer "active_storage.services" do
-      config.to_prepare do
+      ActiveSupport.on_load(:active_storage_blob) do
         if config_choice = Rails.configuration.active_storage.service
           configs = Rails.configuration.active_storage.service_configurations ||= begin
             config_file = Pathname.new(Rails.root.join("config/storage.yml"))
@@ -72,19 +99,10 @@ module ActiveStorage
       end
     end
 
-    initializer "active_storage.paths" do
-      config.after_initialize do |app|
-        if ffprobe_path = app.config.active_storage.paths.ffprobe
-          ActiveStorage::Analyzer::VideoAnalyzer.ffprobe_path = ffprobe_path
-        end
-
-        if ffmpeg_path = app.config.active_storage.paths.ffmpeg
-          ActiveStorage::Previewer::VideoPreviewer.ffmpeg_path = ffmpeg_path
-        end
-
-        if mutool_path = app.config.active_storage.paths.mutool
-          ActiveStorage::Previewer::PDFPreviewer.mutool_path = mutool_path
-        end
+    initializer "active_storage.reflection" do
+      ActiveSupport.on_load(:active_record) do
+        include Reflection::ActiveRecordExtensions
+        ActiveRecord::Reflection.singleton_class.prepend(Reflection::ReflectionExtension)
       end
     end
   end

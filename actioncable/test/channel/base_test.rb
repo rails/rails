@@ -1,10 +1,11 @@
 # frozen_string_literal: true
 
 require "test_helper"
+require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 
-class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
+class ActionCable::Channel::BaseTest < ActionCable::TestCase
   class ActionCable::Channel::Base
     def kick
       @last_action = [ :kick ]
@@ -97,12 +98,12 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
     @channel.subscribe_to_channel
 
     assert @channel.room
-    assert @channel.subscribed?
+    assert_predicate @channel, :subscribed?
 
     @channel.unsubscribe_from_channel
 
-    assert ! @channel.room
-    assert ! @channel.subscribed?
+    assert_not @channel.room
+    assert_not_predicate @channel, :subscribed?
   end
 
   test "connection identifiers" do
@@ -226,12 +227,13 @@ class ActionCable::Channel::BaseTest < ActiveSupport::TestCase
         events << ActiveSupport::Notifications::Event.new(*args)
       end
 
-      @channel.stubs(:subscription_confirmation_sent?).returns(false)
-      @channel.send(:transmit_subscription_confirmation)
+      @channel.stub(:subscription_confirmation_sent?, false) do
+        @channel.send(:transmit_subscription_confirmation)
 
-      assert_equal 1, events.length
-      assert_equal "transmit_subscription_confirmation.action_cable", events[0].name
-      assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+        assert_equal 1, events.length
+        assert_equal "transmit_subscription_confirmation.action_cable", events[0].name
+        assert_equal "ActionCable::Channel::BaseTest::ChatChannel", events[0].payload[:channel_class]
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe "transmit_subscription_confirmation.action_cable"
     end

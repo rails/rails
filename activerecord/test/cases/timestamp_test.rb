@@ -90,9 +90,19 @@ class TimestampTest < ActiveRecord::TestCase
       @developer.touch(:created_at)
     end
 
-    assert !@developer.created_at_changed?, "created_at should not be changed"
-    assert !@developer.changed?, "record should not be changed"
+    assert_not @developer.created_at_changed?, "created_at should not be changed"
+    assert_not @developer.changed?, "record should not be changed"
     assert_not_equal previously_created_at, @developer.created_at
+    assert_not_equal @previously_updated_at, @developer.updated_at
+  end
+
+  def test_touching_update_at_attribute_as_symbol_updates_timestamp
+    travel(1.second) do
+      @developer.touch(:updated_at)
+    end
+
+    assert_not @developer.updated_at_changed?
+    assert_not @developer.changed?
     assert_not_equal @previously_updated_at, @developer.updated_at
   end
 
@@ -139,13 +149,13 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_touching_a_no_touching_object
     Developer.no_touching do
-      assert @developer.no_touching?
-      assert !@owner.no_touching?
+      assert_predicate @developer, :no_touching?
+      assert_not_predicate @owner, :no_touching?
       @developer.touch
     end
 
-    assert !@developer.no_touching?
-    assert !@owner.no_touching?
+    assert_not_predicate @developer, :no_touching?
+    assert_not_predicate @owner, :no_touching?
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
@@ -162,26 +172,26 @@ class TimestampTest < ActiveRecord::TestCase
 
   def test_global_no_touching
     ActiveRecord::Base.no_touching do
-      assert @developer.no_touching?
-      assert @owner.no_touching?
+      assert_predicate @developer, :no_touching?
+      assert_predicate @owner, :no_touching?
       @developer.touch
     end
 
-    assert !@developer.no_touching?
-    assert !@owner.no_touching?
+    assert_not_predicate @developer, :no_touching?
+    assert_not_predicate @owner, :no_touching?
     assert_equal @previously_updated_at, @developer.updated_at
   end
 
   def test_no_touching_threadsafe
     Thread.new do
       Developer.no_touching do
-        assert @developer.no_touching?
+        assert_predicate @developer, :no_touching?
 
         sleep(1)
       end
     end
 
-    assert !@developer.no_touching?
+    assert_not_predicate @developer, :no_touching?
   end
 
   def test_no_touching_with_callbacks
@@ -237,7 +247,7 @@ class TimestampTest < ActiveRecord::TestCase
     pet = Pet.new(owner: klass.new)
     pet.save!
 
-    assert pet.owner.new_record?
+    assert_predicate pet.owner, :new_record?
   end
 
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_a_specific_attribute_the_parent_should_update_that_attribute

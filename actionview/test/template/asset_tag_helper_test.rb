@@ -29,6 +29,10 @@ class AssetTagHelperTest < ActionView::TestCase
     "http://www.example.com"
   end
 
+  def content_security_policy_nonce
+    "iyhD0Yc0W+c="
+  end
+
   AssetPathToTag = {
     %(asset_path(""))             => %(),
     %(asset_path("   "))          => %(),
@@ -407,7 +411,7 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_javascript_include_tag_is_html_safe
-    assert javascript_include_tag("prototype").html_safe?
+    assert_predicate javascript_include_tag("prototype"), :html_safe?
   end
 
   def test_javascript_include_tag_relative_protocol
@@ -419,6 +423,10 @@ class AssetTagHelperTest < ActionView::TestCase
     @controller.config.asset_host = "assets.example.com"
     @controller.config.default_asset_host_protocol = :relative
     assert_dom_equal %(<script src="//assets.example.com/javascripts/prototype.js"></script>), javascript_include_tag("prototype")
+  end
+
+  def test_javascript_include_tag_nonce
+    assert_dom_equal %(<script src="/javascripts/bank.js" nonce="iyhD0Yc0W+c="></script>), javascript_include_tag("bank", nonce: true)
   end
 
   def test_stylesheet_path
@@ -460,8 +468,8 @@ class AssetTagHelperTest < ActionView::TestCase
   end
 
   def test_stylesheet_link_tag_is_html_safe
-    assert stylesheet_link_tag("dir/file").html_safe?
-    assert stylesheet_link_tag("dir/other/file", "dir/file2").html_safe?
+    assert_predicate stylesheet_link_tag("dir/file"), :html_safe?
+    assert_predicate stylesheet_link_tag("dir/other/file", "dir/file2"), :html_safe?
   end
 
   def test_stylesheet_link_tag_escapes_options

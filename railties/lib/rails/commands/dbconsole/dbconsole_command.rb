@@ -97,7 +97,7 @@ module Rails
         elsif configurations[environment].blank? && configurations[connection].blank?
           raise ActiveRecord::AdapterNotSpecified, "'#{environment}' database is not configured. Available configuration: #{configurations.inspect}"
         else
-          configurations[environment].presence || configurations[connection]
+          configurations[connection] || configurations[environment].presence
         end
       end
     end

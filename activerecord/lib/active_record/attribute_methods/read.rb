@@ -27,7 +27,7 @@ module ActiveRecord
           # Making it frozen means that it doesn't get duped when used to
           # key the @attributes in read_attribute.
           def define_method_attribute(name)
-            safe_name = name.unpack("h*".freeze).first
+            safe_name = name.unpack1("h*".freeze)
             temp_method = "__temp__#{safe_name}"
 
             ActiveRecord::AttributeMethods::AttrNames.set_name_cache safe_name, name
@@ -69,7 +69,7 @@ module ActiveRecord
       if defined?(JRUBY_VERSION)
         # This form is significantly faster on JRuby, and this is one of our biggest hotspots.
         # https://github.com/jruby/jruby/pull/2562
-        def _read_attribute(attr_name, &block) # :nodoc
+        def _read_attribute(attr_name, &block) # :nodoc:
           @attributes.fetch_value(attr_name.to_s, &block)
         end
       else

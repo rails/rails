@@ -54,7 +54,7 @@ Documentation
 
 The [Ruby on Rails guides](http://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](http://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
 
-* More Information: [Rails Documentation Projects](http://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
+* More Information: [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 
 Ruby 1.9.1 Support
 ------------------
@@ -89,7 +89,7 @@ accepts_nested_attributes_for :author,
 ```
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
-* More Information: [Nested Model Forms](http://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+* More Information: [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
 
 ### Nested Transactions
 
@@ -234,7 +234,7 @@ Rails chooses between file, template, and action depending on whether there is a
 If you're one of the people who has always been bothered by the special-case naming of `application.rb`, rejoice! It's been reworked to be `application_controller.rb` in Rails 2.3. In addition, there's a new rake task, `rake rails:update:application_controller` to do this automatically for you - and it will be run as part of the normal `rake rails:update` process.
 
 * More Information:
-    * [The Death of Application.rb](http://afreshcup.com/2008/11/17/rails-2x-the-death-of-applicationrb/)
+    * [The Death of Application.rb](https://afreshcup.com/home/2008/11/17/rails-2x-the-death-of-applicationrb)
     * [What's New in Edge Rails: Application.rb Duality is no More](http://archives.ryandaigle.com/articles/2008/11/19/what-s-new-in-edge-rails-application-rb-duality-is-no-more)
 
 ### HTTP Digest Authentication Support
@@ -376,7 +376,7 @@ You can write this view in Rails 2.3:
 
 * Lead Contributor: [Eloy Duran](http://superalloy.nl/)
 * More Information:
-    * [Nested Model Forms](http://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
+    * [Nested Model Forms](https://weblog.rubyonrails.org/2009/1/26/nested-model-forms)
     * [complex-form-examples](https://github.com/alloy/complex-form-examples)
     * [What's New in Edge Rails: Nested Object Forms](http://archives.ryandaigle.com/articles/2009/2/1/what-s-new-in-edge-rails-nested-attributes)
 
@@ -468,7 +468,7 @@ options_from_collection_for_select(@product.sizes, :name, :id, :disabled => lamb
 ```
 
 * Lead Contributor: [Tekin Suleyman](http://tekin.co.uk/)
-* More Information: [New in rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections](http://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections/)
+* More Information: [New in rails 2.3 - disabled option tags and lambdas for selecting and disabling options from collections](https://tekin.co.uk/2009/03/new-in-rails-23-disabled-option-tags-and-lambdas-for-selecting-and-disabling-options-from-collections)
 
 ### A Note About Template Loading
 
@@ -533,7 +533,7 @@ If you look up the spec on the "json.org" site, you'll discover that all keys in
 ### Other Active Support Changes
 
 * You can use `Enumerable#none?` to check that none of the elements match the supplied block.
-* If you're using Active Support [delegates](http://afreshcup.com/2008/10/19/coming-in-rails-22-delegate-prefixes/) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
+* If you're using Active Support [delegates](https://afreshcup.com/home/2008/10/19/coming-in-rails-22-delegate-prefixes) the new `:allow_nil` option lets you return `nil` instead of raising an exception when the target object is nil.
 * `ActiveSupport::OrderedHash`: now implements `each_key` and `each_value`.
 * `ActiveSupport::MessageEncryptor` provides a simple way to encrypt information for storage in an untrusted location (like cookies).
 * Active Support's `from_xml` no longer depends on XmlSimple. Instead, Rails now includes its own XmlMini implementation, with just the functionality that it requires. This lets Rails dispense with the bundled copy of XmlSimple that it's been carting around.
@@ -552,7 +552,7 @@ In addition to the Rack changes covered above, Railties (the core code of Rails 
 Rails Metal is a new mechanism that provides superfast endpoints inside of your Rails applications. Metal classes bypass routing and Action Controller to give you raw speed (at the cost of all the things in Action Controller, of course). This builds on all of the recent foundation work to make Rails a Rack application with an exposed middleware stack. Metal endpoints can be loaded from your application or from plugins.
 
 * More Information:
-    * [Introducing Rails Metal](http://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
+    * [Introducing Rails Metal](https://weblog.rubyonrails.org/2008/12/17/introducing-rails-metal)
     * [Rails Metal: a micro-framework with the power of Rails](http://soylentfoo.jnewland.com/articles/2008/12/16/rails-metal-a-micro-framework-with-the-power-of-rails-m)
     * [Metal: Super-fast Endpoints within your Rails Apps](http://www.railsinside.com/deployment/180-metal-super-fast-endpoints-within-your-rails-apps.html)
     * [What's New in Edge Rails: Rails Metal](http://archives.ryandaigle.com/articles/2008/12/18/what-s-new-in-edge-rails-rails-metal)
@@ -576,7 +576,7 @@ Building on thoughtbot's [Quiet Backtrace](https://github.com/thoughtbot/quietba
 
 ### Faster Boot Time in Development Mode with Lazy Loading/Autoload
 
-Quite a bit of work was done to make sure that bits of Rails (and its dependencies) are only brought into memory when they're actually needed. The core frameworks - Active Support, Active Record, Action Controller, Action Mailer and Action View - are now using `autoload` to lazy-load their individual classes. This work should help keep the memory footprint down and improve overall Rails performance.
+Quite a bit of work was done to make sure that bits of Rails (and its dependencies) are only brought into memory when they're actually needed. The core frameworks - Active Support, Active Record, Action Controller, Action Mailer, and Action View - are now using `autoload` to lazy-load their individual classes. This work should help keep the memory footprint down and improve overall Rails performance.
 
 You can also specify (by using the new `preload_frameworks` option) whether the core libraries should be autoloaded at startup. This defaults to `false` so that Rails autoloads itself piece-by-piece, but there are some circumstances where you still need to bring in everything at once - Passenger and JRuby both want to see all of Rails loaded together.
 
@@ -592,7 +592,7 @@ The internals of the various <code>rake gem</code> tasks have been substantially
 * Internal Rails testing has been switched from `Test::Unit::TestCase` to `ActiveSupport::TestCase`, and the Rails core requires Mocha to test.
 * The default `environment.rb` file has been decluttered.
 * The dbconsole script now lets you use an all-numeric password without crashing.
-* `Rails.root` now returns a `Pathname` object, which means you can use it directly with the `join` method to [clean up existing code](http://afreshcup.com/2008/12/05/a-little-rails_root-tidiness/) that uses `File.join`.
+* `Rails.root` now returns a `Pathname` object, which means you can use it directly with the `join` method to [clean up existing code](https://afreshcup.wordpress.com/2008/12/05/a-little-rails_root-tidiness/) that uses `File.join`.
 * Various files in /public that deal with CGI and FCGI dispatching are no longer generated in every Rails application by default (you can still get them if you need them by adding `--with-dispatchers` when you run the `rails` command, or add them later with `rake rails:update:generate_dispatchers`).
 * Rails Guides have been converted from AsciiDoc to Textile markup.
 * Scaffolded views and controllers have been cleaned up a bit.
@@ -605,7 +605,7 @@ Deprecated
 
 A few pieces of older code are deprecated in this release:
 
-* If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the [irs_process_scripts](https://github.com/rails/irs_process_scripts/tree) plugin.
+* If you're one of the (fairly rare) Rails developers who deploys in a fashion that depends on the inspector, reaper, and spawner scripts, you'll need to know that those scripts are no longer included in core Rails. If you need them, you'll be able to pick up copies via the [irs_process_scripts](https://github.com/rails/irs_process_scripts) plugin.
 * `render_component` goes from "deprecated" to "nonexistent" in Rails 2.3. If you still need it, you can install the [render_component plugin](https://github.com/rails/render_component/tree/master).
 * Support for Rails components has been removed.
 * If you were one of the people who got used to running `script/performance/request` to look at performance based on integration tests, you need to learn a new trick: that script has been removed from core Rails now. There's a new request_profiler plugin that you can install to get the exact same functionality back.

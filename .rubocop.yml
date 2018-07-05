@@ -1,5 +1,7 @@
+require: './ci/custom_cops/lib/custom_cops'
+
 AllCops:
-  TargetRubyVersion: 2.2
+  TargetRubyVersion: 2.4
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
   # to ignore them, so only the ones explicitly set in this file are enabled.
   DisabledByDefault: true
@@ -7,6 +9,17 @@ AllCops:
     - '**/templates/**/*'
     - '**/vendor/**/*'
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
+    - 'railties/test/fixtures/tmp/**/*'
+
+# Prefer assert_not_x over refute_x
+CustomCops/RefuteNot:
+  Include:
+    - '**/test/**/*'
+
+# Prefer assert_not over assert !
+CustomCops/AssertNot:
+  Include:
+    - '**/test/**/*'
 
 # Prefer &&/|| over and/or.
 Style/AndOr:
@@ -25,6 +38,16 @@ Layout/CaseIndentation:
 # Align comments with method definitions.
 Layout/CommentIndentation:
   Enabled: true
+
+Layout/ElseAlignment:
+  Enabled: true
+
+# Align `end` with the matching keyword or starting expression except for
+# assignments, where it should be aligned with the LHS.
+Layout/EndAlignment:
+  Enabled: true
+  EnforcedStyleAlignWith: variable
+  AutoCorrect: true
 
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
@@ -135,14 +158,11 @@ Layout/TrailingWhitespace:
 Style/UnneededPercentQ:
   Enabled: true
 
-# Align `end` with the matching keyword or starting expression except for
-# assignments, where it should be aligned with the LHS.
-Lint/EndAlignment:
-  Enabled: true
-  EnforcedStyleAlignWith: variable
-
 # Use my_method(my_arg) not my_method( my_arg ) or my_method my_arg.
 Lint/RequireParentheses:
+  Enabled: true
+
+Lint/StringConversionInInterpolation:
   Enabled: true
 
 Style/RedundantReturn:
@@ -152,3 +172,7 @@ Style/RedundantReturn:
 Style/Semicolon:
   Enabled: true
   AllowAsExpressionSeparator: true
+
+# Prefer Foo.method over Foo::method
+Style/ColonMethodCall:
+  Enabled: true

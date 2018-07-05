@@ -159,7 +159,7 @@ results = {}
 ENV["GEM"].split(",").each do |gem|
   [false, true].each do |isolated|
     next if ENV["TRAVIS_PULL_REQUEST"] && ENV["TRAVIS_PULL_REQUEST"] != "false" && isolated
-    next if RUBY_VERSION < "2.4" && isolated
+    next if RUBY_VERSION < "2.5" && isolated
     next if gem == "railties" && isolated
     next if gem == "ac" && isolated
     next if gem == "ac:integration" && isolated

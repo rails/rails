@@ -19,7 +19,6 @@ module ActiveRecord
     #         HasManyThroughAssociation + ThroughAssociation
     class Association #:nodoc:
       attr_reader :owner, :target, :reflection
-      attr_accessor :inversed
 
       delegate :options, to: :reflection
 
@@ -67,7 +66,7 @@ module ActiveRecord
       #
       # Note that if the target has not been loaded, it is not considered stale.
       def stale_target?
-        !inversed && loaded? && @stale_state != stale_state
+        !@inversed && loaded? && @stale_state != stale_state
       end
 
       # Sets the target of this association to <tt>\target</tt>, and the \loaded flag to +true+.
@@ -98,21 +97,22 @@ module ActiveRecord
 
       # Set the inverse association, if possible
       def set_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = owner
-          inverse.inversed = true
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(owner)
         end
         record
       end
 
       # Remove the inverse association, if possible
       def remove_inverse_instance(record)
-        if invertible_for?(record)
-          inverse = record.association(inverse_reflection_for(record).name)
-          inverse.target = nil
-          inverse.inversed = false
+        if inverse = inverse_association_for(record)
+          inverse.inversed_from(nil)
         end
+      end
+
+      def inversed_from(record)
+        self.target = record
+        @inversed = !!record
       end
 
       # Returns the class of the target. belongs_to polymorphic overrides this to look at the
@@ -124,7 +124,7 @@ module ActiveRecord
       # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
       # through association's scope)
       def target_scope
-        AssociationRelation.create(klass, klass.arel_table, klass.predicate_builder, self).merge!(klass.all)
+        AssociationRelation.create(klass, self).merge!(klass.all)
       end
 
       def extensions
@@ -156,9 +156,9 @@ module ActiveRecord
         reset
       end
 
-      # We can't dump @reflection since it contains the scope proc
+      # We can't dump @reflection and @through_reflection since it contains the scope proc
       def marshal_dump
-        ivars = (instance_variables - [:@reflection]).map { |name| [name, instance_variable_get(name)] }
+        ivars = (instance_variables - [:@reflection, :@through_reflection]).map { |name| [name, instance_variable_get(name)] }
         [@reflection.name, ivars]
       end
 
@@ -201,8 +201,8 @@ module ActiveRecord
           if (reflection.has_one? || reflection.collection?) && !options[:through]
             attributes[reflection.foreign_key] = owner[reflection.active_record_primary_key]
 
-            if reflection.options[:as]
-              attributes[reflection.type] = owner.class.base_class.name
+            if reflection.type
+              attributes[reflection.type] = owner.class.polymorphic_name
             end
           end
 
@@ -240,6 +240,12 @@ module ActiveRecord
           end
         end
 
+        def inverse_association_for(record)
+          if invertible_for?(record)
+            record.association(inverse_reflection_for(record).name)
+          end
+        end
+
         # Can be redefined by subclasses, notably polymorphic belongs_to
         # The record parameter is necessary to support polymorphic inverses as we must check for
         # the association in the specific class of the record.
@@ -269,6 +275,7 @@ module ActiveRecord
         def build_record(attributes)
           reflection.build_association(attributes) do |record|
             initialize_attributes(record, attributes)
+            yield(record) if block_given?
           end
         end
 

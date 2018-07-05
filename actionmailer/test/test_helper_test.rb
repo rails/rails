@@ -69,6 +69,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
+  def test_assert_emails_with_enqueued_emails
+    assert_nothing_raised do
+      assert_emails 1 do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+  end
+
   def test_repeated_assert_emails_calls
     assert_nothing_raised do
       assert_emails 1 do
@@ -103,6 +113,18 @@ class TestHelperMailerTest < ActionMailer::TestCase
         TestHelperMailer.test
       end
     end
+  end
+
+  def test_assert_no_emails_with_enqueued_emails
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_emails do
+        silence_stream($stdout) do
+          TestHelperMailer.test.deliver_later
+        end
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
   end
 
   def test_assert_emails_too_few_sent
@@ -230,7 +252,16 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_enqueued_email_with_args
+  def test_assert_enqueued_email_with_with_no_block
+    assert_nothing_raised do
+      silence_stream($stdout) do
+        TestHelperMailer.test.deliver_later
+        assert_enqueued_email_with TestHelperMailer, :test
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_with_args
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test_args, args: ["some_email", "some_name"] do
         silence_stream($stdout) do
@@ -240,12 +271,30 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_enqueued_email_with_parameterized_args
+  def test_assert_enqueued_email_with_with_no_block_with_args
+    assert_nothing_raised do
+      silence_stream($stdout) do
+        TestHelperMailer.test_args("some_email", "some_name").deliver_later
+        assert_enqueued_email_with TestHelperMailer, :test_args, args: ["some_email", "some_name"]
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_with_parameterized_args
     assert_nothing_raised do
       assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" } do
         silence_stream($stdout) do
           TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
         end
+      end
+    end
+  end
+
+  def test_assert_enqueued_email_with_with_no_block_wiht_parameterized_args
+    assert_nothing_raised do
+      silence_stream($stdout) do
+        TestHelperMailer.with(all: "good").test_parameter_args.deliver_later
+        assert_enqueued_email_with TestHelperMailer, :test_parameter_args, args: { all: "good" }
       end
     end
   end

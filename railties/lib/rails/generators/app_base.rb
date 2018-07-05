@@ -2,7 +2,6 @@
 
 require "fileutils"
 require "digest/md5"
-require "active_support/core_ext/string/strip"
 require "rails/version" unless defined?(Rails::VERSION)
 require "open-uri"
 require "uri"
@@ -300,8 +299,8 @@ module Rails
       def gem_for_database
         # %w( mysql postgresql sqlite3 oracle frontbase ibm_db sqlserver jdbcmysql jdbcsqlite3 jdbcpostgresql )
         case options[:database]
-        when "mysql"          then ["mysql2", ["~> 0.4.4"]]
-        when "postgresql"     then ["pg", ["~> 0.18"]]
+        when "mysql"          then ["mysql2", [">= 0.4.4", "< 0.6.0"]]
+        when "postgresql"     then ["pg", [">= 0.18", "< 2.0"]]
         when "oracle"         then ["activerecord-oracle_enhanced-adapter", nil]
         when "frontbase"      then ["ruby-frontbase", nil]
         when "sqlserver"      then ["activerecord-sqlserver-adapter", nil]
@@ -315,11 +314,13 @@ module Rails
 
       def convert_database_option_for_jruby
         if defined?(JRUBY_VERSION)
-          case options[:database]
-          when "postgresql" then options[:database].replace "jdbcpostgresql"
-          when "mysql"      then options[:database].replace "jdbcmysql"
-          when "sqlite3"    then options[:database].replace "jdbcsqlite3"
+          opt = options.dup
+          case opt[:database]
+          when "postgresql" then opt[:database] = "jdbcpostgresql"
+          when "mysql"      then opt[:database] = "jdbcmysql"
+          when "sqlite3"    then opt[:database] = "jdbcsqlite3"
           end
+          self.options = opt.freeze
         end
       end
 
@@ -439,7 +440,7 @@ module Rails
       end
 
       def depend_on_bootsnap?
-        !options[:skip_bootsnap] && !options[:dev]
+        !options[:skip_bootsnap] && !options[:dev] && !defined?(JRUBY_VERSION)
       end
 
       def os_supports_listen_out_of_the_box?
@@ -460,16 +461,6 @@ module Rails
       def generate_spring_binstubs
         if bundle_install? && spring_install?
           bundle_command("exec spring binstub --all")
-        end
-      end
-
-      def run_active_storage
-        unless skip_active_storage?
-          if bundle_install?
-            rails_command "active_storage:install", capture: options[:quiet]
-          else
-            log("Active Storage installation was skipped. Please run `bin/rails active_storage:install` to install Active Storage files.")
-          end
         end
       end
 

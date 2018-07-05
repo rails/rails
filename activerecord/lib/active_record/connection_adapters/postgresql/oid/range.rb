@@ -53,6 +53,10 @@ module ActiveRecord
             ::Range.new(new_begin, new_end, value.exclude_end?)
           end
 
+          def force_equality?(value)
+            value.is_a?(::Range)
+          end
+
           private
 
             def type_cast_single(value)
@@ -60,7 +64,7 @@ module ActiveRecord
             end
 
             def type_cast_single_for_database(value)
-              infinity?(value) ? "" : @subtype.serialize(value)
+              infinity?(value) ? value : @subtype.serialize(value)
             end
 
             def extract_bounds(value)

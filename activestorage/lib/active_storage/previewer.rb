@@ -1,14 +1,10 @@
 # frozen_string_literal: true
 
-require "active_storage/downloading"
-
 module ActiveStorage
   # This is an abstract base class for previewers, which generate images from blobs. See
   # ActiveStorage::Previewer::PDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for examples of
   # concrete subclasses.
   class Previewer
-    include Downloading
-
     attr_reader :blob
 
     # Implement this method in a concrete subclass. Have it return true when given a blob from which
@@ -28,9 +24,14 @@ module ActiveStorage
     end
 
     private
+      # Downloads the blob to a tempfile on disk. Yields the tempfile.
+      def download_blob_to_tempfile(&block) #:doc:
+        blob.open tempdir: tempdir, &block
+      end
+
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
-      # Use this method to shell out to a system library (e.g. mupdf or ffmpeg) for preview image
+      # Use this method to shell out to a system library (e.g. muPDF or FFmpeg) for preview image
       # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
       #
       #   def preview
@@ -41,22 +42,43 @@ module ActiveStorage
       #     end
       #   end
       #
-      # The output tempfile is opened in the directory returned by ActiveStorage::Downloading#tempdir.
-      def draw(*argv) # :doc:
-        Tempfile.open("ActiveStorage", tempdir) do |file|
-          capture(*argv, to: file)
+      # The output tempfile is opened in the directory returned by #tempdir.
+      def draw(*argv) #:doc:
+        open_tempfile do |file|
+          instrument :preview, key: blob.key do
+            capture(*argv, to: file)
+          end
+
           yield file
         end
       end
 
+      def open_tempfile
+        tempfile = Tempfile.open("ActiveStorage-", tempdir)
+
+        begin
+          yield tempfile
+        ensure
+          tempfile.close!
+        end
+      end
+
+      def instrument(operation, payload = {}, &block)
+        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
+      end
+
       def capture(*argv, to:)
         to.binmode
-        IO.popen(argv) { |out| IO.copy_stream(out, to) }
+        IO.popen(argv, err: File::NULL) { |out| IO.copy_stream(out, to) }
         to.rewind
       end
 
-      def logger
+      def logger #:doc:
         ActiveStorage.logger
+      end
+
+      def tempdir #:doc:
+        Dir.tmpdir
       end
   end
 end

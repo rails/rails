@@ -250,8 +250,8 @@ module Notifications
       time = Time.now
       event = event(:foo, time, time + 0.01, random_id, {})
 
-      assert_equal    :foo, event.name
-      assert_equal    time, event.time
+      assert_equal :foo, event.name
+      assert_equal time, event.time
       assert_in_delta 10.0, event.duration, 0.00001
     end
 
@@ -270,9 +270,9 @@ module Notifications
       parent.children << child
 
       assert parent.parent_of?(child)
-      assert !child.parent_of?(parent)
-      assert !parent.parent_of?(not_child)
-      assert !not_child.parent_of?(parent)
+      assert_not child.parent_of?(parent)
+      assert_not parent.parent_of?(not_child)
+      assert_not not_child.parent_of?(parent)
     end
 
     private

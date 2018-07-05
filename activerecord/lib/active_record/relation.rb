@@ -9,6 +9,7 @@ module ActiveRecord
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
+
     CLAUSE_METHODS = [:where, :having, :from]
     INVALID_METHODS_FOR_DELETE_ALL = [:distinct, :group, :having]
 
@@ -18,17 +19,19 @@ module ActiveRecord
     include FinderMethods, Calculations, SpawnMethods, QueryMethods, Batches, Explain, Delegation
 
     attr_reader :table, :klass, :loaded, :predicate_builder
+    attr_accessor :skip_preloading_value
     alias :model :klass
     alias :loaded? :loaded
     alias :locked? :lock_value
 
-    def initialize(klass, table, predicate_builder, values = {})
+    def initialize(klass, table: klass.arel_table, predicate_builder: klass.predicate_builder, values: {})
       @klass  = klass
       @table  = table
       @values = values
       @offsets = {}
       @loaded = false
       @predicate_builder = predicate_builder
+      @delegate_to_klass = false
     end
 
     def initialize_copy(other)
@@ -142,23 +145,12 @@ module ActiveRecord
     # failed due to validation errors it won't be persisted, you get what
     # #create returns in such situation.
     #
-    # Please note *this method is not atomic*, it runs first a SELECT, and if
+    # Please note <b>this method is not atomic</b>, it runs first a SELECT, and if
     # there are no results an INSERT is attempted. If there are other threads
     # or processes there is a race condition between both calls and it could
     # be the case that you end up with two similar records.
     #
-    # Whether that is a problem or not depends on the logic of the
-    # application, but in the particular case in which rows have a UNIQUE
-    # constraint an exception may be raised, just retry:
-    #
-    #  begin
-    #    CreditAccount.transaction(requires_new: true) do
-    #      CreditAccount.find_or_create_by(user_id: user.id)
-    #    end
-    #  rescue ActiveRecord::RecordNotUnique
-    #    retry
-    #  end
-    #
+    # If this might be a problem for your application, please see #create_or_find_by.
     def find_or_create_by(attributes, &block)
       find_by(attributes) || create(attributes, &block)
     end
@@ -168,6 +160,47 @@ module ActiveRecord
     # is raised if the created record is invalid.
     def find_or_create_by!(attributes, &block)
       find_by(attributes) || create!(attributes, &block)
+    end
+
+    # Attempts to create a record with the given attributes in a table that has a unique constraint
+    # on one or several of its columns. If a row already exists with one or several of these
+    # unique constraints, the exception such an insertion would normally raise is caught,
+    # and the existing record with those attributes is found using #find_by.
+    #
+    # This is similar to #find_or_create_by, but avoids the problem of stale reads between the SELECT
+    # and the INSERT, as that method needs to first query the table, then attempt to insert a row
+    # if none is found.
+    #
+    # There are several drawbacks to #create_or_find_by, though:
+    #
+    # * The underlying table must have the relevant columns defined with unique constraints.
+    # * A unique constraint violation may be triggered by only one, or at least less than all,
+    #   of the given attributes. This means that the subsequent #find_by may fail to find a
+    #   matching record, which will then raise an <tt>ActiveRecord::RecordNotFound</tt> exception,
+    #   rather than a record with the given attributes.
+    # * While we avoid the race condition between SELECT -> INSERT from #find_or_create_by,
+    #   we actually have another race condition between INSERT -> SELECT, which can be triggered
+    #   if a DELETE between those two statements is run by another client. But for most applications,
+    #   that's a significantly less likely condition to hit.
+    # * It relies on exception handling to handle control flow, which may be marginally slower.
+    #
+    # This method will return a record if all given attributes are covered by unique constraints
+    # (unless the INSERT -> DELETE -> SELECT race condition is triggered), but if creation was attempted
+    # and failed due to validation errors it won't be persisted, you get what #create returns in
+    # such situation.
+    def create_or_find_by(attributes, &block)
+      transaction(requires_new: true) { create(attributes, &block) }
+    rescue ActiveRecord::RecordNotUnique
+      find_by!(attributes)
+    end
+
+    # Like #create_or_find_by, but calls
+    # {create!}[rdoc-ref:Persistence::ClassMethods#create!] so an exception
+    # is raised if the created record is invalid.
+    def create_or_find_by!(attributes, &block)
+      transaction(requires_new: true) { create!(attributes, &block) }
+    rescue ActiveRecord::RecordNotUnique
+      find_by!(attributes)
     end
 
     # Like #find_or_create_by, but calls {new}[rdoc-ref:Core#new]
@@ -282,6 +315,13 @@ module ActiveRecord
       klass.current_scope = previous
     end
 
+    def _exec_scope(*args, &block) # :nodoc:
+      @delegate_to_klass = true
+      instance_exec(*args, &block) || self
+    ensure
+      @delegate_to_klass = false
+    end
+
     # Updates all records in the current relation with details given. This method constructs a single SQL UPDATE
     # statement and sends it straight to the database. It does not instantiate the involved models and it does not
     # trigger Active Record callbacks or validations. However, values passed to #update_all will still go through
@@ -327,6 +367,40 @@ module ActiveRecord
       end
 
       @klass.connection.update stmt, "#{@klass} Update All"
+    end
+
+    # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
+    # set to the current time or the time specified.
+    # This method can be passed attribute names and an optional time argument.
+    # If attribute names are passed, they are updated along with updated_at/on attributes.
+    # If no time argument is passed, the current time is used as default.
+    #
+    # === Examples
+    #
+    #   # Touch all records
+    #   Person.all.touch_all
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a custom attribute
+    #   Person.all.touch_all(:created_at)
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670', \"created_at\" = '2018-01-04 22:55:23.132670'"
+    #
+    #   # Touch multiple records with a specified time
+    #   Person.all.touch_all(time: Time.new(2020, 5, 16, 0, 0, 0))
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2020-05-16 00:00:00'"
+    #
+    #   # Touch records with scope
+    #   Person.where(name: 'David').touch_all
+    #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
+    def touch_all(*names, time: nil)
+      updates = touch_attributes_with_time(*names, time: time)
+
+      if klass.locking_enabled?
+        quoted_locking_column = connection.quote_column_name(klass.locking_column)
+        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+      end
+
+      update_all(updates)
     end
 
     # Destroys the records by instantiating each
@@ -415,6 +489,7 @@ module ActiveRecord
     end
 
     def reset
+      @delegate_to_klass = false
       @to_sql = @arel = @loaded = @should_eager_load = nil
       @records = [].freeze
       @offsets = {}
@@ -427,17 +502,16 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
-                    relation = self
-
-                    if eager_loading?
-                      find_with_associations { |rel, _| relation = rel }
-                    end
-
-                    conn = klass.connection
-                    conn.unprepared_statement {
-                      conn.to_sql(relation.arel)
-                    }
-                  end
+        if eager_loading?
+          apply_join_dependency do |relation, join_dependency|
+            relation = join_dependency.apply_column_aliases(relation)
+            relation.to_sql
+          end
+        else
+          conn = klass.connection
+          conn.unprepared_statement { conn.to_sql(arel) }
+        end
+      end
     end
 
     # Returns a hash of where conditions.
@@ -516,6 +590,16 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
+    def preload_associations(records) # :nodoc:
+      preload = preload_values
+      preload += includes_values unless eager_loading?
+      preloader = nil
+      preload.each do |associations|
+        preloader ||= build_preloader
+        preloader.preload records, associations
+      end
+    end
+
     protected
 
       def load_records(records)
@@ -533,10 +617,11 @@ module ActiveRecord
         skip_query_cache_if_necessary do
           @records =
             if eager_loading?
-              find_with_associations do |relation, join_dependency|
+              apply_join_dependency do |relation, join_dependency|
                 if ActiveRecord::NullRelation === relation
                   []
                 else
+                  relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
                   join_dependency.instantiate(rows, &block)
                 end.freeze
@@ -545,13 +630,7 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload = preload_values
-          preload += includes_values unless eager_loading?
-          preloader = nil
-          preload.each do |associations|
-            preloader ||= build_preloader
-            preloader.preload @records, associations
-          end
+          preload_associations(@records) unless skip_preloading_value
 
           @records.each(&:readonly!) if readonly_value
 
