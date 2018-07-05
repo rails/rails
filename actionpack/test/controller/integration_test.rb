@@ -349,6 +349,16 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_redirect_with_arguments
+    with_test_route_set do
+      get "/redirect"
+      follow_redirect! params: { foo: :bar }
+
+      assert_response :ok
+      assert_equal "bar", request.parameters["foo"]
+    end
+  end
+
   def test_xml_http_request_get
     with_test_route_set do
       get "/get", xhr: true

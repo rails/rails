@@ -1,3 +1,13 @@
+*   Pass along arguments to underlying `get` method in `follow_redirect!`
+
+    Now all arguments passed to `follow_redirect!` are passed to the underlying
+    `get` method. This for example allows to set custom headers for the
+    redirection request to the server.
+
+        follow_redirect!(params: { foo: :bar })
+
+    *Remo Fritzsche*
+
 *   Introduce a new error page to when the implicit render page is accessed in the browser.
 
     Now instead of showing an error page that with exception and backtraces we now show only
