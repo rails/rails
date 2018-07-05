@@ -18,7 +18,7 @@ module ActionCable
         @websocket = nil
         if env[PROTOCOL_NAME_IN]
           if env[PROTOCOL_NAME_IN].is_a?(String)   # for single list headers such as "json, soap, foo"
-            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each { |i| next unless(protocols.include?(i)); @protocol = i; break; }
+            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each { |i| next unless protocols.include?(i); @protocol = i; break; }
           elsif env[PROTOCOL_NAME_IN].is_a?(Array) # for multiple headers such as: "soap" , "json", "foo"
             env[PROTOCOL_NAME_IN].each { |i| next unless protocols.include?(i); @protocol = i; break; }
           end
