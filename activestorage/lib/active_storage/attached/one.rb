@@ -17,6 +17,10 @@ module ActiveStorage
       attachment.blank?
     end
 
+    def present?
+      !blank?
+    end
+
     # Associates a given attachment with the current record, saving it to the database.
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
