@@ -6,21 +6,21 @@ module ActionCable
     #
     # This variation leverages the `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
     class WebSocketRack # :nodoc:
-      UPGRADE_EXISTS = 'rack.upgrade?'.freeze
-      UPGRADE = 'rack.upgrade'.freeze
+      UPGRADE_EXISTS = "rack.upgrade?".freeze
+      UPGRADE = "rack.upgrade".freeze
       PROTOCOL_NAME_IN = "HTTP_SEC_WEBSOCKET_PROTOCOL".freeze
       PROTOCOL_NAME_OUT = "Sec-Websocket-Protocol".freeze
-      CLOSE_REASON = ''.freeze
+      CLOSE_REASON = "".freeze
       def initialize(env, event_target, event_loop, protocols)
         env[UPGRADE] = self
         @event_target = event_target
         @protocol = nil
         @websocket = nil
-        if(env[PROTOCOL_NAME_IN])
-          if(env[PROTOCOL_NAME_IN].is_a? String)   # for single list headers such as "json, soap, foo"
-            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each {|i| next unless(protocols.include?(i)); @protocol = i; break; }
-          elsif(env[PROTOCOL_NAME_IN].is_a? Array) # for multiple headers such as: "soap" , "json", "foo"
-            env[PROTOCOL_NAME_IN].each {|i| next unless(protocols.include?(i)); @protocol = i; break; }
+        if env[PROTOCOL_NAME_IN]
+          if env[PROTOCOL_NAME_IN].is_a?(String)   # for single list headers such as "json, soap, foo"
+            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each { |i| next unless(protocols.include?(i)); @protocol = i; break; }
+          elsif env[PROTOCOL_NAME_IN].is_a?(Array) # for multiple headers such as: "soap" , "json", "foo"
+            env[PROTOCOL_NAME_IN].each { |i| next unless protocols.include?(i); @protocol = i; break; }
           end
         end
       end
@@ -52,7 +52,7 @@ module ActionCable
       end
 
       def rack_response
-        return [101, {PROTOCOL_NAME_OUT => @protocol}, []] if(@protocol)
+        return [101, { PROTOCOL_NAME_OUT => @protocol }, []] if @protocol
         [101, {}, []]
       end
 
