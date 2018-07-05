@@ -10,7 +10,7 @@ class ActiveStorage::AbsenceValidationTest < ActiveSupport::TestCase
     Admin.clear_validators!
   end
 
-  test "validates_presence_of has_one_attached" do
+  test "validates_absence_of has_one_attached" do
     Admin.validates_absence_of :avatar
     a = Admin.new
     assert_predicate a, :valid?
@@ -19,7 +19,7 @@ class ActiveStorage::AbsenceValidationTest < ActiveSupport::TestCase
     assert_predicate a, :invalid?
   end
 
-  test "validates_presence_of has_many_attached" do
+  test "validates_absende_of has_many_attached" do
     Admin.validates_absence_of :highlights
     a = Admin.new
     assert_predicate a, :valid?
