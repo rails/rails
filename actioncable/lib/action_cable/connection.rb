@@ -16,6 +16,7 @@ module ActionCable
       autoload :Subscriptions
       autoload :TaggedLoggerProxy
       autoload :WebSocket
+      autoload :WebSocketRack
     end
   end
 end
