@@ -133,10 +133,11 @@ module Rails
       class_option :restart, type: :boolean, default: nil, hide: true
       class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
 
-      def initialize(args = [], local_options = {}, config = {})
-        @original_options = local_options
+      def initialize(args, local_options, *)
         super
-        @using = deprecated_positional_rack_server(using) || options[:using]
+
+        @original_options = local_options
+        deprecate_positional_rack_server_and_rewrite_to_option(@original_options)
         @log_stdout = options[:daemon].blank? && (options[:environment] || Rails.env) == "development"
       end
 
@@ -248,7 +249,7 @@ module Rails
         end
 
         def restart_command
-          "bin/rails server #{using} #{@original_options.join(" ")} --restart"
+          "bin/rails server #{@original_options.join(" ")} --restart"
         end
 
         def early_hints
@@ -267,14 +268,19 @@ module Rails
           FileUtils.rm_f(options[:pid]) if options[:restart]
         end
 
-        def deprecated_positional_rack_server(value)
-          if value
-            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+        def deprecate_positional_rack_server_and_rewrite_to_option(original_options)
+          if using
+            ActiveSupport::Deprecation.warn(<<~MSG)
               Passing the Rack server name as a regular argument is deprecated
               and will be removed in the next Rails version. Please, use the -u
               option instead.
             MSG
-            value
+
+            original_options.concat [ '-u', using ]
+          else
+            # Use positional internally to get around Thor's immutable options.
+            # TODO: Replace `using` occurences with `options[:using]` after deprecation removal.
+            @using = options[:using]
           end
         end
 

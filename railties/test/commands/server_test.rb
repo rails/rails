@@ -245,10 +245,9 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
     args = %w(-p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C)
     ARGV.replace args
 
-    options = parse_arguments(args)
-    expected = "bin/rails server  -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
+    expected = "bin/rails server -p 4567 -b 127.0.0.1 -c dummy_config.ru -d -e test -P tmp/server.pid -C --restart"
 
-    assert_equal expected, options[:restart_cmd]
+    assert_equal expected, parse_arguments(args)[:restart_cmd]
   ensure
     ARGV.replace original_args
   end
