@@ -136,7 +136,7 @@ module Rails
       def initialize(args, local_options, *)
         super
 
-        @original_options = local_options
+        @original_options = local_options - %w( --restart )
         deprecate_positional_rack_server_and_rewrite_to_option(@original_options)
         @log_stdout = options[:daemon].blank? && (options[:environment] || Rails.env) == "development"
       end
