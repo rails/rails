@@ -1223,4 +1223,26 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
       user.business_ids += [business.uuid]
     end
   end
+
+  def test_has_many_through_do_not_cache_association_reader
+    member = Member.create!
+    club = Club.create!
+    membership = Membership.create!(
+      member: member,
+      club: club
+    )
+
+    memberships = club.memberships.for_member(member)
+    assert_equal [membership], memberships
+
+    other_member = Member.create!
+    other_club = Club.create!
+    other_membership = Membership.create!(
+      member: other_member,
+      club: other_club
+    )
+
+    memberships = other_club.memberships.for_member(other_member)
+    assert_equal [other_membership], memberships
+  end
 end

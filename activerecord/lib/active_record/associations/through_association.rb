@@ -14,7 +14,7 @@ module ActiveRecord
         def target_scope
           scope = super
           reflection.chain.drop(1).each do |reflection|
-            relation = reflection.klass.all
+            relation = reflection.klass.scope_for_association
             scope.merge!(
               relation.except(:select, :create_with, :includes, :preload, :joins, :eager_load)
             )

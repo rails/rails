@@ -29,8 +29,18 @@ module ActiveRecord
           end
         end
 
-        def default_scoped # :nodoc:
-          relation.merge(build_default_scope)
+        def scope_for_association(scope = relation) # :nodoc:
+          current_scope = self.current_scope
+
+          if current_scope && current_scope.empty_scope?
+            scope
+          else
+            default_scoped(scope)
+          end
+        end
+
+        def default_scoped(scope = relation) # :nodoc:
+          build_default_scope(scope) || scope
         end
 
         # Collects attributes from scopes that should be applied when creating
