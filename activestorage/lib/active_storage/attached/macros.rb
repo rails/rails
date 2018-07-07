@@ -27,10 +27,17 @@ module ActiveStorage
     #
     # If the +:dependent+ option isn't set, the attachment will be purged
     # (i.e. destroyed) whenever the record is destroyed.
-    def has_one_attached(name, dependent: :purge_later)
+    #
+    # By default the +:key_format+ that is being used for generating the blob key is ":hash".
+    # Currently the supported tokens are +:hash+, +:filename+, and +:extension+.
+    #
+    # For example you can namespace your attachments by doing
+    #
+    #   has_one_attached :avatar, key_format: "avatars/:hash/:filename.:extension"
+    def has_one_attached(name, dependent: :purge_later, key_format: nil)
       generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"}, key_format: #{key_format ? "\"#{key_format}\"" : "nil" })
         end
 
         def #{name}=(attachable)
@@ -80,10 +87,17 @@ module ActiveStorage
     #
     # If the +:dependent+ option isn't set, all the attachments will be purged
     # (i.e. destroyed) whenever the record is destroyed.
-    def has_many_attached(name, dependent: :purge_later)
+    #
+    # By default the +:key_format+ that is being used for generating the blob key is ":hash".
+    # Currently the supported tokens are +:hash+, +:filename+, and +:extension+.
+    #
+    # For example you can namespace your attachments by doing
+    #
+    #   has_one_attached :avatar, key_format: "avatars/:hash/:filename.:extension"
+    def has_many_attached(name, dependent: :purge_later, key_format: nil)
       generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
         def #{name}
-          @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+          @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"}, key_format: #{key_format ? "\"#{key_format}\"" : "nil" })
         end
 
         def #{name}=(attachables)
