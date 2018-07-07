@@ -313,31 +313,9 @@ class ActiveStorage::ManyAttachmentsTest < ActiveSupport::TestCase
     end
   end
 
-  test "overriding has_one_attached methods works" do
-    # attach blob before messing with getter, which breaks `#attach`
-    @user.avatar.attach create_blob(filename: "funky.jpg")
-
-    # inherited only
-    assert_equal "funky.jpg", @user.avatar.filename.to_s
-
-    begin
-      User.class_eval do
-        def avatar
-          super.filename.to_s.reverse
-        end
-      end
-
-      # override with super
-      assert_equal "funky.jpg".reverse, @user.avatar
-    ensure
-      User.send(:remove_method, :avatar)
-    end
-  end
-
   test "overriding attached reader" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
 
-    # inherited only
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
     assert_equal "town.jpg", @user.highlights.second.filename.to_s
 
@@ -348,7 +326,6 @@ class ActiveStorage::ManyAttachmentsTest < ActiveSupport::TestCase
         end
       end
 
-      # override with super
       assert_equal "town.jpg", @user.highlights.first.filename.to_s
       assert_equal "funky.jpg", @user.highlights.second.filename.to_s
     ensure
