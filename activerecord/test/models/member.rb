@@ -31,6 +31,9 @@ class Member < ActiveRecord::Base
 
   has_one :club_through_many, :through => :current_memberships, :source => :club
 
+  has_many :all_memberships, class_name: 'Membership'
+  has_many :all_clubs, through: :all_memberships, class_name: 'Club', source: :club
+
   belongs_to :admittable, polymorphic: true
   has_one :premium_club, through: :admittable
 end

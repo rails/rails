@@ -1,6 +1,11 @@
 class Membership < ActiveRecord::Base
   belongs_to :member
   belongs_to :club
+
+  def self.for_member(member)
+    joins(:club).
+      where(clubs: {id: member.all_clubs.map(&:id)})
+  end
 end
 
 class CurrentMembership < Membership
