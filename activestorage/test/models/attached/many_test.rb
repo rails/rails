@@ -3,7 +3,7 @@
 require "test_helper"
 require "database/setup"
 
-class ActiveStorage::ManyAttachmentsTest < ActiveSupport::TestCase
+class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   include ActiveJob::TestHelper
 
   setup do
