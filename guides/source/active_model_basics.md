@@ -459,17 +459,18 @@ features out of the box.
 `ActiveModel::SecurePassword` provides a way to securely store any
 password in an encrypted form. When you include this module, a
 `has_secure_password` class method is provided which defines
-a `password` accessor with certain validations on it.
+a `password` accessor with certain validations on it by default.
 
 #### Requirements
 
 `ActiveModel::SecurePassword` depends on [`bcrypt`](https://github.com/codahale/bcrypt-ruby 'BCrypt'),
 so include this gem in your `Gemfile` to use `ActiveModel::SecurePassword` correctly.
-In order to make this work, the model must have an accessor named `password_digest`.
-The `has_secure_password` will add the following validations on the `password` accessor:
+In order to make this work, the model must have an accessor named `XXX_digest`.
+Where `XXX` is the attribute name of your desired password/token or defaults to `password`.
+The following validations are added automatically:
 
 1. Password should be present.
-2. Password should be equal to its confirmation (provided `password_confirmation` is passed along).
+2. Password should be equal to its confirmation (provided `XXX_confirmation` is passed along).
 3. The maximum length of a password is 72 (required by `bcrypt` on which ActiveModel::SecurePassword depends)
 
 #### Examples
@@ -478,7 +479,9 @@ The `has_secure_password` will add the following validations on the `password` a
 class Person
   include ActiveModel::SecurePassword
   has_secure_password
-  attr_accessor :password_digest
+  has_secure_password :activation_token, validations: false
+
+  attr_accessor :password_digest, :activation_token_digest
 end
 
 person = Person.new
@@ -502,4 +505,17 @@ person.valid? # => true
 # When all validations are passed.
 person.password = person.password_confirmation = 'aditya'
 person.valid? # => true
+
+person.activation_token = "a_new_token"
+
+person.authenticate('aditya') # => person
+person.authenticate('notright') # => false
+person.authenticate_password('aditya') # => person
+person.authenticate_password('notright') # => false
+
+person.authenticate_activation_token('a_new_token') # => person
+person.authenticate_activation_token('notright') # => false
+
+person.password_digest # => "$2a$04$l4yYxoUPibMXcvvu.Lq8M.T/rtjdLOA78LN2XHEzMovf7hWVGzgXC"
+person.activation_token_digest # => "$2a$10$0Budk0Fi/k2CDm2PEwa3BeXO5tPOA85b6xazE9rp8nF2MIJlsUik."
 ```
