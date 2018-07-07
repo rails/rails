@@ -332,10 +332,4 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       User.send(:remove_method, :highlights)
     end
   end
-
-  test "reflecting" do
-    reflection = User.reflect_on_attachment(:highlights)
-    assert_equal :highlights, reflection.name
-    assert_equal :has_many_attached, reflection.macro
-  end
 end

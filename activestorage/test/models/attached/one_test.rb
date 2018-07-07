@@ -326,10 +326,4 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       User.send(:remove_method, :avatar)
     end
   end
-
-  test "reflecting" do
-    reflection = User.reflect_on_attachment(:avatar)
-    assert_equal :avatar, reflection.name
-    assert_equal :has_one_attached, reflection.macro
-  end
 end

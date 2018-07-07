@@ -98,3 +98,7 @@ class User < ActiveRecord::Base
   has_many_attached :highlights
   has_many_attached :vlogs, dependent: false
 end
+
+class Group < ActiveRecord::Base
+  has_one_attached :avatar
+end
