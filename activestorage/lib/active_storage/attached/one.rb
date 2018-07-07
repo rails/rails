@@ -70,10 +70,6 @@ module ActiveStorage
     private
       delegate :transaction, to: :record
 
-      def change
-        record.public_send("#{name}_change")
-      end
-
       def build_attachment(blob:)
         Attachment.new(record: record, name: name, blob: blob)
       end

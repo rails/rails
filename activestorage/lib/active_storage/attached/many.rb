@@ -54,10 +54,5 @@ module ActiveStorage
     # :method: purge_later
     #
     # Purges each associated attachment through the queuing system.
-
-    private
-      def change
-        record.public_send("#{name}_change")
-      end
   end
 end

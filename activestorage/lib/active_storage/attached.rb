@@ -15,6 +15,10 @@ module ActiveStorage
     end
 
     private
+      def change
+        record.attachment_changes[name]
+      end
+
       def create_blob_from(attachable)
         case attachable
         when ActiveStorage::Blob
@@ -35,7 +39,7 @@ module ActiveStorage
   end
 end
 
+require "active_storage/attached/model"
 require "active_storage/attached/one"
 require "active_storage/attached/many"
-require "active_storage/attached/macros"
 require "active_storage/attached/changes"
