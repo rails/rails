@@ -132,10 +132,10 @@ module Rails
         desc: "Specifies the Rack server used to run the application (thin/puma/webrick).", banner: :name
       class_option :pid, aliases: "-P", type: :string, default: DEFAULT_PID_PATH,
         desc: "Specifies the PID file."
-      class_option "dev-caching", aliases: "-C", type: :boolean, default: nil,
+      class_option :dev_caching, aliases: "-C", type: :boolean, default: nil,
         desc: "Specifies whether to perform caching in development."
-      class_option "restart", type: :boolean, default: nil, hide: true
-      class_option "early_hints", type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
+      class_option :restart, type: :boolean, default: nil, hide: true
+      class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
 
       def initialize(args = [], local_options = {}, config = {})
         @original_options = local_options
@@ -177,7 +177,7 @@ module Rails
             environment:           environment,
             daemonize:             options[:daemon],
             pid:                   pid,
-            caching:               options["dev-caching"],
+            caching:               options[:dev_caching],
             restart_cmd:           restart_command,
             early_hints:           early_hints
           }
@@ -210,7 +210,7 @@ module Rails
                   name = :Port
                 when :binding
                   name = :Host
-                when :"dev-caching"
+                when :dev_caching
                   name = :caching
                 when :daemonize
                   name = :daemon
