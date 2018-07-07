@@ -97,10 +97,6 @@ module Rails
         end
       end
 
-      def restart_command
-        "bin/rails server #{ARGV.join(' ')}"
-      end
-
       def use_puma?
         server.to_s == "Rack::Handler::Puma"
       end
