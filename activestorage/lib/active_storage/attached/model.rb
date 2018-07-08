@@ -125,20 +125,13 @@ module ActiveStorage
       end
     end
 
-    def save(*) #:nodoc:
-      super.tap do |succeeded|
-        if succeeded
-          upload_attachment_changes
-          clear_attachment_changes
-        end
-      end
-    end
-
-    def save!(*) #:nodoc:
-      super.tap do
+    def committed!(*) #:nodoc:
+      unless destroyed?
         upload_attachment_changes
         clear_attachment_changes
       end
+
+      super
     end
 
     def attachment_changes #:nodoc:
