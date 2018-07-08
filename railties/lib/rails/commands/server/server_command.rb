@@ -276,7 +276,7 @@ module Rails
               option instead.
             MSG
 
-            original_options.concat [ '-u', using ]
+            original_options.concat [ "-u", using ]
           else
             # Use positional internally to get around Thor's immutable options.
             # TODO: Replace `using` occurences with `options[:using]` after deprecation removal.
