@@ -3,8 +3,6 @@
 module ActiveRecord
   # See ActiveRecord::Aggregations::ClassMethods for documentation
   module Aggregations
-    extend ActiveSupport::Concern
-
     def initialize_dup(*) # :nodoc:
       @aggregation_cache = {}
       super
@@ -224,6 +222,10 @@ module ActiveRecord
         #
         def composed_of(part_id, options = {})
           options.assert_valid_keys(:class_name, :mapping, :allow_nil, :constructor, :converter)
+
+          unless self < Aggregations
+            include Aggregations
+          end
 
           name        = part_id.id2name
           class_name  = options[:class_name]  || name.camelize

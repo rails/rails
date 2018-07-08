@@ -1,3 +1,13 @@
+*   RedisCacheStore: support key expiry in increment/decrement.
+
+    Pass `:expires_in` to `#increment` and `#decrement` to set a Redis EXPIRE on the key.
+
+    If the key is already set to expire, RedisCacheStore won't extend its expiry.
+
+        Rails.cache.increment("some_key", 1, expires_in: 2.minutes)
+
+    *Jason Lee*
+
 *   Allow Range#=== and Range#cover? on Range
 
     `Range#cover?` can now accept a range argument like `Range#include?` and

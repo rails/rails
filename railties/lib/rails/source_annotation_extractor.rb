@@ -8,12 +8,7 @@ SourceAnnotationExtractor = ActiveSupport::Deprecation::DeprecatedConstantProxy.
   new("SourceAnnotationExtractor", "Rails::SourceAnnotationExtractor")
 
 module Rails
-  # Implements the logic behind the rake tasks for annotations like
-  #
-  #   rails notes
-  #   rails notes:optimize
-  #
-  # and friends. See <tt>rails -T notes</tt> and <tt>railties/lib/rails/tasks/annotations.rake</tt>.
+  # Implements the logic behind <tt>Rails::Command::NotesCommand</tt>. See <tt>rails notes --help</tt> for usage information.
   #
   # Annotation objects are triplets <tt>:line</tt>, <tt>:tag</tt>, <tt>:text</tt> that
   # represent the line where the annotation lives, its tag, and its text. Note
@@ -25,7 +20,7 @@ module Rails
   class SourceAnnotationExtractor
     class Annotation < Struct.new(:line, :tag, :text)
       def self.directories
-        @@directories ||= %w(app config db lib test) + (ENV["SOURCE_ANNOTATION_DIRECTORIES"] || "").split(",")
+        @@directories ||= %w(app config db lib test)
       end
 
       # Registers additional directories to be included
@@ -59,15 +54,19 @@ module Rails
         s << "[#{tag}] " if options[:tag]
         s << text
       end
+
+      # Used in annotations.rake
+      #:nodoc:
+      def self.notes_task_deprecation_warning
+        ActiveSupport::Deprecation.warn("This rake task is deprecated and will be removed in Rails 6.1. \nRefer to `rails notes --help` for more information.\n")
+        puts "\n"
+      end
     end
 
     # Prints all annotations with tag +tag+ under the root directories +app+,
     # +config+, +db+, +lib+, and +test+ (recursively).
     #
-    # Additional directories may be added using a comma-delimited list set using
-    # <tt>ENV['SOURCE_ANNOTATION_DIRECTORIES']</tt>.
-    #
-    # Directories may also be explicitly set using the <tt>:dirs</tt> key in +options+.
+    # Specific directories can be explicitly set using the <tt>:dirs</tt> key in +options+.
     #
     #   Rails::SourceAnnotationExtractor.enumerate 'TODO|FIXME', dirs: %w(app lib), tag: true
     #
@@ -75,7 +74,7 @@ module Rails
     #
     # See <tt>#find_in</tt> for a list of file extensions that will be taken into account.
     #
-    # This class method is the single entry point for the rake tasks.
+    # This class method is the single entry point for the `rails notes` command.
     def self.enumerate(tag, options = {})
       extractor = new(tag)
       dirs = options.delete(:dirs) || Annotation.directories

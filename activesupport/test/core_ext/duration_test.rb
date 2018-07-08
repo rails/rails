@@ -158,6 +158,18 @@ class DurationTest < ActiveSupport::TestCase
     assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 1.day * 2
   end
 
+  def test_date_added_with_multiplied_duration_larger_than_one_month
+    assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 1.day * 45
+  end
+
+  def test_date_added_with_divided_duration
+    assert_equal Date.civil(2017, 1, 3), Date.civil(2017, 1, 1) + 4.days / 2
+  end
+
+  def test_date_added_with_divided_duration_larger_than_one_month
+    assert_equal Date.civil(2017, 2, 15), Date.civil(2017, 1, 1) + 90.days / 2
+  end
+
   def test_plus_with_time
     assert_equal 1 + 1.second, 1.second + 1, "Duration + Numeric should == Numeric + Duration"
   end

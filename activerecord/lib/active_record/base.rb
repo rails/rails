@@ -288,6 +288,7 @@ module ActiveRecord #:nodoc:
     extend Enum
     extend Delegation::DelegateCache
     extend CollectionCacheKey
+    extend Aggregations::ClassMethods
 
     include Core
     include DatabaseConfigurations
@@ -314,7 +315,6 @@ module ActiveRecord #:nodoc:
     include ActiveModel::SecurePassword
     include AutosaveAssociation
     include NestedAttributes
-    include Aggregations
     include Transactions
     include TouchLater
     include NoTouching

@@ -12,7 +12,7 @@ class ActiveStorage::PresenceValidationTest < ActiveSupport::TestCase
 
   test "validates_presence_of has_one_attached" do
     Admin.validates_presence_of :avatar
-    a = Admin.new
+    a = Admin.new(name: "DHH")
     assert_predicate a, :invalid?
 
     a.avatar.attach create_blob(filename: "funky.jpg")
@@ -21,7 +21,7 @@ class ActiveStorage::PresenceValidationTest < ActiveSupport::TestCase
 
   test "validates_presence_of has_many_attached" do
     Admin.validates_presence_of :highlights
-    a = Admin.new
+    a = Admin.new(name: "DHH")
     assert_predicate a, :invalid?
 
     a.highlights.attach create_blob(filename: "funky.jpg")

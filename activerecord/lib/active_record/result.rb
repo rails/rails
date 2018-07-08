@@ -43,6 +43,11 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    # Returns true if this result set includes the column named +name+
+    def includes_column?(name)
+      @columns.include? name
+    end
+
     # Returns the number of elements in the rows array.
     def length
       @rows.length

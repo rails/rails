@@ -1,3 +1,20 @@
+*   Allow call `assert_enqueued_email_with` with no block.
+
+    Example:
+    ```
+    def test_email
+      ContactMailer.welcome.deliver_later
+      assert_enqueued_email_with ContactMailer, :welcome
+    end
+
+    def test_email_with_arguments
+      ContactMailer.welcome("Hello", "Goodbye").deliver_later
+      assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
+    end
+    ```
+
+    *bogdanvlviv*
+
 *   Ensure mail gem is eager autoloaded when eager load is true to prevent thread deadlocks.
 
     *Samuel Cochran*

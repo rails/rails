@@ -159,11 +159,19 @@ module ActiveJob
     #     end
     #   end
     #
+    # It can be asserted that no jobs are enqueued to a specific queue:
+    #
+    #   def test_no_logging
+    #     assert_no_enqueued_jobs queue: 'default' do
+    #       LoggingJob.set(queue: :some_queue).perform_later
+    #     end
+    #   end
+    #
     # Note: This assertion is simply a shortcut for:
     #
     #   assert_enqueued_jobs 0, &block
-    def assert_no_enqueued_jobs(only: nil, except: nil, &block)
-      assert_enqueued_jobs 0, only: only, except: except, &block
+    def assert_no_enqueued_jobs(only: nil, except: nil, queue: nil, &block)
+      assert_enqueued_jobs 0, only: only, except: except, queue: queue, &block
     end
 
     # Asserts that the number of performed jobs matches the given number.
@@ -286,7 +294,18 @@ module ActiveJob
       assert_performed_jobs 0, only: only, except: except, &block
     end
 
-    # Asserts that the job passed in the block has been enqueued with the given arguments.
+    # Asserts that the job has been enqueued with the given arguments.
+    #
+    #   def test_assert_enqueued_with
+    #     MyJob.perform_later(1,2,3)
+    #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
+    #
+    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    #   end
+    #
+    # If a block is passed, that block should cause the job to be
+    # enqueued with the given arguments.
     #
     #   def test_assert_enqueued_with
     #     assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low') do
@@ -298,14 +317,23 @@ module ActiveJob
     #     end
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
-      original_enqueued_jobs_count = enqueued_jobs.count
       expected = { job: job, args: args, at: at, queue: queue }.compact
       serialized_args = serialize_args_for_assertion(expected)
-      yield
-      in_block_jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
-      matching_job = in_block_jobs.find do |in_block_job|
-        serialized_args.all? { |key, value| value == in_block_job[key] }
+
+      if block_given?
+        original_enqueued_jobs_count = enqueued_jobs.count
+
+        yield
+
+        jobs = enqueued_jobs.drop(original_enqueued_jobs_count)
+      else
+        jobs = enqueued_jobs
       end
+
+      matching_job = jobs.find do |enqueued_job|
+        serialized_args.all? { |key, value| value == enqueued_job[key] }
+      end
+
       assert matching_job, "No enqueued job found with #{expected}"
       instantiate_job(matching_job)
     end

@@ -49,7 +49,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       FileUtils.rm("config/master.key")
 
       switch_env("RAILS_MASTER_KEY", key) do
-        run_edit_command
+        assert_match(/access_key_id: 123/, run_edit_command)
         assert_not File.exist?("config/master.key")
       end
     end
