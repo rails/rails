@@ -186,7 +186,7 @@ class SecurePasswordTest < ActiveModel::TestCase
 
   test "authenticate" do
     @user.password = "secret"
-    @user.activation_token = "new_token"
+    @user.recovery_password = "42password"
 
     assert_equal false, @user.authenticate("wrong")
     assert_equal @user, @user.authenticate("secret")
@@ -194,8 +194,8 @@ class SecurePasswordTest < ActiveModel::TestCase
     assert_equal false, @user.authenticate_password("wrong")
     assert_equal @user, @user.authenticate_password("secret")
 
-    assert_equal false, @user.authenticate_activation_token("wrong")
-    assert_equal @user, @user.authenticate_activation_token("new_token")
+    assert_equal false, @user.authenticate_recovery_password("wrong")
+    assert_equal @user, @user.authenticate_recovery_password("42password")
   end
 
   test "Password digest cost defaults to bcrypt default cost when min_cost is false" do

@@ -17,7 +17,7 @@ module ActiveModel
     module ClassMethods
       # Adds methods to set and authenticate against a BCrypt password.
       # This mechanism requires you to have a +XXX_digest+ attribute.
-      # Where +XXX+ is the attribute name of your desired password/token or defaults to +password+
+      # Where +XXX+ is the attribute name of your desired password.
       #
       # The following validations are added automatically:
       # * Password must be present on creation
@@ -38,10 +38,10 @@ module ActiveModel
       #
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
-      #   # Schema: User(name:string, password_digest:string, activation_token_digest:string)
+      #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
       #   class User < ActiveRecord::Base
       #     has_secure_password
-      #     has_secure_password :activation_token, validations: false
+      #     has_secure_password :recovery_password, validations: false
       #   end
       #
       #   user = User.new(name: 'david', password: '', password_confirmation: 'nomatch')
@@ -50,12 +50,12 @@ module ActiveModel
       #   user.save                                                       # => false, confirmation doesn't match
       #   user.password_confirmation = 'mUc3m00RsqyRe'
       #   user.save                                                       # => true
-      #   user.activation_token = "a_new_token"
-      #   user.activation_token_digest                                    # => "$2a$10$0Budk0Fi/k2CDm2PEwa3BeXO5tPOA85b6xazE9rp8nF2MIJlsUik."
+      #   user.recovery_password = "42password"
+      #   user.recovery_password_digest                                   # => "$2a$04$iOfhwahFymCs5weB3BNH/uXkTG65HR.qpW.bNhEjFP3ftli3o5DQC"
       #   user.save                                                       # => true
       #   user.authenticate('notright')                                   # => false
       #   user.authenticate('mUc3m00RsqyRe')                              # => user
-      #   user.authenticate_activation_token('a_new_token')               # => user
+      #   user.authenticate_recovery_password('42password')               # => user
       #   User.find_by(name: 'david').try(:authenticate, 'notright')      # => false
       #   User.find_by(name: 'david').try(:authenticate, 'mUc3m00RsqyRe') # => user
       def has_secure_password(attribute = :password, validations: true)
