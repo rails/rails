@@ -253,7 +253,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "creating a record with an unexpected object attached" do
-    error = assert_raises { User.create!(name: "Jason", highlights: :foo) }
+    error = assert_raises(ArgumentError) { User.create!(name: "Jason", highlights: :foo) }
     assert_equal "Could not find or build blob: expected attachable, got :foo", error.message
   end
 

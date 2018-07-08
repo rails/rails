@@ -58,7 +58,7 @@ module ActiveStorage
         when String
           ActiveStorage::Blob.find_signed(attachable)
         else
-          raise "Could not find or build blob: expected attachable, got #{attachable.inspect}"
+          raise ArgumentError, "Could not find or build blob: expected attachable, got #{attachable.inspect}"
         end
       end
   end
