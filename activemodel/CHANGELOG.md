@@ -6,13 +6,13 @@
     Example:
 
         class User < ActiveRecord::Base
-            has_secure_password :activation_token, validations: false
+          has_secure_password :recovery_password, validations: false
         end
 
         user = User.new()
-        user.activation_token = "a_new_token"
-        user.activation_token_digest                        # => "$2a$10$0Budk0Fi/k2CDm2PEwa3Be..."
-        user.authenticate_activation_token('a_new_token')   # => user
+        user.recovery_password = "42password"
+        user.recovery_password_digest # => "$2a$04$iOfhwahFymCs5weB3BNH/uX..."
+        user.authenticate_recovery_password('42password') # => user
 
      *Unathi Chonco*
 
