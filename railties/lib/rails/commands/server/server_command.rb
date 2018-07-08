@@ -132,13 +132,14 @@ module Rails
         desc: "Specifies whether to perform caching in development."
       class_option :restart, type: :boolean, default: nil, hide: true
       class_option :early_hints, type: :boolean, default: nil, desc: "Enables HTTP/2 early hints."
+      class_option :log_to_stdout, type: :boolean, default: nil, optional: true,
+        desc: "Whether to log to stdout. Enabled by default in development when not daemonized."
 
       def initialize(args, local_options, *)
         super
 
         @original_options = local_options - %w( --restart )
         deprecate_positional_rack_server_and_rewrite_to_option(@original_options)
-        @log_stdout = options[:daemon].blank? && (options[:environment] || Rails.env) == "development"
       end
 
       def perform
@@ -166,7 +167,7 @@ module Rails
           {
             user_supplied_options: user_supplied_options,
             server:                using,
-            log_stdout:            @log_stdout,
+            log_stdout:            log_to_stdout?,
             Port:                  port,
             Host:                  host,
             DoNotReverseLookup:    true,
@@ -254,6 +255,12 @@ module Rails
 
         def early_hints
           options[:early_hints]
+        end
+
+        def log_to_stdout?
+          options.fetch(:log_to_stdout) do
+            options[:daemon].blank? && environment == "development"
+          end
         end
 
         def pid
