@@ -106,7 +106,7 @@ if current_adapter?(:Mysql2Adapter)
   class MysqlDefaultExpressionTest < ActiveRecord::TestCase
     include SchemaDumpingHelper
 
-    if ActiveRecord::Base.connection.version >= "5.6.0"
+    if subsecond_precision_supported?
       test "schema dump datetime includes default expression" do
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"modified_datetime",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
@@ -116,21 +116,21 @@ if current_adapter?(:Mysql2Adapter)
         output = dump_table_schema("datetime_defaults")
         assert_match %r/t\.datetime\s+"precise_datetime",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
       end
-    end
 
-    test "schema dump timestamp includes default expression" do
-      output = dump_table_schema("timestamp_defaults")
-      assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
-    end
+      test "schema dump timestamp includes default expression" do
+        output = dump_table_schema("timestamp_defaults")
+        assert_match %r/t\.timestamp\s+"modified_timestamp",\s+default: -> { "CURRENT_TIMESTAMP(?:\(\))?" }/i, output
+      end
 
-    test "schema dump timestamp includes precise default expression" do
-      output = dump_table_schema("timestamp_defaults")
-      assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
-    end
+      test "schema dump timestamp includes precise default expression" do
+        output = dump_table_schema("timestamp_defaults")
+        assert_match %r/t\.timestamp\s+"precise_timestamp",.+default: -> { "CURRENT_TIMESTAMP\(6\)" }/i, output
+      end
 
-    test "schema dump timestamp without default expression" do
-      output = dump_table_schema("timestamp_defaults")
-      assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
+      test "schema dump timestamp without default expression" do
+        output = dump_table_schema("timestamp_defaults")
+        assert_match %r/t\.timestamp\s+"nullable_timestamp"$/, output
+      end
     end
   end
 
