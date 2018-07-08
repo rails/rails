@@ -143,9 +143,21 @@ class Rails::Command::ServerCommandTest < ActiveSupport::TestCase
         options = parse_arguments(args)
         assert_equal true, options[:log_stdout]
 
+        args    = ["-e", "development", "-d"]
+        options = parse_arguments(args)
+        assert_equal false, options[:log_stdout]
+
         args    = ["-e", "production"]
         options = parse_arguments(args)
         assert_equal false, options[:log_stdout]
+
+        args    = ["-e", "development", "--no-log-to-stdout"]
+        options = parse_arguments(args)
+        assert_equal false, options[:log_stdout]
+
+        args    = ["-e", "production", "--log-to-stdout"]
+        options = parse_arguments(args)
+        assert_equal true, options[:log_stdout]
 
         with_rack_env "development" do
           args    = []
