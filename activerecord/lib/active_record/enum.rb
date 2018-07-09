@@ -168,7 +168,15 @@ module ActiveRecord
         end
 
         _enum_methods_module.module_eval do
-          pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
+          pairs =
+            if values.respond_to?(:each_pair)
+              values.each_pair
+            elsif klass.columns_hash[name]&.type == :string
+              values.lazy.map { |value| [value, value.to_s] }
+            else
+              values.each_with_index
+            end
+
           pairs.each do |label, value|
             if enum_prefix == true
               prefix = "#{name}_"
