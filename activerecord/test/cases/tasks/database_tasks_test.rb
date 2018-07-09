@@ -327,6 +327,25 @@ module ActiveRecord
         ActiveSupport::StringInquirer.new("development")
       )
     end
+
+    def test_db_create_with_error_prints_message
+      old_env = ENV["RAILS_ENV"]
+      ENV["RAILS_ENV"] = "production"
+
+      ActiveRecord::Base.stubs(:establish_connection).raises(Exception)
+
+      $stderr.stubs(:puts).returns(true)
+      $stderr.expects(:puts).
+        with("Couldn't create database for prod-db")
+
+      begin
+        ActiveRecord::Tasks::DatabaseTasks.create_current(
+          ActiveSupport::StringInquirer.new("production")
+        )
+      rescue; end
+    ensure
+      ENV["RAILS_ENV"] = old_env
+    end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
