@@ -14,7 +14,7 @@ if current_adapter?(:Mysql2Adapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -77,7 +77,6 @@ if current_adapter?(:Mysql2Adapter)
 
     class MysqlDBCreateWithInvalidPermissionsTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub("Connection", create_database: true)
         @error         = Mysql2::Error.new("Invalid permissions")
         @configuration = {
           "adapter"  => "mysql2",
@@ -86,7 +85,6 @@ if current_adapter?(:Mysql2Adapter)
           "password" => "wossname"
         }
 
-        ActiveRecord::Base.stubs(:connection).returns(@connection)
         ActiveRecord::Base.stubs(:establish_connection).raises(@error)
 
         $stdout, @original_stdout = StringIO.new, $stdout
@@ -113,7 +111,7 @@ if current_adapter?(:Mysql2Adapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
 
         $stdout, @original_stdout = StringIO.new, $stdout
         $stderr, @original_stderr = StringIO.new, $stderr
@@ -151,7 +149,7 @@ if current_adapter?(:Mysql2Adapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
+        ActiveRecord::Base.stubs(:establish_connection)
       end
 
       def test_establishes_connection_to_the_appropriate_database
@@ -185,7 +183,6 @@ if current_adapter?(:Mysql2Adapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_charset
@@ -203,7 +200,6 @@ if current_adapter?(:Mysql2Adapter)
         }
 
         ActiveRecord::Base.stubs(:connection).returns(@connection)
-        ActiveRecord::Base.stubs(:establish_connection).returns(true)
       end
 
       def test_db_retrieves_collation

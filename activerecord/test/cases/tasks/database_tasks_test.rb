@@ -135,7 +135,7 @@ module ActiveRecord
 
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
-      $stderr.stubs(:puts).returns(nil)
+      $stderr.stubs(:puts)
 
       assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
         ActiveRecord::Tasks::DatabaseTasks.create_all
@@ -184,7 +184,7 @@ module ActiveRecord
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
-      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      ActiveRecord::Base.stubs(:establish_connection)
     end
 
     def test_creates_current_environment_database
@@ -238,7 +238,7 @@ module ActiveRecord
     end
 
     def test_establishes_connection_for_the_given_environments
-      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:create)
 
       ActiveRecord::Base.expects(:establish_connection).with(:development)
 
@@ -257,7 +257,7 @@ module ActiveRecord
       }
 
       ActiveRecord::Base.stubs(:configurations).returns(@configurations)
-      ActiveRecord::Base.stubs(:establish_connection).returns(true)
+      ActiveRecord::Base.stubs(:establish_connection)
     end
 
     def test_creates_current_environment_database
@@ -319,7 +319,7 @@ module ActiveRecord
     end
 
     def test_establishes_connection_for_the_given_environments_config
-      ActiveRecord::Tasks::DatabaseTasks.stubs(:create).returns true
+      ActiveRecord::Tasks::DatabaseTasks.stubs(:create)
 
       ActiveRecord::Base.expects(:establish_connection).with(:development)
 
@@ -357,7 +357,7 @@ module ActiveRecord
 
     def test_ignores_remote_databases
       @configurations[:development].merge!("host" => "my.server.tld")
-      $stderr.stubs(:puts).returns(nil)
+      $stderr.stubs(:puts)
 
       assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
         ActiveRecord::Tasks::DatabaseTasks.drop_all
