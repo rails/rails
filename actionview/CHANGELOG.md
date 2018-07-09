@@ -1,3 +1,9 @@
+*   Respect the `path_only` option passed to `url_for` when the options are passed in as an array
+    
+    Fixes #33237.
+
+    *Joel Ambass*
+
 *   Mark arrays of translations as trusted safe by using the `_html` suffix.
 
     Example:
