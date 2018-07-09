@@ -75,6 +75,15 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert_equal "javascript:history.back()", url_for(:back)
   end
 
+  def test_url_for_defaults_to_only_path_true
+    assert_equal "/other", url_for(hash_for(action: "other"))
+  end
+
+  def test_url_for_with_only_path_set_to_false
+    default_url_options[:host] = "http://example.com"
+    assert_equal "http://example.com/other", url_for(hash_for(action: "other", only_path: false))
+  end
+
   def test_to_form_params_with_hash
     assert_equal(
       [{ name: :name, value: "David" }, { name: :nationality, value: "Danish" }],
