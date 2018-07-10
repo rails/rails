@@ -74,7 +74,7 @@ module ActionDispatch
     # to access this auto-generated method from other places (such as a model), then
     # you can do that by including Rails.application.routes.url_helpers in your class:
     #
-    #   class User < ActiveRecord::Base
+    #   class User < ApplicationRecord
     #     include Rails.application.routes.url_helpers
     #
     #     def base_uri

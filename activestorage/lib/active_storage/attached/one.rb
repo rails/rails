@@ -33,7 +33,7 @@ module ActiveStorage
 
     # Returns +true+ if an attachment has been made.
     #
-    #   class User < ActiveRecord::Base
+    #   class User < ApplicationRecord
     #     has_one_attached :avatar
     #   end
     #

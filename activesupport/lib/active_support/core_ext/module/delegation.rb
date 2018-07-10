@@ -32,7 +32,7 @@ class Module
   #
   # Delegation is particularly useful with Active Record associations:
   #
-  #   class Greeter < ActiveRecord::Base
+  #   class Greeter < ApplicationRecord
   #     def hello
   #       'hello'
   #     end
@@ -42,7 +42,7 @@ class Module
   #     end
   #   end
   #
-  #   class Foo < ActiveRecord::Base
+  #   class Foo < ApplicationRecord
   #     belongs_to :greeter
   #     delegate :hello, to: :greeter
   #   end
@@ -52,7 +52,7 @@ class Module
   #
   # Multiple delegates to the same target are allowed:
   #
-  #   class Foo < ActiveRecord::Base
+  #   class Foo < ApplicationRecord
   #     belongs_to :greeter
   #     delegate :hello, :goodbye, to: :greeter
   #   end
@@ -118,7 +118,7 @@ class Module
   # The delegated methods are public by default.
   # Pass <tt>private: true</tt> to change that.
   #
-  #   class User < ActiveRecord::Base
+  #   class User < ApplicationRecord
   #     has_one :profile
   #     delegate :first_name, to: :profile
   #     delegate :date_of_birth, to: :profile, private: true
@@ -136,7 +136,7 @@ class Module
   # +Module::DelegationError+ is raised. If you wish to instead return +nil+,
   # use the <tt>:allow_nil</tt> option.
   #
-  #   class User < ActiveRecord::Base
+  #   class User < ApplicationRecord
   #     has_one :profile
   #     delegate :age, to: :profile
   #   end
@@ -147,7 +147,7 @@ class Module
   # But if not having a profile yet is fine and should not be an error
   # condition:
   #
-  #   class User < ActiveRecord::Base
+  #   class User < ApplicationRecord
   #     has_one :profile
   #     delegate :age, to: :profile, allow_nil: true
   #   end

@@ -219,7 +219,7 @@ module ActionController
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Person < ApplicationRecord
     #   end
     #
     #   params = ActionController::Parameters.new(name: "Francesco")
@@ -363,7 +363,7 @@ module ActionController
     # Sets the +permitted+ attribute to +true+. This can be used to pass
     # mass assignment. Returns +self+.
     #
-    #   class Person < ActiveRecord::Base
+    #   class Person < ApplicationRecord
     #   end
     #
     #   params = ActionController::Parameters.new(name: "Francesco")

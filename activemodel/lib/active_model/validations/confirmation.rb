@@ -42,7 +42,7 @@ module ActiveModel
       # address field with a confirmation.
       #
       #   Model:
-      #     class Person < ActiveRecord::Base
+      #     class Person < ApplicationRecord
       #       validates_confirmation_of :user_name, :password
       #       validates_confirmation_of :email_address,
       #                                 message: 'should match confirmation'

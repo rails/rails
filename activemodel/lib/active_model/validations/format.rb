@@ -58,21 +58,21 @@ module ActiveModel
       # form, going by the regular expression provided. You can require that the
       # attribute matches the regular expression:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_format_of :email, with: /\A([^@\s]+)@((?:[-a-z0-9]+\.)+[a-z]{2,})\z/i, on: :create
       #   end
       #
       # Alternatively, you can require that the specified attribute does _not_
       # match the regular expression:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_format_of :email, without: /NOSPAM/
       #   end
       #
       # You can also provide a proc or lambda which will determine the regular
       # expression that will be used to validate the attribute.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     # Admin can have number as a first letter in their screen name
       #     validates_format_of :screen_name,
       #                         with: ->(person) { person.admin? ? /\A[a-z0-9][a-z0-9_\-]*\z/i : /\A[a-z][a-z0-9_\-]*\z/i }

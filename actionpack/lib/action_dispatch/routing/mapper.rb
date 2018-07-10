@@ -488,7 +488,7 @@ module ActionDispatch
         #   You can override <tt>ActiveRecord::Base#to_param</tt> of a related
         #   model to construct a URL:
         #
-        #      class User < ActiveRecord::Base
+        #      class User < ApplicationRecord
         #        def to_param
         #          name
         #        end

@@ -39,7 +39,7 @@ module ActiveModel
       # Example using Active Record (which automatically includes ActiveModel::SecurePassword):
       #
       #   # Schema: User(name:string, password_digest:string, recovery_password_digest:string)
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_secure_password
       #     has_secure_password :recovery_password, validations: false
       #   end
@@ -87,7 +87,7 @@ module ActiveModel
 
         # Returns +self+ if the password is correct, otherwise +false+.
         #
-        #   class User < ActiveRecord::Base
+        #   class User < ApplicationRecord
         #     has_secure_password validations: false
         #   end
         #

@@ -714,7 +714,7 @@ module ActiveSupport #:nodoc:
       #
       #   autoload :Foo, 'foo'
       #
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #   end
       #
       # we correctly register "Foo" as being autoloaded. But if the app does

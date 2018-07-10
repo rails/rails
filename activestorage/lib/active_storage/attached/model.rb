@@ -8,7 +8,7 @@ module ActiveStorage
     class_methods do
       # Specifies the relation between a single attachment and the model.
       #
-      #   class User < ActiveRecord::Base
+      #   class User < ApplicationRecord
       #     has_one_attached :avatar
       #   end
       #
@@ -62,7 +62,7 @@ module ActiveStorage
 
       # Specifies the relation between multiple attachments and the model.
       #
-      #   class Gallery < ActiveRecord::Base
+      #   class Gallery < ApplicationRecord
       #     has_many_attached :photos
       #   end
       #

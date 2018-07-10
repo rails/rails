@@ -178,11 +178,11 @@ module ActionView
       #
       # Example object structure for use with this method:
       #
-      #   class Post < ActiveRecord::Base
+      #   class Post < ApplicationRecord
       #     belongs_to :author
       #   end
       #
-      #   class Author < ActiveRecord::Base
+      #   class Author < ApplicationRecord
       #     has_many :posts
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
@@ -228,17 +228,17 @@ module ActionView
       #
       # Example object structure for use with this method:
       #
-      #   class Continent < ActiveRecord::Base
+      #   class Continent < ApplicationRecord
       #     has_many :countries
       #     # attribs: id, name
       #   end
       #
-      #   class Country < ActiveRecord::Base
+      #   class Country < ApplicationRecord
       #     belongs_to :continent
       #     # attribs: id, name, continent_id
       #   end
       #
-      #   class City < ActiveRecord::Base
+      #   class City < ApplicationRecord
       #     belongs_to :country
       #     # attribs: id, name, country_id
       #   end
@@ -430,12 +430,12 @@ module ActionView
       #
       # Example object structure for use with this method:
       #
-      #   class Continent < ActiveRecord::Base
+      #   class Continent < ApplicationRecord
       #     has_many :countries
       #     # attribs: id, name
       #   end
       #
-      #   class Country < ActiveRecord::Base
+      #   class Country < ApplicationRecord
       #     belongs_to :continent
       #     # attribs: id, name, continent_id
       #   end
@@ -606,10 +606,10 @@ module ActionView
       # retrieve the value/text.
       #
       # Example object structure for use with this method:
-      #   class Post < ActiveRecord::Base
+      #   class Post < ApplicationRecord
       #     belongs_to :author
       #   end
-      #   class Author < ActiveRecord::Base
+      #   class Author < ApplicationRecord
       #     has_many :posts
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"
@@ -686,10 +686,10 @@ module ActionView
       # retrieve the value/text.
       #
       # Example object structure for use with this method:
-      #   class Post < ActiveRecord::Base
+      #   class Post < ApplicationRecord
       #     has_and_belongs_to_many :authors
       #   end
-      #   class Author < ActiveRecord::Base
+      #   class Author < ApplicationRecord
       #     has_and_belongs_to_many :posts
       #     def name_with_initial
       #       "#{first_name.first}. #{last_name}"

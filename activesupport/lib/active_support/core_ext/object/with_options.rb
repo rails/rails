@@ -11,7 +11,7 @@ class Object
   #
   # Without <tt>with_options</tt>, this code contains duplication:
   #
-  #   class Account < ActiveRecord::Base
+  #   class Account < ApplicationRecord
   #     has_many :customers, dependent: :destroy
   #     has_many :products,  dependent: :destroy
   #     has_many :invoices,  dependent: :destroy
@@ -20,7 +20,7 @@ class Object
   #
   # Using <tt>with_options</tt>, we can remove the duplication:
   #
-  #   class Account < ActiveRecord::Base
+  #   class Account < ApplicationRecord
   #     with_options dependent: :destroy do |assoc|
   #       assoc.has_many :customers
   #       assoc.has_many :products
@@ -39,7 +39,7 @@ class Object
   # When you don't pass an explicit receiver, it executes the whole block
   # in merging options context:
   #
-  #   class Account < ActiveRecord::Base
+  #   class Account < ApplicationRecord
   #     with_options dependent: :destroy do
   #       has_many :customers
   #       has_many :products
@@ -52,7 +52,7 @@ class Object
   #
   # NOTE: Each nesting level will merge inherited defaults in addition to their own.
   #
-  #   class Post < ActiveRecord::Base
+  #   class Post < ApplicationRecord
   #     with_options if: :persisted?, length: { minimum: 50 } do
   #       validates :content, if: -> { content.present? }
   #     end
@@ -67,7 +67,7 @@ class Object
   # NOTE: You cannot call class methods implicitly inside of with_options.
   # You can access these methods using the class name instead:
   #
-  #   class Phone < ActiveRecord::Base
+  #   class Phone < ApplicationRecord
   #     enum phone_number_type: [home: 0, office: 1, mobile: 2]
   #
   #     with_options presence: true do

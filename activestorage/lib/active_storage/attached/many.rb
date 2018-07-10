@@ -30,7 +30,7 @@ module ActiveStorage
 
     # Returns true if any attachments has been made.
     #
-    #   class Gallery < ActiveRecord::Base
+    #   class Gallery < ApplicationRecord
     #     has_many_attached :photos
     #   end
     #

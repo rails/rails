@@ -13,7 +13,7 @@ module ActiveModel
       # Validates that the specified attributes are blank (as defined by
       # Object#blank?). Happens by default on save.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_absence_of :first_name
       #   end
       #

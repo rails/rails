@@ -71,7 +71,7 @@ module ActiveModel
       # Encapsulates the pattern of wanting to validate the acceptance of a
       # terms of service check box (or similar agreement).
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_acceptance_of :terms_of_service
       #     validates_acceptance_of :eula, message: 'must be abided'
       #   end
