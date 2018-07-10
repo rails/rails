@@ -7,7 +7,7 @@ if current_adapter?(:PostgreSQLAdapter)
   module ActiveRecord
     class PostgreSQLDBCreateTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -89,7 +89,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLDBDropTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(drop_database: true)
+        @connection    = Class.new { def drop_database(*); end }.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -131,7 +131,10 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLPurgeTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true, drop_database: true)
+        @connection = Class.new do
+          def create_database(*); end
+          def drop_database(*); end
+        end.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -179,7 +182,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -197,7 +200,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLDBCollationTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"

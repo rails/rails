@@ -7,7 +7,7 @@ if current_adapter?(:Mysql2Adapter)
   module ActiveRecord
     class MysqlDBCreateTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def create_database(*); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
@@ -96,7 +96,7 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_raises_error
-        assert_raises(Mysql2::Error) do
+        assert_raises(Mysql2::Error, "Invalid permissions") do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration
         end
       end
@@ -104,7 +104,7 @@ if current_adapter?(:Mysql2Adapter)
 
     class MySQLDBDropTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(drop_database: true)
+        @connection    = Class.new { def drop_database(name); true end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
@@ -142,7 +142,7 @@ if current_adapter?(:Mysql2Adapter)
 
     class MySQLPurgeTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(recreate_database: true)
+        @connection    = Class.new { def recreate_database(*); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "test-db"
@@ -176,7 +176,7 @@ if current_adapter?(:Mysql2Adapter)
 
     class MysqlDBCharsetTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def charset; end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
@@ -193,7 +193,7 @@ if current_adapter?(:Mysql2Adapter)
 
     class MysqlDBCollationTest < ActiveRecord::TestCase
       def setup
-        @connection    = stub(create_database: true)
+        @connection    = Class.new { def collation; end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"
