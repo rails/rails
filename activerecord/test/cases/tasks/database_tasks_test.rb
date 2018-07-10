@@ -6,7 +6,17 @@ require "active_record/tasks/database_tasks"
 module ActiveRecord
   module DatabaseTasksSetupper
     def setup
-      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = stub, stub, stub
+      @mysql_tasks, @postgresql_tasks, @sqlite_tasks = Array.new(
+        3,
+        Class.new do
+          def create; end
+          def drop; end
+          def purge; end
+          def charset; end
+          def collation; end
+          def structure_dump(*); end
+        end.new
+      )
       ActiveRecord::Tasks::MySQLDatabaseTasks.stubs(:new).returns @mysql_tasks
       ActiveRecord::Tasks::PostgreSQLDatabaseTasks.stubs(:new).returns @postgresql_tasks
       ActiveRecord::Tasks::SQLiteDatabaseTasks.stubs(:new).returns @sqlite_tasks
