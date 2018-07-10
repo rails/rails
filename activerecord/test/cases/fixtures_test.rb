@@ -128,10 +128,10 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size - mysql_margin)
-
-      error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
-      assert_match(/Fixtures set is too large #{packet_size}\./, error.message)
+      conn.stub(:max_allowed_packet, packet_size - mysql_margin) do
+        error = assert_raises(ActiveRecord::ActiveRecordError) { conn.insert_fixtures_set(fixtures) }
+        assert_match(/Fixtures set is too large #{packet_size}\./, error.message)
+      end
     end
 
     def test_insert_fixture_set_when_max_allowed_packet_is_bigger_than_fixtures_set_size
@@ -143,10 +143,10 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
-
-      assert_difference "TrafficLight.count" do
-        conn.insert_fixtures_set(fixtures)
+      conn.stub(:max_allowed_packet, packet_size) do
+        assert_difference "TrafficLight.count" do
+          conn.insert_fixtures_set(fixtures)
+        end
       end
     end
 
@@ -164,12 +164,13 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
+      conn.stub(:max_allowed_packet, packet_size) do
+        conn.insert_fixtures_set(fixtures)
 
-      conn.insert_fixtures_set(fixtures)
-      assert_equal 2, subscriber.events.size
-      assert_operator subscriber.events.first.bytesize, :<, packet_size
-      assert_operator subscriber.events.second.bytesize, :<, packet_size
+        assert_equal 2, subscriber.events.size
+        assert_operator subscriber.events.first.bytesize, :<, packet_size
+        assert_operator subscriber.events.second.bytesize, :<, packet_size
+      end
     ensure
       ActiveSupport::Notifications.unsubscribe(subscription)
     end
@@ -188,10 +189,10 @@ class FixturesTest < ActiveRecord::TestCase
         ]
       }
 
-      conn.stubs(:max_allowed_packet).returns(packet_size)
-
-      assert_difference ["TrafficLight.count", "Comment.count"], +1 do
-        conn.insert_fixtures_set(fixtures)
+      conn.stub(:max_allowed_packet, packet_size) do
+        assert_difference ["TrafficLight.count", "Comment.count"], +1 do
+          conn.insert_fixtures_set(fixtures)
+        end
       end
       assert_equal 1, subscriber.events.size
     ensure
