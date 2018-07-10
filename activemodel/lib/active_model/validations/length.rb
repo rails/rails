@@ -74,7 +74,7 @@ module ActiveModel
       # supplied. Only one constraint option can be used at a time apart from
       # +:minimum+ and +:maximum+ that can be combined together:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_length_of :first_name, maximum: 30
       #     validates_length_of :last_name, maximum: 30, message: "less than 30 if you don't mind"
       #     validates_length_of :fax, in: 7..32, allow_nil: true

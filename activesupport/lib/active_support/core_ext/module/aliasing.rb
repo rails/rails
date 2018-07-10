@@ -4,7 +4,7 @@ class Module
   # Allows you to make aliases for attributes, which includes
   # getter, setter, and a predicate.
   #
-  #   class Content < ActiveRecord::Base
+  #   class Content < ApplicationRecord
   #     # has a title attribute
   #   end
   #

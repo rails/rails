@@ -18,7 +18,7 @@ module ActiveModel
       # Validates whether the value of the specified attribute is available in a
       # particular enumerable object.
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     validates_inclusion_of :role, in: %w( admin contributor )
       #     validates_inclusion_of :age, in: 0..99
       #     validates_inclusion_of :format, in: %w( jpg gif png ), message: "extension %{value} is not included in the list"

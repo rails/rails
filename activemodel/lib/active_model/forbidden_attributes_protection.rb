@@ -3,7 +3,7 @@
 module ActiveModel
   # Raised when forbidden attributes are used for mass assignment.
   #
-  #   class Person < ActiveRecord::Base
+  #   class Person < ApplicationRecord
   #   end
   #
   #   params = ActionController::Parameters.new(name: 'Bob')

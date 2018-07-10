@@ -869,7 +869,7 @@ module ActionView
       # When address is already an association on a Person you can use
       # +accepts_nested_attributes_for+ to define the writer method for you:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_one :address
       #     accepts_nested_attributes_for :address
       #   end
@@ -878,7 +878,7 @@ module ActionView
       # to enable it first using the <tt>:allow_destroy</tt> option for
       # +accepts_nested_attributes_for+:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_one :address
       #     accepts_nested_attributes_for :address, allow_destroy: true
       #   end
@@ -919,7 +919,7 @@ module ActionView
       # When projects is already an association on Person you can use
       # +accepts_nested_attributes_for+ to define the writer method for you:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_many :projects
       #     accepts_nested_attributes_for :projects
       #   end
@@ -966,7 +966,7 @@ module ActionView
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
       # option for +accepts_nested_attributes_for+:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_many :projects
       #     accepts_nested_attributes_for :projects, allow_destroy: true
       #   end
@@ -1794,7 +1794,7 @@ module ActionView
       # When address is already an association on a Person you can use
       # +accepts_nested_attributes_for+ to define the writer method for you:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_one :address
       #     accepts_nested_attributes_for :address
       #   end
@@ -1803,7 +1803,7 @@ module ActionView
       # to enable it first using the <tt>:allow_destroy</tt> option for
       # +accepts_nested_attributes_for+:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_one :address
       #     accepts_nested_attributes_for :address, allow_destroy: true
       #   end
@@ -1844,7 +1844,7 @@ module ActionView
       # When projects is already an association on Person you can use
       # +accepts_nested_attributes_for+ to define the writer method for you:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_many :projects
       #     accepts_nested_attributes_for :projects
       #   end
@@ -1891,7 +1891,7 @@ module ActionView
       # form, you have to enable it first using the <tt>:allow_destroy</tt>
       # option for +accepts_nested_attributes_for+:
       #
-      #   class Person < ActiveRecord::Base
+      #   class Person < ApplicationRecord
       #     has_many :projects
       #     accepts_nested_attributes_for :projects, allow_destroy: true
       #   end
