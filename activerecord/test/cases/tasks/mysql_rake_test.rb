@@ -104,7 +104,7 @@ if current_adapter?(:Mysql2Adapter)
 
     class MySQLDBDropTest < ActiveRecord::TestCase
       def setup
-        @connection    = Class.new { def drop_database(name); true end }.new
+        @connection    = Class.new { def drop_database(name); end }.new
         @configuration = {
           "adapter"  => "mysql2",
           "database" => "my-app-db"

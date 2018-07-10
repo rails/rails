@@ -842,7 +842,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); false; end
+      def lock_thread=(lock_thread); end
     end.new
 
     connection.expects(:begin_transaction).with(joinable: false)
@@ -863,7 +863,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
     end.new
 
     connection.pool = Class.new do
-      def lock_thread=(lock_thread); false; end
+      def lock_thread=(lock_thread); end
     end.new
 
     fire_connection_notification(connection)
