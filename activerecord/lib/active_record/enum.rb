@@ -3,8 +3,8 @@
 require "active_support/core_ext/object/deep_dup"
 
 module ActiveRecord
-  # Declare an enum attribute where the values map to integers in the database,
-  # but can be queried by name. Example:
+  # Declare an enum attribute where the values map to integers or strings in
+  # the database, but can be queried by name. Lets start with integer enums:
   #
   #   class Conversation < ActiveRecord::Base
   #     enum status: [ :active, :archived ]
@@ -75,6 +75,37 @@ module ActiveRecord
   # For example, you can use that when manually building SQL strings:
   #
   #   Conversation.where("status <> ?", Conversation.statuses[:archived])
+  #
+  # String enums on the other hand are mapped by default to their equivalent string
+  # value:
+  #
+  #   class Book < ApplicationRecord
+  #     enum cover: [ :hard, :soft ]
+  #   end
+  #
+  #   # book.update! cover: "hard"
+  #   book.hard!
+  #   book.hard? # => true
+  #   book.cover # => "hard"
+  #
+  #   # book.update! cover: "soft"
+  #   book.soft!
+  #   book.soft? # => true
+  #   book.cover # => "soft"
+  #
+  #   # book.cover = "hard"
+  #   book.cover = "hard"
+  #
+  #   book.cover = nil
+  #   book.cover.nil? # => true
+  #   book.cover      # => nil
+  #
+  # Of course you can also provide a hash to explicitly map the relation between
+  # attribute and database string:
+  #
+  #   class Book < ApplicationRecord
+  #     enum cover: { hard: "strong", soft: "weak" }
+  #   end
   #
   # You can use the +:_prefix+ or +:_suffix+ options when you need to define
   # multiple enums with same values. If the passed value is +true+, the methods
