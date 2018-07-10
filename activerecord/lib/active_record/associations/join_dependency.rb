@@ -14,10 +14,8 @@ module ActiveRecord
               i[column.name] = column.alias
             }
           }
-          @name_and_alias_cache = tables.each_with_object({}) { |table, h|
-            h[table.node] = table.columns.map { |column|
-              [column.name, column.alias]
-            }
+          @columns_cache = tables.each_with_object({}) { |table, h|
+            h[table.node] = table.columns
           }
         end
 
@@ -25,9 +23,8 @@ module ActiveRecord
           @tables.flat_map(&:column_aliases)
         end
 
-        # An array of [column_name, alias] pairs for the table
         def column_aliases(node)
-          @name_and_alias_cache[node]
+          @columns_cache[node]
         end
 
         def column_alias(node, column)
