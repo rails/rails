@@ -1,3 +1,7 @@
+*   Deprecate passing an irrelevant class to `becomes` or `becomes!`.
+
+    * Yoshiyuki Kinjo*
+
 *   Fix default value for mysql time types with specified precision.
 
     *Nikolay Kondratyev*

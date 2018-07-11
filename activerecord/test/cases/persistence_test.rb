@@ -324,6 +324,16 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal %w{name}, client.changed
   end
 
+  def test_becomes_irrelevant_class_is_deprecated
+    company = Company.new(name: "37signals")
+    assert_deprecated do
+      company.becomes(Topic)
+    end
+    assert_deprecated do
+      company.becomes!(Topic)
+    end
+  end
+
   def test_delete_many
     original_count = Topic.count
     Topic.delete(deleting = [1, 2])

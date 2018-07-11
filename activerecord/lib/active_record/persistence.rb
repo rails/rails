@@ -380,6 +380,11 @@ module ActiveRecord
     # Any change to the attributes on either instance will affect both instances.
     # If you want to change the sti column as well, use #becomes! instead.
     def becomes(klass)
+      unless self.class <= klass || klass < self.class || self.class.table_name == klass.table_name
+        ActiveSupport::Deprecation.warn \
+          "Passing irrelevant class to `becomes' is now deprecated and will result in ArgumentError in Rails 6.1. " \
+          "Please make sure that #{self.class.name} and #{klass.name} are in inheritance relationship or share same table via `table_name'."
+      end
       became = klass.allocate
       became.send(:initialize)
       became.instance_variable_set("@attributes", @attributes)
