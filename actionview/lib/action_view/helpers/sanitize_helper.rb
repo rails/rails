@@ -126,7 +126,7 @@ module ActionView
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
         # Vendors the full, link and white list sanitizers.
-        # Provided strictly for compatibility and can be removed in Rails 5.1.
+        # Provided strictly for compatibility and can be removed in Rails 6.
         def sanitizer_vendor
           Rails::Html::Sanitizer
         end
