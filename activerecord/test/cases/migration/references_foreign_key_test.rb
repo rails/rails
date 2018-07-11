@@ -62,6 +62,14 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           assert_equal([["testings", "testing_parents", "parent_id"]],
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
         end
+
+        test "invalid options can not be passed" do
+          @connection.create_table :testings do |t|
+            assert_raises(ArgumentError) do
+              t.references :testing_parent, fake_option: true
+            end
+          end
+        end
       end
     end
   end

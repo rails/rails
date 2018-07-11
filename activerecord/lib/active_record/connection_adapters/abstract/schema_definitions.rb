@@ -427,6 +427,13 @@ module ActiveRecord
 
       private
         def create_column_definition(name, type, options)
+          options.assert_valid_keys(
+            :after, :array, :as, :auto_increment, :charset, :collation, :comment,
+            :default, :first, :force, :foreign_key, :id, :index, :limit, :null,
+            :options, :polymorphic, :precision, :primary_key, :scale, :stored,
+            :temporary, :type, :unique, :unsigned
+          )
+
           ColumnDefinition.new(name, type, options)
         end
 

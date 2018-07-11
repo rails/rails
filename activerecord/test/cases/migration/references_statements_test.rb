@@ -82,6 +82,12 @@ module ActiveRecord
         assert column_exists?(table_name, :user_id, :string)
       end
 
+      def test_raises_error_on_invalid_reference_options
+        assert_raises(ArgumentError) do
+          add_reference table_name, :user, foo: true, bar: false
+        end
+      end
+
       def test_deletes_reference_id_column
         remove_reference table_name, :supplier
         assert_not column_exists?(table_name, :supplier_id, :integer)
