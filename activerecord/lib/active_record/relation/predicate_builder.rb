@@ -98,8 +98,8 @@ module ActiveRecord
                   build(table.arel_attribute(field_attr), object.send(aggregate_attr))
                 end
               end.reduce(&:and)
-            end
-            queries.reduce(&:or)
+            end.compact
+            queries.reduce(&:or) || ["1=0"]
           else
             build(table.arel_attribute(key), value)
           end

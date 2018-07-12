@@ -902,6 +902,11 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
   end
 
+  def test_hash_condition_find_with_aggregate_having_empty_mapping_array
+    found_customers = Customer.where(balance: [])
+    assert_equal [], found_customers
+  end
+
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
     gps_location = customers(:david).gps_location
     assert_kind_of GpsLocation, gps_location
