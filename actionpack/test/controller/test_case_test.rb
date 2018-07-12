@@ -220,7 +220,7 @@ XML
     params = Hash[:page, { name: "page name" }, "some key", 123]
     post :render_raw_post, params: params.dup
 
-    assert_equal Rack::Utils.build_nested_query(params), @response.body
+    assert_equal params.to_query, @response.body
   end
 
   def test_params_round_trip
@@ -231,12 +231,25 @@ XML
     assert_equal params.merge(controller_info), JSON.parse(@response.body)
   end
 
+  def test_handle_to_params
+    klass = Class.new do
+      def to_param
+        "bar"
+      end
+    end
+
+    post :test_params, params: { foo: klass.new }
+
+    assert_equal JSON.parse(@response.body)["foo"], "bar"
+  end
+
+
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
 
     post :render_body, params: params.dup
 
-    assert_equal Rack::Utils.build_nested_query(params), @response.body
+    assert_equal params.to_query, @response.body
   end
 
   def test_document_body_and_params_with_post
