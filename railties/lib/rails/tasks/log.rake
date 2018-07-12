@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 namespace :log do
-
   ##
   # Truncates all/specified log files
   # ENV['LOGS']

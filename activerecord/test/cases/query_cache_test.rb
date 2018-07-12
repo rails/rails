@@ -482,7 +482,6 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_not ActiveRecord::Base.connection.query_cache_enabled
         }.join
       }.call({})
-
     end
   end
 
