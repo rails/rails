@@ -600,6 +600,12 @@ class BaseTest < ActiveSupport::TestCase
     mail.deliver_now
   end
 
+  test 'rendering text output deprecation message' do
+    assert_deprecated do
+      BaseMailer.rendering_text_output_deprecation_warning.body.to_s
+    end
+  end
+
   # Before and After hooks
 
   class MyObserver
