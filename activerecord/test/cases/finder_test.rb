@@ -930,6 +930,13 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal customers(:david), found_customer
   end
 
+  def test_hash_condition_find_with_nil_aggregate_having_three_mappings
+    address = customers(:nikita).address
+    assert_nil address
+    found_customer = Customer.where(address: address).first
+    assert_equal customers(:nikita), found_customer
+  end
+
   def test_hash_condition_find_with_one_condition_being_aggregate_and_another_not
     address = customers(:david).address
     assert_kind_of Address, address

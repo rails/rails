@@ -33,3 +33,12 @@ mary:
   address_city: Peaceful Town
   address_country: Nation Land
   gps_location: NULL
+
+nikita:
+  id: 5
+  name: Nikita
+  balance: 300
+  address_street: NULL
+  address_city: NULL
+  address_country: NULL
+  gps_location: NULL
