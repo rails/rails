@@ -75,6 +75,20 @@ class ToQueryTest < ActiveSupport::TestCase
     assert_equal "name=Nakshay&type=human", hash.to_query
   end
 
+  def test_hash_not_sorted_lexicographically_for_nested_structure
+    params = {
+      "foo" => {
+        "contents" => [
+          { "name" => "gorby", "id" => "123" },
+          { "name" => "puff", "d" => "true" }
+        ]
+      }
+    }
+    expected = "foo[contents][][name]=gorby&foo[contents][][id]=123&foo[contents][][name]=puff&foo[contents][][d]=true"
+
+    assert_equal expected, URI.decode(params.to_query)
+  end
+
   private
     def assert_query_equal(expected, actual)
       assert_equal expected.split('&'), actual.to_query.split('&')
