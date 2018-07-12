@@ -236,6 +236,8 @@ module ActiveRecord
 
         # @local_tz is initialized as nil to avoid warnings when connect tries to use it
         @local_tz = nil
+        @default_timezone = nil
+        @timestamp_decoder = nil
         @max_identifier_length = nil
 
         configure_connection
@@ -628,6 +630,10 @@ module ActiveRecord
         def exec_no_cache(sql, name, binds)
           materialize_transactions
 
+          # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
+          # made since we established the connection
+          update_typemap_for_default_timezone
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -638,6 +644,7 @@ module ActiveRecord
 
         def exec_cache(sql, name, binds)
           materialize_transactions
+          update_typemap_for_default_timezone
 
           stmt_key = prepare_statement(sql, binds)
           type_casted_binds = type_casted_binds(binds)
@@ -826,6 +833,18 @@ module ActiveRecord
           @connection.type_map_for_queries = map
         end
 
+        def update_typemap_for_default_timezone
+          if @default_timezone != ActiveRecord::Base.default_timezone && @timestamp_decoder
+            decoder_class = ActiveRecord::Base.default_timezone == :utc ?
+              PG::TextDecoder::TimestampUtc :
+              PG::TextDecoder::TimestampWithoutTimeZone
+
+            @timestamp_decoder = decoder_class.new(@timestamp_decoder.to_h)
+            @connection.type_map_for_results.add_coder(@timestamp_decoder)
+            @default_timezone = ActiveRecord::Base.default_timezone
+          end
+        end
+
         def add_pg_decoders
           coders_by_name = {
             "int2" => PG::TextDecoder::Integer,
@@ -836,6 +855,13 @@ module ActiveRecord
             "float8" => PG::TextDecoder::Float,
             "bool" => PG::TextDecoder::Boolean,
           }
+
+          if defined?(PG::TextDecoder::TimestampUtc)
+            # Use native PG encoders available since pg-1.1
+            coders_by_name["timestamp"] = PG::TextDecoder::TimestampUtc
+            coders_by_name["timestamptz"] = PG::TextDecoder::TimestampWithTimeZone
+          end
+
           known_coder_types = coders_by_name.keys.map { |n| quote(n) }
           query = <<~SQL % known_coder_types.join(", ")
             SELECT t.oid, t.typname
@@ -851,6 +877,10 @@ module ActiveRecord
           map = PG::TypeMapByOid.new
           coders.each { |coder| map.add_coder(coder) }
           @connection.type_map_for_results = map
+
+          # extract timestamp decoder for use in update_typemap_for_default_timezone
+          @timestamp_decoder = coders.find { |coder| coder.name == "timestamp" }
+          update_typemap_for_default_timezone
         end
 
         def construct_coder(row, coder_class)
