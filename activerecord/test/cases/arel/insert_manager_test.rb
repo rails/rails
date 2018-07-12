@@ -220,7 +220,6 @@ module Arel
     end
 
     describe "select" do
-
       it "accepts a select query in place of a VALUES clause" do
         table   = Table.new :users
 
@@ -238,7 +237,6 @@ module Arel
           INSERT INTO "users" ("id", "name") (SELECT 1, "aaron")
         }
       end
-
     end
   end
 end

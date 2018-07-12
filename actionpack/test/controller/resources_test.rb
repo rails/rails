@@ -66,7 +66,6 @@ class ResourcesTest < ActionController::TestCase
         member_methods.each_key do |action|
           assert_named_route "/messages/1/#{path_names[action] || action}", "#{action}_message_path", action: action, id: "1"
         end
-
       end
     end
   end

@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-
   enable_extension!("uuid-ossp", ActiveRecord::Base.connection)
   enable_extension!("pgcrypto",  ActiveRecord::Base.connection) if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
 
