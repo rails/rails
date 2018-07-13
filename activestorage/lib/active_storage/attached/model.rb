@@ -53,6 +53,8 @@ module ActiveStorage
 
         after_save { attachment_changes[name.to_s]&.save }
 
+        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+
         ActiveRecord::Reflection.add_attachment_reflection(
           self,
           name,
@@ -117,6 +119,8 @@ module ActiveStorage
 
         after_save { attachment_changes[name.to_s]&.save }
 
+        after_commit(on: %i[ create update ]) { attachment_changes.delete(name.to_s).try(:upload) }
+
         ActiveRecord::Reflection.add_attachment_reflection(
           self,
           name,
@@ -125,26 +129,8 @@ module ActiveStorage
       end
     end
 
-    def committed!(*) #:nodoc:
-      unless destroyed?
-        upload_attachment_changes
-        clear_attachment_changes
-      end
-
-      super
-    end
-
     def attachment_changes #:nodoc:
       @attachment_changes ||= {}
     end
-
-    private
-      def upload_attachment_changes
-        attachment_changes.each_value { |change| change.try(:upload) }
-      end
-
-      def clear_attachment_changes
-        @attachment_changes = {}
-      end
   end
 end

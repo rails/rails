@@ -181,6 +181,46 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "analyzing a new blob from an uploaded file after attaching it to an existing record" do
+    perform_enqueued_jobs do
+      @user.avatar.attach fixture_file_upload("racecar.jpg")
+    end
+
+    assert @user.avatar.reload.analyzed?
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
+  end
+
+  test "analyzing a new blob from an uploaded file after attaching it to an existing record via update" do
+    perform_enqueued_jobs do
+      @user.update! avatar: fixture_file_upload("racecar.jpg")
+    end
+
+    assert @user.avatar.reload.analyzed?
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
+  end
+
+  test "analyzing a directly-uploaded blob after attaching it to an existing record" do
+    perform_enqueued_jobs do
+      @user.avatar.attach directly_upload_file_blob(filename: "racecar.jpg")
+    end
+
+    assert @user.avatar.reload.analyzed?
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
+  end
+
+  test "analyzing a directly-uploaded blob after attaching it to an existing record via updates" do
+    perform_enqueued_jobs do
+      @user.update! avatar: directly_upload_file_blob(filename: "racecar.jpg")
+    end
+
+    assert @user.avatar.reload.analyzed?
+    assert_equal 4104, @user.avatar.metadata[:width]
+    assert_equal 2736, @user.avatar.metadata[:height]
+  end
+
   test "attaching an existing blob to a new record" do
     User.new(name: "Jason").tap do |user|
       user.avatar.attach create_blob(filename: "funky.jpg")
@@ -257,6 +297,24 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "creating a record with an unexpected object attached" do
     error = assert_raises(ArgumentError) { User.create!(name: "Jason", avatar: :foo) }
     assert_equal "Could not find or build blob: expected attachable, got :foo", error.message
+  end
+
+  test "analyzing a new blob from an uploaded file after attaching it to a new record" do
+    perform_enqueued_jobs do
+      user = User.create!(name: "Jason", avatar: fixture_file_upload("racecar.jpg"))
+      assert user.avatar.reload.analyzed?
+      assert_equal 4104, user.avatar.metadata[:width]
+      assert_equal 2736, user.avatar.metadata[:height]
+    end
+  end
+
+  test "analyzing a directly-uploaded blob after attaching it to a new record" do
+    perform_enqueued_jobs do
+      user = User.create!(name: "Jason", avatar: directly_upload_file_blob(filename: "racecar.jpg"))
+      assert user.avatar.reload.analyzed?
+      assert_equal 4104, user.avatar.metadata[:width]
+      assert_equal 2736, user.avatar.metadata[:height]
+    end
   end
 
   test "purging" do
