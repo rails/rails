@@ -219,7 +219,9 @@ db_namespace = namespace :db do
   desc "Loads the seed data from db/seeds.rb"
   task seed: :load_config do
     db_namespace["abort_if_pending_migrations"].invoke
-    ActiveRecord::Tasks::DatabaseTasks.load_seed
+    ActiveRecord::Base.transaction do
+      ActiveRecord::Tasks::DatabaseTasks.load_seed
+    end
   end
 
   namespace :fixtures do
