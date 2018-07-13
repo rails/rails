@@ -32,6 +32,58 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "racecar.jpg", @user.avatar.filename.to_s
   end
 
+  test "attaching an existing blob to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.avatar.attach create_blob(filename: "funky.jpg")
+    assert_equal "funky.jpg", @user.avatar.filename.to_s
+    assert_not @user.avatar.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
+  end
+
+  test "attaching an existing blob from a signed ID to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.avatar.attach create_blob(filename: "funky.jpg").signed_id
+    assert_equal "funky.jpg", @user.avatar.filename.to_s
+    assert_not @user.avatar.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "funky.jpg", @user.reload.avatar.filename.to_s
+  end
+
+  test "attaching a new blob from a Hash to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
+    assert_equal "town.jpg", @user.avatar.filename.to_s
+    assert_not @user.avatar.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "town.jpg", @user.reload.avatar.filename.to_s
+  end
+
+  test "attaching a new blob from an uploaded file to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.avatar.attach fixture_file_upload("racecar.jpg")
+    assert_equal "racecar.jpg", @user.avatar.filename.to_s
+    assert_not @user.avatar.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "racecar.jpg", @user.reload.avatar.filename.to_s
+  end
+
   test "updating an existing record to attach an existing blob" do
     @user.update! avatar: create_blob(filename: "funky.jpg")
     assert_equal "funky.jpg", @user.avatar.filename.to_s
@@ -71,7 +123,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "successfully replacing an existing, independent attachment on an existing record" do
+  test "replacing an existing, independent attachment on an existing record" do
     @user.cover_photo.attach create_blob(filename: "funky.jpg")
 
     assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
@@ -81,20 +133,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     assert_equal "town.jpg", @user.cover_photo.filename.to_s
   end
 
-  test "unsuccessfully replacing an existing attachment on an existing record" do
-    @user.avatar.attach create_blob(filename: "funky.jpg")
-
-    assert_no_enqueued_jobs do
-      assert_raises do
-        @user.avatar.attach nil
-      end
-    end
-
-    assert_equal "funky.jpg", @user.avatar.filename.to_s
-    assert ActiveStorage::Blob.service.exist?(@user.avatar.key)
-  end
-
-  test "replacing an existing attachment on an existing record with the same blob" do
+  test "replacing an attached blob on an existing record with itself" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
 
@@ -149,7 +188,7 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       @user.avatar.attach blob
 
       assert_no_enqueued_jobs do
-        assert_no_changes -> { @user.avatar_attachment.id } do
+        assert_no_changes -> { @user.reload.avatar_attachment.id } do
           @user.update! avatar: blob
         end
       end
@@ -248,12 +287,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       user.avatar.attach io: StringIO.new("STUFF"), filename: "town.jpg", content_type: "image/jpg"
       assert user.new_record?
       assert user.avatar.attachment.new_record?
-      assert_not user.avatar.blob.new_record?
+      assert user.avatar.blob.new_record?
       assert_equal "town.jpg", user.avatar.filename.to_s
-      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
 
       user.save!
+      assert user.avatar.attachment.persisted?
+      assert user.avatar.blob.persisted?
       assert_equal "town.jpg", user.reload.avatar.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
     end
   end
 
@@ -262,12 +304,15 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       user.avatar.attach fixture_file_upload("racecar.jpg")
       assert user.new_record?
       assert user.avatar.attachment.new_record?
-      assert_not user.avatar.blob.new_record?
+      assert user.avatar.blob.new_record?
       assert_equal "racecar.jpg", user.avatar.filename.to_s
-      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.avatar.key)
 
       user.save!
+      assert user.avatar.attachment.persisted?
+      assert user.avatar.blob.persisted?
       assert_equal "racecar.jpg", user.reload.avatar.filename.to_s
+      assert ActiveStorage::Blob.service.exist?(user.avatar.key)
     end
   end
 

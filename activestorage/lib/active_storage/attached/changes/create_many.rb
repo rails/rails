@@ -12,6 +12,10 @@ module ActiveStorage
       @attachments ||= subchanges.collect(&:attachment)
     end
 
+    def blobs
+      @blobs ||= subchanges.collect(&:blob)
+    end
+
     def upload
       subchanges.each(&:upload)
     end

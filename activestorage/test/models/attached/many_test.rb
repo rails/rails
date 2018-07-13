@@ -39,6 +39,73 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
   end
 
+  test "attaching existing blobs to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "funky.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching existing blobs from signed IDs to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach create_blob(filename: "funky.jpg").signed_id, create_blob(filename: "town.jpg").signed_id
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "funky.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching new blobs from Hashes to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach(
+      { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
+      { io: StringIO.new("THINGS"), filename: "town.jpg", content_type: "image/jpeg" })
+
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "funky.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
+  test "attaching new blobs from uploaded files to an existing, changed record" do
+    @user.name = "Tina"
+    assert @user.changed?
+
+    @user.highlights.attach fixture_file_upload("racecar.jpg"), fixture_file_upload("video.mp4")
+    assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+    assert_not @user.highlights.first.persisted?
+    assert_not @user.highlights.second.persisted?
+    assert @user.will_save_change_to_name?
+
+    @user.save!
+    assert_equal "racecar.jpg", @user.highlights.reload.first.filename.to_s
+    assert_equal "video.mp4", @user.highlights.second.filename.to_s
+  end
+
   test "updating an existing record to attach existing blobs" do
     @user.update! highlights: [ create_file_blob(filename: "racecar.jpg"), create_file_blob(filename: "video.mp4") ]
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
@@ -220,7 +287,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "attaching new blob from Hashes to a new record" do
+  test "attaching new blobs from Hashes to a new record" do
     User.new(name: "Jason").tap do |user|
       user.highlights.attach(
         { io: StringIO.new("STUFF"), filename: "funky.jpg", content_type: "image/jpg" },
@@ -229,16 +296,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.new_record?
       assert user.highlights.first.new_record?
       assert user.highlights.second.new_record?
-      assert_not user.highlights.first.blob.new_record?
-      assert_not user.highlights.second.blob.new_record?
+      assert user.highlights.first.blob.new_record?
+      assert user.highlights.second.blob.new_record?
       assert_equal "funky.jpg", user.highlights.first.filename.to_s
+      assert_equal "town.jpg", user.highlights.second.filename.to_s
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.second.key)
+
+      user.save!
+      assert user.highlights.first.persisted?
+      assert user.highlights.second.persisted?
+      assert user.highlights.first.blob.persisted?
+      assert user.highlights.second.blob.persisted?
+      assert_equal "funky.jpg", user.reload.highlights.first.filename.to_s
       assert_equal "town.jpg", user.highlights.second.filename.to_s
       assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
       assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
-
-      user.save!
-      assert_equal "funky.jpg", user.reload.highlights.first.filename.to_s
-      assert_equal "town.jpg", user.highlights.second.filename.to_s
     end
   end
 
@@ -248,16 +321,22 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert user.new_record?
       assert user.highlights.first.new_record?
       assert user.highlights.second.new_record?
-      assert_not user.highlights.first.blob.new_record?
-      assert_not user.highlights.second.blob.new_record?
+      assert user.highlights.first.blob.new_record?
+      assert user.highlights.second.blob.new_record?
       assert_equal "racecar.jpg", user.highlights.first.filename.to_s
+      assert_equal "video.mp4", user.highlights.second.filename.to_s
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(user.highlights.second.key)
+
+      user.save!
+      assert user.highlights.first.persisted?
+      assert user.highlights.second.persisted?
+      assert user.highlights.first.blob.persisted?
+      assert user.highlights.second.blob.persisted?
+      assert_equal "racecar.jpg", user.reload.highlights.first.filename.to_s
       assert_equal "video.mp4", user.highlights.second.filename.to_s
       assert ActiveStorage::Blob.service.exist?(user.highlights.first.key)
       assert ActiveStorage::Blob.service.exist?(user.highlights.second.key)
-
-      user.save!
-      assert_equal "racecar.jpg", user.reload.highlights.first.filename.to_s
-      assert_equal "video.mp4", user.highlights.second.filename.to_s
     end
   end
 
