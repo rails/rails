@@ -132,5 +132,9 @@ module ActiveStorage
     def attachment_changes #:nodoc:
       @attachment_changes ||= {}
     end
+
+    def reload(*) #:nodoc:
+      super.tap { @attachment_changes = nil }
+    end
   end
 end

@@ -467,6 +467,14 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "clearing change on reload" do
+    @user.highlights = [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ]
+    assert @user.highlights.attached?
+
+    @user.reload
+    assert_not @user.highlights.attached?
+  end
+
   test "overriding attached reader" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
 

@@ -427,6 +427,14 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "clearing change on reload" do
+    @user.avatar = create_blob(filename: "funky.jpg")
+    assert @user.avatar.attached?
+
+    @user.reload
+    assert_not @user.avatar.attached?
+  end
+
   test "overriding attached reader" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
 
