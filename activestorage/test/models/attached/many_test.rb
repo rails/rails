@@ -315,6 +315,23 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "detaching" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.detach
+      end
+
+      assert_not @user.highlights.attached?
+      assert ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
   test "purging" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs

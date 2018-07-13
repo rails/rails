@@ -45,7 +45,7 @@ module ActiveStorage
     # Deletes the attachment without purging it, leaving its blob in place.
     def detach
       if attached?
-        attachment.destroy
+        attachment.delete
         write_attachment nil
       end
     end

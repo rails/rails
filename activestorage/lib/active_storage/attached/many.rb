@@ -41,7 +41,7 @@ module ActiveStorage
 
     # Deletes associated attachments without purging them, leaving their respective blobs in place.
     def detach
-      attachments.destroy_all if attached?
+      attachments.delete_all if attached?
     end
 
     ##
