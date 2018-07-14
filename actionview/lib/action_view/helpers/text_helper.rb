@@ -51,12 +51,14 @@ module ActionView
       #       end
       #       # will either display "Logged in!" or a login link
       #   %>
-      def concat(string)
-        output_buffer << string
+      def concat(string = nil, &block)
+        raise ArgumentError unless string || block
+
+        output_buffer << (block ? block.call : string)
       end
 
-      def safe_concat(string)
-        output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string)
+      def safe_concat(string, &block)
+        output_buffer.respond_to?(:safe_concat) ? output_buffer.safe_concat(string) : concat(string, &block)
       end
 
       # Truncates a given +text+ after a given <tt>:length</tt> if +text+ is longer than <tt>:length</tt>

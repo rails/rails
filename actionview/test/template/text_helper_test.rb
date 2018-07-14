@@ -18,6 +18,16 @@ class TextHelperTest < ActionView::TestCase
     assert_equal "foobar", output_buffer
   end
 
+  def test_concat_with_block
+    self.output_buffer = "foo".dup
+    assert_equal "foobar", concat { "bar" }
+    assert_equal "foobar", output_buffer
+  end
+
+  def test_concat_without_params_and_block
+    assert_raises(ArgumentError) { concat }
+  end
+
   def test_simple_format_should_be_html_safe
     assert_predicate simple_format("<b> test with html tags </b>"), :html_safe?
   end
