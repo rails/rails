@@ -548,7 +548,18 @@ module Rails
     # Blog::Engine.load_seed
     def load_seed
       seed_file = paths["db/seeds.rb"].existent.first
-      load(seed_file) if seed_file
+      return unless seed_file
+      ActiveRecord::Base.transaction do
+        begin
+          load(seed_file)
+        rescue Exception
+          $stderr.puts <<~EOS
+            An exception was raised while loading #{seed_file}
+            All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error.
+          EOS
+          raise
+        end
+      end
     end
 
     # Add configured load paths to Ruby's load path, and remove duplicate entries.

@@ -879,6 +879,56 @@ YAML
       assert Bukkits::Engine.config.bukkits_seeds_loaded
     end
 
+    test "wrapping seeding in transaction with helpful output" do
+      original_stderr = $stderr
+
+      buffer = StringIO.new
+      $stderr = buffer
+
+      @plugin.write "db/seeds.rb", <<-RUBY
+        unless ActiveRecord::Base.connection.transaction_open?
+          raise "Not in transaction"
+        end
+        Bukkits::Engine.config.bukkits_seeds_loaded = true
+        raise "Bukkits seed error"
+      RUBY
+
+      app_file "db/seeds.rb", <<-RUBY
+        unless ActiveRecord::Base.connection.transaction_open?
+          raise "Not in transaction"
+        end
+        Rails.application.config.app_seeds_loaded = true
+        raise "Rails.application seed error"
+      RUBY
+
+      boot_rails
+
+      begin
+        Rails.application.load_seed
+      rescue Exception => err
+        assert_equal "Rails.application seed error", err.message
+      end
+      assert Rails.application.config.app_seeds_loaded
+      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+
+      begin
+        Bukkits::Engine.load_seed rescue Exception
+      rescue Exception => err
+        assert_equal "Bukkits seed error", err.message
+      end
+      assert Bukkits::Engine.config.bukkits_seeds_loaded
+
+      buffer.rewind
+      output = buffer.read
+
+      assert output.include?("An exception was raised while loading")
+      assert output.include?("app/db/seeds.rb")
+      assert output.include?("bukkits/db/seeds.rb")
+      assert output.include?("All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error.")
+
+      $stderr = original_stderr
+    end
+
     test "skips nonexistent seed data" do
       FileUtils.rm "#{app_path}/db/seeds.rb"
       boot_rails
