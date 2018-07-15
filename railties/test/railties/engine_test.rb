@@ -880,44 +880,42 @@ YAML
     end
 
     test "wrapping seeding in transaction with helpful output" do
-      original_stderr = $stderr
+      maintain_stderr do
+        buffer = StringIO.new
+        $stderr = buffer
 
-      buffer = StringIO.new
-      $stderr = buffer
+        @plugin.write "db/seeds.rb", <<-RUBY
+          unless ActiveRecord::Base.connection.transaction_open?
+            raise "Not in transaction"
+          end
+          Bukkits::Engine.config.bukkits_seeds_loaded = true
+          raise "Bukkits seed error"
+        RUBY
 
-      @plugin.write "db/seeds.rb", <<-RUBY
-        unless ActiveRecord::Base.connection.transaction_open?
-          raise "Not in transaction"
-        end
-        Bukkits::Engine.config.bukkits_seeds_loaded = true
-        raise "Bukkits seed error"
-      RUBY
+        app_file "db/seeds.rb", <<-RUBY
+          unless ActiveRecord::Base.connection.transaction_open?
+            raise "Not in transaction"
+          end
+          Rails.application.config.app_seeds_loaded = true
+          raise "Rails.application seed error"
+        RUBY
 
-      app_file "db/seeds.rb", <<-RUBY
-        unless ActiveRecord::Base.connection.transaction_open?
-          raise "Not in transaction"
-        end
-        Rails.application.config.app_seeds_loaded = true
-        raise "Rails.application seed error"
-      RUBY
+        boot_rails
 
-      boot_rails
+        rails_app_error = assert_raise(RuntimeError) { Rails.application.load_seed }
+        assert_equal "Rails.application seed error", rails_app_error.message
 
-      rails_app_error = assert_raise(RuntimeError) { Rails.application.load_seed }
-      assert_equal "Rails.application seed error", rails_app_error.message
+        bukkits_error = assert_raise(RuntimeError) { Bukkits::Engine.load_seed }
+        assert_equal "Bukkits seed error", bukkits_error.message
 
-      bukkits_error = assert_raise(RuntimeError) { Bukkits::Engine.load_seed }
-      assert_equal "Bukkits seed error", bukkits_error.message
+        buffer.rewind
+        output = buffer.read
 
-      buffer.rewind
-      output = buffer.read
-
-      assert_includes output, "An exception was raised while loading"
-      assert_includes output, "app/db/seeds.rb"
-      assert_includes output, "bukkits/db/seeds.rb"
-      assert_includes output, "All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error."
-
-      $stderr = original_stderr
+        assert_includes output, "An exception was raised while loading"
+        assert_includes output, "app/db/seeds.rb"
+        assert_includes output, "bukkits/db/seeds.rb"
+        assert_includes output, "All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error."
+      end
     end
 
     test "skips nonexistent seed data" do
@@ -1537,6 +1535,13 @@ YAML
   private
     def app
       Rails.application
+    end
+
+    def maintain_stderr
+      original_stderr = $stderr
+      yield
+    ensure
+      $stderr = original_stderr
     end
   end
 end
