@@ -921,10 +921,10 @@ YAML
       buffer.rewind
       output = buffer.read
 
-      assert output.include?("An exception was raised while loading")
-      assert output.include?("app/db/seeds.rb")
-      assert output.include?("bukkits/db/seeds.rb")
-      assert output.include?("All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error.")
+      assert_includes output, "An exception was raised while loading"
+      assert_includes output, "app/db/seeds.rb"
+      assert_includes output, "bukkits/db/seeds.rb"
+      assert_includes output, "All database changes have been rolled back. You can safely rerun your seeds when you have fixed the error."
 
       $stderr = original_stderr
     end
