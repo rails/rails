@@ -117,11 +117,11 @@ module ActiveStorage
       { "Content-Type" => content_type }
     end
 
-    private
-      def path_for(key)
-        File.join root, folder_for(key), key
-      end
+    def path_for(key) #:nodoc:
+      File.join root, folder_for(key), key
+    end
 
+    private
       def folder_for(key)
         [ key[0..1], key[2..3] ].join("/")
       end
