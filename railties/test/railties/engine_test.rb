@@ -903,20 +903,11 @@ YAML
 
       boot_rails
 
-      begin
-        Rails.application.load_seed
-      rescue Exception => err
-        assert_equal "Rails.application seed error", err.message
-      end
-      assert Rails.application.config.app_seeds_loaded
-      assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
+      rails_app_error = assert_raise(RuntimeError) { Rails.application.load_seed }
+      assert_equal "Rails.application seed error", rails_app_error.message
 
-      begin
-        Bukkits::Engine.load_seed
-      rescue Exception => err
-        assert_equal "Bukkits seed error", err.message
-      end
-      assert Bukkits::Engine.config.bukkits_seeds_loaded
+      bukkits_error = assert_raise(RuntimeError) { Bukkits::Engine.load_seed }
+      assert_equal "Bukkits seed error", bukkits_error.message
 
       buffer.rewind
       output = buffer.read
