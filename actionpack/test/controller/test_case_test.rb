@@ -401,7 +401,13 @@ XML
     process :test_xml_output, params: { response_as: "text/html" }
 
     # <area> auto-closes, so the <p> becomes a sibling
-    assert_select "root > area + p"
+    if defined?(JRUBY_VERSION)
+      # https://github.com/sparklemotion/nokogiri/issues/1653
+      # HTML parser "fixes" "broken" markup in slightly different ways
+      assert_select "root > map > area + p"
+    else
+      assert_select "root > area + p"
+    end
   end
 
   def test_should_not_impose_childless_html_tags_in_xml
