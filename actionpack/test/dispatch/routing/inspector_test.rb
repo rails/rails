@@ -318,7 +318,9 @@ module ActionDispatch
 
       def test_routes_when_expanded
         previous_console_winsize = IO.console.winsize
+        puts previous_console_winsize
         IO.console.winsize = [0, 23]
+        puts IO.console.inspect
 
         engine = Class.new(Rails::Engine) do
           def self.inspect
@@ -358,6 +360,8 @@ module ActionDispatch
                       "URI               | /cart(.:format)",
                       "Controller#Action | cart#show"], output
       ensure
+        puts previous_console_winsize
+        puts IO.console.inspect
         IO.console.winsize = previous_console_winsize
       end
 
