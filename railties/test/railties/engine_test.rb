@@ -912,7 +912,7 @@ YAML
       assert_raise(NoMethodError) { Bukkits::Engine.config.bukkits_seeds_loaded }
 
       begin
-        Bukkits::Engine.load_seed rescue Exception
+        Bukkits::Engine.load_seed
       rescue Exception => err
         assert_equal "Bukkits seed error", err.message
       end
