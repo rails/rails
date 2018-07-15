@@ -114,6 +114,21 @@ class FixturesTest < ActiveRecord::TestCase
         end
       end
     end
+
+    def test_bulk_insert_with_a_multi_statement_query_in_a_nested_transaction
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+        ]
+      }
+
+      ActiveRecord::Base.transaction do
+        con = ActiveRecord::Base.connection
+        assert_equal 1, con.open_transactions
+        con.insert_fixtures_set(fixtures)
+        assert_equal 1, con.open_transactions
+      end
+    end
   end
 
   if current_adapter?(:Mysql2Adapter)
