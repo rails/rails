@@ -6,8 +6,8 @@ require "database/setup"
 class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
   test "showing blob inline" do
     blob = create_blob
-
     get blob.service_url
+    assert_response :ok
     assert_equal "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", response.headers["Content-Disposition"]
     assert_equal "text/plain", response.headers["Content-Type"]
     assert_equal "Hello world!", response.body
@@ -15,11 +15,20 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
 
   test "showing blob as attachment" do
     blob = create_blob
-
     get blob.service_url(disposition: :attachment)
+    assert_response :ok
     assert_equal "attachment; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", response.headers["Content-Disposition"]
     assert_equal "text/plain", response.headers["Content-Type"]
     assert_equal "Hello world!", response.body
+  end
+
+  test "showing blob range inline" do
+    blob = create_blob
+    get blob.service_url, headers: { "Range" => "bytes=5-9" }
+    assert_response :partial_content
+    assert_equal "inline; filename=\"hello.txt\"; filename*=UTF-8''hello.txt", response.headers["Content-Disposition"]
+    assert_equal "text/plain", response.headers["Content-Type"]
+    assert_equal " worl", response.body
   end
 
 
