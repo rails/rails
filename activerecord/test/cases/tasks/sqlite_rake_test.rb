@@ -22,7 +22,7 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_db_checks_database_exists
-        ActiveRecord::Base.stub(:establish_connection, true) do
+        ActiveRecord::Base.stub(:establish_connection, nil) do
           assert_called_with(File, :exist?, [@database], returns: false) do
             ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
           end
@@ -30,7 +30,7 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_when_db_created_successfully_outputs_info_to_stdout
-        ActiveRecord::Base.stub(:establish_connection, true) do
+        ActiveRecord::Base.stub(:establish_connection, nil) do
           ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
 
           assert_equal "Created database '#{@database}'\n", $stdout.string
@@ -54,10 +54,8 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_db_create_establishes_a_connection
-        File.stub(:exist?, false) do
-          assert_called_with(ActiveRecord::Base, :establish_connection, [@configuration]) do
-            ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
-          end
+        assert_called_with(ActiveRecord::Base, :establish_connection, [@configuration]) do
+          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
         end
       end
 
