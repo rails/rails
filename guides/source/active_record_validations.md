@@ -1133,24 +1133,6 @@ person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
-An equivalent to `errors#add` is to use `<<` to append a message to the `errors.messages` array for an attribute:
-
-```ruby
-  class Person < ApplicationRecord
-    def a_method_used_for_validation_purposes
-      errors.messages[:name] << "cannot contain the characters !@#%*()_-+="
-    end
-  end
-
-  person = Person.create(name: "!@#")
-
-  person.errors[:name]
-   # => ["cannot contain the characters !@#%*()_-+="]
-
-  person.errors.to_a
-   # => ["Name cannot contain the characters !@#%*()_-+="]
-```
-
 ### `errors.details`
 
 You can specify a validator type to the returned error details hash using the
