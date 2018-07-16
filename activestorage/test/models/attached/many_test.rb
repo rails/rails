@@ -106,6 +106,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
   end
 
+  test "attaching existing records to an existing blob one at a time" do
+    @user.highlights.attach create_blob(filename: "funky.jpg")
+    @user.highlights.attach create_blob(filename: "town.jpg")
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+
+    @user.reload
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
   test "updating an existing record to attach existing blobs" do
     @user.update! highlights: [ create_file_blob(filename: "racecar.jpg"), create_file_blob(filename: "video.mp4") ]
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
@@ -192,32 +203,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "funky.jpg", @user.highlights.first.filename.to_s
       assert_equal "town.jpg", @user.highlights.second.filename.to_s
       assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
-    end
-  end
-
-  test "removing dependent attachments from an existing record" do
-    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
-      @user.highlights.attach blobs
-
-      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.first ] do
-        assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.second ] do
-          @user.highlights.attach []
-        end
-      end
-
-      assert_not @user.highlights.attached?
-    end
-  end
-
-  test "removing independent attachments from an existing record" do
-    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
-      @user.vlogs.attach blobs
-
-      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-        @user.vlogs.attach []
-      end
-
-      assert_not @user.vlogs.attached?
     end
   end
 
