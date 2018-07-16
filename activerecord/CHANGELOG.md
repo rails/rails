@@ -1,3 +1,20 @@
+*   Fix circular `autosave: true`
+
+    Use a variable local to the `save_collection_association` method in
+    `activerecord/lib/active_record/autosave_association.rb`, instead of an
+    instance variable.
+
+    Prior to this PR, when there was a circular series of `autosave: true`
+    associations, the callback for a `has_many` association was run while
+    another instance of the same callback on the same association hadn't
+    finished running. When control returned to the first instance of the
+    callback, the instance variable had changed, and subsequent associated
+    records weren't saved correctly. Specifically, the ID field for the
+    `belongs_to` corresponding to the `has_many` was `nil`.
+
+    Fixes #28080.
+
+    *Larry Reid*
 *   Don't impose primary key order if limit() has already been supplied.
 
     Fixes #23607
