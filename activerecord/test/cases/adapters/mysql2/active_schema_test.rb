@@ -158,7 +158,6 @@ class Mysql2ActiveSchemaTest < ActiveRecord::Mysql2TestCase
 
   def test_indexes_in_create
     ActiveRecord::Base.connection.stubs(:data_source_exists?).with(:temp).returns(false)
-    ActiveRecord::Base.connection.stubs(:index_name_exists?).with(:index_temp_on_zip).returns(false)
 
     expected = "CREATE TEMPORARY TABLE `temp` ( INDEX `index_temp_on_zip`  (`zip`)) AS SELECT id, name, zip FROM a_really_complicated_query"
     actual = ActiveRecord::Base.connection.create_table(:temp, temporary: true, as: "SELECT id, name, zip FROM a_really_complicated_query") do |t|

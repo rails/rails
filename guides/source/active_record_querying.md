@@ -1777,6 +1777,12 @@ Client.pluck(:name)
 # => ["David", "Jeremy", "Jose"]
 ```
 
+You are not limited to querying fields from a single table, you can query multiple tables as well.
+
+```
+Client.joins(:comments, :categories).pluck("clients.email, comments.title, categories.name")
+```
+
 Furthermore, unlike `select` and other `Relation` scopes, `pluck` triggers an immediate
 query, and thus cannot be chained with any further scopes, although it can work with
 scopes already constructed earlier:

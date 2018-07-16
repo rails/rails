@@ -50,10 +50,11 @@ module ActionDispatch
 
       # Follow a single redirect response. If the last response was not a
       # redirect, an exception will be raised. Otherwise, the redirect is
-      # performed on the location header.
-      def follow_redirect!
+      # performed on the location header. Any arguments are passed to the
+      # underlying call to `get`.
+      def follow_redirect!(**args)
         raise "not a redirect! #{status} #{status_message}" unless redirect?
-        get(response.location)
+        get(response.location, **args)
         status
       end
     end

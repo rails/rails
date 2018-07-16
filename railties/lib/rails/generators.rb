@@ -256,7 +256,6 @@ module Rails
 
         namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
         lookups.each do |namespace|
-
           klass = namespaces[namespace]
           return klass if klass
         end

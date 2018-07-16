@@ -371,15 +371,14 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency
-        including = eager_load_values + includes_values
+      def construct_join_dependency(associations)
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including
+          klass, table, associations
         )
       end
 
       def apply_join_dependency(eager_loading: group_values.empty?)
-        join_dependency = construct_join_dependency
+        join_dependency = construct_join_dependency(eager_load_values + includes_values)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && !using_limitable_reflections?(join_dependency.reflections)

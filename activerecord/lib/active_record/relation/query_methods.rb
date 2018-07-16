@@ -1026,9 +1026,7 @@ module ActiveRecord
         join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
 
-        join_dependency = ActiveRecord::Associations::JoinDependency.new(
-          klass, table, association_joins
-        )
+        join_dependency = construct_join_dependency(association_joins)
 
         joins = join_dependency.join_constraints(stashed_joins, join_type, alias_tracker)
         joins.each { |join| manager.from(join) }

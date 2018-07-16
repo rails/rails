@@ -52,6 +52,9 @@ Layout/EndAlignment:
 Layout/EmptyLineAfterMagicComment:
   Enabled: true
 
+Layout/EmptyLinesAroundBlockBody:
+  Enabled: true
+
 # In a regular class definition, no empty lines around the body.
 Layout/EmptyLinesAroundClassBody:
   Enabled: true

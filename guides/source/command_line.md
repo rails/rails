@@ -457,65 +457,90 @@ More information about migrations can be found in the [Migrations](active_record
 
 ### `notes`
 
-`bin/rails notes` will search through your code for comments beginning with FIXME, OPTIMIZE, or TODO. The search is done in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb` for both default and custom annotations.
+`bin/rails notes` searches through your code for comments beginning with a specific keyword. You can refer to `bin/rails notes --help` for information about usage.
+
+By default, it will search in `app`, `config`, `db`, `lib`, and `test` directories for FIXME, OPTIMIZE, and TODO annotations in files with extension `.builder`, `.rb`, `.rake`, `.yml`, `.yaml`, `.ruby`, `.css`, `.js`, and `.erb`.
 
 ```bash
 $ bin/rails notes
-(in /home/foobar/commandsapp)
 app/controllers/admin/users_controller.rb:
   * [ 20] [TODO] any other way to do this?
   * [132] [FIXME] high priority for next deploy
 
-app/models/school.rb:
+lib/school.rb:
   * [ 13] [OPTIMIZE] refactor this code to make it faster
   * [ 17] [FIXME]
 ```
 
-You can add support for new file extensions using `config.annotations.register_extensions` option, which receives a list of the extensions with its corresponding regex to match it up.
+#### Annotations
 
-```ruby
-config.annotations.register_extensions("scss", "sass", "less") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ }
-```
-
-If you are looking for a specific annotation, say FIXME, you can use `bin/rails notes:fixme`. Note that you have to lower case the annotation's name.
+You can pass specific annotations by using the `--annotations` argument. By default, it will search for FIXME, OPTIMIZE, and TODO.
+Note that annotations are case sensitive.
 
 ```bash
-$ bin/rails notes:fixme
-(in /home/foobar/commandsapp)
+$ bin/rails notes --annotations FIXME RELEASE
 app/controllers/admin/users_controller.rb:
-  * [132] high priority for next deploy
+  * [101] [RELEASE] We need to look at this before next release
+  * [132] [FIXME] high priority for next deploy
 
-app/models/school.rb:
-  * [ 17]
+lib/school.rb:
+  * [ 17] [FIXME]
 ```
 
-You can also use custom annotations in your code and list them using `bin/rails notes:custom` by specifying the annotation using an environment variable `ANNOTATION`.
+#### Directories
 
-```bash
-$ bin/rails notes:custom ANNOTATION=BUG
-(in /home/foobar/commandsapp)
-app/models/article.rb:
-  * [ 23] Have to fix this one before pushing!
-```
-
-NOTE. When using specific annotations and custom annotations, the annotation name (FIXME, BUG etc) is not displayed in the output lines.
-
-By default, `rails notes` will look in the `app`, `config`, `db`, `lib`, and `test` directories. If you would like to search other directories, you can configure them using `config.annotations.register_directories` option.
+You can add more default directories to search from by using `config.annotations.register_directories`. It receives a list of directory names.
 
 ```ruby
 config.annotations.register_directories("spec", "vendor")
 ```
 
-You can also provide them as a comma separated list in the environment variable `SOURCE_ANNOTATION_DIRECTORIES`.
-
 ```bash
-$ export SOURCE_ANNOTATION_DIRECTORIES='spec,vendor'
 $ bin/rails notes
-(in /home/foobar/commandsapp)
-app/models/user.rb:
-  * [ 35] [FIXME] User should have a subscription at this point
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] any other way to do this?
+  * [132] [FIXME] high priority for next deploy
+
+lib/school.rb:
+  * [ 13] [OPTIMIZE] Refactor this code to make it faster
+  * [ 17] [FIXME]
+
 spec/models/user_spec.rb:
   * [122] [TODO] Verify the user that has a subscription works
+
+vendor/tools.rb:
+  * [ 56] [TODO] Get rid of this dependency
+```
+
+#### Extensions
+
+You can add more default file extensions to search from by using `config.annotations.register_extensions`. It receives a list of extensions with its corresponding regex to match it up.
+
+```ruby
+config.annotations.register_extensions("scss", "sass") { |annotation| /\/\/\s*(#{annotation}):?\s*(.*)$/ }
+```
+
+```bash
+$ bin/rails notes
+app/controllers/admin/users_controller.rb:
+  * [ 20] [TODO] any other way to do this?
+  * [132] [FIXME] high priority for next deploy
+
+app/assets/stylesheets/application.css.sass:
+  * [ 34] [TODO] Use pseudo element for this class
+
+app/assets/stylesheets/application.css.scss:
+  * [  1] [TODO] Split into multiple components
+
+lib/school.rb:
+  * [ 13] [OPTIMIZE] Refactor this code to make it faster
+  * [ 17] [FIXME]
+
+spec/models/user_spec.rb:
+  * [122] [TODO] Verify the user that has a subscription works
+
+vendor/tools.rb:
+  * [ 56] [TODO] Get rid of this dependency
 ```
 
 ### `routes`

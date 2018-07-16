@@ -697,24 +697,13 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_join_table_alias
-    # FIXME: `references` has no impact on the aliases generated for the join
-    # query.  The fact that we pass `:developers_projects_join` to `references`
-    # and that the SQL string contains `developers_projects_join` is merely a
-    # coincidence.
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).merge(
-        includes: { projects: :developers },
-        where: "projects_developers_projects_join.joined_on IS NOT NULL"
-      ).to_a.size
+      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).to_a.size
     )
   end
 
   def test_join_with_group
-    # FIXME: `references` has no impact on the aliases generated for the join
-    # query.  The fact that we pass `:developers_projects_join` to `references`
-    # and that the SQL string contains `developers_projects_join` is merely a
-    # coincidence.
     group = Developer.columns.inject([]) do |g, c|
       g << "developers.#{c.name}"
       g << "developers_projects_2.#{c.name}"
@@ -723,10 +712,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
 
     assert_equal(
       3,
-      Developer.references(:developers_projects_join).merge(
-        includes: { projects: :developers }, where: "projects_developers_projects_join.joined_on IS NOT NULL",
-        group: group.join(",")
-      ).to_a.size
+      Developer.includes(projects: :developers).where.not("projects_developers_projects_join.joined_on": nil).group(group.join(",")).to_a.size
     )
   end
 

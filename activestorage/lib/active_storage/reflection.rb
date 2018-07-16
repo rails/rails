@@ -19,8 +19,8 @@ module ActiveStorage
     end
 
     module ReflectionExtension # :nodoc:
-      def add_attachment_reflection(ar, name, reflection)
-        ar.attachment_reflections.merge!(name.to_s => reflection)
+      def add_attachment_reflection(model, name, reflection)
+        model.attachment_reflections = model.attachment_reflections.merge(name.to_s => reflection)
       end
 
       private

@@ -31,6 +31,8 @@ namespace :test do
     failing_files = []
 
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
+    test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     Dir[*test_files].each do |file|
       next true if file.start_with?("test/fixtures/")
@@ -46,7 +48,7 @@ namespace :test do
       # We could run these in parallel, but pretty much all of the
       # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
       Process.waitpid fork {
-        ARGV.clear
+        ARGV.clear.concat test_options
         Rake.application = nil
 
         load file

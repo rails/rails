@@ -211,6 +211,8 @@ production:
 
 NOTE: Files are served from the primary service.
 
+NOTE: This is not compatible with the [direct uploads](#direct-uploads) feature.
+
 Attaching Files to Records
 --------------------------
 

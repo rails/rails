@@ -113,4 +113,22 @@ class ExceptionsTest < ActiveJob::TestCase
       end
     end
   end
+
+  test "successfully retry job throwing one of two retryable exceptions" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "SecondRetryableErrorOfTwo", 3
+
+      assert_equal [
+        "Raised SecondRetryableErrorOfTwo for the 1st time",
+        "Raised SecondRetryableErrorOfTwo for the 2nd time",
+        "Successfully completed job" ], JobBuffer.values
+    end
+  end
+
+  test "discard job throwing one of two discardable exceptions" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "SecondDiscardableErrorOfTwo", 2
+      assert_equal [ "Raised SecondDiscardableErrorOfTwo for the 1st time" ], JobBuffer.values
+    end
+  end
 end

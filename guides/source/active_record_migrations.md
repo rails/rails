@@ -560,7 +560,7 @@ argument. Provide the original column options too, otherwise Rails can't
 recreate the column exactly when rolling back:
 
 ```ruby
-remove_column :posts, :slug, :string, null: false, default: '', index: true
+remove_column :posts, :slug, :string, null: false, default: ''
 ```
 
 If you're going to need to use any other methods, you should use `reversible`

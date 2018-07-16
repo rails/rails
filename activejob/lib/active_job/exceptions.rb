@@ -42,16 +42,16 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end
-      def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
-        rescue_from exception do |error|
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
+        rescue_from(*exceptions) do |error|
           if executions < attempts
-            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
+            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{error.class}. The original exception was #{error.cause.inspect}."
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
               yield self, error
             else
-              logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              logger.error "Stopped retrying #{self.class} due to a #{error.class}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error
             end
           end
@@ -76,12 +76,12 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(exception)
-        rescue_from exception do |error|
+      def discard_on(*exceptions)
+        rescue_from(*exceptions) do |error|
           if block_given?
             yield self, error
           else
-            logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+            logger.error "Discarded #{self.class} due to a #{error.class}. The original exception was #{error.cause.inspect}."
           end
         end
       end

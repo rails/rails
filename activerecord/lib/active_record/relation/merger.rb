@@ -120,9 +120,7 @@ module ActiveRecord
             joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
@@ -141,9 +139,7 @@ module ActiveRecord
             joins_dependency = other.left_outer_joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
