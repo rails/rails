@@ -211,7 +211,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_creates_database
         with_stubbed_connection do
-          ActiveRecord::Base.stub(:establish_connection, true) do
+          ActiveRecord::Base.stub(:establish_connection, nil) do
             @connection.expects(:create_database).
               with("my-app-db", @configuration.merge("encoding" => "utf8"))
 

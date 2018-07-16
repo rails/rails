@@ -90,7 +90,7 @@ if current_adapter?(:Mysql2Adapter)
       private
 
         def with_stubbed_connection_establish_connection
-          ActiveRecord::Base.stub(:establish_connection, true) do
+          ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
               yield
             end
@@ -116,11 +116,9 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_raises_error
-        ActiveRecord::Base.stub(:connection, @connection) do
-          ActiveRecord::Base.stub(:establish_connection, -> * { raise @error }) do
-            assert_raises(Mysql2::Error, "Invalid permissions") do
-              ActiveRecord::Tasks::DatabaseTasks.create @configuration
-            end
+        ActiveRecord::Base.stub(:establish_connection, -> * { raise @error }) do
+          assert_raises(Mysql2::Error, "Invalid permissions") do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
           end
         end
       end
@@ -168,7 +166,7 @@ if current_adapter?(:Mysql2Adapter)
       private
 
         def with_stubbed_connection_establish_connection
-          ActiveRecord::Base.stub(:establish_connection, true) do
+          ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
               yield
             end
@@ -215,7 +213,7 @@ if current_adapter?(:Mysql2Adapter)
       private
 
         def with_stubbed_connection_establish_connection
-          ActiveRecord::Base.stub(:establish_connection, true) do
+          ActiveRecord::Base.stub(:establish_connection, nil) do
             ActiveRecord::Base.stub(:connection, @connection) do
               yield
             end
