@@ -106,7 +106,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
   end
 
-  test "attaching existing records to an existing blob one at a time" do
+  test "attaching existing blobs to an existing record one at a time" do
     @user.highlights.attach create_blob(filename: "funky.jpg")
     @user.highlights.attach create_blob(filename: "town.jpg")
     assert_equal "funky.jpg", @user.highlights.first.filename.to_s
