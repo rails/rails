@@ -195,21 +195,47 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
-  test "successfully updating an existing record to remove dependent attachments" do
+  test "removing dependent attachments from an existing record" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
 
-      perform_enqueued_jobs do
-        @user.update! highlights: []
+      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.first ] do
+        assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.second ] do
+          @user.highlights.attach []
+        end
       end
 
       assert_not @user.highlights.attached?
-      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
-      assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 
-  test "successfully updating an existing record to remove independent attachments" do
+  test "removing independent attachments from an existing record" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.vlogs.attach blobs
+
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.vlogs.attach []
+      end
+
+      assert_not @user.vlogs.attached?
+    end
+  end
+
+  test "updating an existing record to remove dependent attachments" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      @user.highlights.attach blobs
+
+      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.first ] do
+        assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.second ] do
+          @user.update! highlights: []
+        end
+      end
+
+      assert_not @user.highlights.attached?
+    end
+  end
+
+  test "updating an existing record to remove independent attachments" do
     [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |blobs|
       @user.vlogs.attach blobs
 
@@ -218,8 +244,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       end
 
       assert_not @user.vlogs.attached?
-      assert ActiveStorage::Blob.service.exist?(blobs.first.key)
-      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
     end
   end
 
