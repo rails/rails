@@ -33,6 +33,13 @@ pre, code {
   overflow: auto;
   color: #222;
 }
+
+p code {
+  background: #eee;
+  border-radius: 2px;
+  padding: 1px 3px;
+}
+
 pre, tt, code {
  white-space: pre-wrap;       /* css-3 */
  white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
@@ -632,7 +639,9 @@ div.code_container {
   margin: 0.25em 0 1.5em 0;
 }
 
-.note code, .info code, .todo code {border:none; background: none; padding: 0;}
+.note code, .info code, .todo code {
+  background: #fff;
+}
 
 #mainCol ul li {
   list-style:none;
