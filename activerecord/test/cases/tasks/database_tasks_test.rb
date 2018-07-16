@@ -163,7 +163,6 @@ module ActiveRecord
 
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
-      $stderr.stubs(:puts)
 
       assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
         ActiveRecord::Tasks::DatabaseTasks.create_all
