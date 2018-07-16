@@ -237,7 +237,11 @@ module ActiveRecord
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.
-        distinct = distinct_value
+        if select_values.any? && select_values.first =~ /\s*DISTINCT[\s(]+/i
+          distinct = true
+        else
+          distinct = distinct_value
+        end
 
         if operation == "count"
           column_name ||= select_for_count

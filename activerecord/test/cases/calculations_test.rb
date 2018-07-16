@@ -248,6 +248,10 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_queries(1) { assert_equal 11, posts.count(:all) }
   end
 
+  def test_count_all_with_distinct_selected_value_and_join
+    assert_equal 5, Account.select("DISTINCT accounts.id").joins(:firm).count(:all)
+  end
+
   def test_distinct_count_all_with_custom_select_and_order
     accounts = Account.distinct.select("credit_limit % 10").order(Arel.sql("credit_limit % 10"))
     assert_queries(1) { assert_equal 3, accounts.count(:all) }

@@ -1,3 +1,9 @@
+*   Don't ignore `DISTINCT` selector value when `:all` is passed into `#count`.
+    
+    Fixes #33345
+    
+    *Britni Alexander*
+    
 *   Don't impose primary key order if limit() has already been supplied.
 
     Fixes #23607
