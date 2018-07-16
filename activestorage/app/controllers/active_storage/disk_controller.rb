@@ -19,10 +19,11 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     if token = decode_verified_token
       if acceptable_content?(token)
         disk_service.upload token[:key], request.body, checksum: token[:checksum]
-        head :no_content
       else
         head :unprocessable_entity
       end
+    else
+      head :not_found
     end
   rescue ActiveStorage::IntegrityError
     head :unprocessable_entity

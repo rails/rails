@@ -67,4 +67,10 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
     assert_not blob.service.exist?(blob.key)
   end
+
+  test "directly uploading blob with invalid token" do
+    put update_rails_disk_service_url(encoded_token: "invalid"),
+      params: "Something else entirely!", headers: { "Content-Type" => "text/plain" }
+    assert_response :not_found
+  end
 end
