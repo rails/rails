@@ -149,6 +149,42 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
   end
 
+  test "replacing existing, dependent attachments on an existing record via assign and attach" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
+      @user.highlights.attach old_blobs
+
+      @user.highlights = []
+      assert_not @user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.attach create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg")
+      end
+
+      assert_equal "whenever.jpg", @user.highlights.first.filename.to_s
+      assert_equal "wherever.jpg", @user.highlights.second.filename.to_s
+      assert_not ActiveStorage::Blob.exists?(old_blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(old_blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.second.key)
+    end
+  end
+
+  test "replacing existing, independent attachments on an existing record via assign and attach" do
+    [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |old_blobs|
+      @user.vlogs.attach old_blobs
+
+      @user.vlogs = []
+      assert_not @user.vlogs.attached?
+
+      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+        @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
+      end
+
+      assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
+      assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
+    end
+  end
+
   test "successfully updating an existing record to replace existing, dependent attachments" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
       @user.highlights.attach old_blobs
