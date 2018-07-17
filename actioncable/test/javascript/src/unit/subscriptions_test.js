@@ -1,25 +1,30 @@
-{module, test} = QUnit
-{consumerTest} = ActionCable.TestHelpers
+const {module, test} = QUnit;
+const {consumerTest} = ActionCable.TestHelpers;
 
-module "ActionCable.Subscriptions", ->
-  consumerTest "create subscription with channel string", ({consumer, server, assert, done}) ->
-    channel = "chat"
+module("ActionCable.Subscriptions", function() {
+  consumerTest("create subscription with channel string", function({consumer, server, assert, done}) {
+    const channel = "chat";
 
-    server.on "message", (message) ->
-      data = JSON.parse(message)
-      assert.equal data.command, "subscribe"
-      assert.equal data.identifier, JSON.stringify({channel})
-      done()
+    server.on("message", function(message) {
+      const data = JSON.parse(message);
+      assert.equal(data.command, "subscribe");
+      assert.equal(data.identifier, JSON.stringify({channel}));
+      return done();
+    });
 
-    consumer.subscriptions.create(channel)
+    return consumer.subscriptions.create(channel);
+  });
 
-  consumerTest "create subscription with channel object", ({consumer, server, assert, done}) ->
-    channel = channel: "chat", room: "action"
+  return consumerTest("create subscription with channel object", function({consumer, server, assert, done}) {
+    const channel = {channel: "chat", room: "action"};
 
-    server.on "message", (message) ->
-      data = JSON.parse(message)
-      assert.equal data.command, "subscribe"
-      assert.equal data.identifier, JSON.stringify(channel)
-      done()
+    server.on("message", function(message) {
+      const data = JSON.parse(message);
+      assert.equal(data.command, "subscribe");
+      assert.equal(data.identifier, JSON.stringify(channel));
+      return done();
+    });
 
-    consumer.subscriptions.create(channel)
+    return consumer.subscriptions.create(channel);
+  });
+});

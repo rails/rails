@@ -1,3 +1,3 @@
-#= require action_cable
-#= require ./test_helpers
-#= require_tree ./unit
+//= require action_cable
+//= require ./test_helpers
+//= require_tree ./unit
