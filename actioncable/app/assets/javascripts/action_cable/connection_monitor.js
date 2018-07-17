@@ -1,95 +1,127 @@
-# Responsible for ensuring the cable connection is in good health by validating the heartbeat pings sent from the server, and attempting
-# revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
-class ActionCable.ConnectionMonitor
-  @pollInterval:
-    min: 3
-    max: 30
+// Responsible for ensuring the cable connection is in good health by validating the heartbeat pings sent from the server, and attempting
+// revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
+let now = undefined;
+let secondsSince = undefined;
+let clamp = undefined;
+const Cls = (ActionCable.ConnectionMonitor = class ConnectionMonitor {
+  static initClass() {
+    this.pollInterval = {
+      min: 3,
+      max: 30
+    };
 
-  @staleThreshold: 6 # Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
+    this.staleThreshold = 6;
 
-  constructor: (@connection) ->
-    @reconnectAttempts = 0
+    now = () => new Date().getTime();
 
-  start: ->
-    unless @isRunning()
-      @startedAt = now()
-      delete @stoppedAt
-      @startPolling()
-      document.addEventListener("visibilitychange", @visibilityDidChange)
-      ActionCable.log("ConnectionMonitor started. pollInterval = #{@getPollInterval()} ms")
+    secondsSince = time => (now() - time) / 1000;
 
-  stop: ->
-    if @isRunning()
-      @stoppedAt = now()
-      @stopPolling()
-      document.removeEventListener("visibilitychange", @visibilityDidChange)
-      ActionCable.log("ConnectionMonitor stopped")
+    clamp = (number, min, max) => Math.max(min, Math.min(max, number));
+     // Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
+  }
 
-  isRunning: ->
-    @startedAt? and not @stoppedAt?
+  constructor(connection) {
+    this.visibilityDidChange = this.visibilityDidChange.bind(this);
+    this.connection = connection;
+    this.reconnectAttempts = 0;
+  }
 
-  recordPing: ->
-    @pingedAt = now()
+  start() {
+    if (!this.isRunning()) {
+      this.startedAt = now();
+      delete this.stoppedAt;
+      this.startPolling();
+      document.addEventListener("visibilitychange", this.visibilityDidChange);
+      return ActionCable.log(`ConnectionMonitor started. pollInterval = ${this.getPollInterval()} ms`);
+    }
+  }
 
-  recordConnect: ->
-    @reconnectAttempts = 0
-    @recordPing()
-    delete @disconnectedAt
-    ActionCable.log("ConnectionMonitor recorded connect")
+  stop() {
+    if (this.isRunning()) {
+      this.stoppedAt = now();
+      this.stopPolling();
+      document.removeEventListener("visibilitychange", this.visibilityDidChange);
+      return ActionCable.log("ConnectionMonitor stopped");
+    }
+  }
 
-  recordDisconnect: ->
-    @disconnectedAt = now()
-    ActionCable.log("ConnectionMonitor recorded disconnect")
+  isRunning() {
+    return (this.startedAt != null) && (this.stoppedAt == null);
+  }
 
-  # Private
+  recordPing() {
+    return this.pingedAt = now();
+  }
 
-  startPolling: ->
-    @stopPolling()
-    @poll()
+  recordConnect() {
+    this.reconnectAttempts = 0;
+    this.recordPing();
+    delete this.disconnectedAt;
+    return ActionCable.log("ConnectionMonitor recorded connect");
+  }
 
-  stopPolling: ->
-    clearTimeout(@pollTimeout)
+  recordDisconnect() {
+    this.disconnectedAt = now();
+    return ActionCable.log("ConnectionMonitor recorded disconnect");
+  }
 
-  poll: ->
-    @pollTimeout = setTimeout =>
-      @reconnectIfStale()
-      @poll()
-    , @getPollInterval()
+  // Private
 
-  getPollInterval: ->
-    {min, max} = @constructor.pollInterval
-    interval = 5 * Math.log(@reconnectAttempts + 1)
-    Math.round(clamp(interval, min, max) * 1000)
+  startPolling() {
+    this.stopPolling();
+    return this.poll();
+  }
 
-  reconnectIfStale: ->
-    if @connectionIsStale()
-      ActionCable.log("ConnectionMonitor detected stale connection. reconnectAttempts = #{@reconnectAttempts}, pollInterval = #{@getPollInterval()} ms, time disconnected = #{secondsSince(@disconnectedAt)} s, stale threshold = #{@constructor.staleThreshold} s")
-      @reconnectAttempts++
-      if @disconnectedRecently()
-        ActionCable.log("ConnectionMonitor skipping reopening recent disconnect")
-      else
-        ActionCable.log("ConnectionMonitor reopening")
-        @connection.reopen()
+  stopPolling() {
+    return clearTimeout(this.pollTimeout);
+  }
 
-  connectionIsStale: ->
-    secondsSince(@pingedAt ? @startedAt) > @constructor.staleThreshold
+  poll() {
+    return this.pollTimeout = setTimeout(() => {
+      this.reconnectIfStale();
+      return this.poll();
+    }
+    , this.getPollInterval());
+  }
 
-  disconnectedRecently: ->
-    @disconnectedAt and secondsSince(@disconnectedAt) < @constructor.staleThreshold
+  getPollInterval() {
+    const {min, max} = this.constructor.pollInterval;
+    const interval = 5 * Math.log(this.reconnectAttempts + 1);
+    return Math.round(clamp(interval, min, max) * 1000);
+  }
 
-  visibilityDidChange: =>
-    if document.visibilityState is "visible"
-      setTimeout =>
-        if @connectionIsStale() or not @connection.isOpen()
-          ActionCable.log("ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = #{document.visibilityState}")
-          @connection.reopen()
-      , 200
+  reconnectIfStale() {
+    if (this.connectionIsStale()) {
+      ActionCable.log(`ConnectionMonitor detected stale connection. reconnectAttempts = ${this.reconnectAttempts}, pollInterval = ${this.getPollInterval()} ms, time disconnected = ${secondsSince(this.disconnectedAt)} s, stale threshold = ${this.constructor.staleThreshold} s`);
+      this.reconnectAttempts++;
+      if (this.disconnectedRecently()) {
+        return ActionCable.log("ConnectionMonitor skipping reopening recent disconnect");
+      } else {
+        ActionCable.log("ConnectionMonitor reopening");
+        return this.connection.reopen();
+      }
+    }
+  }
 
-  now = ->
-    new Date().getTime()
+  connectionIsStale() {
+    return secondsSince(this.pingedAt != null ? this.pingedAt : this.startedAt) > this.constructor.staleThreshold;
+  }
 
-  secondsSince = (time) ->
-    (now() - time) / 1000
+  disconnectedRecently() {
+    return this.disconnectedAt && (secondsSince(this.disconnectedAt) < this.constructor.staleThreshold);
+  }
 
-  clamp = (number, min, max) ->
-    Math.max(min, Math.min(max, number))
+  visibilityDidChange() {
+    if (document.visibilityState === "visible") {
+      return setTimeout(() => {
+        if (this.connectionIsStale() || !this.connection.isOpen()) {
+          ActionCable.log(`ConnectionMonitor reopening stale connection on visibilitychange. visbilityState = ${document.visibilityState}`);
+          return this.connection.reopen();
+        }
+      }
+      , 200);
+    }
+  }
+});
+Cls.initClass();
+return Cls;
