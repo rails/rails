@@ -170,19 +170,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
   end
 
   test "replacing existing, independent attachments on an existing record via assign and attach" do
-    [ create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4") ].tap do |old_blobs|
-      @user.vlogs.attach old_blobs
+    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
 
-      @user.vlogs = []
-      assert_not @user.vlogs.attached?
+    @user.vlogs = []
+    assert_not @user.vlogs.attached?
 
-      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-        @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
-      end
-
-      assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
-      assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
+    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+      @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
     end
+
+    assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
+    assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
   test "successfully updating an existing record to replace existing, dependent attachments" do
