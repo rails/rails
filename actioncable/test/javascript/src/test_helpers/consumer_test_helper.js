@@ -1,6 +1,8 @@
-//= require mock-socket
+import {Server, MockWebSocket} from "mock-socket"
 
-const {TestHelpers} = ActionCable;
+import ActionCable from "../../../../app/javascript/actioncable/index"
+
+const TestHelpers = ActionCable;
 
 TestHelpers.consumerTest = function(name, options, callback) {
   if (options == null) { options = {}; }
@@ -14,7 +16,7 @@ TestHelpers.consumerTest = function(name, options, callback) {
   return QUnit.test(name, function(assert) {
     const doneAsync = assert.async();
 
-    ActionCable.WebSocket = MockWebSocket;
+    ActionCable.WebSocket = WebSocket;
     const server = new MockServer(options.url);
     const consumer = ActionCable.createConsumer(options.url);
 
@@ -56,3 +58,5 @@ TestHelpers.consumerTest = function(name, options, callback) {
     }
   });
 };
+
+export default {ActionCable}

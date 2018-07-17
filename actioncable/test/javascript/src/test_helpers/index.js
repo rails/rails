@@ -1,5 +1,4 @@
-//= require_self
-//= require_tree .
+import ActionCable from "./consumer_test_helper"
 
 ActionCable.TestHelpers = {
   testURL: "ws://cable.example.com/",
@@ -11,3 +10,5 @@ ActionCable.TestHelpers = {
 
 const originalWebSocket = ActionCable.WebSocket;
 QUnit.testDone(() => ActionCable.WebSocket = originalWebSocket);
+
+export {ActionCable}
