@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require "action_dispatch"
+require "action_dispatch/http/upload"
+
 module ActiveStorage
   class Attached::Changes::CreateOne #:nodoc:
     attr_reader :name, :record, :attachable

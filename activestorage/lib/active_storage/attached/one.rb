@@ -17,17 +17,21 @@ module ActiveStorage
       !attached?
     end
 
-    # Associates a given attachment with the current record, saving it to the database.
+    # Attaches an +attachable+ to the record.
+    #
+    # If the record is persisted and unchanged, the attachment is saved to
+    # the database immediately. Otherwise, it'll be saved to the DB when the
+    # record is next saved.
     #
     #   person.avatar.attach(params[:avatar]) # ActionDispatch::Http::UploadedFile object
     #   person.avatar.attach(params[:signed_blob_id]) # Signed reference to blob from direct upload
     #   person.avatar.attach(io: File.open("/path/to/face.jpg"), filename: "face.jpg", content_type: "image/jpg")
     #   person.avatar.attach(avatar_blob) # ActiveStorage::Blob object
     def attach(attachable)
-      new_blob = create_blob_from(attachable)
-
-      if !attached? || new_blob != blob
-        write_attachment build_attachment(blob: new_blob)
+      if record.persisted? && !record.changed?
+        record.update(name => attachable)
+      else
+        record.public_send("#{name}=", attachable)
       end
     end
 
@@ -45,7 +49,7 @@ module ActiveStorage
     # Deletes the attachment without purging it, leaving its blob in place.
     def detach
       if attached?
-        attachment.destroy
+        attachment.delete
         write_attachment nil
       end
     end
@@ -68,12 +72,6 @@ module ActiveStorage
     end
 
     private
-      delegate :transaction, to: :record
-
-      def build_attachment(blob:)
-        Attachment.new(record: record, name: name, blob: blob)
-      end
-
       def write_attachment(attachment)
         record.public_send("#{name}_attachment=", attachment)
       end

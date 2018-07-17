@@ -12,6 +12,10 @@ module ActiveStorage
       ActiveStorage::Attachment.none
     end
 
+    def blobs
+      ActiveStorage::Blob.none
+    end
+
     def save
       record.public_send("#{name}_attachments=", [])
     end

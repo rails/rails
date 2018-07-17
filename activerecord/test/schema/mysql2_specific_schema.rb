@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
-
   if subsecond_precision_supported?
     create_table :datetime_defaults, force: true do |t|
       t.datetime :modified_datetime, default: -> { "CURRENT_TIMESTAMP" }

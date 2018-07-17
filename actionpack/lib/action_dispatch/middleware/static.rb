@@ -41,7 +41,6 @@ module ActionDispatch
         rescue SystemCallError
           false
         end
-
       }
         return ::Rack::Utils.escape_path(match).b
       end

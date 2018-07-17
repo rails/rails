@@ -1,3 +1,22 @@
+*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
+
+    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
+        - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+        - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+        - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+        - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
+    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake notes` in favor of `rails notes`.
+
+    *Annie-Claude Côté*
+
 *   Don't generate unused files in `app:update` task
 
      Skip the assets' initializer when sprockets isn't loaded.

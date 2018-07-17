@@ -669,7 +669,6 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
     @child_1.stub(:id, "ABC1X") do
       @child_2.stub(:id, "ABC2X") do
-
         @pirate.attributes = {
           association_getter => [
             { id: @child_1.id, name: "Grace OMalley" },
