@@ -1,66 +1,94 @@
-# Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
-# us ActionCable.Subscriptions#create, and it should be called through the consumer like so:
-#
-#   @App = {}
-#   App.cable = ActionCable.createConsumer "ws://example.com/accounts/1"
-#   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
-#
-# For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
-class ActionCable.Subscriptions
-  constructor: (@consumer) ->
-    @subscriptions = []
+// Collection class for creating (and internally managing) channel subscriptions. The only method intended to be triggered by the user
+// us ActionCable.Subscriptions#create, and it should be called through the consumer like so:
+//
+//   @App = {}
+//   App.cable = ActionCable.createConsumer "ws://example.com/accounts/1"
+//   App.appearance = App.cable.subscriptions.create "AppearanceChannel"
+//
+// For more details on how you'd configure an actual channel subscription, see ActionCable.Subscription.
+import { Subscription } from "./subscription"
 
-  create: (channelName, mixin) ->
-    channel = channelName
-    params = if typeof channel is "object" then channel else {channel}
-    subscription = new ActionCable.Subscription @consumer, params, mixin
-    @add(subscription)
+export class Subscriptions {
+  constructor(consumer) {
+    this.consumer = consumer
+    this.subscriptions = []
+  }
 
-  # Private
+  create(channelName, mixin) {
+    const channel = channelName
+    const params = typeof channel === "object" ? channel : {channel}
+    const subscription = new Subscription(this.consumer, params, mixin)
+    return this.add(subscription)
+  }
 
-  add: (subscription) ->
-    @subscriptions.push(subscription)
-    @consumer.ensureActiveConnection()
-    @notify(subscription, "initialized")
-    @sendCommand(subscription, "subscribe")
-    subscription
+  // Private
 
-  remove: (subscription) ->
-    @forget(subscription)
-    unless @findAll(subscription.identifier).length
-      @sendCommand(subscription, "unsubscribe")
-    subscription
+  add(subscription) {
+    this.subscriptions.push(subscription)
+    this.consumer.ensureActiveConnection()
+    this.notify(subscription, "initialized")
+    this.sendCommand(subscription, "subscribe")
+    return subscription
+  }
 
-  reject: (identifier) ->
-    for subscription in @findAll(identifier)
-      @forget(subscription)
-      @notify(subscription, "rejected")
-      subscription
+  remove(subscription) {
+    this.forget(subscription)
+    if (!this.findAll(subscription.identifier).length) {
+      this.sendCommand(subscription, "unsubscribe")
+    }
+    return subscription
+  }
 
-  forget: (subscription) ->
-    @subscriptions = (s for s in @subscriptions when s isnt subscription)
-    subscription
+  reject(identifier) {
+    return (() => {
+      const result = []
+      for (let subscription of Array.from(this.findAll(identifier))) {
+        this.forget(subscription)
+        this.notify(subscription, "rejected")
+        result.push(subscription)
+      }
+      return result
+    })()
+  }
 
-  findAll: (identifier) ->
-    s for s in @subscriptions when s.identifier is identifier
+  forget(subscription) {
+    this.subscriptions = (Array.from(this.subscriptions).filter((s) => s !== subscription))
+    return subscription
+  }
 
-  reload: ->
-    for subscription in @subscriptions
-      @sendCommand(subscription, "subscribe")
+  findAll(identifier) {
+    return Array.from(this.subscriptions).filter((s) => s.identifier === identifier)
+  }
 
-  notifyAll: (callbackName, args...) ->
-    for subscription in @subscriptions
-      @notify(subscription, callbackName, args...)
+  reload() {
+    return Array.from(this.subscriptions).map((subscription) =>
+      this.sendCommand(subscription, "subscribe"))
+  }
 
-  notify: (subscription, callbackName, args...) ->
-    if typeof subscription is "string"
-      subscriptions = @findAll(subscription)
-    else
+  notifyAll(callbackName, ...args) {
+    return Array.from(this.subscriptions).map((subscription) =>
+      this.notify(subscription, callbackName, ...Array.from(args)))
+  }
+
+  notify(subscription, callbackName, ...args) {
+    let subscriptions
+    if (typeof subscription === "string") {
+      subscriptions = this.findAll(subscription)
+    } else {
       subscriptions = [subscription]
+    }
 
-    for subscription in subscriptions
-      subscription[callbackName]?(args...)
+    return (() => {
+      const result = []
+      for (subscription of Array.from(subscriptions)) {
+        result.push((typeof subscription[callbackName] === "function" ? subscription[callbackName](...Array.from(args || [])) : undefined))
+      }
+      return result
+    })()
+  }
 
-  sendCommand: (subscription, command) ->
-    {identifier} = subscription
-    @consumer.send({command, identifier})
+  sendCommand(subscription, command) {
+    const {identifier} = subscription
+    return this.consumer.send({command, identifier})
+  }
+}

@@ -1,38 +1,50 @@
-#= export ActionCable
-#= require_self
-#= require ./action_cable/consumer
+//= export ActionCable
+//= require_self
+//= require ./action_cable/consumer
 
-@ActionCable =
-  INTERNAL: <%= ActionCable::INTERNAL.to_json %>
-  WebSocket: window.WebSocket
-  logger: window.console
+let defaultExport = {};
+defaultExport.ActionCable = {
+  INTERNAL: <%= ActionCable::INTERNAL.to_json %>,
+  WebSocket: window.WebSocket,
+  logger: window.console,
 
-  createConsumer: (url) ->
-    url ?= @getConfig("url") ? @INTERNAL.default_mount_path
-    new ActionCable.Consumer @createWebSocketURL(url)
+  createConsumer(url) {
+    if (url == null) { let left;
+    url = (left = this.getConfig("url")) != null ? left : this.INTERNAL.default_mount_path; }
+    return new ActionCable.Consumer(this.createWebSocketURL(url));
+  },
 
-  getConfig: (name) ->
-    element = document.head.querySelector("meta[name='action-cable-#{name}']")
-    element?.getAttribute("content")
+  getConfig(name) {
+    const element = document.head.querySelector(`meta[name='action-cable-${name}']`);
+    return (element != null ? element.getAttribute("content") : undefined);
+  },
 
-  createWebSocketURL: (url) ->
-    if url and not /^wss?:/i.test(url)
-      a = document.createElement("a")
-      a.href = url
-      # Fix populating Location properties in IE. Otherwise, protocol will be blank.
-      a.href = a.href
-      a.protocol = a.protocol.replace("http", "ws")
-      a.href
-    else
-      url
+  createWebSocketURL(url) {
+    if (url && !/^wss?:/i.test(url)) {
+      const a = document.createElement("a");
+      a.href = url;
+      // Fix populating Location properties in IE. Otherwise, protocol will be blank.
+      a.href = a.href;
+      a.protocol = a.protocol.replace("http", "ws");
+      return a.href;
+    } else {
+      return url;
+    }
+  },
 
-  startDebugging: ->
-    @debugging = true
+  startDebugging() {
+    return this.debugging = true;
+  },
 
-  stopDebugging: ->
-    @debugging = null
+  stopDebugging() {
+    return this.debugging = null;
+  },
 
-  log: (messages...) ->
-    if @debugging
-      messages.push(Date.now())
-      @logger.log("[ActionCable]", messages...)
+  log(...messages) {
+    if (this.debugging) {
+      messages.push(Date.now());
+      return this.logger.log("[ActionCable]", ...Array.from(messages));
+    }
+  }
+};
+export default defaultExport;
