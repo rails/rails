@@ -1,3 +1,9 @@
+*   Allow subclasses to redefine autosave callbacks for associated records.
+
+    Fixes #33305.
+
+    *Andrey Subbota*
+
 *   Don't impose primary key order if limit() has already been supplied.
 
     Fixes #23607

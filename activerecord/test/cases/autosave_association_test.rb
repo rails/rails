@@ -14,6 +14,7 @@ require "models/line_item"
 require "models/order"
 require "models/parrot"
 require "models/pirate"
+require "models/project"
 require "models/ship"
 require "models/ship_part"
 require "models/tag"
@@ -1772,5 +1773,23 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
 
     assert_equal 1, post.comments.count
     assert_equal 1, comment.post_comments_count
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNestedAttributes < ActiveRecord::TestCase
+  def test_should_update_children_when_asssociation_redefined_in_subclass
+    agency = Agency.create!(name: "Agency")
+    valid_project = Project.create!(firm: agency, name: "Initial")
+    agency.update!(
+      "projects_attributes" => {
+        "0" => {
+          "name" => "Updated",
+          "id" => valid_project.id
+        }
+      }
+    )
+    valid_project.reload
+
+    assert_equal "Updated", valid_project.name
   end
 end
