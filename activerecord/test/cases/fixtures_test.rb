@@ -876,15 +876,16 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   private
 
     def fire_connection_notification(connection)
-      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with("book").returns(connection)
-      message_bus = ActiveSupport::Notifications.instrumenter
-      payload = {
-        spec_name: "book",
-        config: nil,
-        connection_id: connection.object_id
-      }
+      ActiveRecord::Base.connection_handler.stub(:retrieve_connection, connection) do
+        message_bus = ActiveSupport::Notifications.instrumenter
+        payload = {
+          spec_name: "book",
+          config: nil,
+          connection_id: connection.object_id
+        }
 
-      message_bus.instrument("!connection.active_record", payload) {}
+        message_bus.instrument("!connection.active_record", payload) {}
+      end
     end
 end
 

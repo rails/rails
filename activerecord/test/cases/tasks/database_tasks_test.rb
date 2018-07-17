@@ -141,7 +141,6 @@ module ActiveRecord
     def setup
       @configurations = { "development" => { "database" => "my-db" } }
 
-      ActiveRecord::Base.stubs(:configurations).returns(@configurations)
       # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
       ActiveRecord::Base.connection_handler.stubs(:establish_connection)
 
@@ -156,52 +155,71 @@ module ActiveRecord
     def test_ignores_configurations_without_databases
       @configurations["development"].merge!("database" => nil)
 
-      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
       end
     end
 
     def test_ignores_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
-      $stderr.stubs(:puts)
 
-      assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
       end
     end
 
     def test_warning_for_remote_databases
       @configurations["development"].merge!("host" => "my.server.tld")
 
-      ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        ActiveRecord::Tasks::DatabaseTasks.create_all
 
-      assert_match "This task only modifies local databases. my-db is on a remote host.",
-        $stderr.string
+        assert_match "This task only modifies local databases. my-db is on a remote host.",
+          $stderr.string
+      end
     end
 
     def test_creates_configurations_with_local_ip
       @configurations["development"].merge!("host" => "127.0.0.1")
 
-      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
       end
     end
 
     def test_creates_configurations_with_local_host
       @configurations["development"].merge!("host" => "localhost")
 
-      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
       end
     end
 
     def test_creates_configurations_with_blank_hosts
       @configurations["development"].merge!("host" => nil)
 
-      assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
-        ActiveRecord::Tasks::DatabaseTasks.create_all
+      with_stubbed_configurations do
+        assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
+          ActiveRecord::Tasks::DatabaseTasks.create_all
+        end
       end
     end
+
+    private
+
+      def with_stubbed_configurations
+        ActiveRecord::Base.stub(:configurations, @configurations) do
+          yield
+        end
+      end
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
