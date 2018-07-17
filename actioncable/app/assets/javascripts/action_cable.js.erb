@@ -1,0 +1,38 @@
+#= export ActionCable
+#= require_self
+#= require ./action_cable/consumer
+
+@ActionCable =
+  INTERNAL: <%= ActionCable::INTERNAL.to_json %>
+  WebSocket: window.WebSocket
+  logger: window.console
+
+  createConsumer: (url) ->
+    url ?= @getConfig("url") ? @INTERNAL.default_mount_path
+    new ActionCable.Consumer @createWebSocketURL(url)
+
+  getConfig: (name) ->
+    element = document.head.querySelector("meta[name='action-cable-#{name}']")
+    element?.getAttribute("content")
+
+  createWebSocketURL: (url) ->
+    if url and not /^wss?:/i.test(url)
+      a = document.createElement("a")
+      a.href = url
+      # Fix populating Location properties in IE. Otherwise, protocol will be blank.
+      a.href = a.href
+      a.protocol = a.protocol.replace("http", "ws")
+      a.href
+    else
+      url
+
+  startDebugging: ->
+    @debugging = true
+
+  stopDebugging: ->
+    @debugging = null
+
+  log: (messages...) ->
+    if @debugging
+      messages.push(Date.now())
+      @logger.log("[ActionCable]", messages...)
