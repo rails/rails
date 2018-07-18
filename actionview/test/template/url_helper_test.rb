@@ -77,8 +77,15 @@ class UrlHelperTest < ActiveSupport::TestCase
 
   def test_to_form_params_with_hash
     assert_equal(
-      [{ name: :name, value: "David" }, { name: :nationality, value: "Danish" }],
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
       to_form_params(name: "David", nationality: "Danish")
+    )
+  end
+
+  def test_to_form_params_with_hash_having_symbol_and_string_keys
+    assert_equal(
+      [{ name: "name", value: "David" }, { name: "nationality", value: "Danish" }],
+      to_form_params("name" => "David", :nationality => "Danish")
     )
   end
 
