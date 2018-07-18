@@ -861,9 +861,9 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    connection.expects(:begin_transaction).with(joinable: false)
-
-    fire_connection_notification(connection)
+    assert_called_with(connection, :begin_transaction, [joinable: false]) do
+      fire_connection_notification(connection)
+    end
   end
 
   def test_notification_established_transactions_are_rolled_back
@@ -891,7 +891,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   private
 
     def fire_connection_notification(connection)
-      ActiveRecord::Base.connection_handler.stub(:retrieve_connection, connection) do
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
         message_bus = ActiveSupport::Notifications.instrumenter
         payload = {
           spec_name: "book",

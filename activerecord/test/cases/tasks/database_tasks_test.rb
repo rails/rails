@@ -15,6 +15,7 @@ module ActiveRecord
           def charset; end
           def collation; end
           def structure_dump(*); end
+          def structure_load(*); end
         end.new
       )
 
@@ -119,8 +120,9 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_create") do
         with_stubbed_new do
-          eval("@#{v}").expects(:create)
-          ActiveRecord::Tasks::DatabaseTasks.create "adapter" => k
+          assert_called(eval("@#{v}"), :create) do
+            ActiveRecord::Tasks::DatabaseTasks.create "adapter" => k
+          end
         end
       end
     end
@@ -407,11 +409,15 @@ module ActiveRecord
 
     def test_establishes_connection_for_the_given_environments_config
       ActiveRecord::Tasks::DatabaseTasks.stub(:create, nil) do
-        ActiveRecord::Base.expects(:establish_connection).with(:development)
-
-        ActiveRecord::Tasks::DatabaseTasks.create_current(
-          ActiveSupport::StringInquirer.new("development")
-        )
+        assert_called_with(
+          ActiveRecord::Base,
+          :establish_connection,
+          [:development]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.create_current(
+            ActiveSupport::StringInquirer.new("development")
+          )
+        end
       end
     end
 
@@ -432,8 +438,9 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_drop") do
         with_stubbed_new do
-          eval("@#{v}").expects(:drop)
-          ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => k
+          assert_called(eval("@#{v}"), :drop) do
+            ActiveRecord::Tasks::DatabaseTasks.drop "adapter" => k
+          end
         end
       end
     end
@@ -812,8 +819,9 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_purge") do
         with_stubbed_new do
-          eval("@#{v}").expects(:purge)
-          ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => k
+          assert_called(eval("@#{v}"), :purge) do
+            ActiveRecord::Tasks::DatabaseTasks.purge "adapter" => k
+          end
         end
       end
     end
@@ -827,11 +835,14 @@ module ActiveRecord
         "production"  => { "database" => "prod-db" }
       }
       ActiveRecord::Base.stub(:configurations, configurations) do
-        ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-          with("database" => "prod-db")
-
-        assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
-          ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :purge,
+          ["database" => "prod-db"]
+        ) do
+          assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
+            ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
+          end
         end
       end
     end
@@ -841,10 +852,13 @@ module ActiveRecord
     def test_purge_all_local_configurations
       configurations = { development: { "database" => "my-db" } }
       ActiveRecord::Base.stub(:configurations, configurations) do
-        ActiveRecord::Tasks::DatabaseTasks.expects(:purge).
-          with("database" => "my-db")
-
-        ActiveRecord::Tasks::DatabaseTasks.purge_all
+        assert_called_with(
+          ActiveRecord::Tasks::DatabaseTasks,
+          :purge,
+          ["database" => "my-db"]
+        ) do
+          ActiveRecord::Tasks::DatabaseTasks.purge_all
+        end
       end
     end
   end
@@ -855,8 +869,9 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_charset") do
         with_stubbed_new do
-          eval("@#{v}").expects(:charset)
-          ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => k
+          assert_called(eval("@#{v}"), :charset) do
+            ActiveRecord::Tasks::DatabaseTasks.charset "adapter" => k
+          end
         end
       end
     end
@@ -868,8 +883,9 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_collation") do
         with_stubbed_new do
-          eval("@#{v}").expects(:collation)
-          ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => k
+          assert_called(eval("@#{v}"), :collation) do
+            ActiveRecord::Tasks::DatabaseTasks.collation "adapter" => k
+          end
         end
       end
     end
@@ -983,8 +999,12 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_dump") do
         with_stubbed_new do
-          eval("@#{v}").expects(:structure_dump).with("awesome-file.sql", nil)
-          ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
+          assert_called_with(
+            eval("@#{v}"), :structure_dump,
+            ["awesome-file.sql", nil]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_dump({ "adapter" => k }, "awesome-file.sql")
+          end
         end
       end
     end
@@ -996,8 +1016,13 @@ module ActiveRecord
     ADAPTERS_TASKS.each do |k, v|
       define_method("test_#{k}_structure_load") do
         with_stubbed_new do
-          eval("@#{v}").expects(:structure_load).with("awesome-file.sql", nil)
-          ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
+          assert_called_with(
+            eval("@#{v}"),
+            :structure_load,
+            ["awesome-file.sql", nil]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.structure_load({ "adapter" => k }, "awesome-file.sql")
+          end
         end
       end
     end
