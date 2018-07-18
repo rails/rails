@@ -17,7 +17,7 @@ export default {
   output: {
     file: "app/assets/javascripts/actioncable.js",
     format: "umd",
-    name: "ActiveStorage"
+    name: "ActionCable"
   },
   plugins: [
     resolve(),
