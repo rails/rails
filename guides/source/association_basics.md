@@ -365,22 +365,6 @@ class CreateAssembliesAndParts < ActiveRecord::Migration[5.0]
 end
 ```
 
-As you can see we don't create the relevant model for `assemblies_parts` table, So We can't create the many-to-many record like this
-
-``` ruby
-AssemblyPart.create(assembly: @assembly, part: @part) # => NameError: uninitialized constant AssemblyPart
-```
-
-If you want to create the relevant many-to-many record, you can use the below code
-
-``` ruby
-@assembly.parts << @part
-# Or
-@part.assemblies << @assembly
-```
-
-They are equivalent.
-
 ### Choosing Between `belongs_to` and `has_one`
 
 If you want to set up a one-to-one relationship between two models, you'll need to add `belongs_to` to one, and `has_one` to the other. How do you know which is which?
