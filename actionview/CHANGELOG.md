@@ -1,3 +1,15 @@
+*   Fix issue with `button_to`'s `to_form_params`
+
+    `button_to` was throwing exception when invoked with `params` hash that
+    contains symbol and string keys. The reason for the exception was that
+    `to_form_params` was comparing the given symbol and string keys.
+
+    The issue is fixed by turning all keys to strings inside
+    `to_form_params` before comparing them.
+
+    *Georgi Georgiev*
+
+
 ## Rails 5.1.6 (March 29, 2018) ##
 
 *   No changes.
