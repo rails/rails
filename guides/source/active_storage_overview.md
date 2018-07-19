@@ -458,6 +458,31 @@ These libraries are not provided by Rails. You must install them yourself to
 use the built-in previewers. Before you install and use third-party software,
 make sure you understand the licensing implications of doing so.
 
+Retain Files between form (re)displays
+--------------------------------------
+
+After uploading a file and if the form should get redisplayed, for example when the validation for that form fails for some reason, the file is gone.
+
+To retain the file between form redisplays, add a hidden input that contains the blobs `signed_id`:
+
+```erb
+<%= form.hidden_field :avatar, value: form.object.avatar.signed_id if form.object.avatar.attached? %>
+<%= f.file_field :avatar %>
+```
+
+It might also be a good idea to show your users that the file is still available:
+
+```erb
+<% if form.object.avatar.attached? %>
+  <p>
+    Uploaded file:<br>
+    <%= form.object.avatar.try(:filename) %>
+  </p>
+  <%= form.hidden_field :avatar, value: form.object.avatar.signed_id %>
+<% end %>
+<%= f.file_field :avatar %>
+```
+
 
 Direct Uploads
 --------------
