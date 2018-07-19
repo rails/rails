@@ -34,30 +34,46 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_creates_database_with_default_encoding
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", @configuration.merge("encoding" => "utf8"))
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(
+            @connection,
+            :create_database,
+            ["my-app-db", @configuration.merge("encoding" => "utf8")]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
       def test_creates_database_with_given_encoding
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", @configuration.merge("encoding" => "latin"))
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration.
-            merge("encoding" => "latin")
+          assert_called_with(
+            @connection,
+            :create_database,
+            ["my-app-db", @configuration.merge("encoding" => "latin")]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.
+              merge("encoding" => "latin")
+          end
         end
       end
 
       def test_creates_database_with_given_collation_and_ctype
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", @configuration.merge("encoding" => "utf8", "collation" => "ja_JP.UTF8", "ctype" => "ja_JP.UTF8"))
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration.
-            merge("collation" => "ja_JP.UTF8", "ctype" => "ja_JP.UTF8")
+          assert_called_with(
+            @connection,
+            :create_database,
+            [
+              "my-app-db",
+              @configuration.merge(
+                "encoding" => "utf8",
+                "collation" => "ja_JP.UTF8",
+                "ctype" => "ja_JP.UTF8"
+              )
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.
+              merge("collation" => "ja_JP.UTF8", "ctype" => "ja_JP.UTF8")
+          end
         end
       end
 
@@ -139,9 +155,13 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_drops_database
         with_stubbed_connection_establish_connection do
-          @connection.expects(:drop_database).with("my-app-db")
-
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          assert_called_with(
+            @connection,
+            :drop_database,
+            ["my-app-db"]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          end
         end
       end
 
@@ -179,9 +199,9 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_clears_active_connections
         with_stubbed_connection do
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            ActiveRecord::Base.expects(:clear_active_connections!)
-
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            assert_called(ActiveRecord::Base, :clear_active_connections!) do
+              ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            end
           end
         end
       end
@@ -202,9 +222,9 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_drops_database
         with_stubbed_connection do
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            @connection.expects(:drop_database).with("my-app-db")
-
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            assert_called_with(@connection, :drop_database, ["my-app-db"]) do
+              ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            end
           end
         end
       end
@@ -212,10 +232,13 @@ if current_adapter?(:PostgreSQLAdapter)
       def test_creates_database
         with_stubbed_connection do
           ActiveRecord::Base.stub(:establish_connection, nil) do
-            @connection.expects(:create_database).
-              with("my-app-db", @configuration.merge("encoding" => "utf8"))
-
-            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            assert_called_with(
+              @connection,
+              :create_database,
+              ["my-app-db", @configuration.merge("encoding" => "utf8")]
+            ) do
+              ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+            end
           end
         end
       end
@@ -240,7 +263,10 @@ if current_adapter?(:PostgreSQLAdapter)
 
     class PostgreSQLDBCharsetTest < ActiveRecord::TestCase
       def setup
-        @connection    = Class.new { def create_database(*); end }.new
+        @connection = Class.new do
+          def create_database(*); end
+          def encoding; end
+        end.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -249,16 +275,16 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_db_retrieves_charset
         ActiveRecord::Base.stub(:connection, @connection) do
-          @connection.expects(:encoding)
-
-          ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+          assert_called(@connection, :encoding) do
+            ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+          end
         end
       end
     end
 
     class PostgreSQLDBCollationTest < ActiveRecord::TestCase
       def setup
-        @connection    = Class.new { def create_database(*); end }.new
+        @connection    = Class.new { def collation; end }.new
         @configuration = {
           "adapter"  => "postgresql",
           "database" => "my-app-db"
@@ -267,9 +293,9 @@ if current_adapter?(:PostgreSQLAdapter)
 
       def test_db_retrieves_collation
         ActiveRecord::Base.stub(:connection, @connection) do
-          @connection.expects(:collation)
-
-          ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+          assert_called(@connection, :collation) do
+            ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+          end
         end
       end
     end

@@ -31,28 +31,29 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_creates_database_with_no_default_options
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", {})
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(@connection, :create_database, ["my-app-db", {}]) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
       def test_creates_database_with_given_encoding
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", charset: "latin1")
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
+          assert_called_with(@connection, :create_database, ["my-app-db", charset: "latin1"]) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("encoding" => "latin1")
+          end
         end
       end
 
       def test_creates_database_with_given_collation
         with_stubbed_connection_establish_connection do
-          @connection.expects(:create_database).
-            with("my-app-db", collation: "latin1_swedish_ci")
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
+          assert_called_with(
+            @connection,
+            :create_database,
+            ["my-app-db", collation: "latin1_swedish_ci"]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration.merge("collation" => "latin1_swedish_ci")
+          end
         end
       end
 
@@ -149,9 +150,9 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_drops_database
         with_stubbed_connection_establish_connection do
-          @connection.expects(:drop_database).with("my-app-db")
-
-          ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          assert_called_with(@connection, :drop_database, ["my-app-db"]) do
+            ActiveRecord::Tasks::DatabaseTasks.drop @configuration
+          end
         end
       end
 
@@ -193,20 +194,22 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_recreates_database_with_no_default_options
         with_stubbed_connection_establish_connection do
-          @connection.expects(:recreate_database).
-            with("test-db", {})
-
-          ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          assert_called_with(@connection, :recreate_database, ["test-db", {}]) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
         end
       end
 
       def test_recreates_database_with_the_given_options
         with_stubbed_connection_establish_connection do
-          @connection.expects(:recreate_database).
-            with("test-db", charset: "latin", collation: "latin1_swedish_ci")
-
-          ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
-            "encoding" => "latin", "collation" => "latin1_swedish_ci")
+          assert_called_with(
+            @connection,
+            :recreate_database,
+            ["test-db", charset: "latin", collation: "latin1_swedish_ci"]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration.merge(
+              "encoding" => "latin", "collation" => "latin1_swedish_ci")
+          end
         end
       end
 
@@ -232,8 +235,9 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_db_retrieves_charset
         ActiveRecord::Base.stub(:connection, @connection) do
-          @connection.expects(:charset)
-          ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+          assert_called(@connection, :charset) do
+            ActiveRecord::Tasks::DatabaseTasks.charset @configuration
+          end
         end
       end
     end
@@ -249,8 +253,9 @@ if current_adapter?(:Mysql2Adapter)
 
       def test_db_retrieves_collation
         ActiveRecord::Base.stub(:connection, @connection) do
-          @connection.expects(:collation)
-          ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+          assert_called_with(@connection, :collation) do
+            ActiveRecord::Tasks::DatabaseTasks.collation @configuration
+          end
         end
       end
     end
