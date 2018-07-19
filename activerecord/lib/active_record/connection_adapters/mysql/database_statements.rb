@@ -62,6 +62,42 @@ module ActiveRecord
             @connection.next_result while @connection.more_results?
           end
 
+          def supports_set_server_option?
+            @connection.respond_to?(:set_server_option)
+          end
+
+          def multi_statements_enabled?(flags)
+            if flags.is_a?(Array)
+              flags.include?("MULTI_STATEMENTS")
+            else
+              (flags & Mysql2::Client::MULTI_STATEMENTS) != 0
+            end
+          end
+
+          def with_multi_statements
+            previous_flags = @config[:flags]
+
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
+              else
+                @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
+                reconnect!
+              end
+            end
+
+            yield
+          ensure
+            unless multi_statements_enabled?(previous_flags)
+              if supports_set_server_option?
+                @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
+              else
+                @config[:flags] = previous_flags
+                reconnect!
+              end
+            end
+          end
+
           def exec_stmt_and_free(sql, name, binds, cache_stmt: false)
             # make sure we carry over any changes to ActiveRecord::Base.default_timezone that have been
             # made since we established the connection
