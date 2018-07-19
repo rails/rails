@@ -103,7 +103,6 @@ module ActiveRecord
         records
       end
     end
-    alias_method :preload_associations, :load_associations
 
     # Specify relationships to be included in the result set. For
     # example:

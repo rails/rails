@@ -607,7 +607,7 @@ module ActiveRecord
       ActiveRecord::Associations::AliasTracker.create(connection, table.name, joins)
     end
 
-    def preload_associations(records) # :nodoc:
+    def execute_preloads(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
       preloader = nil
@@ -647,7 +647,7 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
+          execute_preloads(@records) unless skip_preloading_value
 
           @records.each(&:readonly!) if readonly_value
 

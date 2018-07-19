@@ -21,12 +21,12 @@ module ActiveRecord
       end
 
       def collection_without_template
-        @relation.preload_associations(@collection) if @relation
+        @relation.execute_preloads(@collection) if @relation
         super
       end
 
       def collection_with_template
-        @relation.preload_associations(@collection) if @relation
+        @relation.execute_preloads(@collection) if @relation
         super
       end
     end
