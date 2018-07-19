@@ -17,13 +17,13 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   after_create_commit :analyze_blob_later, :identify_blob
   after_destroy_commit :purge_dependent_blob_later
 
-  # Synchronously purges the blob (deletes it from the configured service) and deletes the attachment.
+  # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
     blob.purge
     delete
   end
 
-  # Deletes the attachment and queues a background job to purge the blob (delete it from the configured service).
+  # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
   def purge_later
     blob.purge_later
     delete
