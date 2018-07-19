@@ -364,7 +364,10 @@ module ActiveRecord
     # and #destroy! raises ActiveRecord::RecordNotDestroyed.
     # See ActiveRecord::Callbacks for further details.
     def destroy!
-      destroy || _raise_record_not_destroyed
+      result = destroy
+      return result if result
+      raise RecordNotDestroyed.new(self.errors.first.second, self) if self.errors.present?
+      _raise_record_not_destroyed
     end
 
     # Returns an instance of the specified +klass+ with the attributes of the
