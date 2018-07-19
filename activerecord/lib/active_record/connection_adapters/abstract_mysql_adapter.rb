@@ -558,35 +558,6 @@ module ActiveRecord
           @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
-        def with_multi_statements
-          if supports_set_server_option?
-            @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_ON)
-          elsif !supports_multi_statements?
-            previous_flags = @config[:flags]
-            @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-            reconnect!
-          end
-
-          yield
-        ensure
-          unless supports_multi_statements?
-            if supports_set_server_option?
-              @connection.set_server_option(Mysql2::Client::OPTION_MULTI_STATEMENTS_OFF)
-            else
-              @config[:flags] = previous_flags
-              reconnect!
-            end
-          end
-        end
-
-        def supports_multi_statements?
-          (@config[:flags] & Mysql2::Client::MULTI_STATEMENTS) != 0
-        end
-
-        def supports_set_server_option?
-          @connection.respond_to?(:set_server_option)
-        end
-
         def initialize_type_map(m = type_map)
           super
 
