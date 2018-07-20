@@ -1069,6 +1069,20 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_get_request_with_json_excludes_null_query_string
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ":action" => FooController
+        end
+      end
+
+      get "/foos_json", as: :json
+
+      assert_equal "http://www.example.com/foos_json", request.url
+    end
+  end
+
   private
     def post_to_foos(as:)
       with_routing do |routes|
