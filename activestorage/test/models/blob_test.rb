@@ -174,6 +174,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(variant.key)
   end
 
+  test "purge fails when attachments exist" do
+    create_blob.tap do |blob|
+      User.create! name: "DHH", avatar: blob
+      assert_raises(ActiveRecord::InvalidForeignKey) { blob.purge }
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
   private
     def expected_url_for(blob, disposition: :inline, filename: nil)
       filename ||= blob.filename
