@@ -18,14 +18,14 @@ class ActiveStorage::Attachment < ActiveRecord::Base
 
   # Synchronously purges the blob (deletes it from the configured service) and destroys the attachment.
   def purge
-    blob.purge
     destroy
+    blob.purge
   end
 
   # Destroys the attachment and asynchronously purges the blob (deletes it from the configured service).
   def purge_later
-    blob.purge_later
     destroy
+    blob.purge_later
   end
 
   private

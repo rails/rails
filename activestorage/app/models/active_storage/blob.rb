@@ -174,8 +174,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   # blobs. Note, though, that deleting the file off the service will initiate a HTTP connection to the service, which may
   # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use +#purge_later+ instead.
   def purge
-    delete
     destroy
+    delete
   end
 
   # Enqueues an ActiveStorage::PurgeJob job that'll call +purge+. This is the recommended way to purge blobs when the call

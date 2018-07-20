@@ -8,7 +8,7 @@ class ActiveStorage::AttachmentsTest < ActiveSupport::TestCase
 
   setup { @user = User.create!(name: "DHH") }
 
-  teardown { ActiveStorage::Blob.all.each(&:purge) }
+  teardown { ActiveStorage::Blob.all.each(&:delete) }
 
   test "attach existing blob" do
     @user.avatar.attach create_blob(filename: "funky.jpg")
