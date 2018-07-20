@@ -1,3 +1,7 @@
+*   Move `enqueue`/`enqueue_at` notifications to an around callback (was previously an after callback).
+
+    *Zach Kemp*
+
 *   Allow `queue` option to `assert_no_enqueued_jobs`.
 
     Example:
