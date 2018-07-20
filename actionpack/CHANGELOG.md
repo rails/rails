@@ -1,3 +1,14 @@
+*   Prevent `?null=` being passed on JSON encoded test requests.
+
+    `RequestEncoder#encode_params` won't attempt to parse params if
+    there are none.
+
+    So call like this will no longer append a `?null=` query param.
+
+        get foos_url, as: :json
+
+    *Alireza Bashiri*
+
 *   Fix strong parameters `permit!` with nested arrays.
 
     Given:
@@ -324,13 +335,6 @@
     Fixes #27013.
 
     *Julian Nadeau*
-
-*   Prevent `RequestEncoder#encode_params` to parse falsey params
-    
-    Now `RequestEncoder#encode_params` doesn't convert
-    falsey params into query string.
-
-    *Alireza Bashiri*
 
 
 Please check [5-1-stable](https://github.com/rails/rails/blob/5-1-stable/actionpack/CHANGELOG.md) for previous changes.
