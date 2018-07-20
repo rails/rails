@@ -1,14 +1,3 @@
-*   Prevent `?null=` being passed on JSON encoded test requests.
-
-    `RequestEncoder#encode_params` won't attempt to parse params if
-    there are none.
-
-    So call like this will no longer append a `?null=` query param.
-
-        get foos_url, as: :json
-
-    *Alireza Bashiri*
-
 *   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
