@@ -50,5 +50,12 @@
 
     *Jeremy Daer*
 
+*   Prevent `RequestEncoder#encode_params` to parse falsey params
+    
+    Now `RequestEncoder#encode_params` doesn't convert
+    falsey params into query string.
+
+    *Alireza Bashiri*
+
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionpack/CHANGELOG.md) for previous changes.
