@@ -29,11 +29,11 @@ module ActiveJob
 
       around_enqueue do |job, block|
         if job.scheduled_at
-          ActiveSupport::Notifications.instrument "enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job, &block
+          ActiveSupport::Notifications.instrument("enqueue_at.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         else
-          ActiveSupport::Notifications.instrument "enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job, &block
+          ActiveSupport::Notifications.instrument("enqueue.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         end
       end
     end

@@ -1,4 +1,7 @@
-*   Move `enqueue`/`enqueue_at` notifications to an around callback (was previously an after callback).
+*   Move `enqueue`/`enqueue_at` notifications to an around callback.
+
+    Improves timing accuracy over the old after callback by including
+    time spent writing to the adapter's IO implementation.
 
     *Zach Kemp*
 
