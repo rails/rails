@@ -44,6 +44,7 @@ module ActiveRecord
         args.concat(["--result-file", "#{filename}"])
         args.concat(["--no-data"])
         args.concat(["--routines"])
+        args.concat(["--column-statistics=0"])
         args.concat(["--skip-comments"])
 
         ignore_tables = ActiveRecord::SchemaDumper.ignore_tables
