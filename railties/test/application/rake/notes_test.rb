@@ -87,6 +87,9 @@ module ApplicationTests
 
           assert_equal 6, lines.size
           assert_equal [4], lines.map(&:size).uniq
+
+          log = File.read(Rails.application.config.paths["log"].first)
+          assert_match(/`SOURCE_ANNOTATION_DIRECTORIES` is deprecated/, log)
         end
       end
 

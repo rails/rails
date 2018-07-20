@@ -28,7 +28,7 @@ module Rails
 
         def deprecation_warning
           return if source_annotation_directories.empty?
-          ActiveSupport::Deprecation.warn("`SOURCE_ANNOTATION_DIRECTORIES` will be deprecated in Rails 6.1. You can add default directories by using config.annotations.register_directories instead.")
+          ActiveSupport::Deprecation.warn("`SOURCE_ANNOTATION_DIRECTORIES` is deprecated and will be removed in Rails 6.1. You can add default directories by using config.annotations.register_directories instead.")
         end
 
         def source_annotation_directories
