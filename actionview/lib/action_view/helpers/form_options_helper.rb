@@ -820,7 +820,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def select(method, choices = nil, options = {}, html_options = {}, &block)
-        @template.select(@object_name, method, choices, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.select(@object_name, method, choices, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_select for form builders:
@@ -832,7 +832,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_select(method, collection, value_method, text_method, options = {}, html_options = {})
-        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options))
+        @template.collection_select(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#grouped_collection_select for form builders:
@@ -844,7 +844,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def grouped_collection_select(method, collection, group_method, group_label_method, option_key_method, option_value_method, options = {}, html_options = {})
-        @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_options.merge(html_options))
+        @template.grouped_collection_select(@object_name, method, collection, group_method, group_label_method, option_key_method, option_value_method, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#time_zone_select for form builders:
@@ -856,7 +856,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def time_zone_select(method, priority_zones = nil, options = {}, html_options = {})
-        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_options.merge(html_options))
+        @template.time_zone_select(@object_name, method, priority_zones, objectify_options(options), @default_html_options.merge(html_options))
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_check_boxes for form builders:
@@ -868,7 +868,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_check_boxes(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
-        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.collection_check_boxes(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
 
       # Wraps ActionView::Helpers::FormOptionsHelper#collection_radio_buttons for form builders:
@@ -880,7 +880,7 @@ module ActionView
       #
       # Please refer to the documentation of the base helper for details.
       def collection_radio_buttons(method, collection, value_method, text_method, options = {}, html_options = {}, &block)
-        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_options.merge(html_options), &block)
+        @template.collection_radio_buttons(@object_name, method, collection, value_method, text_method, objectify_options(options), @default_html_options.merge(html_options), &block)
       end
     end
   end
