@@ -672,8 +672,6 @@ module ActionView
       #     <time datetime="2010-11-04T17:55:45+01:00">November 04, 2010 17:55</time>
       #   time_tag Date.yesterday, 'Yesterday'  # =>
       #     <time datetime="2010-11-03">Yesterday</time>
-      #   time_tag Date.today, pubdate: true  # =>
-      #     <time datetime="2010-11-04" pubdate="pubdate">November 04, 2010</time>
       #   time_tag Date.today, datetime: Date.today.strftime('%G-W%V') # =>
       #     <time datetime="2010-W44">November 04, 2010</time>
       #
