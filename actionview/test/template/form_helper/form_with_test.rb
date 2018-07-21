@@ -464,6 +464,23 @@ class FormWithActsLikeFormForTest < FormWithTest
     end
   end
 
+  def test_form_with_with_collection_select
+    post = Post.new
+    def post.active; false; end
+    form_with(model: post) do |f|
+      concat f.collection_select(:active, [true, false], :to_s, :to_s)
+    end
+
+    expected = whole_form("/posts") do
+      "<select name='post[active]' id='post_active'>" \
+      "<option value='true'>true</option>\n" \
+      "<option selected='selected' value='false'>false</option>" \
+      "</select>"
+    end
+
+    assert_dom_equal expected, output_buffer
+  end
+
   def test_form_with_with_collection_radio_buttons
     post = Post.new
     def post.active; false; end

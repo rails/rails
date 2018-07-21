@@ -1658,6 +1658,7 @@ module ActionView
         @nested_child_index = {}
         @object_name, @object, @template, @options = object_name, object, template, options
         @default_options = @options ? @options.slice(:index, :namespace, :skip_default_ids, :allow_method_names_outside_object) : {}
+        @default_html_options = @default_options.except(:skip_default_ids, :allow_method_names_outside_object)
 
         convert_to_legacy_options(@options)
 
