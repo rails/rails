@@ -21,14 +21,24 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
-        ActiveRecord::Base.stubs(:establish_connection)
         ActiveRecord::Base.stub(:connection, @connection) do
-          ActiveRecord::Base.expects(:establish_connection).with(
-            "adapter"            => "postgresql",
-            "database"           => "postgres",
-            "schema_search_path" => "public"
-          )
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [
+                "adapter"            => "postgresql",
+                "database"           => "postgres",
+                "schema_search_path" => "public"
+              ],
+              [
+                "adapter"            => "postgresql",
+                "database"           => "my-app-db"
+              ]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
@@ -78,11 +88,23 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_new_database
-        ActiveRecord::Base.stubs(:establish_connection)
         ActiveRecord::Base.stub(:connection, @connection) do
-          ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [
+                "adapter"            => "postgresql",
+                "database"           => "postgres",
+                "schema_search_path" => "public"
+              ],
+              [
+                @configuration
+              ]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
@@ -207,15 +229,24 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection_to_postgresql_database
-        ActiveRecord::Base.stubs(:establish_connection)
         with_stubbed_connection do
-          ActiveRecord::Base.expects(:establish_connection).with(
-            "adapter"            => "postgresql",
-            "database"           => "postgres",
-            "schema_search_path" => "public"
-          )
-
-          ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [
+                "adapter"            => "postgresql",
+                "database"           => "postgres",
+                "schema_search_path" => "public"
+              ],
+              [
+                "adapter"            => "postgresql",
+                "database"           => "my-app-db"
+              ]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
         end
       end
 
@@ -244,11 +275,23 @@ if current_adapter?(:PostgreSQLAdapter)
       end
 
       def test_establishes_connection
-        ActiveRecord::Base.stubs(:establish_connection)
         with_stubbed_connection do
-          ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-          ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [
+                "adapter"            => "postgresql",
+                "database"           => "postgres",
+                "schema_search_path" => "public"
+              ],
+              [
+                @configuration
+              ]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.purge @configuration
+          end
         end
       end
 

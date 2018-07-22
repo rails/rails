@@ -21,11 +21,17 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_without_database
-        ActiveRecord::Base.stubs(:establish_connection)
         ActiveRecord::Base.stub(:connection, @connection) do
-          ActiveRecord::Base.expects(:establish_connection).
-            with("adapter" => "mysql2", "database" => nil)
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              [ "adapter" => "mysql2", "database" => nil ],
+              [ "adapter" => "mysql2", "database" => "my-app-db" ],
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
@@ -58,12 +64,17 @@ if current_adapter?(:Mysql2Adapter)
       end
 
       def test_establishes_connection_to_database
-        ActiveRecord::Base.stubs(:establish_connection)
-
         ActiveRecord::Base.stub(:connection, @connection) do
-          ActiveRecord::Base.expects(:establish_connection).with(@configuration)
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          assert_called_with(
+            ActiveRecord::Base,
+            :establish_connection,
+            [
+              ["adapter" => "mysql2", "database" => nil],
+              [@configuration]
+            ]
+          ) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration
+          end
         end
       end
 
