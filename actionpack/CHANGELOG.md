@@ -1,3 +1,13 @@
+*   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
+
+    This allows uploaded file objects to be passed directly to `File.read`
+    without raising a `TypeError`:
+
+        uploaded_file = ActionDispatch::Http::UploadedFile.new(tempfile: tmp_file)
+        File.read(uploaded_file)
+
+    *Aaron Kromer*
+
 *   Pass along arguments to underlying `get` method in `follow_redirect!`
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
