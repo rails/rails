@@ -75,6 +75,26 @@ class EnumTest < ActiveRecord::TestCase
     assert_equal books(:ddd), Book.where(read_status: "forgotten").first
   end
 
+  test "string enums can be defined providing a mapping hash" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum cover: { hard: "hard", soft: "soft" }
+    end
+
+    assert_equal "hard", klass.covers["hard"]
+    assert_equal "soft", klass.covers["soft"]
+  end
+
+  test "string enums can be defined providing an array of symbols" do
+    klass = Class.new(ActiveRecord::Base) do
+      self.table_name = "books"
+      enum cover: [:hard, :soft]
+    end
+
+    assert_equal "hard", klass.covers["hard"]
+    assert_equal "soft", klass.covers["soft"]
+  end
+
   test "build from scope" do
     assert_predicate Book.written.build, :written?
     assert_not_predicate Book.written.build, :proposed?
