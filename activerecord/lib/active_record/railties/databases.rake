@@ -407,6 +407,10 @@ namespace :railties do
         if railtie.respond_to?(:paths) && (path = railtie.paths["db/migrate"].first)
           railties[railtie.railtie_name] = path
         end
+
+        unless ENV["MIGRATIONS_PATH"].blank?
+          railties[railtie.railtie_name] = railtie.root + ENV["MIGRATIONS_PATH"]
+        end
       end
 
       on_skip = Proc.new do |name, migration|
