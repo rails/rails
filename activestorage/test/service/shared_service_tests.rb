@@ -53,7 +53,7 @@ module ActiveStorage::Service::SharedServiceTests
     test "downloading in chunks" do
       chunks = []
 
-      @service.download(FIXTURE_KEY) do |chunk|
+      @service.download(@key) do |chunk|
         chunks << chunk
       end
 
