@@ -14,7 +14,8 @@ module ActiveRecord
         when :restrict_with_error
           if load_target
             record = owner.class.human_attribute_name(reflection.name).downcase
-            owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: record)
+            error = owner.errors.add(:base, :'restrict_dependent_destroy.has_one', record: record)
+            raise ActiveRecord::RecordNotDestroyed.new(error[0], owner)
             throw(:abort)
           end
 

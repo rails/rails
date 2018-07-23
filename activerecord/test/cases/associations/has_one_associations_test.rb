@@ -243,6 +243,42 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     I18n.backend.reload!
   end
 
+  def test_restrict_with_error_destroy!
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
+
+    assert_not_nil firm.account
+
+    exception = assert_raise(ActiveRecord::RecordNotDestroyed) do
+      firm.destroy!
+    end
+
+    assert_not_empty firm.errors
+    assert_equal "Cannot delete record because a dependent account exists", exception.message
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert_predicate firm.account, :present?
+  end
+
+  def test_restrict_with_error_with_locale_destroy!
+    I18n.backend = I18n::Backend::Simple.new
+    I18n.backend.store_translations "en", activerecord: { attributes: { restricted_with_error_firm: { account: "firm account" } } }
+    firm = RestrictedWithErrorFirm.create!(name: "restrict")
+    firm.create_account(credit_limit: 10)
+
+    assert_not_nil firm.account
+
+    exception = assert_raise(ActiveRecord::RecordNotDestroyed) do
+      firm.destroy!
+    end
+
+    assert_not_empty firm.errors
+    assert_equal "Cannot delete record because a dependent firm account exists", exception.message
+    assert RestrictedWithErrorFirm.exists?(name: "restrict")
+    assert_predicate firm.account, :present?
+  ensure
+    I18n.backend.reload!
+  end
+
   def test_successful_build_association
     firm = Firm.new("name" => "GlobalMegaCorp")
     firm.save
