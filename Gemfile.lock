@@ -309,7 +309,6 @@ GEM
     marcel (0.3.2)
       mimemagic (~> 0.3.2)
     memoist (0.16.0)
-    metaclass (0.0.4)
     method_source (0.9.0)
     mime-types (3.1)
       mime-types-data (~> 3.2015)
@@ -324,8 +323,6 @@ GEM
       path_expander (~> 1.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
-    mocha (1.5.0)
-      metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.2.4)
     msgpack (1.2.4-java)
@@ -541,7 +538,6 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest-bisect
-  mocha
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0)
