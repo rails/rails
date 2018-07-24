@@ -138,7 +138,7 @@ To test that your method does what it says it does, run the unit tests with `bin
 To see this in action, change to the `test/dummy` directory, fire up a console, and start squawking:
 
 ```bash
-$ bin/rails console
+$ rails console
 >> "Hello World".to_squawk
 => "squawk! Hello World"
 ```
@@ -241,8 +241,8 @@ We can easily generate these models in our "dummy" Rails application by running 
 
 ```bash
 $ cd test/dummy
-$ bin/rails generate model Hickwall last_squawk:string
-$ bin/rails generate model Wickwall last_squawk:string last_tweet:string
+$ rails generate model Hickwall last_squawk:string
+$ rails generate model Wickwall last_squawk:string last_tweet:string
 ```
 
 Now you can create the necessary database tables in your testing database by navigating to your dummy app
@@ -250,7 +250,7 @@ and migrating the database. First, run:
 
 ```bash
 $ cd test/dummy
-$ bin/rails db:migrate
+$ rails db:migrate
 ```
 
 While you are here, change the Hickwall and Wickwall models so that they know that they are supposed to act

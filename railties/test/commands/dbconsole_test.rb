@@ -265,14 +265,14 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[environment\]/, stdout)
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[environment\]/, stdout)
   end
 
   attr_reader :aborted, :output

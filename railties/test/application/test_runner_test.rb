@@ -504,7 +504,7 @@ module ApplicationTests
       create_test_file :models, "post", pass: false, print: false
 
       output = run_test_command("test/models/post_test.rb")
-      expect = %r{Running:\n\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nbin/rails test test/models/post_test.rb:4\n\n\n\n}
+      expect = %r{Running:\n\nF\n\nFailure:\nPostTest#test_truth \[[^\]]+test/models/post_test.rb:6\]:\nwups!\n\nrails test test/models/post_test.rb:4\n\n\n\n}
       assert_match expect, output
     end
 
@@ -553,7 +553,7 @@ module ApplicationTests
       create_test_file :models, "account"
       create_test_file :models, "post", pass: false
       # This specifically verifies TEST for backwards compatibility with rake test
-      # as bin/rails test already supports running tests from a single file more cleanly.
+      # as `rails test` already supports running tests from a single file more cleanly.
       output = Dir.chdir(app_path) { `bin/rake test TEST=test/models/post_test.rb` }
 
       assert_match "PostTest", output, "passing TEST= should run selected test"

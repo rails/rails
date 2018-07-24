@@ -45,8 +45,8 @@ TIP: Ruby 1.8.7 p248 and p249 have marshaling bugs that crash Rails. Ruby Enterp
 
 ### The Update Task
 
-Rails provides the `app:update` task (`rake rails:update` on 4.2 and earlier). After updating the Rails version
-in the `Gemfile`, run this task.
+Rails provides the `app:update` command (`rake rails:update` on 4.2 and earlier). After updating the Rails version
+in the `Gemfile`, run this command.
 This will help you with the creation of new files and changes of old files in an
 interactive session.
 
@@ -85,7 +85,7 @@ For more information on changes made to Rails 5.2 please see the [release notes]
 ### Bootsnap
 
 Rails 5.2 adds bootsnap gem in the [newly generated app's Gemfile](https://github.com/rails/rails/pull/29313).
-The `app:update` task sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
+The `app:update` command sets it up in `boot.rb`. If you want to use it, then add it in the Gemfile,
 otherwise change the `boot.rb` to not use bootsnap.
 
 ### Expiry in signed or encrypted cookie is now embedded in the cookies values
@@ -257,16 +257,18 @@ it.
 
 `debugger` is not supported by Ruby 2.2 which is required by Rails 5. Use `byebug` instead.
 
-### Use bin/rails for running tasks and tests
+### Use `rails` for running tasks and tests
 
 Rails 5 adds the ability to run tasks and tests through `bin/rails` instead of rake. Generally
-these changes are in parallel with rake, but some were ported over altogether.
+these changes are in parallel with rake, but some were ported over altogether. As the `rails`
+command already looks for and runs `bin/rails`, we recommend you to use the shorter `rails`
+over `bin/rails.
 
-To use the new test runner simply type `bin/rails test`.
+To use the new test runner simply type `rails test`.
 
 `rake dev:cache` is now `rails dev:cache`.
 
-Run `bin/rails` to see the list of commands available.
+Run `rails` inside your application's directory to see the list of commands available.
 
 ### `ActionController::Parameters` No Longer Inherits from `HashWithIndifferentAccess`
 

@@ -1214,7 +1214,7 @@ key that's generated into a version control ignored `config/master.key` — Rail
 will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
 key to boot in production, so the credentials can be read.
 
-To edit stored credentials use `bin/rails credentials:edit`.
+To edit stored credentials use `rails credentials:edit`.
 
 By default, this file contains the application's
 `secret_key_base`, but it could also be used to store other credentials such as

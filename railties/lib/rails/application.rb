@@ -444,7 +444,7 @@ module Rails
 
     # Shorthand to decrypt any encrypted configurations or files.
     #
-    # For any file added with <tt>bin/rails encrypted:edit</tt> call +read+ to decrypt
+    # For any file added with <tt>rails encrypted:edit</tt> call +read+ to decrypt
     # the file with the master key.
     # The master key is either stored in +config/master.key+ or <tt>ENV["RAILS_MASTER_KEY"]</tt>.
     #

@@ -673,20 +673,20 @@ content changes.
 
 ### Precompiling Assets
 
-Rails comes bundled with a task to compile the asset manifests and other
+Rails comes bundled with a command to compile the asset manifests and other
 files in the pipeline.
 
 Compiled assets are written to the location specified in `config.assets.prefix`.
 By default, this is the `/assets` directory.
 
-You can call this task on the server during deployment to create compiled
+You can call this command on the server during deployment to create compiled
 versions of your assets directly on the server. See the next section for
 information on compiling locally.
 
-The task is:
+The command is:
 
 ```bash
-$ RAILS_ENV=production bin/rails assets:precompile
+$ RAILS_ENV=production rails assets:precompile
 ```
 
 Capistrano (v2.15.1 and above) includes a recipe to handle this in deployment.
@@ -698,7 +698,7 @@ load 'deploy/assets'
 
 This links the folder specified in `config.assets.prefix` to `shared/assets`.
 If you already use this shared folder you'll need to write your own deployment
-task.
+command.
 
 It is important that this folder is shared between deployments so that remotely
 cached pages referencing the old compiled assets still work for the life of
@@ -728,7 +728,7 @@ Rails.application.config.assets.precompile += %w( admin.js admin.css )
 NOTE. Always specify an expected compiled filename that ends with `.js` or `.css`,
 even if you want to add Sass or CoffeeScript files to the precompile array.
 
-The task also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
+The command also generates a `.sprockets-manifest-randomhex.json` (where `randomhex` is
 a 16-byte random hex string) that contains a list with all your assets and their respective
 fingerprints. This is used by the Rails helper methods to avoid handing the
 mapping requests back to Sprockets. A typical manifest file looks like:
