@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 The Basics of Creating Rails Plugins
 ====================================
@@ -455,7 +455,7 @@ gem "yaffle", git: "https://github.com/rails/yaffle.git"
 After running `bundle install`, your gem functionality will be available to the application.
 
 When the gem is ready to be shared as a formal release, it can be published to [RubyGems](https://rubygems.org).
-For more information about publishing gems to RubyGems, see: [Publishing your gem](http://guides.rubygems.org/publishing).
+For more information about publishing gems to RubyGems, see: [Publishing your gem](https://guides.rubygems.org/publishing).
 
 RDoc Documentation
 ------------------
@@ -481,4 +481,4 @@ $ bundle exec rake rdoc
 
 * [Developing a RubyGem using Bundler](https://github.com/radar/guides/blob/master/gem-development.md)
 * [Using .gemspecs as Intended](http://yehudakatz.com/2010/04/02/using-gemspecs-as-intended/)
-* [Gemspec Reference](http://guides.rubygems.org/specification-reference/)
+* [Gemspec Reference](https://guides.rubygems.org/specification-reference/)
