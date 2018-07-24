@@ -54,7 +54,7 @@ module ActionController #:nodoc:
   # <tt>csrf_meta_tags</tt> in the HTML +head+.
   #
   # Learn more about CSRF attacks and securing your application in the
-  # {Ruby on Rails Security Guide}[http://guides.rubyonrails.org/security.html].
+  # {Ruby on Rails Security Guide}[https://guides.rubyonrails.org/security.html].
   module RequestForgeryProtection
     extend ActiveSupport::Concern
 
