@@ -605,7 +605,7 @@ config.assets.debug = false
 ```
 
 When debug mode is off, Sprockets concatenates and runs the necessary
-preprocessors on all files. With debug mode turned off the manifest above would
+preprocessors on all files. With debug mode turned off the manifest below would
 generate instead:
 
 ```html
