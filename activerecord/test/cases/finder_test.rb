@@ -1028,6 +1028,27 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal dog, Dog.find_by_alias(dog_alias)
   end
 
+  def test_find_by_attribute_that_called_by_super
+    assert_equal authors(:david), Author.find_by_name("David")
+    assert_equal authors(:david), Author.find_by_name!("David")
+  end
+
+  def test_find_by_attribute_method_container
+    Topic.find_by_title!("The First Topic")
+    Topic.find_by_title("The First Topic")
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title!)
+  end
+
+  def test_find_by_attribute_method_container_for_two_model
+    Topic.find_by_title("The First Topic")
+    Author.find_by_name("David")
+    module_with_find_by_methods = Topic.singleton_class.ancestors.first
+    assert_equal true, module_with_find_by_methods.instance_methods.include?(:find_by_title)
+    assert_equal false, module_with_find_by_methods.instance_methods.include?(:find_by_name)
+  end
+
   def test_find_by_one_attribute_that_is_an_alias
     assert_equal topics(:first), Topic.find_by_heading("The First Topic")
     assert_nil Topic.find_by_heading("The First Topic!")
@@ -1078,9 +1099,16 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_dynamic_finder_on_one_attribute_with_conditions_returns_same_results_after_caching
     # ensure this test can run independently of order
-    class << Account; self; end.send(:remove_method, :find_by_credit_limit) if Account.public_methods.include?(:find_by_credit_limit)
+    Account.generated_dynamic_matchers.send(:remove_method, :find_by_credit_limit) if Account.public_methods.include?(:find_by_credit_limit)
     a = Account.where("firm_id = ?", 6).find_by_credit_limit(50)
     assert_equal a, Account.where("firm_id = ?", 6).find_by_credit_limit(50) # find_by_credit_limit has been cached
+  end
+
+  def test_dynamic_finder_can_be_removed_after_caching
+    a = Account.where("firm_id = ?", 6).find_by_credit_limit(50)
+    assert Account.public_methods.include?(:find_by_credit_limit)
+    Account.generated_dynamic_matchers.send(:remove_method, :find_by_credit_limit)
+    assert_not Account.public_methods.include?(:find_by_credit_limit)
   end
 
   def test_find_by_one_attribute_with_several_options
