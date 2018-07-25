@@ -47,4 +47,30 @@ class SQLite3QuotingTest < ActiveRecord::SQLite3TestCase
 
     assert_equal "'2000-01-01 12:30:00.999999'", @conn.quote(type.serialize(value))
   end
+
+  def test_quoted_time_dst_utc
+    with_env_tz "America/New_York" do
+      with_timezone_config default: :utc do
+        t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+
+        expected = t.change(year: 2000, month: 1, day: 1)
+        expected = expected.getutc.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+
+        assert_equal expected, @conn.quoted_time(t)
+      end
+    end
+  end
+
+  def test_quoted_time_dst_local
+    with_env_tz "America/New_York" do
+      with_timezone_config default: :local do
+        t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+
+        expected = t.change(year: 2000, month: 1, day: 1)
+        expected = expected.getlocal.to_s(:db).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+
+        assert_equal expected, @conn.quoted_time(t)
+      end
+    end
+  end
 end
