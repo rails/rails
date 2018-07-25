@@ -1,3 +1,18 @@
+*  Method calls on singular attachments return `nil` when no file is attached.
+
+   Previously, assuming the following User model, `user.avatar.filename` would 
+   raise a `Module::DelegationError` if no avatar was attached:
+
+   ```ruby
+   class User < ApplicationRecord
+     has_one_attached :avatar
+   end
+   ```
+   
+   They now return `nil`.
+
+   *Matthew Tanous*
+
 *  The mirror service supports direct uploads.
 
    New files are directly uploaded to the primary service. When a
