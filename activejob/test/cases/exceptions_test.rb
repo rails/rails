@@ -2,6 +2,7 @@
 
 require "helper"
 require "jobs/retry_job"
+require "models/person"
 
 class ExceptionsTest < ActiveJob::TestCase
   setup do
@@ -111,6 +112,13 @@ class ExceptionsTest < ActiveJob::TestCase
           end
         end
       end
+    end
+  end
+
+  test "successfully retry job throwing DeserializationError" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later Person.new(404), 5
+      assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
     end
   end
 end
