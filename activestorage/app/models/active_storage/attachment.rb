@@ -20,7 +20,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
     delete
-    blob.purge
+    blob.purge if blob.attachments.blank?
   end
 
   # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
