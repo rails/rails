@@ -1322,7 +1322,7 @@ class ResourcesTest < ActionController::TestCase
     def assert_resource_allowed_routes(controller, options, shallow_options, allowed, not_allowed, path = controller)
       shallow_path = "#{path}/#{shallow_options[:id]}"
       format = options[:format] && ".#{options[:format]}"
-      options.merge!(controller: controller)
+      options[:controller] = controller
       shallow_options.merge!(options)
 
       assert_whether_allowed(allowed, not_allowed, options,         "index",    "#{path}#{format}",               :get)
@@ -1336,7 +1336,7 @@ class ResourcesTest < ActionController::TestCase
 
     def assert_singleton_resource_allowed_routes(controller, options, allowed, not_allowed, path = controller.singularize)
       format = options[:format] && ".#{options[:format]}"
-      options.merge!(controller: controller)
+      options[:controller] = controller
 
       assert_whether_allowed(allowed, not_allowed, options, "new",      "#{path}/new#{format}",   :get)
       assert_whether_allowed(allowed, not_allowed, options, "create",   "#{path}#{format}",       :post)

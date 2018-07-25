@@ -373,9 +373,7 @@ module Rails
       @config ||= Application::Configuration.new(self.class.find_root(self.class.called_from))
     end
 
-    def config=(configuration) #:nodoc:
-      @config = configuration
-    end
+    attr_writer :config
 
     # Returns secrets added to config/secrets.yml.
     #
@@ -413,9 +411,7 @@ module Rails
       end
     end
 
-    def secrets=(secrets) #:nodoc:
-      @secrets = secrets
-    end
+    attr_writer :secrets
 
     # The secret_key_base is used as the input secret to the application's key generator, which in turn
     # is used to create all MessageVerifiers/MessageEncryptors, including the ones that sign and encrypt cookies.

@@ -9,12 +9,12 @@ class AppLoaderTest < ActiveSupport::TestCase
     @loader ||= Class.new do
       extend Rails::AppLoader
 
-      def self.exec_arguments
-        @exec_arguments
-      end
+      class << self
+        attr_accessor :exec_arguments
 
-      def self.exec(*args)
-        @exec_arguments = args
+        def exec(*args)
+          self.exec_arguments = args
+        end
       end
     end
   end
