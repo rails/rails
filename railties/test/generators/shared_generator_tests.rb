@@ -86,10 +86,10 @@ module SharedGeneratorTests
     template = %{ say "It works!" }.dup
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    check_open = -> *args do
+    check_open = -> *args {
       assert_equal [ path, "Accept" => "application/x-thor-template" ], args
       template
-    end
+    }
 
     generator([destination_root], template: path).stub(:open, check_open, template) do
       generator.stub :bundle_command, nil do

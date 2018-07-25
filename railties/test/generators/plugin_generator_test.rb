@@ -740,10 +740,10 @@ class PluginGeneratorTest < Rails::Generators::TestCase
     template = %{ after_bundle { run "echo ran after_bundle" } }.dup
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    check_open = -> *args do
+    check_open = -> *args {
       assert_equal [ path, "Accept" => "application/x-thor-template" ], args
       template
-    end
+    }
 
     sequence = ["echo ran after_bundle"]
     @sequence_step ||= 0

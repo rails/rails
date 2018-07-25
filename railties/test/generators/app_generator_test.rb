@@ -971,10 +971,10 @@ class AppGeneratorTest < Rails::Generators::TestCase
     template = %{ after_bundle { run 'echo ran after_bundle' } }.dup
     template.instance_eval "def read; self; end" # Make the string respond to read
 
-    check_open = -> *args do
+    check_open = -> *args {
       assert_equal [ path, "Accept" => "application/x-thor-template" ], args
       template
-    end
+    }
 
     sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
