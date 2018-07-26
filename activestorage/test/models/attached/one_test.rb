@@ -8,7 +8,6 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
 
   setup do
     @user = User.create!(name: "Josh")
-    @another_user = User.create(name: "John")
   end
 
   teardown { ActiveStorage::Blob.all.each(&:delete) }
@@ -416,9 +415,11 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
   test "purging an attachment with a shared blob" do
     create_blob(filename: "funky.jpg").tap do |blob|
       @user.avatar.attach blob
-      @another_user.avatar.attach blob
       assert @user.avatar.attached?
-      assert @another_user.avatar.attached?
+
+      another_user = User.create!(name: "John")
+      another_user.avatar.attach blob
+      assert another_user.avatar.attached?
 
       @user.avatar.purge
       assert_not @user.avatar.attached?
@@ -439,6 +440,25 @@ class ActiveStorage::OneAttachedTest < ActiveSupport::TestCase
       assert_not @user.avatar.attached?
       assert_not ActiveStorage::Blob.exists?(blob.id)
       assert_not ActiveStorage::Blob.service.exist?(blob.key)
+    end
+  end
+
+  test "purging an attachment later with shared blob" do
+    create_blob(filename: "funky.jpg").tap do |blob|
+      @user.avatar.attach blob
+      assert @user.avatar.attached?
+
+      another_user = User.create!(name: "John")
+      another_user.avatar.attach blob
+      assert another_user.avatar.attached?
+
+      perform_enqueued_jobs do
+        @user.avatar.purge_later
+      end
+
+      assert_not @user.avatar.attached?
+      assert ActiveStorage::Blob.exists?(blob.id)
+      assert ActiveStorage::Blob.service.exist?(blob.key)
     end
   end
 
