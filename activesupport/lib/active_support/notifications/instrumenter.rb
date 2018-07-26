@@ -69,12 +69,14 @@ module ActiveSupport
         @allocation_count_finish = 0
       end
 
+      # Record information at the time this event starts
       def start!
         @time = now
         @cpu_time_start = now_cpu
         @allocation_count_start = now_allocations
       end
 
+      # Record information at the time this event finishes
       def finish!
         @cpu_time_finish = now_cpu
         @end = now

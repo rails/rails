@@ -27,15 +27,6 @@ module ActiveSupport
         subscriber
       end
 
-      def subscribe_event(pattern = nil, &block)
-        subscriber = Subscribers.event_object_subscriber pattern, block
-        synchronize do
-          @subscribers << subscriber
-          @listeners_for.clear
-        end
-        subscriber
-      end
-
       def unsubscribe(subscriber_or_name)
         synchronize do
           case subscriber_or_name
@@ -80,12 +71,16 @@ module ActiveSupport
       module Subscribers # :nodoc:
         def self.new(pattern, listener)
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
-            subscriber = Evented.new pattern, listener
+            subscriber_class = Evented
           else
-            subscriber = Timed.new pattern, listener
+            if listener.respond_to?(:arity) && listener.arity == 1
+              subscriber_class = EventObject
+            else
+              subscriber_class = Timed
+            end
           end
 
-          wrap_all pattern, subscriber
+          wrap_all pattern, subscriber_class.new(pattern, listener)
         end
 
         def self.event_object_subscriber(pattern, block)

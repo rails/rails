@@ -29,7 +29,7 @@ module Notifications
   class SubscribeEventObjects < TestCase
     def test_subscribe_events
       events = []
-      @notifier.subscribe_event do |event|
+      @notifier.subscribe do |event|
         events << event
       end
 
@@ -42,16 +42,23 @@ module Notifications
       assert_operator event.duration, :>, 0
     end
 
-    def test_subscribe_via_subscribe_method
-      events = []
-      @notifier.subscribe do |event|
-        events << event
+    def test_subscribe_via_top_level_api
+      old_notifier = ActiveSupport::Notifications.notifier
+      ActiveSupport::Notifications.notifier = ActiveSupport::Notifications::Fanout.new
+
+      event = nil
+      ActiveSupport::Notifications.subscribe("foo") do |e|
+        event = e
       end
 
-      ActiveSupport::Notifications.instrument("foo")
-      event = events.first
-      assert event, "should have an event"
-      assert_operator event.allocations, :>, 0
+      ActiveSupport::Notifications.instrument("foo") do
+        100.times { Object.new } # allocate at least 100 objects
+      end
+
+      assert event
+      assert_operator event.allocations, :>=, 100
+    ensure
+      ActiveSupport::Notifications.notifier = old_notifier
     end
   end
 
