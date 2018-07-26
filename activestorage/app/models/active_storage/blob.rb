@@ -176,6 +176,7 @@ class ActiveStorage::Blob < ActiveRecord::Base
   def purge
     destroy
     delete
+  rescue ActiveRecord::InvalidForeignKey
   end
 
   # Enqueues an ActiveStorage::PurgeJob job that'll call +purge+. This is the recommended way to purge blobs when the call
