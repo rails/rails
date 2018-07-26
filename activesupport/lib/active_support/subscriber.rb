@@ -88,7 +88,7 @@ module ActiveSupport
     end
 
     def finish(name, id, payload)
-      event     = event_stack.pop
+      event = event_stack.pop
       event.finish!
       event.payload.merge!(payload)
 
