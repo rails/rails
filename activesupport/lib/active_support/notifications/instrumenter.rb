@@ -69,26 +69,34 @@ module ActiveSupport
         @allocation_count_finish = 0
       end
 
+      # Record information at the time this event starts
       def start!
         @time = now
         @cpu_time_start = now_cpu
         @allocation_count_start = now_allocations
       end
 
+      # Record information at the time this event finishes
       def finish!
-        @end = now
         @cpu_time_finish = now_cpu
+        @end = now
         @allocation_count_finish = now_allocations
       end
 
+      # Returns the CPU time (in milliseconds) passed since the call to
+      # +start!+ and the call to +finish!+
       def cpu_time
-        @cpu_time_finish - @cpu_time_start
+        (@cpu_time_finish - @cpu_time_start) * 1000
       end
 
+      # Returns the idle time time (in milliseconds) passed since the call to
+      # +start!+ and the call to +finish!+
       def idle_time
         duration - cpu_time
       end
 
+      # Returns the number of allocations made since the call to +start!+ and
+      # the call to +finish!+
       def allocations
         @allocation_count_finish - @allocation_count_start
       end
