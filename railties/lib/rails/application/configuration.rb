@@ -60,6 +60,7 @@ module Rails
         @content_security_policy_nonce_generator = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
+        @feature_policy                          = nil
       end
 
       def load_defaults(target_version)
@@ -261,6 +262,14 @@ module Rails
           @content_security_policy = ActionDispatch::ContentSecurityPolicy.new(&block)
         else
           @content_security_policy
+        end
+      end
+
+      def feature_policy(&block)
+        if block_given?
+          @feature_policy = ActionDispatch::FeaturePolicy.new(&block)
+        else
+          @feature_policy
         end
       end
 

@@ -65,6 +65,7 @@ module Rails
 
           unless config.api_only
             middleware.use ::ActionDispatch::ContentSecurityPolicy::Middleware
+            middleware.use ::ActionDispatch::FeaturePolicy::Middleware
           end
 
           middleware.use ::Rack::Head
