@@ -27,6 +27,15 @@ module ActiveSupport
         subscriber
       end
 
+      def subscribe_event(pattern = nil, &block)
+        subscriber = Subscribers.event_object_subscriber pattern, block
+        synchronize do
+          @subscribers << subscriber
+          @listeners_for.clear
+        end
+        subscriber
+      end
+
       def unsubscribe(subscriber_or_name)
         synchronize do
           case subscriber_or_name
@@ -76,6 +85,14 @@ module ActiveSupport
             subscriber = Timed.new pattern, listener
           end
 
+          wrap_all pattern, subscriber
+        end
+
+        def self.event_object_subscriber(pattern, block)
+          wrap_all pattern, EventObject.new(pattern, block)
+        end
+
+        def self.wrap_all(pattern, subscriber)
           unless pattern
             AllMessages.new(subscriber)
           else
@@ -128,6 +145,27 @@ module ActiveSupport
             started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
+        end
+
+        class EventObject < Evented
+          def start(name, id, payload)
+            stack = Thread.current[:_event_stack] ||= []
+            event = build_event name, id, payload
+            event.start!
+            stack.push event
+          end
+
+          def finish(name, id, payload)
+            stack = Thread.current[:_event_stack]
+            event = stack.pop
+            event.finish!
+            @delegate.call event
+          end
+
+          private
+            def build_event(name, id, payload)
+              ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
+            end
         end
 
         class AllMessages # :nodoc:

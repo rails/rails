@@ -76,8 +76,8 @@ module ActiveSupport
       end
 
       def finish!
-        @end = now
         @cpu_time_finish = now_cpu
+        @end = now
         @allocation_count_finish = now_allocations
       end
 

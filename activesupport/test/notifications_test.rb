@@ -26,6 +26,23 @@ module Notifications
     end
   end
 
+  class SubscribeEventObjects < TestCase
+    def test_subscribe_events
+      events = []
+      @notifier.subscribe_event do |event|
+        events << event
+      end
+
+      ActiveSupport::Notifications.instrument("foo")
+      event = events.first
+      assert event, "should have an event"
+      assert_operator event.allocations, :>, 0
+      assert_operator event.cpu_time, :>, 0
+      assert_operator event.idle_time, :>, 0
+      assert_operator event.duration, :>, 0
+    end
+  end
+
   class SubscribedTest < TestCase
     def test_subscribed
       name     = "foo"
