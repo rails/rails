@@ -1,5 +1,5 @@
 *   Add "event object" support to the notification system.
-    Before this change, end users were forced to create hand made arsenal
+    Before this change, end users were forced to create hand made artisanal
     event objects on their own, like this:
 
         ActiveSupport::Notifications.subscribe('wait') do |*args|
