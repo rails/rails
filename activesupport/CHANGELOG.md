@@ -1,3 +1,7 @@
+*   Add cpu_time, idle_time, and allocations to Event
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   RedisCacheStore: support key expiry in increment/decrement.
 
     Pass `:expires_in` to `#increment` and `#decrement` to set a Redis EXPIRE on the key.
