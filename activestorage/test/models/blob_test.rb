@@ -174,10 +174,10 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
     assert_not ActiveStorage::Blob.service.exist?(variant.key)
   end
 
-  test "purge fails when attachments exist" do
+  test "purge does nothing when attachments exist" do
     create_blob.tap do |blob|
       User.create! name: "DHH", avatar: blob
-      assert_nothing_raised { blob.purge }
+      assert_no_difference(-> { ActiveStorage::Blob.count }) { blob.purge }
       assert ActiveStorage::Blob.service.exist?(blob.key)
     end
   end
