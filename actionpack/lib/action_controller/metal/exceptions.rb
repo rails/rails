@@ -51,6 +51,24 @@ module ActionController
   class UnknownFormat < ActionControllerError #:nodoc:
   end
 
+  # Raised when a nested respond_to is triggered and the content types of each
+  # are incompatible. For exampe:
+  #
+  #  respond_to do |outer_type|
+  #    outer_type.js do
+  #      respond_to do |inner_type|
+  #        inner_type.html { render body: "HTML" }
+  #      end
+  #    end
+  #  end
+  class RespondToMismatchError < ActionControllerError
+    DEFAULT_MESSAGE = "respond_to was called multiple times and matched with conflicting formats in this action. Please note that you may only call respond_to and match on a single format per action."
+
+    def initialize(message = nil)
+      super(message || DEFAULT_MESSAGE)
+    end
+  end
+
   class MissingExactTemplate < UnknownFormat #:nodoc:
   end
 end
