@@ -187,7 +187,7 @@ module ActiveRecord
       end
 
       relation = Relation.new(klass)
-      relation.merge!(where: ["foo = ?", "bar"]) # rubocop:disable Performance/RedundantMerge
+      relation.merge!(where: ["foo = ?", "bar"])
       assert_equal Relation::WhereClause.new(["foo = bar"]), relation.where_clause
     end
 
