@@ -11,6 +11,15 @@ module AbstractController
   class ActionNotFound < StandardError
   end
 
+  # Raised when a nested respond_to is triggered.
+  class DoubleRespondToError < StandardError
+    DEFAULT_MESSAGE = "respond_to was called multiple times and matched with conflicting formats in this action. Please note that you may only call respond_to and match on a single format per action."
+
+    def initialize(message = nil)
+      super(message || DEFAULT_MESSAGE)
+    end
+  end
+
   # AbstractController::Base is a low-level API. Nobody should be
   # using it directly, and subclasses (like ActionController::Base) are
   # expected to provide their own +render+ method, since rendering means

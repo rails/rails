@@ -197,10 +197,14 @@ module ActionController #:nodoc:
       yield collector if block_given?
 
       if format = collector.negotiate_format(request)
-        _process_format(format)
-        _set_rendered_content_type format
-        response = collector.response
-        response.call if response
+        if self.content_type && self.content_type != format.to_s
+          raise ::AbstractController::DoubleRespondToError
+        else
+          _process_format(format)
+          _set_rendered_content_type format
+          response = collector.response
+          response.call if response
+        end
       else
         raise ActionController::UnknownFormat
       end
