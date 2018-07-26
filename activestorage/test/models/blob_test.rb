@@ -177,7 +177,7 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
   test "purge fails when attachments exist" do
     create_blob.tap do |blob|
       User.create! name: "DHH", avatar: blob
-      assert_raises(ActiveRecord::InvalidForeignKey) { blob.purge }
+      assert_nothing_raised { blob.purge }
       assert ActiveStorage::Blob.service.exist?(blob.key)
     end
   end
