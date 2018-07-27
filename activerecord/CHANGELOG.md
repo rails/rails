@@ -1,3 +1,9 @@
+*   PostgreSQL: Support new relkind for partitioned tables.
+
+    Fixes #33008.
+
+    *Yannick Schutz*
+
 *   Fix default value for mysql time types with specified precision.
 
     *Nikolay Kondratyev*

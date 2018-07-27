@@ -751,7 +751,7 @@ module ActiveRecord
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
-            scope[:type] ||= "'r','v','m','f'" # (r)elation/table, (v)iew, (m)aterialized view, (f)oreign table
+            scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
             sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
@@ -765,7 +765,7 @@ module ActiveRecord
             type = \
               case type
               when "BASE TABLE"
-                "'r'"
+                "'r','p'"
               when "VIEW"
                 "'v','m'"
               when "FOREIGN TABLE"
