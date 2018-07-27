@@ -105,20 +105,16 @@ class HeaderTest < ActiveSupport::TestCase
   end
 
   test "#merge! headers with mutation" do
-    # rubocop:disable Performance/RedundantMerge
     @headers.merge!("Host" => "http://example.test",
                     "Content-Type" => "text/html")
-    # rubocop:enable Performance/RedundantMerge
     assert_equal({ "HTTP_HOST" => "http://example.test",
                   "CONTENT_TYPE" => "text/html",
                   "HTTP_REFERER" => "/some/page" }, @headers.env)
   end
 
   test "#merge! env with mutation" do
-    # rubocop:disable Performance/RedundantMerge
     @headers.merge!("HTTP_HOST" => "http://first.com",
                     "CONTENT_TYPE" => "text/html")
-    # rubocop:enable Performance/RedundantMerge
     assert_equal({ "HTTP_HOST" => "http://first.com",
                   "CONTENT_TYPE" => "text/html",
                   "HTTP_REFERER" => "/some/page" }, @headers.env)
