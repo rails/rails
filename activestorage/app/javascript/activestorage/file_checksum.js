@@ -39,7 +39,7 @@ export class FileChecksum {
   }
 
   readNextChunk() {
-    if (this.chunkIndex < this.chunkCount || this.chunkIndex == 0 && this.chunkCount == 0) {
+    if (this.chunkIndex < this.chunkCount || (this.chunkIndex == 0 && this.chunkCount == 0)) {
       const start = this.chunkIndex * this.chunkSize
       const end = Math.min(start + this.chunkSize, this.file.size)
       const bytes = fileSlice.call(this.file, start, end)
