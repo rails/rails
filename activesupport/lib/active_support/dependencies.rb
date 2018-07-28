@@ -79,6 +79,15 @@ module ActiveSupport #:nodoc:
     # to allow arbitrary constants to be marked for unloading.
     mattr_accessor :explicitly_unloadable_constants, default: []
 
+    # The logger is used for generating information on the action run-time
+    # (including benchmarking) if available. Can be set to nil for no logging.
+    # Compatible with both Ruby's own Logger and Log4r loggers.
+    mattr_accessor :logger
+
+    # Set to +true+ to enable logging of const_missing and file loads.
+    mattr_accessor :log_activity
+    self.log_activity = false
+
     # The WatchStack keeps a stack of the modules being watched as files are
     # loaded. If a file in the process of being loaded (parent.rb) triggers the
     # load of another file (child.rb) the stack will ensure that child.rb
@@ -337,6 +346,7 @@ module ActiveSupport #:nodoc:
     end
 
     def clear
+      log_call
       Dependencies.unload_interlock do
         loaded.clear
         loading.clear
@@ -345,6 +355,7 @@ module ActiveSupport #:nodoc:
     end
 
     def require_or_load(file_name, const_path = nil)
+      log_call file_name, const_path
       file_name = $` if file_name =~ /\.rb\z/
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
@@ -360,6 +371,8 @@ module ActiveSupport #:nodoc:
 
         begin
           if load?
+            log "loading #{file_name}"
+
             # Enable warnings if this file has not been loaded before and
             # warnings_on_first_load is set.
             load_args = ["#{file_name}.rb"]
@@ -371,6 +384,7 @@ module ActiveSupport #:nodoc:
               enable_warnings { result = load_file(*load_args) }
             end
           else
+            log "requiring #{file_name}"
             result = require file_name
           end
         rescue Exception
@@ -464,6 +478,7 @@ module ActiveSupport #:nodoc:
     # set of names that the file at +path+ may define. See
     # +loadable_constants_for_path+ for more details.
     def load_file(path, const_paths = loadable_constants_for_path(path))
+      log_call path, const_paths
       const_paths = [const_paths].compact unless const_paths.is_a? Array
       parent_paths = const_paths.collect { |const_path| const_path[/.*(?=::)/] || ::Object }
 
@@ -474,6 +489,7 @@ module ActiveSupport #:nodoc:
 
       autoloaded_constants.concat newly_defined_paths unless load_once_path?(path)
       autoloaded_constants.uniq!
+      log "loading #{path} defined #{newly_defined_paths * ', '}" unless newly_defined_paths.empty?
       result
     end
 
@@ -487,6 +503,8 @@ module ActiveSupport #:nodoc:
     # it is not possible to load the constant into from_mod, try its parent
     # module using +const_missing+.
     def load_missing_constant(from_mod, const_name)
+      log_call from_mod, const_name
+
       unless qualified_const_defined?(from_mod.name) && Inflector.constantize(from_mod.name).equal?(from_mod)
         raise ArgumentError, "A copy of #{from_mod} has been removed from the module tree but is still active!"
       end
@@ -650,6 +668,8 @@ module ActiveSupport #:nodoc:
     # exception, any new constants are regarded as being only partially defined
     # and will be removed immediately.
     def new_constants_in(*descs)
+      log_call(*descs)
+
       constant_watch_stack.watch_namespaces(descs)
       success = false
 
@@ -659,9 +679,11 @@ module ActiveSupport #:nodoc:
       ensure
         new_constants = constant_watch_stack.new_constants
 
+        log "New constants: #{new_constants * ', '}"
         return new_constants if success
 
         # Remove partially loaded constants.
+        log "Error during loading, removing partially loaded constants "
         new_constants.each { |c| remove_constant(c) }
       end
     end
@@ -710,6 +732,8 @@ module ActiveSupport #:nodoc:
         parent = constantize(parent_name)
       end
 
+      log "removing constant #{const}"
+
       # In an autoloaded user.rb like this
       #
       #   autoload :Foo, 'foo'
@@ -731,6 +755,7 @@ module ActiveSupport #:nodoc:
           constantized = parent.const_get(to_remove, false)
         rescue NameError
           # The constant is no longer reachable, just skip it.
+          log "the constant #{const} is not reachable anymore, skipping"
           return
         else
           constantized.before_remove_const if constantized.respond_to?(:before_remove_const)
@@ -741,8 +766,27 @@ module ActiveSupport #:nodoc:
         parent.instance_eval { remove_const to_remove }
       rescue NameError
         # The constant is no longer reachable, just skip it.
+        log "the constant #{const} is not reachable anymore, skipping"
       end
     end
+
+    protected
+      def log_call(*args)
+        if log_activity?
+          arg_str = args.collect(&:inspect) * ', '
+          /in `([a-z_\?\!]+)'/ =~ caller(1).first
+          selector = $1 || '<unknown>'
+          log "called #{selector}(#{arg_str})"
+        end
+      end
+
+      def log(msg)
+        logger.debug "Dependencies: #{msg}" if log_activity?
+      end
+
+      def log_activity?
+        logger && log_activity
+      end
   end
 end
 
