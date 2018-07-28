@@ -177,8 +177,21 @@ class LogSubscriberTest < ActiveRecord::TestCase
 
     logger = TestDebugLogSubscriber.new
     logger.sql(Event.new(0, sql: "hi mom!"))
+    assert_equal 2, @logger.logged(:debug).size
     assert_match(/↳/, @logger.logged(:debug).last)
   ensure
+    ActiveRecord::Base.verbose_query_logs = false
+  end
+
+  def test_verbose_query_with_ignored_callstack
+    ActiveRecord::Base.verbose_query_logs = true
+    ActiveRecord::LogSubscriber.ignored_callstack_paths.push("/")
+    logger = TestDebugLogSubscriber.new
+    logger.sql(Event.new(0, sql: "hi mom!"))
+    assert_equal 1, @logger.logged(:debug).size
+    assert_no_match(/↳/, @logger.logged(:debug).last)
+  ensure
+    ActiveRecord::LogSubscriber.ignored_callstack_paths.delete("/")
     ActiveRecord::Base.verbose_query_logs = false
   end
 

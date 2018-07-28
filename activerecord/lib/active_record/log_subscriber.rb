@@ -100,9 +100,10 @@ module ActiveRecord
       end
 
       def log_query_source
-        source_line, line_number = extract_callstack(caller_locations)
+        line = extract_callstack(caller_locations)
 
-        if source_line
+        if line
+          source_line, line_number = line.path, line.lineno
           if defined?(::Rails.root)
             app_root = "#{::Rails.root}/"
             source_line = source_line.sub(app_root, "")
@@ -113,23 +114,19 @@ module ActiveRecord
       end
 
       def extract_callstack(callstack)
-        line = callstack.find do |frame|
+        callstack.find do |frame|
           frame.absolute_path && !ignored_callstack(frame.absolute_path)
         end
-
-        offending_line = line || callstack.first
-
-        [
-          offending_line.path,
-          offending_line.lineno
-        ]
       end
 
       RAILS_GEM_ROOT = File.expand_path("../../..", __dir__) + "/"
 
+      class_attribute :ignored_callstack_paths, default: [RAILS_GEM_ROOT, RbConfig::CONFIG["rubylibdir"]]
+
       def ignored_callstack(path)
-        path.start_with?(RAILS_GEM_ROOT) ||
-        path.start_with?(RbConfig::CONFIG["rubylibdir"])
+        ignored_callstack_paths.any? do |ignored_path|
+          path.start_with?(ignored_path)
+        end
       end
   end
 end
