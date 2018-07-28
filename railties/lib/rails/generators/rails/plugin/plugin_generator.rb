@@ -385,11 +385,11 @@ task default: :test
       end
 
       def valid_const?
-        if original_name =~ /-\d/
+        if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
-        elsif original_name =~ /[^\w-]+/
+        elsif /[^\w-]+/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters."
-        elsif camelized =~ /^\d/
+        elsif /^\d/.match?(camelized)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a " \

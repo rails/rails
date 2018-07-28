@@ -81,7 +81,7 @@ module ActiveRecord
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
-        if config =~ SIMPLE_INT
+        if SIMPLE_INT.match?(config)
           config.to_i
         else
           config
