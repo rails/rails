@@ -8,7 +8,21 @@ require "models/speedometer"
 require "models/dashboard"
 
 class PresenceValidationTest < ActiveRecord::TestCase
-  class Boy < Man; end
+  class NullFace
+    def blank?
+      true
+    end
+
+    def mark_for_destruction?
+      false
+    end
+  end
+
+  class Boy < Man
+    def face
+      super || NullFace.new
+    end
+  end
 
   repair_validations(Boy)
 
@@ -100,6 +114,14 @@ class PresenceValidationTest < ActiveRecord::TestCase
       interest = Interest.new
       interest.save!
       assert_not interest.valid?(:required_name)
+    end
+  end
+
+  def test_validates_presence_of_null_object
+    repair_validations(Boy) do
+      Boy.validates_presence_of(:face)
+      boy = Boy.new
+      assert_not_predicate boy, :valid?
     end
   end
 end
