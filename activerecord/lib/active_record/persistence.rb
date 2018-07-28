@@ -516,7 +516,7 @@ module ActiveRecord
       increment(attribute, by)
       change = public_send(attribute) - (attribute_in_database(attribute.to_s) || 0)
       self.class.update_counters(id, attribute => change, touch: touch)
-      clear_attribute_change(attribute) # eww
+      clear_attribute_change(attribute) if persisted?
       self
     end
 

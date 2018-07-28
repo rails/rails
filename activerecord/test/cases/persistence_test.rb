@@ -23,6 +23,8 @@ require "models/ship"
 require "models/toy"
 require "models/admin"
 require "models/admin/user"
+require "models/window"
+require "models/pane"
 require "rexml/document"
 
 class PersistenceTest < ActiveRecord::TestCase
@@ -228,6 +230,12 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_equal 2, topic.reload.replies_count
     assert_operator previously_updated_at, :<, topic.updated_at
     assert_operator previously_written_on, :<, topic.written_on
+  end
+
+  test "increment! keeps attribute change when record is not persisted" do
+    pane = Pane.create(name: "window 1", window_attributes: { name: "pane 1" })
+    pane.update(window_attributes: { name: "pane 2" })
+    assert_equal 1, Window.last.panes_count
   end
 
   def test_destroy_all
