@@ -100,33 +100,21 @@ module ActiveRecord
       end
 
       def log_query_source
-        line = extract_callstack(caller_locations)
+        location = extract_query_source_location(caller_locations)
 
-        if line
-          source_line, line_number = line.path, line.lineno
-          if defined?(::Rails.root)
-            app_root = "#{::Rails.root}/"
-            source_line = source_line.sub(app_root, "")
-          end
+        if location
+          source = "#{location.path}:#{location.lineno}"
+          source = source.sub("#{::Rails.root}/", "") if defined?(::Rails.root)
 
-          logger.debug("  ↳ #{ source_line }:#{ line_number }")
+          logger.debug("  ↳ #{source}")
         end
       end
 
-      def extract_callstack(callstack)
-        callstack.find do |frame|
-          frame.absolute_path && !ignored_callstack(frame.absolute_path)
-        end
-      end
+      RAILS_GEM_ROOT  = File.expand_path("../../..", __dir__) + "/"
+      PATHS_TO_IGNORE = /\A(#{RAILS_GEM_ROOT}|#{RbConfig::CONFIG["rubylibdir"]})/
 
-      RAILS_GEM_ROOT = File.expand_path("../../..", __dir__) + "/"
-
-      class_attribute :ignored_callstack_paths, default: [RAILS_GEM_ROOT, RbConfig::CONFIG["rubylibdir"]]
-
-      def ignored_callstack(path)
-        ignored_callstack_paths.any? do |ignored_path|
-          path.start_with?(ignored_path)
-        end
+      def extract_query_source_location(locations)
+        locations.find { |line| line.absolute_path && !line.absolute_path.match?(PATHS_TO_IGNORE) }
       end
   end
 end
