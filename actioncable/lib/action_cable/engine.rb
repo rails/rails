@@ -53,8 +53,10 @@ module ActionCable
 
     initializer "action_cable.set_work_hooks" do |app|
       ActiveSupport.on_load(:action_cable) do
+        work_executor = app.config.reload_classes_only_on_change ? app.reloader : app.executor
+
         ActionCable::Server::Worker.set_callback :work, :around, prepend: true do |_, inner|
-          app.executor.wrap do
+          work_executor.wrap do
             # If we took a while to get the lock, we may have been halted
             # in the meantime. As we haven't started doing any real work
             # yet, we should pretend that we never made it off the queue.
