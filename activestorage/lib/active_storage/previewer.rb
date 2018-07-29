@@ -4,8 +4,8 @@ require "active_storage/downloading"
 
 module ActiveStorage
   # This is an abstract base class for previewers, which generate images from blobs. See
-  # ActiveStorage::Previewer::PDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for examples of
-  # concrete subclasses.
+  # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
+  # examples of concrete subclasses.
   class Previewer
     include Downloading
 
