@@ -89,8 +89,8 @@ module ActiveRecord
         end
 
         def update_after_replace_counter_called
-          if (after_repace_counter_called = owner.instance_variable_get(:@_after_replace_counter_called))
-            after_repace_counter_called[reflection.foreign_key] = true
+          if (after_replace_counter_called = owner.instance_variable_get(:@_after_replace_counter_called))
+            after_replace_counter_called[reflection.foreign_key] = true
           else
             owner.instance_variable_set(:@_after_replace_counter_called, reflection.foreign_key => true)
           end
