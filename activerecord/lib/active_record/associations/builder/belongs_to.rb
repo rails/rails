@@ -35,7 +35,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           cache_column = reflection.counter_cache_column
 
           @_after_replace_counter_called ||= {}
-          if @_after_replace_counter_called.has_key?(foreign_key)
+          if @_after_replace_counter_called.key?(foreign_key)
             @_after_replace_counter_called.delete(foreign_key)
           elsif association(reflection.name).target_changed?
             if reflection.polymorphic?
