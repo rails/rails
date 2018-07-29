@@ -42,7 +42,7 @@ module Rails
       rescue Rails::Secrets::MissingKeyError => error
         say error.message
       rescue Errno::ENOENT => error
-        if error.message =~ /secrets\.yml\.enc/
+        if /secrets\.yml\.enc/.match?(error.message)
           deprecate_in_favor_of_credentials_and_exit
         else
           raise

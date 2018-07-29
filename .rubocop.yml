@@ -193,3 +193,12 @@ Performance/FlatMap:
 
 Performance/RedundantMerge:
   Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
+  Enabled: true

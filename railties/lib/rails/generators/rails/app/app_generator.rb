@@ -515,7 +515,7 @@ module Rails
       end
 
       def valid_const?
-        if app_const =~ /^\d/
+        if /^\d/.match?(app_const)
           raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(original_app_name)
           raise Error, "Invalid application name #{original_app_name}. Please give a " \
