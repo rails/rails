@@ -345,7 +345,7 @@ module ActiveSupport #:nodoc:
     end
 
     def require_or_load(file_name, const_path = nil)
-      file_name = file_name.chomp(".rb") if file_name.end_with?(".rb")
+      file_name = file_name.chomp(".rb")
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
@@ -395,7 +395,7 @@ module ActiveSupport #:nodoc:
     # constant paths which would cause Dependencies to attempt to load this
     # file.
     def loadable_constants_for_path(path, bases = autoload_paths)
-      path = path.chomp(".rb") if path.end_with?(".rb")
+      path = path.chomp(".rb")
       expanded_path = File.expand_path(path)
       paths = []
 
