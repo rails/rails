@@ -248,7 +248,7 @@ module Rails
 
       add_shared_options_for "application"
 
-      # Add bin/rails options
+      # Add rails command options
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
@@ -320,7 +320,7 @@ module Rails
       end
 
       def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
+        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
       end
       remove_task :display_upgrade_guide_info
 
@@ -515,7 +515,7 @@ module Rails
       end
 
       def valid_const?
-        if app_const =~ /^\d/
+        if /^\d/.match?(app_const)
           raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(original_app_name)
           raise Error, "Invalid application name #{original_app_name}. Please give a " \

@@ -130,9 +130,9 @@ module ActiveRecord
   class PendingMigrationError < MigrationError#:nodoc:
     def initialize(message = nil)
       if !message && defined?(Rails.env)
-        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate RAILS_ENV=#{::Rails.env}")
+        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate RAILS_ENV=#{::Rails.env}")
       elsif !message
-        super("Migrations are pending. To resolve this issue, run:\n\n        bin/rails db:migrate")
+        super("Migrations are pending. To resolve this issue, run:\n\n        rails db:migrate")
       else
         super
       end
@@ -150,7 +150,7 @@ module ActiveRecord
 
   class NoEnvironmentInSchemaError < MigrationError #:nodoc:
     def initialize
-      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        bin/rails db:environment:set"
+      msg = "Environment data not found in the schema. To resolve this issue, run: \n\n        rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}")
       else
@@ -173,7 +173,7 @@ module ActiveRecord
       msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n".dup
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
-      msg << "        bin/rails db:environment:set"
+      msg << "        rails db:environment:set"
       if defined?(Rails.env)
         super("#{msg} RAILS_ENV=#{::Rails.env}\n\n")
       else
@@ -352,7 +352,7 @@ module ActiveRecord
   # <tt>rails db:migrate</tt>. This will update the database by running all of the
   # pending migrations, creating the <tt>schema_migrations</tt> table
   # (see "About the schema_migrations table" section below) if missing. It will also
-  # invoke the db:schema:dump task, which will update your db/schema.rb file
+  # invoke the db:schema:dump command, which will update your db/schema.rb file
   # to match the structure of your database.
   #
   # To roll the database back to a previous migration version, use

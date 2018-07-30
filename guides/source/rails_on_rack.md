@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Rails on Rack
 =============
@@ -94,10 +94,10 @@ but is built for better flexibility and more features to meet Rails' requirement
 
 ### Inspecting Middleware Stack
 
-Rails has a handy task for inspecting the middleware stack in use:
+Rails has a handy command for inspecting the middleware stack in use:
 
 ```bash
-$ bin/rails middleware
+$ rails middleware
 ```
 
 For a freshly generated Rails application, this might produce something like:
@@ -181,7 +181,7 @@ And now if you inspect the middleware stack, you'll find that `Rack::Runtime` is
 not a part of it.
 
 ```bash
-$ bin/rails middleware
+$ rails middleware
 (in /Users/lifo/Rails/blog)
 use ActionDispatch::Static
 use #<ActiveSupport::Cache::Strategy::LocalCache::Middleware:0x00000001c304c8>

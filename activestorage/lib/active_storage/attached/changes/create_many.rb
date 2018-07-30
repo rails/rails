@@ -21,7 +21,8 @@ module ActiveStorage
     end
 
     def save
-      record.public_send("#{name}_attachments=", attachments)
+      assign_associated_attachments
+      reset_associated_blobs
     end
 
     private
@@ -31,6 +32,15 @@ module ActiveStorage
 
       def build_subchange_from(attachable)
         ActiveStorage::Attached::Changes::CreateOneOfMany.new(name, record, attachable)
+      end
+
+
+      def assign_associated_attachments
+        record.public_send("#{name}_attachments=", attachments)
+      end
+
+      def reset_associated_blobs
+        record.public_send("#{name}_blobs").reset
       end
   end
 end

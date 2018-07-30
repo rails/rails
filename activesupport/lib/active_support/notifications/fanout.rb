@@ -70,12 +70,29 @@ module ActiveSupport
 
       module Subscribers # :nodoc:
         def self.new(pattern, listener)
+          subscriber_class = Timed
+
           if listener.respond_to?(:start) && listener.respond_to?(:finish)
-            subscriber = Evented.new pattern, listener
+            subscriber_class = Evented
           else
-            subscriber = Timed.new pattern, listener
+            # Doing all this to detect a block like `proc { |x| }` vs
+            # `proc { |*x| }` or `proc { |**x| }`
+            if listener.respond_to?(:parameters)
+              params = listener.parameters
+              if params.length == 1 && params.first.first == :opt
+                subscriber_class = EventObject
+              end
+            end
           end
 
+          wrap_all pattern, subscriber_class.new(pattern, listener)
+        end
+
+        def self.event_object_subscriber(pattern, block)
+          wrap_all pattern, EventObject.new(pattern, block)
+        end
+
+        def self.wrap_all(pattern, subscriber)
           unless pattern
             AllMessages.new(subscriber)
           else
@@ -128,6 +145,27 @@ module ActiveSupport
             started = timestack.pop
             @delegate.call(name, started, Time.now, id, payload)
           end
+        end
+
+        class EventObject < Evented
+          def start(name, id, payload)
+            stack = Thread.current[:_event_stack] ||= []
+            event = build_event name, id, payload
+            event.start!
+            stack.push event
+          end
+
+          def finish(name, id, payload)
+            stack = Thread.current[:_event_stack]
+            event = stack.pop
+            event.finish!
+            @delegate.call event
+          end
+
+          private
+            def build_event(name, id, payload)
+              ActiveSupport::Notifications::Event.new name, nil, nil, id, payload
+            end
         end
 
         class AllMessages # :nodoc:

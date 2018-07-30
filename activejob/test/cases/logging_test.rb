@@ -45,6 +45,14 @@ class LoggingTest < ActiveSupport::TestCase
     ActiveJob::Base.logger = logger
   end
 
+  def subscribed
+    [].tap do |events|
+      ActiveSupport::Notifications.subscribed(-> (*args) { events << args }, /enqueue.*\.active_job/) do
+        yield
+      end
+    end
+  end
+
   def test_uses_active_job_as_tag
     HelloJob.perform_later "Cristian"
     assert_match(/\[ActiveJob\]/, @logger.messages)
@@ -86,8 +94,11 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_job_logging
-    HelloJob.perform_later "Cristian"
+    events = subscribed { HelloJob.perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*?\) to .*?:.*Cristian/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue.active_job")
   end
 
   def test_perform_job_logging
@@ -110,15 +121,21 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_enqueue_at_job_logging
-    HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian"
+    events = subscribed { HelloJob.set(wait_until: 24.hours.from_now).perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue_at.active_job")
   rescue NotImplementedError
     skip
   end
 
   def test_enqueue_in_job_logging
-    HelloJob.set(wait: 2.seconds).perform_later "Cristian"
+    events = subscribed { HelloJob.set(wait: 2.seconds).perform_later "Cristian" }
     assert_match(/Enqueued HelloJob \(Job ID: .*\) to .*? at.*Cristian/, @logger.messages)
+    assert_equal(events.count, 1)
+    key, * = events.first
+    assert_equal(key, "enqueue_at.active_job")
   rescue NotImplementedError
     skip
   end

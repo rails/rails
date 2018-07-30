@@ -1,3 +1,10 @@
+*   Move `enqueue`/`enqueue_at` notifications to an around callback.
+
+    Improves timing accuracy over the old after callback by including
+    time spent writing to the adapter's IO implementation.
+
+    *Zach Kemp*
+
 *   Allow `queue` option to `assert_no_enqueued_jobs`.
 
     Example:

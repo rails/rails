@@ -217,7 +217,7 @@ module ActionDispatch
           method = :post
         end
 
-        if path =~ %r{://}
+        if %r{://}.match?(path)
           path = build_expanded_path(path) do |location|
             https! URI::HTTPS === location if location.scheme
 

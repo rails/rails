@@ -193,8 +193,8 @@ class ActiveStorage::Blob < ActiveRecord::Base
   end
 
 
-  # Deletes the file on the service that's associated with this blob. This should only be done if the blob is going to be
-  # deleted as well or you will essentially have a dead reference. It's recommended to use the +#purge+ and +#purge_later+
+  # Deletes the files on the service associated with the blob. This should only be done if the blob is going to be
+  # deleted as well or you will essentially have a dead reference. It's recommended to use #purge and #purge_later
   # methods in most circumstances.
   def delete
     service.delete(key)
@@ -203,14 +203,15 @@ class ActiveStorage::Blob < ActiveRecord::Base
 
   # Deletes the file on the service and then destroys the blob record. This is the recommended way to dispose of unwanted
   # blobs. Note, though, that deleting the file off the service will initiate a HTTP connection to the service, which may
-  # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use +#purge_later+ instead.
+  # be slow or prevented, so you should not use this method inside a transaction or in callbacks. Use #purge_later instead.
   def purge
-    delete
     destroy
+    delete
+  rescue ActiveRecord::InvalidForeignKey
   end
 
-  # Enqueues an ActiveStorage::PurgeJob job that'll call +purge+. This is the recommended way to purge blobs when the call
-  # needs to be made from a transaction, a callback, or any other real-time scenario.
+  # Enqueues an ActiveStorage::PurgeJob to call #purge. This is the recommended way to purge blobs from a transaction,
+  # an Active Record callback, or in any other real-time scenario.
   def purge_later
     ActiveStorage::PurgeJob.perform_later(self)
   end

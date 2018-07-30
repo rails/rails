@@ -124,7 +124,7 @@ module Rails
         )
 
         if ARGV.first == "mailer"
-          options[:rails].merge!(template_engine: :erb)
+          options[:rails][:template_engine] = :erb
         end
       end
 

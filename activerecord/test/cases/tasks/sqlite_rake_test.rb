@@ -88,9 +88,9 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_creates_path_from_database
-        Pathname.expects(:new).with(@database).returns(@path)
-
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+        assert_called_with(Pathname, :new, [@database], returns: @path) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+        end
       end
 
       def test_removes_file_with_absolute_path

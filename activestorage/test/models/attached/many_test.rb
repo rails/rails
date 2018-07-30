@@ -10,7 +10,7 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     @user = User.create!(name: "Josh")
   end
 
-  teardown { ActiveStorage::Blob.all.each(&:purge) }
+  teardown { ActiveStorage::Blob.all.each(&:delete) }
 
   test "attaching existing blobs to an existing record" do
     @user.highlights.attach create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg")
@@ -106,6 +106,17 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
   end
 
+  test "attaching existing blobs to an existing record one at a time" do
+    @user.highlights.attach create_blob(filename: "funky.jpg")
+    @user.highlights.attach create_blob(filename: "town.jpg")
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+
+    @user.reload
+    assert_equal "funky.jpg", @user.highlights.first.filename.to_s
+    assert_equal "town.jpg", @user.highlights.second.filename.to_s
+  end
+
   test "updating an existing record to attach existing blobs" do
     @user.update! highlights: [ create_file_blob(filename: "racecar.jpg"), create_file_blob(filename: "video.mp4") ]
     assert_equal "racecar.jpg", @user.highlights.first.filename.to_s
@@ -136,6 +147,40 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     assert_equal "video.mp4", @user.highlights.second.filename.to_s
     assert_not ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
     assert_not ActiveStorage::Blob.service.exist?(@user.highlights.second.key)
+  end
+
+  test "replacing existing, dependent attachments on an existing record via assign and attach" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |old_blobs|
+      @user.highlights.attach old_blobs
+
+      @user.highlights = []
+      assert_not @user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.attach create_blob(filename: "whenever.jpg"), create_blob(filename: "wherever.jpg")
+      end
+
+      assert_equal "whenever.jpg", @user.highlights.first.filename.to_s
+      assert_equal "wherever.jpg", @user.highlights.second.filename.to_s
+      assert_not ActiveStorage::Blob.exists?(old_blobs.first.id)
+      assert_not ActiveStorage::Blob.exists?(old_blobs.second.id)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.first.key)
+      assert_not ActiveStorage::Blob.service.exist?(old_blobs.second.key)
+    end
+  end
+
+  test "replacing existing, independent attachments on an existing record via assign and attach" do
+    @user.vlogs.attach create_blob(filename: "funky.mp4"), create_blob(filename: "town.mp4")
+
+    @user.vlogs = []
+    assert_not @user.vlogs.attached?
+
+    assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
+      @user.vlogs.attach create_blob(filename: "whenever.mp4"), create_blob(filename: "wherever.mp4")
+    end
+
+    assert_equal "whenever.mp4", @user.vlogs.first.filename.to_s
+    assert_equal "wherever.mp4", @user.vlogs.second.filename.to_s
   end
 
   test "successfully updating an existing record to replace existing, dependent attachments" do
@@ -192,32 +237,6 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_equal "funky.jpg", @user.highlights.first.filename.to_s
       assert_equal "town.jpg", @user.highlights.second.filename.to_s
       assert ActiveStorage::Blob.service.exist?(@user.highlights.first.key)
-    end
-  end
-
-  test "removing dependent attachments from an existing record" do
-    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
-      @user.highlights.attach blobs
-
-      assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.first ] do
-        assert_enqueued_with job: ActiveStorage::PurgeJob, args: [ blobs.second ] do
-          @user.highlights.attach []
-        end
-      end
-
-      assert_not @user.highlights.attached?
-    end
-  end
-
-  test "removing independent attachments from an existing record" do
-    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
-      @user.vlogs.attach blobs
-
-      assert_no_enqueued_jobs only: ActiveStorage::PurgeJob do
-        @user.vlogs.attach []
-      end
-
-      assert_not @user.vlogs.attached?
     end
   end
 
@@ -449,6 +468,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging attachment with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      @user.highlights.purge
+      assert_not @user.highlights.attached?
+
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
+    end
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -463,6 +509,35 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
       assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
       assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging attachment later with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.purge_later
+      end
+
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
     end
   end
 

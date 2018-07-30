@@ -476,4 +476,31 @@ class CallbacksTest < ActiveRecord::TestCase
     child.save
     assert child.after_save_called
   end
+
+  def test_before_save_doesnt_allow_on_option
+    exception = assert_raises ArgumentError do
+      Class.new(ActiveRecord::Base) do
+        before_save(on: :create) {}
+      end
+    end
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+  end
+
+  def test_around_save_doesnt_allow_on_option
+    exception = assert_raises ArgumentError do
+      Class.new(ActiveRecord::Base) do
+        around_save(on: :create) {}
+      end
+    end
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+  end
+
+  def test_after_save_doesnt_allow_on_option
+    exception = assert_raises ArgumentError do
+      Class.new(ActiveRecord::Base) do
+        after_save(on: :create) {}
+      end
+    end
+    assert_equal "Unknown key: :on. Valid keys are: :if, :unless, :prepend", exception.message
+  end
 end
