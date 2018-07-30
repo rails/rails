@@ -68,7 +68,13 @@ module ActiveStorage
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        bucket.files(prefix: prefix).all(&:delete)
+        bucket.files(prefix: prefix).all do |file|
+          begin
+            file.delete
+          rescue Google::Cloud::NotFoundError
+            # Ignore concurrently-deleted files
+          end
+        end
       end
     end
 
