@@ -35,7 +35,6 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
 1. Migrate the database
 
    ```
-   ./bin/rails active_storage:install
    ./bin/rails action_text:install
    ./bin/rails db:migrate
    ```

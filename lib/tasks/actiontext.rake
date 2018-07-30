@@ -5,7 +5,7 @@ namespace :action_text do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration, stylesheet, and JavaScript files"
-  task install: %i( environment copy_migration copy_stylesheet )
+  task install: %w( environment active_storage:install copy_migration copy_stylesheet )
 
   task :copy_migration do
     if Rake::Task.task_defined?("action_text:install:migrations")
