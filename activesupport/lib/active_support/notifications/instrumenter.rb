@@ -130,8 +130,14 @@ module ActiveSupport
           Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
 
-        def now_cpu
-          Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
+        if defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
+          def now_cpu
+            Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
+          end
+        else
+          def now_cpu
+            0
+          end
         end
 
         if defined?(JRUBY_VERSION)
