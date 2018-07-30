@@ -1,3 +1,9 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
+*   Respect `NODE_ENV` when running `rails yarn:install`.
+
+    *Max Melentiev*
+
 *   Don't generate unused files in `app:update` task
 
      Skip the assets' initializer when sprockets isn't loaded.

@@ -1,3 +1,10 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
+*   Fix leak of `skip_default_ids` and `allow_method_names_outside_object` options
+    to HTML attributes.
+
+    *Yurii Cherniavskyi*
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that

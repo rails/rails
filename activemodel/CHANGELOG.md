@@ -1,3 +1,8 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
+*   No changes.
+
+
 ## Rails 5.2.0 (April 09, 2018) ##
 
 *   Do not lose all multiple `:includes` with options in serialization.

@@ -1,3 +1,5 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
 *   Pass the error instance as the second parameter of block executed by `discard_on`.
 
     Fixes #32853.

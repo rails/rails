@@ -1,3 +1,9 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
+*   Fix direct upload with zero-byte files.
+
+    *George Claghorn*
+
 *   Exclude JSON root from `active_storage/direct_uploads#create` response.
 
     *Javan Makhmali*

@@ -1,10 +1,16 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
 *   PostgreSQL: Support new relkind for partitioned tables.
 
     Fixes #33008.
 
     *Yannick Schutz*
 
-*   Fix default value for mysql time types with specified precision.
+*   Rollback parent transaction when children fails to update.
+
+    *Guillaume Malette*
+
+*   Fix default value for MySQL time types with specified precision.
 
     *Nikolay Kondratyev*
 

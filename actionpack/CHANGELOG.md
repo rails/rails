@@ -1,3 +1,5 @@
+## Rails 5.2.1.rc1 (July 30, 2018) ##
+
 *   Prevent `?null=` being passed on JSON encoded test requests.
 
     `RequestEncoder#encode_params` won't attempt to parse params if
@@ -8,6 +10,12 @@
         get foos_url, as: :json
 
     *Alireza Bashiri*
+
+*   Ensure `ActionController::Parameters#transform_values` and
+    `ActionController::Parameters#transform_values!` converts hashes into
+    parameters.
+
+    *Kevin Sjöberg*
 
 *   Fix strong parameters `permit!` with nested arrays.
 
@@ -20,6 +28,11 @@
     `params[:nested_arrays][0][0].permitted?` will now return `true` instead of `false`.
 
     *Steve Hull*
+
+*   Reset `RAW_POST_DATA` and `CONTENT_LENGTH` request environment between test requests in
+    `ActionController::TestCase` subclasses.
+
+    *Eugene Kenny*
 
 *   Output only one Content-Security-Policy nonce header value per request.
 
@@ -34,6 +47,10 @@
     https://bugs.chromium.org/p/chromium/issues/detail?id=737678#c1
 
     *Stefan Wrobel*
+
+*   Fix system tests transactions not closed between examples.
+
+    *Sergey Tarasov*
 
 
 ## Rails 5.2.0 (April 09, 2018) ##
