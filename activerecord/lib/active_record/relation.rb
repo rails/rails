@@ -337,6 +337,10 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
+    def update(attributes) # :nodoc:
+      each { |record| record.update(attributes) }
+    end
+
     # Destroys the records by instantiating each
     # record and calling its {#destroy}[rdoc-ref:Persistence#destroy] method.
     # Each object's callbacks are executed (including <tt>:dependent</tt> association options).
