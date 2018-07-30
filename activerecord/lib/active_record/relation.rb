@@ -375,6 +375,10 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
+    def update(attributes) # :nodoc:
+      each { |record| record.update(attributes) }
+    end
+
     def update_counters(counters) # :nodoc:
       touch = counters.delete(:touch)
 
