@@ -33,11 +33,21 @@ module ActionDispatch
     end
 
     def test_content_type
+      uf = Http::UploadedFile.new(content_type: "foo", tempfile: Object.new)
+      assert_equal "foo", uf.content_type
+    end
+
+    def test_content_type_legacy
       uf = Http::UploadedFile.new(type: "foo", tempfile: Object.new)
       assert_equal "foo", uf.content_type
     end
 
     def test_headers
+      uf = Http::UploadedFile.new(headers: "foo", tempfile: Object.new)
+      assert_equal "foo", uf.headers
+    end
+
+    def test_headers_legacy
       uf = Http::UploadedFile.new(head: "foo", tempfile: Object.new)
       assert_equal "foo", uf.headers
     end
