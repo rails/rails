@@ -5,32 +5,44 @@ require "action_dispatch/system_testing/test_helpers/screenshot_helper"
 require "capybara/dsl"
 
 class ScreenshotHelperTest < ActiveSupport::TestCase
-  test "image path is saved in tmp directory" do
-    new_test = DrivenBySeleniumWithChrome.new("x")
+  %w(image page).each do |format|
+    ext = format == "image" ? "png" : "html"
 
-    Rails.stub :root, Pathname.getwd do
-      assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
-    end
-  end
+    test "#{format} path is saved in tmp directory" do
+      new_test = DrivenBySeleniumWithChrome.new("x")
 
-  test "image path includes failures text if test did not pass" do
-    new_test = DrivenBySeleniumWithChrome.new("x")
-
-    Rails.stub :root, Pathname.getwd do
-      new_test.stub :passed?, false do
-        assert_equal Rails.root.join("tmp/screenshots/failures_x.png").to_s, new_test.send(:image_path)
+      Rails.stub :root, Pathname.getwd do
+        assert_equal Rails.root.join("tmp/screenshots/x.#{ext}").to_s, new_test.send(:"#{format}_path")
       end
     end
-  end
 
-  test "image path does not include failures text if test skipped" do
-    new_test = DrivenBySeleniumWithChrome.new("x")
+    test "#{format} path includes failures text if test did not pass" do
+      new_test = DrivenBySeleniumWithChrome.new("x")
 
-    Rails.stub :root, Pathname.getwd do
-      new_test.stub :passed?, false do
-        new_test.stub :skipped?, true do
-          assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
+      Rails.stub :root, Pathname.getwd do
+        new_test.stub :passed?, false do
+          assert_equal Rails.root.join("tmp/screenshots/failures_x.#{ext}").to_s, new_test.send(:"#{format}_path")
         end
+      end
+    end
+
+    test "#{format} path does not include failures text if test skipped" do
+      new_test = DrivenBySeleniumWithChrome.new("x")
+
+      Rails.stub :root, Pathname.getwd do
+        new_test.stub :passed?, false do
+          new_test.stub :skipped?, true do
+            assert_equal Rails.root.join("tmp/screenshots/x.#{ext}").to_s, new_test.send(:"#{format}_path")
+          end
+        end
+      end
+    end
+
+    test "#{format} path returns the absolute path from root" do
+      new_test = DrivenBySeleniumWithChrome.new("x")
+
+      Rails.stub :root, Pathname.getwd.join("..") do
+        assert_equal Rails.root.join("tmp/screenshots/x.#{ext}").to_s, new_test.send(:"#{format}_path")
       end
     end
   end
@@ -40,7 +52,7 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
     assert_equal "simple", new_test.send(:output_type)
   end
 
-  test "display_image return artifact format when specify RAILS_SYSTEM_TESTING_SCREENSHOT environment" do
+  test "display_screenshot includes artifact protocol when RAILS_SYSTEM_TESTING_SCREENSHOT environment specified" do
     begin
       original_output_type = ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"]
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = "artifact"
@@ -50,20 +62,19 @@ class ScreenshotHelperTest < ActiveSupport::TestCase
       assert_equal "artifact", new_test.send(:output_type)
 
       Rails.stub :root, Pathname.getwd do
-        new_test.stub :passed?, false do
-          assert_match %r|url=artifact://.+?tmp/screenshots/failures_x\.png|, new_test.send(:display_image)
-        end
+        assert_match %r|url=artifact://.+?tmp/screenshots/x\.png|, new_test.send(:display_screenshot)
       end
     ensure
       ENV["RAILS_SYSTEM_TESTING_SCREENSHOT"] = original_output_type
     end
   end
 
-  test "image path returns the absolute path from root" do
+  test "display_screenshot includes file protocol easily opening links" do
     new_test = DrivenBySeleniumWithChrome.new("x")
 
-    Rails.stub :root, Pathname.getwd.join("..") do
-      assert_equal Rails.root.join("tmp/screenshots/x.png").to_s, new_test.send(:image_path)
+    Rails.stub :root, Pathname.getwd do
+      assert_match %r|file://.+?tmp/screenshots/x\.png|, new_test.send(:display_screenshot)
+      assert_match %r|file://.+?tmp/screenshots/x\.html|, new_test.send(:display_screenshot)
     end
   end
 end
