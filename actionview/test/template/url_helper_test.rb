@@ -505,6 +505,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("http://www.example.com/")
   end
 
+  def test_current_page_with_only_action
+    @request = request_for_url("/")
+    assert current_page?(url_hash.slice(:action))
+    assert current_page?("http://www.example.com/")
+  end
+
   def test_current_page_ignoring_params
     @request = request_for_url("/?order=desc&page=1")
 
