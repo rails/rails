@@ -14,17 +14,10 @@ Assumes a Rails 5.2+ application with Active Storage and Webpacker installed.
     gem "image_processing", "~> 1.2" # for Active Storage variants
     ```
    
-1. Install the npm package:
+1. Install the npm package (with a local reference to this checked out repository):
 
-    ```js
-    // package.json
-    "dependencies": {
-      "actiontext": "basecamp/actiontext"
-    }
-    ```
-    
     ```sh
-    $ yarn install
+    $ yarn add file:../actiontext
     ```
     
     ```js
