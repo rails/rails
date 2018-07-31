@@ -102,6 +102,26 @@ class RespondToController < ActionController::Base
     end
   end
 
+  def using_conflicting_nested_js_then_html
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.html { render body: "HTML" }
+        end
+      end
+    end
+  end
+
+  def using_non_conflicting_nested_js_then_js
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.js { render body: "JS" }
+        end
+      end
+    end
+  end
+
   def custom_type_handling
     respond_to do |type|
       type.html { render body: "HTML"    }
@@ -428,6 +448,20 @@ class RespondToControllerTest < ActionController::TestCase
     get :using_defaults_with_type_list
     assert_equal "application/xml", @response.content_type
     assert_equal "<p>Hello world!</p>\n", @response.body
+  end
+
+  def test_using_conflicting_nested_js_then_html
+    @request.accept = "*/*"
+    assert_raises(ActionController::RespondToMismatchError) do
+      get :using_conflicting_nested_js_then_html
+    end
+  end
+
+  def test_using_non_conflicting_nested_js_then_js
+    @request.accept = "*/*"
+    get :using_non_conflicting_nested_js_then_js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "JS", @response.body
   end
 
   def test_with_atom_content_type
