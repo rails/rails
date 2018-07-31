@@ -1,4 +1,4 @@
-*.  Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
+*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
 
     `respond_to` can match multiple types and lead to undefined behavior when
     multiple invocations are made and the types do not match:
