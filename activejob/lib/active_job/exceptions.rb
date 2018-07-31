@@ -30,8 +30,8 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    retry_on(YetAnotherCustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
@@ -42,16 +42,16 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end
-      def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
-        rescue_from exception do |error|
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
+        rescue_from(*exceptions) do |error|
           if executions < attempts
-            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
+            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{error.class}. The original exception was #{error.cause.inspect}."
             retry_job wait: determine_delay(wait), queue: queue, priority: priority
           else
             if block_given?
               yield self, error
             else
-              logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              logger.error "Stopped retrying #{self.class} due to a #{error.class}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
               raise error
             end
           end
@@ -67,8 +67,8 @@ module ActiveJob
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
-      #    discard_on(CustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    discard_on(CustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #
       #    def perform(record)
@@ -76,12 +76,12 @@ module ActiveJob
       #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(exception)
-        rescue_from exception do |error|
+      def discard_on(*exceptions)
+        rescue_from(*exceptions) do |error|
           if block_given?
             yield self, error
           else
-            logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+            logger.error "Discarded #{self.class} due to a #{error.class}. The original exception was #{error.cause.inspect}."
           end
         end
       end

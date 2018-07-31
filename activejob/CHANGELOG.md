@@ -1,3 +1,42 @@
+*   Move `enqueue`/`enqueue_at` notifications to an around callback.
+
+    Improves timing accuracy over the old after callback by including
+    time spent writing to the adapter's IO implementation.
+
+    *Zach Kemp*
+
+*   Allow `queue` option to `assert_no_enqueued_jobs`.
+
+    Example:
+    ```
+    def test_no_logging
+      assert_no_enqueued_jobs queue: 'default' do
+        LoggingJob.set(queue: :some_queue).perform_later
+      end
+    end
+    ```
+
+    *bogdanvlviv*
+
+*   Allow call `assert_enqueued_with` with no block.
+
+    Example:
+    ```
+    def test_assert_enqueued_with
+      MyJob.perform_later(1,2,3)
+      assert_enqueued_with(job: MyJob, args: [1,2,3], queue: 'low')
+
+      MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+      assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
+    end
+    ```
+
+    *bogdanvlviv*
+
+*   Allow passing multiple exceptions to `retry_on`, and `discard_on`.
+
+    *George Claghorn*
+
 *   Pass the error instance as the second parameter of block executed by `discard_on`.
 
     Fixes #32853.

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Using Rails for API-only Applications
 =====================================
@@ -391,7 +391,7 @@ Other plugins may add additional modules. You can get a list of all modules
 included into `ActionController::API` in the rails console:
 
 ```bash
-$ bin/rails c
+$ rails c
 >> ActionController::API.ancestors - ActionController::Metal.ancestors
 => [ActionController::API,
     ActiveRecord::Railties::ControllerRuntime,

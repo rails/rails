@@ -1,3 +1,62 @@
+*   Add "event object" support to the notification system.
+    Before this change, end users were forced to create hand made artisanal
+    event objects on their own, like this:
+
+        ActiveSupport::Notifications.subscribe('wait') do |*args|
+          @event = ActiveSupport::Notifications::Event.new(*args)
+        end
+        
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+        
+        @event.duration # => 1000.138
+
+    After this change, if the block passed to `subscribe` only takes one
+    parameter, the framework will yield an event object to the block.  Now
+    end users are no longer required to make their own:
+
+        ActiveSupport::Notifications.subscribe('wait') do |event|
+          @event = event
+        end
+        
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+        
+        p @event.allocations # => 7
+        p @event.cpu_time    # => 0.256
+        p @event.idle_time   # => 1003.2399
+
+    Now you can enjoy event objects without making them yourself.  Neat!
+
+    *Aaron "t.lo" Patterson*
+
+*   Add cpu_time, idle_time, and allocations to Event
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   RedisCacheStore: support key expiry in increment/decrement.
+
+    Pass `:expires_in` to `#increment` and `#decrement` to set a Redis EXPIRE on the key.
+
+    If the key is already set to expire, RedisCacheStore won't extend its expiry.
+
+        Rails.cache.increment("some_key", 1, expires_in: 2.minutes)
+
+    *Jason Lee*
+
+*   Allow Range#=== and Range#cover? on Range
+
+    `Range#cover?` can now accept a range argument like `Range#include?` and
+    `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
+    into a new file, with these two methods.
+
+    *Requiring active_support/core_ext/range/include_range is now deprecated.*
+    *Use `require "active_support/core_ext/range/compare_range"` instead.*
+
+    *utilum*
+
 *   Add `index_with` to Enumerable.
 
     Allows creating a hash from an enumerable with the value from a passed block
@@ -9,7 +68,7 @@
         %i( title body ).index_with(nil)
         # => { title: nil, body: nil }
 
-    Closely linked with its brethen `index_by`.
+    Closely linked with `index_by`, which creates a hash where the keys are extracted from a block.
 
     *Kasper Timm Hansen*
 

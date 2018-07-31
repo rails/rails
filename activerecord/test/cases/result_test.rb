@@ -12,6 +12,11 @@ module ActiveRecord
       ])
     end
 
+    test "includes_column?" do
+      assert result.includes_column?("col_1")
+      assert_not result.includes_column?("foo")
+    end
+
     test "length" do
       assert_equal 3, result.length
     end

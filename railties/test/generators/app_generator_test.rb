@@ -438,6 +438,30 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_file "config/application.rb", /\s+config\.load_defaults 5\.1/
   end
 
+  def test_app_update_does_not_change_app_name_when_app_name_is_hyphenated_name
+    app_root = File.join(destination_root, "hyphenated-app")
+    run_generator [app_root, "-d", "postgresql"]
+
+    assert_file "#{app_root}/config/database.yml" do |content|
+      assert_match(/hyphenated_app_development/, content)
+      assert_no_match(/hyphenated-app_development/, content)
+    end
+
+    assert_file "#{app_root}/config/cable.yml" do |content|
+      assert_match(/hyphenated_app/, content)
+      assert_no_match(/hyphenated-app/, content)
+    end
+
+    FileUtils.cd(app_root) do
+      quietly { system("bin/rails app:update") }
+    end
+
+    assert_file "#{app_root}/config/cable.yml" do |content|
+      assert_match(/hyphenated_app/, content)
+      assert_no_match(/hyphenated-app/, content)
+    end
+  end
+
   def test_application_names_are_not_singularized
     run_generator [File.join(destination_root, "hats")]
     assert_file "hats/config/environment.rb", /Rails\.application\.initialize!/
@@ -891,7 +915,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
       assert_match(/ruby '#{RUBY_VERSION}'/, content)
     end
     assert_file ".ruby-version" do |content|
-      assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
+      if ENV["RBENV_VERSION"]
+        assert_match(/#{ENV["RBENV_VERSION"]}/, content)
+      elsif ENV["rvm_ruby_string"]
+        assert_match(/#{ENV["rvm_ruby_string"]}/, content)
+      else
+        assert_match(/#{RUBY_ENGINE}-#{RUBY_ENGINE_VERSION}/, content)
+      end
     end
   end
 

@@ -229,7 +229,7 @@ module Arel
         it "should know how to visit with array arguments" do
           node = Arel::Nodes::GroupingSet.new([@table[:name], @table[:bool]])
           compile(node).must_be_like %{
-            GROUPING SET( "users"."name", "users"."bool" )
+            GROUPING SETS( "users"."name", "users"."bool" )
           }
         end
 
@@ -237,7 +237,7 @@ module Arel
           group = Arel::Nodes::GroupingElement.new([@table[:name], @table[:bool]])
           node = Arel::Nodes::GroupingSet.new(group)
           compile(node).must_be_like %{
-            GROUPING SET( "users"."name", "users"."bool" )
+            GROUPING SETS( "users"."name", "users"."bool" )
           }
         end
 
@@ -246,7 +246,7 @@ module Arel
           group2 = Arel::Nodes::GroupingElement.new([@table[:bool], @table[:created_at]])
           node = Arel::Nodes::GroupingSet.new([group1, group2])
           compile(node).must_be_like %{
-            GROUPING SET( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
+            GROUPING SETS( ( "users"."name" ), ( "users"."bool", "users"."created_at" ) )
           }
         end
       end

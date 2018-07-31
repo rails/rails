@@ -91,7 +91,7 @@ matrix:
       env:
         - "GEM=ar:mysql2 MYSQL=mariadb"
       addons:
-        mariadb: 10.2
+        mariadb: 10.3
     - rvm: 2.5.1
       env:
         - "GEM=ar:sqlite3_mem"

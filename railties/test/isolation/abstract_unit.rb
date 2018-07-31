@@ -14,6 +14,7 @@ require "bundler/setup" unless defined?(Bundler)
 require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/stream"
+require "active_support/testing/method_call_assertions"
 require "active_support/test_case"
 
 RAILS_FRAMEWORK_ROOT = File.expand_path("../../..", __dir__)
@@ -430,6 +431,7 @@ class ActiveSupport::TestCase
   include TestHelpers::Rack
   include TestHelpers::Generation
   include ActiveSupport::Testing::Stream
+  include ActiveSupport::Testing::MethodCallAssertions
 
   def frozen_error_class
     Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError

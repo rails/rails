@@ -639,20 +639,18 @@ module ActionController
     #   params = ActionController::Parameters.new(a: 1, b: 2, c: 3)
     #   params.transform_values { |x| x * 2 }
     #   # => <ActionController::Parameters {"a"=>2, "b"=>4, "c"=>6} permitted: false>
-    def transform_values(&block)
-      if block
-        new_instance_with_inherited_permitted_status(
-          @parameters.transform_values(&block)
-        )
-      else
-        @parameters.transform_values
-      end
+    def transform_values
+      return to_enum(:transform_values) unless block_given?
+      new_instance_with_inherited_permitted_status(
+        @parameters.transform_values { |v| yield convert_value_to_parameters(v) }
+      )
     end
 
     # Performs values transformation and returns the altered
     # <tt>ActionController::Parameters</tt> instance.
-    def transform_values!(&block)
-      @parameters.transform_values!(&block)
+    def transform_values!
+      return to_enum(:transform_values!) unless block_given?
+      @parameters.transform_values! { |v| yield convert_value_to_parameters(v) }
       self
     end
 
@@ -795,9 +793,7 @@ module ActionController
     protected
       attr_reader :parameters
 
-      def permitted=(new_permitted)
-        @permitted = new_permitted
-      end
+      attr_writer :permitted
 
       def fields_for_style?
         @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }

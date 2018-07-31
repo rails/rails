@@ -117,14 +117,10 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.joins!(*other.joins_values)
           else
-            alias_tracker = nil
             joins_dependency = other.joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end
@@ -140,14 +136,10 @@ module ActiveRecord
           if other.klass == relation.klass
             relation.left_outer_joins!(*other.left_outer_joins_values)
           else
-            alias_tracker = nil
             joins_dependency = other.left_outer_joins_values.map do |join|
               case join
               when Hash, Symbol, Array
-                alias_tracker ||= other.alias_tracker
-                ActiveRecord::Associations::JoinDependency.new(
-                  other.klass, other.table, join, alias_tracker
-                )
+                other.send(:construct_join_dependency, join)
               else
                 join
               end

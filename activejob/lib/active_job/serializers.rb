@@ -7,7 +7,6 @@ module ActiveJob
   # and to add new ones. It also has helpers to serialize/deserialize objects.
   module Serializers # :nodoc:
     extend ActiveSupport::Autoload
-    extend ActiveSupport::Concern
 
     autoload :ObjectSerializer
     autoload :SymbolSerializer

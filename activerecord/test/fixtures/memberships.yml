@@ -26,6 +26,13 @@ blarpy_winkup_crazy_club:
   favourite: false
   type: CurrentMembership
 
+super_membership_of_boring_club:
+  joined_on: <%= 3.weeks.ago.to_s(:db) %>
+  club: boring_club
+  member_id: 1
+  favourite: false
+  type: SuperMembership
+
 selected_membership_of_boring_club:
   joined_on: <%= 3.weeks.ago.to_s(:db) %>
   club: boring_club

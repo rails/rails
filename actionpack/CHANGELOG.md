@@ -1,4 +1,24 @@
-*   Introduce a new error page to when the implict render page is accessed in the browser.
+*   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
+
+    This allows uploaded file objects to be passed directly to `File.read`
+    without raising a `TypeError`:
+
+        uploaded_file = ActionDispatch::Http::UploadedFile.new(tempfile: tmp_file)
+        File.read(uploaded_file)
+
+    *Aaron Kromer*
+
+*   Pass along arguments to underlying `get` method in `follow_redirect!`
+
+    Now all arguments passed to `follow_redirect!` are passed to the underlying
+    `get` method. This for example allows to set custom headers for the
+    redirection request to the server.
+
+        follow_redirect!(params: { foo: :bar })
+
+    *Remo Fritzsche*
+
+*   Introduce a new error page to when the implicit render page is accessed in the browser.
 
     Now instead of showing an error page that with exception and backtraces we now show only
     one informative page.

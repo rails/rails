@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "test_helper"
-require "active_support/testing/method_call_assertions"
+require "minitest/mock"
 require "stubs/test_connection"
 require "stubs/room"
 
@@ -54,39 +54,58 @@ module ActionCable::StreamTests
     test "streaming start and stop" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("test_room_1", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = ChatChannel.new connection, "{id: 1}", id: 1
-        channel.subscribe_to_channel
+        pubsub = Minitest::Mock.new connection.pubsub
 
-        wait_for_async
+        pubsub.expect(:subscribe, nil, ["test_room_1", Proc, Proc])
+        pubsub.expect(:unsubscribe, nil, ["test_room_1", Proc])
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
-        channel.unsubscribe_from_channel
+        connection.stub(:pubsub, pubsub) do
+          channel = ChatChannel.new connection, "{id: 1}", id: 1
+          channel.subscribe_to_channel
+
+          wait_for_async
+          channel.unsubscribe_from_channel
+        end
+
+        assert pubsub.verify
       end
     end
 
     test "stream from non-string channel" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("channel", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
-        channel = SymbolChannel.new connection, ""
-        channel.subscribe_to_channel
+        pubsub = Minitest::Mock.new connection.pubsub
 
-        wait_for_async
+        pubsub.expect(:subscribe, nil, ["channel", Proc, Proc])
+        pubsub.expect(:unsubscribe, nil, ["channel", Proc])
 
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:unsubscribe) }
-        channel.unsubscribe_from_channel
+        connection.stub(:pubsub, pubsub) do
+          channel = SymbolChannel.new connection, ""
+          channel.subscribe_to_channel
+
+          wait_for_async
+
+          channel.unsubscribe_from_channel
+        end
+
+        assert pubsub.verify
       end
     end
 
     test "stream_for" do
       run_in_eventmachine do
         connection = TestConnection.new
-        connection.expects(:pubsub).returns mock().tap { |m| m.expects(:subscribe).with("action_cable:stream_tests:chat:Room#1-Campfire", kind_of(Proc), kind_of(Proc)).returns stub_everything(:pubsub) }
 
         channel = ChatChannel.new connection, ""
         channel.subscribe_to_channel
         channel.stream_for Room.new(1)
+        wait_for_async
+
+        pubsub_call = channel.pubsub.class.class_variable_get "@@subscribe_called"
+
+        assert_equal "action_cable:stream_tests:chat:Room#1-Campfire", pubsub_call[:channel]
+        assert_instance_of Proc, pubsub_call[:callback]
+        assert_instance_of Proc, pubsub_call[:success_callback]
       end
     end
 
@@ -144,8 +163,6 @@ module ActionCable::StreamTests
   end
 
   class StreamFromTest < ActionCable::TestCase
-    include ActiveSupport::Testing::MethodCallAssertions
-
     setup do
       @server = TestServer.new(subscription_adapter: ActionCable::SubscriptionAdapter::Async)
       @server.config.allowed_request_origins = %w( http://rubyonrails.com )
@@ -179,7 +196,7 @@ module ActionCable::StreamTests
       run_in_eventmachine do
         connection = open_connection
         expected = { "identifier" => { "channel" => MultiChatChannel.name }.to_json, "type" => "confirm_subscription" }
-        assert_called(connection.websocket, :transmit, [expected.to_json]) do
+        assert_called_with(connection.websocket, :transmit, [expected.to_json]) do
           receive(connection, command: "subscribe", channel: MultiChatChannel.name, identifiers: {})
           wait_for_async
         end

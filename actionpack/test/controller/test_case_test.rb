@@ -223,6 +223,27 @@ XML
     assert_equal params.to_query, @response.body
   end
 
+  def test_params_round_trip
+    params = { "foo" => { "contents" => [{ "name" => "gorby", "id" => "123" }, { "name" => "puff", "d" => "true" }] } }
+    post :test_params, params: params.dup
+
+    controller_info = { "controller" => "test_case_test/test", "action" => "test_params" }
+    assert_equal params.merge(controller_info), JSON.parse(@response.body)
+  end
+
+  def test_handle_to_params
+    klass = Class.new do
+      def to_param
+        "bar"
+      end
+    end
+
+    post :test_params, params: { foo: klass.new }
+
+    assert_equal JSON.parse(@response.body)["foo"], "bar"
+  end
+
+
   def test_body_stream
     params = Hash[:page, { name: "page name" }, "some key", 123]
 
@@ -380,7 +401,13 @@ XML
     process :test_xml_output, params: { response_as: "text/html" }
 
     # <area> auto-closes, so the <p> becomes a sibling
-    assert_select "root > area + p"
+    if defined?(JRUBY_VERSION)
+      # https://github.com/sparklemotion/nokogiri/issues/1653
+      # HTML parser "fixes" "broken" markup in slightly different ways
+      assert_select "root > map > area + p"
+    else
+      assert_select "root > area + p"
+    end
   end
 
   def test_should_not_impose_childless_html_tags_in_xml

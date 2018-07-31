@@ -21,7 +21,6 @@ module Rails
         RUBY
       end
 
-      # TODO: Remove once this is fully in place
       def method_missing(meth, *args, &block)
         @generator.send(meth, *args, &block)
       end
@@ -250,7 +249,7 @@ module Rails
 
       add_shared_options_for "application"
 
-      # Add bin/rails options
+      # Add rails command options
       class_option :version, type: :boolean, aliases: "-v", group: :rails,
                              desc: "Show Rails version number and quit"
 
@@ -322,7 +321,7 @@ module Rails
       end
 
       def display_upgrade_guide_info
-        say "\nAfter this, check Rails upgrade guide at http://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
+        say "\nAfter this, check Rails upgrade guide at https://guides.rubyonrails.org/upgrading_ruby_on_rails.html for more details about upgrading your app."
       end
       remove_task :display_upgrade_guide_info
 
@@ -488,7 +487,11 @@ module Rails
       end
 
       def app_name
-        @app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
+        @app_name ||= original_app_name.tr("-", "_")
+      end
+
+      def original_app_name
+        @original_app_name ||= (defined_app_const_base? ? defined_app_name : File.basename(destination_root)).tr('\\', "").tr(". ", "_")
       end
 
       def defined_app_name
@@ -512,14 +515,14 @@ module Rails
       end
 
       def valid_const?
-        if app_const =~ /^\d/
-          raise Error, "Invalid application name #{app_name}. Please give a name which does not start with numbers."
-        elsif RESERVED_NAMES.include?(app_name)
-          raise Error, "Invalid application name #{app_name}. Please give a " \
+        if /^\d/.match?(app_const)
+          raise Error, "Invalid application name #{original_app_name}. Please give a name which does not start with numbers."
+        elsif RESERVED_NAMES.include?(original_app_name)
+          raise Error, "Invalid application name #{original_app_name}. Please give a " \
                        "name which does not match one of the reserved rails " \
                        "words: #{RESERVED_NAMES.join(", ")}"
         elsif Object.const_defined?(app_const_base)
-          raise Error, "Invalid application name #{app_name}, constant #{app_const_base} is already in use. Please choose another application name."
+          raise Error, "Invalid application name #{original_app_name}, constant #{app_const_base} is already in use. Please choose another application name."
         end
       end
 

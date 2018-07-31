@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Job Basics
 =================
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ bin/rails generate job guests_cleanup
+$ rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ bin/rails generate job guests_cleanup --queue urgent
+$ rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of

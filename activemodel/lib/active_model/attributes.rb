@@ -103,7 +103,7 @@ module ActiveModel
       def self.set_name_cache(name, value)
         const_name = "ATTR_#{name}"
         unless const_defined? const_name
-          const_set const_name, value.dup.freeze
+          const_set const_name, -value
         end
       end
     }

@@ -47,11 +47,11 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
   end
 
   test "deleting from all services" do
-    @service.delete FIXTURE_KEY
+    @service.delete @key
 
-    assert_not SERVICE.primary.exist?(FIXTURE_KEY)
+    assert_not SERVICE.primary.exist?(@key)
     SERVICE.mirrors.each do |mirror|
-      assert_not mirror.exist?(FIXTURE_KEY)
+      assert_not mirror.exist?(@key)
     end
   end
 
@@ -59,8 +59,8 @@ class ActiveStorage::Service::MirrorServiceTest < ActiveSupport::TestCase
     filename = ActiveStorage::Filename.new("test.txt")
 
     freeze_time do
-      assert_equal @service.primary.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain"),
-        @service.url(FIXTURE_KEY, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain")
+      assert_equal @service.primary.url(@key, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain"),
+        @service.url(@key, expires_in: 2.minutes, disposition: :inline, filename: filename, content_type: "text/plain")
     end
   end
 end

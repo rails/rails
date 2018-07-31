@@ -2,8 +2,8 @@
 
 module ActiveStorage
   # This is an abstract base class for previewers, which generate images from blobs. See
-  # ActiveStorage::Previewer::PDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for examples of
-  # concrete subclasses.
+  # ActiveStorage::Previewer::MuPDFPreviewer and ActiveStorage::Previewer::VideoPreviewer for
+  # examples of concrete subclasses.
   class Previewer
     attr_reader :blob
 
@@ -31,7 +31,7 @@ module ActiveStorage
 
       # Executes a system command, capturing its binary output in a tempfile. Yields the tempfile.
       #
-      # Use this method to shell out to a system library (e.g. mupdf or ffmpeg) for preview image
+      # Use this method to shell out to a system library (e.g. muPDF or FFmpeg) for preview image
       # generation. The resulting tempfile can be used as the +:io+ value in an attachable Hash:
       #
       #   def preview
@@ -44,22 +44,27 @@ module ActiveStorage
       #
       # The output tempfile is opened in the directory returned by #tempdir.
       def draw(*argv) #:doc:
-        ActiveSupport::Notifications.instrument("preview.active_storage") do
-          open_tempfile_for_drawing do |file|
+        open_tempfile do |file|
+          instrument :preview, key: blob.key do
             capture(*argv, to: file)
-            yield file
           end
+
+          yield file
         end
       end
 
-      def open_tempfile_for_drawing
-        tempfile = Tempfile.open("ActiveStorage", tempdir)
+      def open_tempfile
+        tempfile = Tempfile.open("ActiveStorage-", tempdir)
 
         begin
           yield tempfile
         ensure
           tempfile.close!
         end
+      end
+
+      def instrument(operation, payload = {}, &block)
+        ActiveSupport::Notifications.instrument "#{operation}.active_storage", payload, &block
       end
 
       def capture(*argv, to:)

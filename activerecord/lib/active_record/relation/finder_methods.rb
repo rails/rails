@@ -371,16 +371,14 @@ module ActiveRecord
         relation
       end
 
-      def construct_join_dependency
-        including = eager_load_values + includes_values
-        joins = joins_values.select { |join| join.is_a?(Arel::Nodes::Join) }
+      def construct_join_dependency(associations)
         ActiveRecord::Associations::JoinDependency.new(
-          klass, table, including, alias_tracker(joins)
+          klass, table, associations
         )
       end
 
-      def apply_join_dependency(eager_loading: true)
-        join_dependency = construct_join_dependency
+      def apply_join_dependency(eager_loading: group_values.empty?)
+        join_dependency = construct_join_dependency(eager_load_values + includes_values)
         relation = except(:includes, :eager_load, :preload).joins!(join_dependency)
 
         if eager_loading && !using_limitable_reflections?(join_dependency.reflections)
@@ -392,7 +390,6 @@ module ActiveRecord
         end
 
         if block_given?
-          relation._select!(join_dependency.aliases.columns)
           yield relation, join_dependency
         else
           relation
@@ -553,7 +550,7 @@ module ActiveRecord
       end
 
       def ordered_relation
-        if order_values.empty? && primary_key
+        if order_values.empty? && primary_key && limit_value.blank?
           order(arel_attribute(primary_key).asc)
         else
           self

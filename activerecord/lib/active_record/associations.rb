@@ -1232,9 +1232,9 @@ module ActiveRecord
         # * <tt>Firm#clients.size</tt> (similar to <tt>Client.count "firm_id = #{id}"</tt>)
         # * <tt>Firm#clients.find</tt> (similar to <tt>Client.where(firm_id: id).find(id)</tt>)
         # * <tt>Firm#clients.exists?(name: 'ACME')</tt> (similar to <tt>Client.exists?(name: 'ACME', firm_id: firm.id)</tt>)
-        # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new("firm_id" => id)</tt>)
-        # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save; c</tt>)
-        # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new("firm_id" => id); c.save!</tt>)
+        # * <tt>Firm#clients.build</tt> (similar to <tt>Client.new(firm_id: id)</tt>)
+        # * <tt>Firm#clients.create</tt> (similar to <tt>c = Client.new(firm_id: id); c.save; c</tt>)
+        # * <tt>Firm#clients.create!</tt> (similar to <tt>c = Client.new(firm_id: id); c.save!</tt>)
         # * <tt>Firm#clients.reload</tt>
         # The declaration can also include an +options+ hash to specialize the behavior of the association.
         #
@@ -1405,9 +1405,9 @@ module ActiveRecord
         # An Account class declares <tt>has_one :beneficiary</tt>, which will add:
         # * <tt>Account#beneficiary</tt> (similar to <tt>Beneficiary.where(account_id: id).first</tt>)
         # * <tt>Account#beneficiary=(beneficiary)</tt> (similar to <tt>beneficiary.account_id = account.id; beneficiary.save</tt>)
-        # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new("account_id" => id)</tt>)
-        # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save; b</tt>)
-        # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new("account_id" => id); b.save!; b</tt>)
+        # * <tt>Account#build_beneficiary</tt> (similar to <tt>Beneficiary.new(account_id: id)</tt>)
+        # * <tt>Account#create_beneficiary</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save; b</tt>)
+        # * <tt>Account#create_beneficiary!</tt> (similar to <tt>b = Beneficiary.new(account_id: id); b.save!; b</tt>)
         # * <tt>Account#reload_beneficiary</tt>
         #
         # === Scopes
@@ -1754,8 +1754,8 @@ module ActiveRecord
         # * <tt>Developer#projects.size</tt>
         # * <tt>Developer#projects.find(id)</tt>
         # * <tt>Developer#projects.exists?(...)</tt>
-        # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new("developer_id" => id)</tt>)
-        # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new("developer_id" => id); c.save; c</tt>)
+        # * <tt>Developer#projects.build</tt> (similar to <tt>Project.new(developer_id: id)</tt>)
+        # * <tt>Developer#projects.create</tt> (similar to <tt>c = Project.new(developer_id: id); c.save; c</tt>)
         # * <tt>Developer#projects.reload</tt>
         # The declaration may include an +options+ hash to specialize the behavior of the association.
         #

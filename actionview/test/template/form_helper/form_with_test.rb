@@ -318,7 +318,8 @@ class FormWithActsLikeFormForTest < FormWithTest
     @url_for_options = object
 
     if object.is_a?(Hash) && object[:use_route].blank? && object[:controller].blank?
-      object.merge!(controller: "main", action: "index")
+      object[:controller] = "main"
+      object[:action] = "index"
     end
 
     super
@@ -462,6 +463,23 @@ class FormWithActsLikeFormForTest < FormWithTest
       assert_dom_equal '<input type="hidden" name="other_name[private_property]" id="other_name_private_property">', f.hidden_field(:private_property)
       assert_dom_equal '<input type="hidden" name="other_name[protected_property]"  id="other_name_protected_property">', f.hidden_field(:protected_property)
     end
+  end
+
+  def test_form_with_with_collection_select
+    post = Post.new
+    def post.active; false; end
+    form_with(model: post) do |f|
+      concat f.collection_select(:active, [true, false], :to_s, :to_s)
+    end
+
+    expected = whole_form("/posts") do
+      "<select name='post[active]' id='post_active'>" \
+      "<option value='true'>true</option>\n" \
+      "<option selected='selected' value='false'>false</option>" \
+      "</select>"
+    end
+
+    assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_collection_radio_buttons
@@ -2346,14 +2364,5 @@ class FormWithActsLikeFormForTest < FormWithTest
       yield
     ensure
       I18n.locale = old_locale
-    end
-
-    def with_default_enforce_utf8(value)
-      old_value = ActionView::Helpers::FormTagHelper.default_enforce_utf8
-      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = value
-
-      yield
-    ensure
-      ActionView::Helpers::FormTagHelper.default_enforce_utf8 = old_value
     end
 end

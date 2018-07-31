@@ -145,6 +145,21 @@ class Client < Company
     raise RaisedOnSave if raise_on_save
   end
 
+  attr_accessor :throw_on_save
+  before_save do
+    throw :abort if throw_on_save
+  end
+
+  attr_accessor :rollback_on_save
+  after_save do
+    raise ActiveRecord::Rollback if rollback_on_save
+  end
+
+  attr_accessor :rollback_on_create_called
+  after_rollback(on: :create) do |client|
+    client.rollback_on_create_called = true
+  end
+
   class RaisedOnDestroy < RuntimeError; end
   attr_accessor :raise_on_destroy
   before_destroy do

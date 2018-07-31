@@ -558,17 +558,6 @@ module ActiveRecord
           @max_allowed_packet ||= (show_variable("max_allowed_packet") - bytes_margin)
         end
 
-        def with_multi_statements
-          previous_flags = @config[:flags]
-          @config[:flags] = Mysql2::Client::MULTI_STATEMENTS
-          reconnect!
-
-          yield
-        ensure
-          @config[:flags] = previous_flags
-          reconnect!
-        end
-
         def initialize_type_map(m = type_map)
           super
 
@@ -630,6 +619,7 @@ module ActiveRecord
         ER_DUP_ENTRY            = 1062
         ER_NOT_NULL_VIOLATION   = 1048
         ER_DO_NOT_HAVE_DEFAULT  = 1364
+        ER_ROW_IS_REFERENCED_2  = 1451
         ER_NO_REFERENCED_ROW_2  = 1452
         ER_DATA_TOO_LONG        = 1406
         ER_OUT_OF_RANGE         = 1264
@@ -644,7 +634,7 @@ module ActiveRecord
           case error_number(exception)
           when ER_DUP_ENTRY
             RecordNotUnique.new(message)
-          when ER_NO_REFERENCED_ROW_2
+          when ER_ROW_IS_REFERENCED_2, ER_NO_REFERENCED_ROW_2
             InvalidForeignKey.new(message)
           when ER_CANNOT_ADD_FOREIGN
             mismatched_foreign_key(message)

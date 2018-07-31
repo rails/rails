@@ -151,7 +151,7 @@ module ActiveRecord
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
-    # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
+    # To restart PostgreSQL 9.1 on macOS, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")

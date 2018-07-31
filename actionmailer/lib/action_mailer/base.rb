@@ -475,9 +475,19 @@ module ActionMailer
         observers.flatten.compact.each { |observer| register_observer(observer) }
       end
 
+      # Unregister one or more previously registered Observers.
+      def unregister_observers(*observers)
+        observers.flatten.compact.each { |observer| unregister_observer(observer) }
+      end
+
       # Register one or more Interceptors which will be called before mail is sent.
       def register_interceptors(*interceptors)
         interceptors.flatten.compact.each { |interceptor| register_interceptor(interceptor) }
+      end
+
+      # Unregister one or more previously registered Interceptors.
+      def unregister_interceptors(*interceptors)
+        interceptors.flatten.compact.each { |interceptor| unregister_interceptor(interceptor) }
       end
 
       # Register an Observer which will be notified when mail is delivered.
@@ -487,11 +497,25 @@ module ActionMailer
         Mail.register_observer(observer_class_for(observer))
       end
 
+      # Unregister a previously registered Observer.
+      # Either a class, string or symbol can be passed in as the Observer.
+      # If a string or symbol is passed in it will be camelized and constantized.
+      def unregister_observer(observer)
+        Mail.unregister_observer(observer_class_for(observer))
+      end
+
       # Register an Interceptor which will be called before mail is sent.
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
         Mail.register_interceptor(observer_class_for(interceptor))
+      end
+
+      # Unregister a previously registered Interceptor.
+      # Either a class, string or symbol can be passed in as the Interceptor.
+      # If a string or symbol is passed in it will be camelized and constantized.
+      def unregister_interceptor(interceptor)
+        Mail.unregister_interceptor(observer_class_for(interceptor))
       end
 
       def observer_class_for(value) # :nodoc:

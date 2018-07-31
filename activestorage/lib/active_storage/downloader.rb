@@ -10,6 +10,7 @@ module ActiveStorage
     def download_blob_to_tempfile
       open_tempfile do |file|
         download_blob_to file
+        verify_integrity_of file
         yield file
       end
     end
@@ -18,7 +19,7 @@ module ActiveStorage
       attr_reader :blob, :tempdir
 
       def open_tempfile
-        file = Tempfile.open([ "ActiveStorage", tempfile_extension_with_delimiter ], tempdir)
+        file = Tempfile.open([ "ActiveStorage-#{blob.id}-", blob.filename.extension_with_delimiter ], tempdir)
 
         begin
           yield file
@@ -34,8 +35,10 @@ module ActiveStorage
         file.rewind
       end
 
-      def tempfile_extension_with_delimiter
-        blob.filename.extension_with_delimiter
+      def verify_integrity_of(file)
+        unless Digest::MD5.file(file).base64digest == blob.checksum
+          raise ActiveStorage::IntegrityError
+        end
       end
   end
 end

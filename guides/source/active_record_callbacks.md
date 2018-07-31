@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Callbacks
 =======================
@@ -184,9 +184,9 @@ class Company < ApplicationRecord
   after_touch :log_when_employees_or_company_touched
 
   private
-  def log_when_employees_or_company_touched
-    puts 'Employee/Company was touched'
-  end
+    def log_when_employees_or_company_touched
+      puts 'Employee/Company was touched'
+    end
 end
 
 >> @employee = Employee.last
@@ -194,8 +194,8 @@ end
 
 # triggers @employee.company.touch
 >> @employee.touch
-Employee/Company was touched
 An Employee was touched
+Employee/Company was touched
 => true
 ```
 

@@ -139,6 +139,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [], reply.history
   end
 
+  def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+
+    new_record.destroy
+    assert_equal [:commit_on_destroy], new_record.history
+  end
+
+  def test_save_in_after_create_commit_wont_invoke_extra_after_create_commit
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+    new_record.after_commit_block(:create) { |r| r.save! }
+
+    new_record.save!
+    assert_equal [:commit_on_create, :commit_on_update], new_record.history
+  end
+
   def test_only_call_after_commit_on_create_and_doesnt_leaky
     r = ReplyWithCallbacks.new(content: "foo")
     r.save_on_after_create = true

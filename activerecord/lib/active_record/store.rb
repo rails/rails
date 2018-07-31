@@ -33,12 +33,16 @@ module ActiveRecord
   #     store :settings, accessors: [ :color, :homepage ], coder: JSON
   #     store :parent, accessors: [ :name ], coder: JSON, prefix: true
   #     store :spouse, accessors: [ :name ], coder: JSON, prefix: :partner
+  #     store :settings, accessors: [ :two_factor_auth ], suffix: true
+  #     store :settings, accessors: [ :login_retry ], suffix: :config
   #   end
   #
   #   u = User.new(color: 'black', homepage: '37signals.com', parent_name: 'Mary', partner_name: 'Lily')
   #   u.color                          # Accessor stored attribute
   #   u.parent_name                    # Accessor stored attribute with prefix
   #   u.partner_name                   # Accessor stored attribute with custom prefix
+  #   u.two_factor_auth_settings       # Accessor stored attribute with suffix
+  #   u.login_retry_config             # Accessor stored attribute with custom suffix
   #   u.settings[:country] = 'Denmark' # Any attribute, even if not specified with an accessor
   #
   #   # There is no difference between strings and symbols for accessing custom attributes
@@ -49,11 +53,12 @@ module ActiveRecord
   #   class SuperUser < User
   #     store_accessor :settings, :privileges, :servants
   #     store_accessor :parent, :birthday, prefix: true
+  #     store_accessor :settings, :secret_question, suffix: :config
   #   end
   #
   # The stored attribute names can be retrieved using {.stored_attributes}[rdoc-ref:rdoc-ref:ClassMethods#stored_attributes].
   #
-  #   User.stored_attributes[:settings] # [:color, :homepage]
+  #   User.stored_attributes[:settings] # [:color, :homepage, :two_factor_auth, :login_retry]
   #
   # == Overwriting default accessors
   #
@@ -86,10 +91,10 @@ module ActiveRecord
     module ClassMethods
       def store(store_attribute, options = {})
         serialize store_attribute, IndifferentCoder.new(store_attribute, options[:coder])
-        store_accessor(store_attribute, options[:accessors], prefix: options[:prefix]) if options.has_key? :accessors
+        store_accessor(store_attribute, options[:accessors], options.slice(:prefix, :suffix)) if options.has_key? :accessors
       end
 
-      def store_accessor(store_attribute, *keys, prefix: nil)
+      def store_accessor(store_attribute, *keys, prefix: nil, suffix: nil)
         keys = keys.flatten
 
         accessor_prefix =
@@ -101,14 +106,25 @@ module ActiveRecord
           else
             ""
           end
+        accessor_suffix =
+          case suffix
+          when String, Symbol
+            "_#{suffix}"
+          when TrueClass
+            "_#{store_attribute}"
+          else
+            ""
+          end
 
         _store_accessors_module.module_eval do
           keys.each do |key|
-            define_method("#{accessor_prefix}#{key}=") do |value|
+            accessor_key = "#{accessor_prefix}#{key}#{accessor_suffix}"
+
+            define_method("#{accessor_key}=") do |value|
               write_store_attribute(store_attribute, key, value)
             end
 
-            define_method("#{accessor_prefix}#{key}") do
+            define_method(accessor_key) do
               read_store_attribute(store_attribute, key)
             end
           end

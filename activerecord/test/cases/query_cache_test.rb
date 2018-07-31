@@ -13,12 +13,13 @@ class QueryCacheTest < ActiveRecord::TestCase
   fixtures :tasks, :topics, :categories, :posts, :categories_posts
 
   class ShouldNotHaveExceptionsLogger < ActiveRecord::LogSubscriber
-    attr_reader :logger
+    attr_reader :logger, :events
 
     def initialize
       super
       @logger = ::Logger.new File::NULL
       @exception = false
+      @events = []
     end
 
     def exception?
@@ -26,6 +27,7 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
 
     def sql(event)
+      @events << event
       super
     rescue
       @exception = true
@@ -265,6 +267,26 @@ class QueryCacheTest < ActiveRecord::TestCase
     end
   end
 
+  def test_cache_notifications_can_be_overridden
+    logger = ShouldNotHaveExceptionsLogger.new
+    subscriber = ActiveSupport::Notifications.subscribe "sql.active_record", logger
+
+    connection = ActiveRecord::Base.connection.dup
+
+    def connection.cache_notification_info(sql, name, binds)
+      super.merge(neat: true)
+    end
+
+    connection.cache do
+      connection.select_all "select 1"
+      connection.select_all "select 1"
+    end
+
+    assert_equal true, logger.events.last.payload[:neat]
+  ensure
+    ActiveSupport::Notifications.unsubscribe subscriber
+  end
+
   def test_cache_does_not_raise_exceptions
     logger = ShouldNotHaveExceptionsLogger.new
     subscriber = ActiveSupport::Notifications.subscribe "sql.active_record", logger
@@ -460,7 +482,6 @@ class QueryCacheTest < ActiveRecord::TestCase
           assert_not ActiveRecord::Base.connection.query_cache_enabled
         }.join
       }.call({})
-
     end
   end
 

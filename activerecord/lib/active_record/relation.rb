@@ -43,6 +43,12 @@ module ActiveRecord
       klass.arel_attribute(name, table)
     end
 
+    def bind_attribute(name, value) # :nodoc:
+      attr = arel_attribute(name)
+      bind = predicate_builder.build_bind_attribute(attr.name, value)
+      yield attr, bind
+    end
+
     # Initializes new record from relation while maintaining the current
     # scope.
     #
@@ -217,7 +223,7 @@ module ActiveRecord
     # are needed by the next ones when eager loading is going on.
     #
     # Please see further details in the
-    # {Active Record Query Interface guide}[http://guides.rubyonrails.org/active_record_querying.html#running-explain].
+    # {Active Record Query Interface guide}[https://guides.rubyonrails.org/active_record_querying.html#running-explain].
     def explain
       exec_explain(collecting_queries_for_explain { exec_queries })
     end
@@ -309,10 +315,10 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope(true), self
+      previous, klass.current_scope = klass.current_scope(true), self unless @delegate_to_klass
       yield
     ensure
-      klass.current_scope = previous
+      klass.current_scope = previous unless @delegate_to_klass
     end
 
     def _exec_scope(*args, &block) # :nodoc:
@@ -369,6 +375,28 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
+    def update(attributes) # :nodoc:
+      each { |record| record.update(attributes) }
+    end
+
+    def update_counters(counters) # :nodoc:
+      touch = counters.delete(:touch)
+
+      updates = counters.map do |counter_name, value|
+        operator = value < 0 ? "-" : "+"
+        quoted_column = connection.quote_column_name(counter_name)
+        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+      end
+
+      if touch
+        names = touch if touch != true
+        touch_updates = klass.touch_attributes_with_time(*names)
+        updates << klass.sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
+      end
+
+      update_all updates.join(", ")
+    end
+
     # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
     # set to the current time or the time specified.
     # This method can be passed attribute names and an optional time argument.
@@ -393,10 +421,7 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      attributes = Array(names) + klass.timestamp_attributes_for_update_in_model
-      time ||= klass.current_time_from_proper_timezone
-      updates = {}
-      attributes.each { |column| updates[column] = time }
+      updates = touch_attributes_with_time(*names, time: time)
 
       if klass.locking_enabled?
         quoted_locking_column = connection.quote_column_name(klass.locking_column)
@@ -505,17 +530,16 @@ module ActiveRecord
     #   # => SELECT "users".* FROM "users"  WHERE "users"."name" = 'Oscar'
     def to_sql
       @to_sql ||= begin
-                    relation = self
-
-                    if eager_loading?
-                      apply_join_dependency { |rel, _| relation = rel }
-                    end
-
-                    conn = klass.connection
-                    conn.unprepared_statement {
-                      conn.to_sql(relation.arel)
-                    }
-                  end
+        if eager_loading?
+          apply_join_dependency do |relation, join_dependency|
+            relation = join_dependency.apply_column_aliases(relation)
+            relation.to_sql
+          end
+        else
+          conn = klass.connection
+          conn.unprepared_statement { conn.to_sql(arel) }
+        end
+      end
     end
 
     # Returns a hash of where conditions.
@@ -625,6 +649,7 @@ module ActiveRecord
                 if ActiveRecord::NullRelation === relation
                   []
                 else
+                  relation = join_dependency.apply_column_aliases(relation)
                   rows = connection.select_all(relation.arel, "SQL")
                   join_dependency.instantiate(rows, &block)
                 end.freeze

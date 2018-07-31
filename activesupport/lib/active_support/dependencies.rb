@@ -224,6 +224,8 @@ module ActiveSupport #:nodoc:
         Dependencies.require_or_load(file_name)
       end
 
+      # :doc:
+
       # Interprets a file using <tt>mechanism</tt> and marks its defined
       # constants as autoloaded. <tt>file_name</tt> can be either a string or
       # respond to <tt>to_path</tt>.
@@ -241,6 +243,8 @@ module ActiveSupport #:nodoc:
 
         Dependencies.depend_on(file_name, message)
       end
+
+      # :nodoc:
 
       def load_dependency(file)
         if Dependencies.load? && Dependencies.constant_watch_stack.watching?
@@ -341,7 +345,7 @@ module ActiveSupport #:nodoc:
     end
 
     def require_or_load(file_name, const_path = nil)
-      file_name = $` if file_name =~ /\.rb\z/
+      file_name = file_name.chomp(".rb")
       expanded = File.expand_path(file_name)
       return if loaded.include?(expanded)
 
@@ -391,7 +395,7 @@ module ActiveSupport #:nodoc:
     # constant paths which would cause Dependencies to attempt to load this
     # file.
     def loadable_constants_for_path(path, bases = autoload_paths)
-      path = $` if path =~ /\.rb\z/
+      path = path.chomp(".rb")
       expanded_path = File.expand_path(path)
       paths = []
 

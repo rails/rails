@@ -15,6 +15,8 @@ require "sqlite3"
 module ActiveRecord
   module ConnectionHandling # :nodoc:
     def sqlite3_connection(config)
+      config = config.symbolize_keys
+
       # Require database.
       unless config[:database]
         raise ArgumentError, "No database file specified. Missing argument: database"
@@ -31,7 +33,7 @@ module ActiveRecord
 
       db = SQLite3::Database.new(
         config[:database].to_s,
-        results_as_hash: true
+        config.merge(results_as_hash: true)
       )
 
       db.busy_timeout(ConnectionAdapters::SQLite3Adapter.type_cast_config_to_integer(config[:timeout])) if config[:timeout]
@@ -187,13 +189,16 @@ module ActiveRecord
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
-        old = query_value("PRAGMA foreign_keys")
+        old_foreign_keys = query_value("PRAGMA foreign_keys")
+        old_defer_foreign_keys = query_value("PRAGMA defer_foreign_keys")
 
         begin
+          execute("PRAGMA defer_foreign_keys = ON")
           execute("PRAGMA foreign_keys = OFF")
           yield
         ensure
-          execute("PRAGMA foreign_keys = #{old}")
+          execute("PRAGMA defer_foreign_keys = #{old_defer_foreign_keys}")
+          execute("PRAGMA foreign_keys = #{old_foreign_keys}")
         end
       end
 
@@ -407,9 +412,11 @@ module ActiveRecord
           caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
-            move_table(table_name, altered_table_name,
-              options.merge(temporary: true))
-            move_table(altered_table_name, table_name, &caller)
+            disable_referential_integrity do
+              move_table(table_name, altered_table_name,
+                options.merge(temporary: true))
+              move_table(altered_table_name, table_name, &caller)
+            end
           end
         end
 
@@ -450,9 +457,6 @@ module ActiveRecord
         def copy_table_indexes(from, to, rename = {})
           indexes(from).each do |index|
             name = index.name
-            # indexes sqlite creates for internal use start with `sqlite_` and
-            # don't need to be copied
-            next if name.starts_with?("sqlite_")
             if to == "a#{from}"
               name = "t#{name}"
             elsif from == "a#{to}"

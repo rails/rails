@@ -2,6 +2,41 @@
 
     *Aditya Kapoor*
 
+*   Don't impose primary key order if limit() has already been supplied.
+
+    Fixes #23607
+
+    *Brian Christian*
+
+*   Add environment & load_config dependency to `bin/rake db:seed` to enable
+    seed load in environments without Rails and custom DB configuration
+
+    *Tobias Bielohlawek*
+
+*   Fix default value for mysql time types with specified precision.
+
+    *Nikolay Kondratyev*
+
+*   Fix `touch` option to behave consistently with `Persistence#touch` method.
+
+    *Ryuta Kamizono*
+
+*   Migrations raise when duplicate column definition.
+
+    Fixes #33024.
+
+    *Federico Martinez*
+
+*   Bump minimum SQLite version to 3.8
+
+    *Yasuo Honda*
+
+*   Fix parent record should not get saved with duplicate children records.
+
+    Fixes #32940.
+
+    *Santosh Wadghule*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*
@@ -27,9 +62,9 @@
 
     *Bogdan Gusiev*
 
-*   Add custom prefix option to ActiveRecord::Store.store_accessor.
+*   Add custom prefix/suffix options to `ActiveRecord::Store.store_accessor`.
 
-    *Tan Huynh*
+    *Tan Huynh*, *Yukio Mizuta*
 
 *   Rails 6 requires Ruby 2.4.1 or newer.
 

@@ -13,33 +13,37 @@ module ActiveRecord
       class_attribute :aggregate_reflections, instance_writer: false, default: {}
     end
 
-    def self.create(macro, name, scope, options, ar)
-      klass = \
-        case macro
-        when :composed_of
-          AggregateReflection
-        when :has_many
-          HasManyReflection
-        when :has_one
-          HasOneReflection
-        when :belongs_to
-          BelongsToReflection
-        else
-          raise "Unsupported Macro: #{macro}"
+    class << self
+      def create(macro, name, scope, options, ar)
+        reflection = reflection_class_for(macro).new(name, scope, options, ar)
+        options[:through] ? ThroughReflection.new(reflection) : reflection
+      end
+
+      def add_reflection(ar, name, reflection)
+        ar.clear_reflections_cache
+        name = name.to_s
+        ar._reflections = ar._reflections.except(name).merge!(name => reflection)
+      end
+
+      def add_aggregate_reflection(ar, name, reflection)
+        ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
+      end
+
+      private
+        def reflection_class_for(macro)
+          case macro
+          when :composed_of
+            AggregateReflection
+          when :has_many
+            HasManyReflection
+          when :has_one
+            HasOneReflection
+          when :belongs_to
+            BelongsToReflection
+          else
+            raise "Unsupported Macro: #{macro}"
+          end
         end
-
-      reflection = klass.new(name, scope, options, ar)
-      options[:through] ? ThroughReflection.new(reflection) : reflection
-    end
-
-    def self.add_reflection(ar, name, reflection)
-      ar.clear_reflections_cache
-      name = name.to_s
-      ar._reflections = ar._reflections.except(name).merge!(name => reflection)
-    end
-
-    def self.add_aggregate_reflection(ar, name, reflection)
-      ar.aggregate_reflections = ar.aggregate_reflections.merge(name.to_s => reflection)
     end
 
     # \Reflection enables the ability to examine the associations and aggregations of

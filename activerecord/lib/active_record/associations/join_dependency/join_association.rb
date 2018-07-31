@@ -6,17 +6,14 @@ module ActiveRecord
   module Associations
     class JoinDependency # :nodoc:
       class JoinAssociation < JoinPart # :nodoc:
-        # The reflection of the association represented
-        attr_reader :reflection
+        attr_reader :reflection, :tables
+        attr_accessor :table
 
-        attr_accessor :tables
-
-        def initialize(reflection, children, alias_tracker)
+        def initialize(reflection, children)
           super(reflection.klass, children)
 
-          @alias_tracker = alias_tracker
-          @reflection    = reflection
-          @tables        = nil
+          @reflection = reflection
+          @tables     = nil
         end
 
         def match?(other)
@@ -24,14 +21,13 @@ module ActiveRecord
           super && reflection == other.reflection
         end
 
-        def join_constraints(foreign_table, foreign_klass, join_type, tables, chain)
-          joins         = []
-          tables        = tables.reverse
+        def join_constraints(foreign_table, foreign_klass, join_type, alias_tracker)
+          joins = []
 
           # The chain starts with the target table, but we want to end with it here (makes
           # more sense in this context), so we reverse
-          chain.reverse_each do |reflection|
-            table = tables.shift
+          reflection.chain.reverse_each.with_index(1) do |reflection, i|
+            table = tables[-i]
             klass = reflection.klass
 
             constraint = reflection.build_join_constraint(table, foreign_table)
@@ -54,12 +50,16 @@ module ActiveRecord
           joins
         end
 
-        def table
-          tables.first
+        def tables=(tables)
+          @tables = tables
+          @table  = tables.first
         end
 
-        private
-          attr_reader :alias_tracker
+        def readonly?
+          return @readonly if defined?(@readonly)
+
+          @readonly = reflection.scope && reflection.scope_for(base_klass.unscoped).readonly_value
+        end
       end
     end
   end

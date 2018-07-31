@@ -741,22 +741,13 @@ module ActiveRecord
       # ====== Creating an index with a specific operator class
       #
       #   add_index(:developers, :name, using: 'gist', opclass: :gist_trgm_ops)
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name ON developers USING gist (name gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name ON developers USING gist (name gist_trgm_ops) -- PostgreSQL
       #
       #   add_index(:developers, [:name, :city], using: 'gist', opclass: { city: :gist_trgm_ops })
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name, city gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name_and_city ON developers USING gist (name, city gist_trgm_ops) -- PostgreSQL
       #
       #   add_index(:developers, [:name, :city], using: 'gist', opclass: :gist_trgm_ops)
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name gist_trgm_ops, city gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name_and_city ON developers USING gist (name gist_trgm_ops, city gist_trgm_ops) -- PostgreSQL
       #
       # Note: only supported by PostgreSQL
       #
