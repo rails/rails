@@ -116,7 +116,7 @@ Active Storage, with its included JavaScript library, supports uploading directl
     ```
     Using the npm package:
     ```js
-    import ActiveStorage from "activestorage"
+    import * as ActiveStorage from "activestorage"
     ActiveStorage.start()
     ```
 2. Annotate file inputs with the direct upload URL.

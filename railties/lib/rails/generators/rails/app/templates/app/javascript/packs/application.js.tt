@@ -12,7 +12,7 @@ Turbolinks.start()
 <%- end -%>
 <%- unless skip_active_storage? -%>
 
-import ActiveStorage from "activestorage"
+import * as ActiveStorage from "activestorage"
 ActiveStorage.start()
 <%- end -%>
 <%- unless options[:skip_action_cable] -%>
