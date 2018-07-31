@@ -749,4 +749,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
       assert_not author.destroy
     end
   end
+
+  class AwesomeBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, required: true, message: "should be present."
+  end
+
+  def test_has_one_required_message_config
+    awesome_book = AwesomeBook.new
+    assert_not_predicate awesome_book, :valid?
+    assert_equal [{ error: :blank }], awesome_book.errors.details[:author]
+    assert_equal ["should be present."], awesome_book.errors[:author]
+  end
 end

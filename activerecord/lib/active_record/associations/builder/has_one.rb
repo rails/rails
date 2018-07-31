@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      valid = super + [:as]
+      valid = super + [:as, :message]
       valid += [:through, :source, :source_type] if options[:through]
       valid
     end
@@ -21,9 +21,14 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.define_validations(model, reflection)
+      if reflection.options.key?(:message)
+        validation_message = reflection.options.delete(:message)
+      end
+
       super
+
       if reflection.options[:required]
-        model.validates_presence_of reflection.name, message: :required
+        model.validates_presence_of reflection.name, message: (validation_message.presence || :required)
       end
     end
   end

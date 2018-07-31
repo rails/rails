@@ -7,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
+      super + [:message, :polymorphic, :touch, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
@@ -138,6 +138,10 @@ module ActiveRecord::Associations::Builder # :nodoc:
         reflection.options[:optional] = !reflection.options.delete(:required)
       end
 
+      if reflection.options.key?(:message)
+        validation_message = reflection.options.delete(:message)
+      end
+
       if reflection.options[:optional].nil?
         required = model.belongs_to_required_by_default
       else
@@ -147,7 +151,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
 
       if required
-        model.validates_presence_of reflection.name, message: :required
+        model.validates_presence_of reflection.name, message: (validation_message.presence || :required)
       end
     end
   end

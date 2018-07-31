@@ -1,3 +1,7 @@
+* Remove the hardcoded required message for the `required` option in belongs_to. Add error message option for `belongs_to_required_by_default` on the associations
+
+    *Aditya Kapoor*
+
 *   Fix logic on disabling commit callbacks so they are not called unexpectedly when errors occur.
 
     *Brian Durand*

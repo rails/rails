@@ -1492,6 +1492,9 @@ module ActiveRecord
         #   When set to +true+, the association will also have its presence validated.
         #   This will validate the association itself, not the id. You can use
         #   +:inverse_of+ to avoid an extra query during validation.
+        # [:message]
+        #   Specifies the error message for +required+ option.
+        #   NOTE: If <tt>required</tt> is set to <tt>true</tt> then only this option will work.
         #
         # Option examples:
         #   has_one :credit_card, dependent: :destroy  # destroys the associated credit card
@@ -1504,6 +1507,7 @@ module ActiveRecord
         #   has_one :club, through: :membership
         #   has_one :primary_address, -> { where(primary: true) }, through: :addressables, source: :addressable
         #   has_one :credit_card, required: true
+        #   has_one :credit_card, required: true, message: 'must be present.'
         def has_one(name, scope = nil, **options)
           reflection = Builder::HasOne.build(self, name, scope, options)
           Reflection.add_reflection self, name, reflection
@@ -1633,6 +1637,9 @@ module ActiveRecord
         #   +:inverse_of+ to avoid an extra query during validation.
         #   NOTE: <tt>required</tt> is set to <tt>true</tt> by default and is deprecated. If
         #   you don't want to have association presence validated, use <tt>optional: true</tt>.
+        # [:message]
+        #   Specifies the error message for +required+ option.
+        #   NOTE: If <tt>required</tt> is set to <tt>true</tt> then only this option will work.
         # [:default]
         #   Provide a callable (i.e. proc or lambda) to specify that the association should
         #   be initialized with a particular record before validation.
@@ -1649,6 +1656,7 @@ module ActiveRecord
         #   belongs_to :comment, touch: true
         #   belongs_to :company, touch: :employees_last_updated_at
         #   belongs_to :user, optional: true
+        #   belongs_to :user, message: 'must be present.'
         #   belongs_to :account, default: -> { company.account }
         def belongs_to(name, scope = nil, **options)
           reflection = Builder::BelongsTo.build(self, name, scope, options)
