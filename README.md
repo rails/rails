@@ -4,7 +4,7 @@
 
 Rails is a web-application framework that includes everything needed to
 create database-backed web applications according to the
-[Model-View-Controller (MVC)](http://en.wikipedia.org/wiki/Model-view-controller)
+[Model-View-Controller (MVC)](https://en.wikipedia.org/wiki/Model-view-controller)
 pattern.
 
 Understanding the MVC pattern is key to understanding Rails. MVC divides your
@@ -79,7 +79,7 @@ and may also be used independently outside Rails.
    the following resources handy:
     * [Getting Started with Rails](https://guides.rubyonrails.org/getting_started.html)
     * [Ruby on Rails Guides](https://guides.rubyonrails.org)
-    * [The API Documentation](http://api.rubyonrails.org)
+    * [The API Documentation](https://api.rubyonrails.org)
     * [Ruby on Rails Tutorial](https://www.railstutorial.org/book)
 
 ## Contributing
@@ -87,13 +87,13 @@ and may also be used independently outside Rails.
 [![Code Triage Badge](https://www.codetriage.com/rails/rails/badges/users.svg)](https://www.codetriage.com/rails/rails)
 
 We encourage you to contribute to Ruby on Rails! Please check out the
-[Contributing to Ruby on Rails guide](http://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](http://contributors.rubyonrails.org)
+[Contributing to Ruby on Rails guide](https://edgeguides.rubyonrails.org/contributing_to_ruby_on_rails.html) for guidelines about how to proceed. [Join us!](https://contributors.rubyonrails.org)
 
 Trying to report a possible security vulnerability in Rails? Please
-check out our [security policy](http://rubyonrails.org/security/) for
+check out our [security policy](https://rubyonrails.org/security/) for
 guidelines about how to proceed.
 
-Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](http://rubyonrails.org/conduct/).
+Everyone interacting in Rails and its sub-projects' codebases, issue trackers, chat rooms, and mailing lists is expected to follow the Rails [code of conduct](https://rubyonrails.org/conduct/).
 
 ## Code Status
 
