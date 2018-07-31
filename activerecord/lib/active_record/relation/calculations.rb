@@ -237,7 +237,7 @@ module ActiveRecord
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.
-        distinct = select_values.any? { |v| v.try(:match?, /\s*DISTINCT[\s(]+/i ) } ||
+        distinct = select_values.any? { |v| v.try(:match?, /\s*DISTINCT[\s(]+/i) } ||
                    distinct_value
 
         if operation == "count"
