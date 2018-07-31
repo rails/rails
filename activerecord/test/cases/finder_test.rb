@@ -463,6 +463,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:first)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.first
+    assert_equal expected, Topic.limit(5).first
   end
 
   def test_model_class_responds_to_first_bang
@@ -485,6 +486,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:second)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
+    assert_equal expected, Topic.limit(5).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -507,6 +509,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:third)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
+    assert_equal expected, Topic.limit(5).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -529,6 +532,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fourth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
+    assert_equal expected, Topic.limit(5).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -551,6 +555,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fifth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fifth
+    assert_equal expected, Topic.limit(5).fifth
   end
 
   def test_model_class_responds_to_fifth_bang
@@ -711,6 +716,14 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.first, comments.limit(2).first
     assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
     assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+  end
+
+  def test_first_have_determined_order_by_default
+    expected = [companies(:second_client), companies(:another_client)]
+    clients = Client.where(name: expected.map(&:name))
+
+    assert_equal expected, clients.first(2)
+    assert_equal expected, clients.limit(5).first(2)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -1263,21 +1276,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raises(ActiveRecord::UnknownPrimaryKey) do
       Matey.find(1)
     end
-  end
-
-  def test_first_and_last_with_limit_for_order_without_primary_key
-    # While Topic.first should impose an ordering by primary key,
-    # Topic.limit(n).first should not
-
-    Topic.first.touch # PostgreSQL changes the default order if no order clause is used
-
-    assert_equal Topic.limit(1).to_a.first, Topic.limit(1).first
-    assert_equal Topic.limit(2).to_a.first, Topic.limit(2).first
-    assert_equal Topic.limit(2).to_a.first(2), Topic.limit(2).first(2)
-
-    assert_equal Topic.limit(1).to_a.last, Topic.limit(1).last
-    assert_equal Topic.limit(2).to_a.last, Topic.limit(2).last
-    assert_equal Topic.limit(2).to_a.last(2), Topic.limit(2).last(2)
   end
 
   def test_finder_with_offset_string
