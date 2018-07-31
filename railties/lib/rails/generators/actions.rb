@@ -298,7 +298,7 @@ module Rails
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
           config = { verbose: false }
 
-          config.merge!(capture: options[:capture]) if options[:capture]
+          config[:capture] = options[:capture] if options[:capture]
 
           in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end

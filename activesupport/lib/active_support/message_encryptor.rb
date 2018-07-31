@@ -210,9 +210,7 @@ module ActiveSupport
         OpenSSL::Cipher.new(@cipher)
       end
 
-      def verifier
-        @verifier
-      end
+      attr_reader :verifier
 
       def aead_mode?
         @aead_mode ||= new_cipher.authenticated?

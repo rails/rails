@@ -2,7 +2,6 @@
 
 require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
-require "active_support/core_ext/regexp"
 require "active_support/i18n"
 require "active_support/deprecation"
 

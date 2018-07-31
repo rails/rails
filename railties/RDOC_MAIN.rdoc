@@ -77,15 +77,15 @@ and may also be used independently outside \Rails.
 5. Follow the guidelines to start developing your application. You may find the following resources handy:
 
    * The \README file created within your application.
-   * {Getting Started with \Rails}[http://guides.rubyonrails.org/getting_started.html].
-   * {Ruby on \Rails Guides}[http://guides.rubyonrails.org].
+   * {Getting Started with \Rails}[https://guides.rubyonrails.org/getting_started.html].
+   * {Ruby on \Rails Guides}[https://guides.rubyonrails.org].
    * {The API Documentation}[http://api.rubyonrails.org].
    * {Ruby on \Rails Tutorial}[https://www.railstutorial.org/book].
 
 == Contributing
 
 We encourage you to contribute to Ruby on \Rails! Please check out the
-{Contributing to Ruby on \Rails guide}[http://guides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how to proceed. {Join us!}[http://contributors.rubyonrails.org]
+{Contributing to Ruby on \Rails guide}[https://guides.rubyonrails.org/contributing_to_ruby_on_rails.html] for guidelines about how to proceed. {Join us!}[http://contributors.rubyonrails.org]
 
 Trying to report a possible security vulnerability in \Rails? Please
 check out our {security policy}[http://rubyonrails.org/security/] for

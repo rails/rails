@@ -48,14 +48,12 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key_was = attribute_before_last_save foreign_key
             foreign_key     = attribute_in_database foreign_key
 
-            if foreign_key && model.respond_to?(:increment_counter)
-              foreign_key = counter_cache_target(reflection, model, foreign_key)
-              model.increment_counter(cache_column, foreign_key)
+            if foreign_key && model < ActiveRecord::Base
+              counter_cache_target(reflection, model, foreign_key).update_counters(cache_column => 1)
             end
 
-            if foreign_key_was && model_was.respond_to?(:decrement_counter)
-              foreign_key_was = counter_cache_target(reflection, model_was, foreign_key_was)
-              model_was.decrement_counter(cache_column, foreign_key_was)
+            if foreign_key_was && model_was < ActiveRecord::Base
+              counter_cache_target(reflection, model_was, foreign_key_was).update_counters(cache_column => -1)
             end
           end
         end

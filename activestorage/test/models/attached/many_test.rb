@@ -468,6 +468,33 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
     end
   end
 
+  test "purging attachment with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      @user.highlights.purge
+      assert_not @user.highlights.attached?
+
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
+    end
+  end
+
   test "purging later" do
     [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
       @user.highlights.attach blobs
@@ -482,6 +509,35 @@ class ActiveStorage::ManyAttachedTest < ActiveSupport::TestCase
       assert_not ActiveStorage::Blob.exists?(blobs.second.id)
       assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
       assert_not ActiveStorage::Blob.service.exist?(blobs.second.key)
+    end
+  end
+
+  test "purging attachment later with shared blobs" do
+    [
+      create_blob(filename: "funky.jpg"),
+      create_blob(filename: "town.jpg"),
+      create_blob(filename: "worm.jpg")
+    ].tap do |blobs|
+      @user.highlights.attach blobs
+      assert @user.highlights.attached?
+
+      another_user = User.create!(name: "John")
+      shared_blobs = [blobs.second, blobs.third]
+      another_user.highlights.attach shared_blobs
+      assert another_user.highlights.attached?
+
+      perform_enqueued_jobs do
+        @user.highlights.purge_later
+      end
+
+      assert_not @user.highlights.attached?
+      assert_not ActiveStorage::Blob.exists?(blobs.first.id)
+      assert ActiveStorage::Blob.exists?(blobs.second.id)
+      assert ActiveStorage::Blob.exists?(blobs.third.id)
+
+      assert_not ActiveStorage::Blob.service.exist?(blobs.first.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.second.key)
+      assert ActiveStorage::Blob.service.exist?(blobs.third.key)
     end
   end
 

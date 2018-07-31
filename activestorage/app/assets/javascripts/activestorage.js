@@ -484,7 +484,7 @@
     }, {
       key: "readNextChunk",
       value: function readNextChunk() {
-        if (this.chunkIndex < this.chunkCount) {
+        if (this.chunkIndex < this.chunkCount || this.chunkIndex == 0 && this.chunkCount == 0) {
           var start = this.chunkIndex * this.chunkSize;
           var end = Math.min(start + this.chunkSize, this.file.size);
           var bytes = fileSlice.call(this.file, start, end);

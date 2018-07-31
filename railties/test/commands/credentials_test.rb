@@ -15,7 +15,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit without editor gives hint" do
     run_edit_command(editor: "").tap do |output|
       assert_match "No $EDITOR to open file in", output
-      assert_match "bin/rails credentials:edit", output
+      assert_match "rails credentials:edit", output
     end
   end
 
