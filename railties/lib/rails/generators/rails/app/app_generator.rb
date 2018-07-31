@@ -66,6 +66,10 @@ module Rails
       template "gitignore", ".gitignore"
     end
 
+    def dockerignore
+      template "dockerignore", ".dockerignore"
+    end
+
     def version_control
       if !options[:skip_git] && !options[:pretend]
         run "git init", capture: options[:quiet]
@@ -288,6 +292,7 @@ module Rails
         build(:gemfile)     unless options[:skip_gemfile]
         build(:version_control)
         build(:package_json) unless options[:skip_yarn]
+        build(:dockerignore)
       end
 
       def create_app_files
