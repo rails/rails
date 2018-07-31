@@ -237,11 +237,8 @@ module ActiveRecord
 
         # If #count is used with #distinct (i.e. `relation.distinct.count`) it is
         # considered distinct.
-        if select_values.any? && select_values.first =~ /\s*DISTINCT[\s(]+/i
-          distinct = true
-        else
-          distinct = distinct_value
-        end
+        distinct = select_values.any? { |v| v.try(:match?, /\s*DISTINCT[\s(]+/i ) } ||
+                   distinct_value
 
         if operation == "count"
           column_name ||= select_for_count
@@ -249,7 +246,7 @@ module ActiveRecord
             if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
-          elsif column_name =~ /\s*DISTINCT[\s(]+/i
+          elsif column_name.try(:match?, /\s*DISTINCT[\s(]+/i)
             distinct = nil
           end
         end
