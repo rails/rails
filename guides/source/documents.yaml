@@ -36,7 +36,6 @@
       name: Active Model Basics
       url: active_model_basics.html
       description: This guide covers the use of model classes without Active Record.
-      work_in_progress: true
 -
   name: Views
   documents:
@@ -44,7 +43,6 @@
       name: Action View Overview
       url: action_view_overview.html
       description: This guide provides an introduction to Action View and introduces a few of the more common view helpers.
-      work_in_progress: true
     -
       name: Layouts and Rendering in Rails
       url: layouts_and_rendering.html
