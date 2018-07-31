@@ -246,7 +246,7 @@ module ActiveRecord
             if distinct && (group_values.any? || select_values.empty? && order_values.empty?)
               column_name = primary_key
             end
-          elsif column_name.try(:match?, /\s*DISTINCT[\s(]+/i)
+          elsif /\s*DISTINCT[\s(]+/i.match?(column_name.to_s)
             distinct = nil
           end
         end

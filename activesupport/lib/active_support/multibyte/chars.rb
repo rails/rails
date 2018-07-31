@@ -4,7 +4,6 @@ require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/regexp"
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:

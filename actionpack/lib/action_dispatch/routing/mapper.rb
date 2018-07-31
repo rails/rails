@@ -279,7 +279,7 @@ module ActionDispatch
 
           def verify_regexp_requirements(requirements)
             requirements.each do |requirement|
-              if requirement.source =~ ANCHOR_CHARACTERS_REGEX
+              if ANCHOR_CHARACTERS_REGEX.match?(requirement.source)
                 raise ArgumentError, "Regexp anchor characters are not allowed in routing requirements: #{requirement.inspect}"
               end
 
@@ -309,7 +309,7 @@ module ActionDispatch
             hash = check_part(:controller, controller, path_params, {}) do |part|
               translate_controller(part) {
                 message = "'#{part}' is not a supported controller name. This can lead to potential routing problems.".dup
-                message << " See http://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
+                message << " See https://guides.rubyonrails.org/routing.html#specifying-a-controller-to-use"
 
                 raise ArgumentError, message
               }
@@ -333,7 +333,7 @@ module ActionDispatch
           end
 
           def split_to(to)
-            if to =~ /#/
+            if /#/.match?(to)
               to.split("#")
             else
               []
@@ -342,7 +342,7 @@ module ActionDispatch
 
           def add_controller_module(controller, modyoule)
             if modyoule && !controller.is_a?(Regexp)
-              if controller =~ %r{\A/}
+              if %r{\A/}.match?(controller)
                 controller[1..-1]
               else
                 [modyoule, controller].compact.join("/")
@@ -1588,7 +1588,7 @@ module ActionDispatch
             when Symbol
               options[:action] = to
             when String
-              if to =~ /#/
+              if /#/.match?(to)
                 options[:to] = to
               else
                 options[:controller] = to
@@ -1914,7 +1914,7 @@ module ActionDispatch
 
             default_action = options.delete(:action) || @scope[:action]
 
-            if action =~ /^[\w\-\/]+$/
+            if /^[\w\-\/]+$/.match?(action)
               default_action ||= action.tr("-", "_") unless action.include?("/")
             else
               action = nil

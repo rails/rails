@@ -67,7 +67,7 @@ module ActiveRecord
             if target && !stale_target?
               target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
             else
-              klass.update_counters(target_id, reflection.counter_cache_column => by, touch: reflection.options[:touch])
+              counter_cache_target.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
             end
           end
         end
@@ -112,12 +112,9 @@ module ActiveRecord
           inverse && inverse.has_one?
         end
 
-        def target_id
-          if options[:primary_key]
-            owner.send(reflection.name).try(:id)
-          else
-            owner._read_attribute(reflection.foreign_key)
-          end
+        def counter_cache_target
+          primary_key = reflection.association_primary_key(klass)
+          klass.unscoped.where!(primary_key => owner._read_attribute(reflection.foreign_key))
         end
 
         def stale_state

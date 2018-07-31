@@ -90,24 +90,28 @@ module ActiveRecord
       end
 
       def test_quoted_time_dst_utc
-        with_timezone_config default: :utc do
-          t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+        with_env_tz "America/New_York" do
+          with_timezone_config default: :utc do
+            t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
-          expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getutc.to_s(:db).slice(11..-1)
+            expected = t.change(year: 2000, month: 1, day: 1)
+            expected = expected.getutc.to_s(:db).slice(11..-1)
 
-          assert_equal expected, @quoter.quoted_time(t)
+            assert_equal expected, @quoter.quoted_time(t)
+          end
         end
       end
 
       def test_quoted_time_dst_local
-        with_timezone_config default: :local do
-          t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
+        with_env_tz "America/New_York" do
+          with_timezone_config default: :local do
+            t = Time.new(2000, 7, 1, 0, 0, 0, "+04:30")
 
-          expected = t.change(year: 2000, month: 1, day: 1)
-          expected = expected.getlocal.to_s(:db).slice(11..-1)
+            expected = t.change(year: 2000, month: 1, day: 1)
+            expected = expected.getlocal.to_s(:db).slice(11..-1)
 
-          assert_equal expected, @quoter.quoted_time(t)
+            assert_equal expected, @quoter.quoted_time(t)
+          end
         end
       end
 

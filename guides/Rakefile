@@ -30,7 +30,7 @@ namespace :guides do
       unless Kindlerb.kindlegen_available?
         abort "Please run `setupkindlerb` to install kindlegen"
       end
-      unless `convert` =~ /convert/
+      unless /convert/.match?(`convert`)
         abort "Please install ImageMagick"
       end
       ENV["KINDLE"] = "1"

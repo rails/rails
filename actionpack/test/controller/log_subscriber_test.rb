@@ -82,9 +82,7 @@ module Another
       @last_payload = payload
     end
 
-    def last_payload
-      @last_payload
-    end
+    attr_reader :last_payload
   end
 end
 

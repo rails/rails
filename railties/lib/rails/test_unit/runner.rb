@@ -63,7 +63,7 @@ module Rails
             # Extract absolute and relative paths but skip -n /.*/ regexp filters.
             argv.select { |arg| arg =~ %r%^/?\w+/% && !arg.end_with?("/") }.map do |path|
               case
-              when path =~ /(:\d+)+$/
+              when /(:\d+)+$/.match?(path)
                 file, *lines = path.split(":")
                 filters << [ file, lines ]
                 file
