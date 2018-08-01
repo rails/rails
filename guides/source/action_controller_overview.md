@@ -516,6 +516,8 @@ You can pass anything that the session can store; you're not limited to notices 
 <% end %>
 ```
 
+NOTE: When storing Hash objects in the flash, bear in mind how your session storage settings may affect. For example, storing `Hash` objects with symbol keys using Rails' default session storage settings (`CookieStore` and `:json` serialization) may cause keys to be stringified when flash is retrieved on next action.
+
 If you want a flash value to be carried over to another request, use the `keep` method:
 
 ```ruby
