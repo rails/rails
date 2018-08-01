@@ -248,6 +248,7 @@ module ActiveRecord
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
         file ||= dump_filename(spec_name, format)
 
+        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
 
@@ -261,6 +262,8 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
