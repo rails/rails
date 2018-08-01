@@ -56,6 +56,8 @@ class ActionCable.Subscription
 
   # Perform a channel action with the optional data passed as an attribute
   perform: (action, data = {}) ->
+    if data.action != undefined
+      throw new Error 'ActionCable.Subscription.perform: The key name "action" may not be supplied to the "data" argument.'
     data.action = action
     @send(data)
 
