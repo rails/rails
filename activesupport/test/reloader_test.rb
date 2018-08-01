@@ -58,7 +58,7 @@ class ReloaderTest < ActiveSupport::TestCase
 
     called = []
     reloader.reload!
-    assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete, :prepare], called
+    assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete], called
 
     reloader.check = lambda { false }
 
@@ -68,7 +68,7 @@ class ReloaderTest < ActiveSupport::TestCase
 
     called = []
     reloader.reload!
-    assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete, :prepare], called
+    assert_equal [:executor_run, :reloader_run, :prepare, :reloader_complete, :executor_complete], called
   end
 
   def test_class_unload_block

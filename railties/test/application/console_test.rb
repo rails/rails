@@ -51,18 +51,19 @@ class ConsoleTest < ActiveSupport::TestCase
 
   def test_reload_should_fire_preparation_and_cleanup_callbacks
     load_environment
-    a = b = c = nil
+    a = b = c = d = nil
 
     # TODO: These should be defined on the initializer
     ActiveSupport::Reloader.to_complete { a = b = c = 1 }
     ActiveSupport::Reloader.to_complete { b = c = 2 }
-    ActiveSupport::Reloader.to_prepare { c = 3 }
+    ActiveSupport::Reloader.to_prepare { c = d = 3 }
 
     irb_context.reload!(false)
 
     assert_equal 1, a
     assert_equal 2, b
-    assert_equal 3, c
+    assert_equal 2, c
+    assert_equal 3, d
   end
 
   def test_reload_should_reload_constants
