@@ -20,7 +20,7 @@
 *   Fix `ActiveSupport::Cache#read_multi` bug with local cache enabled that was
     returning instances of `ActiveSupport::Cache::Entry` instead of the raw values.
 
-    *Jasom Lee*
+    *Jason Lee*
 
 
 ## Rails 5.2.0 (April 09, 2018) ##
