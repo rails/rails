@@ -26,7 +26,8 @@ module <%= app_const_base %>
     # Initialize configuration defaults for originally generated Rails version.
     config.load_defaults <%= build(:config_target_version) %>
 
-    # Settings in config/environments/* take precedence over those specified here.
+    # Settings in config/environments/* take precedence over those specified
+    # here.
     # Application configuration can go into files in config/initializers
     # -- all .rb files in that directory are automatically loaded after loading
     # the framework and any gems in your application.
