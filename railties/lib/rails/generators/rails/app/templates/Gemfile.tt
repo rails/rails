@@ -35,19 +35,22 @@ gem 'bootsnap', '>= 1.1.0', require: false
 
 <%- end -%>
 <%- if options.api? -%>
-# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making cross-origin AJAX possible
+# Use Rack CORS for handling Cross-Origin Resource Sharing (CORS), making
+# cross-origin AJAX possible
 # gem 'rack-cors'
 
 <%- end -%>
 <% if RUBY_ENGINE == 'ruby' -%>
 group :development, :test do
-  # Call 'byebug' anywhere in the code to stop execution and get a debugger console
+  # Call 'byebug' anywhere in the code to stop execution and get a debugger
+  # console
   gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]
 end
 
 group :development do
 <%- unless options.api? -%>
-  # Access an interactive console on exception pages or by calling 'console' anywhere in the code.
+  # Access an interactive console on exception pages or by calling 'console'
+  # anywhere in the code.
   <%- if options.dev? || options.edge? -%>
   gem 'web-console', github: 'rails/web-console'
   <%- else -%>
@@ -58,7 +61,8 @@ group :development do
   gem 'listen', '>= 3.0.5', '< 3.2'
 <% end -%>
 <% if spring_install? -%>
-  # Spring speeds up development by keeping your application running in the background. Read more: https://github.com/rails/spring
+  # Spring speeds up development by keeping your application running in the
+  # background. Read more: https://github.com/rails/spring
   gem 'spring'
 <% if depend_on_listen? -%>
   gem 'spring-watcher-listen', '~> 2.0.0'
