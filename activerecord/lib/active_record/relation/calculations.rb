@@ -200,6 +200,10 @@ module ActiveRecord
       end
     end
 
+    def hash_pluck(*column_names)
+      pluck(column_names).map { |result| Hash[column_names.zip([result].flatten)] }
+    end
+
     # Pick the value(s) from the named column(s) in the current relation.
     # This is short-hand for <tt>relation.limit(1).pluck(*column_names).first</tt>, and is primarily useful
     # when you have a relation that's already narrowed down to a single row.

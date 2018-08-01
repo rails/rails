@@ -829,6 +829,10 @@ class CalculationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_hash_pluck
+    assert_equal [{id: 1}, {id: 2}, {id: 3}, {id: 4}, {id: 5}], Topic.order(:id).hash_pluck(:id)
+  end
+
   def test_pick_one
     assert_equal "The First Topic", Topic.order(:id).pick(:heading)
     assert_nil Topic.none.pick(:heading)
