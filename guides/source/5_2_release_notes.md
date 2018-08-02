@@ -26,7 +26,7 @@ coverage before going in. You should also first upgrade to Rails 5.1 in case you
 haven't and make sure your application still runs as expected before attempting
 an update to Rails 5.2. A list of things to watch out for when upgrading is
 available in the
-[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-5-1-to-rails-5-2)
+[Upgrading Ruby on Rails](upgrading_ruby_on_rails.html#upgrading-from-rails-51-to-rails-52)
 guide.
 
 Major Features
