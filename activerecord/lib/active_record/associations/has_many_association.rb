@@ -26,8 +26,13 @@ module ActiveRecord
           # No point in executing the counter update since we're going to destroy the parent anyway
           load_target.each { |t| t.destroyed_by_association = reflection }
           destroy_all
+
         else
-          delete_all
+          if options[:dependent] == :delete_all || options[:dependent] == :nullify # exclude special keywords
+            delete_all
+          else # attempt to call method on target (custom callback)
+            load_target.each { |t| t.send(options[:dependent]) }
+          end
         end
       end
 

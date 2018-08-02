@@ -40,6 +40,8 @@ require "models/subscriber"
 require "models/subscription"
 require "models/zine"
 require "models/interest"
+require "models/owned_thing"
+require "models/owned_thing_owner"
 
 class HasManyAssociationsTestForReorderWithJoinDependency < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :posts, :comments
@@ -1687,6 +1689,21 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     assert firm.companies.exists?(name: "child")
   ensure
     I18n.backend.reload!
+  end
+
+  def test_custom_dependency_callback
+    jane = OwnedThingOwner.create(name: "Jane")
+    OwnedThingOwner.create(name: "John")
+    OwnedThingOwner.create(name: "Jack")
+    thing = OwnedThing.create(name: "Thing", owned_thing_owner: jane)
+
+    assert_nothing_raised { jane.destroy }
+    assert_equal 2, OwnedThingOwner.count
+    assert_equal false, thing.owned_thing_owner.blank?
+    assert_raise ActiveRecord::RecordNotSaved do
+      OwnedThingOwner.destroy_all
+    end
+    assert_equal 1, OwnedThingOwner.count
   end
 
   def test_included_in_collection

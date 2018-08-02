@@ -11,7 +11,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_dependent_options
-      [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception]
+      # :_ is a substitute wildcard
+      [:destroy, :delete_all, :nullify, :restrict_with_error, :restrict_with_exception, :_]
     end
   end
 end

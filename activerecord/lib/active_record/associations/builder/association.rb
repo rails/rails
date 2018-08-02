@@ -127,7 +127,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.check_dependent_options(dependent)
-      unless valid_dependent_options.include? dependent
+      # allow custom has_many callbacks (:_)
+      unless (valid_dependent_options.include? dependent) || (valid_dependent_options.include? :_)
         raise ArgumentError, "The :dependent option must be one of #{valid_dependent_options}, but is :#{dependent}"
       end
     end

@@ -581,6 +581,15 @@ ActiveRecord::Schema.define do
     t.string :name
   end
 
+  create_table :owned_things, force: true do |t|
+    t.string :name
+    t.references :owned_thing_owner
+  end
+
+  create_table :owned_thing_owners, force: true do |t|
+    t.string :name
+  end
+
   create_table :owners, primary_key: :owner_id, force: true do |t|
     t.string :name
     if subsecond_precision_supported?
