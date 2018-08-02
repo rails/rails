@@ -1,3 +1,12 @@
+*   Support environment specific credentials file.
+
+    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
+    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
+    Edit given environment credentials file by command `rails credentials:edit --environment production`.
+    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
+
+    *Wojciech Wnętrzak*
+
 *   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
 
     *Michael C. Nelson*
