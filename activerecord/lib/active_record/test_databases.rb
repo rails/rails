@@ -19,7 +19,6 @@ module ActiveRecord
 
       connection_spec["database"] += "-#{i}"
       ActiveRecord::Tasks::DatabaseTasks.create(connection_spec)
-      ActiveRecord::Base.establish_connection(connection_spec)
       ActiveRecord::Tasks::DatabaseTasks.load_schema(connection_spec)
     ensure
       ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Rails.env])
