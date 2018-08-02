@@ -1011,8 +1011,8 @@ module ActiveRecord
       # Returns true if a connection that's accessible to this class has
       # already been opened.
       def connected?(spec_name)
-        conn = retrieve_connection_pool(spec_name)
-        conn && conn.connected?
+        pool = retrieve_connection_pool(spec_name)
+        pool && pool.connected?
       end
 
       # Remove the connection for this class. This will close the active
