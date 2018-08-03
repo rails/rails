@@ -154,6 +154,20 @@ module ActiveRecord
       self
     end
 
+    # Allows lazy preloading of +args+, in the same way that #includes does,
+    # but does preload associations only on demand
+    #   User.preload(:posts)
+    #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
+    def lazy_preload(*args)
+      check_if_method_has_arguments!(:lazy_preload, args)
+      spawn.lazy_preload!(*args)
+    end
+
+    def lazy_preload!(*args) # :nodoc:
+      self.lazy_preload_values += args
+      self
+    end
+
     # Use to indicate that the given +table_names+ are referenced by an SQL string,
     # and should therefore be JOINed in any query rather than loaded separately.
     # This method only works in conjunction with #includes.

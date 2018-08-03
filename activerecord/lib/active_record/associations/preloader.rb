@@ -95,6 +95,16 @@ module ActiveRecord
         end
       end
 
+      def lazy_preload(records, associations)
+        records = Array.wrap(records).compact
+
+        unless records.empty?
+          records.uniq!
+          preloader = LazyPreloader.new(records, self, associations)
+          records.each { |record| LazyPreloader::WeakRegistry.set record, preloader }
+        end
+      end
+
       private
 
         # Loads all the given data into +records+ for the +association+.

@@ -31,6 +31,16 @@ module ActiveRecord
         reset_scope
       end
 
+      # Checks whether lazy eager load of the association is possible
+      # and tries to preload if it is so.
+      def reader
+        LazyPreloader::WeakRegistry.get(@owner).tap do |preloader|
+          if preloader.present? && preloader.should_load?(@reflection.name)
+            preloader.preload @reflection.name
+          end
+        end
+      end
+
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false

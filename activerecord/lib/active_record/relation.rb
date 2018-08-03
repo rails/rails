@@ -5,7 +5,7 @@ module ActiveRecord
   class Relation
     MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
-                            :extending, :unscope]
+                            :extending, :unscope, :lazy_preload]
 
     SINGLE_VALUE_METHODS = [:limit, :offset, :lock, :readonly, :reordering,
                             :reverse_order, :distinct, :create_with, :skip_query_cache]
@@ -621,9 +621,9 @@ module ActiveRecord
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
-      preloader = nil
+      preloader = build_preloader
+      preloader.lazy_preload records, lazy_preload_values
       preload.each do |associations|
-        preloader ||= build_preloader
         preloader.preload records, associations
       end
     end

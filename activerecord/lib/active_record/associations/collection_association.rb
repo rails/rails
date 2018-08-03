@@ -28,6 +28,8 @@ module ActiveRecord
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
+        super
+
         if stale_target?
           reload
         end
