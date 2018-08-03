@@ -506,7 +506,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `photo_preview_url` and `photo_preview_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
