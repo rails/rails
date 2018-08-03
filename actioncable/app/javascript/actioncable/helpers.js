@@ -11,6 +11,6 @@ export function log(...messages) {
   if (this.debugging) {
     messages.push(Date.now())
     this.logger = window.console
-    return this.logger.log("[ActionCable]", ...Array.from(messages))
+    return this.logger.log("[ActionCable]", ...messages)
   }
 }

@@ -2,9 +2,9 @@
 // revival reconnections if things go astray. Internal class, not intended for direct user manipulation.
 import { log } from "./helpers"
 
-let now = undefined
-let secondsSince = undefined
-let clamp = undefined
+let now = () => new Date().getTime()
+let secondsSince = time => (now() - time) / 1000
+let clamp = (number, min, max) => Math.max(min, Math.min(max, number))
 
 export class ConnectionMonitor {
   static initClass() {
@@ -15,11 +15,6 @@ export class ConnectionMonitor {
 
     this.staleThreshold = 6
 
-    now = () => new Date().getTime()
-
-    secondsSince = time => (now() - time) / 1000
-
-    clamp = (number, min, max) => Math.max(min, Math.min(max, number))
      // Server::Connections::BEAT_INTERVAL * 2 (missed two pings)
   }
 
