@@ -552,9 +552,16 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_preload_applies_to_all_chained_preloaded_scopes
-    assert_queries(3) do
+    post = nil
+
+    assert_queries(1) do
       post = Post.with_comments.with_tags.first
       assert post
+    end
+
+    assert_queries(2) do
+      post.comments.first
+      post.tags.first
     end
   end
 
@@ -602,16 +609,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_respond_to comment, :readers
 
     post_rel = Post.preload(:readers).joins(:readers).where(title: "Uhuu")
-    result_comment = Comment.joins(:post).merge(post_rel).to_a.first
+    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).to_a.first
     assert_equal comment, result_comment
 
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal post, result_comment.post
       assert_equal [reader], result_comment.post.readers.to_a
     end
 
     post_rel = Post.includes(:readers).where(title: "Uhuu")
-    result_comment = Comment.joins(:post).merge(post_rel).first
+    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).first
     assert_equal comment, result_comment
 
     assert_no_queries do
@@ -627,14 +634,14 @@ class RelationTest < ActiveRecord::TestCase
     post_rel = PostWithPreloadDefaultScope.preload(:readers).joins(:readers).where(title: "Uhuu")
     result_post = PostWithPreloadDefaultScope.all.merge(post_rel).to_a.first
 
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal [reader], result_post.readers.to_a
     end
 
     post_rel = PostWithIncludesDefaultScope.includes(:readers).where(title: "Uhuu")
     result_post = PostWithIncludesDefaultScope.all.merge(post_rel).to_a.first
 
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal [reader], result_post.readers.to_a
     end
   end
@@ -679,7 +686,7 @@ class RelationTest < ActiveRecord::TestCase
     author = Author.preload(:taggings).find_by_id(david.id)
     expected_taggings = taggings(:welcome_general, :thinking_general)
 
-    assert_no_queries do
+    assert_queries(2) do
       assert_equal expected_taggings, author.taggings.uniq.sort_by(&:id)
     end
 
@@ -1799,7 +1806,7 @@ class RelationTest < ActiveRecord::TestCase
     authors_count = Post.select("author_id, COUNT(author_id) AS num_posts").
       group("author_id").order("author_id").includes(:author).to_a
 
-    assert_no_queries do
+    assert_queries(1) do
       result = authors_count.map do |post|
         [post.num_posts, post.author.try(:name)]
       end
@@ -1892,13 +1899,17 @@ class RelationTest < ActiveRecord::TestCase
   test "#skip_query_cache! with a preload" do
     Post.cache do
       assert_queries(2) do
-        Post.preload(:comments).load
-        Post.preload(:comments).load
+        Post.preload(:comments).each { |post| post.comments.first }
+        Post.preload(:comments).each { |post| post.comments.first }
       end
 
       assert_queries(4) do
-        Post.preload(:comments).skip_query_cache!.load
-        Post.preload(:comments).skip_query_cache!.load
+        Post.preload(:comments).skip_query_cache!.each do |post|
+          post.comments.first
+        end
+        Post.preload(:comments).skip_query_cache!.each do |post|
+          post.comments.first
+        end
       end
     end
   end

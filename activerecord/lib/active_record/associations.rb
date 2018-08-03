@@ -216,6 +216,7 @@ module ActiveRecord
       autoload :HasOneThroughAssociation
 
       autoload :Preloader
+      autoload :LazyPreloader
       autoload :JoinDependency
       autoload :AssociationScope
       autoload :AliasTracker

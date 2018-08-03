@@ -3,7 +3,7 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
-    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
+    MULTI_VALUE_METHODS  = [:includes, :includes_immediately, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
@@ -611,12 +611,13 @@ module ActiveRecord
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
-      preload += includes_values unless eager_loading?
-      preloader = nil
-      preload.each do |associations|
-        preloader ||= build_preloader
-        preloader.preload records, associations
-      end
+      preload += includes_values - includes_immediately_values unless eager_loading?
+
+      return if preload.empty? && (includes_immediately_values.empty? || eager_loading?)
+
+      preloader = build_preloader
+      preloader.preload records, includes_immediately_values unless eager_loading?
+      ExplainRegistry.collect? ? preloader.preload(records, preload) : preloader.lazy_preload(records, preload)
     end
 
     protected
@@ -655,13 +656,12 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
-
           @records.each(&:readonly!) if readonly_value
-
           @loaded = true
-          @records
         end
+
+        preload_associations(@records) unless skip_preloading_value
+        @records
       end
 
       def skip_query_cache_if_necessary
@@ -675,7 +675,9 @@ module ActiveRecord
       end
 
       def build_preloader
-        ActiveRecord::Associations::Preloader.new
+        skip_query_cache = skip_query_cache_value || !connection.query_cache_enabled
+        query_runner_type = skip_query_cache ? :uncached : :cache
+        ::ActiveRecord::Associations::Preloader.new query_runner_type, klass
       end
 
       def references_eager_loaded_tables?

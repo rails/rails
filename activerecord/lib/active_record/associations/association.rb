@@ -31,6 +31,20 @@ module ActiveRecord
         reset_scope
       end
 
+      # Checks whether lazy eager load of the association is possible
+      def lazy_preloadable?
+        LazyPreloader::Registry.fetch owner do |preloader|
+          preloader.should_load? reflection.name
+        end
+      end
+
+      # Tries to preload association lazily.
+      def lazy_preload
+        LazyPreloader::Registry.fetch owner do |preloader|
+          preloader.preload reflection.name if preloader.should_load? reflection.name
+        end
+      end
+
       # Resets the \loaded flag to +false+ and sets the \target to +nil+.
       def reset
         @loaded = false
@@ -140,6 +154,8 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
+        lazy_preload
+
         @target = find_target if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?
