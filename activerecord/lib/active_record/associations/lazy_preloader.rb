@@ -32,14 +32,14 @@ module ActiveRecord
       #
       # => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
       #
-      class WeakRegistry
-        def self.set(record, instance)
+      class Registry
+        def self.store(record, instance)
           record.instance_variable_set :@_lazy_preloader, instance
         end
 
-        def self.get(record)
+        def self.fetch(record)
           if record.instance_variable_defined?(:@_lazy_preloader)
-            record.instance_variable_get :@_lazy_preloader
+            yield record.instance_variable_get :@_lazy_preloader
           end
         end
       end
@@ -66,7 +66,7 @@ module ActiveRecord
       private
 
         def loaded_records(association)
-          @records.flat_map { |record| record.send association }
+          @records.flat_map { |record| record.association(association).target }
         end
 
         def current_associations

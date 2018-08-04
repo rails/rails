@@ -101,7 +101,7 @@ module ActiveRecord
         unless records.empty?
           records.uniq!
           preloader = LazyPreloader.new(records, self, associations)
-          records.each { |record| LazyPreloader::WeakRegistry.set record, preloader }
+          records.each { |record| LazyPreloader::Registry.store record, preloader }
         end
       end
 
