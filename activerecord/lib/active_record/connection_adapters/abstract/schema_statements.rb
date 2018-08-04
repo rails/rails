@@ -980,6 +980,10 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, column: :owner_id
       #
+      # Same but in a reversible manner
+      #
+      #   remove_foreign_key :accounts, column: :owner_id, to_table: :owners
+      #
       # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
