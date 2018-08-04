@@ -22,7 +22,7 @@ if SERVICE_CONFIGURATIONS[:azure]
         key  = SecureRandom.base58(24)
         data = "Something else entirely!"
 
-        Tempfile.open do |file|
+        Tempfile.open("test") do |file|
           file.write(data)
           file.rewind
           @service.upload(key, file)
