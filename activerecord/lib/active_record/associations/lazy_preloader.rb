@@ -33,14 +33,14 @@ module ActiveRecord
       # => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
       #
       class WeakRegistry
-        @@weakmap = ::ObjectSpace::WeakMap.new
-
         def self.set(record, instance)
-          @@weakmap[record] = instance
+          record.instance_variable_set :@_lazy_preloader, instance
         end
 
         def self.get(record)
-          @@weakmap[record]
+          if record.instance_variable_defined?(:@_lazy_preloader)
+            record.instance_variable_get :@_lazy_preloader
+          end
         end
       end
 

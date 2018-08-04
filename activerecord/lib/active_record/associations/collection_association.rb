@@ -28,8 +28,6 @@ module ActiveRecord
     class CollectionAssociation < Association #:nodoc:
       # Implements the reader method, e.g. foo.items for Foo.has_many :items
       def reader
-        super
-
         if stale_target?
           reload
         end
@@ -273,6 +271,8 @@ module ActiveRecord
       end
 
       def load_target
+        lazy_preload
+
         if find_target?
           @target = merge_target_lists(find_target, target)
         end

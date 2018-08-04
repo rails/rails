@@ -33,10 +33,12 @@ module ActiveRecord
 
       # Checks whether lazy eager load of the association is possible
       # and tries to preload if it is so.
-      def reader
-        LazyPreloader::WeakRegistry.get(@owner).tap do |preloader|
-          if preloader.present? && preloader.should_load?(@reflection.name)
-            preloader.preload @reflection.name
+      def reader; end
+
+      def lazy_preload
+        LazyPreloader::WeakRegistry.get(owner).tap do |preloader|
+          if preloader.present? && preloader.should_load?(reflection.name)
+            preloader.preload reflection.name
           end
         end
       end
@@ -158,6 +160,8 @@ module ActiveRecord
       # ActiveRecord::RecordNotFound is rescued within the method, and it is
       # not reraised. The proxy is \reset and +nil+ is the return value.
       def load_target
+        lazy_preload
+
         @target = find_target if (@stale_state && stale_target?) || find_target?
 
         loaded! unless loaded?

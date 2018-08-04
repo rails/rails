@@ -99,6 +99,25 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
       end
     end
   end
+
+  def test_lazy_preload_query
+    res = ShapeExpression.all.merge!(lazy_preload: [ :shape, { paint: :non_poly } ])
+
+    assert_queries(1) { res.records }
+    assert_equal NUM_SHAPE_EXPRESSIONS, res.size
+
+    assert_queries(4) do
+      res.each do |se|
+        assert_not_nil se.paint.non_poly, "nested associations are loaded on demand"
+      end
+    end
+
+    assert_queries(3) do
+      res.each do |se|
+        assert_not_nil se.shape, "regular associations are loaded on demand too"
+      end
+    end
+  end
 end
 
 class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
@@ -114,6 +133,14 @@ class EagerLoadNestedIncludeWithMissingDataTest < ActiveRecord::TestCase
     @first_post.destroy
     @first_comment.destroy
     @first_categorization.destroy
+  end
+
+  def test_missing_data_in_a_nested_lazy_preload_should_not_cause_errors_when_constructing_objects
+    assert_nothing_raised do
+      # @davey_mcdave doesn't have any author_favorites
+      lazy_preload = { posts: :comments, categorizations: :category, author_favorites: :favorite_author }
+      Author.all.merge!(lazy_preload: lazy_preload, where: { authors: { name: @davey_mcdave.name } }).to_a
+    end
   end
 
   def test_missing_data_in_a_nested_include_should_not_cause_errors_when_constructing_objects

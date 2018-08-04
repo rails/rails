@@ -621,6 +621,9 @@ module ActiveRecord
     def preload_associations(records) # :nodoc:
       preload = preload_values
       preload += includes_values unless eager_loading?
+
+      return if preload.empty? && lazy_preload_values.empty?
+
       preloader = build_preloader
       preloader.lazy_preload records, lazy_preload_values
       preload.each do |associations|
