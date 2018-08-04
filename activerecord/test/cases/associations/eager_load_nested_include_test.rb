@@ -15,7 +15,7 @@ module Remembered
   included do
     after_create :remember
     private
-    def remember; self.class.remembered << self; end
+      def remember; self.class.remembered << self; end
   end
 
   module ClassMethods
