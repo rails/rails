@@ -20,7 +20,7 @@ module ActiveStorage
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
         begin
-          blobs.create_block_blob(container, key, io, content_md5: checksum)
+          blobs.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum)
         rescue Azure::Core::Http::HTTPError
           raise ActiveStorage::IntegrityError
         end
