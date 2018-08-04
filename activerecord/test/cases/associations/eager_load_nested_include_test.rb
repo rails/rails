@@ -9,44 +9,60 @@ require "models/category"
 require "models/categorization"
 require "models/tagging"
 
+module Remembered
+  extend ActiveSupport::Concern
+
+  included do
+    after_create :remember
+    private
+    def remember; self.class.remembered << self; end
+  end
+
+  module ClassMethods
+    def remembered; @@remembered ||= []; end
+    def sample; @@remembered.sample; end
+  end
+end
+
+class ShapeExpression < ActiveRecord::Base
+  belongs_to :shape, polymorphic: true
+  belongs_to :paint, polymorphic: true
+end
+
+class Circle < ActiveRecord::Base
+  has_many :shape_expressions, as: :shape
+  include Remembered
+end
+class Square < ActiveRecord::Base
+  has_many :shape_expressions, as: :shape
+  include Remembered
+end
+class Triangle < ActiveRecord::Base
+  has_many :shape_expressions, as: :shape
+  include Remembered
+end
+class PaintColor < ActiveRecord::Base
+  has_many   :shape_expressions, as: :paint
+  belongs_to :non_poly, foreign_key: "non_poly_one_id", class_name: "NonPolyOne"
+  include Remembered
+end
+class PaintTexture < ActiveRecord::Base
+  has_many   :shape_expressions, as: :paint
+  belongs_to :non_poly, foreign_key: "non_poly_two_id", class_name: "NonPolyTwo"
+  include Remembered
+end
+class NonPolyOne < ActiveRecord::Base
+  has_many :paint_colors
+  include Remembered
+end
+class NonPolyTwo < ActiveRecord::Base
+  has_many :paint_textures
+  include Remembered
+end
+
 class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
   NUM_SIMPLE_OBJS = 50
   NUM_SHAPE_EXPRESSIONS = 100
-
-  class ShapeExpression < ActiveRecord::Base
-    belongs_to :shape, polymorphic: true
-    belongs_to :paint, polymorphic: true
-  end
-
-  class Circle < ActiveRecord::Base
-    has_many :shape_expressions, as: :shape
-  end
-
-  class Square < ActiveRecord::Base
-    has_many :shape_expressions, as: :shape
-  end
-
-  class Triangle < ActiveRecord::Base
-    has_many :shape_expressions, as: :shape
-  end
-
-  class PaintColor < ActiveRecord::Base
-    has_many   :shape_expressions, as: :paint
-    belongs_to :non_poly, foreign_key: "non_poly_one_id", class_name: "NonPolyOne"
-  end
-
-  class PaintTexture < ActiveRecord::Base
-    has_many   :shape_expressions, as: :paint
-    belongs_to :non_poly, foreign_key: "non_poly_two_id", class_name: "NonPolyTwo"
-  end
-
-  class NonPolyOne < ActiveRecord::Base
-    has_many :paint_colors
-  end
-
-  class NonPolyTwo < ActiveRecord::Base
-    has_many :paint_textures
-  end
 
   def setup
     generate_test_object_graphs

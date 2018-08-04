@@ -156,7 +156,9 @@ module ActiveRecord
 
     # Allows lazy preloading of +args+, in the same way that #includes does,
     # but does preload associations only on demand
-    #   User.preload(:posts)
+    #   users = User.lazy_preload(:posts)
+    #   # SELECT "users".* FROM "users"
+    #   users.each(&:posts)
     #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
     def lazy_preload(*args)
       check_if_method_has_arguments!(:lazy_preload, args)
