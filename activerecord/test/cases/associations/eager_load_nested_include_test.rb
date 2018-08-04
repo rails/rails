@@ -20,6 +20,7 @@ module Remembered
 
   module ClassMethods
     def remembered; @@remembered ||= []; end
+    def forget_all; @@remembered = []; end
     def sample; @@remembered.sample; end
   end
 end
@@ -70,7 +71,9 @@ class EagerLoadPolyAssocsTest < ActiveRecord::TestCase
 
   teardown do
     [Circle, Square, Triangle, PaintColor, PaintTexture,
-     ShapeExpression, NonPolyOne, NonPolyTwo].each(&:delete_all)
+     ShapeExpression, NonPolyOne, NonPolyTwo]
+      .each(&:delete_all)
+      .each { |model| model.forget_all if model.respond_to? :forget_all }
   end
 
   def generate_test_object_graphs
