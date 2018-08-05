@@ -179,5 +179,12 @@
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
+*   Support not to cache `nil` for `ActiveSupport::Cache#fetch`
+
+        cache.fetch('bar', skip_nil: true) { nil }
+        cache.exist?('bar') # => false
+
+    *Martin Hong*
+
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md) for previous changes.
