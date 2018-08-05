@@ -1,3 +1,10 @@
+*   Support not to cache `nil` for `ActiveSupport::Cache#fetch`.
+
+        cache.fetch('bar', skip_nil: true) { nil }
+        cache.exist?('bar') # => false
+
+    *Martin Hong*
+
 *   Add "event object" support to the notification system.
     Before this change, end users were forced to create hand made artisanal
     event objects on their own, like this:
@@ -5,11 +12,11 @@
         ActiveSupport::Notifications.subscribe('wait') do |*args|
           @event = ActiveSupport::Notifications::Event.new(*args)
         end
-        
+
         ActiveSupport::Notifications.instrument('wait') do
           sleep 1
         end
-        
+
         @event.duration # => 1000.138
 
     After this change, if the block passed to `subscribe` only takes one
@@ -19,11 +26,11 @@
         ActiveSupport::Notifications.subscribe('wait') do |event|
           @event = event
         end
-        
+
         ActiveSupport::Notifications.instrument('wait') do
           sleep 1
         end
-        
+
         p @event.allocations # => 7
         p @event.cpu_time    # => 0.256
         p @event.idle_time   # => 1003.2399
@@ -178,13 +185,6 @@
     Parallelize your test suite with forked processes or threads.
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
-
-*   Support not to cache `nil` for `ActiveSupport::Cache#fetch`
-
-        cache.fetch('bar', skip_nil: true) { nil }
-        cache.exist?('bar') # => false
-
-    *Martin Hong*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md) for previous changes.
