@@ -25,10 +25,11 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
   end
 
   test "should consider traces from irb lines as User code" do
-    backtrace = [ "from (irb):1",
-                  "from /Path/to/rails/railties/lib/rails/commands/console.rb:77:in `start'",
-                  "from bin/rails:4:in `<main>'" ]
-    result = @cleaner.clean(backtrace, :all)
-    assert_equal "from (irb):1", result[0]
+    backtrace = [ "(irb):1",
+                  "/Path/to/rails/railties/lib/rails/commands/console.rb:77:in `start'",
+                  "bin/rails:4:in `<main>'" ]
+    result = @cleaner.clean(backtrace)
+    assert_equal "(irb):1", result[0]
+    assert_equal 1, result.length
   end
 end
