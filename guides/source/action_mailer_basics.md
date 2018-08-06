@@ -422,6 +422,22 @@ use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
 
+If you would like to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the `prepend_view_path`, like so:
+
+```ruby
+class UserMailer < ApplicationMailer
+  prepend_view_path "custom/path/to/mailer/view"
+  
+  # This will try to load "custom/path/to/mailer/view/welcome_email" template
+  def welcome_email
+    # ...
+  end
+end
+
+```
+
+You can also consider using the [append_view_path](https://guides.rubyonrails.org/action_view_overview.html#view-paths) method.
+
 #### Caching mailer view
 
 You can perform fragment caching in mailer views like in application views using the `cache` method.
