@@ -77,6 +77,10 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
