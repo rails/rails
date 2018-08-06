@@ -980,11 +980,18 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, column: :owner_id
       #
+      # Removes the foreign key on +accounts.owner_id+. in a reversible manner
+      #
+      #   remove_foreign_key :accounts, column: :owner_id, to_table: :owners
+      #
       # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
-      # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+      # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key
+      # with an addition of
+      # [<tt>:to_table</tt>]
+      #   The table contains the referenced primary key.
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 
