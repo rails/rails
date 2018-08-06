@@ -64,6 +64,19 @@ if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
           assert_equal "astronauts", fk.from_table
           assert_equal "rockets", fk.to_table
         end
+
+        def test_rename_column_of_child_table
+          rocket = Rocket.create!(name: "myrocket")
+          rocket.astronauts << Astronaut.create!
+
+          @connection.rename_column :astronauts, :name, :astronaut_name
+
+          foreign_keys = ActiveRecord::Base.connection.foreign_keys("astronauts")
+          fk = foreign_keys.first
+          assert_equal "myrocket", Rocket.first.name
+          assert_equal "astronauts", fk.from_table
+          assert_equal "rockets", fk.to_table
+        end
       end
     end
   end

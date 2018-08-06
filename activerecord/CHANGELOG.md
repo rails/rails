@@ -1,3 +1,7 @@
+*   SQLite3 adapter `alter_table` method restores foreign keys.
+
+    *Yasuo Honda*
+
 *   Add environment & load_config dependency to `bin/rake db:seed` to enable
     seed load in environments without Rails and custom DB configuration
 
