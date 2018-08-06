@@ -104,7 +104,7 @@ Handled at the Action Pack layer:
   for three kinds of HTTP authentication.
 - Instrumentation: Rails has an instrumentation API that triggers registered
   handlers for a variety of events, such as action processing, sending a file or
-  data, redirection, and database queries. The payload of each event comes with
+  data, redirection and database queries. The payload of each event comes with
   relevant information (for the action processing event, the payload includes
   the controller, action, parameters, request format, request method, and the
   request's full path).
@@ -121,7 +121,7 @@ For example, the Rails boot process is what uses your `config/database.yml` file
 when configuring Active Record.
 
 **The short version is**: you may not have thought about which parts of Rails
-are still applicable even if you remove the view layer, but the answer turns out
+is still applicable even if you remove the view layer, but the answer turns out
 to be most of it.
 
 The Basic Configuration
@@ -221,7 +221,7 @@ section of the Rack guide for further information on them.
 
 Other plugins, including Active Record, may add additional middleware. In
 general, these middleware are agnostic to the type of application you are
-building, and make sense in an API-only Rails application.
+building and make sense in an API-only Rails application.
 
 You can get a list of all middleware in your application via:
 
