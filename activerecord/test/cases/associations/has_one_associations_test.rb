@@ -40,6 +40,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     assert_queries(0) { assert_nil firm.account }
 
     firms = Firm.all.merge!(includes: :account).to_a
+    assert_queries(1) { firms.each(&:account) }
     assert_queries(0) { firms.each(&:account) }
   end
 

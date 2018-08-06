@@ -79,8 +79,8 @@ class ModulesTest < ActiveRecord::TestCase
       clients << MyApplication::Business::Client.includes(firm: :account).find(3)
     end
 
-    clients.each do |client|
-      assert_no_queries do
+    assert_queries(2) do
+      clients.each do |client|
         assert_not_nil(client.firm.account)
       end
     end

@@ -45,7 +45,7 @@ module ActiveRecord
       def ids_reader
         if loaded?
           target.pluck(reflection.association_primary_key)
-        elsif !target.empty?
+        elsif !target.empty? || lazy_preloadable?
           load_target.pluck(reflection.association_primary_key)
         else
           @association_ids ||= scope.pluck(reflection.association_primary_key)
@@ -214,7 +214,7 @@ module ActiveRecord
           target.size
         elsif @association_ids
           @association_ids.size
-        elsif !association_scope.group_values.empty?
+        elsif !association_scope.group_values.empty? || lazy_preloadable?
           load_target.size
         elsif !association_scope.distinct_value && !target.empty?
           unsaved_records = target.select(&:new_record?)
@@ -233,7 +233,7 @@ module ActiveRecord
       # loaded and you are going to fetch the records anyway it is better to
       # check <tt>collection.length.zero?</tt>.
       def empty?
-        if loaded? || @association_ids
+        if loaded? || lazy_preloadable? || @association_ids
           size.zero?
         else
           target.empty? && !scope.exists?
@@ -300,6 +300,7 @@ module ActiveRecord
 
       def find_from_target?
         loaded? ||
+          lazy_preloadable? ||
           owner.new_record? ||
           target.any? { |record| record.new_record? || record.changed? }
       end

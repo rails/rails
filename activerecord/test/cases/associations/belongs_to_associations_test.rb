@@ -261,6 +261,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key).first
+    assert_not_predicate citibank_result.association(:firm_with_primary_key), :loaded?
+    citibank_result.firm_with_primary_key
     assert_predicate citibank_result.association(:firm_with_primary_key), :loaded?
   end
 
@@ -268,6 +270,8 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     Firm.create("name" => "Apple")
     Client.create("name" => "Citibank", :firm_name => "Apple")
     citibank_result = Client.all.merge!(where: { name: "Citibank" }, includes: :firm_with_primary_key_symbols).first
+    assert_not_predicate citibank_result.association(:firm_with_primary_key_symbols), :loaded?
+    citibank_result.firm_with_primary_key_symbols
     assert_predicate citibank_result.association(:firm_with_primary_key_symbols), :loaded?
   end
 

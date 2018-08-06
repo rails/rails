@@ -904,7 +904,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_default_scope_as_lambda
-    developer = EagerDeveloperWithLambdaDefaultScope.where(name: "David").first
+    developer = EagerDeveloperWithLambdaDefaultScope.where(name: "David").references(:projects).first
     projects = Project.order(:id).to_a
     assert_no_queries do
       assert_equal(projects, developer.projects)
@@ -914,7 +914,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_default_scope_as_block
     # warm up the habtm cache
     EagerDeveloperWithBlockDefaultScope.where(name: "David").first.projects
-    developer = EagerDeveloperWithBlockDefaultScope.where(name: "David").first
+    developer = EagerDeveloperWithBlockDefaultScope.where(name: "David").references(:projects).first
     projects = Project.order(:id).to_a
     assert_no_queries do
       assert_equal(projects, developer.projects)
@@ -1055,7 +1055,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preconfigured_includes_with_has_one
     comment = posts(:sti_comments).very_special_comment_with_post
-    assert_no_queries { assert_equal posts(:sti_comments), comment.post }
+    assert_queries(1) { assert_equal posts(:sti_comments), comment.post }
   end
 
   def test_eager_association_with_scope_with_joins
@@ -1083,9 +1083,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_preconfigured_includes_with_has_many_and_habtm
-    posts = authors(:david).posts_with_comments_and_categories
+    posts = assert_queries(1) { authors(:david).posts_with_comments_and_categories }
     one = posts.detect { |p| p.id == 1 }
-    assert_no_queries do
+    assert_queries(2) do
       assert_equal 5, posts.size
       assert_equal 2, one.comments.size
       assert_equal 2, one.categories.size

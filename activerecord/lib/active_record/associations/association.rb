@@ -32,8 +32,13 @@ module ActiveRecord
       end
 
       # Checks whether lazy eager load of the association is possible
-      # and tries to preload if it is so.
+      def lazy_preloadable?
+        LazyPreloader::Registry.fetch owner do |preloader|
+          preloader.should_load? reflection.name
+        end
+      end
 
+      # Tries to preload association lazily.
       def lazy_preload
         LazyPreloader::Registry.fetch owner do |preloader|
           preloader.preload reflection.name if preloader.should_load? reflection.name

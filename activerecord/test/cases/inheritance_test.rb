@@ -462,18 +462,22 @@ class InheritanceTest < ActiveRecord::TestCase
 
   def test_eager_load_belongs_to_something_inherited
     account = Account.all.merge!(includes: :firm).find(1)
+    assert_not account.association(:firm).loaded?, "association was eager loaded prematurely"
+    account.firm
     assert account.association(:firm).loaded?, "association was not eager loaded"
   end
 
   def test_alt_eager_loading
     cabbage = RedCabbage.all.merge!(includes: :seller).find(4)
+    assert_not cabbage.association(:seller).loaded?, "association was eager loaded prematurely"
+    cabbage.seller
     assert cabbage.association(:seller).loaded?, "association was not eager loaded"
   end
 
   def test_eager_load_belongs_to_primary_key_quoting
     con = Account.connection
-    bind_param = Arel::Nodes::BindParam.new(nil)
-    assert_sql(/#{con.quote_table_name('companies')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
+    bind_param = Arel::Nodes::BindParam.new(1)
+    assert_sql(/#{con.quote_table_name('accounts')}\.#{con.quote_column_name('id')} = (?:#{Regexp.quote(bind_param.to_sql)}|1)/) do
       Account.all.merge!(includes: :firm).find(1)
     end
   end

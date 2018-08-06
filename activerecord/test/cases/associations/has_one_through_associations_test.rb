@@ -130,19 +130,19 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_one_through_eager_loading
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries(1) do # base table, through table, clubs table
       Member.all.merge!(includes: :club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries { members[0].club }
+    assert_not_nil assert_queries(2) { members[0].club }
   end
 
   def test_has_one_through_eager_loading_through_polymorphic
-    members = assert_queries(3) do # base table, through table, clubs table
+    members = assert_queries(1) do # base table, through table, clubs table
       Member.all.merge!(includes: :sponsor_club, where: ["name = ?", "Groucho Marx"]).to_a
     end
     assert_equal 1, members.size
-    assert_not_nil assert_no_queries { members[0].sponsor_club }
+    assert_not_empty assert_queries(2) { members.map(&:sponsor_club).compact }
   end
 
   def test_has_one_through_with_conditions_eager_loading
@@ -164,7 +164,7 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
   def test_eager_has_one_through_polymorphic_with_source_type
     clubs = Club.all.merge!(includes: :sponsored_member, where: ["name = ?", "Moustache and Eyebrow Fancier Club"]).to_a
     # Only the eyebrow fanciers club has a sponsored_member
-    assert_not_nil assert_no_queries { clubs[0].sponsored_member }
+    assert_not_nil assert_queries(2) { clubs[0].sponsored_member }
   end
 
   def test_has_one_through_nonpreload_eagerloading
@@ -255,12 +255,12 @@ class HasOneThroughAssociationsTest < ActiveRecord::TestCase
     @member_detail = MemberDetail.new
     @member.member_detail = @member_detail
     @member.organization = @organization
-    @member_details = assert_queries(3) do
+    @member_details = assert_queries(1) do
       MemberDetail.all.merge!(includes: :member_type).to_a
     end
     @new_detail = @member_details[0]
-    assert_predicate @new_detail.send(:association, :member_type), :loaded?
-    assert_no_queries { @new_detail.member_type }
+    assert_not_predicate @new_detail.send(:association, :member_type), :loaded?
+    assert_queries(2) { @new_detail.member_type }
   end
 
   def test_save_of_record_with_loaded_has_one_through

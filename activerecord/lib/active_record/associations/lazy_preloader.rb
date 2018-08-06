@@ -32,15 +32,23 @@ module ActiveRecord
       #
       # => SELECT `books`.* FROM `books` WHERE `author_id` IN (2, 5)
       #
+      require "weakref"
+
       class Registry
+        @map = ::Hash.new
+
+        # This is needed because rails overrides #hash method for AR
         def self.store(record, instance)
-          record.instance_variable_set :@_lazy_preloader, instance
+          reference = ::WeakRef.new record
+          @map[reference] ||= {}
+          @map[reference][record.object_id] = instance
         end
 
         def self.fetch(record)
-          if record.instance_variable_defined?(:@_lazy_preloader)
-            yield record.instance_variable_get :@_lazy_preloader
-          end
+          reference = ::WeakRef.new record
+          return unless @map.key? reference
+          preloader = @map[reference][record.object_id]
+          yield preloader unless preloader.nil?
         end
       end
 
@@ -52,15 +60,15 @@ module ActiveRecord
 
       # Determines whether lazy loading of the given association is needed
       def should_load?(association)
-        current_associations.include? association
+        associations_to_load.include? association
       end
 
       # Preloads the given association and plans to lazily preload nested associations
       def preload(association)
         return unless should_load? association
-        current_associations.delete association
+        associations_to_load.delete association
         @preloader.preload @records, association
-        @preloader.lazy_preload loaded_records(association), next_associations(association)
+        @preloader.lazy_preload loaded_records(association), associations_to_load_next(association)
       end
 
       private
@@ -69,14 +77,14 @@ module ActiveRecord
           @records.flat_map { |record| record.association(association).target }
         end
 
-        def current_associations
-          @current_associations ||= @associations
+        def associations_to_load
+          @associations_to_load ||= @associations
             .flatten
             .map { |association| association.is_a?(::Hash) ? association.keys : association }
             .flatten
         end
 
-        def next_associations(association)
+        def associations_to_load_next(association)
           @associations.flatten.each_with_object([]) do |current, result|
             if current.is_a?(::Hash) && current.key?(association)
               result << current[association]
