@@ -1,3 +1,9 @@
+*   Don't update counter cache unless the record is actually saved.
+
+    Fixes #31493, #33113, #33117.
+
+    *Ryuta Kamizono*
+
 *   SQLite3 adapter supports expression indexes.
 
     ```
