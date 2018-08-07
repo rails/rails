@@ -1,4 +1,4 @@
-## Rails 5.2.1.rc1 (July 30, 2018) ##
+## Rails 5.2.1 (August 07, 2018) ##
 
 *   Ensure mail gem is eager autoloaded when eager load is true to prevent thread deadlocks.
 

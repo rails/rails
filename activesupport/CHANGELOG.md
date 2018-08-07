@@ -1,4 +1,4 @@
-## Rails 5.2.1.rc1 (July 30, 2018) ##
+## Rails 5.2.1 (August 07, 2018) ##
 
 *   Redis cache store: `delete_matched` no longer blocks the Redis server.
     (Switches from evaled Lua to a batched SCAN + DEL loop.)

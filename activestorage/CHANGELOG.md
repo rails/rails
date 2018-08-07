@@ -1,4 +1,4 @@
-## Rails 5.2.1.rc1 (July 30, 2018) ##
+## Rails 5.2.1 (August 07, 2018) ##
 
 *   Fix direct upload with zero-byte files.
 
