@@ -802,7 +802,7 @@ module ActionView
         end
 
         def value_for_collection(item, value)
-          value.respond_to?(:call) ? value.call(item) : item.send(value)
+          value.respond_to?(:call) ? value.call(item) : item.public_send(value)
         end
 
         def prompt_text(prompt)

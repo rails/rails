@@ -1,3 +1,13 @@
+*  Stop exposing public methods in view's helpers.
+
+   For example, in methods like `options_from_collection_for_select`,
+   it was possible to call private methods from the objects used.
+
+   See [#33546](https://github.com/rails/rails/issues/33546) for details.
+
+   *[Ana María Martínez Gómez](https://github.com/Ana06)*  
+
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that
