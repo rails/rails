@@ -32,4 +32,11 @@ class BacktraceCleanerTest < ActiveSupport::TestCase
     assert_equal "(irb):1", result[0]
     assert_equal 1, result.length
   end
+
+  test "should omit ActionView template methods names" do
+    method_name = ActionView::Template.new(nil, "app/views/application/index.html.erb", nil, {}).send :method_name
+    backtrace = [ "app/views/application/index.html.erb:4:in `block in #{method_name}'"]
+    result = @cleaner.clean(backtrace, :all)
+    assert_equal "app/views/application/index.html.erb:4", result[0]
+  end
 end
