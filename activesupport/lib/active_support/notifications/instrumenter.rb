@@ -130,24 +130,14 @@ module ActiveSupport
           Process.clock_gettime(Process::CLOCK_MONOTONIC)
         end
 
-        if defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
-          def now_cpu
-            Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
-          end
-        else
-          def now_cpu
-            0
-          end
+        def now_cpu
+          return 0 unless defined?(Process::CLOCK_PROCESS_CPUTIME_ID)
+          Process.clock_gettime(Process::CLOCK_PROCESS_CPUTIME_ID)
         end
 
-        if defined?(JRUBY_VERSION)
-          def now_allocations
-            0
-          end
-        else
-          def now_allocations
-            GC.stat :total_allocated_objects
-          end
+        def now_allocations
+          return 0 if defined?(JRUBY_VERSION)
+          GC.stat :total_allocated_objects
         end
     end
   end
