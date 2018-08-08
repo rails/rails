@@ -35,27 +35,27 @@ module ActiveRecord
       require "weakref"
 
       class Registry
-        @map = ::Hash.new
-
-        # This is needed because rails overrides #hash method for AR
         def self.store(record, instance)
-          reference = ::WeakRef.new record
-          @map[reference] ||= {}
-          @map[reference][record.object_id] = instance
+          record.instance_variable_set :@_lazy_preloader, instance
         end
 
         def self.fetch(record)
-          reference = ::WeakRef.new record
-          return unless @map.key? reference
-          preloader = @map[reference][record.object_id]
-          yield preloader unless preloader.nil?
+          if record.instance_variable_defined? :@_lazy_preloader
+            yield record.instance_variable_get :@_lazy_preloader
+          end
         end
       end
 
       def initialize(records, preloader, associations)
-        @records = records
+        @record_finalizer = -> object_id { @records.delete object_id }
+        @records = weak_references records
         @preloader = preloader
         @associations = associations
+      end
+
+      # Maps weak references to real objects
+      def records
+        @records.values.map(&:__getobj__)
       end
 
       # Determines whether lazy loading of the given association is needed
@@ -67,14 +67,21 @@ module ActiveRecord
       def preload(association)
         return unless should_load? association
         associations_to_load.delete association
-        @preloader.preload @records, association
+        @preloader.preload records, association
         @preloader.lazy_preload loaded_records(association), associations_to_load_next(association)
       end
 
       private
 
+        def weak_references(records)
+          records.index_by(&:object_id).transform_values! do |record|
+            ::ObjectSpace.define_finalizer record, @record_finalizer
+            ::WeakRef.new record
+          end
+        end
+
         def loaded_records(association)
-          @records.flat_map { |record| record.association(association).target }
+          records.flat_map { |record| record.association(association).target }
         end
 
         def associations_to_load

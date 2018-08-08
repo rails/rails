@@ -558,6 +558,8 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_preload_applies_to_all_chained_preloaded_scopes
+    post = nil
+
     assert_queries(1) do
       post = Post.with_comments.with_tags.first
       assert post
@@ -613,16 +615,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_not_respond_to comment, :readers
 
     post_rel = Post.preload(:readers).joins(:readers).where(title: "Uhuu")
-    result_comment = Comment.joins(:post).merge(post_rel).to_a.first
+    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).to_a.first
     assert_equal comment, result_comment
 
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal post, result_comment.post
       assert_equal [reader], result_comment.post.readers.to_a
     end
 
     post_rel = Post.includes(:readers).where(title: "Uhuu")
-    result_comment = Comment.joins(:post).merge(post_rel).first
+    result_comment = Comment.includes(:post).joins(:post).merge(post_rel).first
     assert_equal comment, result_comment
 
     assert_no_queries do
@@ -2005,10 +2007,10 @@ class RelationTest < ActiveRecord::TestCase
 
       assert_queries(4) do
         Post.preload(:comments).skip_query_cache!.each do |post|
-          post.comments.skip_query_cache!.first
+          post.comments.first
         end
         Post.preload(:comments).skip_query_cache!.each do |post|
-          post.comments.skip_query_cache!.first
+          post.comments.first
         end
       end
     end

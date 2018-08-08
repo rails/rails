@@ -624,8 +624,9 @@ module ActiveRecord
 
       return if preload.empty?
 
-      preload_strategy = ExplainRegistry.collect? ? :preload : :lazy_preload
-      build_preloader.send preload_strategy, records, preload
+      ExplainRegistry.collect? ?
+        build_preloader.preload(records, preload) :
+        build_preloader.lazy_preload(records, preload)
     end
 
     protected
@@ -658,13 +659,12 @@ module ActiveRecord
               klass.find_by_sql(arel, &block).freeze
             end
 
-          preload_associations(@records) unless skip_preloading_value
-
           @records.each(&:readonly!) if readonly_value
-
           @loaded = true
-          @records
         end
+
+        preload_associations(@records) unless skip_preloading_value
+        @records
       end
 
       def skip_query_cache_if_necessary
@@ -678,7 +678,10 @@ module ActiveRecord
       end
 
       def build_preloader
-        ActiveRecord::Associations::Preloader.new
+        query_runner = skip_query_cache_value || !connection.query_cache_enabled ?
+          klass.method(:uncached) :
+          klass.method(:cache)
+        ActiveRecord::Associations::Preloader.new query_runner
       end
 
       def references_eager_loaded_tables?
