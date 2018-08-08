@@ -278,7 +278,7 @@ module Arel
         @m2.where(table[:age].lt(99))
       end
 
-      it "should interact two managers" do
+      it "should intersect two managers" do
         # FIXME should this intersect "managers" or "statements" ?
         # FIXME this probably shouldn't return a node
         node = @m1.intersect @m2
