@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails Guides Guidelines
 ===============================
@@ -50,6 +50,48 @@ Use the same inline formatting as regular text:
 ##### The `:content_type` Option
 ```
 
+Linking to the API
+------------------
+
+Links to the API (`api.rubyonrails.org`) are processed by the guides generator in the following manner:
+
+Links that include a release tag are left untouched. For example
+
+```
+http://api.rubyonrails.org/v5.0.1/classes/ActiveRecord/Attributes/ClassMethods.html
+```
+
+is not modified.
+
+Please use these in release notes, since they should point to the corresponding version no matter the target being generated.
+
+If the link does not include a release tag and edge guides are being generated, the domain is replaced by `edgeapi.rubyonrails.org`. For example,
+
+```
+http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+becomes
+
+```
+http://edgeapi.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+If the link does not include a release tag and release guides are being generated, the Rails version is injected. For example, if we are generating the guides for v5.1.0 the link
+
+```
+http://api.rubyonrails.org/classes/ActionDispatch/Response.html
+```
+
+becomes
+
+```
+http://api.rubyonrails.org/v5.1.0/classes/ActionDispatch/Response.html
+```
+
+Please don't link to `edgeapi.rubyonrails.org` manually.
+
+
 API Documentation Guidelines
 ----------------------------
 
@@ -96,8 +138,6 @@ bundle exec rake guides:generate ONLY=my_guide
 By default, guides that have not been modified are not processed, so `ONLY` is rarely needed in practice.
 
 To force processing all the guides, pass `ALL=1`.
-
-It is also recommended that you work with `WARNINGS=1`. This detects duplicate IDs and warns about broken internal links.
 
 If you want to generate guides in a language other than English, you can keep them in a separate directory under `source` (eg. `source/es`) and use the `GUIDES_LANGUAGE` environment variable:
 

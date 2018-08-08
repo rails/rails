@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module NumberHelper
     extend ActiveSupport::Autoload
 
     eager_autoload do
       autoload :NumberConverter
+      autoload :RoundingHelper
       autoload :NumberToRoundedConverter
       autoload :NumberToDelimitedConverter
       autoload :NumberToHumanConverter
@@ -45,7 +48,7 @@ module ActiveSupport
     #
     #   number_to_phone(75561234567, pattern: /(\d{1,4})(\d{4})(\d{4})$/, area_code: true)
     #   # => "(755) 6123-4567"
-    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/))
+    #   number_to_phone(13312345678, pattern: /(\d{3})(\d{4})(\d{4})$/)
     #   # => "133-1234-5678"
     def number_to_phone(number, options = {})
       NumberToPhoneConverter.convert(number, options)
@@ -78,7 +81,7 @@ module ActiveSupport
     #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
     #   currency, and <tt>%n</tt> for the number.
     # * <tt>:negative_format</tt> - Sets the format for negative
-    #   numbers (defaults to prepending an hyphen to the formatted
+    #   numbers (defaults to prepending a hyphen to the formatted
     #   number given by <tt>:format</tt>).  Accepts the same fields
     #   than <tt>:format</tt>, except <tt>%n</tt> is here the
     #   absolute value of the number.

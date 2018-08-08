@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/inflector/transliterate"
 
@@ -30,5 +32,23 @@ class TransliterateTest < ActiveSupport::TestCase
 
   def test_transliterate_should_allow_a_custom_replacement_char
     assert_equal "a*b", ActiveSupport::Inflector.transliterate("a索b", "*")
+  end
+
+  def test_transliterate_handles_empty_string
+    assert_equal "", ActiveSupport::Inflector.transliterate("")
+  end
+
+  def test_transliterate_handles_nil
+    exception = assert_raises ArgumentError do
+      ActiveSupport::Inflector.transliterate(nil)
+    end
+    assert_equal "Can only transliterate strings. Received NilClass", exception.message
+  end
+
+  def test_transliterate_handles_unknown_object
+    exception = assert_raises ArgumentError do
+      ActiveSupport::Inflector.transliterate(Object.new)
+    end
+    assert_equal "Can only transliterate strings. Received Object", exception.message
   end
 end

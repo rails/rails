@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -43,7 +45,7 @@ module ActionView
 
           # Generate default options for collection helpers, such as :checked and
           # :disabled.
-          def default_html_options_for_collection(item, value) #:nodoc:
+          def default_html_options_for_collection(item, value)
             html_options = @html_options.dup
 
             [:checked, :selected, :disabled, :readonly].each do |option|
@@ -67,11 +69,11 @@ module ActionView
             html_options
           end
 
-          def sanitize_attribute_name(value) #:nodoc:
+          def sanitize_attribute_name(value)
             "#{sanitized_method_name}_#{sanitized_value(value)}"
           end
 
-          def render_collection #:nodoc:
+          def render_collection
             @collection.map do |item|
               value = value_for_collection(item, @value_method)
               text  = value_for_collection(item, @text_method)
@@ -82,7 +84,7 @@ module ActionView
             end.join.html_safe
           end
 
-          def render_collection_for(builder_class, &block) #:nodoc:
+          def render_collection_for(builder_class, &block)
             options = @options.stringify_keys
             rendered_collection = render_collection do |item, value, text, default_html_options|
               builder = instantiate_builder(builder_class, item, value, text, default_html_options)
@@ -103,12 +105,12 @@ module ActionView
             end
           end
 
-          def hidden_field #:nodoc:
+          def hidden_field
             hidden_name = @html_options[:name] || hidden_field_name
             @template_object.hidden_field_tag(hidden_name, "", id: nil)
           end
 
-          def hidden_field_name #:nodoc:
+          def hidden_field_name
             "#{tag_name(false, @options[:index])}"
           end
       end

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 class Book < ActiveRecord::Base
-  has_many :authors
+  belongs_to :author
 
   has_many :citations, foreign_key: "book1_id"
   has_many :references, -> { distinct }, through: :citations, source: :reference_of
@@ -8,7 +10,7 @@ class Book < ActiveRecord::Base
   has_many :subscribers, through: :subscriptions
 
   enum status: [:proposed, :written, :published]
-  enum read_status: { unread: 0, reading: 2, read: 3 }
+  enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
   enum nullable_status: [:single, :married]
   enum language: [:english, :spanish, :french], _prefix: :in
   enum author_visibility: [:visible, :invisible], _prefix: true

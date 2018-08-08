@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/tag"
@@ -12,7 +14,7 @@ module Remembered
 
   included do
     after_create :remember
-  protected
+  private
     def remember; self.class.remembered << self; end
   end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "fixtures/session_autoload_test/session_autoload_test/foo"
 
@@ -142,20 +144,20 @@ class CacheStoreTest < ActionDispatch::IntegrationTest
 
       get "/get_session_value"
       assert_response :success
-      assert_equal nil, headers["Set-Cookie"], "should not resend the cookie again if session_id cookie is already exists"
+      assert_nil headers["Set-Cookie"], "should not resend the cookie again if session_id cookie is already exists"
     end
   end
 
   def test_prevents_session_fixation
     with_test_route_set do
-      assert_equal nil, @cache.read("_session_id:0xhax")
+      assert_nil @cache.read("_session_id:0xhax")
 
       cookies["_session_id"] = "0xhax"
       get "/set_session_value"
 
       assert_response :success
       assert_not_equal "0xhax", cookies["_session_id"]
-      assert_equal nil, @cache.read("_session_id:0xhax")
+      assert_nil @cache.read("_session_id:0xhax")
       assert_equal({ "foo" => "bar" }, @cache.read("_session_id:#{cookies['_session_id']}"))
     end
   end

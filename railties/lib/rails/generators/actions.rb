@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/strip"
+
 module Rails
   module Generators
     module Actions
@@ -11,17 +15,22 @@ module Rails
       #
       #   gem "rspec", group: :test
       #   gem "technoweenie-restful-authentication", lib: "restful-authentication", source: "http://gems.github.com/"
-      #   gem "rails", "3.0", git: "git://github.com/rails/rails"
+      #   gem "rails", "3.0", git: "https://github.com/rails/rails"
+      #   gem "RedCloth", ">= 4.1.0", "< 4.2.0"
       def gem(*args)
         options = args.extract_options!
-        name, version = args
+        name, *versions = args
 
         # Set the message to be shown in logs. Uses the git repo if one is given,
         # otherwise use name (version).
         parts, message = [ quote(name) ], name.dup
-        if version ||= options.delete(:version)
-          parts   << quote(version)
-          message << " (#{version})"
+
+        if versions = versions.any? ? versions : options.delete(:version)
+          _versions = Array(versions)
+          _versions.each do |version|
+            parts << quote(version)
+          end
+          message << " (#{_versions.join(", ")})"
         end
         message = options[:git] if options[:git]
 
@@ -97,16 +106,16 @@ module Rails
       #     "config.action_controller.asset_host = 'localhost:3000'"
       #   end
       def environment(data = nil, options = {})
-        sentinel = /class [a-z_:]+ < Rails::Application/i
-        env_file_sentinel = /Rails\.application\.configure do/
-        data = yield if !data && block_given?
+        sentinel = "class Application < Rails::Application\n"
+        env_file_sentinel = "Rails.application.configure do\n"
+        data ||= yield if block_given?
 
         in_root do
           if options[:env].nil?
-            inject_into_file "config/application.rb", "\n    #{data}", after: sentinel, verbose: false
+            inject_into_file "config/application.rb", optimize_indentation(data, 4), after: sentinel, verbose: false
           else
             Array(options[:env]).each do |env|
-              inject_into_file "config/environments/#{env}.rb", "\n  #{data}", after: env_file_sentinel, verbose: false
+              inject_into_file "config/environments/#{env}.rb", optimize_indentation(data, 2), after: env_file_sentinel, verbose: false
             end
           end
         end
@@ -137,12 +146,13 @@ module Rails
       #   end
       #
       #   vendor("foreign.rb", "# Foreign code is fun")
-      def vendor(filename, data = nil, &block)
+      def vendor(filename, data = nil)
         log :vendor, filename
-        create_file("vendor/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("vendor/#{filename}", optimize_indentation(data), verbose: false)
       end
 
-      # Create a new file in the lib/ directory. Code can be specified
+      # Create a new file in the <tt>lib/</tt> directory. Code can be specified
       # in a block or a data string can be given.
       #
       #   lib("crypto.rb") do
@@ -150,9 +160,10 @@ module Rails
       #   end
       #
       #   lib("foreign.rb", "# Foreign code is fun")
-      def lib(filename, data = nil, &block)
+      def lib(filename, data = nil)
         log :lib, filename
-        create_file("lib/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("lib/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Create a new +Rakefile+ with the provided code (either in a block or a string).
@@ -170,9 +181,10 @@ module Rails
       #   end
       #
       #   rakefile('seed.rake', 'puts "Planting seeds"')
-      def rakefile(filename, data = nil, &block)
+      def rakefile(filename, data = nil)
         log :rakefile, filename
-        create_file("lib/tasks/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("lib/tasks/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Create a new initializer with the provided code (either in a block or a string).
@@ -188,9 +200,10 @@ module Rails
       #   end
       #
       #   initializer("api.rb", "API_KEY = '123456'")
-      def initializer(filename, data = nil, &block)
+      def initializer(filename, data = nil)
         log :initializer, filename
-        create_file("config/initializers/#{filename}", data, verbose: false, &block)
+        data ||= yield if block_given?
+        create_file("config/initializers/#{filename}", optimize_indentation(data), verbose: false)
       end
 
       # Generate something using a generator from Rails or a plugin.
@@ -210,15 +223,17 @@ module Rails
       #   rake("db:migrate")
       #   rake("db:migrate", env: "production")
       #   rake("gems:install", sudo: true)
+      #   rake("gems:install", capture: true)
       def rake(command, options = {})
         execute_command :rake, command, options
       end
 
       # Runs the supplied rake task (invoked with 'rails ...')
       #
-      #   rails("db:migrate")
-      #   rails("db:migrate", env: "production")
-      #   rails("gems:install", sudo: true)
+      #   rails_command("db:migrate")
+      #   rails_command("db:migrate", env: "production")
+      #   rails_command("gems:install", sudo: true)
+      #   rails_command("gems:install", capture: true)
       def rails_command(command, options = {})
         execute_command :rails, command, options
       end
@@ -227,6 +242,7 @@ module Rails
       #
       #   capify!
       def capify!
+        ActiveSupport::Deprecation.warn("`capify!` is deprecated and will be removed in the next version of Rails.")
         log :capify, ""
         in_root { run("#{extify(:capify)} .", verbose: false) }
       end
@@ -239,7 +255,7 @@ module Rails
         sentinel = /\.routes\.draw do\s*\n/m
 
         in_root do
-          inject_into_file "config/routes.rb", "  #{routing_code}\n", after: sentinel, verbose: false, force: false
+          inject_into_file "config/routes.rb", optimize_indentation(routing_code, 2), after: sentinel, verbose: false, force: false
         end
       end
 
@@ -260,31 +276,35 @@ module Rails
         @after_bundle_callbacks << block
       end
 
-      protected
+      private
 
         # Define log for backwards compatibility. If just one argument is sent,
         # invoke say, otherwise invoke say_status. Differently from say and
         # similarly to say_status, this method respects the quiet? option given.
-        def log(*args)
+        def log(*args) # :doc:
           if args.size == 1
             say args.first.to_s unless options.quiet?
           else
-            args << (self.behavior == :invoke ? :green : :red)
+            args << (behavior == :invoke ? :green : :red)
             say_status(*args)
           end
         end
 
         # Runs the supplied command using either "rake ..." or "rails ..."
         # based on the executor parameter provided.
-        def execute_command(executor, command, options = {})
+        def execute_command(executor, command, options = {}) # :doc:
           log executor, command
           env  = options[:env] || ENV["RAILS_ENV"] || "development"
           sudo = options[:sudo] && !Gem.win_platform? ? "sudo " : ""
-          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", verbose: false) }
+          config = { verbose: false }
+
+          config[:capture] = options[:capture] if options[:capture]
+
+          in_root { run("#{sudo}#{extify(executor)} #{command} RAILS_ENV=#{env}", config) }
         end
 
         # Add an extension to the given name based on the platform.
-        def extify(name)
+        def extify(name) # :doc:
           if Gem.win_platform?
             "#{name}.bat"
           else
@@ -294,13 +314,24 @@ module Rails
 
         # Surround string with single quotes if there is no quotes.
         # Otherwise fall back to double quotes
-        def quote(value)
+        def quote(value) # :doc:
           return value.inspect unless value.is_a? String
 
           if value.include?("'")
             value.inspect
           else
             "'#{value}'"
+          end
+        end
+
+        # Returns optimized string with indentation
+        def optimize_indentation(value, amount = 0) # :doc:
+          return "#{value}\n" unless value.is_a?(String)
+
+          if value.lines.size > 1
+            value.strip_heredoc.indent(amount)
+          else
+            "#{value.strip.indent(amount)}\n"
           end
         end
     end

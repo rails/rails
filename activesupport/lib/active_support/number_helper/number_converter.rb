@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/big_decimal/conversions"
 require "active_support/core_ext/object/blank"
 require "active_support/core_ext/hash/keys"
@@ -139,17 +141,17 @@ module ActiveSupport
           @options ||= format_options.merge(opts)
         end
 
-        def format_options #:nodoc:
+        def format_options
           default_format_options.merge!(i18n_format_options)
         end
 
-        def default_format_options #:nodoc:
+        def default_format_options
           options = DEFAULTS[:format].dup
           options.merge!(DEFAULTS[namespace][:format]) if namespace
           options
         end
 
-        def i18n_format_options #:nodoc:
+        def i18n_format_options
           locale = opts[:locale]
           options = I18n.translate(:'number.format', locale: locale, default: {}).dup
 
@@ -160,7 +162,7 @@ module ActiveSupport
           options
         end
 
-        def translate_number_value_with_default(key, i18n_options = {}) #:nodoc:
+        def translate_number_value_with_default(key, i18n_options = {})
           I18n.translate(key, { default: default_value(key), scope: :number }.merge!(i18n_options))
         end
 
@@ -172,7 +174,7 @@ module ActiveSupport
           key.split(".").reduce(DEFAULTS) { |defaults, k| defaults[k.to_sym] }
         end
 
-        def valid_float? #:nodoc:
+        def valid_float?
           Float(number)
         rescue ArgumentError, TypeError
           false

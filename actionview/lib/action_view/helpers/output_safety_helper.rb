@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/output_safety"
 
 module ActionView #:nodoc:
@@ -25,7 +27,7 @@ module ActionView #:nodoc:
       #   safe_join([raw("<p>foo</p>"), "<p>bar</p>"], "<br />")
       #   # => "<p>foo</p>&lt;br /&gt;&lt;p&gt;bar&lt;/p&gt;"
       #
-      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />")
+      #   safe_join([raw("<p>foo</p>"), raw("<p>bar</p>")], raw("<br />"))
       #   # => "<p>foo</p><br /><p>bar</p>"
       #
       def safe_join(array, sep = $,)
@@ -60,7 +62,7 @@ module ActionView #:nodoc:
         when 2
           safe_join([array[0], array[1]], options[:two_words_connector])
         else
-          safe_join([safe_join(array[0...-1], options[:words_connector]), options[:last_word_connector], array[-1]])
+          safe_join([safe_join(array[0...-1], options[:words_connector]), options[:last_word_connector], array[-1]], nil)
         end
       end
     end

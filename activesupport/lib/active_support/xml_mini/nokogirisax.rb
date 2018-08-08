@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "nokogiri"
 rescue LoadError => e
@@ -37,7 +39,7 @@ module ActiveSupport
       end
 
       def start_element(name, attrs = [])
-        new_hash = { CONTENT_KEY => "" }.merge!(Hash[attrs])
+        new_hash = { CONTENT_KEY => "".dup }.merge!(Hash[attrs])
         new_hash[HASH_SIZE_KEY] = new_hash.size + 1
 
         case current_hash[name]
@@ -71,12 +73,10 @@ module ActiveSupport
         data = StringIO.new(data || "")
       end
 
-      char = data.getc
-      if char.nil?
+      if data.eof?
         {}
       else
-        data.ungetc(char)
-        document = self.document_class.new
+        document = document_class.new
         parser = Nokogiri::XML::SAX::Parser.new(document)
         parser.parse(data)
         document.hash

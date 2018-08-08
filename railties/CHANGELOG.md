@@ -1,98 +1,97 @@
-*   Add Webpack support in new apps via the --webpack option, which will delegate to the rails/webpacker gem.
+*   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
-    To generate a new app that has Webpack dependencies configured and binstubs for webpack and webpack-watcher:
+    The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
+        - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+        - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+        - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+        - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
 
-      rails new myapp --webpack
+    *Annie-Claude Côté*
 
-    To generate a new app that has Webpack + React configured and an example intalled:
-    
-      rails new myapp --webpack=react
-    
-    *DHH*
+*   Deprecate `SOURCE_ANNOTATION_DIRECTORIES` environment variable used by `rails notes`
+    through `Rails::SourceAnnotationExtractor::Annotation` in favor of using `config.annotations.register_directories`.
 
-*   Add Yarn support in new apps with a yarn binstub and vendor/package.json. Skippable via --skip-yarn option.
+    *Annie-Claude Côté*
 
-    *Liceth Ovalles*, *Guillermo Iguaran*, *DHH*
+*   Deprecate `rake notes` in favor of `rails notes`.
 
-*   Removed jquery-rails from default stack, instead rails-ujs that is shipped
-    with Action View is included as default UJS adapter.
+    *Annie-Claude Côté*
 
-    *Guillermo Iguaran*
+*   Don't generate unused files in `app:update` task
 
-*   The config file `secrets.yml` is now loaded in with all keys as symbols.
-    This allows secrets files to contain more complex information without all
-    child keys being strings while parent keys are symbols.
+     Skip the assets' initializer when sprockets isn't loaded.
 
-    *Isaac Sloan*
+     Skip `config/spring.rb` when spring isn't loaded.
 
-*   Add `:skip_sprockets` to `Rails::PluginBuilder::PASSTHROUGH_OPTIONS`
+     Skip yarn's contents when yarn integration isn't used.
 
     *Tsukuru Tanimichi*
 
-*   Allow the use of listen's 3.1.x branch
+*   Make the master.key file read-only for the owner upon generation on
+    POSIX-compliant systems.
 
-    *Esteban Santana Santana*
+    Previously:
 
-*   Run `Minitest.after_run` hooks when running `rails test`.
+        $ ls -l config/master.key
+        -rw-r--r--   1 owner  group      32 Jan 1 00:00 master.key
 
-    *Michael Grosser*
+    Now:
 
-*   Run `before_configuration` callbacks as soon as application constant
-    inherits from `Rails::Application`.
+        $ ls -l config/master.key
+        -rw-------   1 owner  group      32 Jan 1 00:00 master.key
 
-    Fixes #19880.
+    Fixes #32604.
+
+    *Jose Luis Duran*
+
+*   Deprecate support for using the `HOST` environment to specify the server IP.
+
+    The `BINDING` environment should be used instead.
+
+    Fixes #29516.
 
     *Yuji Yaginuma*
 
-*   A generated app should not include Uglifier with `--skip-javascript` option.
+*   Deprecate passing Rack server name as a regular argument to `rails server`.
 
-    *Ben Pickles*
+    Previously:
 
-*   Set session store to cookie store internally and remove the initializer from
-    the generated app.
+        $ bin/rails server thin
 
-    *Prathamesh Sonpatki*
+    There wasn't an explicit option for the Rack server to use, now we have the
+    `--using` option with the `-u` short switch.
 
-*   Set the server host using the `HOST` environment variable.
+    Now:
 
-    *mahnunchik*
+        $ bin/rails server -u thin
 
-*   Add public API to register new folders for `rake notes`:
+    This change also improves the error message if a missing or mistyped rack
+    server is given.
 
-        config.annotations.register_directories('spec', 'features')
+    *Genadi Samokovarov*
 
-    *John Meehan*
+*   Add "rails routes --expanded" option to output routes in expanded mode like
+    "psql --expanded". Result looks like:
 
-*   Display name of the class defining the initializer along with the initializer
-    name in the output of `rails initializers`.
+    ```
+    $ rails routes --expanded
+    --[ Route 1 ]------------------------------------------------------------
+    Prefix            | high_scores
+    Verb              | GET
+    URI               | /high_scores(.:format)
+    Controller#Action | high_scores#index
+    --[ Route 2 ]------------------------------------------------------------
+    Prefix            | new_high_score
+    Verb              | GET
+    URI               | /high_scores/new(.:format)
+    Controller#Action | high_scores#new
+    ```
 
-    Before:
-        disable_dependency_loading
+    *Benoit Tigeot*
 
-    After:
-        DemoApp::Application.disable_dependency_loading
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    *ta1kt0me*
+    *Jeremy Daer*
 
-*   Do not run `bundle install` when generating a new plugin.
 
-    Since bundler 1.12.0, the gemspec is validated so the `bundle install`
-    command will fail just after the gem is created causing confusion to the
-    users. This change was a bug fix to correctly validate gemspecs.
-
-    *Rafael Mendonça França*
-
-*   Default `config.assets.quiet = true` in the development environment. Suppress
-    logging of assets requests by default.
-
-    *Kevin McPhillips*
-
-*   Ensure `/rails/info` routes match in development for apps with a catch-all globbing route.
-
-    *Nicholas Firth-McCoy*
-
-*   Added a shared section to `config/secrets.yml` that will be loaded for all environments.
-
-    *DHH*
-
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/railties/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/railties/CHANGELOG.md) for previous changes.

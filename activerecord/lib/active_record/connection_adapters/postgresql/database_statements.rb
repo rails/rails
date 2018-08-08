@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -5,34 +7,6 @@ module ActiveRecord
         def explain(arel, binds = [])
           sql = "EXPLAIN #{to_sql(arel, binds)}"
           PostgreSQL::ExplainPrettyPrinter.new.pp(exec_query(sql, "EXPLAIN", binds))
-        end
-
-        def select_value(arel, name = nil, binds = [])
-          arel, binds = binds_from_relation arel, binds
-          sql = to_sql(arel, binds)
-          execute_and_clear(sql, name, binds) do |result|
-            result.getvalue(0, 0) if result.ntuples > 0 && result.nfields > 0
-          end
-        end
-
-        def select_values(arel, name = nil, binds = [])
-          arel, binds = binds_from_relation arel, binds
-          sql = to_sql(arel, binds)
-          execute_and_clear(sql, name, binds) do |result|
-            if result.nfields > 0
-              result.column_values(0)
-            else
-              []
-            end
-          end
-        end
-
-        # Executes a SELECT query and returns an array of rows. Each row is an
-        # array of field values.
-        def select_rows(sql, name = nil, binds = [])
-          execute_and_clear(sql, name, binds) do |result|
-            result.values
-          end
         end
 
         # The internal PostgreSQL identifier of the money data type.
@@ -134,7 +108,7 @@ module ActiveRecord
 
           super
         end
-        protected :sql_for_insert
+        private :sql_for_insert
 
         def exec_insert(sql, name = nil, binds = [], pk = nil, sequence_name = nil)
           if use_insert_returning? || pk == false
@@ -175,6 +149,10 @@ module ActiveRecord
         end
 
         private
+          # Returns the current ID of a table's sequence.
+          def last_insert_id_result(sequence_name)
+            exec_query("SELECT currval(#{quote(sequence_name)})", "SQL")
+          end
 
           def suppress_composite_primary_key(pk)
             pk unless pk.is_a?(Array)

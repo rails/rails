@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/test_unit"
 
 module TestUnit # :nodoc:
@@ -17,9 +19,9 @@ module TestUnit # :nodoc:
         template "preview.rb", File.join("test/mailers/previews", class_path, "#{file_name}_mailer_preview.rb")
       end
 
-      protected
+      private
         def file_name
-          @_file_name ||= super.gsub(/_mailer/i, "")
+          @_file_name ||= super.sub(/_mailer\z/i, "")
         end
     end
   end

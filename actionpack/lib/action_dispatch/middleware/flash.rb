@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActionDispatch
@@ -65,13 +67,13 @@ module ActionDispatch
           self.flash = flash_hash.dup
         end
 
-        if (!session.respond_to?(:loaded?) || session.loaded?) && # (reset_session uses {}, which doesn't implement #loaded?)
+        if (!session.respond_to?(:loaded?) || session.loaded?) && # reset_session uses {}, which doesn't implement #loaded?
             session.key?("flash") && session["flash"].nil?
           session.delete("flash")
         end
       end
 
-      def reset_session # :nodoc
+      def reset_session # :nodoc:
         super
         self.flash = nil
       end
@@ -281,7 +283,8 @@ module ActionDispatch
           @now
         end
 
-        def stringify_array(array)
+      private
+        def stringify_array(array) # :doc:
           array.map do |item|
             item.kind_of?(Symbol) ? item.to_s : item
           end

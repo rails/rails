@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class TestRequestTest < ActiveSupport::TestCase
@@ -30,7 +32,7 @@ class TestRequestTest < ActiveSupport::TestCase
     req = ActionDispatch::TestRequest.create({})
 
     assert_equal({}, req.cookies)
-    assert_equal nil, req.env["HTTP_COOKIE"]
+    assert_nil req.env["HTTP_COOKIE"]
 
     req.cookie_jar["user_name"] = "david"
     assert_cookies({ "user_name" => "david" }, req.cookie_jar)

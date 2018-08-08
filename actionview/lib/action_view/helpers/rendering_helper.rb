@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     # = Action View Rendering
     #
     # Implements methods that allow rendering from a view context.
@@ -11,7 +13,6 @@ module ActionView
       # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt>.
       # * <tt>:file</tt> - Renders an explicit template file (this used to be the old default), add :locals to pass in those.
       # * <tt>:inline</tt> - Renders an inline template similar to how it's done in the controller.
-      # * <tt>:text</tt> - Renders the text passed in out.
       # * <tt>:plain</tt> - Renders the text passed in out. Setting the content
       #   type as <tt>text/plain</tt>.
       # * <tt>:html</tt> - Renders the HTML safe string passed in out, otherwise

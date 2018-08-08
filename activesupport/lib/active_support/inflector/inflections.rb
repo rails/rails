@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "concurrent/map"
 require "active_support/core_ext/array/prepend_and_append"
 require "active_support/i18n"
+require "active_support/deprecation"
 
 module ActiveSupport
   module Inflector
@@ -43,13 +46,14 @@ module ActiveSupport
         end
 
         def add(words)
-          concat(words.flatten.map(&:downcase))
-          @regex_array += map { |word| to_regex(word) }
+          words = words.flatten.map(&:downcase)
+          concat(words)
+          @regex_array += words.map { |word| to_regex(word) }
           self
         end
 
         def uncountable?(str)
-          @regex_array.any? { |regex| regex === str }
+          @regex_array.any? { |regex| regex.match? str }
         end
 
         private
@@ -63,16 +67,21 @@ module ActiveSupport
       end
 
       attr_reader :plurals, :singulars, :uncountables, :humans, :acronyms, :acronym_regex
+      deprecate :acronym_regex
+
+      attr_reader :acronyms_camelize_regex, :acronyms_underscore_regex # :nodoc:
 
       def initialize
-        @plurals, @singulars, @uncountables, @humans, @acronyms, @acronym_regex = [], [], Uncountables.new, [], {}, /(?=a)b/
+        @plurals, @singulars, @uncountables, @humans, @acronyms = [], [], Uncountables.new, [], {}
+        define_acronym_regex_patterns
       end
 
       # Private, for the test suite.
       def initialize_dup(orig) # :nodoc:
-        %w(plurals singulars uncountables humans acronyms acronym_regex).each do |scope|
+        %w(plurals singulars uncountables humans acronyms).each do |scope|
           instance_variable_set("@#{scope}", orig.send(scope).dup)
         end
+        define_acronym_regex_patterns
       end
 
       # Specifies a new acronym. An acronym must be specified as it will appear
@@ -126,7 +135,7 @@ module ActiveSupport
       #   camelize 'mcdonald'   # => 'McDonald'
       def acronym(word)
         @acronyms[word.downcase] = word
-        @acronym_regex = /#{@acronyms.values.join("|")}/
+        define_acronym_regex_patterns
       end
 
       # Specifies a new pluralization rule and its replacement. The rule can
@@ -217,10 +226,18 @@ module ActiveSupport
         case scope
         when :all
           @plurals, @singulars, @uncountables, @humans = [], [], Uncountables.new, []
-          else
+        else
           instance_variable_set "@#{scope}", []
         end
       end
+
+      private
+
+        def define_acronym_regex_patterns
+          @acronym_regex             = @acronyms.empty? ? /(?=a)b/ : /#{@acronyms.values.join("|")}/
+          @acronyms_camelize_regex   = /^(?:#{@acronym_regex}(?=\b|[A-Z_])|\w)/
+          @acronyms_underscore_regex = /(?:(?<=([A-Za-z\d]))|\b)(#{@acronym_regex})(?=\b|[^a-z])/
+        end
     end
 
     # Yields a singleton instance of Inflector::Inflections so you can specify

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record/scoping/default"
 require "active_record/scoping/named"
 
@@ -15,7 +17,7 @@ module ActiveRecord
       end
 
       def []=(key, value)
-        find_or_initialize_by(key: key).update_attributes!(value: value)
+        find_or_initialize_by(key: key).update!(value: value)
       end
 
       def [](key)
@@ -23,7 +25,7 @@ module ActiveRecord
       end
 
       def table_exists?
-        ActiveSupport::Deprecation.silence { connection.table_exists?(table_name) }
+        connection.table_exists?(table_name)
       end
 
       # Creates an internal metadata table with columns +key+ and +value+

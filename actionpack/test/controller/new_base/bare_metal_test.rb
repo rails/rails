@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module BareMetalTest
@@ -11,7 +13,7 @@ module BareMetalTest
     test "response body is a Rack-compatible response" do
       status, headers, body = BareController.action(:index).call(Rack::MockRequest.env_for("/"))
       assert_equal 200, status
-      string = ""
+      string = "".dup
 
       body.each do |part|
         assert part.is_a?(String), "Each part of the body must be a String"
@@ -52,7 +54,7 @@ module BareMetalTest
       controller.set_request!(ActionDispatch::Request.empty)
       controller.set_response!(BareController.make_response!(controller.request))
       controller.index
-      assert_equal nil, controller.response_body
+      assert_nil controller.response_body
     end
   end
 

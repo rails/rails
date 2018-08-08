@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Migration
     # <tt>ActiveRecord::Migration::CommandRecorder</tt> records commands done during
@@ -83,17 +85,13 @@ module ActiveRecord
       # invert the +command+.
       def inverse_of(command, args, &block)
         method = :"invert_#{command}"
-        raise IrreversibleMigration, <<-MSG.strip_heredoc unless respond_to?(method, true)
+        raise IrreversibleMigration, <<~MSG unless respond_to?(method, true)
           This migration uses #{command}, which is not automatically reversible.
           To make the migration reversible you can either:
           1. Define #up and #down methods in place of the #change method.
           2. Use the #reversible method to define reversible behavior.
         MSG
         send(method, args, &block)
-      end
-
-      def respond_to_missing?(*args) # :nodoc:
-        super || delegate.respond_to?(*args)
       end
 
       ReversibleAndIrreversibleMethods.each do |method|
@@ -112,7 +110,7 @@ module ActiveRecord
 
       private
 
-        module StraightReversions
+        module StraightReversions # :nodoc:
           private
             { transaction:       :transaction,
               execute_block:     :execute_block,
@@ -163,8 +161,8 @@ module ActiveRecord
           table, columns, options = *args
           options ||= {}
 
-          index_name = options[:name]
-          options_hash = index_name ? { name: index_name } : { column: columns }
+          options_hash = options.slice(:name, :algorithm)
+          options_hash[:column] = columns if !options_hash[:name]
 
           [:remove_index, [table, options_hash]]
         end
@@ -225,10 +223,14 @@ module ActiveRecord
           [:add_foreign_key, reversed_args]
         end
 
+        def respond_to_missing?(method, _)
+          super || delegate.respond_to?(method)
+        end
+
         # Forwards any missing method call to the \target.
         def method_missing(method, *args, &block)
-          if @delegate.respond_to?(method)
-            @delegate.send(method, *args, &block)
+          if delegate.respond_to?(method)
+            delegate.public_send(method, *args, &block)
           else
             super
           end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch"
 
 module ActionCable
@@ -22,9 +24,9 @@ module ActionCable
     #         # Any cleanup work needed when the cable connection is cut.
     #       end
     #
-    #       protected
+    #       private
     #         def find_verified_user
-    #           User.find_by_identity(cookies.signed[:identity_id]) ||
+    #           User.find_by_identity(cookies.encrypted[:identity_id]) ||
     #             reject_unauthorized_connection
     #         end
     #     end
@@ -126,16 +128,20 @@ module ActionCable
       end
 
       def on_error(message) # :nodoc:
-        # ignore
+        # log errors to make diagnosing socket errors easier
+        logger.error "WebSocket error occurred: #{message}"
       end
 
       def on_close(reason, code) # :nodoc:
         send_async :handle_close
       end
 
-      protected
+      private
+        attr_reader :websocket
+        attr_reader :message_buffer
+
         # The request that initiated the WebSocket connection is available here. This gives access to the environment, cookies, etc.
-        def request
+        def request # :doc:
           @request ||= begin
             environment = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
             ActionDispatch::Request.new(environment || env)
@@ -143,14 +149,10 @@ module ActionCable
         end
 
         # The cookies of the request that initiated the WebSocket connection. Useful for performing authorization checks.
-        def cookies
+        def cookies # :doc:
           request.cookie_jar
         end
 
-        attr_reader :websocket
-        attr_reader :message_buffer
-
-      private
         def encode(cable_message)
           @coder.encode cable_message
         end

@@ -1,18 +1,14 @@
+# frozen_string_literal: true
+
 require "active_model/forbidden_attributes_protection"
 
 module ActiveRecord
   module AttributeAssignment
-    extend ActiveSupport::Concern
     include ActiveModel::AttributeAssignment
-
-    # Alias for ActiveModel::AttributeAssignment#assign_attributes. See ActiveModel::AttributeAssignment.
-    def attributes=(attributes)
-      assign_attributes(attributes)
-    end
 
     private
 
-      def _assign_attributes(attributes) # :nodoc:
+      def _assign_attributes(attributes)
         multi_parameter_attributes  = {}
         nested_parameter_attributes = {}
 

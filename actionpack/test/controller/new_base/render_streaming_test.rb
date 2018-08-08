@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module RenderStreaming
@@ -101,12 +103,12 @@ module RenderStreaming
       assert_body "Hello world, I'm here!"
       assert_status 200
       assert_equal "22", headers["Content-Length"]
-      assert_equal nil, headers["Transfer-Encoding"]
+      assert_nil headers["Transfer-Encoding"]
     end
 
     def assert_streaming!(cache = "no-cache")
       assert_status 200
-      assert_equal nil, headers["Content-Length"]
+      assert_nil headers["Content-Length"]
       assert_equal "chunked", headers["Transfer-Encoding"]
       assert_equal cache, headers["Cache-Control"]
     end

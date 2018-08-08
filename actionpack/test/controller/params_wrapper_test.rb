@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module Admin; class User; end; end
@@ -32,6 +34,10 @@ class ParamsWrapperTest < ActionController::TestCase
     def self.attribute_names
       []
     end
+
+    def self.stored_attributes
+      { settings: [:color, :size] }
+    end
   end
 
   class Person
@@ -50,7 +56,7 @@ class ParamsWrapperTest < ActionController::TestCase
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
-      assert_equal @request.filtered_parameters, "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "username" => "sikachu", "user" => { "username" => "sikachu" } }, @request.filtered_parameters)
     end
   end
 
@@ -59,6 +65,17 @@ class ParamsWrapperTest < ActionController::TestCase
       @request.env["CONTENT_TYPE"] = "application/json"
       post :parse, params: { "username" => "sikachu" }
       assert_parameters("username" => "sikachu", "user" => { "username" => "sikachu" })
+    end
+  end
+
+  def test_store_accessors_wrapped
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "username" => "sikachu", "color" => "blue", "size" => "large" }
+        assert_parameters("username" => "sikachu", "color" => "blue", "size" => "large",
+                           "user" => { "username" => "sikachu", "color" => "blue", "size" => "large" })
+      end
     end
   end
 
@@ -155,6 +172,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_no_double_wrap_if_key_exists_and_value_is_nil
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      post :parse, params: { "user" => nil }
+      assert_parameters("user" => nil)
+    end
+  end
+
   def test_nested_params
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
@@ -203,6 +228,14 @@ class ParamsWrapperTest < ActionController::TestCase
     end
   end
 
+  def test_preserves_query_string_params_in_filtered_params
+    with_default_wrapper_options do
+      @request.env["CONTENT_TYPE"] = "application/json"
+      get :parse, params: { "user" => { "username" => "nixon" } }
+      assert_equal({ "controller" => "params_wrapper_test/users", "action" => "parse", "user" => { "username" => "nixon" } }, @request.filtered_parameters)
+    end
+  end
+
   def test_empty_parameter_set
     with_default_wrapper_options do
       @request.env["CONTENT_TYPE"] = "application/json"
@@ -222,6 +255,20 @@ class ParamsWrapperTest < ActionController::TestCase
       assert_equal "", @response.body
     end
   end
+
+  def test_derived_wrapped_keys_from_nested_attributes
+    def User.nested_attributes_options
+      { person: {} }
+    end
+
+    assert_called(User, :attribute_names, times: 2, returns: ["username"]) do
+      with_default_wrapper_options do
+        @request.env["CONTENT_TYPE"] = "application/json"
+        post :parse, params: { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } }
+        assert_parameters("username" => "sikachu", "person_attributes" => { "title" => "Developer" }, "user" => { "username" => "sikachu", "person_attributes" => { "title" => "Developer" } })
+      end
+    end
+  end
 end
 
 class NamespacedParamsWrapperTest < ActionController::TestCase
@@ -229,7 +276,7 @@ class NamespacedParamsWrapperTest < ActionController::TestCase
 
   module Admin
     module Users
-      class UsersController < ActionController::Base;
+      class UsersController < ActionController::Base
         class << self
           attr_accessor :last_parameters
         end

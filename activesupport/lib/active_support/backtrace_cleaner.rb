@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   # Backtraces often include many lines that are not relevant for the context
   # under review. This makes it hard to find the signal amongst the backtrace
@@ -12,7 +14,7 @@ module ActiveSupport
   # is to exclude the output of a noisy library from the backtrace, so that you
   # can focus on the rest.
   #
-  #   bc = BacktraceCleaner.new
+  #   bc = ActiveSupport::BacktraceCleaner.new
   #   bc.add_filter   { |line| line.gsub(Rails.root.to_s, '') } # strip the Rails.root prefix
   #   bc.add_silencer { |line| line =~ /puma|rubygems/ } # skip any lines from puma or rubygems
   #   bc.clean(exception.backtrace) # perform the cleanup

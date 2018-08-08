@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/dev_caching"
 
 namespace :dev do

@@ -1,17 +1,18 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/attribute_accessors"
 require "rack/utils"
 
 module ActionDispatch
   class ExceptionWrapper
-    cattr_accessor :rescue_responses
-    @@rescue_responses = Hash.new(:internal_server_error)
-    @@rescue_responses.merge!(
+    cattr_accessor :rescue_responses, default: Hash.new(:internal_server_error).merge!(
       "ActionController::RoutingError"               => :not_found,
       "AbstractController::ActionNotFound"           => :not_found,
       "ActionController::MethodNotAllowed"           => :method_not_allowed,
       "ActionController::UnknownHttpMethod"          => :method_not_allowed,
       "ActionController::NotImplemented"             => :not_implemented,
       "ActionController::UnknownFormat"              => :not_acceptable,
+      "ActionController::MissingExactTemplate"       => :not_acceptable,
       "ActionController::InvalidAuthenticityToken"   => :unprocessable_entity,
       "ActionController::InvalidCrossOriginRequest"  => :unprocessable_entity,
       "ActionDispatch::Http::Parameters::ParseError" => :bad_request,
@@ -21,20 +22,21 @@ module ActionDispatch
       "Rack::QueryParser::InvalidParameterError"     => :bad_request
     )
 
-    cattr_accessor :rescue_templates
-    @@rescue_templates = Hash.new("diagnostics")
-    @@rescue_templates.merge!(
-      "ActionView::MissingTemplate"         => "missing_template",
-      "ActionController::RoutingError"      => "routing_error",
-      "AbstractController::ActionNotFound"  => "unknown_action",
-      "ActionView::Template::Error"         => "template_error"
+    cattr_accessor :rescue_templates, default: Hash.new("diagnostics").merge!(
+      "ActionView::MissingTemplate"            => "missing_template",
+      "ActionController::RoutingError"         => "routing_error",
+      "AbstractController::ActionNotFound"     => "unknown_action",
+      "ActiveRecord::StatementInvalid"         => "invalid_statement",
+      "ActionView::Template::Error"            => "template_error",
+      "ActionController::MissingExactTemplate" => "missing_exact_template",
     )
 
-    attr_reader :backtrace_cleaner, :exception, :line_number, :file
+    attr_reader :backtrace_cleaner, :exception, :wrapped_causes, :line_number, :file
 
     def initialize(backtrace_cleaner, exception)
       @backtrace_cleaner = backtrace_cleaner
       @exception = original_exception(exception)
+      @wrapped_causes = wrapped_causes_for(exception, backtrace_cleaner)
 
       expand_backtrace if exception.is_a?(SyntaxError) || exception.cause.is_a?(SyntaxError)
     end
@@ -65,7 +67,11 @@ module ActionDispatch
       full_trace_with_ids = []
 
       full_trace.each_with_index do |trace, idx|
-        trace_with_id = { id: idx, trace: trace }
+        trace_with_id = {
+          exception_object_id: @exception.object_id,
+          id: idx,
+          trace: trace
+        }
 
         if application_trace.include?(trace)
           application_trace_with_ids << trace_with_id
@@ -98,6 +104,18 @@ module ActionDispatch
       end
     end
 
+    def trace_to_show
+      if traces["Application Trace"].empty? && rescue_template != "routing_error"
+        "Full Trace"
+      else
+        "Application Trace"
+      end
+    end
+
+    def source_to_show_id
+      (traces[trace_to_show].first || {})[:id]
+    end
+
     private
 
       def backtrace
@@ -110,6 +128,16 @@ module ActionDispatch
         else
           exception
         end
+      end
+
+      def causes_for(exception)
+        return enum_for(__method__, exception) unless block_given?
+
+        yield exception while exception = exception.cause
+      end
+
+      def wrapped_causes_for(exception, backtrace_cleaner)
+        causes_for(exception).map { |cause| self.class.new(backtrace_cleaner, cause) }
       end
 
       def clean_backtrace(*args)

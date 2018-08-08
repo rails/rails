@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -31,15 +33,21 @@ module ActiveRecord
     end
 
     def test_encoding
-      assert_not_nil @connection.encoding
+      assert_queries(1) do
+        assert_not_nil @connection.encoding
+      end
     end
 
     def test_collation
-      assert_not_nil @connection.collation
+      assert_queries(1) do
+        assert_not_nil @connection.collation
+      end
     end
 
     def test_ctype
-      assert_not_nil @connection.ctype
+      assert_queries(1) do
+        assert_not_nil @connection.ctype
+      end
     end
 
     def test_default_client_min_messages
@@ -90,22 +98,22 @@ module ActiveRecord
     end
 
     def test_tables_logs_name
-      ActiveSupport::Deprecation.silence { @connection.tables("hello") }
+      @connection.tables
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_indexes_logs_name
-      @connection.indexes("items", "hello")
+      @connection.indexes("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_exists_logs_name
-      ActiveSupport::Deprecation.silence { @connection.table_exists?("items") }
+      @connection.table_exists?("items")
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
 
     def test_table_alias_length_logs_name
-      @connection.instance_variable_set("@table_alias_length", nil)
+      @connection.instance_variable_set("@max_identifier_length", nil)
       @connection.table_alias_length
       assert_equal "SCHEMA", @subscriber.logged[0][1]
     end
@@ -143,20 +151,20 @@ module ActiveRecord
     # When prompted, restart the PostgreSQL server with the
     # "-m fast" option or kill the individual connection assuming
     # you know the incantation to do that.
-    # To restart PostgreSQL 9.1 on OS X, installed via MacPorts, ...
+    # To restart PostgreSQL 9.1 on macOS, installed via MacPorts, ...
     # sudo su postgres -c "pg_ctl restart -D /opt/local/var/db/postgresql91/defaultdb/ -m fast"
     def test_reconnection_after_actual_disconnection_with_verify
       original_connection_pid = @connection.query("select pg_backend_pid()")
 
       # Sanity check.
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       if @connection.send(:postgresql_version) >= 90200
         secondary_connection = ActiveRecord::Base.connection_pool.checkout
         secondary_connection.query("select pg_terminate_backend(#{original_connection_pid.first.first})")
         ActiveRecord::Base.connection_pool.checkin(secondary_connection)
       elsif ARTest.config["with_manual_interventions"]
-        puts "Kill the connection now (e.g. by restarting the PostgreSQL " +
+        puts "Kill the connection now (e.g. by restarting the PostgreSQL " \
           'server with the "-m fast" option) and then press enter.'
         $stdin.gets
       else
@@ -168,16 +176,16 @@ module ActiveRecord
 
       @connection.verify!
 
-      assert @connection.active?
+      assert_predicate @connection, :active?
 
       # If we get no exception here, then either we re-connected successfully, or
       # we never actually got disconnected.
       new_connection_pid = @connection.query("select pg_backend_pid()")
 
       assert_not_equal original_connection_pid, new_connection_pid,
-        "umm -- looks like you didn't break the connection, because we're still " +
+        "umm -- looks like you didn't break the connection, because we're still " \
         "successfully querying with the same connection pid."
-
+    ensure
       # Repair all fixture connections so other tests won't break.
       @fixture_connections.each(&:verify!)
     end
@@ -209,6 +217,13 @@ module ActiveRecord
       run_without_connection do |orig_connection|
         # This should execute a query that does not raise an error
         ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { debug_print_plan: :default }))
+      end
+    end
+
+    def test_set_session_timezone
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(orig_connection.deep_merge(variables: { timezone: "America/New_York" }))
+        assert_equal "America/New_York", ActiveRecord::Base.connection.query_value("SHOW TIME ZONE")
       end
     end
 
@@ -245,7 +260,7 @@ module ActiveRecord
       end
     end
 
-    protected
+    private
 
       def with_warning_suppression
         log_level = @connection.client_min_messages

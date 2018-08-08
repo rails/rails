@@ -1,4 +1,6 @@
-require "active_support/test_case"
+# frozen_string_literal: true
+
+require "active_support"
 require "active_support/testing/autorun"
 require "active_support/testing/method_call_assertions"
 require "active_support/testing/stream"
@@ -75,6 +77,10 @@ module ActiveRecord
       model.reset_column_information
       model.column_names.include?(column_name.to_s)
     end
+
+    def frozen_error_class
+      Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+    end
   end
 
   class PostgreSQLTestCase < TestCase
@@ -108,9 +114,9 @@ module ActiveRecord
     # FIXME: this needs to be refactored so specific database can add their own
     # ignored SQL, or better yet, use a different notification for the queries
     # instead examining the SQL content.
-    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im, /^\s*select .* from all_constraints/im, /^\s*select .* from all_tab_cols/im]
+    oracle_ignored     = [/^select .*nextval/i, /^SAVEPOINT/, /^ROLLBACK TO/, /^\s*select .* from all_triggers/im, /^\s*select .* from all_constraints/im, /^\s*select .* from all_tab_cols/im, /^\s*select .* from all_sequences/im]
     mysql_ignored      = [/^SHOW FULL TABLES/i, /^SHOW FULL FIELDS/, /^SHOW CREATE TABLE /i, /^SHOW VARIABLES /, /^\s*SELECT (?:column_name|table_name)\b.*\bFROM information_schema\.(?:key_column_usage|tables)\b/im]
-    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select tablename\b.*from pg_tables\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i]
+    postgresql_ignored = [/^\s*select\b.*\bfrom\b.*pg_namespace\b/im, /^\s*select tablename\b.*from pg_tables\b/im, /^\s*select\b.*\battname\b.*\bfrom\b.*\bpg_attribute\b/im, /^SHOW search_path/i, /^\s*SELECT\b.*::regtype::oid\b/im]
     sqlite3_ignored =    [/^\s*SELECT name\b.*\bFROM sqlite_master/im, /^\s*SELECT sql\b.*\bFROM sqlite_master/im]
 
     [oracle_ignored, mysql_ignored, postgresql_ignored, sqlite3_ignored].each do |db_ignored_sql|

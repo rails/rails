@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "pathname"
 require "file_update_checker_shared_tests"
@@ -7,6 +9,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
 
   def setup
     skip if ENV["LISTEN"] == "0"
+    require "listen"
     super
   end
 
@@ -30,29 +33,24 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     wait # wait for the events to fire
   end
 
-  def rm_f(files)
-    super
-    wait
-  end
-
   test "notifies forked processes" do
     jruby_skip "Forking not available on JRuby"
 
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) {}
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
-    # Pipes used for flow controll across fork.
+    # Pipes used for flow control across fork.
     boot_reader,  boot_writer  = IO.pipe
     touch_reader, touch_writer = IO.pipe
 
     pid = fork do
-      assert checker.updated?
+      assert_predicate checker, :updated?
 
       # Clear previous check value.
       checker.execute
-      assert !checker.updated?
+      assert_not_predicate checker, :updated?
 
       # Fork is booted, ready for file to be touched
       # notify parent process.
@@ -62,7 +60,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
       # has been touched.
       IO.select([touch_reader])
 
-      assert checker.updated?
+      assert_predicate checker, :updated?
     end
 
     assert pid
@@ -74,7 +72,7 @@ class EventedFileUpdateCheckerTest < ActiveSupport::TestCase
     # Notify fork that files have been touched.
     touch_writer.write("touched")
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
 
     Process.wait(pid)
   end

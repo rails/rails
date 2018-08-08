@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -14,11 +16,8 @@ module ActionView
           translated_attribute || human_attribute_name
         end
 
-        protected
-
-          attr_reader :object_name, :method_and_value, :scope, :model
-
         private
+          attr_reader :object_name, :method_and_value, :scope, :model
 
           def i18n_default
             if model

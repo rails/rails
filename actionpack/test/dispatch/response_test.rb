@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "timeout"
 require "rack/content_length"
@@ -13,13 +15,13 @@ class ResponseTest < ActiveSupport::TestCase
       @response.await_commit
     }
     @response.commit!
-    assert @response.committed?
+    assert_predicate @response, :committed?
     assert t.join(0.5)
   end
 
   def test_stream_close
     @response.stream.close
-    assert @response.stream.closed?
+    assert_predicate @response.stream, :closed?
   end
 
   def test_stream_write
@@ -74,7 +76,7 @@ class ResponseTest < ActiveSupport::TestCase
     @response.body = "Hello, World!"
 
     # even though there's no explicitly set content-type,
-    assert_equal nil, @response.content_type
+    assert_nil @response.content_type
 
     # after the action reads back @response.body,
     assert_equal "Hello, World!", @response.body
@@ -111,8 +113,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   def test_empty_content_type_returns_nil
-    @response.headers['Content-Type'] = ""
-    assert_equal nil, @response.content_type
+    @response.headers["Content-Type"] = ""
+    assert_nil @response.content_type
   end
 
   test "simple output" do
@@ -156,7 +158,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response.status = c.to_s
       @response.set_header "Content-Length", "0"
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
+      assert_not headers.has_key?("Content-Length"), "#{c} must not have a Content-Length header field"
     end
   end
 
@@ -175,7 +177,7 @@ class ResponseTest < ActiveSupport::TestCase
       @response = ActionDispatch::Response.new
       @response.status = c.to_s
       _, headers, _ = @response.to_a
-      assert !headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
+      assert_not headers.has_key?("Content-Type"), "#{c} should not have Content-Type header"
     end
 
     [200, 302, 404, 500].each do |c|
@@ -189,7 +191,7 @@ class ResponseTest < ActiveSupport::TestCase
   test "does not include Status header" do
     @response.status = "200 OK"
     _, headers, _ = @response.to_a
-    assert !headers.has_key?("Status")
+    assert_not headers.has_key?("Status")
   end
 
   test "response code" do
@@ -255,9 +257,9 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
-    assert resp.etag?
-    assert resp.weak_etag?
-    assert_not resp.strong_etag?
+    assert_predicate resp, :etag?
+    assert_predicate resp, :weak_etag?
+    assert_not_predicate resp, :strong_etag?
     assert_equal('W/"202cb962ac59075b964b07152d234b70"', resp.etag)
     assert_equal({ public: true }, resp.cache_control)
 
@@ -273,9 +275,9 @@ class ResponseTest < ActiveSupport::TestCase
     }
     resp.to_a
 
-    assert resp.etag?
-    assert_not resp.weak_etag?
-    assert resp.strong_etag?
+    assert_predicate resp, :etag?
+    assert_not_predicate resp, :weak_etag?
+    assert_predicate resp, :strong_etag?
     assert_equal('"202cb962ac59075b964b07152d234b70"', resp.etag)
   end
 
@@ -294,13 +296,8 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "read content type with default charset utf-8" do
-    original = ActionDispatch::Response.default_charset
-    begin
-      resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
-      assert_equal("utf-8", resp.charset)
-    ensure
-      ActionDispatch::Response.default_charset = original
-    end
+    resp = ActionDispatch::Response.new(200, "Content-Type" => "text/xml")
+    assert_equal("utf-8", resp.charset)
   end
 
   test "read content type with charset utf-16" do
@@ -314,13 +311,16 @@ class ResponseTest < ActiveSupport::TestCase
     end
   end
 
-  test "read x_frame_options, x_content_type_options and x_xss_protection" do
+  test "read x_frame_options, x_content_type_options, x_xss_protection, x_download_options and x_permitted_cross_domain_policies, referrer_policy" do
     original_default_headers = ActionDispatch::Response.default_headers
     begin
       ActionDispatch::Response.default_headers = {
         "X-Frame-Options" => "DENY",
         "X-Content-Type-Options" => "nosniff",
-        "X-XSS-Protection" => "1;"
+        "X-XSS-Protection" => "1;",
+        "X-Download-Options" => "noopen",
+        "X-Permitted-Cross-Domain-Policies" => "none",
+        "Referrer-Policy" => "strict-origin-when-cross-origin"
       }
       resp = ActionDispatch::Response.create.tap { |response|
         response.body = "Hello"
@@ -330,6 +330,9 @@ class ResponseTest < ActiveSupport::TestCase
       assert_equal("DENY", resp.headers["X-Frame-Options"])
       assert_equal("nosniff", resp.headers["X-Content-Type-Options"])
       assert_equal("1;", resp.headers["X-XSS-Protection"])
+      assert_equal("noopen", resp.headers["X-Download-Options"])
+      assert_equal("none", resp.headers["X-Permitted-Cross-Domain-Policies"])
+      assert_equal("strict-origin-when-cross-origin", resp.headers["Referrer-Policy"])
     ensure
       ActionDispatch::Response.default_headers = original_default_headers
     end
@@ -353,7 +356,7 @@ class ResponseTest < ActiveSupport::TestCase
   end
 
   test "respond_to? accepts include_private" do
-    assert_not @response.respond_to?(:method_missing)
+    assert_not_respond_to @response, :method_missing
     assert @response.respond_to?(:method_missing, true)
   end
 
@@ -381,10 +384,10 @@ class ResponseTest < ActiveSupport::TestCase
     app = lambda { |env| @response.to_a }
     env = Rack::MockRequest.env_for("/")
 
-    status, headers, body = app.call(env)
+    _status, headers, _body = app.call(env)
     assert_nil headers["Content-Length"]
 
-    status, headers, body = Rack::ContentLength.new(app).call(env)
+    _status, headers, _body = Rack::ContentLength.new(app).call(env)
     assert_equal "5", headers["Content-Length"]
   end
 end

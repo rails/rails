@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_model/type/registry"
 
 module ActiveRecord
@@ -110,11 +112,8 @@ module ActiveRecord
         super | 4
       end
 
-      protected
-
-        attr_reader :options, :klass
-
       private
+        attr_reader :options, :klass
 
         def matches_options?(**kwargs)
           options.all? do |key, value|

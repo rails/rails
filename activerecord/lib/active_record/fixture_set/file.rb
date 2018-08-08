@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "erb"
 require "yaml"
 
@@ -66,10 +68,13 @@ module ActiveRecord
         # Validate our unmarshalled data.
         def validate(data)
           unless Hash === data || YAML::Omap === data
-            raise Fixture::FormatError, "fixture is not a hash"
+            raise Fixture::FormatError, "fixture is not a hash: #{@file}"
           end
 
-          raise Fixture::FormatError unless data.all? { |name, row| Hash === row }
+          invalid = data.reject { |_, row| Hash === row }
+          if invalid.any?
+            raise Fixture::FormatError, "fixture key is not a hash: #{@file}, keys: #{invalid.keys.inspect}"
+          end
           data
         end
     end

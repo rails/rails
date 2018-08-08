@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -10,7 +12,7 @@ require "models/tagging"
 require "models/tag"
 
 class InnerJoinAssociationTest < ActiveRecord::TestCase
-  fixtures :authors, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
+  fixtures :authors, :author_addresses, :essays, :posts, :comments, :categories, :categories_posts, :categorizations,
            :taggings, :tags
 
   def test_construct_finder_sql_applies_aliases_tables_on_association_conditions
@@ -23,6 +25,24 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
       sql = Person.joins(agents: { agents: :agents }).joins(agents: { agents: { primary_contact: :agents } }).to_sql
       assert_match(/agents_people_4/i, sql)
     end
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_on_duplicate_associations_with_left_outer_joins
+    sql = Person.joins(agents: :agents).left_outer_joins(agents: :agents).to_sql
+    assert_match(/agents_people_4/i, sql)
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_with_string_joins
+    sql = Person.joins(:agents).joins("JOIN people agents_people ON agents_people.primary_contact_id = people.id").to_sql
+    assert_match(/agents_people_2/i, sql)
+  end
+
+  def test_construct_finder_sql_does_not_table_name_collide_with_aliased_joins
+    people = Person.arel_table
+    agents = people.alias("agents_people")
+    constraint = agents[:primary_contact_id].eq(people[:id])
+    sql = Person.joins(:agents).joins(agents.create_join(agents, agents.create_on(constraint))).to_sql
+    assert_match(/agents_people_2/i, sql)
   end
 
   def test_construct_finder_sql_ignores_empty_joins_hash
@@ -59,19 +79,19 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
 
   def test_find_with_implicit_inner_joins_honors_readonly_with_select
     authors = Author.joins(:posts).select("authors.*").to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_honors_readonly_false
     authors = Author.joins(:posts).readonly(false).to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.readonly? }, "expected no authors to be readonly"
   end
 
   def test_find_with_implicit_inner_joins_does_not_set_associations
     authors = Author.joins(:posts).select("authors.*").to_a
-    assert !authors.empty?, "expected authors to be non-empty"
+    assert_not authors.empty?, "expected authors to be non-empty"
     assert authors.all? { |a| !a.instance_variable_defined?(:@posts) }, "expected no authors to have the @posts association loaded"
   end
 
@@ -95,19 +115,19 @@ class InnerJoinAssociationTest < ActiveRecord::TestCase
     scope = Post.joins(:special_comments).where(id: posts(:sti_comments).id)
 
     # The join should match SpecialComment and its subclasses only
-    assert scope.where("comments.type" => "Comment").empty?
-    assert !scope.where("comments.type" => "SpecialComment").empty?
-    assert !scope.where("comments.type" => "SubSpecialComment").empty?
+    assert_empty scope.where("comments.type" => "Comment")
+    assert_not_empty scope.where("comments.type" => "SpecialComment")
+    assert_not_empty scope.where("comments.type" => "SubSpecialComment")
   end
 
   def test_find_with_conditions_on_reflection
-    assert !posts(:welcome).comments.empty?
+    assert_not_empty posts(:welcome).comments
     assert Post.joins(:nonexistent_comments).where(id: posts(:welcome).id).empty? # [sic!]
   end
 
   def test_find_with_conditions_on_through_reflection
-    assert !posts(:welcome).tags.empty?
-    assert Post.joins(:misc_tags).where(id: posts(:welcome).id).empty?
+    assert_not_empty posts(:welcome).tags
+    assert_empty Post.joins(:misc_tags).where(id: posts(:welcome).id)
   end
 
   test "the default scope of the target is applied when joining associations" do

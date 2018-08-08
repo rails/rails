@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class RendererTest < ActiveSupport::TestCase
@@ -17,6 +19,16 @@ class RendererTest < ActiveSupport::TestCase
     renderer   = controller.renderer
 
     assert_equal controller, renderer.controller
+  end
+
+  test "creating with new defaults" do
+    renderer = ApplicationController.renderer
+
+    new_defaults = { https: true }
+    new_renderer = renderer.with_defaults(new_defaults).new
+    content = new_renderer.render(inline: "<%= request.ssl? %>")
+
+    assert_equal "true", content
   end
 
   test "rendering with a class renderer" do
@@ -101,6 +113,20 @@ class RendererTest < ActiveSupport::TestCase
     content = renderer.render inline: "<%= request.ssl? %>"
 
     assert_equal "true", content
+  end
+
+  test "return valid asset url with defaults" do
+    renderer = ApplicationController.renderer
+    content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
+
+    assert_equal "http://example.org/asset.jpg", content
+  end
+
+  test "return valid asset url when https is true" do
+    renderer = ApplicationController.renderer.new https: true
+    content  = renderer.render inline: "<%= asset_url 'asset.jpg' %>"
+
+    assert_equal "https://example.org/asset.jpg", content
   end
 
   private

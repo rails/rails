@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/migration/helper"
 
 module ActiveRecord
@@ -15,7 +17,7 @@ module ActiveRecord
       end
 
       def teardown
-        ActiveSupport::Deprecation.silence { rename_table :octopi, :test_models if connection.table_exists? :octopi }
+        rename_table :octopi, :test_models if connection.table_exists? :octopi
         super
       end
 
@@ -79,10 +81,33 @@ module ActiveRecord
           assert_equal ConnectionAdapters::PostgreSQL::Name.new("public", "octopi_#{pk}_seq"), seq
         end
 
+        def test_renaming_table_renames_primary_key
+          connection.create_table :cats, id: :uuid, default: "uuid_generate_v4()"
+          rename_table :cats, :felines
+
+          assert connection.table_exists? :felines
+          assert_not connection.table_exists? :cats
+
+          primary_key_name = connection.select_values(<<~SQL, "SCHEMA")[0]
+            SELECT c.relname
+              FROM pg_class c
+              JOIN pg_index i
+                ON c.oid = i.indexrelid
+             WHERE i.indisprimary
+               AND i.indrelid = 'felines'::regclass
+          SQL
+
+          assert_equal "felines_pkey", primary_key_name
+        ensure
+          connection.drop_table :cats, if_exists: true
+          connection.drop_table :felines, if_exists: true
+        end
+
         def test_renaming_table_doesnt_attempt_to_rename_non_existent_sequences
-          connection.create_table :cats, id: :uuid
+          connection.create_table :cats, id: :uuid, default: "uuid_generate_v4()"
           assert_nothing_raised { rename_table :cats, :felines }
-          ActiveSupport::Deprecation.silence { assert connection.table_exists? :felines }
+          assert connection.table_exists? :felines
+          assert_not connection.table_exists? :cats
         ensure
           connection.drop_table :cats, if_exists: true
           connection.drop_table :felines, if_exists: true

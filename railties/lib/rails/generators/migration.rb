@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/concern"
 require "rails/generators/actions/create_migration"
 
@@ -35,7 +37,7 @@ module Rails
       end
 
       def set_migration_assigns!(destination)
-        destination = File.expand_path(destination, self.destination_root)
+        destination = File.expand_path(destination, destination_root)
 
         migration_dir = File.dirname(destination)
         @migration_number     = self.class.next_migration_number(migration_dir)
@@ -61,7 +63,12 @@ module Rails
         numbered_destination = File.join(dir, ["%migration_number%", base].join("_"))
 
         create_migration numbered_destination, nil, config do
-          ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
+          match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
+          if match && match[:version] >= "2.2.0" # Ruby 2.6+
+            ERB.new(::File.binread(source), trim_mode: "-", eoutvar: "@output_buffer").result(context)
+          else
+            ERB.new(::File.binread(source), nil, "-", "@output_buffer").result(context)
+          end
         end
       end
     end

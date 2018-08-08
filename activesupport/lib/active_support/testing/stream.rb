@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     module Stream #:nodoc:
@@ -31,7 +33,7 @@ module ActiveSupport
           yield
 
           stream_io.rewind
-          return captured_stream.read
+          captured_stream.read
         ensure
           captured_stream.close
           captured_stream.unlink

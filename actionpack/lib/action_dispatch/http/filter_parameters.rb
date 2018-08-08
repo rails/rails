@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/http/parameter_filter"
 
 module ActionDispatch
@@ -7,8 +9,8 @@ module ActionDispatch
     # sub-hashes of the params hash to filter. Filtering only certain sub-keys
     # from a hash is possible by using the dot notation: 'credit_card.number'.
     # If a block is given, each key and value of the params hash and all
-    # sub-hashes is passed to it, the value or key can be replaced using
-    # String#replace or similar method.
+    # sub-hashes are passed to it, where the value or the key can be replaced using
+    # String#replace or similar methods.
     #
     #   env["action_dispatch.parameter_filter"] = [:password]
     #   => replaces the value to all keys matching /password/i with "[FILTERED]"
@@ -46,35 +48,35 @@ module ActionDispatch
         @filtered_env ||= env_filter.filter(@env)
       end
 
-      # Reconstructed a path with all sensitive GET parameters replaced.
+      # Reconstructs a path with all sensitive GET parameters replaced.
       def filtered_path
         @filtered_path ||= query_string.empty? ? path : "#{path}?#{filtered_query_string}"
       end
 
-    protected
+    private
 
-      def parameter_filter
+      def parameter_filter # :doc:
         parameter_filter_for fetch_header("action_dispatch.parameter_filter") {
           return NULL_PARAM_FILTER
         }
       end
 
-      def env_filter
+      def env_filter # :doc:
         user_key = fetch_header("action_dispatch.parameter_filter") {
           return NULL_ENV_FILTER
         }
         parameter_filter_for(Array(user_key) + ENV_MATCH)
       end
 
-      def parameter_filter_for(filters)
+      def parameter_filter_for(filters) # :doc:
         ParameterFilter.new(filters)
       end
 
       KV_RE   = "[^&;=]+"
       PAIR_RE = %r{(#{KV_RE})=(#{KV_RE})}
-      def filtered_query_string
+      def filtered_query_string # :doc:
         query_string.gsub(PAIR_RE) do |_|
-          parameter_filter.filter([[$1, $2]]).first.join("=")
+          parameter_filter.filter($1 => $2).first.join("=")
         end
       end
     end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 require "rack/test"
 
@@ -98,6 +100,20 @@ module ApplicationTests
         get "/foo"
         assert_match "No route matches", last_response.body
       end
+    end
+
+    test "routing to a nonexistent controller when action_dispatch.show_exceptions and consider_all_requests_local are set shows diagnostics" do
+      app_file "config/routes.rb", <<-RUBY
+        Rails.application.routes.draw do
+          resources :articles
+        end
+      RUBY
+
+      app.config.action_dispatch.show_exceptions = true
+      app.config.consider_all_requests_local = true
+
+      get "/articles"
+      assert_match "<title>Action Controller: Exception caught</title>", last_response.body
     end
 
     test "displays diagnostics message when exception raised in template that contains UTF-8" do

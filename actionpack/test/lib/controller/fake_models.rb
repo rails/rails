@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_model"
 
-class Customer < Struct.new(:name, :id)
+Customer = Struct.new(:name, :id) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 
@@ -26,9 +28,13 @@ class Customer < Struct.new(:name, :id)
   def persisted?
     id.present?
   end
+
+  def cache_key
+    "#{name}/#{id}"
+  end
 end
 
-class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
+Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_record_unit"
 require "fixtures/project"
 
@@ -45,7 +47,7 @@ class ModelDelegate
   end
 end
 
-module Blog
+module Weblog
   class Post < ActiveRecord::Base
     self.table_name = "projects"
   end
@@ -61,7 +63,7 @@ end
 
 class PolymorphicRoutesTest < ActionController::TestCase
   include SharedTestRoutes.url_helpers
-  self.default_url_options[:host] = "example.com"
+  default_url_options[:host] = "example.com"
 
   def setup
     @project = Project.new
@@ -72,8 +74,8 @@ class PolymorphicRoutesTest < ActionController::TestCase
     @fax = Fax.new
     @delegator = ModelDelegator.new
     @series = Series.new
-    @blog_post = Blog::Post.new
-    @blog_blog = Blog::Blog.new
+    @blog_post = Weblog::Post.new
+    @blog_blog = Weblog::Blog.new
   end
 
   def assert_url(url, args)
@@ -86,8 +88,7 @@ class PolymorphicRoutesTest < ActionController::TestCase
 
   def test_string
     with_test_routes do
-      # FIXME: why are these different? Symbol case passes through to
-      # `polymorphic_url`, but the String case doesn't.
+      assert_equal "/projects", polymorphic_path("projects")
       assert_equal "http://example.com/projects", polymorphic_url("projects")
       assert_equal "projects", url_for("projects")
     end
@@ -729,5 +730,51 @@ class PolymorphicPathRoutesTest < PolymorphicRoutesTest
     host = self.class.default_url_options[:host]
 
     assert_equal url.sub(/http:\/\/#{host}/, ""), url_for(args)
+  end
+end
+
+class DirectRoutesTest < ActionView::TestCase
+  class Linkable
+    attr_reader :id
+
+    def self.name
+      super.demodulize
+    end
+
+    def initialize(id)
+      @id = id
+    end
+
+    def linkable_type
+      self.class.name.underscore
+    end
+  end
+
+  class Category < Linkable; end
+  class Collection < Linkable; end
+  class Product < Linkable; end
+
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw do
+    resources :categories, :collections, :products
+    direct(:linkable) { |linkable| [:"#{linkable.linkable_type}", { id: linkable.id }] }
+  end
+
+  include Routes.url_helpers
+
+  def setup
+    @category = Category.new("1")
+    @collection = Collection.new("2")
+    @product = Product.new("3")
+  end
+
+  def test_direct_routes
+    assert_equal "/categories/1", linkable_path(@category)
+    assert_equal "/collections/2", linkable_path(@collection)
+    assert_equal "/products/3", linkable_path(@product)
+
+    assert_equal "http://test.host/categories/1", linkable_url(@category)
+    assert_equal "http://test.host/collections/2", linkable_url(@collection)
+    assert_equal "http://test.host/products/3", linkable_url(@product)
   end
 end

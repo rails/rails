@@ -1,8 +1,12 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class NewCommand < Base # :nodoc:
-      def help
-        Rails::Command.invoke :application, [ "--help" ]
+      no_commands do
+        def help
+          Rails::Command.invoke :application, [ "--help" ]
+        end
       end
 
       def perform(*)

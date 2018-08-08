@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/callback_job"
 

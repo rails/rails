@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 class LoadingTest < ActiveSupport::TestCase
@@ -115,11 +117,11 @@ class LoadingTest < ActiveSupport::TestCase
     require "#{rails_root}/config/environment"
     setup_ar!
 
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/load"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata, Post].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
     get "/unload"
-    assert_equal [ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata], ActiveRecord::Base.descendants
+    assert_equal [ActiveStorage::Blob, ActiveStorage::Attachment, ActiveRecord::SchemaMigration, ActiveRecord::InternalMetadata].collect(&:to_s).sort, ActiveRecord::Base.descendants.collect(&:to_s).sort
   end
 
   test "initialize cant be called twice" do
@@ -298,7 +300,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate` }
+    rails("db:migrate")
     require "#{rails_root}/config/environment"
 
     get "/title"
@@ -312,7 +314,7 @@ class LoadingTest < ActiveSupport::TestCase
       end
     MIGRATION
 
-    Dir.chdir(app_path) { `rake db:migrate` }
+    rails("db:migrate")
 
     get "/body"
     assert_equal "BODY", last_response.body
@@ -350,14 +352,26 @@ class LoadingTest < ActiveSupport::TestCase
   def test_initialize_can_be_called_at_any_time
     require "#{app_path}/config/application"
 
-    assert !Rails.initialized?
-    assert !Rails.application.initialized?
+    assert_not_predicate Rails, :initialized?
+    assert_not_predicate Rails.application, :initialized?
     Rails.initialize!
-    assert Rails.initialized?
-    assert Rails.application.initialized?
+    assert_predicate Rails, :initialized?
+    assert_predicate Rails.application, :initialized?
   end
 
-  protected
+  test "frameworks aren't loaded during initialization" do
+    app_file "config/initializers/raise_when_frameworks_load.rb", <<-RUBY
+      %i(action_controller action_mailer active_job active_record).each do |framework|
+        ActiveSupport.on_load(framework) { raise "\#{framework} loaded!" }
+      end
+    RUBY
+
+    assert_nothing_raised do
+      require "#{app_path}/config/environment"
+    end
+  end
+
+  private
 
     def setup_ar!
       ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")

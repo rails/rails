@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/invoice"
 require "models/line_item"
@@ -11,7 +13,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   def test_touch_laster_raise_if_non_persisted
     invoice = Invoice.new
     Invoice.transaction do
-      assert_not invoice.persisted?
+      assert_not_predicate invoice, :persisted?
       assert_raises(ActiveRecord::ActiveRecordError) do
         invoice.touch_later
       end
@@ -21,7 +23,7 @@ class TouchLaterTest < ActiveRecord::TestCase
   def test_touch_later_dont_set_dirty_attributes
     invoice = Invoice.create!
     invoice.touch_later
-    assert_not invoice.changed?
+    assert_not_predicate invoice, :changed?
   end
 
   def test_touch_later_respects_no_touching_policy

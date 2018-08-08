@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/try"
 
 module ActionView
@@ -44,7 +46,7 @@ module ActionView
 
       # Renders the given template. A string representing the layout can be
       # supplied as well.
-      def render_template(template, layout_name = nil, locals = nil) #:nodoc:
+      def render_template(template, layout_name = nil, locals = nil)
         view, locals = @view, locals || {}
 
         render_with_layout(layout_name, locals) do |layout|
@@ -54,7 +56,7 @@ module ActionView
         end
       end
 
-      def render_with_layout(path, locals) #:nodoc:
+      def render_with_layout(path, locals)
         layout  = path && find_layout(path, locals.keys, [formats.first])
         content = yield(layout)
 

@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
 
 module ActionController
   module Rendering
@@ -36,11 +36,11 @@ module ActionController
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a rack body.
+    # Overwrite render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = "".dup
         result.each { |r| string << r }
         string
       else
@@ -53,6 +53,12 @@ module ActionController
     end
 
     private
+
+      def _process_variant(options)
+        if defined?(request) && !request.nil? && request.variant.present?
+          options[:variant] = request.variant
+        end
+      end
 
       def _render_in_priorities(options)
         RENDER_FORMATS_IN_PRIORITY.each do |format|
@@ -73,14 +79,14 @@ module ActionController
       end
 
       # Normalize arguments by catching blocks and setting them on :update.
-      def _normalize_args(action = nil, options = {}, &blk) #:nodoc:
+      def _normalize_args(action = nil, options = {}, &blk)
         options = super
         options[:update] = blk if block_given?
         options
       end
 
       # Normalize both text and status options.
-      def _normalize_options(options) #:nodoc:
+      def _normalize_options(options)
         _normalize_text(options)
 
         if options[:html]
@@ -103,12 +109,12 @@ module ActionController
       end
 
       # Process controller specific options, as status, content-type and location.
-      def _process_options(options) #:nodoc:
+      def _process_options(options)
         status, content_type, location = options.values_at(:status, :content_type, :location)
 
         self.status = status if status
         self.content_type = content_type if content_type
-        self.headers["Location"] = url_for(location) if location
+        headers["Location"] = url_for(location) if location
 
         super
       end

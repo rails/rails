@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_job"
 
 module ActionMailer
@@ -26,13 +28,13 @@ module ActionMailer
     #
     #     assert_emails 2 do
     #       ContactMailer.welcome.deliver_now
-    #       ContactMailer.welcome.deliver_now
+    #       ContactMailer.welcome.deliver_later
     #     end
     #   end
-    def assert_emails(number)
+    def assert_emails(number, &block)
       if block_given?
         original_count = ActionMailer::Base.deliveries.size
-        yield
+        perform_enqueued_jobs(only: [ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob], &block)
         new_count = ActionMailer::Base.deliveries.size
         assert_equal number, new_count - original_count, "#{number} emails expected, but #{new_count - original_count} were sent"
       else
@@ -58,7 +60,7 @@ module ActionMailer
     #
     # Note: This assertion is simply a shortcut for:
     #
-    #   assert_emails 0
+    #   assert_emails 0, &block
     def assert_no_emails(&block)
       assert_emails 0, &block
     end
@@ -88,7 +90,49 @@ module ActionMailer
     #     end
     #   end
     def assert_enqueued_emails(number, &block)
-      assert_enqueued_jobs number, only: ActionMailer::DeliveryJob, &block
+      assert_enqueued_jobs number, only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
+    end
+
+    # Asserts that a specific email has been enqueued, optionally
+    # matching arguments.
+    #
+    #   def test_email
+    #     ContactMailer.welcome.deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome
+    #   end
+    #
+    #   def test_email_with_arguments
+    #     ContactMailer.welcome("Hello", "Goodbye").deliver_later
+    #     assert_enqueued_email_with ContactMailer, :welcome, args: ["Hello", "Goodbye"]
+    #   end
+    #
+    # If a block is passed, that block should cause the specified email
+    # to be enqueued.
+    #
+    #   def test_email_in_block
+    #     assert_enqueued_email_with ContactMailer, :welcome do
+    #       ContactMailer.welcome.deliver_later
+    #     end
+    #   end
+    #
+    # If +args+ is provided as a Hash, a parameterized email is matched.
+    #
+    #   def test_parameterized_email
+    #     assert_enqueued_email_with ContactMailer, :welcome,
+    #       args: {email: 'user@example.com'} do
+    #       ContactMailer.with(email: 'user@example.com').welcome.deliver_later
+    #     end
+    #   end
+    def assert_enqueued_email_with(mailer, method, args: nil, queue: "mailers", &block)
+      if args.is_a? Hash
+        job = ActionMailer::Parameterized::DeliveryJob
+        args = [mailer.to_s, method.to_s, "deliver_now", args]
+      else
+        job = ActionMailer::DeliveryJob
+        args = [mailer.to_s, method.to_s, "deliver_now", *args]
+      end
+
+      assert_enqueued_with(job: job, args: args, queue: queue, &block)
     end
 
     # Asserts that no emails are enqueued for later delivery.
@@ -107,7 +151,7 @@ module ActionMailer
     #     end
     #   end
     def assert_no_enqueued_emails(&block)
-      assert_no_enqueued_jobs only: ActionMailer::DeliveryJob, &block
+      assert_no_enqueued_jobs only: [ ActionMailer::DeliveryJob, ActionMailer::Parameterized::DeliveryJob ], &block
     end
   end
 end

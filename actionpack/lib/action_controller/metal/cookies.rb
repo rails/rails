@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController #:nodoc:
   module Cookies
     extend ActiveSupport::Concern

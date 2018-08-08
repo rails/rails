@@ -1,6 +1,11 @@
+# frozen_string_literal: true
+
 module ActiveRecord
+  # :stopdoc:
   module ConnectionAdapters
     class PostgreSQLTypeMetadata < DelegateClass(SqlTypeMetadata)
+      undef to_yaml if method_defined?(:to_yaml)
+
       attr_reader :oid, :fmod, :array
 
       def initialize(type_metadata, oid: nil, fmod: nil)

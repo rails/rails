@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -142,13 +144,13 @@ module ActiveRecord
                      "database" => "foo",
                      "host"     => "localhost" }
         assert_equal expected, actual["default_env"]
-        assert_equal nil,      actual["production"]
-        assert_equal nil,      actual["development"]
-        assert_equal nil,      actual["test"]
-        assert_equal nil,      actual[:default_env]
-        assert_equal nil,      actual[:production]
-        assert_equal nil,      actual[:development]
-        assert_equal nil,      actual[:test]
+        assert_nil actual["production"]
+        assert_nil actual["development"]
+        assert_nil actual["test"]
+        assert_nil actual[:default_env]
+        assert_nil actual[:production]
+        assert_nil actual[:development]
+        assert_nil actual[:test]
       end
 
       def test_blank_with_database_url_with_rails_env
@@ -162,15 +164,15 @@ module ActiveRecord
                      "host"     => "localhost" }
 
         assert_equal expected, actual["not_production"]
-        assert_equal nil,      actual["production"]
-        assert_equal nil,      actual["default_env"]
-        assert_equal nil,      actual["development"]
-        assert_equal nil,      actual["test"]
-        assert_equal nil,      actual[:default_env]
-        assert_equal nil,      actual[:not_production]
-        assert_equal nil,      actual[:production]
-        assert_equal nil,      actual[:development]
-        assert_equal nil,      actual[:test]
+        assert_nil actual["production"]
+        assert_nil actual["default_env"]
+        assert_nil actual["development"]
+        assert_nil actual["test"]
+        assert_nil actual[:default_env]
+        assert_nil actual[:not_production]
+        assert_nil actual[:production]
+        assert_nil actual[:development]
+        assert_nil actual[:test]
       end
 
       def test_blank_with_database_url_with_rack_env
@@ -184,15 +186,15 @@ module ActiveRecord
                      "host"     => "localhost" }
 
         assert_equal expected, actual["not_production"]
-        assert_equal nil,      actual["production"]
-        assert_equal nil,      actual["default_env"]
-        assert_equal nil,      actual["development"]
-        assert_equal nil,      actual["test"]
-        assert_equal nil,      actual[:default_env]
-        assert_equal nil,      actual[:not_production]
-        assert_equal nil,      actual[:production]
-        assert_equal nil,      actual[:development]
-        assert_equal nil,      actual[:test]
+        assert_nil actual["production"]
+        assert_nil actual["default_env"]
+        assert_nil actual["development"]
+        assert_nil actual["test"]
+        assert_nil actual[:default_env]
+        assert_nil actual[:not_production]
+        assert_nil actual[:production]
+        assert_nil actual[:development]
+        assert_nil actual[:test]
       end
 
       def test_database_url_with_ipv6_host_and_port

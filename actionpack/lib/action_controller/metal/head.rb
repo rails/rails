@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   module Head
     # Returns a response that has no content (merely headers). The options
@@ -36,8 +38,8 @@ module ActionController
       self.response_body = ""
 
       if include_content?(response_code)
-        self.content_type = content_type || (Mime[formats.first] if formats)
-        self.response.charset = false
+        self.content_type = content_type || (Mime[formats.first] if formats) || Mime[:html]
+        response.charset = false
       end
 
       true

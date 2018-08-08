@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_controller/collector"
 
 module ActionController #:nodoc:
@@ -181,8 +183,8 @@ module ActionController #:nodoc:
     #
     #   request.variant = [:tablet, :phone]
     #
-    # which will work similarly to formats and MIME types negotiation. If there will be no
-    # +:tablet+ variant declared, +:phone+ variant will be picked:
+    # This will work similarly to formats and MIME types negotiation. If there
+    # is no +:tablet+ variant declared, the +:phone+ variant will be used:
     #
     #   respond_to do |format|
     #     format.html.none
@@ -195,6 +197,9 @@ module ActionController #:nodoc:
       yield collector if block_given?
 
       if format = collector.negotiate_format(request)
+        if content_type && content_type != format
+          raise ActionController::RespondToMismatchError
+        end
         _process_format(format)
         _set_rendered_content_type format
         response = collector.response

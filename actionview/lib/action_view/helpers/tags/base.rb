@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionView
   module Helpers
     module Tags # :nodoc:
@@ -14,8 +16,16 @@ module ActionView
           @object_name.sub!(/\[\]$/, "") || @object_name.sub!(/\[\]\]$/, "]")
           @object = retrieve_object(options.delete(:object))
           @skip_default_ids = options.delete(:skip_default_ids)
+          @allow_method_names_outside_object = options.delete(:allow_method_names_outside_object)
           @options = options
-          @auto_index = Regexp.last_match ? retrieve_autoindex(Regexp.last_match.pre_match) : nil
+
+          if Regexp.last_match
+            @generate_indexed_names = true
+            @auto_index = retrieve_autoindex(Regexp.last_match.pre_match)
+          else
+            @generate_indexed_names = false
+            @auto_index = nil
+          end
         end
 
         # This is what child classes implement.
@@ -25,23 +35,27 @@ module ActionView
 
         private
 
-          def value(object)
-            object.public_send @method_name if object
+          def value
+            if @allow_method_names_outside_object
+              object.public_send @method_name if object && object.respond_to?(@method_name)
+            else
+              object.public_send @method_name if object
+            end
           end
 
-          def value_before_type_cast(object)
+          def value_before_type_cast
             unless object.nil?
               method_before_type_cast = @method_name + "_before_type_cast"
 
-              if value_came_from_user?(object) && object.respond_to?(method_before_type_cast)
+              if value_came_from_user? && object.respond_to?(method_before_type_cast)
                 object.public_send(method_before_type_cast)
               else
-                value(object)
+                value
               end
             end
           end
 
-          def value_came_from_user?(object)
+          def value_came_from_user?
             method_name = "#{@method_name}_came_from_user?"
             !object.respond_to?(method_name) || object.public_send(method_name)
           end
@@ -83,7 +97,7 @@ module ActionView
             index = name_and_id_index(options)
             options["name"] = options.fetch("name") { tag_name(options["multiple"], index) }
 
-            unless skip_default_ids?
+            if generate_ids?
               options["id"] = options.fetch("id") { tag_id(index) }
               if namespace = options.delete("namespace")
                 options["id"] = options["id"] ? "#{namespace}_#{options['id']}" : namespace
@@ -93,16 +107,22 @@ module ActionView
 
           def tag_name(multiple = false, index = nil)
             # a little duplication to construct less strings
-            if index
-              "#{@object_name}[#{index}][#{sanitized_method_name}]#{"[]" if multiple}"
+            case
+            when @object_name.empty?
+              "#{sanitized_method_name}#{multiple ? "[]" : ""}"
+            when index
+              "#{@object_name}[#{index}][#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             else
-              "#{@object_name}[#{sanitized_method_name}]#{"[]" if multiple}"
+              "#{@object_name}[#{sanitized_method_name}]#{multiple ? "[]" : ""}"
             end
           end
 
           def tag_id(index = nil)
             # a little duplication to construct less strings
-            if index
+            case
+            when @object_name.empty?
+              sanitized_method_name.dup
+            when index
               "#{sanitized_object_name}_#{index}_#{sanitized_method_name}"
             else
               "#{sanitized_object_name}_#{sanitized_method_name}"
@@ -118,7 +138,7 @@ module ActionView
           end
 
           def sanitized_value(value)
-            value.to_s.gsub(/\s/, "_").gsub(/[^-\w]/, "").downcase
+            value.to_s.gsub(/\s/, "_").gsub(/[^-[[:word:]]]/, "").mb_chars.downcase.to_s
           end
 
           def select_content_tag(option_tags, options, html_options)
@@ -130,7 +150,7 @@ module ActionView
               options[:include_blank] ||= true unless options[:prompt]
             end
 
-            value = options.fetch(:selected) { value(object) }
+            value = options.fetch(:selected) { value() }
             select = content_tag("select", add_options(option_tags, options, value), html_options)
 
             if html_options["multiple"] && options.fetch(:include_hidden, true)
@@ -150,17 +170,25 @@ module ActionView
               option_tags = tag_builder.content_tag_string("option", options[:include_blank].kind_of?(String) ? options[:include_blank] : nil, value: "") + "\n" + option_tags
             end
             if value.blank? && options[:prompt]
-              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), value: "") + "\n" + option_tags
+              tag_options = { value: "" }.tap do |prompt_opts|
+                prompt_opts[:disabled] = true if options[:disabled] == ""
+                prompt_opts[:selected] = true if options[:selected] == ""
+              end
+              option_tags = tag_builder.content_tag_string("option", prompt_text(options[:prompt]), tag_options) + "\n" + option_tags
             end
             option_tags
           end
 
           def name_and_id_index(options)
-            options.key?("index") ? options.delete("index") || "" : @auto_index
+            if options.key?("index")
+              options.delete("index") || ""
+            elsif @generate_indexed_names
+              @auto_index || ""
+            end
           end
 
-          def skip_default_ids?
-            @skip_default_ids
+          def generate_ids?
+            !@skip_default_ids
           end
       end
     end

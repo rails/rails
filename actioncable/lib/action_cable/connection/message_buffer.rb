@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionCable
   module Connection
     # Allows us to buffer messages received from the WebSocket before the Connection has been fully initialized, and is ready to receive them.
@@ -28,11 +30,10 @@ module ActionCable
         receive_buffered_messages
       end
 
-      protected
+      private
         attr_reader :connection
         attr_reader :buffered_messages
 
-      private
         def valid?(message)
           message.is_a?(String)
         end

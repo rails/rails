@@ -1,22 +1,30 @@
-*   Moved DecimalWithoutScale, Text, and UnsignedInteger from Active Model to Active Record
+*   Allows configurable attribute name for `#has_secure_password`. This
+    still defaults to an attribute named 'password', causing no breaking
+    change. There is a new method `#authenticate_XXX` where XXX is the
+    configured attribute name, making the existing `#authenticate` now an
+    alias for this when the attribute is the default 'password'.
+    Example:
 
-    *Iain Beeston*
+        class User < ActiveRecord::Base
+          has_secure_password :recovery_password, validations: false
+        end
 
-*   Allow indifferent access in `ActiveModel::Errors`.
+        user = User.new()
+        user.recovery_password = "42password"
+        user.recovery_password_digest # => "$2a$04$iOfhwahFymCs5weB3BNH/uX..."
+        user.authenticate_recovery_password('42password') # => user
 
-    `#include?`, `#has_key?`, `#key?`, `#delete` and `#full_messages_for`.
+     *Unathi Chonco*
 
-    *Kenichi Kamiya*
+*   Add `config.active_model.i18n_full_message` in order to control whether
+    the `full_message` error format can be overridden at the attribute or model
+    level in the locale files. This is `false` by default.
 
-*   Removed deprecated `:tokenizer` in the length validator.
+    *Martin Larochelle*
 
-    *Rafael Mendonça França*
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-*   Removed deprecated methods in `ActiveModel::Errors`.
-
-    `#get`, `#set`, `[]=`, `add_on_empty` and `add_on_blank`.
-
-    *Rafael Mendonça França*
+    *Jeremy Daer*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activemodel/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activemodel/CHANGELOG.md) for previous changes.

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/time/calculations"
 
 module ActionView
@@ -16,7 +18,7 @@ module ActionView
 
         class << self
           def select_type
-            @select_type ||= self.name.split("::").last.sub("Select", "").downcase
+            @select_type ||= name.split("::").last.sub("Select", "").downcase
           end
         end
 
@@ -27,7 +29,7 @@ module ActionView
           end
 
           def datetime_selector(options, html_options)
-            datetime = options.fetch(:selected) { value(object) || default_datetime(options) }
+            datetime = options.fetch(:selected) { value || default_datetime(options) }
             @auto_index ||= nil
 
             options = options.dup

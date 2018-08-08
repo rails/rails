@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "tmpdir"
 
 module ActionMailer
@@ -7,20 +9,13 @@ module ActionMailer
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :delivery_methods, :delivery_method
-
       # Do not make this inheritable, because we always want it to propagate
-      cattr_accessor :raise_delivery_errors
-      self.raise_delivery_errors = true
+      cattr_accessor :raise_delivery_errors, default: true
+      cattr_accessor :perform_deliveries, default: true
+      cattr_accessor :deliver_later_queue_name, default: :mailers
 
-      cattr_accessor :perform_deliveries
-      self.perform_deliveries = true
-
-      cattr_accessor :deliver_later_queue_name
-      self.deliver_later_queue_name = :mailers
-
-      self.delivery_methods = {}.freeze
-      self.delivery_method  = :smtp
+      class_attribute :delivery_methods, default: {}.freeze
+      class_attribute :delivery_method, default: :smtp
 
       add_delivery_method :smtp, Mail::SMTP,
         address:              "localhost",
@@ -59,7 +54,7 @@ module ActionMailer
       end
 
       def wrap_delivery_behavior(mail, method = nil, options = nil) # :nodoc:
-        method ||= self.delivery_method
+        method ||= delivery_method
         mail.delivery_handler = self
 
         case method

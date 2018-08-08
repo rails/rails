@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -120,7 +122,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -129,7 +131,7 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_hash_default_encoding
     assert_equal(1, email.attachments.length)
     assert_equal("invoice.jpg", email.attachments[0].filename)
-    expected = "\312\213\254\232)b"
+    expected = "\312\213\254\232)b".dup
     expected.force_encoding(Encoding::BINARY)
     assert_equal expected, email.attachments["invoice.jpg"].decoded
   end
@@ -138,6 +140,11 @@ class BaseTest < ActiveSupport::TestCase
     email = BaseMailer.attachment_with_content
     assert_equal(1, email.attachments.length)
     assert_equal("multipart/mixed", email.mime_type)
+  end
+
+  test "set mime type to text/html when attachment is included and body is set" do
+    email = BaseMailer.attachment_with_content(body: "Hello there", content_type: "text/html")
+    assert_equal("text/html", email.mime_type)
   end
 
   test "adds the rendered template as part" do
@@ -315,22 +322,21 @@ class BaseTest < ActiveSupport::TestCase
 
   test "implicit multipart with attachments creates nested parts" do
     email = BaseMailer.implicit_multipart(attachments: true)
-    assert_equal("application/pdf", email.parts[0].mime_type)
-    assert_equal("multipart/alternative", email.parts[1].mime_type)
-    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-    assert_equal("TEXT Implicit Multipart", email.parts[1].parts[0].body.encoded)
-    assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Implicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+    multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+    assert_equal("text/plain", multipart.parts[0].mime_type)
+    assert_equal("TEXT Implicit Multipart", multipart.parts[0].body.encoded)
+    assert_equal("text/html", multipart.parts[1].mime_type)
+    assert_equal("HTML Implicit Multipart", multipart.parts[1].body.encoded)
   end
 
   test "implicit multipart with attachments and sort order" do
     order = ["text/html", "text/plain"]
     with_default BaseMailer, parts_order: order do
       email = BaseMailer.implicit_multipart(attachments: true)
-      assert_equal("application/pdf", email.parts[0].mime_type)
-      assert_equal("multipart/alternative", email.parts[1].mime_type)
-      assert_equal("text/plain", email.parts[1].parts[1].mime_type)
-      assert_equal("text/html", email.parts[1].parts[0].mime_type)
+      assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+      multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+      assert_equal(%w[ text/html text/plain ], multipart.parts.map(&:mime_type).sort)
     end
   end
 
@@ -420,12 +426,12 @@ class BaseTest < ActiveSupport::TestCase
 
   test "explicit multipart with attachments creates nested parts" do
     email = BaseMailer.explicit_multipart(attachments: true)
-    assert_equal("application/pdf", email.parts[0].mime_type)
-    assert_equal("multipart/alternative", email.parts[1].mime_type)
-    assert_equal("text/plain", email.parts[1].parts[0].mime_type)
-    assert_equal("TEXT Explicit Multipart", email.parts[1].parts[0].body.encoded)
-    assert_equal("text/html", email.parts[1].parts[1].mime_type)
-    assert_equal("HTML Explicit Multipart", email.parts[1].parts[1].body.encoded)
+    assert_equal(%w[ application/pdf multipart/alternative ], email.parts.map(&:mime_type).sort)
+    multipart = email.parts.detect { |p| p.mime_type == "multipart/alternative" }
+    assert_equal("text/plain", multipart.parts[0].mime_type)
+    assert_equal("TEXT Explicit Multipart", multipart.parts[0].body.encoded)
+    assert_equal("text/html", multipart.parts[1].mime_type)
+    assert_equal("HTML Explicit Multipart", multipart.parts[1].body.encoded)
   end
 
   test "explicit multipart with templates" do
@@ -500,8 +506,8 @@ class BaseTest < ActiveSupport::TestCase
   test "should respond to action methods" do
     assert_respond_to BaseMailer, :welcome
     assert_respond_to BaseMailer, :implicit_multipart
-    assert !BaseMailer.respond_to?(:mail)
-    assert !BaseMailer.respond_to?(:headers)
+    assert_not_respond_to BaseMailer, :mail
+    assert_not_respond_to BaseMailer, :headers
   end
 
   test "calling just the action should return the generated mail object" do
@@ -571,7 +577,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = AssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://global.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "assets tags should use a Mailer's asset_host settings when available" do
@@ -585,7 +591,7 @@ class BaseTest < ActiveSupport::TestCase
 
     mail = TempAssetMailer.welcome
 
-    assert_dom_equal(%{<img alt="Dummy" src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
+    assert_dom_equal(%{<img src="http://local.com/images/dummy.png" />}, mail.body.to_s.strip)
   end
 
   test "the view is not rendered when mail was never called" do
@@ -612,37 +618,52 @@ class BaseTest < ActiveSupport::TestCase
     end
   end
 
-  test "you can register an observer to the mail object that gets informed on email delivery" do
+  test "you can register and unregister an observer to the mail object that gets informed on email delivery" do
     mail_side_effects do
       ActionMailer::Base.register_observer(MyObserver)
       mail = BaseMailer.welcome
       assert_called_with(MyObserver, :delivered_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_observer(MyObserver)
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register an observer using its stringified name to the mail object that gets informed on email delivery" do
+  test "you can register and unregister an observer using its stringified name to the mail object that gets informed on email delivery" do
     mail_side_effects do
       ActionMailer::Base.register_observer("BaseTest::MyObserver")
       mail = BaseMailer.welcome
       assert_called_with(MyObserver, :delivered_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_observer("BaseTest::MyObserver")
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register an observer using its symbolized underscored name to the mail object that gets informed on email delivery" do
+  test "you can register and unregister an observer using its symbolized underscored name to the mail object that gets informed on email delivery" do
     mail_side_effects do
       ActionMailer::Base.register_observer(:"base_test/my_observer")
       mail = BaseMailer.welcome
       assert_called_with(MyObserver, :delivered_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_observer(:"base_test/my_observer")
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register multiple observers to the mail object that both get informed on email delivery" do
+  test "you can register and unregister multiple observers to the mail object that both get informed on email delivery" do
     mail_side_effects do
       ActionMailer::Base.register_observers("BaseTest::MyObserver", MySecondObserver)
       mail = BaseMailer.welcome
@@ -650,6 +671,14 @@ class BaseTest < ActiveSupport::TestCase
         assert_called_with(MySecondObserver, :delivered_email, [mail]) do
           mail.deliver_now
         end
+      end
+
+      ActionMailer::Base.unregister_observers("BaseTest::MyObserver", MySecondObserver)
+      assert_not_called(MyObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
+      end
+      assert_not_called(MySecondObserver, :delivered_email, returns: mail) do
+        mail.deliver_now
       end
     end
   end
@@ -664,37 +693,52 @@ class BaseTest < ActiveSupport::TestCase
     def self.previewing_email(mail); end
   end
 
-  test "you can register an interceptor to the mail object that gets passed the mail object before delivery" do
+  test "you can register and unregister an interceptor to the mail object that gets passed the mail object before delivery" do
     mail_side_effects do
       ActionMailer::Base.register_interceptor(MyInterceptor)
       mail = BaseMailer.welcome
       assert_called_with(MyInterceptor, :delivering_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_interceptor(MyInterceptor)
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
+  test "you can register and unregister an interceptor using its stringified name to the mail object that gets passed the mail object before delivery" do
     mail_side_effects do
       ActionMailer::Base.register_interceptor("BaseTest::MyInterceptor")
       mail = BaseMailer.welcome
       assert_called_with(MyInterceptor, :delivering_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_interceptor("BaseTest::MyInterceptor")
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
+  test "you can register and unregister an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before delivery" do
     mail_side_effects do
       ActionMailer::Base.register_interceptor(:"base_test/my_interceptor")
       mail = BaseMailer.welcome
       assert_called_with(MyInterceptor, :delivering_email, [mail]) do
         mail.deliver_now
       end
+
+      ActionMailer::Base.unregister_interceptor(:"base_test/my_interceptor")
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
     end
   end
 
-  test "you can register multiple interceptors to the mail object that both get passed the mail object before delivery" do
+  test "you can register and unregister multiple interceptors to the mail object that both get passed the mail object before delivery" do
     mail_side_effects do
       ActionMailer::Base.register_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
       mail = BaseMailer.welcome
@@ -702,6 +746,14 @@ class BaseTest < ActiveSupport::TestCase
         assert_called_with(MySecondInterceptor, :delivering_email, [mail]) do
           mail.deliver_now
         end
+      end
+
+      ActionMailer::Base.unregister_interceptors("BaseTest::MyInterceptor", MySecondInterceptor)
+      assert_not_called(MyInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
+      end
+      assert_not_called(MySecondInterceptor, :delivering_email, returns: mail) do
+        mail.deliver_now
       end
     end
   end
@@ -717,6 +769,15 @@ class BaseTest < ActiveSupport::TestCase
 
   test "default values which have to_proc (e.g. symbols) should not be considered procs" do
     assert(ProcMailer.welcome["x-has-to-proc"].to_s == "symbol")
+  end
+
+  test "proc default values can have arity of 1 where arg is a mailer instance" do
+    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-arg"].to_s, "complex_value")
+    assert_equal(ProcMailer.welcome["X-Lambda-Arity-1-self"].to_s, "complex_value")
+  end
+
+  test "proc default values with fixed arity of 0 can be called" do
+    assert_equal("0", ProcMailer.welcome["X-Lambda-Arity-0"].to_s)
   end
 
   test "we can call other defined methods on the class as needed" do
@@ -829,7 +890,26 @@ class BaseTest < ActiveSupport::TestCase
     assert_equal "special indeed!", mail["X-Special-Header"].to_s
   end
 
-  protected
+  test "notification for process" do
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe("process.action_mailer") do |*args|
+        events << ActiveSupport::Notifications::Event.new(*args)
+      end
+
+      BaseMailer.welcome(body: "Hello there").deliver_now
+
+      assert_equal 1, events.length
+      assert_equal "process.action_mailer", events[0].name
+      assert_equal "BaseMailer", events[0].payload[:mailer]
+      assert_equal :welcome, events[0].payload[:action]
+      assert_equal [{ body: "Hello there" }], events[0].payload[:args]
+    ensure
+      ActiveSupport::Notifications.unsubscribe "process.action_mailer"
+    end
+  end
+
+  private
 
     # Execute the block setting the given values and restoring old values after
     # the block is executed.
@@ -854,8 +934,6 @@ class BaseTest < ActiveSupport::TestCase
       klass.default_params = old
     end
 
-    # A simple hack to restore the observers and interceptors for Mail, as it
-    # does not have an unregister API yet.
     def mail_side_effects
       old_observers = Mail.class_variable_get(:@@delivery_notification_observers)
       old_delivery_interceptors = Mail.class_variable_get(:@@delivery_interceptors)
@@ -894,7 +972,7 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
     def self.previewing_email(mail); end
   end
 
-  test "you can register a preview interceptor to the mail object that gets passed the mail object before previewing" do
+  test "you can register and unregister a preview interceptor to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(MyInterceptor)
     mail = BaseMailer.welcome
     stub_any_instance(BaseMailerPreview) do |instance|
@@ -904,9 +982,14 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    ActionMailer::Base.unregister_preview_interceptor(MyInterceptor)
+    assert_not_called(MyInterceptor, :previewing_email, returns: mail) do
+      BaseMailerPreview.call(:welcome)
+    end
   end
 
-  test "you can register a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
+  test "you can register and unregister a preview interceptor using its stringified name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
     mail = BaseMailer.welcome
     stub_any_instance(BaseMailerPreview) do |instance|
@@ -916,9 +999,14 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    ActionMailer::Base.unregister_preview_interceptor("BasePreviewInterceptorsTest::MyInterceptor")
+    assert_not_called(MyInterceptor, :previewing_email, returns: mail) do
+      BaseMailerPreview.call(:welcome)
+    end
   end
 
-  test "you can register an interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
+  test "you can register and unregister a preview interceptor using its symbolized underscored name to the mail object that gets passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
     mail = BaseMailer.welcome
     stub_any_instance(BaseMailerPreview) do |instance|
@@ -928,9 +1016,14 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    ActionMailer::Base.unregister_preview_interceptor(:"base_preview_interceptors_test/my_interceptor")
+    assert_not_called(MyInterceptor, :previewing_email, returns: mail) do
+      BaseMailerPreview.call(:welcome)
+    end
   end
 
-  test "you can register multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
+  test "you can register and unregister multiple preview interceptors to the mail object that both get passed the mail object before previewing" do
     ActionMailer::Base.register_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
     mail = BaseMailer.welcome
     stub_any_instance(BaseMailerPreview) do |instance|
@@ -942,5 +1035,28 @@ class BasePreviewInterceptorsTest < ActiveSupport::TestCase
         end
       end
     end
+
+    ActionMailer::Base.unregister_preview_interceptors("BasePreviewInterceptorsTest::MyInterceptor", MySecondInterceptor)
+    assert_not_called(MyInterceptor, :previewing_email, returns: mail) do
+      BaseMailerPreview.call(:welcome)
+    end
+    assert_not_called(MySecondInterceptor, :previewing_email, returns: mail) do
+      BaseMailerPreview.call(:welcome)
+    end
+  end
+end
+
+class BasePreviewTest < ActiveSupport::TestCase
+  class BaseMailerPreview < ActionMailer::Preview
+    def welcome
+      BaseMailer.welcome(params)
+    end
+  end
+
+  test "has access to params" do
+    params = { name: "World" }
+
+    message = BaseMailerPreview.call(:welcome, params)
+    assert_equal "World", message["name"].decoded
   end
 end

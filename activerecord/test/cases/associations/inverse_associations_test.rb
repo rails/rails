@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/man"
 require "models/face"
@@ -16,6 +18,8 @@ require "models/admin/user"
 require "models/developer"
 require "models/company"
 require "models/project"
+require "models/author"
+require "models/post"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -24,11 +28,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     monkey_reflection = MixedCaseMonkey.reflect_on_association(:man)
     man_reflection = Man.reflect_on_association(:mixed_case_monkey)
 
-    assert_respond_to monkey_reflection, :has_inverse?
     assert monkey_reflection.has_inverse?, "The monkey reflection should have an inverse"
     assert_equal man_reflection, monkey_reflection.inverse_of, "The monkey reflection's inverse should be the man reflection"
 
-    assert_respond_to man_reflection, :has_inverse?
     assert man_reflection.has_inverse?, "The man reflection should have an inverse"
     assert_equal monkey_reflection, man_reflection.inverse_of, "The man reflection's inverse should be the monkey reflection"
   end
@@ -37,7 +39,6 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     account_reflection = Admin::Account.reflect_on_association(:users)
     user_reflection = Admin::User.reflect_on_association(:account)
 
-    assert_respond_to account_reflection, :has_inverse?
     assert account_reflection.has_inverse?, "The Admin::Account reflection should have an inverse"
     assert_equal user_reflection, account_reflection.inverse_of, "The Admin::Account reflection's inverse should be the Admin::User reflection"
   end
@@ -46,11 +47,9 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     car_reflection = Car.reflect_on_association(:bulb)
     bulb_reflection = Bulb.reflect_on_association(:car)
 
-    assert_respond_to car_reflection, :has_inverse?
     assert car_reflection.has_inverse?, "The Car reflection should have an inverse"
     assert_equal bulb_reflection, car_reflection.inverse_of, "The Car reflection's inverse should be the Bulb reflection"
 
-    assert_respond_to bulb_reflection, :has_inverse?
     assert bulb_reflection.has_inverse?, "The Bulb reflection should have an inverse"
     assert_equal car_reflection, bulb_reflection.inverse_of, "The Bulb reflection's inverse should be the Car reflection"
   end
@@ -59,9 +58,22 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
     comment_reflection = Comment.reflect_on_association(:ratings)
     rating_reflection = Rating.reflect_on_association(:comment)
 
-    assert_respond_to comment_reflection, :has_inverse?
     assert comment_reflection.has_inverse?, "The Comment reflection should have an inverse"
     assert_equal rating_reflection, comment_reflection.inverse_of, "The Comment reflection's inverse should be the Rating reflection"
+  end
+
+  def test_has_many_and_belongs_to_should_find_inverse_automatically_for_sti
+    author_reflection = Author.reflect_on_association(:posts)
+    author_child_reflection = Author.reflect_on_association(:special_posts)
+    post_reflection = Post.reflect_on_association(:author)
+
+    assert_respond_to author_reflection, :has_inverse?
+    assert author_reflection.has_inverse?, "The Author reflection should have an inverse"
+    assert_equal post_reflection, author_reflection.inverse_of, "The Author reflection's inverse should be the Post reflection"
+
+    assert_respond_to author_child_reflection, :has_inverse?
+    assert author_child_reflection.has_inverse?, "The Author reflection should have an inverse"
+    assert_equal post_reflection, author_child_reflection.inverse_of, "The Author reflection's inverse should be the Post reflection"
   end
 
   def test_has_one_and_belongs_to_automatic_inverse_shares_objects
@@ -107,24 +119,17 @@ class AutomaticInverseFindingTests < ActiveRecord::TestCase
   def test_polymorphic_and_has_many_through_relationships_should_not_have_inverses
     sponsor_reflection = Sponsor.reflect_on_association(:sponsorable)
 
-    assert_respond_to sponsor_reflection, :has_inverse?
-    assert !sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
+    assert_not sponsor_reflection.has_inverse?, "A polymorphic association should not find an inverse automatically"
 
     club_reflection = Club.reflect_on_association(:members)
 
-    assert_respond_to club_reflection, :has_inverse?
-    assert !club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
+    assert_not club_reflection.has_inverse?, "A has_many_through association should not find an inverse automatically"
   end
 
-  def test_polymorphic_relationships_should_still_not_have_inverses_when_non_polymorphic_relationship_has_the_same_name
+  def test_polymorphic_has_one_should_find_inverse_automatically
     man_reflection = Man.reflect_on_association(:polymorphic_face_without_inverse)
-    face_reflection = Face.reflect_on_association(:man)
 
-    assert_respond_to face_reflection, :has_inverse?
-    assert face_reflection.has_inverse?, "For this test, the non-polymorphic association must have an inverse"
-
-    assert_respond_to man_reflection, :has_inverse?
-    assert !man_reflection.has_inverse?, "The target of a polymorphic association should not find an inverse automatically"
+    assert_predicate man_reflection, :has_inverse?
   end
 end
 
@@ -145,39 +150,22 @@ class InverseAssociationTests < ActiveRecord::TestCase
 
   def test_should_be_able_to_ask_a_reflection_if_it_has_an_inverse
     has_one_with_inverse_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_with_inverse_ref, :has_inverse?
-    assert has_one_with_inverse_ref.has_inverse?
+    assert_predicate has_one_with_inverse_ref, :has_inverse?
 
     has_many_with_inverse_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_with_inverse_ref, :has_inverse?
-    assert has_many_with_inverse_ref.has_inverse?
+    assert_predicate has_many_with_inverse_ref, :has_inverse?
 
     belongs_to_with_inverse_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_with_inverse_ref, :has_inverse?
-    assert belongs_to_with_inverse_ref.has_inverse?
+    assert_predicate belongs_to_with_inverse_ref, :has_inverse?
 
     has_one_without_inverse_ref = Club.reflect_on_association(:sponsor)
-    assert_respond_to has_one_without_inverse_ref, :has_inverse?
-    assert !has_one_without_inverse_ref.has_inverse?
+    assert_not_predicate has_one_without_inverse_ref, :has_inverse?
 
     has_many_without_inverse_ref = Club.reflect_on_association(:memberships)
-    assert_respond_to has_many_without_inverse_ref, :has_inverse?
-    assert !has_many_without_inverse_ref.has_inverse?
+    assert_not_predicate has_many_without_inverse_ref, :has_inverse?
 
     belongs_to_without_inverse_ref = Sponsor.reflect_on_association(:sponsor_club)
-    assert_respond_to belongs_to_without_inverse_ref, :has_inverse?
-    assert !belongs_to_without_inverse_ref.has_inverse?
-  end
-
-  def test_should_be_able_to_ask_a_reflection_what_it_is_the_inverse_of
-    has_one_ref = Man.reflect_on_association(:face)
-    assert_respond_to has_one_ref, :inverse_of
-
-    has_many_ref = Man.reflect_on_association(:interests)
-    assert_respond_to has_many_ref, :inverse_of
-
-    belongs_to_ref = Face.reflect_on_association(:man)
-    assert_respond_to belongs_to_ref, :inverse_of
+    assert_not_predicate belongs_to_without_inverse_ref, :has_inverse?
   end
 
   def test_inverse_of_method_should_supply_the_actual_reflection_instance_it_is_the_inverse_of
@@ -199,6 +187,16 @@ class InverseAssociationTests < ActiveRecord::TestCase
     assert_nil has_many_ref.inverse_of
 
     belongs_to_ref = Sponsor.reflect_on_association(:sponsor_club)
+    assert_nil belongs_to_ref.inverse_of
+  end
+
+  def test_polymorphic_associations_dont_attempt_to_find_inverse_of
+    belongs_to_ref = Sponsor.reflect_on_association(:sponsor)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
+    assert_nil belongs_to_ref.inverse_of
+
+    belongs_to_ref = Face.reflect_on_association(:human)
+    assert_raise(ArgumentError) { belongs_to_ref.klass }
     assert_nil belongs_to_ref.inverse_of
   end
 
@@ -295,7 +293,7 @@ class InverseHasOneTests < ActiveRecord::TestCase
 end
 
 class InverseHasManyTests < ActiveRecord::TestCase
-  fixtures :men, :interests
+  fixtures :men, :interests, :posts, :authors, :author_addresses
 
   def test_parent_instance_should_be_shared_with_every_child_on_find
     m = men(:gordon)
@@ -306,6 +304,27 @@ class InverseHasManyTests < ActiveRecord::TestCase
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to parent instance"
       i.man.name = "Mungo"
       assert_equal m.name, i.man.name, "Name of man should be the same after changes to child-owned instance"
+    end
+  end
+
+  def test_parent_instance_should_be_shared_with_every_child_on_find_for_sti
+    a = authors(:david)
+    ps = a.posts
+    ps.each do |p|
+      assert_equal a.name, p.author.name, "Name of man should be the same before changes to parent instance"
+      a.name = "Bongo"
+      assert_equal a.name, p.author.name, "Name of man should be the same after changes to parent instance"
+      p.author.name = "Mungo"
+      assert_equal a.name, p.author.name, "Name of man should be the same after changes to child-owned instance"
+    end
+
+    sps = a.special_posts
+    sps.each do |sp|
+      assert_equal a.name, sp.author.name, "Name of man should be the same before changes to parent instance"
+      a.name = "Bongo"
+      assert_equal a.name, sp.author.name, "Name of man should be the same after changes to parent instance"
+      sp.author.name = "Mungo"
+      assert_equal a.name, sp.author.name, "Name of man should be the same after changes to child-owned instance"
     end
   end
 
@@ -443,7 +462,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     assert man.equal?(man.interests.first.man), "Two inverses should lead back to the same object that was originally held"
     assert man.equal?(man.interests.find(interest.id).man), "Two inversions should lead back to the same object that was originally held"
 
-    assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
+    assert_nil man.interests.find(interest.id).man.name, "The name of the man should match before the name is changed"
     man.name = "Ben Bitdiddle"
     assert_equal man.name, man.interests.find(interest.id).man.name, "The name of the man should match after the parent name is changed"
     man.interests.find(interest.id).man.name = "Alyssa P. Hacker"
@@ -455,7 +474,7 @@ class InverseHasManyTests < ActiveRecord::TestCase
     interest = Interest.create!(man: man)
 
     man.interests.find(interest.id)
-    assert_not man.interests.loaded?
+    assert_not_predicate man.interests, :loaded?
   end
 
   def test_raise_record_not_found_error_when_invalid_ids_are_passed
@@ -475,7 +494,10 @@ class InverseHasManyTests < ActiveRecord::TestCase
   def test_raise_record_not_found_error_when_no_ids_are_passed
     man = Man.create!
 
-    assert_raise(ActiveRecord::RecordNotFound) { man.interests.find() }
+    exception = assert_raise(ActiveRecord::RecordNotFound) { man.interests.load.find() }
+
+    assert_equal exception.model, "Interest"
+    assert_equal exception.primary_key, "id"
   end
 
   def test_trying_to_use_inverses_that_dont_exist_should_raise_an_error
@@ -492,16 +514,16 @@ class InverseHasManyTests < ActiveRecord::TestCase
     i.man.name = "Charles"
     assert_equal i.man.name, man.name
 
-    assert !man.persisted?
+    assert_not_predicate man, :persisted?
   end
 
   def test_inverse_instance_should_be_set_before_find_callbacks_are_run
     reset_callbacks(Interest, :find) do
       Interest.after_find { raise unless association(:man).loaded? && man.present? }
 
-      assert Man.first.interests.reload.any?
-      assert Man.includes(:interests).first.interests.any?
-      assert Man.joins(:interests).includes(:interests).first.interests.any?
+      assert_predicate Man.first.interests.reload, :any?
+      assert_predicate Man.includes(:interests).first.interests, :any?
+      assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
 
@@ -509,9 +531,9 @@ class InverseHasManyTests < ActiveRecord::TestCase
     reset_callbacks(Interest, :initialize) do
       Interest.after_initialize { raise unless association(:man).loaded? && man.present? }
 
-      assert Man.first.interests.reload.any?
-      assert Man.includes(:interests).first.interests.any?
-      assert Man.joins(:interests).includes(:interests).first.interests.any?
+      assert_predicate Man.first.interests.reload, :any?
+      assert_predicate Man.includes(:interests).first.interests, :any?
+      assert_predicate Man.joins(:interests).includes(:interests).first.interests, :any?
     end
   end
 
@@ -651,20 +673,6 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
   end
 
-  def test_child_instance_should_be_shared_with_replaced_via_method_parent
-    face = faces(:confused)
-    new_man = Man.new
-
-    assert_not_nil face.polymorphic_man
-    face.polymorphic_man = new_man
-
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same before changes to parent instance"
-    face.description = "Bongo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to parent instance"
-    new_man.polymorphic_face.description = "Mungo"
-    assert_equal face.description, new_man.polymorphic_face.description, "Description of face should be the same after changes to replaced-parent-owned instance"
-  end
-
   def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed
     new_man = Man.new
     face = Face.new
@@ -672,6 +680,16 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
 
     old_inversed_man = face.man
     new_man.save!
+    new_inversed_man = face.man
+
+    assert_equal old_inversed_man.object_id, new_inversed_man.object_id
+  end
+
+  def test_inversed_instance_should_not_be_reloaded_after_stale_state_changed_with_validation
+    face = Face.new man: Man.new
+
+    old_inversed_man = face.man
+    face.save!
     new_inversed_man = face.man
 
     assert_equal old_inversed_man.object_id, new_inversed_man.object_id

@@ -1,45 +1,12 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_model"
-
-class ApplicationController < ActionController::Base
-  self.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
-end
-
-class Customer < Struct.new(:name, :id)
-  extend ActiveModel::Naming
-  include ActiveModel::Conversion
-
-  undef_method :to_json
-
-  def to_xml(options = {})
-    if options[:builder]
-      options[:builder].name name
-    else
-      "<name>#{name}</name>"
-    end
-  end
-
-  def to_js(options = {})
-    "name: #{name.inspect}"
-  end
-  alias :to_text :to_js
-
-  def errors
-    []
-  end
-
-  def persisted?
-    id.present?
-  end
-
-  def cache_key
-    name.to_s
-  end
-end
+require "controller/fake_models"
 
 module Quiz
-  #Models
-  class Question < Struct.new(:name, :id)
+  # Models
+  Question = Struct.new(:name, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -49,18 +16,15 @@ module Quiz
   end
 
   # Controller
-  class QuestionsController < ApplicationController
+  class QuestionsController < ActionController::Base
     def new
       render partial: Quiz::Question.new("Namespaced Partial")
     end
   end
 end
 
-class BadCustomer < Customer; end
-class GoodCustomer < Customer; end
-
 module Fun
-  class GamesController < ApplicationController
+  class GamesController < ActionController::Base
     def hello_world; end
 
     def nested_partial_with_form_builder
@@ -69,7 +33,7 @@ module Fun
   end
 end
 
-class TestController < ApplicationController
+class TestController < ActionController::Base
   protect_from_forgery
 
   before_action :set_variable_for_layout
@@ -90,7 +54,7 @@ class TestController < ApplicationController
   end
 
   def hello_world_file
-    render file: File.expand_path("../../../fixtures/actionpack/hello", __FILE__), formats: [:html]
+    render file: File.expand_path("../../fixtures/actionpack/hello", __dir__), formats: [:html]
   end
 
   # :ported:
@@ -159,7 +123,7 @@ class TestController < ApplicationController
   # :ported:
   def render_file_with_instance_variables
     @secret = "in the sauce"
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar")
+    path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
     render file: path
   end
 
@@ -176,21 +140,21 @@ class TestController < ApplicationController
 
   def render_file_using_pathname
     @secret = "in the sauce"
-    render file: Pathname.new(File.dirname(__FILE__)).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
+    render file: Pathname.new(__dir__).join("..", "..", "fixtures", "test", "dot.directory", "render_file_with_ivar")
   end
 
   def render_file_from_template
     @secret = "in the sauce"
-    @path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_ivar"))
+    @path = File.expand_path("../../fixtures/test/render_file_with_ivar", __dir__)
   end
 
   def render_file_with_locals
-    path = File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals")
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 
   def render_file_as_string_with_locals
-    path = File.expand_path(File.join(File.dirname(__FILE__), "../../fixtures/test/render_file_with_locals"))
+    path = File.expand_path("../../fixtures/test/render_file_with_locals", __dir__)
     render file: path, locals: { secret: "in the sauce" }
   end
 
@@ -521,6 +485,10 @@ class TestController < ApplicationController
     render partial: "customer", locals: { customer: Customer.new("david") }
   end
 
+  def partial_with_string_locals
+    render partial: "customer", locals: { "customer" => Customer.new("david") }
+  end
+
   def partial_with_form_builder
     render partial: ActionView::Helpers::FormBuilder.new(:post, nil, view_context, {})
   end
@@ -672,10 +640,15 @@ class RenderTest < ActionController::TestCase
     ActionView::Base.logger = ActiveSupport::Logger.new(nil)
 
     @request.host = "www.nextangle.com"
+
+    @old_view_paths = ActionController::Base.view_paths
+    ActionController::Base.view_paths = File.join(FIXTURE_LOAD_PATH, "actionpack")
   end
 
   def teardown
     ActionView::Base.logger = nil
+
+    ActionController::Base.view_paths = @old_view_paths
   end
 
   # :ported:
@@ -1198,6 +1171,11 @@ class RenderTest < ActionController::TestCase
 
   def test_partial_with_locals
     get :partial_with_locals
+    assert_equal "Hello: david", @response.body
+  end
+
+  def test_partial_with_string_locals
+    get :partial_with_string_locals
     assert_equal "Hello: david", @response.body
   end
 

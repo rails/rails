@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   # :stopdoc:
   module Type
@@ -21,11 +23,8 @@ module ActiveModel
         end
       end
 
-      protected
-
-        attr_reader :registrations
-
       private
+        attr_reader :registrations
 
         def registration_klass
           Registration
@@ -55,8 +54,7 @@ module ActiveModel
         type_name == name
       end
 
-      protected
-
+      private
         attr_reader :name, :block
     end
   end

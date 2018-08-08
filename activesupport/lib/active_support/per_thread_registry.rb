@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/delegation"
 
 module ActiveSupport
@@ -45,8 +47,8 @@ module ActiveSupport
       Thread.current[@per_thread_registry_key] ||= new
     end
 
-    protected
-      def method_missing(name, *args, &block) # :nodoc:
+    private
+      def method_missing(name, *args, &block)
         # Caches the method definition as a singleton method of the receiver.
         #
         # By letting #delegate handle it, we avoid an enclosure that'll capture args.

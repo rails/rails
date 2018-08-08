@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "pathname"
 require "active_support/core_ext/class"
 require "active_support/core_ext/module/attribute_accessors"
@@ -14,7 +16,7 @@ module ActionView
       alias_method :partial?, :partial
 
       def self.build(name, prefix, partial)
-        virtual = ""
+        virtual = "".dup
         virtual << "#{prefix}/" unless prefix.empty?
         virtual << (partial ? "_#{name}" : name)
         new name, prefix, partial, virtual
@@ -125,8 +127,7 @@ module ActionView
         end
     end
 
-    cattr_accessor :caching
-    self.caching = true
+    cattr_accessor :caching, default: true
 
     class << self
       alias :caching? :caching
@@ -164,8 +165,8 @@ module ActionView
     # This is what child classes implement. No defaults are needed
     # because Resolver guarantees that the arguments are present and
     # normalized.
-    def find_templates(name, prefix, partial, details)
-      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details) method"
+    def find_templates(name, prefix, partial, details, outside_app_allowed = false)
+      raise NotImplementedError, "Subclasses must implement a find_templates(name, prefix, partial, details, outside_app_allowed = false) method"
     end
 
     # Helpers that builds a path. Useful for building virtual paths.
@@ -177,7 +178,7 @@ module ActionView
     # always check the cache before hitting the resolver. Otherwise,
     # it always hits the resolver but if the key is present, check if the
     # resolver is fresher before returning it.
-    def cached(key, path_info, details, locals) #:nodoc:
+    def cached(key, path_info, details, locals)
       name, prefix, partial = path_info
       locals = locals.map(&:to_s).sort!
 
@@ -191,7 +192,7 @@ module ActionView
     end
 
     # Ensures all the resolver information is set in the template.
-    def decorate(templates, path_info, details, locals) #:nodoc:
+    def decorate(templates, path_info, details, locals)
       cached = nil
       templates.each do |t|
         t.locals         = locals
@@ -226,7 +227,7 @@ module ActionView
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
-          handler, format, variant = extract_handler_and_format_and_variant(template, formats)
+          handler, format, variant = extract_handler_and_format_and_variant(template)
           contents = File.binread(template)
 
           Template.new(contents, File.expand_path(template), handler,
@@ -289,7 +290,7 @@ module ActionView
       # Extract handler, formats and variant from path. If a format cannot be found neither
       # from the path, or the handler, we should return the array of formats given
       # to the resolver.
-      def extract_handler_and_format_and_variant(path, default_formats)
+      def extract_handler_and_format_and_variant(path)
         pieces = File.basename(path).split(".".freeze)
         pieces.shift
 
@@ -309,13 +310,13 @@ module ActionView
   # ==== Examples
   #
   # Default pattern, loads views the same way as previous versions of rails, eg. when you're
-  # looking for `users/new` it will produce query glob: `users/new{.{en},}{.{html,js},}{.{erb,haml},}`
+  # looking for <tt>users/new</tt> it will produce query glob: <tt>users/new{.{en},}{.{html,js},}{.{erb,haml},}</tt>
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #
   # This one allows you to keep files with different formats in separate subdirectories,
-  # eg. `users/new.html` will be loaded from `users/html/new.erb` or `users/new.html.erb`,
-  # `users/new.js` from `users/js/new.erb` or `users/new.js.erb`, etc.
+  # eg. <tt>users/new.html</tt> will be loaded from <tt>users/html/new.erb</tt> or <tt>users/new.html.erb</tt>,
+  # <tt>users/new.js</tt> from <tt>users/js/new.erb</tt> or <tt>users/new.js.erb</tt>, etc.
   #
   #   FileSystemResolver.new("/path/to/views", ":prefix/{:formats/,}:action{.:locale,}{.:formats,}{+:variants,}{.:handlers,}")
   #

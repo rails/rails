@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/resource_helpers"
 
 module Rails
@@ -20,7 +22,11 @@ module Rails
         template template_file, File.join("app/controllers", controller_class_path, "#{controller_file_name}_controller.rb")
       end
 
-      hook_for :template_engine, :test_framework, as: :scaffold
+      hook_for :template_engine, as: :scaffold do |template_engine|
+        invoke template_engine unless options.api?
+      end
+
+      hook_for :test_framework, as: :scaffold
 
       # Invoke the helper using the controller name (pluralized)
       hook_for :helper, as: :scaffold do |invoked|

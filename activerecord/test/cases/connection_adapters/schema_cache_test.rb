@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -20,8 +22,8 @@ module ActiveRecord
 
         new_cache = YAML.load(YAML.dump(@cache))
         assert_no_queries do
-          assert_equal 11, new_cache.columns("posts").size
-          assert_equal 11, new_cache.columns_hash("posts").size
+          assert_equal 12, new_cache.columns("posts").size
+          assert_equal 12, new_cache.columns_hash("posts").size
           assert new_cache.data_sources("posts")
           assert_equal "id", new_cache.primary_keys("posts")
         end
@@ -73,17 +75,20 @@ module ActiveRecord
         @cache = Marshal.load(Marshal.dump(@cache))
 
         assert_no_queries do
-          assert_equal 11, @cache.columns("posts").size
-          assert_equal 11, @cache.columns_hash("posts").size
+          assert_equal 12, @cache.columns("posts").size
+          assert_equal 12, @cache.columns_hash("posts").size
           assert @cache.data_sources("posts")
           assert_equal "id", @cache.primary_keys("posts")
         end
       end
 
-      def test_table_methods_deprecation
-        assert_deprecated { assert @cache.table_exists?("posts") }
-        assert_deprecated { assert @cache.tables("posts") }
-        assert_deprecated { @cache.clear_table_cache!("posts") }
+      def test_data_source_exist
+        assert @cache.data_source_exists?("posts")
+        assert_not @cache.data_source_exists?("foo")
+      end
+
+      def test_clear_data_source_cache
+        @cache.clear_data_source_cache!("posts")
       end
 
       private

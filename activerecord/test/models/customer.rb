@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 class Customer < ActiveRecord::Base
   cattr_accessor :gps_conversion_was_run
 
   composed_of :address, mapping: [ %w(address_street street), %w(address_city city), %w(address_country country) ], allow_nil: true
-  composed_of :balance, class_name: "Money", mapping: %w(balance amount), converter: Proc.new(&:to_money)
+  composed_of :balance, class_name: "Money", mapping: %w(balance amount)
   composed_of :gps_location, allow_nil: true
   composed_of :non_blank_gps_location, class_name: "GpsLocation", allow_nil: true, mapping: %w(gps_location gps_location),
               converter: lambda { |gps| self.gps_conversion_was_run = true; gps.blank? ? nil : GpsLocation.new(gps) }
@@ -56,7 +58,7 @@ class GpsLocation
   end
 
   def ==(other)
-    self.latitude == other.latitude && self.longitude == other.longitude
+    latitude == other.latitude && longitude == other.longitude
   end
 end
 

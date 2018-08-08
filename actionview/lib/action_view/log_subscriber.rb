@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/log_subscriber"
 
 module ActionView
@@ -14,7 +16,7 @@ module ActionView
 
     def render_template(event)
       info do
-        message = "  Rendered #{from_rails_root(event.payload[:identifier])}"
+        message = "  Rendered #{from_rails_root(event.payload[:identifier])}".dup
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
         message << " (#{event.duration.round(1)}ms)"
       end
@@ -22,10 +24,10 @@ module ActionView
 
     def render_partial(event)
       info do
-        message = "  Rendered #{from_rails_root(event.payload[:identifier])}"
+        message = "  Rendered #{from_rails_root(event.payload[:identifier])}".dup
         message << " within #{from_rails_root(event.payload[:layout])}" if event.payload[:layout]
         message << " (#{event.duration.round(1)}ms)"
-        message << " #{cache_message(event.payload)}" if event.payload.key?(:cache_hit)
+        message << " #{cache_message(event.payload)}" unless event.payload[:cache_hit].nil?
         message
       end
     end
@@ -51,20 +53,20 @@ module ActionView
       ActionView::Base.logger
     end
 
-  protected
+  private
 
     EMPTY = ""
-    def from_rails_root(string)
+    def from_rails_root(string) # :doc:
       string = string.sub(rails_root, EMPTY)
       string.sub!(VIEWS_PATTERN, EMPTY)
       string
     end
 
-    def rails_root
+    def rails_root # :doc:
       @root ||= "#{Rails.root}/"
     end
 
-    def render_count(payload)
+    def render_count(payload) # :doc:
       if payload[:cache_hits]
         "[#{payload[:cache_hits]} / #{payload[:count]} cache hits]"
       else
@@ -72,19 +74,18 @@ module ActionView
       end
     end
 
-    def cache_message(payload)
-      if payload[:cache_hit]
+    def cache_message(payload) # :doc:
+      case payload[:cache_hit]
+      when :hit
         "[cache hit]"
-      else
+      when :miss
         "[cache miss]"
       end
     end
 
-  private
-
     def log_rendering_start(payload)
       info do
-        message = "  Rendering #{from_rails_root(payload[:identifier])}"
+        message = "  Rendering #{from_rails_root(payload[:identifier])}".dup
         message << " within #{from_rails_root(payload[:layout])}" if payload[:layout]
         message
       end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "bundler/inline"
 rescue LoadError => e
@@ -7,17 +9,19 @@ end
 
 gemfile(true) do
   source "https://rubygems.org"
+
+  git_source(:github) { |repo| "https://github.com/#{repo}.git" }
+
   # Activate the gem you are reporting the issue against.
-  gem "rails", "5.0.0"
+  gem "rails", "5.2.0"
 end
 
 require "rack/test"
 require "action_controller/railtie"
 
 class TestApp < Rails::Application
-  config.root = File.dirname(__FILE__)
+  config.root = __dir__
   config.session_store :cookie_store, key: "cookie_store_key"
-  secrets.secret_token    = "secret_token"
   secrets.secret_key_base = "secret_key_base"
 
   config.logger = Logger.new($stdout)

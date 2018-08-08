@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord::Associations::Builder # :nodoc:
   class BelongsTo < SingularAssociation #:nodoc:
     def self.macro
@@ -5,7 +7,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
     end
 
     def self.valid_options(options)
-      super + [:polymorphic, :touch, :counter_cache, :optional]
+      super + [:polymorphic, :touch, :counter_cache, :optional, :default]
     end
 
     def self.valid_dependent_options
@@ -16,6 +18,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
       super
       add_counter_cache_callbacks(model, reflection) if reflection.options[:counter_cache]
       add_touch_callbacks(model, reflection)         if reflection.options[:touch]
+      add_default_callbacks(model, reflection)       if reflection.options[:default]
     end
 
     def self.define_accessors(mixin, reflection)
@@ -31,11 +34,9 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if (@_after_create_counter_called ||= false)
-            @_after_create_counter_called = false
-          elsif (@_after_replace_counter_called ||= false)
+          if (@_after_replace_counter_called ||= false)
             @_after_replace_counter_called = false
-          elsif saved_change_to_attribute?(foreign_key) && !new_record?
+          elsif association(reflection.name).target_changed?
             if reflection.polymorphic?
               model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
@@ -47,15 +48,21 @@ module ActiveRecord::Associations::Builder # :nodoc:
             foreign_key_was = attribute_before_last_save foreign_key
             foreign_key     = attribute_in_database foreign_key
 
-            if foreign_key && model.respond_to?(:increment_counter)
-              model.increment_counter(cache_column, foreign_key)
+            if foreign_key && model < ActiveRecord::Base
+              counter_cache_target(reflection, model, foreign_key).update_counters(cache_column => 1)
             end
 
-            if foreign_key_was && model_was.respond_to?(:decrement_counter)
-              model_was.decrement_counter(cache_column, foreign_key_was)
+            if foreign_key_was && model_was < ActiveRecord::Base
+              counter_cache_target(reflection, model_was, foreign_key_was).update_counters(cache_column => -1)
             end
           end
         end
+
+        private
+          def counter_cache_target(reflection, model, foreign_key)
+            primary_key = reflection.association_primary_key(model)
+            model.unscoped.where!(primary_key => foreign_key)
+          end
       end
     end
 
@@ -83,7 +90,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
         else
           klass = association.klass
         end
-        old_record = klass.find_by(klass.primary_key => old_foreign_id)
+        primary_key = reflection.association_primary_key(klass)
+        old_record = klass.find_by(primary_key => old_foreign_id)
 
         if old_record
           if touch != true
@@ -113,9 +121,19 @@ module ActiveRecord::Associations::Builder # :nodoc:
         BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
       }}
 
-      model.after_save    callback.(:saved_changes), if: :saved_changes?
-      model.after_touch   callback.(:changes_to_save)
-      model.after_destroy callback.(:changes_to_save)
+      unless reflection.counter_cache_column
+        model.after_create callback.(:saved_changes), if: :saved_changes?
+        model.after_destroy callback.(:changes_to_save)
+      end
+
+      model.after_update callback.(:saved_changes), if: :saved_changes?
+      model.after_touch callback.(:changes_to_save)
+    end
+
+    def self.add_default_callbacks(model, reflection)
+      model.before_validation lambda { |o|
+        o.association(reflection.name).default(&reflection.options[:default])
+      }
     end
 
     def self.add_destroy_callbacks(model, reflection)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/dependencies"
 
@@ -9,17 +11,17 @@ module ActiveSupport
       end
 
       def test_empty?
-        assert @cache.empty?
+        assert_empty @cache
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        assert_not_empty @cache
       end
 
       def test_clear!
-        assert @cache.empty?
+        assert_empty @cache
         @cache.store(ClassCacheTest)
-        assert !@cache.empty?
+        assert_not_empty @cache
         @cache.clear!
-        assert @cache.empty?
+        assert_empty @cache
       end
 
       def test_set_key
@@ -38,35 +40,35 @@ module ActiveSupport
       end
 
       def test_get_constantizes
-        assert @cache.empty?
+        assert_empty @cache
         assert_equal ClassCacheTest, @cache.get(ClassCacheTest.name)
       end
 
       def test_get_constantizes_fails_on_invalid_names
-        assert @cache.empty?
+        assert_empty @cache
         assert_raise NameError do
           @cache.get("OmgTotallyInvalidConstantName")
         end
       end
 
       def test_get_alias
-        assert @cache.empty?
+        assert_empty @cache
         assert_equal @cache[ClassCacheTest.name], @cache.get(ClassCacheTest.name)
       end
 
       def test_safe_get_constantizes
-        assert @cache.empty?
+        assert_empty @cache
         assert_equal ClassCacheTest, @cache.safe_get(ClassCacheTest.name)
       end
 
       def test_safe_get_constantizes_doesnt_fail_on_invalid_names
-        assert @cache.empty?
-        assert_equal nil, @cache.safe_get("OmgTotallyInvalidConstantName")
+        assert_empty @cache
+        assert_nil @cache.safe_get("OmgTotallyInvalidConstantName")
       end
 
       def test_new_rejects_strings
         @cache.store ClassCacheTest.name
-        assert !@cache.key?(ClassCacheTest.name)
+        assert_not @cache.key?(ClassCacheTest.name)
       end
 
       def test_store_returns_self

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "rails/engine"
 
@@ -50,7 +52,7 @@ module ActionView
     end
 
     test "retrieve non existing config values" do
-      assert_equal nil, ActionView::Base.new.config.something_odd
+      assert_nil ActionView::Base.new.config.something_odd
     end
 
     test "works without testing a helper module" do
@@ -190,7 +192,7 @@ module ActionView
     helper HelperThatInvokesProtectAgainstForgery
 
     test "protect_from_forgery? in any helpers returns false" do
-      assert !view.help_me
+      assert_not view.help_me
     end
   end
 
@@ -279,6 +281,14 @@ module ActionView
 
       @customers = [DeveloperStruct.new("Eloy"), DeveloperStruct.new("Manfred")]
       assert_match(/Hello: EloyHello: Manfred/, render(file: "test/list"))
+    end
+
+    test "is able to use helpers that depend on the view flow" do
+      assert_not content_for?(:foo)
+
+      content_for :foo, "bar"
+      assert content_for?(:foo)
+      assert_equal "bar", content_for(:foo)
     end
   end
 

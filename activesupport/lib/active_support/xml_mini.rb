@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "time"
 require "base64"
 require "bigdecimal"
@@ -46,10 +48,6 @@ module ActiveSupport
         "Array"      => "array",
         "Hash"       => "hash"
       }
-
-      # No need to map these on Ruby 2.4+
-      TYPE_NAMES["Fixnum"] = "integer" unless 0.class == Integer
-      TYPE_NAMES["Bignum"] = "integer" unless 0.class == Integer
     end
 
     FORMATTING = {
@@ -73,7 +71,7 @@ module ActiveSupport
             begin
               BigDecimal(number)
             rescue ArgumentError
-              BigDecimal('0')
+              BigDecimal("0")
             end
           else
             BigDecimal(number)
@@ -81,7 +79,7 @@ module ActiveSupport
         end,
         "boolean"      => Proc.new { |boolean| %w(1 true).include?(boolean.to_s.strip) },
         "string"       => Proc.new { |string|  string.to_s },
-        "yaml"         => Proc.new { |yaml|    YAML::load(yaml) rescue yaml },
+        "yaml"         => Proc.new { |yaml|    YAML.load(yaml) rescue yaml },
         "base64Binary" => Proc.new { |bin|     ::Base64.decode64(bin) },
         "binary"       => Proc.new { |bin, entity| _parse_binary(bin, entity) },
         "file"         => Proc.new { |file, entity| _parse_file(file, entity) }
@@ -159,7 +157,7 @@ module ActiveSupport
       key
     end
 
-    protected
+    private
 
       def _dasherize(key)
         # $2 must be a non-greedy regex for this to work
@@ -168,7 +166,7 @@ module ActiveSupport
       end
 
       # TODO: Add support for other encodings
-      def _parse_binary(bin, entity) #:nodoc:
+      def _parse_binary(bin, entity)
         case entity["encoding"]
         when "base64"
           ::Base64.decode64(bin)
@@ -184,8 +182,6 @@ module ActiveSupport
         f.content_type = entity["content_type"]
         f
       end
-
-    private
 
       def current_thread_backend
         Thread.current[:xml_mini_backend]

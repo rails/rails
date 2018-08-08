@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class MailerGenerator < NamedBase
-      source_root File.expand_path("../templates", __FILE__)
+      source_root File.expand_path("templates", __dir__)
 
       argument :actions, type: :array, default: [], banner: "method method"
 
@@ -11,7 +13,7 @@ module Rails
         template "mailer.rb", File.join("app/mailers", class_path, "#{file_name}_mailer.rb")
 
         in_root do
-          if self.behavior == :invoke && !File.exist?(application_mailer_file_name)
+          if behavior == :invoke && !File.exist?(application_mailer_file_name)
             template "application_mailer.rb", application_mailer_file_name
           end
         end
@@ -19,12 +21,11 @@ module Rails
 
       hook_for :template_engine, :test_framework
 
-      protected
-        def file_name
-          @_file_name ||= super.gsub(/_mailer/i, "")
+      private
+        def file_name # :doc:
+          @_file_name ||= super.sub(/_mailer\z/i, "")
         end
 
-      private
         def application_mailer_file_name
           @_application_mailer_file_name ||= if mountable_engine?
             "app/mailers/#{namespaced_path}/application_mailer.rb"

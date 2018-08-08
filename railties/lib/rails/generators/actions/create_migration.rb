@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "thor/actions"
 
@@ -37,9 +39,9 @@ module Rails
         end
         alias :exists? :existing_migration
 
-        protected
+        private
 
-          def on_conflict_behavior
+          def on_conflict_behavior # :doc:
             options = base.options.merge(config)
             if identical?
               say_status :identical, :blue, relative_existing_migration
@@ -54,13 +56,13 @@ module Rails
               say_status :skip, :yellow
             else
               say_status :conflict, :red
-              raise Error, "Another migration is already named #{migration_file_name}: " +
-                "#{existing_migration}. Use --force to replace this migration " +
+              raise Error, "Another migration is already named #{migration_file_name}: " \
+                "#{existing_migration}. Use --force to replace this migration " \
                 "or --skip to ignore conflicted file."
             end
           end
 
-          def say_status(status, color, message = relative_destination)
+          def say_status(status, color, message = relative_destination) # :doc:
             base.shell.say_status(status, message, color) if config[:verbose]
           end
       end

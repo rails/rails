@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
 
 module ActiveRecord
   module Tasks # :nodoc:
@@ -8,7 +8,7 @@ module ActiveRecord
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used with Rake tasks provided by Active Record.
+    # The tasks defined here are used with Rails commands provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
@@ -35,6 +35,16 @@ module ActiveRecord
     #
     #   DatabaseTasks.create_current('production')
     module DatabaseTasks
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool (mysqldump/pg_dump) when calling db:structure:dump
+      mattr_accessor :structure_dump_flags, instance_accessor: false
+
+      ##
+      # :singleton-method:
+      # Extra flags passed to database CLI tool when calling db:structure:load
+      mattr_accessor :structure_load_flags, instance_accessor: false
+
       extend self
 
       attr_writer :current_config, :db_dir, :migrations_paths, :fixtures_path, :root, :env, :seed_loader
@@ -44,10 +54,10 @@ module ActiveRecord
 
       def check_protected_environments!
         unless ENV["DISABLE_DATABASE_ENVIRONMENT_CHECK"]
-          current = ActiveRecord::Migrator.current_environment
-          stored  = ActiveRecord::Migrator.last_stored_environment
+          current = ActiveRecord::Base.connection.migration_context.current_environment
+          stored  = ActiveRecord::Base.connection.migration_context.last_stored_environment
 
-          if ActiveRecord::Migrator.protected_environment?
+          if ActiveRecord::Base.connection.migration_context.protected_environment?
             raise ActiveRecord::ProtectedEnvironmentError.new(stored)
           end
 
@@ -63,9 +73,9 @@ module ActiveRecord
         @tasks[pattern] = task
       end
 
-      register_task(/mysql/,        ActiveRecord::Tasks::MySQLDatabaseTasks)
-      register_task(/postgresql/,   ActiveRecord::Tasks::PostgreSQLDatabaseTasks)
-      register_task(/sqlite/,       ActiveRecord::Tasks::SQLiteDatabaseTasks)
+      register_task(/mysql/,        "ActiveRecord::Tasks::MySQLDatabaseTasks")
+      register_task(/postgresql/,   "ActiveRecord::Tasks::PostgreSQLDatabaseTasks")
+      register_task(/sqlite/,       "ActiveRecord::Tasks::SQLiteDatabaseTasks")
 
       def db_dir
         @db_dir ||= Rails.application.config.paths["db"].first
@@ -107,9 +117,9 @@ module ActiveRecord
       def create(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).create
-        $stdout.puts "Created database '#{configuration['database']}'"
+        $stdout.puts "Created database '#{configuration['database']}'" if verbose?
       rescue DatabaseAlreadyExists
-        $stderr.puts "Database '#{configuration['database']}' already exists"
+        $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
         $stderr.puts "Couldn't create database for #{configuration.inspect}"
@@ -124,6 +134,18 @@ module ActiveRecord
         end
       end
 
+      def for_each
+        databases = Rails.application.config.load_database_yaml
+        database_configs = ActiveRecord::DatabaseConfigurations.configs_for(Rails.env, databases)
+
+        # if this is a single database application we don't want tasks for each primary database
+        return if database_configs.count == 1
+
+        database_configs.each do |db_config|
+          yield db_config.spec_name
+        end
+      end
+
       def create_current(environment = env)
         each_current_configuration(environment) { |configuration|
           create configuration
@@ -134,7 +156,7 @@ module ActiveRecord
       def drop(*arguments)
         configuration = arguments.first
         class_for_adapter(configuration["adapter"]).new(*arguments).drop
-        $stdout.puts "Dropped database '#{configuration['database']}'"
+        $stdout.puts "Dropped database '#{configuration['database']}'" if verbose?
       rescue ActiveRecord::NoDatabaseError
         $stderr.puts "Database '#{configuration['database']}' does not exist"
       rescue Exception => error
@@ -154,16 +176,26 @@ module ActiveRecord
       end
 
       def migrate
-        verbose = ENV["VERBOSE"] ? ENV["VERBOSE"] == "true" : true
-        version = ENV["VERSION"] ? ENV["VERSION"].to_i : nil
-        scope   = ENV["SCOPE"]
-        verbose_was, Migration.verbose = Migration.verbose, verbose
-        Migrator.migrate(migrations_paths, version) do |migration|
+        check_target_version
+
+        scope = ENV["SCOPE"]
+        verbose_was, Migration.verbose = Migration.verbose, verbose?
+        Base.connection.migration_context.migrate(target_version) do |migration|
           scope.blank? || scope == migration.scope
         end
         ActiveRecord::Base.clear_cache!
       ensure
         Migration.verbose = verbose_was
+      end
+
+      def check_target_version
+        if target_version && !(Migration::MigrationFilenameRegexp.match?(ENV["VERSION"]) || /\A\d+\z/.match?(ENV["VERSION"]))
+          raise "Invalid format of target version: `VERSION=#{ENV['VERSION']}`"
+        end
+      end
+
+      def target_version
+        ENV["VERSION"].to_i if ENV["VERSION"] && !ENV["VERSION"].empty?
       end
 
       def charset_current(environment = env)
@@ -204,61 +236,70 @@ module ActiveRecord
       def structure_dump(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_dump(filename, structure_dump_flags)
       end
 
       def structure_load(*arguments)
         configuration = arguments.first
         filename = arguments.delete_at 1
-        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename)
+        class_for_adapter(configuration["adapter"]).new(*arguments).structure_load(filename, structure_load_flags)
       end
 
-      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil) # :nodoc:
-        file ||= schema_file(format)
+      def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
+        file ||= dump_filename(spec_name, format)
+
+        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
+        check_schema_file(file)
+        ActiveRecord::Base.establish_connection(configuration)
 
         case format
         when :ruby
-          check_schema_file(file)
-          ActiveRecord::Base.establish_connection(configuration)
           load(file)
         when :sql
-          check_schema_file(file)
           structure_load(configuration, file)
         else
           raise ArgumentError, "unknown format #{format.inspect}"
         end
         ActiveRecord::InternalMetadata.create_table
-        ActiveRecord::InternalMetadata[:environment] = ActiveRecord::Migrator.current_environment
-      end
-
-      def load_schema_for(*args)
-        ActiveSupport::Deprecation.warn(<<-MSG.squish)
-          This method was renamed to `#load_schema` and will be removed in the future.
-          Use `#load_schema` instead.
-        MSG
-        load_schema(*args)
+        ActiveRecord::InternalMetadata[:environment] = environment
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)
+        File.join(db_dir, schema_file_type(format))
+      end
+
+      def schema_file_type(format = ActiveRecord::Base.schema_format)
         case format
         when :ruby
-          File.join(db_dir, "schema.rb")
+          "schema.rb"
         when :sql
-          File.join(db_dir, "structure.sql")
+          "structure.sql"
         end
       end
 
+      def dump_filename(namespace, format = ActiveRecord::Base.schema_format)
+        filename = if namespace == "primary"
+          schema_file_type(format)
+        else
+          "#{namespace}_#{schema_file_type(format)}"
+        end
+
+        ENV["SCHEMA"] || File.join(ActiveRecord::Tasks::DatabaseTasks.db_dir, filename)
+      end
+
       def load_schema_current(format = ActiveRecord::Base.schema_format, file = nil, environment = env)
-        each_current_configuration(environment) { |configuration|
-          load_schema configuration, format, file
+        each_current_configuration(environment) { |configuration, spec_name, env|
+          load_schema(configuration, format, file, env, spec_name)
         }
         ActiveRecord::Base.establish_connection(environment.to_sym)
       end
 
       def check_schema_file(filename)
         unless File.exist?(filename)
-          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}
-          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails)
+          message = %{#{filename} doesn't exist yet. Run `rails db:migrate` to create it, then try again.}.dup
+          message << %{ If you do not intend to use a database, you should instead alter #{Rails.root}/config/application.rb to limit the frameworks that will be loaded.} if defined?(::Rails.root)
           Kernel.abort message
         end
       end
@@ -267,29 +308,43 @@ module ActiveRecord
         if seed_loader
           seed_loader.load_seed
         else
-          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " +
-                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" +
+          raise "You tried to load seed data, but no seed loader is specified. Please specify seed " \
+                "loader with ActiveRecord::Tasks::DatabaseTasks.seed_loader = your_seed_loader\n" \
                 "Seed loader should respond to load_seed method"
         end
       end
 
+      # Dumps the schema cache in YAML format for the connection into the file
+      #
+      # ==== Examples:
+      #   ActiveRecord::Tasks::DatabaseTasks.dump_schema_cache(ActiveRecord::Base.connection, "tmp/schema_dump.yaml")
+      def dump_schema_cache(conn, filename)
+        conn.schema_cache.clear!
+        conn.data_sources.each { |table| conn.schema_cache.add(table) }
+        open(filename, "wb") { |f| f.write(YAML.dump(conn.schema_cache)) }
+      end
+
       private
+        def verbose?
+          ENV["VERBOSE"] ? ENV["VERBOSE"] != "false" : true
+        end
 
         def class_for_adapter(adapter)
-          key = @tasks.keys.detect { |pattern| adapter[pattern] }
-          unless key
+          _key, task = @tasks.each_pair.detect { |pattern, _task| adapter[pattern] }
+          unless task
             raise DatabaseNotSupported, "Rake tasks not supported by '#{adapter}' adapter"
           end
-          @tasks[key]
+          task.is_a?(String) ? task.constantize : task
         end
 
         def each_current_configuration(environment)
           environments = [environment]
           environments << "test" if environment == "development"
 
-          configurations = ActiveRecord::Base.configurations.values_at(*environments)
-          configurations.compact.each do |configuration|
-            yield configuration unless configuration["database"].blank?
+          environments.each do |env|
+            ActiveRecord::DatabaseConfigurations.configs_for(env) do |spec_name, configuration|
+              yield configuration, spec_name, env
+            end
           end
         end
 

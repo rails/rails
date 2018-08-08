@@ -2,36 +2,22 @@
 <html id="html">
   <head>
     <title><%= @title %></title>
+    <%= csp_meta_tag %>
     <link href="/vendor/qunit.css" media="screen" rel="stylesheet" type="text/css" media="screen, projection" />
-    <style>
-      #jquery-cdn, #jquery-version {
-        padding: 0 2em .8em 0;
-        text-align: right;
-        font-family: sans-serif;
-        line-height: 1;
-        color: #8699A4;
-        background-color: #0d3349;
-      }
-      #jquery-cdn a, #jquery-version a {
-        color: white;
-        text-decoration: underline;
-      }
-    </style>
-
-    <%= script_tag jquery_src %>
-    <script>
+    <script src="/vendor/jquery-2.2.0.js" type="text/javascript"></script>
+    <%= javascript_tag nonce: true do %>
       // This is for test in override.js.
-      // Must go after jQuery is loaded, but before jquery-ujs.
-      $(document).bind('rails:attachBindings', function() {
-        $.rails.linkClickSelector += ', a[data-custom-remote-link]';
+      // Must go before rails-ujs.
+      document.addEventListener('rails:attachBindings', function() {
+        window.Rails.linkClickSelector += ', a[data-custom-remote-link]';
         // Hijacks link click before ujs binds any handlers
         // This is only used for ctrl-clicking test on remote links
-        $.rails.delegate(document, '#qunit-fixture a', 'click', function(e) {
+        window.Rails.delegate(document, '#qunit-fixture a', 'click', function(e) {
           e.preventDefault();
         });
       });
-    </script>
-    <%= script_tag "/rails-ujs.js" %>
+    <% end %>
+    <%= javascript_include_tag "/rails-ujs.js" %>
   </head>
 
   <body id="body">

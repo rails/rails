@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/erb"
 
 module Erb # :nodoc:
@@ -9,10 +11,10 @@ module Erb # :nodoc:
         view_base_path = File.join("app/views", class_path, file_name + "_mailer")
         empty_directory view_base_path
 
-        if self.behavior == :invoke
+        if behavior == :invoke
           formats.each do |format|
             layout_path = File.join("app/views/layouts", class_path, filename_with_extensions("mailer", format))
-            template filename_with_extensions(:layout, format), layout_path
+            template filename_with_extensions(:layout, format), layout_path unless File.exist?(layout_path)
           end
         end
 
@@ -26,14 +28,14 @@ module Erb # :nodoc:
         end
       end
 
-      protected
+      private
 
         def formats
           [:text, :html]
         end
 
         def file_name
-          @_file_name ||= super.gsub(/_mailer/i, "")
+          @_file_name ||= super.sub(/_mailer\z/i, "")
         end
     end
   end

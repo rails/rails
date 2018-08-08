@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails-dom-testing"
 
 module ActionDispatch
@@ -12,7 +14,7 @@ module ActionDispatch
     include Rails::Dom::Testing::Assertions
 
     def html_document
-      @html_document ||= if @response.content_type.to_s =~ /xml\z/
+      @html_document ||= if @response.content_type.to_s.end_with?("xml")
         Nokogiri::XML::Document.parse(@response.body)
       else
         Nokogiri::HTML::Document.parse(@response.body)

@@ -1,11 +1,11 @@
+# frozen_string_literal: true
+
 module ActionView
   module ViewPaths
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_view_paths
-      self._view_paths = ActionView::PathSet.new
-      self._view_paths.freeze
+      class_attribute :_view_paths, default: ActionView::PathSet.new.freeze
     end
 
     delegate :template_exists?, :any_templates?, :view_paths, :formats, :formats=,

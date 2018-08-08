@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/strip"
+# frozen_string_literal: true
 
 module ActiveModel
   module Validations
@@ -31,8 +31,8 @@ module ActiveModel
         keys.each do |key|
           value = options[key]
 
-          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY
-            raise ArgumentError, ":#{key} must be a nonnegative Integer or Infinity"
+          unless (value.is_a?(Integer) && value >= 0) || value == Float::INFINITY || value.is_a?(Symbol) || value.is_a?(Proc)
+            raise ArgumentError, ":#{key} must be a nonnegative Integer, Infinity, Symbol, or Proc"
           end
         end
       end
@@ -45,6 +45,12 @@ module ActiveModel
           next unless check_value = options[key]
 
           if !value.nil? || skip_nil_check?(key)
+            case check_value
+            when Proc
+              check_value = check_value.call(record)
+            when Symbol
+              check_value = record.send(check_value)
+            end
             next if value_length.send(validity_check, check_value)
           end
 
@@ -112,7 +118,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+ and +:strict+.
-      # See <tt>ActiveModel::Validation#validates</tt> for more information
+      # See <tt>ActiveModel::Validations#validates</tt> for more information
       def validates_length_of(*attr_names)
         validates_with LengthValidator, _merge_attributes(attr_names)
       end

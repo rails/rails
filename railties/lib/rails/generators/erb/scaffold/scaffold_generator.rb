@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/erb"
 require "rails/generators/resource_helpers"
 
@@ -21,7 +23,7 @@ module Erb # :nodoc:
         end
       end
 
-    protected
+    private
 
       def available_views
         %w(index edit show new _form)

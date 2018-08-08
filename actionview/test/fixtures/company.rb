@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Company < ActiveRecord::Base
   has_one :mascot
   self.sequence_name = :companies_nonstd_seq

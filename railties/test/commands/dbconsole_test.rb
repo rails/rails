@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "minitest/mock"
 require "rails/command"
@@ -98,44 +100,54 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
   end
 
   def test_rails_env_is_development_when_argument_is_dev
+    assert_deprecated do
+      stub_available_environments([ "development", "test" ]) do
+        assert_match("development", parse_arguments([ "dev" ])[:environment])
+      end
+    end
+  end
+
+  def test_rails_env_is_development_when_environment_option_is_dev
     stub_available_environments([ "development", "test" ]) do
-      assert_match("development", parse_arguments([ "dev" ])[:environment])
+      assert_match("development", parse_arguments([ "-e", "dev" ])[:environment])
     end
   end
 
   def test_rails_env_is_dev_when_argument_is_dev_and_dev_env_is_present
-    stub_available_environments([ "dev" ]) do
-      assert_match("dev", parse_arguments([ "dev" ])[:environment])
+    assert_deprecated do
+      stub_available_environments([ "dev" ]) do
+        assert_match("dev", parse_arguments([ "dev" ])[:environment])
+      end
     end
   end
 
   def test_mysql
     start(adapter: "mysql2", database: "db")
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_full
     start(adapter: "mysql2", database: "db", host: "locahost", port: 1234, socket: "socket", username: "user", password: "qwerty", encoding: "UTF-8")
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "--host=locahost", "--port=1234", "--socket=socket", "--user=user", "--default-character-set=UTF-8", "-p", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_mysql_include_password
     start({ adapter: "mysql2", database: "db", username: "user", password: "qwerty" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal [%w[mysql mysql5], "--user=user", "--password=qwerty", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql
     start(adapter: "postgresql", database: "db")
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_postgresql_full
     start(adapter: "postgresql", database: "db", username: "user", password: "q1w2e3", host: "host", port: 5432)
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
     assert_equal "host", ENV["PGHOST"]
@@ -145,7 +157,7 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_postgresql_include_password
     start({ adapter: "postgresql", database: "db", username: "user", password: "q1w2e3" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["psql", "db"], dbconsole.find_cmd_and_exec_args
     assert_equal "user", ENV["PGUSER"]
     assert_equal "q1w2e3", ENV["PGPASSWORD"]
@@ -153,13 +165,13 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_sqlite3
     start(adapter: "sqlite3", database: "db.sqlite3")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_mode
     start({ adapter: "sqlite3", database: "db.sqlite3" }, ["--mode", "html"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", "-html", Rails.root.join("db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
   end
 
@@ -170,28 +182,34 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
 
   def test_sqlite3_db_absolute_path
     start(adapter: "sqlite3", database: "/tmp/db.sqlite3")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlite3", "/tmp/db.sqlite3"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_sqlite3_db_without_defined_rails_root
     Rails.stub(:respond_to?, false) do
       start(adapter: "sqlite3", database: "config/db.sqlite3")
-      assert !aborted
+      assert_not aborted
       assert_equal ["sqlite3", Rails.root.join("../config/db.sqlite3").to_s], dbconsole.find_cmd_and_exec_args
     end
   end
 
   def test_oracle
     start(adapter: "oracle", database: "db", username: "user", password: "secret")
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlplus", "user@db"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_oracle_include_password
     start({ adapter: "oracle", database: "db", username: "user", password: "secret" }, ["-p"])
-    assert !aborted
+    assert_not aborted
     assert_equal ["sqlplus", "user/secret@db"], dbconsole.find_cmd_and_exec_args
+  end
+
+  def test_sqlserver
+    start(adapter: "sqlserver", database: "db", username: "user", password: "secret", host: "localhost", port: 1433)
+    assert_not aborted
+    assert_equal ["sqsh", "-D", "db", "-U", "user", "-P", "secret", "-S", "localhost:1433"], dbconsole.find_cmd_and_exec_args
   end
 
   def test_unknown_command_line_client
@@ -200,18 +218,61 @@ class Rails::DBConsoleTest < ActiveSupport::TestCase
     assert_match(/Unknown command-line client for db/, output)
   end
 
+  def test_primary_is_automatically_picked_with_3_level_configuration
+    sample_config = {
+      "test" => {
+        "primary" => {
+          "adapter" => "postgresql"
+        }
+      }
+    }
+
+    app_db_config(sample_config) do
+      assert_equal "postgresql", Rails::DBConsole.new.config["adapter"]
+    end
+  end
+
+  def test_specifying_a_custom_connection_and_environment
+    stub_available_environments(["development"]) do
+      dbconsole = parse_arguments(["-c", "custom", "-e", "development"])
+
+      assert_equal "development", dbconsole[:environment]
+      assert_equal "custom", dbconsole.connection
+    end
+  end
+
+  def test_specifying_a_missing_connection
+    app_db_config({}) do
+      e = assert_raises(ActiveRecord::AdapterNotSpecified) do
+        Rails::Command.invoke(:dbconsole, ["-c", "i_do_not_exist"])
+      end
+
+      assert_includes e.message, "'i_do_not_exist' connection is not configured."
+    end
+  end
+
+  def test_specifying_a_missing_environment
+    app_db_config({}) do
+      e = assert_raises(ActiveRecord::AdapterNotSpecified) do
+        Rails::Command.invoke(:dbconsole)
+      end
+
+      assert_includes e.message, "'test' database is not configured."
+    end
+  end
+
   def test_print_help_short
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["-h"])
     end
-    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[environment\]/, stdout)
   end
 
   def test_print_help_long
     stdout = capture(:stdout) do
       Rails::Command.invoke(:dbconsole, ["--help"])
     end
-    assert_match(/bin\/rails dbconsole \[environment\]/, stdout)
+    assert_match(/rails dbconsole \[environment\]/, stdout)
   end
 
   attr_reader :aborted, :output

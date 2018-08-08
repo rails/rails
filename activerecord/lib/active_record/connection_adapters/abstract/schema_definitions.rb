@@ -1,31 +1,77 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters #:nodoc:
     # Abstract representation of an index definition on a table. Instances of
     # this type are typically created and returned by methods in database
-    # adapters. e.g. ActiveRecord::ConnectionAdapters::AbstractMysqlAdapter#indexes
-    class IndexDefinition < Struct.new(:table, :name, :unique, :columns, :lengths, :orders, :where, :type, :using, :comment) #:nodoc:
+    # adapters. e.g. ActiveRecord::ConnectionAdapters::MySQL::SchemaStatements#indexes
+    class IndexDefinition # :nodoc:
+      attr_reader :table, :name, :unique, :columns, :lengths, :orders, :opclasses, :where, :type, :using, :comment
+
+      def initialize(
+        table, name,
+        unique = false,
+        columns = [],
+        lengths: {},
+        orders: {},
+        opclasses: {},
+        where: nil,
+        type: nil,
+        using: nil,
+        comment: nil
+      )
+        @table = table
+        @name = name
+        @unique = unique
+        @columns = columns
+        @lengths = concise_options(lengths)
+        @orders = concise_options(orders)
+        @opclasses = concise_options(opclasses)
+        @where = where
+        @type = type
+        @using = using
+        @comment = comment
+      end
+
+      private
+        def concise_options(options)
+          if columns.size == options.size && options.values.uniq.size == 1
+            options.values.first
+          else
+            options
+          end
+        end
     end
 
     # Abstract representation of a column definition. Instances of this type
     # are typically created by methods in TableDefinition, and added to the
     # +columns+ attribute of said TableDefinition object, in order to be used
     # for generating a number of table creation or table changing SQL statements.
-    class ColumnDefinition < Struct.new(:name, :type, :limit, :precision, :scale, :default, :null, :first, :after, :auto_increment, :primary_key, :collation, :sql_type, :comment) #:nodoc:
+    ColumnDefinition = Struct.new(:name, :type, :options, :sql_type) do # :nodoc:
       def primary_key?
-        primary_key || type.to_sym == :primary_key
+        options[:primary_key]
+      end
+
+      [:limit, :precision, :scale, :default, :null, :collation, :comment].each do |option_name|
+        module_eval <<-CODE, __FILE__, __LINE__ + 1
+          def #{option_name}
+            options[:#{option_name}]
+          end
+
+          def #{option_name}=(value)
+            options[:#{option_name}] = value
+          end
+        CODE
       end
     end
 
-    class AddColumnDefinition < Struct.new(:column) # :nodoc:
-    end
+    AddColumnDefinition = Struct.new(:column) # :nodoc:
 
-    class ChangeColumnDefinition < Struct.new(:column, :name) #:nodoc:
-    end
+    ChangeColumnDefinition = Struct.new(:column, :name) #:nodoc:
 
-    class PrimaryKeyDefinition < Struct.new(:name) # :nodoc:
-    end
+    PrimaryKeyDefinition = Struct.new(:name) # :nodoc:
 
-    class ForeignKeyDefinition < Struct.new(:from_table, :to_table, :options) #:nodoc:
+    ForeignKeyDefinition = Struct.new(:from_table, :to_table, :options) do #:nodoc:
       def name
         options[:name]
       end
@@ -48,6 +94,15 @@ module ActiveRecord
 
       def custom_primary_key?
         options[:primary_key] != default_primary_key
+      end
+
+      def validate?
+        options.fetch(:validate, true)
+      end
+      alias validated? validate?
+
+      def export_name_on_schema_dump?
+        name !~ ActiveRecord::SchemaDumper.fk_ignore_pattern
       end
 
       def defined_for?(to_table_ord = nil, to_table: nil, **options)
@@ -100,22 +155,15 @@ module ActiveRecord
         end
       end
 
-      protected
-
+      private
         attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
 
-      private
-
-        def as_options(value, default = {})
-          if value.is_a?(Hash)
-            value
-          else
-            default
-          end
+        def as_options(value)
+          value.is_a?(Hash) ? value : {}
         end
 
         def polymorphic_options
-          as_options(polymorphic, options)
+          as_options(polymorphic).merge(options.slice(:null, :first, :after))
         end
 
         def index_options
@@ -171,10 +219,12 @@ module ActiveRecord
         :decimal,
         :float,
         :integer,
+        :json,
         :string,
         :text,
         :time,
         :timestamp,
+        :virtual,
       ].each do |column_type|
         module_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{column_type}(*args, **options)
@@ -306,8 +356,12 @@ module ActiveRecord
         type = type.to_sym if type
         options = options.dup
 
-        if @columns_hash[name] && @columns_hash[name].primary_key?
-          raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+        if @columns_hash[name]
+          if @columns_hash[name].primary_key?
+            raise ArgumentError, "you can't redefine the primary key column '#{name}'. To define a custom primary key, pass { id: false } to create_table."
+          else
+            raise ArgumentError, "you can't define an already defined column '#{name}'."
+          end
         end
 
         index_options = options.delete(:index)
@@ -355,37 +409,37 @@ module ActiveRecord
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
-        args.each do |col|
-          ReferenceDefinition.new(col, **options).add_to(self)
+        args.each do |ref_name|
+          ReferenceDefinition.new(ref_name, options).add_to(self)
         end
       end
       alias :belongs_to :references
 
-      def new_column_definition(name, type, options) # :nodoc:
+      def new_column_definition(name, type, **options) # :nodoc:
+        if integer_like_primary_key?(type, options)
+          type = integer_like_primary_key_type(type, options)
+        end
         type = aliased_types(type.to_s, type)
-        column = create_column_definition name, type
-
-        column.limit       = options[:limit]
-        column.precision   = options[:precision]
-        column.scale       = options[:scale]
-        column.default     = options[:default]
-        column.null        = options[:null]
-        column.first       = options[:first]
-        column.after       = options[:after]
-        column.auto_increment = options[:auto_increment]
-        column.primary_key = type == :primary_key || options[:primary_key]
-        column.collation   = options[:collation]
-        column.comment     = options[:comment]
-        column
+        options[:primary_key] ||= type == :primary_key
+        options[:null] = false if options[:primary_key]
+        create_column_definition(name, type, options)
       end
 
       private
-        def create_column_definition(name, type)
-          ColumnDefinition.new name, type
+        def create_column_definition(name, type, options)
+          ColumnDefinition.new(name, type, options)
         end
 
         def aliased_types(name, fallback)
           "timestamp" == name ? :datetime : fallback
+        end
+
+        def integer_like_primary_key?(type, options)
+          options[:primary_key] && [:integer, :bigint].include?(type) && !options.key?(:default)
+        end
+
+        def integer_like_primary_key_type(type, options)
+          type
         end
     end
 
@@ -447,6 +501,9 @@ module ActiveRecord
     #     t.date
     #     t.binary
     #     t.boolean
+    #     t.foreign_key
+    #     t.json
+    #     t.virtual
     #     t.remove
     #     t.remove_references
     #     t.remove_belongs_to
@@ -589,8 +646,7 @@ module ActiveRecord
       #  t.belongs_to(:supplier, foreign_key: true)
       #
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
-      def references(*args)
-        options = args.extract_options!
+      def references(*args, **options)
         args.each do |ref_name|
           @base.add_reference(name, ref_name, options)
         end
@@ -603,8 +659,7 @@ module ActiveRecord
       #  t.remove_belongs_to(:supplier, polymorphic: true)
       #
       # See {connection.remove_reference}[rdoc-ref:SchemaStatements#remove_reference]
-      def remove_references(*args)
-        options = args.extract_options!
+      def remove_references(*args, **options)
         args.each do |ref_name|
           @base.remove_reference(name, ref_name, options)
         end
@@ -613,19 +668,19 @@ module ActiveRecord
 
       # Adds a foreign key.
       #
-      # t.foreign_key(:authors)
+      #  t.foreign_key(:authors)
       #
       # See {connection.add_foreign_key}[rdoc-ref:SchemaStatements#add_foreign_key]
-      def foreign_key(*args) # :nodoc:
+      def foreign_key(*args)
         @base.add_foreign_key(name, *args)
       end
 
       # Checks to see if a foreign key exists.
       #
-      # t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
+      #  t.foreign_key(:authors) unless t.foreign_key_exists?(:authors)
       #
       # See {connection.foreign_key_exists?}[rdoc-ref:SchemaStatements#foreign_key_exists?]
-      def foreign_key_exists?(*args) # :nodoc:
+      def foreign_key_exists?(*args)
         @base.foreign_key_exists?(name, *args)
       end
     end

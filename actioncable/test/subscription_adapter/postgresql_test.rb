@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require "test_helper"
-require_relative "./common"
+require_relative "common"
 
 require "active_record"
 
@@ -12,7 +14,7 @@ class PostgresqlAdapterTest < ActionCable::TestCase
     if Dir.exist?(ar_tests)
       require File.join(ar_tests, "config")
       require File.join(ar_tests, "support/config")
-      local_config = ARTest.config["arunit"]
+      local_config = ARTest.config["connections"]["postgresql"]["arunit"]
       database_config.update local_config if local_config
     end
 
@@ -36,5 +38,28 @@ class PostgresqlAdapterTest < ActionCable::TestCase
 
   def cable_config
     { adapter: "postgresql" }
+  end
+
+  def test_clear_active_record_connections_adapter_still_works
+    server = ActionCable::Server::Base.new
+    server.config.cable = cable_config.with_indifferent_access
+    server.config.logger = Logger.new(StringIO.new).tap { |l| l.level = Logger::UNKNOWN }
+
+    adapter_klass = Class.new(server.config.pubsub_adapter) do
+      def active?
+        !@listener.nil?
+      end
+    end
+
+    adapter = adapter_klass.new(server)
+
+    subscribe_as_queue("channel", adapter) do |queue|
+      adapter.broadcast("channel", "hello world")
+      assert_equal "hello world", queue.pop
+    end
+
+    ActiveRecord::Base.clear_reloadable_connections!
+
+    assert adapter.active?
   end
 end

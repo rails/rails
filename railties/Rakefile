@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rake/testtask"
 
 task default: :test
@@ -9,27 +11,71 @@ task test: "test:isolated"
 
 namespace :test do
   task :isolated do
+    dash_i = [
+      "test",
+      "lib",
+      "../activesupport/lib",
+      "../actionpack/lib",
+      "../actionview/lib",
+      "../activemodel/lib"
+    ].map { |dir| File.expand_path(dir, __dir__) }
+
+    dash_i.reverse_each do |x|
+      $:.unshift(x) unless $:.include?(x)
+    end
+    $-w = true
+
+    require "bundler/setup" unless defined?(Bundler)
+    require "active_support"
+
+    failing_files = []
+
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
+    test_options = ENV["TESTOPTS"].to_s.split(/[\s]+/)
+
     test_files = dirs.map { |dir| "test/#{dir}/*_test.rb" }
     Dir[*test_files].each do |file|
-      next true if file.include?("fixtures")
-      dash_i = [
-        "test",
-        "lib",
-        "#{File.dirname(__FILE__)}/../activesupport/lib",
-        "#{File.dirname(__FILE__)}/../actionpack/lib",
-        "#{File.dirname(__FILE__)}/../actionview/lib",
-        "#{File.dirname(__FILE__)}/../activemodel/lib"
-      ]
-      ruby "-w", "-I#{dash_i.join ':'}", file
+      next true if file.start_with?("test/fixtures/")
+
+      fake_command = Shellwords.join([
+        FileUtils::RUBY,
+        "-w",
+        *dash_i.map { |dir| "-I#{Pathname.new(dir).relative_path_from(Pathname.pwd)}" },
+        file,
+      ])
+      puts fake_command
+
+      # We could run these in parallel, but pretty much all of the
+      # railties tests already run in parallel, so ¯\_(⊙︿⊙)_/¯
+      Process.waitpid fork {
+        ARGV.clear.concat test_options
+        Rake.application = nil
+
+        load file
+      }
+
+      unless $?.success?
+        failing_files << file
+      end
+    end
+
+    unless failing_files.empty?
+      puts
+      puts "Failed in:"
+      failing_files.each do |file|
+        puts "  #{file}"
+      end
+      puts
+
+      raise "Failure in isolated test runner"
     end
   end
 end
 
 Rake::TestTask.new("test:regular") do |t|
-  t.libs << "test" << "#{File.dirname(__FILE__)}/../activesupport/lib"
+  t.libs << "test" << "#{__dir__}/../activesupport/lib"
   t.pattern = "test/**/*_test.rb"
-  t.warning = false
+  t.warning = true
   t.verbose = true
   t.ruby_opts = ["--dev"] if defined?(JRUBY_VERSION)
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/lesson"
 require "models/student"
@@ -13,7 +15,7 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
         sicp.destroy
       end
     end
-    assert !sicp.destroyed?
+    assert_not_predicate sicp, :destroyed?
   end
 
   test "should not raise error if have foreign key in the join table" do
@@ -40,7 +42,7 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
       ben.lessons << sicp
       ben.save!
       ben.destroy
-      assert !ben.reload.lessons.empty?
+      assert_not_empty ben.reload.lessons
     ensure
       # get rid of it so Student is still like it was
       Student.reset_callbacks(:destroy)
@@ -56,6 +58,6 @@ class HabtmDestroyOrderTest < ActiveRecord::TestCase
     assert_raises LessonError do
       sicp.destroy
     end
-    assert !sicp.reload.students.empty?
+    assert_not_empty sicp.reload.students
   end
 end

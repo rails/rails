@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "config"
 
 require "stringio"
@@ -6,7 +8,6 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
-require "active_support/core_ext/string/strip"
 
 require "support/config"
 require "support/connection"
@@ -26,9 +27,6 @@ ARTest.connect
 
 # Quote "type" if it's a reserved word for the current connection.
 QUOTED_TYPE = ActiveRecord::Base.connection.quote_column_name("type")
-
-# FIXME: Remove this when the deprecation cycle on TZ aware types by default ends.
-ActiveRecord::Base.time_zone_aware_types << :time
 
 def current_adapter?(*types)
   types.any? do |type|
@@ -145,6 +143,8 @@ def load_schema
   if File.exist?(adapter_specific_schema_file)
     load adapter_specific_schema_file
   end
+
+  ActiveRecord::FixtureSet.reset_cache
 ensure
   $stdout = original_stdout
 end
@@ -184,4 +184,4 @@ module InTimeZone
     end
 end
 
-require "mocha/setup" # FIXME: stop using mocha
+require "mocha/minitest" # FIXME: stop using mocha

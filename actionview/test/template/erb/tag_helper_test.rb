@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "template/erb/helper"
 
@@ -18,8 +20,8 @@ module ERBTest
     end
 
     test "percent equals works with form tags" do
-      expected_output = %r{<form.*action="foo".*method="post">.*hello*</form>}
-      assert_match expected_output, render_content("form_tag('foo')", "<%= 'hello' %>")
+      expected_output = %r{<form.*action="/foo".*method="post">.*hello*</form>}
+      assert_match expected_output, render_content("form_tag('/foo')", "<%= 'hello' %>")
     end
 
     test "percent equals works with fieldset tags" do

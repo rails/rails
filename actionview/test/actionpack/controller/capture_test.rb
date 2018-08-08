@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/logger"
 
 class CaptureController < ActionController::Base
-  self.view_paths = [ File.dirname(__FILE__) + "/../../fixtures/actionpack" ]
+  self.view_paths = [ File.expand_path("../../fixtures/actionpack", __dir__) ]
 
   def self.controller_name; "test"; end
   def self.controller_path; "test"; end

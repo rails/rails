@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/person"
@@ -15,16 +17,16 @@ class AbsenceValidationTest < ActiveModel::TestCase
     t = Topic.new
     t.title = "foo"
     t.content = "bar"
-    assert t.invalid?
+    assert_predicate t, :invalid?
     assert_equal ["must be blank"], t.errors[:title]
     assert_equal ["must be blank"], t.errors[:content]
     t.title = ""
     t.content = "something"
-    assert t.invalid?
+    assert_predicate t, :invalid?
     assert_equal ["must be blank"], t.errors[:content]
     assert_equal [], t.errors[:title]
     t.content = ""
-    assert t.valid?
+    assert_predicate t, :valid?
   end
 
   def test_validates_absence_of_with_array_arguments
@@ -32,7 +34,7 @@ class AbsenceValidationTest < ActiveModel::TestCase
     t = Topic.new
     t.title = "foo"
     t.content = "bar"
-    assert t.invalid?
+    assert_predicate t, :invalid?
     assert_equal ["must be blank"], t.errors[:title]
     assert_equal ["must be blank"], t.errors[:content]
   end
@@ -41,7 +43,7 @@ class AbsenceValidationTest < ActiveModel::TestCase
     Person.validates_absence_of :karma, message: "This string contains 'single' and \"double\" quotes"
     p = Person.new
     p.karma = "good"
-    assert p.invalid?
+    assert_predicate p, :invalid?
     assert_equal "This string contains 'single' and \"double\" quotes", p.errors[:karma].last
   end
 
@@ -49,19 +51,19 @@ class AbsenceValidationTest < ActiveModel::TestCase
     Person.validates_absence_of :karma
     p = Person.new
     p.karma = "good"
-    assert p.invalid?
+    assert_predicate p, :invalid?
     assert_equal ["must be blank"], p.errors[:karma]
     p.karma = nil
-    assert p.valid?
+    assert_predicate p, :valid?
   end
 
   def test_validates_absence_of_for_ruby_class_with_custom_reader
     CustomReader.validates_absence_of :karma
     p = CustomReader.new
     p[:karma] = "excellent"
-    assert p.invalid?
+    assert_predicate p, :invalid?
     assert_equal ["must be blank"], p.errors[:karma]
     p[:karma] = ""
-    assert p.valid?
+    assert_predicate p, :valid?
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class HttpTokenAuthenticationTest < ActionController::TestCase
@@ -148,7 +150,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
   end
 
   test "token_and_options returns empty string with empty token" do
-    token = ""
+    token = "".dup
     actual = ActionController::HttpAuthentication::Token.token_and_options(sample_request(token)).first
     expected = token
     assert_equal(expected, actual)
@@ -166,8 +168,7 @@ class HttpTokenAuthenticationTest < ActionController::TestCase
 
   test "token_and_options returns nil with no value after the equal sign" do
     actual = ActionController::HttpAuthentication::Token.token_and_options(malformed_request).first
-    expected = nil
-    assert_equal(expected, actual)
+    assert_nil actual
   end
 
   test "raw_params returns a tuple of two key value pair strings" do

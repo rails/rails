@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class Workshop
@@ -21,8 +23,8 @@ end
 class RedirectController < ActionController::Base
   # empty method not used anywhere to ensure methods like
   # `status` and `location` aren't called on `redirect_to` calls
-  def status; render plain: "called status"; end
-  def location; render plain: "called location"; end
+  def status; raise "Should not be called!"; end
+  def location; raise "Should not be called!"; end
 
   def simple_redirect
     redirect_to action: "hello_world"
@@ -33,7 +35,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_with_status_hash
-    redirect_to({ action: "hello_world" }, status: 301)
+    redirect_to({ action: "hello_world" }, { status: 301 })
   end
 
   def redirect_with_protocol
@@ -58,6 +60,10 @@ class RedirectController < ActionController::Base
 
   def redirect_back_with_status
     redirect_back(fallback_location: "/things/stuff", status: 307)
+  end
+
+  def safe_redirect_back_with_status
+    redirect_back(fallback_location: "/things/stuff", status: 307, allow_other_host: false)
   end
 
   def host_redirect
@@ -123,7 +129,7 @@ class RedirectController < ActionController::Base
 
   def rescue_errors(e) raise e end
 
-  protected
+  private
     def dashbord_url(id, message)
       url_for action: "dashboard", params: { "id" => id, "message" => message }
     end
@@ -257,6 +263,23 @@ class RedirectTest < ActionController::TestCase
     assert_equal "http://test.host/things/stuff", redirect_to_url
   end
 
+  def test_safe_redirect_back_from_other_host
+    @request.env["HTTP_REFERER"] = "http://another.host/coming/from"
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal "http://test.host/things/stuff", redirect_to_url
+  end
+
+  def test_safe_redirect_back_from_the_same_host
+    referer = "http://test.host/coming/from"
+    @request.env["HTTP_REFERER"] = referer
+    get :safe_redirect_back_with_status
+
+    assert_response 307
+    assert_equal referer, redirect_to_url
+  end
+
   def test_redirect_to_record
     with_routing do |set|
       set.draw do
@@ -285,10 +308,10 @@ class RedirectTest < ActionController::TestCase
   end
 
   def test_redirect_to_params
-    error = assert_raise(ArgumentError) do
+    error = assert_raise(ActionController::UnfilteredParameters) do
       get :redirect_to_params
     end
-    assert_equal ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE, error.message
+    assert_equal "unable to convert unpermitted parameters to hash", error.message
   end
 
   def test_redirect_to_with_block

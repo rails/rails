@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 #--
 # Most objects are cloneable, but not all. For example you can't dup methods:
 #
@@ -74,6 +76,10 @@ end
 class Symbol
   begin
     :symbol.dup
+
+    # Some symbols couldn't be duped in Ruby 2.4.0 only, due to a bug.
+    # This feature check catches any regression.
+    "symbol_from_string".to_sym.dup
   rescue TypeError
 
     # Symbols are not duplicable:
@@ -105,8 +111,8 @@ require "bigdecimal"
 class BigDecimal
   # BigDecimals are duplicable:
   #
-  # BigDecimal.new("1.2").duplicable? # => true
-  # BigDecimal.new("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
+  #   BigDecimal("1.2").duplicable? # => true
+  #   BigDecimal("1.2").dup         # => #<BigDecimal:...,'0.12E1',18(18)>
   def duplicable?
     true
   end
@@ -119,5 +125,35 @@ class Method
   #  method(:puts).dup         # => TypeError: allocator undefined for Method
   def duplicable?
     false
+  end
+end
+
+class Complex
+  begin
+    Complex(1).dup
+  rescue TypeError
+
+    # Complexes are not duplicable:
+    #
+    #   Complex(1).duplicable? # => false
+    #   Complex(1).dup         # => TypeError: can't copy Complex
+    def duplicable?
+      false
+    end
+  end
+end
+
+class Rational
+  begin
+    Rational(1).dup
+  rescue TypeError
+
+    # Rationals are not duplicable:
+    #
+    #   Rational(1).duplicable? # => false
+    #   Rational(1).dup         # => TypeError: can't copy Rational
+    def duplicable?
+      false
+    end
   end
 end

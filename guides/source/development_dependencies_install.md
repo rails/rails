@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Development Dependencies Install
 ================================
@@ -21,24 +21,25 @@ The easiest and recommended way to get a development environment ready to hack i
 The Hard Way
 ------------
 
-In case you can't use the Rails development box, see section below, these are the steps to manually build a development box for Ruby on Rails core development.
+In case you can't use the Rails development box, see the steps below to manually
+build a development box for Ruby on Rails core development.
 
 ### Install Git
 
-Ruby on Rails uses Git for source code control. The [Git homepage](http://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
+Ruby on Rails uses Git for source code control. The [Git homepage](https://git-scm.com/) has installation instructions. There are a variety of resources on the net that will help you get familiar with Git:
 
-* [Try Git course](http://try.github.io/) is an interactive course that will teach you the basics.
-* The [official Documentation](http://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git.
-* [Everyday Git](http://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
-* [GitHub](http://help.github.com) offers links to a variety of Git resources.
-* [Pro Git](http://git-scm.com/book) is an entire book about Git with a Creative Commons license.
+* [Try Git course](https://try.github.io/) is an interactive course that will teach you the basics.
+* The [official Documentation](https://git-scm.com/documentation) is pretty comprehensive and also contains some videos with the basics of Git.
+* [Everyday Git](https://schacon.github.io/git/everyday.html) will teach you just enough about Git to get by.
+* [GitHub](https://help.github.com/) offers links to a variety of Git resources.
+* [Pro Git](https://git-scm.com/book) is an entire book about Git with a Creative Commons license.
 
 ### Clone the Ruby on Rails Repository
 
 Navigate to the folder where you want the Ruby on Rails source code (it will create its own `rails` subdirectory) and run:
 
 ```bash
-$ git clone git://github.com/rails/rails.git
+$ git clone https://github.com/rails/rails.git
 $ cd rails
 ```
 
@@ -46,7 +47,7 @@ $ cd rails
 
 The test suite must pass with any submitted code. No matter whether you are writing a new patch, or evaluating someone else's, you need to be able to run the tests.
 
-Install first SQLite3 and its development files for the `sqlite3` gem. Mac OS X
+Install first SQLite3 and its development files for the `sqlite3` gem. On macOS
 users are done with:
 
 ```bash
@@ -62,7 +63,7 @@ $ sudo apt-get install sqlite3 libsqlite3-dev
 If you are on Fedora or CentOS, you're done with
 
 ```bash
-$ sudo yum install sqlite3 sqlite3-devel
+$ sudo yum install libsqlite3x libsqlite3x-devel
 ```
 
 If you are on Arch Linux, you will need to run:
@@ -79,7 +80,7 @@ For FreeBSD users, you're done with:
 
 Or compile the `databases/sqlite3` port.
 
-Get a recent version of [Bundler](http://bundler.io/)
+Get a recent version of [Bundler](https://bundler.io/)
 
 ```bash
 $ gem install bundler
@@ -96,7 +97,7 @@ This command will install all dependencies except the MySQL and PostgreSQL Ruby 
 
 NOTE: If you would like to run the tests that use memcached, you need to ensure that you have it installed and running.
 
-You can use [Homebrew](http://brew.sh/) to install memcached on OS X:
+You can use [Homebrew](https://brew.sh/) to install memcached on macOS:
 
 ```bash
 $ brew install memcached
@@ -181,7 +182,7 @@ The Active Record test suite requires a custom config file: `activerecord/test/c
 To be able to run the suite for MySQL and PostgreSQL we need their gems. Install
 first the servers, their client libraries, and their development files.
 
-On OS X, you can run:
+On macOS, you can run:
 
 ```bash
 $ brew install mysql
@@ -190,7 +191,7 @@ $ brew install postgresql
 
 Follow the instructions given by Homebrew to start these.
 
-In Ubuntu just run:
+On Ubuntu, just run:
 
 ```bash
 $ sudo apt-get install mysql-server libmysqlclient-dev
@@ -260,34 +261,34 @@ with your development account, on Linux or BSD, you just have to run:
 $ sudo -u postgres createuser --superuser $USER
 ```
 
-and for OS X:
+and for macOS:
 
 ```bash
 $ createuser --superuser $USER
 ```
 
-Then you need to create the test databases with
+Then, you need to create the test databases with:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:postgresql:build
 ```
 
-It is possible to build databases for both PostgreSQL and MySQL with
+It is possible to build databases for both PostgreSQL and MySQL with:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:create
 ```
 
-You can cleanup the databases using
+You can cleanup the databases using:
 
 ```bash
 $ cd activerecord
 $ bundle exec rake db:drop
 ```
 
-NOTE: Using the rake task to create the test databases ensures they have the correct character set and collation.
+NOTE: Using the Rake task to create the test databases ensures they have the correct character set and collation.
 
 NOTE: You'll see the following warning (or localized warning) during activating HStore extension in PostgreSQL 9.1.x or earlier: "WARNING: => is deprecated as an operator".
 
@@ -299,11 +300,11 @@ Action Cable uses Redis as its default subscriptions adapter ([read more](action
 
 #### Install Redis From Source
 
-Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](http://redis.io/download#installation).
+Redis' documentation discourage installations with package managers as those are usually outdated. Installing from source and bringing the server up is straight forward and well documented on [Redis' documentation](https://redis.io/download#installation).
 
 #### Install Redis From Package Manager
 
-On OS X, you can run:
+On macOS, you can run:
 
 ```bash
 $ brew install redis
@@ -311,7 +312,7 @@ $ brew install redis
 
 Follow the instructions given by Homebrew to start these.
 
-In Ubuntu just run:
+On Ubuntu, just run:
 
 ```bash
 $ sudo apt-get install redis-server
@@ -323,7 +324,7 @@ On Fedora or CentOS (requires EPEL enabled), just run:
 $ sudo yum install redis
 ```
 
-If you are running Arch Linux just run:
+If you are running Arch Linux, just run:
 
 ```bash
 $ sudo pacman -S redis
@@ -334,4 +335,72 @@ FreeBSD users will have to run the following:
 
 ```bash
 # portmaster databases/redis
+```
+
+### Active Storage Setup
+
+When working on Active Storage, it is important to note that you need to
+install its JavaScript dependencies while working on that section of the
+codebase. In order to install these dependencies, it is necessary to
+have Yarn, a Node.js package manager, available on your system. A
+prerequisite for installing this package manager is that
+[Node.js](https://nodejs.org) is installed.
+
+
+On macOS, you can run:
+
+```bash
+brew install yarn
+```
+
+On Ubuntu, you can run:
+
+```bash
+curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+
+sudo apt-get update && sudo apt-get install yarn
+```
+
+On Fedora or CentOS, just run:
+
+```bash
+sudo wget https://dl.yarnpkg.com/rpm/yarn.repo -O /etc/yum.repos.d/yarn.repo
+
+sudo yum install yarn
+```
+
+Finally, after installing Yarn, you will need to run the following
+command inside of the `activestorage` directory to install the dependencies:
+
+```bash
+yarn install
+```
+
+Extracting previews, tested in ActiveStorage's test suite requires third-party
+applications, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz
+and Poppler. Without these applications installed, ActiveStorage tests will
+raise errors.
+
+On macOS you can run:
+
+```bash
+brew install ffmpeg
+brew cask install xquartz
+brew install mupdf-tools
+brew install poppler
+```
+
+On Ubuntu, you can run:
+
+```bash
+sudo apt-get update && install ffmpeg
+sudo apt-get update && install mupdf mupdf-tools
+```
+
+On Fedora or CentOS, just run:
+
+```bash
+sudo yum install ffmpeg
+sudo yum install mupdf
 ```

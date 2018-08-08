@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 require "action_controller/log_subscriber"
@@ -80,9 +82,7 @@ module Another
       @last_payload = payload
     end
 
-    def last_payload
-      @last_payload
-    end
+    attr_reader :last_payload
   end
 end
 
@@ -96,7 +96,7 @@ class ACLogSubscriberTest < ActionController::TestCase
 
     @old_logger = ActionController::Base.logger
 
-    @cache_path = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("tmp", "cache")
+    @cache_path = Dir.mktmpdir(%w[tmp cache])
     @controller.cache_store = :file_store, @cache_path
     ActionController::LogSubscriber.attach_to :action_controller
   end

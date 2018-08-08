@@ -1,14 +1,16 @@
-$:.unshift(File.dirname(__FILE__) + "/lib")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/helpers")
-$:.unshift(File.dirname(__FILE__) + "/fixtures/alternate_helpers")
+# frozen_string_literal: true
+
+$:.unshift File.expand_path("lib", __dir__)
+$:.unshift File.expand_path("fixtures/helpers", __dir__)
+$:.unshift File.expand_path("fixtures/alternate_helpers", __dir__)
 
 require "active_support/core_ext/kernel/reporting"
 
 # These are the normal settings that will be set up by Railties
 # TODO: Have these tests support other combinations of these values
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = Encoding::UTF_8
+  Encoding.default_external = Encoding::UTF_8
 end
 
 require "drb"
@@ -42,7 +44,7 @@ module Rails
       @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "test")
     end
 
-    def root; end;
+    def root; end
   end
 end
 
@@ -56,7 +58,7 @@ ActiveSupport::Deprecation.debug = true
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-FIXTURE_LOAD_PATH = File.join(File.dirname(__FILE__), "fixtures")
+FIXTURE_LOAD_PATH = File.join(__dir__, "fixtures")
 
 SharedTestRoutes = ActionDispatch::Routing::RouteSet.new
 
@@ -156,7 +158,7 @@ class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   end
 
   def with_autoload_path(path)
-    path = File.join(File.dirname(__FILE__), "fixtures", path)
+    path = File.join(__dir__, "fixtures", path)
     if ActiveSupport::Dependencies.autoload_paths.include?(path)
       yield
     else
@@ -175,7 +177,7 @@ end
 class Rack::TestCase < ActionDispatch::IntegrationTest
   def self.testing(klass = nil)
     if klass
-      @testing = "/#{klass.name.underscore}".sub!(/_controller$/, "")
+      @testing = "/#{klass.name.underscore}".sub(/_controller$/, "")
     else
       @testing
     end
@@ -259,9 +261,9 @@ module ActionDispatch
       host = uri_or_host.host unless path
       path ||= uri_or_host.path
 
-      params = { "PATH_INFO"      => path,
-                "REQUEST_METHOD" => method,
-                "HTTP_HOST"      => host }
+      params = { "PATH_INFO" => path,
+                 "REQUEST_METHOD" => method,
+                 "HTTP_HOST" => host }
 
       routes.call(params)
     end
@@ -354,15 +356,6 @@ class CommentsController < ResourcesController; end
 class AccountsController < ResourcesController; end
 class ImagesController < ResourcesController; end
 
-# Skips the current run on Rubinius using Minitest::Assertions#skip
-def rubinius_skip(message = "")
-  skip message if RUBY_ENGINE == "rbx"
-end
-# Skips the current run on JRuby using Minitest::Assertions#skip
-def jruby_skip(message = "")
-  skip message if defined?(JRUBY_VERSION)
-end
-
 require "active_support/testing/method_call_assertions"
 
 class ForkingExecutor
@@ -387,10 +380,8 @@ class ForkingExecutor
   def initialize(size)
     @size  = size
     @queue = Server.new
-    file   = File.join Dir.tmpdir, Dir::Tmpname.make_tmpname("rails-tests", "fd")
-    @url   = "drbunix://#{file}"
     @pool  = nil
-    DRb.start_service @url, @queue
+    @url = DRb.start_service("drbunix:", @queue).uri
   end
 
   def <<(work); @queue << work; end
@@ -438,4 +429,29 @@ end
 
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+
+  # Skips the current run on Rubinius using Minitest::Assertions#skip
+  private def rubinius_skip(message = "")
+    skip message if RUBY_ENGINE == "rbx"
+  end
+  # Skips the current run on JRuby using Minitest::Assertions#skip
+  private def jruby_skip(message = "")
+    skip message if defined?(JRUBY_VERSION)
+  end
+end
+
+class DrivenByRackTest < ActionDispatch::SystemTestCase
+  driven_by :rack_test
+end
+
+class DrivenBySeleniumWithChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :chrome
+end
+
+class DrivenBySeleniumWithHeadlessChrome < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_chrome
+end
+
+class DrivenBySeleniumWithHeadlessFirefox < ActionDispatch::SystemTestCase
+  driven_by :selenium, using: :headless_firefox
 end

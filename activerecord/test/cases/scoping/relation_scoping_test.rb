@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -10,7 +12,7 @@ require "models/person"
 require "models/reference"
 
 class RelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts, :developers_projects
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts, :developers_projects
 
   setup do
     developers(:david)
@@ -103,7 +105,7 @@ class RelationScopingTest < ActiveRecord::TestCase
     Developer.select("id, name").scoping do
       developer = Developer.where("name = 'David'").first
       assert_equal "David", developer.name
-      assert !developer.has_attribute?(:salary)
+      assert_not developer.has_attribute?(:salary)
     end
   end
 
@@ -211,34 +213,69 @@ class RelationScopingTest < ActiveRecord::TestCase
 
   def test_current_scope_does_not_pollute_sibling_subclasses
     Comment.none.scoping do
-      assert_not SpecialComment.all.any?
-      assert_not VerySpecialComment.all.any?
-      assert_not SubSpecialComment.all.any?
+      assert_not_predicate SpecialComment.all, :any?
+      assert_not_predicate VerySpecialComment.all, :any?
+      assert_not_predicate SubSpecialComment.all, :any?
     end
 
     SpecialComment.none.scoping do
-      assert Comment.all.any?
-      assert VerySpecialComment.all.any?
-      assert_not SubSpecialComment.all.any?
+      assert_predicate Comment.all, :any?
+      assert_predicate VerySpecialComment.all, :any?
+      assert_not_predicate SubSpecialComment.all, :any?
     end
 
     SubSpecialComment.none.scoping do
-      assert Comment.all.any?
-      assert VerySpecialComment.all.any?
-      assert SpecialComment.all.any?
+      assert_predicate Comment.all, :any?
+      assert_predicate VerySpecialComment.all, :any?
+      assert_predicate SpecialComment.all, :any?
     end
   end
 
-  def test_circular_joins_with_current_scope_does_not_crash
+  def test_scoping_is_correctly_restored
+    Comment.unscoped do
+      SpecialComment.unscoped.created
+    end
+
+    assert_nil Comment.current_scope
+    assert_nil SpecialComment.current_scope
+  end
+
+  def test_scoping_respects_current_class
+    Comment.unscoped do
+      assert_equal "a comment...", Comment.all.what_are_you
+      assert_equal "a special comment...", SpecialComment.all.what_are_you
+    end
+  end
+
+  def test_scoping_respects_sti_constraint
+    Comment.unscoped do
+      assert_equal comments(:greetings), Comment.find(1)
+      assert_raises(ActiveRecord::RecordNotFound) { SpecialComment.find(1) }
+    end
+  end
+
+  def test_scoping_works_in_the_scope_block
+    expected = SpecialPostWithDefaultScope.unscoped.to_a
+    assert_equal expected, SpecialPostWithDefaultScope.unscoped_all
+  end
+
+  def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
-      Post.current_scope.first(10)
+      Post.first(10)
     end
     assert_equal posts, Post.joins(comments: :post).first(10)
+  end
+
+  def test_circular_left_joins_with_scoping_does_not_crash
+    posts = Post.left_joins(comments: :post).scoping do
+      Post.first(10)
+    end
+    assert_equal posts, Post.left_joins(comments: :post).first(10)
   end
 end
 
 class NestedRelationScopingTest < ActiveRecord::TestCase
-  fixtures :authors, :developers, :projects, :comments, :posts
+  fixtures :authors, :author_addresses, :developers, :projects, :comments, :posts
 
   def test_merge_options
     Developer.where("salary = 80000").scoping do
@@ -277,7 +314,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
         assert_equal "David", Developer.first.name
 
         Developer.unscoped.where("name = 'Maiha'") do
-          assert_equal nil, Developer.first
+          assert_nil Developer.first
         end
 
         # ensure that scoping is restored
@@ -302,7 +339,7 @@ class NestedRelationScopingTest < ActiveRecord::TestCase
   def test_nested_exclusive_scope_for_create
     comment = Comment.create_with(body: "Hey guys, nested scopes are broken. Please fix!").scoping do
       Comment.unscoped.create_with(post_id: 1).scoping do
-        assert Comment.new.body.blank?
+        assert_predicate Comment.new.body, :blank?
         Comment.create body: "Hey guys"
       end
     end

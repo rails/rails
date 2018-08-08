@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class AssetsGenerator < NamedBase # :nodoc:
@@ -7,7 +9,7 @@ module Rails
       class_option :javascript_engine, desc: "Engine for JavaScripts"
       class_option :stylesheet_engine, desc: "Engine for Stylesheets"
 
-      protected
+      private
 
         def asset_name
           file_name

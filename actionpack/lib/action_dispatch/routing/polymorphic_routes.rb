@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # Polymorphic URL helpers are methods for smart resolution to a named route call when
@@ -40,7 +42,7 @@ module ActionDispatch
     #
     # Example usage:
     #
-    #   edit_polymorphic_path(@post)              # => "/posts/1/edit"
+    #   edit_polymorphic_path(@post)           # => "/posts/1/edit"
     #   polymorphic_path(@post, format: :pdf)  # => "/posts/1.pdf"
     #
     # == Usage with mounted engines
@@ -103,6 +105,10 @@ module ActionDispatch
           return polymorphic_url record, options
         end
 
+        if mapping = polymorphic_mapping(record_or_hash_or_array)
+          return mapping.call(self, [record_or_hash_or_array, options], false)
+        end
+
         opts   = options.dup
         action = opts.delete :action
         type   = opts.delete(:routing_type) || :url
@@ -114,13 +120,16 @@ module ActionDispatch
                                                opts
       end
 
-      # Returns the path component of a URL for the given record. It uses
-      # <tt>polymorphic_url</tt> with <tt>routing_type: :path</tt>.
+      # Returns the path component of a URL for the given record.
       def polymorphic_path(record_or_hash_or_array, options = {})
         if Hash === record_or_hash_or_array
           options = record_or_hash_or_array.merge(options)
           record  = options.delete :id
           return polymorphic_path record, options
+        end
+
+        if mapping = polymorphic_mapping(record_or_hash_or_array)
+          return mapping.call(self, [record_or_hash_or_array, options], true)
         end
 
         opts   = options.dup
@@ -154,6 +163,14 @@ module ActionDispatch
 
         def polymorphic_path_for_action(action, record_or_hash, options)
           polymorphic_path(record_or_hash, options.merge(action: action))
+        end
+
+        def polymorphic_mapping(record)
+          if record.respond_to?(:to_model)
+            _routes.polymorphic_mappings[record.to_model.model_name.name]
+          else
+            _routes.polymorphic_mappings[record.class.name]
+          end
         end
 
         class HelperMethodBuilder # :nodoc:
@@ -255,9 +272,13 @@ module ActionDispatch
             [named_route, args]
           end
 
-          def handle_model_call(target, model)
-            method, args = handle_model model
-            target.send(method, *args)
+          def handle_model_call(target, record)
+            if mapping = polymorphic_mapping(target, record)
+              mapping.call(target, [record], suffix == "path")
+            else
+              method, args = handle_model(record)
+              target.send(method, *args)
+            end
           end
 
           def handle_list(list)
@@ -302,6 +323,14 @@ module ActionDispatch
           end
 
           private
+
+            def polymorphic_mapping(target, record)
+              if record.respond_to?(:to_model)
+                target._routes.polymorphic_mappings[record.to_model.model_name.name]
+              else
+                target._routes.polymorphic_mappings[record.class.name]
+              end
+            end
 
             def get_method_for_class(klass)
               name = @key_strategy.call klass.model_name

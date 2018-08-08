@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -72,9 +74,11 @@ if ActiveRecord::Base.connection.supports_comments?
     end
 
     def test_add_index_with_comment_later
-      @connection.add_index :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
-      index = @connection.indexes("commenteds").find { |idef| idef.name == "idx_obvious" }
-      assert_equal "We need to see obvious comments", index.comment
+      unless current_adapter?(:OracleAdapter)
+        @connection.add_index :commenteds, :obvious, name: "idx_obvious", comment: "We need to see obvious comments"
+        index = @connection.indexes("commenteds").find { |idef| idef.name == "idx_obvious" }
+        assert_equal "We need to see obvious comments", index.comment
+      end
     end
 
     def test_add_comment_to_column
@@ -107,13 +111,17 @@ if ActiveRecord::Base.connection.supports_comments?
 
       # And check that these changes are reflected in dump
       output = dump_table_schema "commenteds"
-      assert_match %r[create_table "commenteds",.+\s+comment: "A table with comment"], output
+      assert_match %r[create_table "commenteds",.*\s+comment: "A table with comment"], output
       assert_match %r[t\.string\s+"name",\s+comment: "Comment should help clarify the column purpose"], output
       assert_match %r[t\.string\s+"obvious"\n], output
       assert_match %r[t\.string\s+"content",\s+comment: "Whoa, content describes itself!"], output
-      assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
-      assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
-      assert_match %r[t\.index\s+.+\s+name: "idx_obvious",.+\s+comment: "We need to see obvious comments"], output
+      if current_adapter?(:OracleAdapter)
+        assert_match %r[t\.integer\s+"rating",\s+precision: 38,\s+comment: "I am running out of imagination"], output
+      else
+        assert_match %r[t\.integer\s+"rating",\s+comment: "I am running out of imagination"], output
+        assert_match %r[t\.index\s+.+\s+comment: "\\\"Very important\\\" index that powers all the performance.\\nAnd it's fun!"], output
+        assert_match %r[t\.index\s+.+\s+name: "idx_obvious",\s+comment: "We need to see obvious comments"], output
+      end
     end
 
     def test_schema_dump_omits_blank_comments
@@ -133,6 +141,28 @@ if ActiveRecord::Base.connection.supports_comments?
 
       assert_match %r[t\.string\s+"absent_comment"\n], output
       assert_no_match %r[t\.string\s+"absent_comment", comment:\n], output
+    end
+
+    def test_change_table_comment
+      @connection.change_table_comment :commenteds, "Edited table comment"
+      assert_equal "Edited table comment", @connection.table_comment("commenteds")
+    end
+
+    def test_change_table_comment_to_nil
+      @connection.change_table_comment :commenteds, nil
+      assert_nil @connection.table_comment("commenteds")
+    end
+
+    def test_change_column_comment
+      @connection.change_column_comment :commenteds, :name, "Edited column comment"
+      column = Commented.columns_hash["name"]
+      assert_equal "Edited column comment", column.comment
+    end
+
+    def test_change_column_comment_to_nil
+      @connection.change_column_comment :commenteds, :name, nil
+      column = Commented.columns_hash["name"]
+      assert_nil column.comment
     end
   end
 end

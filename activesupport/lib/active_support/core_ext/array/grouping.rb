@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Array
   # Splits or iterates over the array in groups of size +number+,
   # padding any remaining slots with +fill_with+ unless it is +false+.
@@ -89,7 +91,7 @@ class Array
   #   [1, 2, 3, 4, 5].split(3)              # => [[1, 2], [4, 5]]
   #   (1..10).to_a.split { |i| i % 3 == 0 } # => [[1, 2], [4, 5], [7, 8], [10]]
   def split(value = nil)
-    arr = self.dup
+    arr = dup
     result = []
     if block_given?
       while (idx = arr.index { |i| yield i })

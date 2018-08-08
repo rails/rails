@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/object/blank"
 require "logger"
@@ -50,7 +52,9 @@ module ActiveSupport
 
       def tags_text
         tags = current_tags
-        if tags.any?
+        if tags.one?
+          "[#{tags[0]}] "
+        elsif tags.any?
           tags.collect { |tag| "[#{tag}] " }.join
         end
       end

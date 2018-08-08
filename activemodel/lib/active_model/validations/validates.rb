@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/slice"
 
 module ActiveModel
@@ -18,7 +20,6 @@ module ActiveModel
       #   validates :first_name, length: { maximum: 30 }
       #   validates :age, numericality: true
       #   validates :username, presence: true
-      #   validates :username, uniqueness: true
       #
       # The power of the +validates+ method comes when using custom validators
       # and default validators in one call for a given attribute.
@@ -34,7 +35,7 @@ module ActiveModel
       #     include ActiveModel::Validations
       #     attr_accessor :name, :email
       #
-      #     validates :name, presence: true, uniqueness: true, length: { maximum: 100 }
+      #     validates :name, presence: true, length: { maximum: 100 }
       #     validates :email, presence: true, email: true
       #   end
       #
@@ -62,7 +63,7 @@ module ActiveModel
       # and strings in shortcut form.
       #
       #   validates :email, format: /@/
-      #   validates :gender, inclusion: %w(male female)
+      #   validates :role, inclusion: %(admin contributor)
       #   validates :password, length: 6..20
       #
       # When using shortcut form, ranges and arrays are passed to your
@@ -94,7 +95,7 @@ module ActiveModel
       # Example:
       #
       #   validates :password, presence: true, confirmation: true, if: :password_required?
-      #   validates :token, uniqueness: true, strict: TokenGenerationException
+      #   validates :token, length: 24, strict: TokenLengthException
       #
       #
       # Finally, the options +:if+, +:unless+, +:on+, +:allow_blank+, +:allow_nil+, +:strict+
@@ -148,15 +149,15 @@ module ActiveModel
         validates(*(attributes << options))
       end
 
-    protected
+    private
 
       # When creating custom validators, it might be useful to be able to specify
       # additional default keys. This can be done by overwriting this method.
-      def _validates_default_keys # :nodoc:
-        [:if, :unless, :on, :allow_blank, :allow_nil , :strict]
+      def _validates_default_keys
+        [:if, :unless, :on, :allow_blank, :allow_nil, :strict]
       end
 
-      def _parse_validates_options(options) # :nodoc:
+      def _parse_validates_options(options)
         case options
         when TrueClass
           {}

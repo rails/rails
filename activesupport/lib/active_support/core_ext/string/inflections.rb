@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/inflector/methods"
 require "active_support/inflector/transliterate"
 
@@ -92,6 +94,8 @@ class String
       ActiveSupport::Inflector.camelize(self, true)
     when :lower
       ActiveSupport::Inflector.camelize(self, false)
+    else
+      raise ArgumentError, "Invalid option, use either :upper or :lower."
     end
   end
   alias_method :camelcase, :camelize
@@ -100,12 +104,17 @@ class String
   # a nicer looking title. +titleize+ is meant for creating pretty output. It is not
   # used in the Rails internals.
   #
+  # The trailing '_id','Id'.. can be kept and capitalized by setting the
+  # optional parameter +keep_id_suffix+ to true.
+  # By default, this parameter is false.
+  #
   # +titleize+ is also aliased as +titlecase+.
   #
-  #   'man from the boondocks'.titleize # => "Man From The Boondocks"
-  #   'x-men: the last stand'.titleize  # => "X Men: The Last Stand"
-  def titleize
-    ActiveSupport::Inflector.titleize(self)
+  #   'man from the boondocks'.titleize                       # => "Man From The Boondocks"
+  #   'x-men: the last stand'.titleize                        # => "X Men: The Last Stand"
+  #   'string_ending_with_id'.titleize(keep_id_suffix: true)  # => "String Ending With Id"
+  def titleize(keep_id_suffix: false)
+    ActiveSupport::Inflector.titleize(self, keep_id_suffix: keep_id_suffix)
   end
   alias_method :titlecase, :titleize
 
@@ -128,10 +137,10 @@ class String
 
   # Removes the module part from the constant expression in the string.
   #
-  #   'ActiveRecord::CoreExtensions::String::Inflections'.demodulize # => "Inflections"
-  #   'Inflections'.demodulize                                       # => "Inflections"
-  #   '::Inflections'.demodulize                                     # => "Inflections"
-  #   ''.demodulize                                                  # => ''
+  #   'ActiveSupport::Inflector::Inflections'.demodulize # => "Inflections"
+  #   'Inflections'.demodulize                           # => "Inflections"
+  #   '::Inflections'.demodulize                         # => "Inflections"
+  #   ''.demodulize                                      # => ''
   #
   # See also +deconstantize+.
   def demodulize
@@ -165,7 +174,7 @@ class String
   #   <%= link_to(@person.name, person_path) %>
   #   # => <a href="/person/1-donald-e-knuth">Donald E. Knuth</a>
   #
-  # To preserve the case of the characters in a string, use the `preserve_case` argument.
+  # To preserve the case of the characters in a string, use the +preserve_case+ argument.
   #
   #   class Person
   #     def to_param
@@ -202,7 +211,7 @@ class String
     ActiveSupport::Inflector.classify(self)
   end
 
-  # Capitalizes the first word, turns underscores into spaces, and strips a
+  # Capitalizes the first word, turns underscores into spaces, and (by default)strips a
   # trailing '_id' if present.
   # Like +titleize+, this is meant for creating pretty output.
   #
@@ -210,12 +219,17 @@ class String
   # optional parameter +capitalize+ to false.
   # By default, this parameter is true.
   #
-  #   'employee_salary'.humanize              # => "Employee salary"
-  #   'author_id'.humanize                    # => "Author"
-  #   'author_id'.humanize(capitalize: false) # => "author"
-  #   '_id'.humanize                          # => "Id"
-  def humanize(options = {})
-    ActiveSupport::Inflector.humanize(self, options)
+  # The trailing '_id' can be kept and capitalized by setting the
+  # optional parameter +keep_id_suffix+ to true.
+  # By default, this parameter is false.
+  #
+  #   'employee_salary'.humanize                    # => "Employee salary"
+  #   'author_id'.humanize                          # => "Author"
+  #   'author_id'.humanize(capitalize: false)       # => "author"
+  #   '_id'.humanize                                # => "Id"
+  #   'author_id'.humanize(keep_id_suffix: true)    # => "Author Id"
+  def humanize(capitalize: true, keep_id_suffix: false)
+    ActiveSupport::Inflector.humanize(self, capitalize: capitalize, keep_id_suffix: keep_id_suffix)
   end
 
   # Converts just the first character to uppercase.

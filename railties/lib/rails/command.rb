@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support"
 require "active_support/dependencies/autoload"
 require "active_support/core_ext/enumerable"
 require "active_support/core_ext/object/blank"
-require "active_support/core_ext/hash/transform_values"
 
 require "thor"
 
@@ -10,10 +11,13 @@ module Rails
   module Command
     extend ActiveSupport::Autoload
 
+    autoload :Spellchecker
     autoload :Behavior
     autoload :Base
 
     include Behavior
+
+    HELP_MAPPINGS = %w(-h -? --help)
 
     class << self
       def hidden_commands # :nodoc:
@@ -21,23 +25,31 @@ module Rails
       end
 
       def environment # :nodoc:
-        ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development"
+        ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development"
       end
 
       # Receives a namespace, arguments and the behavior to invoke the command.
-      def invoke(namespace, args = [], **config)
-        namespace = namespace.to_s
-        namespace = "help" if namespace.blank? || Thor::HELP_MAPPINGS.include?(namespace)
-        namespace = "version" if %w( -v --version ).include? namespace
+      def invoke(full_namespace, args = [], **config)
+        namespace = full_namespace = full_namespace.to_s
 
-        if command = find_by_namespace(namespace)
-          command.perform(namespace, args, config)
+        if char = namespace =~ /:(\w+)$/
+          command_name, namespace = $1, namespace.slice(0, char)
         else
-          find_by_namespace("rake").perform(namespace, args, config)
+          command_name = namespace
+        end
+
+        command_name, namespace = "help", "help" if command_name.blank? || HELP_MAPPINGS.include?(command_name)
+        command_name, namespace = "version", "version" if %w( -v --version ).include?(command_name)
+
+        command = find_by_namespace(namespace, command_name)
+        if command && command.all_commands[command_name]
+          command.perform(command_name, args, config)
+        else
+          find_by_namespace("rake").perform(full_namespace, args, config)
         end
       end
 
-      # Rails finds namespaces similar to thor, it only adds one rule:
+      # Rails finds namespaces similar to Thor, it only adds one rule:
       #
       # Command names must end with "_command.rb". This is required because Rails
       # looks in load paths and loads the command just before it's going to be used.
@@ -50,8 +62,10 @@ module Rails
       #
       # Notice that "rails:commands:webrat" could be loaded as well, what
       # Rails looks for is the first and last parts of the namespace.
-      def find_by_namespace(name) # :nodoc:
-        lookups = [ name, "rails:#{name}" ]
+      def find_by_namespace(namespace, command_name = nil) # :nodoc:
+        lookups = [ namespace ]
+        lookups << "#{namespace}:#{command_name}" if command_name
+        lookups.concat lookups.map { |lookup| "rails:#{lookup}" }
 
         lookup(lookups)
 
@@ -82,16 +96,16 @@ module Rails
         [[ "rails", rails ]] + groups.sort.to_a
       end
 
-      protected
-        def command_type
+      private
+        def command_type # :doc:
           @command_type ||= "command"
         end
 
-        def lookup_paths
+        def lookup_paths # :doc:
           @lookup_paths ||= %w( rails/commands commands )
         end
 
-        def file_lookup_paths
+        def file_lookup_paths # :doc:
           @file_lookup_paths ||= [ "{#{lookup_paths.join(',')}}", "**", "*_command.rb" ]
         end
     end

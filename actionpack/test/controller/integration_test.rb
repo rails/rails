@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 require "rails/engine"
@@ -12,11 +14,11 @@ class SessionTest < ActiveSupport::TestCase
   end
 
   def test_https_bang_works_and_sets_truth_by_default
-    assert !@session.https?
+    assert_not_predicate @session, :https?
     @session.https!
-    assert @session.https?
+    assert_predicate @session, :https?
     @session.https! false
-    assert !@session.https?
+    assert_not_predicate @session, :https?
   end
 
   def test_host!
@@ -133,7 +135,7 @@ class IntegrationTestTest < ActiveSupport::TestCase
     session1 = @test.open_session { |sess| }
     session2 = @test.open_session # implicit session
 
-    assert !session1.equal?(session2)
+    assert_not session1.equal?(session2)
   end
 
   # RSpec mixes Matchers (which has a #method_missing) into
@@ -269,8 +271,8 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
   test "response cookies are added to the cookie jar for the next request" do
     with_test_route_set do
-      self.cookies["cookie_1"] = "sugar"
-      self.cookies["cookie_2"] = "oatmeal"
+      cookies["cookie_1"] = "sugar"
+      cookies["cookie_2"] = "oatmeal"
       get "/cookie_monster"
       assert_equal "cookie_1=; path=/\ncookie_3=chocolate; path=/", headers["Set-Cookie"]
       assert_equal({ "cookie_1" => "", "cookie_2" => "oatmeal", "cookie_3" => "chocolate" }, cookies.to_hash)
@@ -289,7 +291,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -308,7 +310,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       assert_response :success
       assert_equal "bar", body
 
-      assert_equal nil, headers["Set-Cookie"]
+      assert_nil headers["Set-Cookie"]
       assert_equal({ "foo" => "bar" }, cookies.to_hash)
     end
   end
@@ -332,6 +334,28 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
       get "/moved"
       assert_response :redirect
       assert_redirected_to "/method"
+    end
+  end
+
+  def test_redirect_reset_html_document
+    with_test_route_set do
+      get "/redirect"
+      previous_html_document = html_document
+
+      follow_redirect!
+
+      assert_response :ok
+      assert_not_same previous_html_document, html_document
+    end
+  end
+
+  def test_redirect_with_arguments
+    with_test_route_set do
+      get "/redirect"
+      follow_redirect! params: { foo: :bar }
+
+      assert_response :ok
+      assert_equal "bar", request.parameters["foo"]
     end
   end
 
@@ -361,7 +385,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     a = open_session
     b = open_session
 
-    refute_same(a.integration_session, b.integration_session)
+    assert_not_same(a.integration_session, b.integration_session)
   end
 
   def test_get_with_query_string
@@ -398,11 +422,11 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
 
       get "/get_with_params", params: { foo: "bar" }
 
-      assert request.env["rack.input"].string.empty?
+      assert_empty request.env["rack.input"].string
       assert_equal "foo=bar", request.env["QUERY_STRING"]
       assert_equal "foo=bar", request.query_string
       assert_equal "bar", request.parameters["foo"]
-      assert request.parameters["leaks"].nil?
+      assert_predicate request.parameters["leaks"], :nil?
     end
   end
 
@@ -494,7 +518,7 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     assert_includes @response.headers, "c"
   end
 
-  def test_accept_not_overriden_when_xhr_true
+  def test_accept_not_overridden_when_xhr_true
     with_test_route_set do
       get "/get", headers: { "Accept" => "application/json" }, xhr: true
       assert_equal "application/json", request.accept
@@ -1055,6 +1079,20 @@ class IntegrationRequestEncodersTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_get_request_with_json_excludes_null_query_string
+    with_routing do |routes|
+      routes.draw do
+        ActiveSupport::Deprecation.silence do
+          get ":action" => FooController
+        end
+      end
+
+      get "/foos_json", as: :json
+
+      assert_equal "http://www.example.com/foos_json", request.url
+    end
+  end
+
   private
     def post_to_foos(as:)
       with_routing do |routes|
@@ -1091,7 +1129,7 @@ class IntegrationFileUploadTest < ActionDispatch::IntegrationTest
   end
 
   def self.fixture_path
-    File.dirname(__FILE__) + "/../fixtures/multipart"
+    File.expand_path("../fixtures/multipart", __dir__)
   end
 
   routes.draw do

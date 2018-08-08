@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -12,7 +14,7 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def america; end
         }.new)
-        assert recorder.respond_to?(:america)
+        assert_respond_to recorder, :america
       end
 
       def test_send_calls_super
@@ -25,7 +27,7 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def create_table(name); end
         }.new)
-        assert recorder.respond_to?(:create_table), "respond_to? create_table"
+        assert_respond_to recorder, :create_table
         recorder.send(:create_table, :horses)
         assert_equal [[:create_table, [:horses], nil]], recorder.commands
       end
@@ -211,9 +213,9 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, { name: "new_index" }]], remove
       end
 
-      def test_invert_add_index_with_no_options
-        remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
-        assert_equal [:remove_index, [:table, { column: [:one, :two] }]], remove
+      def test_invert_add_index_with_algorithm_option
+        remove = @recorder.inverse_of :add_index, [:table, :one, algorithm: :concurrently]
+        assert_equal [:remove_index, [:table, { column: :one, algorithm: :concurrently }]], remove
       end
 
       def test_invert_remove_index

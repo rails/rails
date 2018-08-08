@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/json"
 
 module ActiveModel
@@ -10,8 +12,7 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        class_attribute :include_root_in_json, instance_writer: false
-        self.include_root_in_json = false
+        class_attribute :include_root_in_json, instance_writer: false, default: false
       end
 
       # Returns a hash representing the model. Some configuration can be

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/ddl_helper"
 require "support/connection_helper"
@@ -21,17 +23,6 @@ module ActiveRecord
         end
       end
 
-      def test_valid_column
-        with_example_table do
-          column = @connection.columns("ex").find { |col| col.name == "id" }
-          assert @connection.valid_type?(column.type)
-        end
-      end
-
-      def test_invalid_column
-        assert_not @connection.valid_type?(:foobar)
-      end
-
       def test_primary_key
         with_example_table do
           assert_equal "id", @connection.primary_key("ex")
@@ -51,12 +42,6 @@ module ActiveRecord
       def test_primary_key_returns_nil_for_no_pk
         with_example_table "id integer" do
           assert_nil @connection.primary_key("ex")
-        end
-      end
-
-      def test_primary_key_raises_error_if_table_not_found
-        assert_raises(ActiveRecord::StatementInvalid) do
-          @connection.primary_key("unobtainium")
         end
       end
 
@@ -263,9 +248,12 @@ module ActiveRecord
 
       def test_index_with_opclass
         with_example_table do
-          @connection.add_index "ex", "data varchar_pattern_ops", name: "with_opclass"
-          index = @connection.indexes("ex").find { |idx| idx.name == "with_opclass" }
-          assert_equal "data varchar_pattern_ops", index.columns
+          @connection.add_index "ex", "data", opclass: "varchar_pattern_ops"
+          index = @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
+          assert_equal ["data"], index.columns
+
+          @connection.remove_index "ex", "data"
+          assert_not @connection.indexes("ex").find { |idx| idx.name == "index_ex_on_data" }
         end
       end
 
@@ -275,25 +263,25 @@ module ActiveRecord
       end
 
       def test_columns_for_distinct_one_order
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc"])
       end
 
       def test_columns_for_distinct_few_orders
-        assert_equal "posts.id, posts.created_at AS alias_0, posts.position AS alias_1",
+        assert_equal "posts.created_at AS alias_0, posts.position AS alias_1, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "posts.position asc"])
       end
 
       def test_columns_for_distinct_with_case
         assert_equal(
-          "posts.id, CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0",
+          "CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id",
             ["CASE WHEN author.is_active THEN UPPER(author.name) ELSE UPPER(author.email) END"])
         )
       end
 
       def test_columns_for_distinct_blank_not_nil_orders
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", ["posts.created_at desc", "", "   "])
       end
 
@@ -302,23 +290,23 @@ module ActiveRecord
         def order.to_sql
           "posts.created_at desc"
         end
-        assert_equal "posts.id, posts.created_at AS alias_0",
+        assert_equal "posts.created_at AS alias_0, posts.id",
           @connection.columns_for_distinct("posts.id", [order])
       end
 
       def test_columns_for_distinct_with_nulls
-        assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
-        assert_equal "posts.title, posts.updater_id AS alias_0", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
+        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls first"])
+        assert_equal "posts.updater_id AS alias_0, posts.title", @connection.columns_for_distinct("posts.title", ["posts.updater_id desc nulls last"])
       end
 
       def test_columns_for_distinct_without_order_specifiers
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id"])
 
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls last"])
 
-        assert_equal "posts.title, posts.updater_id AS alias_0",
+        assert_equal "posts.updater_id AS alias_0, posts.title",
           @connection.columns_for_distinct("posts.title", ["posts.updater_id nulls first"])
       end
 
@@ -338,29 +326,35 @@ module ActiveRecord
         reset_connection
       end
 
-      def test_only_reload_type_map_once_for_every_unknown_type
+      def test_only_reload_type_map_once_for_every_unrecognized_type
+        reset_connection
+        connection = ActiveRecord::Base.connection
+
         silence_warnings do
           assert_queries 2, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 1, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyelement"
+            connection.select_all "select 'pg_catalog.pg_class'::regclass"
           end
           assert_queries 2, ignore_none: true do
-            @connection.select_all "SELECT NULL::anyarray"
+            connection.select_all "SELECT NULL::anyarray"
           end
         end
       ensure
         reset_connection
       end
 
-      def test_only_warn_on_first_encounter_of_unknown_oid
+      def test_only_warn_on_first_encounter_of_unrecognized_oid
+        reset_connection
+        connection = ActiveRecord::Base.connection
+
         warning = capture(:stderr) {
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
-          @connection.select_all "SELECT NULL::anyelement"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
+          connection.select_all "select 'pg_catalog.pg_class'::regclass"
         }
-        assert_match(/\Aunknown OID \d+: failed to recognize type of 'anyelement'. It will be treated as String.\n\z/, warning)
+        assert_match(/\Aunknown OID \d+: failed to recognize type of 'regclass'\. It will be treated as String\.\n\z/, warning)
       ensure
         reset_connection
       end

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module TestFileUtils
   def file_name() File.basename(__FILE__) end
-  def file_path() File.expand_path(__FILE__) end
+  def file_path() __FILE__ end
   def file_data() @data ||= File.open(file_path, "rb") { |f| f.read } end
 end
 
@@ -176,7 +178,7 @@ class SendFileTest < ActionController::TestCase
       "image.jpg" => "image/jpeg",
       "image.tif" => "image/tiff",
       "image.gif" => "image/gif",
-      "movie.mpg" => "video/mpeg",
+      "movie.mp4" => "video/mp4",
       "file.zip" => "application/zip",
       "file.unk" => "application/octet-stream",
       "zip" => "application/octet-stream"
@@ -241,10 +243,17 @@ class SendFileTest < ActionController::TestCase
     assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
   end
 
+  def test_send_file_charset_with_type_options_key_without_charset
+    @controller = SendFileWithActionControllerLive.new
+    @controller.options = { type: "image/png" }
+    response = process("file")
+    assert_equal "image/png", response.headers["Content-Type"]
+  end
+
   def test_send_file_charset_with_content_type_options_key
     @controller = SendFileWithActionControllerLive.new
     @controller.options = { content_type: "text/calendar" }
     response = process("file")
-    assert_equal "text/calendar; charset=utf-8", response.headers["Content-Type"]
+    assert_equal "text/calendar", response.headers["Content-Type"]
   end
 end

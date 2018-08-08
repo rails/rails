@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActionCable
@@ -122,16 +124,16 @@ module ActionCable
           end
         end
 
-        protected
+        private
           # action_methods are cached and there is sometimes need to refresh
           # them. ::clear_action_methods! allows you to do that, so next time
           # you run action_methods, they will be recalculated.
-          def clear_action_methods!
+          def clear_action_methods! # :doc:
             @action_methods = nil
           end
 
           # Refresh the cached action_methods when a new action_method is added.
-          def method_added(name)
+          def method_added(name) # :doc:
             super
             clear_action_methods!
           end
@@ -189,23 +191,25 @@ module ActionCable
         end
       end
 
-      protected
+      private
         # Called once a consumer has become a subscriber of the channel. Usually the place to setup any streams
         # you want this channel to be sending to the subscriber.
-        def subscribed
+        def subscribed # :doc:
           # Override in subclasses
         end
 
         # Called once a consumer has cut its cable connection. Can be used for cleaning up connections or marking
         # users as offline or the like.
-        def unsubscribed
+        def unsubscribed # :doc:
           # Override in subclasses
         end
 
         # Transmit a hash of data to the subscriber. The hash will automatically be wrapped in a JSON envelope with
         # the proper channel identifier marked as the recipient.
-        def transmit(data, via: nil)
-          logger.info "#{self.class.name} transmitting #{data.inspect.truncate(300)}".tap { |m| m << " (via #{via})" if via }
+        def transmit(data, via: nil) # :doc:
+          status = "#{self.class.name} transmitting #{data.inspect.truncate(300)}"
+          status += " (via #{via})" if via
+          logger.debug(status)
 
           payload = { channel_class: self.class.name, data: data, via: via }
           ActiveSupport::Notifications.instrument("transmit.action_cable", payload) do
@@ -213,33 +217,32 @@ module ActionCable
           end
         end
 
-        def ensure_confirmation_sent
+        def ensure_confirmation_sent # :doc:
           return if subscription_rejected?
           @defer_subscription_confirmation_counter.decrement
           transmit_subscription_confirmation unless defer_subscription_confirmation?
         end
 
-        def defer_subscription_confirmation!
+        def defer_subscription_confirmation! # :doc:
           @defer_subscription_confirmation_counter.increment
         end
 
-        def defer_subscription_confirmation?
+        def defer_subscription_confirmation? # :doc:
           @defer_subscription_confirmation_counter.value > 0
         end
 
-        def subscription_confirmation_sent?
+        def subscription_confirmation_sent? # :doc:
           @subscription_confirmation_sent
         end
 
-        def reject
+        def reject # :doc:
           @reject_subscription = true
         end
 
-        def subscription_rejected?
+        def subscription_rejected? # :doc:
           @reject_subscription
         end
 
-      private
         def delegate_connection_identifiers
           connection.identifiers.each do |identifier|
             define_singleton_method(identifier) do
@@ -267,7 +270,7 @@ module ActionCable
         end
 
         def action_signature(action, data)
-          "#{self.class.name}##{action}".tap do |signature|
+          "#{self.class.name}##{action}".dup.tap do |signature|
             if (arguments = data.except("action")).any?
               signature << "(#{arguments.inspect})"
             end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/plugin_test_helper"
 
 class PluginTestRunnerTest < ActiveSupport::TestCase
@@ -71,7 +73,7 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     create_test_file "post", pass: false
 
     output = run_test_command("test/post_test.rb")
-    assert_match %r{Finished in.*\n\n1 runs, 1 assertions}, output
+    assert_match %r{Finished in.*\n1 runs, 1 assertions}, output
   end
 
   def test_fail_fast
@@ -90,6 +92,23 @@ class PluginTestRunnerTest < ActiveSupport::TestCase
     create_test_file "foo"
     result = run_test_command("test/foo_test.rb")
     assert_equal 1, result.scan(/1 runs, 1 assertions, 0 failures/).length
+  end
+
+  def test_warnings_option
+    plugin_file "test/models/warnings_test.rb", <<-RUBY
+      require 'test_helper'
+      def test_warnings
+        a = 1
+      end
+    RUBY
+    assert_match(/warning: assigned but unused variable/,
+      capture(:stderr) { run_test_command("test/models/warnings_test.rb -w") })
+  end
+
+  def test_run_rake_test
+    create_test_file "foo"
+    result = Dir.chdir(plugin_path) { `rake test TEST=test/foo_test.rb` }
+    assert_match "1 runs, 1 assertions, 0 failures", result
   end
 
   private

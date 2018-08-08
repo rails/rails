@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/test_case"
 require "active_support/testing/autorun"
 require "rails/generators/app_base"
@@ -88,12 +90,12 @@ module Rails
         specifier_for = -> v { generator.send(:rails_version_specifier, Gem::Version.new(v)) }
 
         assert_equal "~> 4.1.13", specifier_for["4.1.13"]
-        assert_equal [">= 4.1.6.rc1", "< 4.2"], specifier_for["4.1.6.rc1"]
+        assert_equal "~> 4.1.6.rc1", specifier_for["4.1.6.rc1"]
         assert_equal ["~> 4.1.7", ">= 4.1.7.1"], specifier_for["4.1.7.1"]
         assert_equal ["~> 4.1.7", ">= 4.1.7.1.2"], specifier_for["4.1.7.1.2"]
-        assert_equal [">= 4.1.7.1.rc2", "< 4.2"], specifier_for["4.1.7.1.rc2"]
-        assert_equal [">= 4.2.0.beta1", "< 4.3"], specifier_for["4.2.0.beta1"]
-        assert_equal [">= 5.0.0.beta1", "< 5.1"], specifier_for["5.0.0.beta1"]
+        assert_equal ["~> 4.1.7", ">= 4.1.7.1.rc2"], specifier_for["4.1.7.1.rc2"]
+        assert_equal "~> 4.2.0.beta1", specifier_for["4.2.0.beta1"]
+        assert_equal "~> 5.0.0.beta1", specifier_for["5.0.0.beta1"]
       end
     end
   end

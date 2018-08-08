@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module SQLite3
@@ -15,18 +17,31 @@ module ActiveRecord
         end
 
         def quoted_time(value)
-          quoted_date(value)
+          value = value.change(year: 2000, month: 1, day: 1)
+          quoted_date(value).sub(/\A\d\d\d\d-\d\d-\d\d /, "2000-01-01 ")
+        end
+
+        def quoted_binary(value)
+          "x'#{value.hex}'"
+        end
+
+        def quoted_true
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "1".freeze : "'t'".freeze
+        end
+
+        def unquoted_true
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 1 : "t".freeze
+        end
+
+        def quoted_false
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? "0".freeze : "'f'".freeze
+        end
+
+        def unquoted_false
+          ActiveRecord::ConnectionAdapters::SQLite3Adapter.represent_boolean_as_integer ? 0 : "f".freeze
         end
 
         private
-
-          def _quote(value)
-            if value.is_a?(Type::Binary::Data)
-              "x'#{value.hex}'"
-            else
-              super
-            end
-          end
 
           def _type_cast(value)
             case value

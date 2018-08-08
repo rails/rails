@@ -111,7 +111,7 @@ $.extend({
  *
  * @name metadata
  * @descr Returns element's metadata object
- * @param Object opts An object contianing settings to override the defaults
+ * @param Object opts An object containing settings to override the defaults
  * @type jQuery
  * @cat Plugins/Metadata
  */

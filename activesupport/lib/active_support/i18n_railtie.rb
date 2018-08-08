@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support"
-require "active_support/file_update_checker"
 require "active_support/core_ext/array/wrap"
+
+# :enddoc:
 
 module I18n
   class Railtie < Rails::Railtie
@@ -21,8 +24,6 @@ module I18n
       I18n::Railtie.initialize_i18n(app)
     end
 
-  protected
-
     @i18n_inited = false
 
     # Setup i18n configuration.
@@ -42,7 +43,7 @@ module I18n
         case setting
         when :railties_load_path
           reloadable_paths = value
-          app.config.i18n.load_path.unshift(*value.map(&:existent).flatten)
+          app.config.i18n.load_path.unshift(*value.flat_map(&:existent))
         when :load_path
           I18n.load_path += value
         else
@@ -58,7 +59,7 @@ module I18n
       directories = watched_dirs_with_extensions(reloadable_paths)
       reloader = app.config.file_watcher.new(I18n.load_path.dup, directories) do
         I18n.load_path.keep_if { |p| File.exist?(p) }
-        I18n.load_path |= reloadable_paths.map(&:existent).flatten
+        I18n.load_path |= reloadable_paths.flat_map(&:existent)
 
         I18n.reload!
       end
@@ -66,10 +67,6 @@ module I18n
       app.reloaders << reloader
       app.reloader.to_run do
         reloader.execute_if_updated { require_unload_lock! }
-        # TODO: remove the following line as soon as the return value of
-        # callbacks is ignored, that is, returning `false` does not
-        # display a deprecation warning or halts the callback chain.
-        true
       end
       reloader.execute
 

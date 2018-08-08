@@ -1,10 +1,14 @@
+# frozen_string_literal: true
+
 require "rails/application_controller"
 
 class Rails::MailersController < Rails::ApplicationController # :nodoc:
   prepend_view_path ActionDispatch::DebugExceptions::RESCUES_TEMPLATE_PATH
 
   before_action :require_local!, unless: :show_previews?
-  before_action :find_preview, only: :preview
+  before_action :find_preview, :set_locale, only: :preview
+
+  helper_method :part_query, :locale_query
 
   def index
     @previews = ActionMailer::Preview.all
@@ -19,7 +23,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       @email_action = File.basename(params[:path])
 
       if @preview.email_exists?(@email_action)
-        @email = @preview.call(@email_action)
+        @email = @preview.call(@email_action, params)
 
         if params[:part]
           part_type = Mime::Type.lookup(params[:part])
@@ -40,12 +44,12 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
     end
   end
 
-  protected
-    def show_previews?
+  private
+    def show_previews? # :doc:
       ActionMailer::Base.show_previews
     end
 
-    def find_preview
+    def find_preview # :doc:
       candidates = []
       params[:path].to_s.scan(%r{/|$}) { candidates << $` }
       preview = candidates.detect { |candidate| ActionMailer::Preview.exists?(candidate) }
@@ -57,7 +61,7 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       end
     end
 
-    def find_preferred_part(*formats)
+    def find_preferred_part(*formats) # :doc:
       formats.each do |format|
         if part = @email.find_first_mime_type(format)
           return part
@@ -69,11 +73,23 @@ class Rails::MailersController < Rails::ApplicationController # :nodoc:
       end
     end
 
-    def find_part(format)
+    def find_part(format) # :doc:
       if part = @email.find_first_mime_type(format)
         part
       elsif @email.mime_type == format
         @email
       end
+    end
+
+    def part_query(mime_type)
+      request.query_parameters.merge(part: mime_type).to_query
+    end
+
+    def locale_query(locale)
+      request.query_parameters.merge(locale: locale).to_query
+    end
+
+    def set_locale
+      I18n.locale = params[:locale] || I18n.default_locale
     end
 end

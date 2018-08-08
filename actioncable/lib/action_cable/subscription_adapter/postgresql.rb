@@ -1,6 +1,9 @@
-gem "pg", "~> 0.18"
+# frozen_string_literal: true
+
+gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 require "thread"
+require "digest/sha1"
 
 module ActionCable
   module SubscriptionAdapter
@@ -11,38 +14,58 @@ module ActionCable
       end
 
       def broadcast(channel, payload)
-        with_connection do |pg_conn|
-          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel)}, '#{pg_conn.escape_string(payload)}'")
+        with_broadcast_connection do |pg_conn|
+          pg_conn.exec("NOTIFY #{pg_conn.escape_identifier(channel_identifier(channel))}, '#{pg_conn.escape_string(payload)}'")
         end
       end
 
       def subscribe(channel, callback, success_callback = nil)
-        listener.add_subscriber(channel, callback, success_callback)
+        listener.add_subscriber(channel_identifier(channel), callback, success_callback)
       end
 
       def unsubscribe(channel, callback)
-        listener.remove_subscriber(channel, callback)
+        listener.remove_subscriber(channel_identifier(channel), callback)
       end
 
       def shutdown
         listener.shutdown
       end
 
-      def with_connection(&block) # :nodoc:
+      def with_subscriptions_connection(&block) # :nodoc:
+        ar_conn = ActiveRecord::Base.connection_pool.checkout.tap do |conn|
+          # Action Cable is taking ownership over this database connection, and
+          # will perform the necessary cleanup tasks
+          ActiveRecord::Base.connection_pool.remove(conn)
+        end
+        pg_conn = ar_conn.raw_connection
+
+        verify!(pg_conn)
+        yield pg_conn
+      ensure
+        ar_conn.disconnect!
+      end
+
+      def with_broadcast_connection(&block) # :nodoc:
         ActiveRecord::Base.connection_pool.with_connection do |ar_conn|
           pg_conn = ar_conn.raw_connection
-
-          unless pg_conn.is_a?(PG::Connection)
-            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
-          end
-
+          verify!(pg_conn)
           yield pg_conn
         end
       end
 
       private
+        def channel_identifier(channel)
+          channel.size > 63 ? Digest::SHA1.hexdigest(channel) : channel
+        end
+
         def listener
           @listener || @server.mutex.synchronize { @listener ||= Listener.new(self, @server.event_loop) }
+        end
+
+        def verify!(pg_conn)
+          unless pg_conn.is_a?(PG::Connection)
+            raise "The Active Record database must be PostgreSQL in order to use the PostgreSQL Action Cable storage adapter"
+          end
         end
 
         class Listener < SubscriberMap
@@ -60,7 +83,7 @@ module ActionCable
           end
 
           def listen
-            @adapter.with_connection do |pg_conn|
+            @adapter.with_subscriptions_connection do |pg_conn|
               catch :shutdown do
                 loop do
                   until @queue.empty?

@@ -1,9 +1,10 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ParameterEncodingController < ActionController::Base
-  parameter_encoding :test_bar,          :bar, Encoding::ASCII_8BIT
-  parameter_encoding :test_baz,          :baz, Encoding::ISO_8859_1
-  parameter_encoding :test_baz_to_ascii, :baz, Encoding::ASCII_8BIT
+  skip_parameter_encoding :test_bar
+  skip_parameter_encoding :test_all_values_encoding
 
   def test_foo
     render body: params[:foo].encoding
@@ -13,16 +14,8 @@ class ParameterEncodingController < ActionController::Base
     render body: params[:bar].encoding
   end
 
-  def test_baz
-    render body: params[:baz].encoding
-  end
-
-  def test_no_change_to_baz
-    render body: params[:baz].encoding
-  end
-
-  def test_baz_to_ascii
-    render body: params[:baz].encoding
+  def test_all_values_encoding
+    render body: ::JSON.dump(params.values.map(&:encoding).map(&:name))
   end
 end
 
@@ -36,32 +29,18 @@ class ParameterEncodingTest < ActionController::TestCase
     assert_equal "UTF-8", @response.body
   end
 
-  test "properly transcodes ASCII_8BIT parameters into declared encodings" do
+  test "properly encodes ASCII_8BIT parameters into binary" do
     post :test_bar, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
     assert_equal "ASCII-8BIT", @response.body
   end
 
-  test "properly transcodes ISO_8859_1 parameters into declared encodings" do
-    post :test_baz, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
+  test "properly encodes all ASCII_8BIT parameters into binary" do
+    post :test_all_values_encoding, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
 
     assert_response :success
-    assert_equal "ISO-8859-1", @response.body
-  end
-
-  test "does not transcode parameters when not specified" do
-    post :test_no_change_to_baz, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
-
-    assert_response :success
-    assert_equal "UTF-8", @response.body
-  end
-
-  test "respects different encoding declarations for a param per action" do
-    post :test_baz_to_ascii, params: { "foo" => "foo", "bar" => "bar", "baz" => "baz" }
-
-    assert_response :success
-    assert_equal "ASCII-8BIT", @response.body
+    assert_equal ["ASCII-8BIT"], JSON.parse(@response.body).uniq
   end
 
   test "does not raise an error when passed a param declared as ASCII-8BIT that contains invalid bytes" do

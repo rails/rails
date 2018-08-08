@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_record/connection_adapters/postgresql/utils"
 
@@ -56,7 +58,7 @@ class PostgreSQLNameTest < ActiveRecord::PostgreSQLTestCase
   test "can be used as hash key" do
     hash = { Name.new("schema", "article_seq") => "success" }
     assert_equal "success", hash[Name.new("schema", "article_seq")]
-    assert_equal nil, hash[Name.new("schema", "articles")]
-    assert_equal nil, hash[Name.new("public", "article_seq")]
+    assert_nil hash[Name.new("schema", "articles")]
+    assert_nil hash[Name.new("public", "article_seq")]
   end
 end

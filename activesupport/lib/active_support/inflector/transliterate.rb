@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/multibyte"
 require "active_support/i18n"
 
@@ -57,26 +59,35 @@ module ActiveSupport
     #   transliterate('Jürgen')
     #   # => "Juergen"
     def transliterate(string, replacement = "?".freeze)
-      I18n.transliterate(ActiveSupport::Multibyte::Unicode.normalize(
-        ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
-          replacement: replacement)
+      raise ArgumentError, "Can only transliterate strings. Received #{string.class.name}" unless string.is_a?(String)
+
+      I18n.transliterate(
+        ActiveSupport::Multibyte::Unicode.normalize(
+          ActiveSupport::Multibyte::Unicode.tidy_bytes(string), :c),
+        replacement: replacement)
     end
 
     # Replaces special characters in a string so that it may be used as part of
     # a 'pretty' URL.
     #
     #   parameterize("Donald E. Knuth") # => "donald-e-knuth"
-    #   parameterize("^trés|Jolie-- ")  # => "tres-jolie"
+    #   parameterize("^très|Jolie-- ")  # => "tres-jolie"
     #
-    # To use a custom separator, override the `separator` argument.
+    # To use a custom separator, override the +separator+ argument.
     #
     #  parameterize("Donald E. Knuth", separator: '_') # => "donald_e_knuth"
-    #  parameterize("^trés|Jolie-- ", separator: '_')  # => "tres_jolie"
+    #  parameterize("^très|Jolie__ ", separator: '_')  # => "tres_jolie"
     #
-    # To preserve the case of the characters in a string, use the `preserve_case` argument.
+    # To preserve the case of the characters in a string, use the +preserve_case+ argument.
     #
     #   parameterize("Donald E. Knuth", preserve_case: true) # => "Donald-E-Knuth"
-    #   parameterize("^trés|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    #   parameterize("^très|Jolie-- ", preserve_case: true) # => "tres-Jolie"
+    #
+    # It preserves dashes and underscores unless they are used as separators:
+    #
+    #  parameterize("^très|Jolie__ ")                 # => "tres-jolie__"
+    #  parameterize("^très|Jolie-- ", separator: "_") # => "tres_jolie--"
+    #  parameterize("^très_Jolie-- ", separator: ".") # => "tres_jolie--"
     #
     def parameterize(string, separator: "-", preserve_case: false)
       # Replace accented chars with their ASCII equivalents.

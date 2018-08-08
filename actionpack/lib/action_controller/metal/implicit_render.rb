@@ -1,14 +1,14 @@
-require "active_support/core_ext/string/strip"
+# frozen_string_literal: true
 
 module ActionController
   # Handles implicit rendering for a controller action that does not
   # explicitly respond with +render+, +respond_to+, +redirect+, or +head+.
   #
-  # For API controllers, the implicit response is always 204 No Content.
+  # For API controllers, the implicit response is always <tt>204 No Content</tt>.
   #
   # For all other controllers, we use these heuristics to decide whether to
   # render a template, raise an error for a missing template, or respond with
-  # 204 No Content:
+  # <tt>204 No Content</tt>:
   #
   # First, if we DO find a template, it's rendered. Template lookup accounts
   # for the action name, locales, format, variant, template handlers, and more
@@ -25,7 +25,7 @@ module ActionController
   # <tt>ActionView::UnknownFormat</tt> with an explanation.
   #
   # Finally, if we DON'T find a template AND the request isn't a browser page
-  # load, then we implicitly respond with 204 No Content.
+  # load, then we implicitly respond with <tt>204 No Content</tt>.
   module ImplicitRender
     # :stopdoc:
     include BasicImplicitRender
@@ -41,18 +41,8 @@ module ActionController
 
         raise ActionController::UnknownFormat, message
       elsif interactive_browser_request?
-        message = "#{self.class.name}\##{action_name} is missing a template " \
-          "for this request format and variant.\n\n" \
-          "request.formats: #{request.formats.map(&:to_s).inspect}\n" \
-          "request.variant: #{request.variant.inspect}\n\n" \
-          "NOTE! For XHR/Ajax or API requests, this action would normally " \
-          "respond with 204 No Content: an empty white screen. Since you're " \
-          "loading it in a web browser, we assume that you expected to " \
-          "actually render a template, not nothing, so we're showing an " \
-          "error to be extra-clear. If you expect 204 No Content, carry on. " \
-          "That's what you'll get from an XHR or API request. Give it a shot."
-
-        raise ActionController::UnknownFormat, message
+        message = "#{self.class.name}\##{action_name} is missing a template for request formats: #{request.formats.map(&:to_s).join(',')}"
+        raise ActionController::MissingExactTemplate, message
       else
         logger.info "No template found for #{self.class.name}\##{action_name}, rendering head :no_content" if logger
         super

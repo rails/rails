@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -41,8 +43,7 @@ module ActiveRecord
               /\A[0-9A-F]*\Z/i.match?(value)
             end
 
-            protected
-
+            private
               attr_reader :value
           end
         end

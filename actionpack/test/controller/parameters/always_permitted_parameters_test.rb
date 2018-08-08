@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 
@@ -23,6 +25,6 @@ class AlwaysPermittedParametersTest < ActiveSupport::TestCase
       book: { pages: 65 },
       format: "json")
     permitted = params.permit book: [:pages]
-    assert permitted.permitted?
+    assert_predicate permitted, :permitted?
   end
 end

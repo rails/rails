@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
 require "active_support/number_helper"
@@ -92,7 +94,7 @@ module ActionView
       #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
       #   currency, and <tt>%n</tt> for the number.
       # * <tt>:negative_format</tt> - Sets the format for negative
-      #   numbers (defaults to prepending an hyphen to the formatted
+      #   numbers (defaults to prepending a hyphen to the formatted
       #   number given by <tt>:format</tt>).  Accepts the same fields
       #   than <tt>:format</tt>, except <tt>%n</tt> is here the
       #   absolute value of the number.
@@ -171,6 +173,9 @@ module ActionView
       #   to ",").
       # * <tt>:separator</tt> - Sets the separator between the
       #   fractional and integer digits (defaults to ".").
+      # * <tt>:delimiter_pattern</tt> - Sets a custom regular expression used for
+      #   deriving the placement of delimiter. Helpful when using currency formats
+      #   like INR.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
       #
@@ -186,6 +191,9 @@ module ActionView
       #   number_with_delimiter("112a")                          # => 112a
       #   number_with_delimiter(98765432.98, delimiter: " ", separator: ",")
       #   # => 98 765 432,98
+      #
+      #   number_with_delimiter("123456.78",
+      #     delimiter_pattern: /(\d+?)(?=(\d\d)+(\d)(?!\d))/)    # => "1,23,456.78"
       #
       #  number_with_delimiter("112a", raise: true)              # => raise InvalidNumberError
       def number_with_delimiter(number, options = {})

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Validations
     class AcceptanceValidator < EachValidator # :nodoc:
@@ -56,11 +58,8 @@ module ActiveModel
             klass.send(:attr_writer, *attr_writers)
           end
 
-          protected
-
-            attr_reader :attributes
-
           private
+            attr_reader :attributes
 
             def convert_to_reader_name(method_name)
               method_name.to_s.chomp("=")
@@ -93,7 +92,7 @@ module ActiveModel
       #
       # There is also a list of default options supported by every validator:
       # +:if+, +:unless+, +:on+, +:allow_nil+, +:allow_blank+, and +:strict+.
-      # See <tt>ActiveModel::Validation#validates</tt> for more information.
+      # See <tt>ActiveModel::Validations#validates</tt> for more information.
       def validates_acceptance_of(*attr_names)
         validates_with AcceptanceValidator, _merge_attributes(attr_names)
       end

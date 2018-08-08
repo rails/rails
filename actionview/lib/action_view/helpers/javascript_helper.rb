@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/tag_helper"
 
 module ActionView
-  module Helpers
+  module Helpers #:nodoc:
     module JavaScriptHelper
       JS_ESCAPE_MAP = {
         '\\'    => '\\\\',
@@ -13,8 +15,8 @@ module ActionView
         "'"     => "\\'"
       }
 
-      JS_ESCAPE_MAP["\342\200\250".force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
-      JS_ESCAPE_MAP["\342\200\251".force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
+      JS_ESCAPE_MAP["\342\200\250".dup.force_encoding(Encoding::UTF_8).encode!] = "&#x2028;"
+      JS_ESCAPE_MAP["\342\200\251".dup.force_encoding(Encoding::UTF_8).encode!] = "&#x2029;"
 
       # Escapes carriage returns and single and double quotes for JavaScript segments.
       #
@@ -61,6 +63,13 @@ module ActionView
       #   <%= javascript_tag defer: 'defer' do -%>
       #     alert('All is good')
       #   <% end -%>
+      #
+      # If you have a content security policy enabled then you can add an automatic
+      # nonce value by passing <tt>nonce: true</tt> as part of +html_options+. Example:
+      #
+      #   <%= javascript_tag nonce: true do -%>
+      #     alert('All is good')
+      #   <% end -%>
       def javascript_tag(content_or_options_with_block = nil, html_options = {}, &block)
         content =
           if block_given?
@@ -69,6 +78,10 @@ module ActionView
           else
             content_or_options_with_block
           end
+
+        if html_options[:nonce] == true
+          html_options[:nonce] = content_security_policy_nonce
+        end
 
         content_tag("script".freeze, javascript_cdata_section(content), html_options)
       end

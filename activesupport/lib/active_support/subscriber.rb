@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/per_thread_registry"
 require "active_support/notifications"
 
@@ -52,21 +54,20 @@ module ActiveSupport
         @@subscribers ||= []
       end
 
-      protected
+      private
+        attr_reader :subscriber, :notifier, :namespace
 
-      attr_reader :subscriber, :notifier, :namespace
+        def add_event_subscriber(event) # :doc:
+          return if %w{ start finish }.include?(event.to_s)
 
-      def add_event_subscriber(event)
-        return if %w{ start finish }.include?(event.to_s)
+          pattern = "#{event}.#{namespace}"
 
-        pattern = "#{event}.#{namespace}"
+          # Don't add multiple subscribers (eg. if methods are redefined).
+          return if subscriber.patterns.include?(pattern)
 
-        # Don't add multiple subscribers (eg. if methods are redefined).
-        return if subscriber.patterns.include?(pattern)
-
-        subscriber.patterns << pattern
-        notifier.subscribe(pattern, subscriber)
-      end
+          subscriber.patterns << pattern
+          notifier.subscribe(pattern, subscriber)
+        end
     end
 
     attr_reader :patterns # :nodoc:
@@ -78,7 +79,8 @@ module ActiveSupport
     end
 
     def start(name, id, payload)
-      e = ActiveSupport::Notifications::Event.new(name, Time.now, nil, id, payload)
+      e = ActiveSupport::Notifications::Event.new(name, nil, nil, id, payload)
+      e.start!
       parent = event_stack.last
       parent << e if parent
 
@@ -86,9 +88,8 @@ module ActiveSupport
     end
 
     def finish(name, id, payload)
-      finished  = Time.now
-      event     = event_stack.pop
-      event.end = finished
+      event = event_stack.pop
+      event.finish!
       event.payload.merge!(payload)
 
       method = name.split(".".freeze).first
@@ -96,7 +97,6 @@ module ActiveSupport
     end
 
     private
-
       def event_stack
         SubscriberQueueRegistry.instance.get_queue(@queue_key)
       end

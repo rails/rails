@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support"
 
 module Rails
@@ -16,49 +18,9 @@ module Rails
           @subclasses ||= []
         end
 
-        protected
-
-          # This code is based directly on the Text gem implementation.
-          # Copyright (c) 2006-2013 Paul Battley, Michael Neumann, Tim Fletcher.
-          #
-          # Returns a value representing the "cost" of transforming str1 into str2.
-          def levenshtein_distance(str1, str2)
-            s = str1
-            t = str2
-            n = s.length
-            m = t.length
-
-            return m if (0 == n)
-            return n if (0 == m)
-
-            d = (0..m).to_a
-            x = nil
-
-            # avoid duplicating an enumerable object in the loop
-            str2_codepoint_enumerable = str2.each_codepoint
-
-            str1.each_codepoint.with_index do |char1, i|
-              e = i + 1
-
-              str2_codepoint_enumerable.with_index do |char2, j|
-                cost = (char1 == char2) ? 0 : 1
-                x = [
-                     d[j + 1] + 1, # insertion
-                     e + 1,      # deletion
-                     d[j] + cost # substitution
-                    ].min
-                d[j] = e
-                e = x
-              end
-
-              d[m] = x
-            end
-
-            x
-          end
-
+        private
           # Prints a list of generators.
-          def print_list(base, namespaces) #:nodoc:
+          def print_list(base, namespaces)
             return if namespaces.empty?
             puts "#{base.camelize}:"
 
@@ -71,7 +33,7 @@ module Rails
 
           # Receives namespaces in an array and tries to find matching generators
           # in the load path.
-          def lookup(namespaces) #:nodoc:
+          def lookup(namespaces)
             paths = namespaces_to_paths(namespaces)
 
             paths.each do |raw_path|
@@ -91,7 +53,7 @@ module Rails
           end
 
           # This will try to load any command in the load path to show in help.
-          def lookup! #:nodoc:
+          def lookup!
             $LOAD_PATH.each do |base|
               Dir[File.join(base, *file_lookup_paths)].each do |path|
                 begin
@@ -107,7 +69,7 @@ module Rails
           # Convert namespaces to paths by replacing ":" for "/" and adding
           # an extra lookup. For example, "rails:model" should be searched
           # in both: "rails/model/model_generator" and "rails/model_generator".
-          def namespaces_to_paths(namespaces) #:nodoc:
+          def namespaces_to_paths(namespaces)
             paths = []
             namespaces.each do |namespace|
               pieces = namespace.split(":")

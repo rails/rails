@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   # == Active \Model \Translation
   #
@@ -44,7 +46,7 @@ module ActiveModel
       parts     = attribute.to_s.split(".")
       attribute = parts.pop
       namespace = parts.join("/") unless parts.empty?
-      attributes_scope = "#{self.i18n_scope}.attributes"
+      attributes_scope = "#{i18n_scope}.attributes"
 
       if namespace
         defaults = lookup_ancestors.map do |klass|

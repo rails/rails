@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "active_support/backtrace_cleaner"
 
 module Rails
   class BacktraceCleaner < ActiveSupport::BacktraceCleaner
     APP_DIRS_PATTERN = /^\/?(app|config|lib|test|\(\w*\))/
-    RENDER_TEMPLATE_PATTERN = /:in `_render_template_\w*'/
+    RENDER_TEMPLATE_PATTERN = /:in `.*_\w+_{2,3}\d+_\d+'/
     EMPTY_STRING = "".freeze
     SLASH        = "/".freeze
     DOT_SLASH    = "./".freeze
@@ -16,7 +18,7 @@ module Rails
       add_filter { |line| line.sub(DOT_SLASH, SLASH) } # for tests
 
       add_gem_filters
-      add_silencer { |line| line !~ APP_DIRS_PATTERN }
+      add_silencer { |line| !APP_DIRS_PATTERN.match?(line) }
     end
 
     private

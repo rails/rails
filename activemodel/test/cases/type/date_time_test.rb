@@ -1,15 +1,16 @@
+# frozen_string_literal: true
+
 require "cases/helper"
-require "active_model/type"
 
 module ActiveModel
   module Type
     class DateTimeTest < ActiveModel::TestCase
       def test_type_cast_datetime_and_timestamp
         type = Type::DateTime.new
-        assert_equal nil, type.cast(nil)
-        assert_equal nil, type.cast("")
-        assert_equal nil, type.cast("  ")
-        assert_equal nil, type.cast("ABC")
+        assert_nil type.cast(nil)
+        assert_nil type.cast("")
+        assert_nil type.cast("  ")
+        assert_nil type.cast("ABC")
 
         datetime_string = ::Time.now.utc.strftime("%FT%T")
         assert_equal datetime_string, type.cast(datetime_string).strftime("%FT%T")

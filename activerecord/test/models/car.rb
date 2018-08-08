@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Car < ActiveRecord::Base
   has_many :bulbs
   has_many :all_bulbs, -> { unscope where: :name }, class_name: "Bulb"
@@ -18,6 +20,8 @@ class Car < ActiveRecord::Base
   scope :incl_engines, -> { includes(:engines) }
 
   scope :order_using_new_style,  -> { order("name asc") }
+
+  attribute :wheels_owned_at, :datetime, default: -> { Time.now }
 end
 
 class CoolCar < Car

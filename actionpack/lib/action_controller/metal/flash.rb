@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 module ActionController #:nodoc:
   module Flash
     extend ActiveSupport::Concern
 
     included do
-      class_attribute :_flash_types, instance_accessor: false
-      self._flash_types = []
+      class_attribute :_flash_types, instance_accessor: false, default: []
 
       delegate :flash, to: :request
       add_flash_types(:alert, :notice)
@@ -42,7 +43,7 @@ module ActionController #:nodoc:
       end
     end
 
-    protected
+    private
       def redirect_to(options = {}, response_status_and_flash = {}) #:doc:
         self.class._flash_types.each do |flash_type|
           if type = response_status_and_flash.delete(flash_type)

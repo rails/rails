@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/active_record"
 
 module ActiveRecord
@@ -10,10 +12,10 @@ module ActiveRecord
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
-      protected
+      private
         attr_reader :migration_action, :join_tables
 
         # Sets the default migration template that is being used for the generation of the migration.
@@ -22,7 +24,7 @@ module ActiveRecord
         def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name
-          when /^(add|remove)_.*_(?:to|from)_(.*)/
+          when /^(add)_.*_to_(.*)/, /^(remove)_.*?_from_(.*)/
             @migration_action = $1
             @table_name       = normalize_table_name($2)
           when /join_table/
@@ -52,7 +54,6 @@ module ActiveRecord
           end.to_sym
         end
 
-      private
         def attributes_with_index
           attributes.select { |a| !a.reference? && a.has_index? }
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_view/helpers/javascript_helper"
 require "active_support/core_ext/array/access"
 require "active_support/core_ext/hash/keys"
@@ -35,7 +37,7 @@ module ActionView
         when :back
           _back_url
         else
-          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " +
+          raise ArgumentError, "arguments passed to url_for can't be handled. Please require " \
                                "routes or provide your own implementation"
         end
       end
@@ -136,6 +138,11 @@ module ActionView
       #
       #   link_to "Profiles", controller: "profiles"
       #   # => <a href="/profiles">Profiles</a>
+      #
+      # When name is +nil+ the href is presented instead
+      #
+      #   link_to nil, "http://example.com"
+      #   # => <a href="http://www.example.com">http://www.example.com</a>
       #
       # You can use a block as well if your link target is hard to fit into the name parameter. ERB example:
       #
@@ -517,6 +524,9 @@ module ActionView
       #   current_page?('http://www.example.com/shop/checkout')
       #   # => true
       #
+      #   current_page?('http://www.example.com/shop/checkout', check_parameters: true)
+      #   # => false
+      #
       #   current_page?('/shop/checkout')
       #   # => true
       #
@@ -530,7 +540,7 @@ module ActionView
       #
       # We can also pass in the symbol arguments instead of strings.
       #
-      def current_page?(options)
+      def current_page?(options, check_parameters: false)
         unless request
           raise "You cannot use helpers that need to determine the current " \
                 "page unless your view context provides a Request object " \
@@ -539,15 +549,20 @@ module ActionView
 
         return false unless request.get? || request.head?
 
+        check_parameters ||= options.is_a?(Hash) && options.delete(:check_parameters)
         url_string = URI.parser.unescape(url_for(options)).force_encoding(Encoding::BINARY)
 
         # We ignore any extra parameters in the request_uri if the
         # submitted url doesn't have any either. This lets the function
         # work with things like ?order=asc
-        request_uri = url_string.index("?") ? request.fullpath : request.path
+        # the behaviour can be disabled with check_parameters: true
+        request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        url_string.chomp!("/") if url_string.start_with?("/") && url_string != "/"
+        if url_string.start_with?("/") && url_string != "/"
+          url_string.chomp!("/")
+          request_uri.chomp!("/")
+        end
 
         if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -579,10 +594,27 @@ module ActionView
         end
 
         def add_method_to_attributes!(html_options, method)
-          if method && method.to_s.downcase != "get".freeze && html_options["rel".freeze] !~ /nofollow/
-            html_options["rel".freeze] = "#{html_options["rel".freeze]} nofollow".lstrip
+          if method_not_get_method?(method) && html_options["rel"] !~ /nofollow/
+            if html_options["rel"].blank?
+              html_options["rel"] = "nofollow"
+            else
+              html_options["rel"] = "#{html_options["rel"]} nofollow"
+            end
           end
-          html_options["data-method".freeze] = method
+          html_options["data-method"] = method
+        end
+
+        STRINGIFIED_COMMON_METHODS = {
+          get:    "get",
+          delete: "delete",
+          patch:  "patch",
+          post:   "post",
+          put:    "put",
+        }.freeze
+
+        def method_not_get_method?(method)
+          return false unless method
+          (STRINGIFIED_COMMON_METHODS[method] || method.to_s.downcase) != "get"
         end
 
         def token_tag(token = nil, form_options: {})
@@ -602,9 +634,9 @@ module ActionView
         # suitable for use as the names and values of form input fields:
         #
         #   to_form_params(name: 'David', nationality: 'Danish')
-        #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
+        #   # => [{name: 'name', value: 'David'}, {name: 'nationality', value: 'Danish'}]
         #
-        #   to_form_params(country: {name: 'Denmark'})
+        #   to_form_params(country: { name: 'Denmark' })
         #   # => [{name: 'country[name]', value: 'Denmark'}]
         #
         #   to_form_params(countries: ['Denmark', 'Sweden']})
@@ -614,13 +646,8 @@ module ActionView
         #
         #   to_form_params({ name: 'Denmark' }, 'country')
         #   # => [{name: 'country[name]', value: 'Denmark'}]
-        def to_form_params(attribute, namespace = nil) # :nodoc:
+        def to_form_params(attribute, namespace = nil)
           attribute = if attribute.respond_to?(:permitted?)
-            unless attribute.permitted?
-              raise ArgumentError, "Attempting to generate a buttom from non-sanitized request parameters!" \
-                " Whitelist and sanitize passed parameters to be secure."
-            end
-
             attribute.to_h
           else
             attribute
@@ -639,7 +666,7 @@ module ActionView
               params.push(*to_form_params(value, array_prefix))
             end
           else
-            params << { name: namespace, value: attribute.to_param }
+            params << { name: namespace.to_s, value: attribute.to_param }
           end
 
           params.sort_by { |pair| pair[:name] }

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveSupport
   module Testing
     module Isolation
@@ -43,7 +45,8 @@ module ActiveSupport
                   end
                 }
               end
-              result = Marshal.dump(self.dup)
+              test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
+              result = Marshal.dump(test_result)
             end
 
             write.puts [result].pack("m")
@@ -53,7 +56,7 @@ module ActiveSupport
           write.close
           result = read.read
           Process.wait2(pid)
-          return result.unpack("m")[0]
+          result.unpack1("m")
         end
       end
 
@@ -67,8 +70,9 @@ module ActiveSupport
 
           if ENV["ISOLATION_TEST"]
             yield
+            test_result = defined?(Minitest::Result) ? Minitest::Result.from(self) : dup
             File.open(ENV["ISOLATION_OUTPUT"], "w") do |file|
-              file.puts [Marshal.dump(dup)].pack("m")
+              file.puts [Marshal.dump(test_result)].pack("m")
             end
             exit!
           else
@@ -78,7 +82,7 @@ module ActiveSupport
                 "ISOLATION_OUTPUT" => tmpfile.path
               }
 
-              test_opts = "-n#{self.class.name}##{self.name}"
+              test_opts = "-n#{self.class.name}##{name}"
 
               load_path_args = []
               $-I.each do |p|
@@ -94,7 +98,7 @@ module ActiveSupport
                 nil
               end
 
-              return tmpfile.read.unpack("m")[0]
+              return tmpfile.read.unpack1("m")
             end
           end
         end

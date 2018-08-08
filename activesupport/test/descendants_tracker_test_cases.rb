@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module DescendantsTrackerTestCases
@@ -35,12 +37,12 @@ module DescendantsTrackerTestCases
     mark_as_autoloaded(*ALL) do
       ActiveSupport::DescendantsTracker.clear
       ALL.each do |k|
-        assert ActiveSupport::DescendantsTracker.descendants(k).empty?
+        assert_empty ActiveSupport::DescendantsTracker.descendants(k)
       end
     end
   end
 
-  protected
+  private
 
     def assert_equal_sets(expected, actual)
       assert_equal Set.new(expected), Set.new(actual)

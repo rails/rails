@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 
 module ActionController
@@ -5,7 +7,7 @@ module ActionController
   # without requirement of being in controller actions.
   #
   # You get a concrete renderer class by invoking ActionController::Base#renderer.
-  # For example,
+  # For example:
   #
   #   ApplicationController.renderer
   #
@@ -18,7 +20,7 @@ module ActionController
   #   ApplicationController.render template: '...'
   #
   # #render allows you to use the same options that you can use when rendering in a controller.
-  # For example,
+  # For example:
   #
   #   FooController.render :action, locals: { ... }, assigns: { ... }
   #
@@ -56,11 +58,12 @@ module ActionController
 
     # Create a new renderer for the same controller but with new defaults.
     def with_defaults(defaults)
-      self.class.new controller, env, self.defaults.merge(defaults)
+      self.class.new controller, @env, self.defaults.merge(defaults)
     end
 
     # Accepts a custom Rack environment to render templates in.
-    # It will be merged with ActionController::Renderer.defaults
+    # It will be merged with the default Rack environment defined by
+    # +ActionController::Renderer::DEFAULTS+.
     def initialize(controller, env, defaults)
       @controller = controller
       @defaults = defaults
@@ -68,6 +71,21 @@ module ActionController
     end
 
     # Render templates with any options from ActionController::Base#render_to_string.
+    #
+    # The primary options are:
+    # * <tt>:partial</tt> - See <tt>ActionView::PartialRenderer</tt> for details.
+    # * <tt>:file</tt> - Renders an explicit template file. Add <tt>:locals</tt> to pass in, if so desired.
+    #   It shouldn’t be used directly with unsanitized user input due to lack of validation.
+    # * <tt>:inline</tt> - Renders a ERB template string.
+    # * <tt>:plain</tt> - Renders provided text and sets the content type as <tt>text/plain</tt>.
+    # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
+    #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
+    # * <tt>:json</tt> - Renders the provided hash or object in JSON. You don't
+    #   need to call <tt>.to_json<tt> on the object you want to render.
+    # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
+    #
+    # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, the default is
+    # to render a partial and use the second parameter as the locals hash.
     def render(*args)
       raise "missing controller" unless controller
 
@@ -84,6 +102,7 @@ module ActionController
       def normalize_keys(env)
         new_env = {}
         env.each_pair { |k, v| new_env[rack_key_for(k)] = rack_value_for(k, v) }
+        new_env["rack.url_scheme"] = new_env["HTTPS"] == "on" ? "https" : "http"
         new_env
       end
 

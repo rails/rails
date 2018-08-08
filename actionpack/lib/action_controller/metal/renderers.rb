@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "set"
 
 module ActionController
@@ -26,8 +28,7 @@ module ActionController
     RENDERERS = Set.new
 
     included do
-      class_attribute :_renderers
-      self._renderers = Set.new.freeze
+      class_attribute :_renderers, default: Set.new.freeze
     end
 
     # Used in <tt>ActionController::Base</tt>
@@ -84,7 +85,7 @@ module ActionController
     def self.remove(key)
       RENDERERS.delete(key.to_sym)
       method_name = _render_with_renderer_method_name(key)
-      remove_method(method_name) if method_defined?(method_name)
+      remove_possible_method(method_name)
     end
 
     def self._render_with_renderer_method_name(key)
@@ -104,7 +105,7 @@ module ActionController
       #
       # Since <tt>ActionController::Metal</tt> controllers cannot render, the controller
       # must include <tt>AbstractController::Rendering</tt>, <tt>ActionController::Rendering</tt>,
-      # and <tt>ActionController::Renderers</tt>, and have at lest one renderer.
+      # and <tt>ActionController::Renderers</tt>, and have at least one renderer.
       #
       # Rather than including <tt>ActionController::Renderers::All</tt> and including all renderers,
       # you may specify which renderers to include by passing the renderer name or names to

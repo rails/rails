@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Generators
     class GeneratorGenerator < NamedBase # :nodoc:
@@ -12,7 +14,7 @@ module Rails
 
       hook_for :test_framework
 
-      protected
+      private
 
         def generator_dir
           if options[:namespace]

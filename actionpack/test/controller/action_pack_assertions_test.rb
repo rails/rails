@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "controller/fake_controllers"
 
@@ -83,7 +85,7 @@ class ActionPackAssertionsController < ActionController::Base
   end
 
   def render_file_absolute_path
-    render file: File.expand_path("../../../README.rdoc", __FILE__)
+    render file: File.expand_path("../../README.rdoc", __dir__)
   end
 
   def render_file_relative_path
@@ -128,6 +130,16 @@ module Admin
   end
 end
 
+class ApiOnlyController < ActionController::API
+  def nothing
+    head :ok
+  end
+
+  def redirect_to_new_route
+    redirect_to new_route_url
+  end
+end
+
 class ActionPackAssertionsControllerTest < ActionController::TestCase
   def test_render_file_absolute_path
     get :render_file_absolute_path
@@ -167,6 +179,20 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
       set.draw do
         get "photos", to: "action_pack_assertions#nothing", constraints: { subdomain: "admin" }
       end
+    end
+  end
+
+  def test_with_routing_works_with_api_only_controllers
+    @controller = ApiOnlyController.new
+
+    with_routing do |set|
+      set.draw do
+        get "new_route", to: "api_only#nothing"
+        get "redirect_to_new_route", to: "api_only#redirect_to_new_route"
+      end
+
+      process :redirect_to_new_route
+      assert_redirected_to "http://test.host/new_route"
     end
   end
 
@@ -264,29 +290,29 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_template_objects_exist
     process :assign_this
-    assert !@controller.instance_variable_defined?(:"@hi")
+    assert_not @controller.instance_variable_defined?(:"@hi")
     assert @controller.instance_variable_get(:"@howdy")
   end
 
   def test_template_objects_missing
     process :nothing
-    assert !@controller.instance_variable_defined?(:@howdy)
+    assert_not @controller.instance_variable_defined?(:@howdy)
   end
 
   def test_empty_flash
     process :flash_me_naked
-    assert flash.empty?
+    assert_empty flash
   end
 
   def test_flash_exist
     process :flash_me
-    assert flash.any?
-    assert flash["hello"].present?
+    assert_predicate flash, :any?
+    assert_predicate flash["hello"], :present?
   end
 
   def test_flash_does_not_exist
     process :nothing
-    assert flash.empty?
+    assert_empty flash
   end
 
   def test_session_exist
@@ -296,7 +322,7 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def session_does_not_exist
     process :nothing
-    assert session.empty?
+    assert_empty session
   end
 
   def test_redirection_location
@@ -317,46 +343,46 @@ class ActionPackAssertionsControllerTest < ActionController::TestCase
 
   def test_server_error_response_code
     process :response500
-    assert @response.server_error?
+    assert_predicate @response, :server_error?
 
     process :response599
-    assert @response.server_error?
+    assert_predicate @response, :server_error?
 
     process :response404
-    assert !@response.server_error?
+    assert_not_predicate @response, :server_error?
   end
 
   def test_missing_response_code
     process :response404
-    assert @response.not_found?
+    assert_predicate @response, :not_found?
   end
 
   def test_client_error_response_code
     process :response404
-    assert @response.client_error?
+    assert_predicate @response, :client_error?
   end
 
   def test_redirect_url_match
     process :redirect_external
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
     assert_match(/rubyonrails/, @response.redirect_url)
-    assert !/perloffrails/.match(@response.redirect_url)
+    assert_no_match(/perloffrails/, @response.redirect_url)
   end
 
   def test_redirection
     process :redirect_internal
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
 
     process :redirect_external
-    assert @response.redirect?
+    assert_predicate @response, :redirect?
 
     process :nothing
-    assert !@response.redirect?
+    assert_not_predicate @response, :redirect?
   end
 
   def test_successful_response_code
     process :nothing
-    assert @response.successful?
+    assert_predicate @response, :successful?
   end
 
   def test_response_object

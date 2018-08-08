@@ -1,23 +1,37 @@
-namespace :guides do
+# frozen_string_literal: true
 
+namespace :guides do
   desc 'Generate guides (for authors), use ONLY=foo to process just "foo.md"'
   task generate: "generate:html"
 
-  namespace :generate do
+  # Guides are written in UTF-8, but the environment may be configured for some
+  # other locale, these tasks are responsible for ensuring the default external
+  # encoding is UTF-8.
+  #
+  # Real use cases: Generation was reported to fail on a machine configured with
+  # GBK (Chinese). The docs server once got misconfigured somehow and had "C",
+  # which broke generation too.
+  task :encoding do
+    %w(LANG LANGUAGE LC_ALL).each do |env_var|
+      ENV[env_var] = "en_US.UTF-8"
+    end
+  end
 
+  namespace :generate do
     desc "Generate HTML guides"
-    task :html do
+    task html: :encoding do
       ENV["WARNINGS"] = "1" # authors can't disable this
       ruby "rails_guides.rb"
     end
 
     desc "Generate .mobi file. The kindlegen executable must be in your PATH. You can get it for free from http://www.amazon.com/gp/feature.html?docId=1000765211"
-    task :kindle do
-      unless `kindlerb -v 2> /dev/null` =~ /kindlerb 1.0.1/
-        abort "Please `gem install kindlerb` and make sure you have `kindlegen` in your PATH"
+    task kindle: :encoding do
+      require "kindlerb"
+      unless Kindlerb.kindlegen_available?
+        abort "Please run `setupkindlerb` to install kindlegen"
       end
-      unless `convert` =~ /convert/
-        abort "Please install ImageMagick`"
+      unless /convert/.match?(`convert`)
+        abort "Please install ImageMagick"
       end
       ENV["KINDLE"] = "1"
       Rake::Task["guides:generate:html"].invoke
@@ -26,13 +40,13 @@ namespace :guides do
 
   # Validate guides -------------------------------------------------------------------------
   desc 'Validate guides, use ONLY=foo to process just "foo.html"'
-  task :validate do
+  task validate: :encoding do
     ruby "w3c_validator.rb"
   end
 
   desc "Show help"
   task :help do
-    puts <<-help
+    puts <<HELP
 
 Guides are taken from the source directory, and the result goes into the
 output directory. Assets are stored under files, and copied to output/files as
@@ -45,8 +59,9 @@ All of these processes are handled via rake tasks, here's a full list of them:
 #{%x[rake -T]}
 Some arguments may be passed via environment variables:
 
-  WARNINGS=1
-    Internal links (anchors) are checked, also detects duplicated IDs.
+  RAILS_VERSION=tag
+    If guides are being generated for a specific Rails version set the Git tag
+    here, otherwise the current SHA1 is going to be used to generate edge guides.
 
   ALL=1
     Force generation of all guides.
@@ -64,15 +79,12 @@ Some arguments may be passed via environment variables:
     Use it when you want to generate translated guides in
     source/<GUIDES_LANGUAGE> folder (such as source/es)
 
-  EDGE=1
-    Indicate generated guides should be marked as edge.
-
 Examples:
-  $ rake guides:generate ALL=1
-  $ rake guides:generate EDGE=1
-  $ rake guides:generate:kindle EDGE=1
+  $ rake guides:generate ALL=1 RAILS_VERSION=v5.1.0
+  $ rake guides:generate ONLY=migrations
+  $ rake guides:generate:kindle
   $ rake guides:generate GUIDES_LANGUAGE=es
-    help
+HELP
   end
 end
 

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 ORIG_ARGV = ARGV.dup
 
 require "active_support/core_ext/kernel/reporting"
 
 silence_warnings do
-  Encoding.default_internal = "UTF-8"
-  Encoding.default_external = "UTF-8"
+  Encoding.default_internal = Encoding::UTF_8
+  Encoding.default_external = Encoding::UTF_8
 end
 
 require "active_support/testing/autorun"
@@ -24,16 +26,20 @@ ActiveSupport.to_time_preserves_timezone = ENV["PRESERVE_TIMEZONES"] == "1"
 # Disable available locale checks to avoid warnings running the test suite.
 I18n.enforce_available_locales = false
 
-# Skips the current run on Rubinius using Minitest::Assertions#skip
-def rubinius_skip(message = "")
-  skip message if RUBY_ENGINE == "rbx"
-end
-
-# Skips the current run on JRuby using Minitest::Assertions#skip
-def jruby_skip(message = "")
-  skip message if defined?(JRUBY_VERSION)
-end
-
 class ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
+
+  # Skips the current run on Rubinius using Minitest::Assertions#skip
+  private def rubinius_skip(message = "")
+    skip message if RUBY_ENGINE == "rbx"
+  end
+
+  # Skips the current run on JRuby using Minitest::Assertions#skip
+  private def jruby_skip(message = "")
+    skip message if defined?(JRUBY_VERSION)
+  end
+
+  def frozen_error_class
+    Object.const_defined?(:FrozenError) ? FrozenError : RuntimeError
+  end
 end

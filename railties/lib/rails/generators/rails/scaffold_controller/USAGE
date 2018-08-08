@@ -12,7 +12,7 @@ Description:
 Example:
     `rails generate scaffold_controller CreditCard`
 
-    Credit card controller with URLs like /credit_card/debit.
+    Credit card controller with URLs like /credit_cards.
         Controller: app/controllers/credit_cards_controller.rb
         Test:       test/controllers/credit_cards_controller_test.rb
         Views:      app/views/credit_cards/index.html.erb [...]

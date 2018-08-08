@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/object/with_options"
 
 module MyApplication
@@ -88,7 +90,7 @@ module MyApplication
 
       validate :check_empty_credit_limit
 
-      protected
+      private
 
         def check_empty_credit_limit
           errors.add("credit_card", :blank) if credit_card.blank?

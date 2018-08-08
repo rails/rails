@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
+require "console_helpers"
 
 class ConsoleTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::Isolation
@@ -70,7 +73,7 @@ class ConsoleTest < ActiveSupport::TestCase
     MODEL
 
     load_environment
-    assert User.new.respond_to?(:name)
+    assert_respond_to User.new, :name
 
     app_file "app/models/user.rb", <<-MODEL
       class User
@@ -78,9 +81,9 @@ class ConsoleTest < ActiveSupport::TestCase
       end
     MODEL
 
-    assert !User.new.respond_to?(:age)
+    assert_not_respond_to User.new, :age
     irb_context.reload!(false)
-    assert User.new.respond_to?(:age)
+    assert_respond_to User.new, :age
   end
 
   def test_access_to_helpers
@@ -93,14 +96,11 @@ class ConsoleTest < ActiveSupport::TestCase
   end
 end
 
-begin
-  require "pty"
-rescue LoadError
-end
-
 class FullStackConsoleTest < ActiveSupport::TestCase
+  include ConsoleHelpers
+
   def setup
-    skip "PTY unavailable" unless defined?(PTY) && PTY.respond_to?(:open)
+    skip "PTY unavailable" unless available_pty?
 
     build_app
     app_file "app/models/post.rb", <<-CODE
@@ -116,48 +116,43 @@ class FullStackConsoleTest < ActiveSupport::TestCase
     teardown_app
   end
 
-  def assert_output(expected, timeout = 1)
-    timeout = Time.now + timeout
-
-    output = ""
-    until output.include?(expected) || Time.now > timeout
-      if IO.select([@master], [], [], 0.1)
-        output << @master.read(1)
-      end
-    end
-
-    assert_includes output, expected, "#{expected.inspect} expected, but got:\n\n#{output}"
-  end
-
   def write_prompt(command, expected_output = nil)
     @master.puts command
-    assert_output command
-    assert_output expected_output if expected_output
-    assert_output "> "
+    assert_output command, @master
+    assert_output expected_output, @master if expected_output
+    assert_output "> ", @master
   end
 
-  def spawn_console
+  def spawn_console(options)
     Process.spawn(
-      "#{app_path}/bin/rails console --sandbox",
+      "#{app_path}/bin/rails console #{options}",
       in: @slave, out: @slave, err: @slave
     )
 
-    assert_output "> ", 30
+    assert_output "> ", @master, 30
   end
 
   def test_sandbox
-    spawn_console
+    spawn_console("--sandbox")
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.create"
     write_prompt "Post.count", "=> 1"
     @master.puts "quit"
 
-    spawn_console
+    spawn_console("--sandbox")
 
     write_prompt "Post.count", "=> 0"
     write_prompt "Post.transaction { Post.create; raise }"
     write_prompt "Post.count", "=> 0"
+    @master.puts "quit"
+  end
+
+  def test_environment_option_and_irb_option
+    spawn_console("test -- --verbose")
+
+    write_prompt "a = 1", "a = 1"
+    write_prompt "puts Rails.env", "puts Rails.env\r\ntest"
     @master.puts "quit"
   end
 end

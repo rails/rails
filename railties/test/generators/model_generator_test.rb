@@ -1,18 +1,11 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/model/model_generator"
-require "active_support/core_ext/string/strip"
 
 class ModelGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(Account name:string age:integer)
-
-  def test_application_record_skeleton_is_created
-    run_generator
-    assert_file "app/models/application_record.rb" do |record|
-      assert_match(/class ApplicationRecord < ActiveRecord::Base/, record)
-      assert_match(/self.abstract_class = true/, record)
-    end
-  end
 
   def test_help_shows_invoked_generators_options
     content = run_generator ["--help"]
@@ -41,17 +34,6 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     run_generator ["account", "--parent", "Admin::Account"]
     assert_file "app/models/account.rb", /class Account < Admin::Account/
     assert_no_migration "db/migrate/create_accounts.rb"
-  end
-
-  def test_model_with_existent_application_record
-    mkdir_p "#{destination_root}/app/models"
-    touch "#{destination_root}/app/models/application_record.rb"
-
-    Dir.chdir(destination_root) do
-      run_generator ["account"]
-    end
-
-    assert_file "app/models/account.rb", /class Account < ApplicationRecord/
   end
 
   def test_plural_names_are_singularized
@@ -220,6 +202,17 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     ActiveRecord::Base.timestamped_migrations = true
   end
 
+  def test_migration_with_configured_path
+    old_paths = Rails.application.config.paths["db/migrate"]
+    Rails.application.config.paths.add "db/migrate", with: "db2/migrate"
+
+    run_generator
+
+    assert_migration "db2/migrate/create_accounts.rb", /class CreateAccounts < ActiveRecord::Migration\[[0-9.]+\]/
+  ensure
+    Rails.application.config.paths["db/migrate"] = old_paths
+  end
+
   def test_model_with_references_attribute_generates_belongs_to_associations
     run_generator ["product", "name:string", "supplier:references"]
     assert_file "app/models/product.rb", /belongs_to :supplier/
@@ -242,7 +235,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_migration_with_timestamps
     run_generator
-    assert_migration "db/migrate/create_accounts.rb", /t.timestamps/
+    assert_migration "db/migrate/create_accounts.rb", /t\.timestamps/
   end
 
   def test_migration_timestamps_are_skipped
@@ -250,7 +243,7 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
     assert_migration "db/migrate/create_accounts.rb" do |m|
       assert_method :change, m do |up|
-        assert_no_match(/t.timestamps/, up)
+        assert_no_match(/t\.timestamps/, up)
       end
     end
   end
@@ -258,19 +251,19 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_migration_is_skipped_with_skip_option
     run_generator
     output = run_generator ["Account", "--skip"]
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_ignored_as_identical_with_skip_option
     run_generator ["Account"]
     output = run_generator ["Account", "--skip"]
-    assert_match %r{identical\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{identical\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_is_skipped_on_skip_behavior
     run_generator
     output = run_generator ["Account"], behavior: :skip
-    assert_match %r{skip\s+db/migrate/\d+_create_accounts.rb}, output
+    assert_match %r{skip\s+db/migrate/\d+_create_accounts\.rb}, output
   end
 
   def test_migration_error_is_not_shown_on_revoke
@@ -385,10 +378,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_belongs_to_adds_required_association
     run_generator ["account", "supplier:references{required}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -396,10 +389,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_polymorphic_belongs_to_generages_correct_model
     run_generator ["account", "supplier:references{required,polymorphic}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, polymorphic: true, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -407,10 +400,10 @@ class ModelGeneratorTest < Rails::Generators::TestCase
   def test_required_and_polymorphic_are_order_independent
     run_generator ["account", "supplier:references{polymorphic.required}"]
 
-    expected_file = <<-FILE.strip_heredoc
-    class Account < ApplicationRecord
-      belongs_to :supplier, polymorphic: true, required: true
-    end
+    expected_file = <<~FILE
+      class Account < ApplicationRecord
+        belongs_to :supplier, polymorphic: true, required: true
+      end
     FILE
     assert_file "app/models/account.rb", expected_file
   end
@@ -458,11 +451,11 @@ class ModelGeneratorTest < Rails::Generators::TestCase
 
   def test_token_option_adds_has_secure_token
     run_generator ["user", "token:token", "auth_token:token"]
-    expected_file = <<-FILE.strip_heredoc
-    class User < ApplicationRecord
-      has_secure_token
-      has_secure_token :auth_token
-    end
+    expected_file = <<~FILE
+      class User < ApplicationRecord
+        has_secure_token
+        has_secure_token :auth_token
+      end
     FILE
     assert_file "app/models/user.rb", expected_file
   end

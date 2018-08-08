@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "date"
 require "active_support/duration"
 require "active_support/core_ext/object/acts_like"
@@ -133,7 +135,7 @@ class Date
   # Allow Date to be compared with Time by converting to DateTime and relying on the <=> from there.
   def compare_with_coercion(other)
     if other.is_a?(Time)
-      self.to_datetime <=> other
+      to_datetime <=> other
     else
       compare_without_coercion(other)
     end

@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
-if ActiveRecord::Base.connection.supports_foreign_keys?
+if ActiveRecord::Base.connection.supports_foreign_keys_in_create?
   module ActiveRecord
     class Migration
-      class ReferencesForeignKeyTest < ActiveRecord::TestCase
+      class ReferencesForeignKeyInCreateTest < ActiveRecord::TestCase
         setup do
           @connection = ActiveRecord::Base.connection
           @connection.create_table(:testing_parents, force: true)
@@ -42,8 +44,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "options hash can be passed" do
           @connection.change_table :testing_parents do |t|
-            t.bigint :other_id
-            t.index :other_id, unique: true
+            t.references :other, index: { unique: true }
           end
           @connection.create_table :testings do |t|
             t.references :testing_parent, foreign_key: { primary_key: :other_id }
@@ -60,6 +61,24 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
           fks = @connection.foreign_keys("testings")
           assert_equal([["testings", "testing_parents", "parent_id"]],
                        fks.map { |fk| [fk.from_table, fk.to_table, fk.column] })
+        end
+      end
+    end
+  end
+end
+
+if ActiveRecord::Base.connection.supports_foreign_keys?
+  module ActiveRecord
+    class Migration
+      class ReferencesForeignKeyTest < ActiveRecord::TestCase
+        setup do
+          @connection = ActiveRecord::Base.connection
+          @connection.create_table(:testing_parents, force: true)
+        end
+
+        teardown do
+          @connection.drop_table "testings", if_exists: true
+          @connection.drop_table "testing_parents", if_exists: true
         end
 
         test "foreign keys cannot be added to polymorphic relations when creating the table" do
@@ -92,8 +111,7 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "foreign keys accept options when changing the table" do
           @connection.change_table :testing_parents do |t|
-            t.bigint :other_id
-            t.index :other_id, unique: true
+            t.references :other, index: { unique: true }
           end
           @connection.create_table :testings
           @connection.change_table :testings do |t|
@@ -120,6 +138,16 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
           assert_difference "@connection.foreign_keys('testings').size", -1 do
             @connection.remove_reference :testings, :testing_parent, foreign_key: true
+          end
+        end
+
+        test "removing column removes foreign key" do
+          @connection.create_table :testings do |t|
+            t.references :testing_parent, index: true, foreign_key: true
+          end
+
+          assert_difference "@connection.foreign_keys('testings').size", -1 do
+            @connection.remove_column :testings, :testing_parent_id
           end
         end
 
@@ -177,18 +205,31 @@ if ActiveRecord::Base.connection.supports_foreign_keys?
 
         test "multiple foreign keys can be added to the same table" do
           @connection.create_table :testings do |t|
-            t.bigint :col_1
-            t.bigint :col_2
-
-            t.foreign_key :testing_parents, column: :col_1
-            t.foreign_key :testing_parents, column: :col_2
+            t.references :parent1, foreign_key: { to_table: :testing_parents }
+            t.references :parent2, foreign_key: { to_table: :testing_parents }
           end
 
-          fks = @connection.foreign_keys("testings")
+          fks = @connection.foreign_keys("testings").sort_by(&:column)
 
           fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
-          assert_equal([["testings", "testing_parents", "col_1"],
-                        ["testings", "testing_parents", "col_2"]], fk_definitions)
+          assert_equal([["testings", "testing_parents", "parent1_id"],
+                        ["testings", "testing_parents", "parent2_id"]], fk_definitions)
+        end
+
+        test "multiple foreign keys can be removed to the selected one" do
+          @connection.create_table :testings do |t|
+            t.references :parent1, foreign_key: { to_table: :testing_parents }
+            t.references :parent2, foreign_key: { to_table: :testing_parents }
+          end
+
+          assert_difference "@connection.foreign_keys('testings').size", -1 do
+            @connection.remove_reference :testings, :parent1, foreign_key: { to_table: :testing_parents }
+          end
+
+          fks = @connection.foreign_keys("testings").sort_by(&:column)
+
+          fk_definitions = fks.map { |fk| [fk.from_table, fk.to_table, fk.column] }
+          assert_equal([["testings", "testing_parents", "parent2_id"]], fk_definitions)
         end
       end
     end

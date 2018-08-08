@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module ActionDispatch
@@ -42,7 +44,7 @@ module ActionDispatch
       @hash["foo"] = "bar"
       @hash.delete "foo"
 
-      assert !@hash.key?("foo")
+      assert_not @hash.key?("foo")
       assert_nil @hash["foo"]
     end
 
@@ -51,7 +53,7 @@ module ActionDispatch
       assert_equal({ "foo" => "bar" }, @hash.to_hash)
 
       @hash.to_hash["zomg"] = "aaron"
-      assert !@hash.key?("zomg")
+      assert_not @hash.key?("zomg")
       assert_equal({ "foo" => "bar" }, @hash.to_hash)
     end
 
@@ -63,10 +65,10 @@ module ActionDispatch
       assert_equal({ "flashes" => { "foo" => "bar" }, "discard" => [] }, @hash.to_session_value)
 
       @hash.discard("foo")
-      assert_equal(nil, @hash.to_session_value)
+      assert_nil(@hash.to_session_value)
 
       @hash.sweep
-      assert_equal(nil, @hash.to_session_value)
+      assert_nil(@hash.to_session_value)
     end
 
     def test_from_session_value
@@ -75,7 +77,7 @@ module ActionDispatch
       session = Marshal.load(Base64.decode64(rails_3_2_cookie))
       hash = Flash::FlashHash.from_session_value(session["flash"])
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)
-      assert_equal(nil, hash.to_session_value)
+      assert_nil(hash.to_session_value)
     end
 
     def test_from_session_value_on_json_serializer
@@ -84,17 +86,17 @@ module ActionDispatch
       hash = Flash::FlashHash.from_session_value(session["flash"])
 
       assert_equal({ "greeting" => "Hello" }, hash.to_hash)
-      assert_equal(nil, hash.to_session_value)
+      assert_nil(hash.to_session_value)
       assert_equal "Hello", hash[:greeting]
       assert_equal "Hello", hash["greeting"]
     end
 
     def test_empty?
-      assert @hash.empty?
+      assert_empty @hash
       @hash["zomg"] = "bears"
-      assert !@hash.empty?
+      assert_not_empty @hash
       @hash.clear
-      assert @hash.empty?
+      assert_empty @hash
     end
 
     def test_each

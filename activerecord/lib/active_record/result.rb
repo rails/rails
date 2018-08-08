@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   ###
   # This class encapsulates a result returned from calling
@@ -41,10 +43,20 @@ module ActiveRecord
       @column_types = column_types
     end
 
+    # Returns true if this result set includes the column named +name+
+    def includes_column?(name)
+      @columns.include? name
+    end
+
+    # Returns the number of elements in the rows array.
     def length
       @rows.length
     end
 
+    # Calls the given block once for each element in row collection, passing
+    # row as parameter.
+    #
+    # Returns an +Enumerator+ if no block is given.
     def each
       if block_given?
         hash_rows.each { |row| yield row }
@@ -53,6 +65,7 @@ module ActiveRecord
       end
     end
 
+    # Returns an array of hashes representing each row record.
     def to_hash
       hash_rows
     end
@@ -60,11 +73,12 @@ module ActiveRecord
     alias :map! :map
     alias :collect! :map
 
-    # Returns true if there are no records.
+    # Returns true if there are no records, otherwise false.
     def empty?
       rows.empty?
     end
 
+    # Returns an array of hashes representing each row record.
     def to_ary
       hash_rows
     end
@@ -73,23 +87,36 @@ module ActiveRecord
       hash_rows[idx]
     end
 
+    # Returns the first record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
     def first
       return nil if @rows.empty?
       Hash[@columns.zip(@rows.first)]
     end
 
+    # Returns the last record from the rows collection.
+    # If the rows collection is empty, returns +nil+.
     def last
       return nil if @rows.empty?
       Hash[@columns.zip(@rows.last)]
     end
 
     def cast_values(type_overrides = {}) # :nodoc:
-      types = columns.map { |name| column_type(name, type_overrides) }
-      result = rows.map do |values|
-        types.zip(values).map { |type, value| type.deserialize(value) }
-      end
+      if columns.one?
+        # Separated to avoid allocating an array per row
 
-      columns.one? ? result.map!(&:first) : result
+        type = column_type(columns.first, type_overrides)
+
+        rows.map do |(value)|
+          type.deserialize(value)
+        end
+      else
+        types = columns.map { |name| column_type(name, type_overrides) }
+
+        rows.map do |values|
+          Array.new(values.size) { |i| types[i].deserialize(values[i]) }
+        end
+      end
     end
 
     def initialize_copy(other)
@@ -112,7 +139,7 @@ module ActiveRecord
           begin
             # We freeze the strings to prevent them getting duped when
             # used as keys in ActiveRecord::Base's @attributes hash
-            columns = @columns.map { |c| c.dup.freeze }
+            columns = @columns.map(&:-@)
             @rows.map { |row|
               # In the past we used Hash[columns.zip(row)]
               #  though elegant, the verbose way is much more efficient

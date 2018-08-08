@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/ruby_version_check"
 
 require "pathname"
@@ -7,6 +9,7 @@ require "active_support/dependencies/autoload"
 require "active_support/core_ext/kernel/reporting"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/array/extract_options"
+require "active_support/core_ext/object/blank"
 
 require "rails/application"
 require "rails/version"
@@ -67,7 +70,7 @@ module Rails
     #   Rails.env.development? # => true
     #   Rails.env.production? # => false
     def env
-      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"] || ENV["RACK_ENV"] || "development")
+      @_env ||= ActiveSupport::StringInquirer.new(ENV["RAILS_ENV"].presence || ENV["RACK_ENV"].presence || "development")
     end
 
     # Sets the Rails environment.
@@ -86,8 +89,8 @@ module Rails
     #   groups assets: [:development, :test]
     #
     #   # Returns
-    #   # => [:default, :development, :assets] for Rails.env == "development"
-    #   # => [:default, :production]           for Rails.env == "production"
+    #   # => [:default, "development", :assets] for Rails.env == "development"
+    #   # => [:default, "production"]           for Rails.env == "production"
     def groups(*groups)
       hash = groups.extract_options!
       env = Rails.env

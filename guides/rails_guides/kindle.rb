@@ -1,9 +1,7 @@
 #!/usr/bin/env ruby
+# frozen_string_literal: true
 
-unless `which kindlerb`
-  abort "Please gem install kindlerb"
-end
-
+require "kindlerb"
 require "nokogiri"
 require "fileutils"
 require "yaml"
@@ -28,17 +26,16 @@ module Kindle
       generate_document_metadata(mobi_outfile)
 
       puts "Creating MOBI document with kindlegen. This may take a while."
-      cmd = "kindlerb . > #{File.absolute_path logfile} 2>&1"
-      puts cmd
-      system(cmd)
-      puts "MOBI document generated at #{File.expand_path(mobi_outfile, output_dir)}"
+      if Kindlerb.run(output_dir)
+        puts "MOBI document generated at #{File.expand_path(mobi_outfile, output_dir)}"
+      end
     end
   end
 
   def generate_front_matter(html_pages)
     frontmatter = []
     html_pages.delete_if { |x|
-      if x =~ /(toc|welcome|credits|copyright).html/
+      if /(toc|welcome|copyright).html/.match?(x)
         frontmatter << x unless x =~ /toc/
         true
       end
@@ -61,9 +58,9 @@ module Kindle
   end
 
   def generate_sections(html_pages)
-    FileUtils::rm_rf("sections/")
+    FileUtils.rm_rf("sections/")
     html_pages.each_with_index do |page, section_idx|
-      FileUtils::mkdir_p("sections/%03d" % section_idx)
+      FileUtils.mkdir_p("sections/%03d" % section_idx)
       doc = Nokogiri::HTML(File.open(page))
       title = doc.at("title").inner_text.gsub("Ruby on Rails Guides: ", "")
       title = page.capitalize.gsub(".html", "") if title.strip == ""

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2016 David Heinemeier Hansson
+# Copyright (c) 2004-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -28,6 +30,8 @@ require "active_model/version"
 module ActiveModel
   extend ActiveSupport::Autoload
 
+  autoload :Attribute
+  autoload :Attributes
   autoload :AttributeAssignment
   autoload :AttributeMethods
   autoload :BlockValidator, "active_model/validator"
@@ -42,8 +46,8 @@ module ActiveModel
   autoload :Naming
   autoload :SecurePassword
   autoload :Serialization
-  autoload :TestCase
   autoload :Translation
+  autoload :Type
   autoload :Validations
   autoload :Validator
 
@@ -69,5 +73,5 @@ module ActiveModel
 end
 
 ActiveSupport.on_load(:i18n) do
-  I18n.load_path << File.dirname(__FILE__) + "/active_model/locale/en.yml"
+  I18n.load_path << File.expand_path("active_model/locale/en.yml", __dir__)
 end

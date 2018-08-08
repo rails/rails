@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -8,6 +10,11 @@ module ActiveRecord
         ["row 2 col 1", "row 2 col 2"],
         ["row 3 col 1", "row 3 col 2"],
       ])
+    end
+
+    test "includes_column?" do
+      assert result.includes_column?("col_1")
+      assert_not result.includes_column?("foo")
     end
 
     test "length" do
@@ -45,10 +52,8 @@ module ActiveRecord
       end
     end
 
-    if Enumerator.method_defined? :size
-      test "each without block returns a sized enumerator" do
-        assert_equal 3, result.each.size
-      end
+    test "each without block returns a sized enumerator" do
+      assert_equal 3, result.each.size
     end
 
     test "cast_values returns rows after type casting" do

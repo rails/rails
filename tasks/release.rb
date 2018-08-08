@@ -1,10 +1,25 @@
-FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable railties )
+# frozen_string_literal: true
 
-root    = File.expand_path("../../", __FILE__)
+FRAMEWORKS = %w( activesupport activemodel activerecord actionview actionpack activejob actionmailer actioncable activestorage railties )
+FRAMEWORK_NAMES = Hash.new { |h, k| k.split(/(?<=active|action)/).map(&:capitalize).join(" ") }
+
+root    = File.expand_path("..", __dir__)
 version = File.read("#{root}/RAILS_VERSION").strip
 tag     = "v#{version}"
 
 directory "pkg"
+
+# This "npm-ifies" the current version number
+# With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
+# versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
+
+# "5.0.1"     --> "5.0.1"
+# "5.0.1.1"   --> "5.0.1-1" *
+# "5.0.0.rc1" --> "5.0.0-rc1"
+#
+# * This makes it a prerelease. That's bad, but we haven't come up with
+# a better solution at the moment.
+npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
 (FRAMEWORKS + ["rails"]).each do |framework|
   namespace framework do
@@ -43,13 +58,24 @@ directory "pkg"
       raise "Could not insert PRE in #{file}" unless $1
 
       File.open(file, "w") { |f| f.write ruby }
+
+      require "json"
+      if File.exist?("#{framework}/package.json") && JSON.parse(File.read("#{framework}/package.json"))["version"] != npm_version
+        Dir.chdir("#{framework}") do
+          if sh "which npm"
+            sh "npm version #{npm_version} --no-git-tag-version"
+          else
+            raise "You must have npm installed to release Rails."
+          end
+        end
+      end
     end
 
     task gem => %w(update_versions pkg) do
       cmd = ""
-      cmd << "cd #{framework} && " unless framework == "rails"
-      cmd << "bundle exec rake package && " unless framework == "rails"
-      cmd << "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
+      cmd += "cd #{framework} && " unless framework == "rails"
+      cmd += "bundle exec rake package && " unless framework == "rails"
+      cmd += "gem build #{gemspec} && mv #{framework}-#{version}.gem #{root}/pkg/"
       sh cmd
     end
 
@@ -61,38 +87,10 @@ directory "pkg"
     task push: :build do
       sh "gem push #{gem}"
 
-      # When running the release task we usually run build first to check that the gem works properly.
-      # NPM will refuse to publish or rebuild the gem if the version is changed when the Rails gem
-      # versions are changed. This then causes the gem push to fail. Because of this we need to update
-      # the version and publish at the same time.
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
-          # This "npm-ifies" the current version
-          # With npm, versions such as "5.0.0.rc1" or "5.0.0.beta1.1" are not compliant with its
-          # versioning system, so they must be transformed to "5.0.0-rc1" and "5.0.0-beta1-1" respectively.
-
-          # In essence, the code below runs through all "."s that appear in the version,
-          # and checks to see if their index in the version string is greater than or equal to 2,
-          # and if so, it will change the "." to a "-".
-
-          # Sample version transformations:
-          # irb(main):001:0> version = "5.0.1.1"
-          # => "5.0.1.1"
-          # irb(main):002:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
-          # => "5.0.1-1"
-          # irb(main):003:0> version = "5.0.0.rc1"
-          # => "5.0.0.rc1"
-          # irb(main):004:0> version.gsub(/\./).with_index { |s, i| i >= 2 ? '-' : s }
-          # => "5.0.0-rc1"
-          version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
-
-          # Check if npm is installed, and raise an error if not
-          if sh "which npm"
-            sh "npm version #{version} --no-git-tag-version"
-            sh "npm publish"
-          else
-            raise "You must have npm installed to release Rails."
-          end
+          npm_tag = /[a-z]/.match?(version) ? "pre" : "latest"
+          sh "npm publish --tag #{npm_tag}"
         end
       end
     end
@@ -104,10 +102,12 @@ namespace :changelog do
     (FRAMEWORKS + ["guides"]).each do |fw|
       require "date"
       fname = File.join fw, "CHANGELOG.md"
+      current_contents = File.read(fname)
 
-      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n*   No changes.\n\n\n"
-      contents = header + File.read(fname)
-      File.open(fname, "wb") { |f| f.write contents }
+      header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
+      header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      contents = header + current_contents
+      File.write(fname, contents)
     end
   end
 
@@ -118,7 +118,7 @@ namespace :changelog do
       fname = File.join fw, "CHANGELOG.md"
 
       contents = File.read(fname).sub(/^(## Rails .*)\n/, replace)
-      File.open(fname, "wb") { |f| f.write contents }
+      File.write(fname, contents)
     end
   end
 
@@ -143,7 +143,7 @@ namespace :all do
   task push: FRAMEWORKS.map { |f| "#{f}:push"            } + ["rails:push"]
 
   task :ensure_clean_state do
-    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock'`.strip.empty?
+    unless `git status -s | grep -v 'RAILS_VERSION\\|CHANGELOG\\|Gemfile.lock\\|package.json\\|version.rb\\|tasks/release.rb'`.strip.empty?
       abort "[ABORTING] `git status` reports a dirty tree. Make sure all changes are committed"
     end
 
@@ -153,19 +153,47 @@ namespace :all do
     end
   end
 
+  task verify: :install do
+    app_name = "pkg/verify-#{version}-#{Time.now.to_i}"
+    sh "rails _#{version}_ new #{app_name} --skip-bundle" # Generate with the right version.
+    cd app_name
+
+    # Replace the generated gemfile entry with the exact version.
+    File.write("Gemfile", File.read("Gemfile").sub(/^gem 'rails.*/, "gem 'rails', '#{version}'"))
+    sh "bundle"
+
+    sh "rails generate scaffold user name admin:boolean && rails db:migrate"
+
+    puts "Booting a Rails server. Verify the release by:"
+    puts
+    puts "- Seeing the correct release number on the root page"
+    puts "- Viewing /users"
+    puts "- Creating a user"
+    puts "- Updating a user (e.g. disable the admin flag)"
+    puts "- Deleting a user on /users"
+    puts "- Whatever else you want."
+    begin
+      sh "rails server"
+    rescue Interrupt
+      # Server passes along interrupt. Prevent halting verify task.
+    end
+  end
+
   task :bundle do
     sh "bundle check"
   end
 
   task :commit do
-    File.open("pkg/commit_message.txt", "w") do |f|
-      f.puts "# Preparing for #{version} release\n"
-      f.puts
-      f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
-    end
+    unless `git status -s`.strip.empty?
+      File.open("pkg/commit_message.txt", "w") do |f|
+        f.puts "# Preparing for #{version} release\n"
+        f.puts
+        f.puts "# UNCOMMENT THE LINE ABOVE TO APPROVE THIS COMMIT"
+      end
 
-    sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
-    rm_f "pkg/commit_message.txt"
+      sh "git add . && git commit --verbose --template=pkg/commit_message.txt"
+      rm_f "pkg/commit_message.txt"
+    end
   end
 
   task :tag do
@@ -173,7 +201,58 @@ namespace :all do
     sh "git push --tags"
   end
 
-  task prep_release: %w(ensure_clean_state build)
+  task prep_release: %w(ensure_clean_state build bundle commit)
 
-  task release: %w(ensure_clean_state build bundle commit tag push)
+  task release: %w(prep_release tag push)
+end
+
+module Announcement
+  class Version
+    def initialize(version)
+      @version, @gem_version = version, Gem::Version.new(version)
+    end
+
+    def to_s
+      @version
+    end
+
+    def previous
+      @gem_version.segments[0, 3].tap { |v| v[2] -= 1 }.join(".")
+    end
+
+    def major_or_security?
+      @gem_version.segments[2].zero? || @gem_version.segments[3].is_a?(Integer)
+    end
+
+    def rc?
+      @version =~ /rc/
+    end
+  end
+end
+
+task :announce do
+  Dir.chdir("pkg/") do
+    versions = ENV["VERSIONS"] ? ENV["VERSIONS"].split(",") : [ version ]
+    versions = versions.sort.map { |v| Announcement::Version.new(v) }
+
+    raise "Only valid for patch releases" if versions.any?(&:major_or_security?)
+
+    if versions.any?(&:rc?)
+      require "date"
+      future_date = Date.today + 5
+      future_date += 1 while future_date.saturday? || future_date.sunday?
+
+      github_user = `git config github.user`.chomp
+    end
+
+    require "erb"
+    template = File.read("../tasks/release_announcement_draft.erb")
+
+    match = ERB.version.match(/\Aerb\.rb \[(?<version>[^ ]+) /)
+    if match && match[:version] >= "2.2.0" # Ruby 2.6+
+      puts ERB.new(template, trim_mode: "<>").result(binding)
+    else
+      puts ERB.new(template, nil, "<>").result(binding)
+    end
+  end
 end

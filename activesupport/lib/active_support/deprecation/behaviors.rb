@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/notifications"
 
 module ActiveSupport
@@ -9,18 +11,18 @@ module ActiveSupport
   class Deprecation
     # Default warning behaviors per Rails.env.
     DEFAULT_BEHAVIORS = {
-      raise: ->(message, callstack) {
+      raise: ->(message, callstack, deprecation_horizon, gem_name) {
         e = DeprecationException.new(message)
         e.set_backtrace(callstack.map(&:to_s))
         raise e
       },
 
-      stderr: ->(message, callstack) {
+      stderr: ->(message, callstack, deprecation_horizon, gem_name) {
         $stderr.puts(message)
         $stderr.puts callstack.join("\n  ") if debug
       },
 
-      log: ->(message, callstack) {
+      log: ->(message, callstack, deprecation_horizon, gem_name) {
         logger =
             if defined?(Rails.logger) && Rails.logger
               Rails.logger
@@ -32,12 +34,16 @@ module ActiveSupport
         logger.debug callstack.join("\n  ") if debug
       },
 
-      notify: ->(message, callstack) {
-        ActiveSupport::Notifications.instrument("deprecation.rails",
-                                                message: message, callstack: callstack)
+      notify: ->(message, callstack, deprecation_horizon, gem_name) {
+        notification_name = "deprecation.#{gem_name.underscore.tr('/', '_')}"
+        ActiveSupport::Notifications.instrument(notification_name,
+                                                message: message,
+                                                callstack: callstack,
+                                                gem_name: gem_name,
+                                                deprecation_horizon: deprecation_horizon)
       },
 
-      silence: ->(message, callstack) {},
+      silence: ->(message, callstack, deprecation_horizon, gem_name) {},
     }
 
     # Behavior module allows to determine how to display deprecation messages.
@@ -79,12 +85,25 @@ module ActiveSupport
       #   ActiveSupport::Deprecation.behavior = :stderr
       #   ActiveSupport::Deprecation.behavior = [:stderr, :log]
       #   ActiveSupport::Deprecation.behavior = MyCustomHandler
-      #   ActiveSupport::Deprecation.behavior = ->(message, callstack) {
+      #   ActiveSupport::Deprecation.behavior = ->(message, callstack, deprecation_horizon, gem_name) {
       #     # custom stuff
       #   }
       def behavior=(behavior)
-        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || b }
+        @behavior = Array(behavior).map { |b| DEFAULT_BEHAVIORS[b] || arity_coerce(b) }
       end
+
+      private
+        def arity_coerce(behavior)
+          unless behavior.respond_to?(:call)
+            raise ArgumentError, "#{behavior.inspect} is not a valid deprecation behavior."
+          end
+
+          if behavior.arity == 4 || behavior.arity == -1
+            behavior
+          else
+            -> message, callstack, _, _ { behavior.call(message, callstack) }
+          end
+        end
     end
   end
 end

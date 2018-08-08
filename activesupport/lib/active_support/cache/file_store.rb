@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/marshal"
 require "active_support/core_ext/file/atomic"
 require "active_support/core_ext/string/conversions"
@@ -27,7 +29,7 @@ module ActiveSupport
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.
-      def clear
+      def clear(options = nil)
         root_dirs = exclude_from(cache_path, EXCLUDED_DIRS + GITKEEP_FILES)
         FileUtils.rm_r(root_dirs.collect { |f| File.join(cache_path, f) })
       rescue Errno::ENOENT
@@ -37,9 +39,8 @@ module ActiveSupport
       def cleanup(options = nil)
         options = merged_options(options)
         search_dir(cache_path) do |fname|
-          key = file_path_key(fname)
-          entry = read_entry(key, options)
-          delete_entry(key, options) if entry && entry.expired?
+          entry = read_entry(fname, options)
+          delete_entry(fname, options) if entry && entry.expired?
         end
       end
 
@@ -66,7 +67,7 @@ module ActiveSupport
         end
       end
 
-      protected
+      private
 
         def read_entry(key, options)
           if File.exist?(key)
@@ -98,9 +99,8 @@ module ActiveSupport
           end
         end
 
-      private
         # Lock a file for a block so only one process can modify it at a time.
-        def lock_file(file_name, &block) # :nodoc:
+        def lock_file(file_name, &block)
           if File.exist?(file_name)
             File.open(file_name, "r+") do |f|
               begin
@@ -121,7 +121,7 @@ module ActiveSupport
           fname = URI.encode_www_form_component(key)
 
           if fname.size > FILEPATH_MAX_SIZE
-            fname = Digest::MD5.hexdigest(key)
+            fname = ActiveSupport::Digest.hexdigest(key)
           end
 
           hash = Zlib.adler32(fname)

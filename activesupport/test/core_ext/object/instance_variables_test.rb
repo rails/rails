@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object"
 
@@ -17,7 +19,7 @@ class ObjectInstanceVariableTest < ActiveSupport::TestCase
   end
 
   def test_instance_exec_passes_arguments_to_block
-    assert_equal %w(hello goodbye), "hello".instance_exec("goodbye") { |v| [self, v] }
+    assert_equal %w(hello goodbye), "hello".dup.instance_exec("goodbye") { |v| [self, v] }
   end
 
   def test_instance_exec_with_frozen_obj
@@ -25,7 +27,7 @@ class ObjectInstanceVariableTest < ActiveSupport::TestCase
   end
 
   def test_instance_exec_nested
-    assert_equal %w(goodbye olleh bar), "hello".instance_exec("goodbye") { |arg|
+    assert_equal %w(goodbye olleh bar), "hello".dup.instance_exec("goodbye") { |arg|
       [arg] + instance_exec("bar") { |v| [reverse, v] } }
   end
 end

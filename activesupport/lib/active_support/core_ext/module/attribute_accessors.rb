@@ -1,5 +1,6 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/array/extract_options"
-require "active_support/core_ext/regexp"
 
 # Extends the module object with class/module and instance accessors for
 # class/module attributes, just like the native attr* accessors for instance
@@ -7,7 +8,8 @@ require "active_support/core_ext/regexp"
 class Module
   # Defines a class attribute and creates a class and instance reader methods.
   # The underlying class variable is set to +nil+, if it is not previously
-  # defined.
+  # defined. All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_reader :hair_colors
@@ -37,13 +39,10 @@ class Module
   #
   #   Person.new.hair_colors # => NoMethodError
   #
-  #
-  # Also, you can pass a block to set up the attribute with a default value.
+  # You can set a default value for the attribute.
   #
   #   module HairColors
-  #     mattr_reader :hair_colors do
-  #       [:brown, :black, :blonde, :red]
-  #     end
+  #     mattr_reader :hair_colors, default: [:brown, :black, :blonde, :red]
   #   end
   #
   #   class Person
@@ -51,8 +50,7 @@ class Module
   #   end
   #
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red]
-  def mattr_reader(*syms)
-    options = syms.extract_options!
+  def mattr_reader(*syms, instance_reader: true, instance_accessor: true, default: nil)
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -63,20 +61,24 @@ class Module
         end
       EOS
 
-      unless options[:instance_reader] == false || options[:instance_accessor] == false
+      if instance_reader && instance_accessor
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}
             @@#{sym}
           end
         EOS
       end
-      class_variable_set("@@#{sym}", yield) if block_given?
+
+      sym_default_value = (block_given? && default.nil?) ? yield : default
+      class_variable_set("@@#{sym}", sym_default_value) unless sym_default_value.nil?
     end
   end
   alias :cattr_reader :mattr_reader
 
   # Defines a class attribute and creates a class and instance writer methods to
-  # allow assignment to the attribute.
+  # allow assignment to the attribute. All class and instance methods created
+  # will be public, even if this method is called with a private or protected
+  # access modifier.
   #
   #   module HairColors
   #     mattr_writer :hair_colors
@@ -104,12 +106,10 @@ class Module
   #
   #   Person.new.hair_colors = [:blonde, :red] # => NoMethodError
   #
-  # Also, you can pass a block to set up the attribute with a default value.
+  # You can set a default value for the attribute.
   #
   #   module HairColors
-  #     mattr_writer :hair_colors do
-  #       [:brown, :black, :blonde, :red]
-  #     end
+  #     mattr_writer :hair_colors, default: [:brown, :black, :blonde, :red]
   #   end
   #
   #   class Person
@@ -117,8 +117,7 @@ class Module
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
-  def mattr_writer(*syms)
-    options = syms.extract_options!
+  def mattr_writer(*syms, instance_writer: true, instance_accessor: true, default: nil)
     syms.each do |sym|
       raise NameError.new("invalid attribute name: #{sym}") unless /\A[_A-Za-z]\w*\z/.match?(sym)
       class_eval(<<-EOS, __FILE__, __LINE__ + 1)
@@ -129,19 +128,23 @@ class Module
         end
       EOS
 
-      unless options[:instance_writer] == false || options[:instance_accessor] == false
+      if instance_writer && instance_accessor
         class_eval(<<-EOS, __FILE__, __LINE__ + 1)
           def #{sym}=(obj)
             @@#{sym} = obj
           end
         EOS
       end
-      send("#{sym}=", yield) if block_given?
+
+      sym_default_value = (block_given? && default.nil?) ? yield : default
+      send("#{sym}=", sym_default_value) unless sym_default_value.nil?
     end
   end
   alias :cattr_writer :mattr_writer
 
   # Defines both class and instance accessors for class attributes.
+  # All class and instance methods created will be public, even if
+  # this method is called with a private or protected access modifier.
   #
   #   module HairColors
   #     mattr_accessor :hair_colors
@@ -159,10 +162,10 @@ class Module
   # parent class. Similarly if parent class changes the value then that would
   # change the value of subclasses too.
   #
-  #   class Male < Person
+  #   class Citizen < Person
   #   end
   #
-  #   Male.new.hair_colors << :blue
+  #   Citizen.new.hair_colors << :blue
   #   Person.new.hair_colors # => [:brown, :black, :blonde, :red, :blue]
   #
   # To opt out of the instance writer method, pass <tt>instance_writer: false</tt>.
@@ -192,12 +195,10 @@ class Module
   #   Person.new.hair_colors = [:brown]  # => NoMethodError
   #   Person.new.hair_colors             # => NoMethodError
   #
-  # Also you can pass a block to set up the attribute with a default value.
+  # You can set a default value for the attribute.
   #
   #   module HairColors
-  #     mattr_accessor :hair_colors do
-  #       [:brown, :black, :blonde, :red]
-  #     end
+  #     mattr_accessor :hair_colors, default: [:brown, :black, :blonde, :red]
   #   end
   #
   #   class Person
@@ -205,9 +206,9 @@ class Module
   #   end
   #
   #   Person.class_variable_get("@@hair_colors") # => [:brown, :black, :blonde, :red]
-  def mattr_accessor(*syms, &blk)
-    mattr_reader(*syms, &blk)
-    mattr_writer(*syms)
+  def mattr_accessor(*syms, instance_reader: true, instance_writer: true, instance_accessor: true, default: nil, &blk)
+    mattr_reader(*syms, instance_reader: instance_reader, instance_accessor: instance_accessor, default: default, &blk)
+    mattr_writer(*syms, instance_writer: instance_writer, instance_accessor: instance_accessor, default: default)
   end
   alias :cattr_accessor :mattr_accessor
 end

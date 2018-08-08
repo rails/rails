@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/inflector/methods"
 require "active_support/values/time_zone"
 
@@ -64,4 +66,7 @@ class Time
   def formatted_offset(colon = true, alternate_utc_string = nil)
     utc? && alternate_utc_string || ActiveSupport::TimeZone.seconds_to_utc_offset(utc_offset, colon)
   end
+
+  # Aliased to +xmlschema+ for compatibility with +DateTime+
+  alias_method :rfc3339, :xmlschema
 end

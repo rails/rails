@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record \RecordInvalid
   #
@@ -68,7 +70,7 @@ module ActiveRecord
 
     alias_method :validate, :valid?
 
-  protected
+  private
 
     def default_validation_context
       new_record? ? :create : :update
@@ -78,7 +80,7 @@ module ActiveRecord
       raise(RecordInvalid.new(self))
     end
 
-    def perform_validations(options = {}) # :nodoc:
+    def perform_validations(options = {})
       options[:validate] == false || valid?(options[:context])
     end
   end

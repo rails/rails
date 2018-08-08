@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2004-2016 David Heinemeier Hansson
+# Copyright (c) 2004-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -40,6 +42,7 @@ module ActionDispatch
 
   eager_autoload do
     autoload_under "http" do
+      autoload :ContentSecurityPolicy
       autoload :Request
       autoload :Response
     end
@@ -97,6 +100,8 @@ module ActionDispatch
     autoload :TestResponse
     autoload :AssertionResponse
   end
+
+  autoload :SystemTestCase, "action_dispatch/system_test_case"
 end
 
 autoload :Mime, "action_dispatch/http/mime_type"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   class Application
     module Finisher
@@ -56,7 +58,7 @@ module Rails
       end
 
       # This needs to happen before eager load so it happens
-      # in exactly the same point regardless of config.cache_classes
+      # in exactly the same point regardless of config.eager_load
       initializer :run_prepare_callbacks do |app|
         app.reloader.prepare!
       end
@@ -124,7 +126,8 @@ module Rails
       # the hook are taken into account.
       initializer :set_routes_reloader_hook do |app|
         reloader = routes_reloader
-        reloader.execute_if_updated
+        reloader.eager_load = app.config.eager_load
+        reloader.execute
         reloaders << reloader
         app.reloader.to_run do
           # We configure #execute rather than #execute_if_updated because if

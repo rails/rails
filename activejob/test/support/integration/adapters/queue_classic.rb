@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module QueueClassicJobsManager
   def setup
     ENV["QC_DATABASE_URL"] ||= "postgres:///active_jobs_qc_int_test"

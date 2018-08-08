@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Autosave Association
   #
@@ -140,8 +142,7 @@ module ActiveRecord
 
     included do
       Associations::Builder::Association.extensions << AssociationBuilderExtension
-      mattr_accessor :index_nested_attribute_errors, instance_writer: false
-      self.index_nested_attribute_errors = false
+      mattr_accessor :index_nested_attribute_errors, instance_writer: false, default: false
     end
 
     module ClassMethods # :nodoc:
@@ -181,6 +182,7 @@ module ActiveRecord
 
           if reflection.collection?
             before_save :before_save_collection_association
+            after_save :after_save_collection_association
 
             define_non_cyclic_method(save_method) { save_collection_association(reflection) }
             # Doesn't use after_save as that would save associations added in after_create/after_update twice
@@ -215,13 +217,7 @@ module ActiveRecord
               method = :validate_single_association
             end
 
-            define_non_cyclic_method(validation_method) do
-              send(method, reflection)
-              # TODO: remove the following line as soon as the return value of
-              # callbacks is ignored, that is, returning `false` does not
-              # display a deprecation warning or halts the callback chain.
-              true
-            end
+            define_non_cyclic_method(validation_method) { send(method, reflection) }
             validate validation_method
             after_validation :_ensure_no_duplicate_errors
           end
@@ -326,9 +322,9 @@ module ActiveRecord
       def association_valid?(reflection, record, index = nil)
         return true if record.destroyed? || (reflection.options[:autosave] && record.marked_for_destruction?)
 
-        validation_context = self.validation_context unless [:create, :update].include?(self.validation_context)
+        context = validation_context unless [:create, :update].include?(validation_context)
 
-        unless valid = record.valid?(validation_context)
+        unless valid = record.valid?(context)
           if reflection.options[:autosave]
             indexed_attribute = !index.nil? && (reflection.options[:index_errors] || ActiveRecord::Base.index_nested_attribute_errors)
 
@@ -366,7 +362,10 @@ module ActiveRecord
       # association whether or not the parent was a new record before saving.
       def before_save_collection_association
         @new_record_before_save = new_record?
-        true
+      end
+
+      def after_save_collection_association
+        @new_record_before_save = false
       end
 
       # Saves any new associated records, or all loaded autosave associations if
@@ -382,7 +381,7 @@ module ActiveRecord
           autosave = reflection.options[:autosave]
 
           # reconstruct the scope now that we know the owner's id
-          association.reset_scope if association.respond_to?(:reset_scope)
+          association.reset_scope
 
           if records = associated_records_to_validate_or_save(association, @new_record_before_save, autosave)
             if autosave
@@ -391,7 +390,7 @@ module ActiveRecord
               records -= records_to_destroy
             end
 
-            records.each do |record|
+            records.each_with_index do |record, index|
               next if record.destroyed?
 
               saved = true
@@ -399,8 +398,13 @@ module ActiveRecord
               if autosave != false && (@new_record_before_save || record.new_record?)
                 if autosave
                   saved = association.insert_record(record, false)
-                else
-                  association.insert_record(record) unless reflection.nested?
+                elsif !reflection.nested?
+                  if reflection.validate?
+                    valid = association_valid?(reflection, record, index)
+                    saved = valid ? association.insert_record(record, false) : false
+                  else
+                    association.insert_record(record)
+                  end
                 end
               elsif autosave
                 saved = record.save(validate: false)
@@ -435,6 +439,9 @@ module ActiveRecord
             if (autosave && record.changed_for_autosave?) || new_record? || record_changed?(reflection, record, key)
               unless reflection.through_reflection
                 record[reflection.foreign_key] = key
+                if inverse_reflection = reflection.inverse_of
+                  record.association(inverse_reflection.name).loaded!
+                end
               end
 
               saved = record.save(validate: !autosave)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "set"
 
@@ -42,7 +44,7 @@ module AbstractController
         super
       end
 
-      append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
+      append_view_path File.expand_path("views", __dir__)
     end
 
     class Me2 < RenderingController
@@ -152,7 +154,7 @@ module AbstractController
     class OverridingLocalPrefixes < AbstractController::Base
       include AbstractController::Rendering
       include ActionView::Rendering
-      append_view_path File.expand_path(File.join(File.dirname(__FILE__), "views"))
+      append_view_path File.expand_path("views", __dir__)
 
       def index
         render
@@ -189,10 +191,10 @@ module AbstractController
 
       private
         def self.layout(formats)
-          find_template(name.underscore, { formats: formats }, _prefixes: ["layouts"])
+          find_template(name.underscore, { formats: formats }, { _prefixes: ["layouts"] })
         rescue ActionView::MissingTemplate
           begin
-            find_template("application", { formats: formats }, _prefixes: ["layouts"])
+            find_template("application", { formats: formats }, { _prefixes: ["layouts"] })
           rescue ActionView::MissingTemplate
           end
         end
@@ -234,7 +236,7 @@ module AbstractController
       end
     end
 
-    class RespondToActionController < AbstractController::Base;
+    class RespondToActionController < AbstractController::Base
       def index() self.response_body = "success" end
 
       def fail()  self.response_body = "fail"    end

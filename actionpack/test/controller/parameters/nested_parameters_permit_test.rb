@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "action_controller/metal/strong_parameters"
 
 class NestedParametersPermitTest < ActiveSupport::TestCase
   def assert_filtered_out(params, key)
-    assert !params.has_key?(key), "key #{key.inspect} has not been filtered out"
+    assert_not params.has_key?(key), "key #{key.inspect} has not been filtered out"
   end
 
   test "permitted nested parameters" do
@@ -30,7 +32,7 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
 
     permitted = params.permit book: [ :title, { authors: [ :name ] }, { details: :pages }, :id ]
 
-    assert permitted.permitted?
+    assert_predicate permitted, :permitted?
     assert_equal "Romeo and Juliet", permitted[:book][:title]
     assert_equal "William Shakespeare", permitted[:book][:authors][0][:name]
     assert_equal "Christopher Marlowe", permitted[:book][:authors][1][:name]
@@ -139,6 +141,11 @@ class NestedParametersPermitTest < ActiveSupport::TestCase
     assert_empty permitted[:book][:authors_attributes]["2"]
     assert_equal "William Shakespeare", permitted[:book][:authors_attributes]["0"][:name]
     assert_equal "Unattributed Assistant", permitted[:book][:authors_attributes]["1"][:name]
+
+    assert_equal(
+      { "book" => { "authors_attributes" => { "0" => { "name" => "William Shakespeare" }, "1" => { "name" => "Unattributed Assistant" }, "2" => {} } } },
+      permitted.to_h
+    )
 
     assert_filtered_out permitted[:book][:authors_attributes]["0"], :age_of_death
   end

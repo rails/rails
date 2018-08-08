@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 require "rack/session/abstract/id"
 require "active_support/core_ext/hash/conversions"
 require "active_support/core_ext/object/to_query"
 require "active_support/core_ext/module/anonymous"
+require "active_support/core_ext/module/redefine_method"
 require "active_support/core_ext/hash/keys"
 require "active_support/testing/constant_lookup"
 require "action_controller/template_assertions"
@@ -13,11 +16,11 @@ module ActionController
   end
 
   module Live
-    # Disable controller / rendering threads in tests.  User tests can access
+    # Disable controller / rendering threads in tests. User tests can access
     # the database on the main thread, so they could open a txn, then the
     # controller thread will open a new connection and try to access data
-    # that's only visible to the main thread's txn.  This is the problem in #23483
-    remove_method :new_controller_thread
+    # that's only visible to the main thread's txn. This is the problem in #23483.
+    silence_redefinition_of_method :new_controller_thread
     def new_controller_thread # :nodoc:
       yield
     end
@@ -35,7 +38,7 @@ module ActionController
 
     attr_reader :controller_class
 
-    # Create a new test request with default `env` values
+    # Create a new test request with default `env` values.
     def self.create(controller_class)
       env = {}
       env = Rails.application.env_config.merge(env) if defined?(Rails.application) && Rails.application
@@ -131,7 +134,7 @@ module ActionController
       include Rack::Test::Utils
 
       def should_multipart?(params)
-        # FIXME: lifted from Rack-Test. We should push this separation upstream
+        # FIXME: lifted from Rack-Test. We should push this separation upstream.
         multipart = false
         query = lambda { |value|
           case value
@@ -253,7 +256,7 @@ module ActionController
   #
   #   def test_create
   #     json = {book: { title: "Love Hina" }}.to_json
-  #     post :create, json
+  #     post :create, body: json
   #   end
   #
   # == Special instance variables
@@ -300,7 +303,7 @@ module ActionController
   #   assert_equal "Dave", cookies[:name] # makes sure that a cookie called :name was set as "Dave"
   #   assert flash.empty? # makes sure that there's nothing in the flash
   #
-  # On top of the collections, you have the complete url that a given action redirected to available in <tt>redirect_to_url</tt>.
+  # On top of the collections, you have the complete URL that a given action redirected to available in <tt>redirect_to_url</tt>.
   #
   # For redirects within the same controller, you can even call follow_redirect and the redirect will be followed, triggering another
   # action call which can then be asserted against.
@@ -354,7 +357,7 @@ module ActionController
         end
 
         def controller_class
-          if current_controller_class = self._controller_class
+          if current_controller_class = _controller_class
             current_controller_class
           else
             self.controller_class = determine_default_controller_class(name)
@@ -457,10 +460,6 @@ module ActionController
       def process(action, method: "GET", params: {}, session: nil, body: nil, flash: {}, format: nil, xhr: false, as: nil)
         check_required_ivars
 
-        if body
-          @request.set_header "RAW_POST_DATA", body
-        end
-
         http_method = method.to_s.upcase
 
         @html_document = nil
@@ -474,6 +473,10 @@ module ActionController
         @response         = build_response @response_klass
         @response.request = @request
         @controller.recycle!
+
+        if body
+          @request.set_header "RAW_POST_DATA", body
+        end
 
         @request.set_header "REQUEST_METHOD", http_method
 
@@ -514,8 +517,6 @@ module ActionController
         ensure
           @request = @controller.request
           @response = @controller.response
-
-          @request.delete_header "HTTP_COOKIE"
 
           if @request.have_cookie_jar?
             unless @request.cookie_jar.committed?
@@ -603,6 +604,8 @@ module ActionController
           env.delete "action_dispatch.request.query_parameters"
           env.delete "action_dispatch.request.request_parameters"
           env["rack.input"] = StringIO.new
+          env.delete "CONTENT_LENGTH"
+          env.delete "RAW_POST_DATA"
           env
         end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/hello_job"
 require "jobs/logging_job"
@@ -56,7 +58,7 @@ class QueueNamingTest < ActiveSupport::TestCase
     original_queue_name = HelloJob.queue_name
 
     begin
-      HelloJob.queue_as { self.arguments.first == "1" ? :one : :two }
+      HelloJob.queue_as { arguments.first == "1" ? :one : :two }
       assert_equal "one", HelloJob.new("1").queue_name
       assert_equal "two", HelloJob.new("3").queue_name
     ensure

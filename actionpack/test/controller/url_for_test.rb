@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -26,7 +28,7 @@ module AbstractController
                                              action: :index
             }
           }.url_helpers
-          self.default_url_options[:host] = "example.com"
+          default_url_options[:host] = "example.com"
         }
 
         path = klass.new.fun_path(controller: :articles,
@@ -286,7 +288,7 @@ module AbstractController
           kls = Class.new { include set.url_helpers }
 
           controller = kls.new
-          assert controller.respond_to?(:home_url)
+          assert_respond_to controller, :home_url
           assert_equal "http://www.basecamphq.com/home/sweet/home/again",
             controller.send(:home_url, host: "www.basecamphq.com", user: "again")
 
@@ -386,7 +388,7 @@ module AbstractController
 
       def test_url_action_controller_parameters
         add_host!
-        assert_raise(ArgumentError) do
+        assert_raise(ActionController::UnfilteredParameters) do
           W.new.url_for(ActionController::Parameters.new(controller: "c", action: "a", protocol: "javascript", f: "%0Aeval(name)"))
         end
       end
@@ -484,6 +486,27 @@ module AbstractController
           kls.new.url_for(components)
 
           assert_equal(original_components, components)
+        end
+      end
+
+      def test_default_params_first_empty
+        with_routing do |set|
+          set.draw do
+            get "(:param1)/test(/:param2)" => "index#index",
+              defaults: {
+                param1: 1,
+                param2: 2
+              },
+              constraints: {
+                param1: /\d*/,
+                param2: /\d+/
+              }
+          end
+
+          kls = Class.new { include set.url_helpers }
+          kls.default_url_options[:host] = "www.basecamphq.com"
+
+          assert_equal "http://www.basecamphq.com/test", kls.new.url_for(controller: "index", param1: "1")
         end
       end
 

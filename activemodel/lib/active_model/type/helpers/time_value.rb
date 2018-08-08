@@ -1,9 +1,12 @@
+# frozen_string_literal: true
+
+require "active_support/core_ext/string/zones"
 require "active_support/core_ext/time/zones"
 
 module ActiveModel
   module Type
-    module Helpers
-      module TimeValue # :nodoc:
+    module Helpers # :nodoc: all
+      module TimeValue
         def serialize(value)
           value = apply_seconds_precision(value)
 
@@ -38,7 +41,7 @@ module ActiveModel
         end
 
         def type_cast_for_schema(value)
-          "'#{value.to_s(:db)}'"
+          value.to_s(:db).inspect
         end
 
         def user_input_in_time_zone(value)

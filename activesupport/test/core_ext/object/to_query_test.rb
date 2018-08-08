@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/ordered_hash"
 require "active_support/core_ext/object/to_query"
@@ -73,6 +75,20 @@ class ToQueryTest < ActiveSupport::TestCase
   def test_hash_sorted_lexicographically
     hash = { type: "human", name: "Nakshay" }
     assert_equal "name=Nakshay&type=human", hash.to_query
+  end
+
+  def test_hash_not_sorted_lexicographically_for_nested_structure
+    params = {
+      "foo" => {
+        "contents" => [
+          { "name" => "gorby", "id" => "123" },
+          { "name" => "puff", "d" => "true" }
+        ]
+      }
+    }
+    expected = "foo[contents][][name]=gorby&foo[contents][][id]=123&foo[contents][][name]=puff&foo[contents][][d]=true"
+
+    assert_equal expected, URI.decode(params.to_query)
   end
 
   private

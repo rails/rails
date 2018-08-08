@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module Validations
     class UniquenessValidator < ActiveModel::EachValidator # :nodoc:
@@ -5,6 +7,10 @@ module ActiveRecord
         if options[:conditions] && !options[:conditions].respond_to?(:call)
           raise ArgumentError, "#{options[:conditions]} was passed as :conditions but is not callable. " \
                                "Pass a callable instead: `conditions: -> { where(approved: true) }`"
+        end
+        unless Array(options[:scope]).all? { |scope| scope.respond_to?(:to_sym) }
+          raise ArgumentError, "#{options[:scope]} is not supported format for :scope option. " \
+            "Pass a symbol or an array of symbols instead: `scope: :user_id`"
         end
         super({ case_sensitive: true }.merge!(options))
         @klass = options[:class]
@@ -17,7 +23,7 @@ module ActiveRecord
         relation = build_relation(finder_class, attribute, value)
         if record.persisted?
           if finder_class.primary_key
-            relation = relation.where.not(finder_class.primary_key => record.id_in_database || record.id)
+            relation = relation.where.not(finder_class.primary_key => record.id_in_database)
           else
             raise UnknownPrimaryKey.new(finder_class, "Can not validate uniqueness for persisted record without primary key.")
           end
@@ -33,13 +39,13 @@ module ActiveRecord
         end
       end
 
-    protected
+    private
       # The check for an existing value should be run from a class that
       # isn't abstract. This means working down from the current class
       # (self), to the first non-abstract class. Since classes don't know
       # their subclasses, we have to build the hierarchy between self and
       # the record's class.
-      def find_finder_class_for(record) #:nodoc:
+      def find_finder_class_for(record)
         class_hierarchy = [record.class]
 
         while class_hierarchy.first != @klass
@@ -49,7 +55,7 @@ module ActiveRecord
         class_hierarchy.detect { |klass| !klass.abstract_class? }
       end
 
-      def build_relation(klass, attribute, value) # :nodoc:
+      def build_relation(klass, attribute, value)
         if reflection = klass._reflect_on_association(attribute)
           attribute = reflection.foreign_key
           value = value.attributes[reflection.klass.primary_key] unless value.nil?
@@ -65,10 +71,10 @@ module ActiveRecord
         end
 
         attribute_name = attribute.to_s
+        value = klass.predicate_builder.build_bind_attribute(attribute_name, value)
 
         table = klass.arel_table
         column = klass.columns_hash[attribute_name]
-        cast_type = klass.type_for_attribute(attribute_name)
 
         comparison = if !options[:case_sensitive]
           # will use SQL LOWER function before comparison, unless it detects a case insensitive collation
@@ -76,11 +82,7 @@ module ActiveRecord
         else
           klass.connection.case_sensitive_comparison(table, attribute, column, value)
         end
-        klass.unscoped.tap do |scope|
-          parts = [comparison]
-          binds = [Relation::QueryAttribute.new(attribute_name, value, cast_type)]
-          scope.where_clause += Relation::WhereClause.new(parts, binds)
-        end
+        klass.unscoped.where!(comparison)
       end
 
       def scope_relation(record, relation)
@@ -203,9 +205,7 @@ module ActiveRecord
       #                                      | # Boom! We now have a duplicate
       #                                      | # title!
       #
-      # This could even happen if you use transactions with the 'serializable'
-      # isolation level. The best way to work around this problem is to add a unique
-      # index to the database table using
+      # The best way to work around this problem is to add a unique index to the database table using
       # {connection.add_index}[rdoc-ref:ConnectionAdapters::SchemaStatements#add_index].
       # In the rare case that a race condition occurs, the database will guarantee
       # the field's uniqueness.
@@ -217,7 +217,7 @@ module ActiveRecord
       # can catch it and restart the transaction (e.g. by telling the user
       # that the title already exists, and asking them to re-enter the title).
       # This technique is also known as
-      # {optimistic concurrency control}[http://en.wikipedia.org/wiki/Optimistic_concurrency_control].
+      # {optimistic concurrency control}[https://en.wikipedia.org/wiki/Optimistic_concurrency_control].
       #
       # The bundled ActiveRecord::ConnectionAdapters distinguish unique index
       # constraint errors from other types of database errors by throwing an

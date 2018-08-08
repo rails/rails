@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 4.1 Release Notes
 ===============================
@@ -274,7 +274,7 @@ for detailed changes.
 * The [Spring application
   preloader](https://github.com/rails/spring) is now installed
   by default for new applications. It uses the development group of
-  the Gemfile, so will not be installed in
+  the `Gemfile`, so will not be installed in
   production. ([Pull Request](https://github.com/rails/rails/pull/12958))
 
 * `BACKTRACE` environment variable to show unfiltered backtraces for test

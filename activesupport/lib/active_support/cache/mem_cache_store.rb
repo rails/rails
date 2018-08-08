@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 begin
   require "dalli"
 rescue LoadError => e
@@ -5,14 +7,13 @@ rescue LoadError => e
   raise e
 end
 
-require "digest/md5"
 require "active_support/core_ext/marshal"
 require "active_support/core_ext/array/extract_options"
 
 module ActiveSupport
   module Cache
     # A cache store implementation which stores data in Memcached:
-    # http://memcached.org/
+    # https://memcached.org
     #
     # This is currently the most popular cache store for production websites.
     #
@@ -26,7 +27,7 @@ module ActiveSupport
     class MemCacheStore < Store
       # Provide support for raw values in the local cache strategy.
       module LocalCacheWithRaw # :nodoc:
-        protected
+        private
           def read_entry(key, options)
             entry = super
             if options[:raw] && local_cache && entry
@@ -35,7 +36,7 @@ module ActiveSupport
             entry
           end
 
-          def write_entry(key, entry, options) # :nodoc:
+          def write_entry(key, entry, options)
             if options[:raw] && local_cache
               raw_entry = Entry.new(entry.value.to_s)
               raw_entry.expires_at = entry.expires_at
@@ -62,7 +63,14 @@ module ActiveSupport
         addresses = addresses.flatten
         options = addresses.extract_options!
         addresses = ["localhost:11211"] if addresses.empty?
-        Dalli::Client.new(addresses, options)
+        pool_options = retrieve_pool_options(options)
+
+        if pool_options.empty?
+          Dalli::Client.new(addresses, options)
+        else
+          ensure_connection_pool_added!
+          ConnectionPool.new(pool_options) { Dalli::Client.new(addresses, options.merge(threadsafe: false)) }
+        end
       end
 
       # Creates a new MemCacheStore object, with the given memcached server
@@ -90,22 +98,6 @@ module ActiveSupport
         end
       end
 
-      # Reads multiple values from the cache using a single call to the
-      # servers for all keys. Options can be passed in the last argument.
-      def read_multi(*names)
-        options = names.extract_options!
-        options = merged_options(options)
-
-        keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
-        raw_values = @data.get_multi(keys_to_names.keys)
-        values = {}
-        raw_values.each do |key, value|
-          entry = deserialize_entry(value)
-          values[keys_to_names[key]] = entry.value unless entry.expired?
-        end
-        values
-      end
-
       # Increment a cached value. This method uses the memcached incr atomic
       # operator and can only be used on values written with the :raw option.
       # Calling it on a value not stored with :raw will initialize that value
@@ -114,7 +106,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:increment, name, amount: amount) do
           rescue_error_with nil do
-            @data.incr(normalize_key(name, options), amount)
+            @data.with { |c| c.incr(normalize_key(name, options), amount, options[:expires_in]) }
           end
         end
       end
@@ -127,7 +119,7 @@ module ActiveSupport
         options = merged_options(options)
         instrument(:decrement, name, amount: amount) do
           rescue_error_with nil do
-            @data.decr(normalize_key(name, options), amount)
+            @data.with { |c| c.decr(normalize_key(name, options), amount, options[:expires_in]) }
           end
         end
       end
@@ -135,22 +127,22 @@ module ActiveSupport
       # Clear the entire cache on all memcached servers. This method should
       # be used with care when shared cache is being used.
       def clear(options = nil)
-        rescue_error_with(nil) { @data.flush_all }
+        rescue_error_with(nil) { @data.with { |c| c.flush_all } }
       end
 
       # Get the statistics from the memcached servers.
       def stats
-        @data.stats
+        @data.with { |c| c.stats }
       end
 
-      protected
+      private
         # Read an entry from the cache.
-        def read_entry(key, options) # :nodoc:
-          rescue_error_with(nil) { deserialize_entry(@data.get(key, options)) }
+        def read_entry(key, options)
+          rescue_error_with(nil) { deserialize_entry(@data.with { |c| c.get(key, options) }) }
         end
 
         # Write an entry to the cache.
-        def write_entry(key, entry, options) # :nodoc:
+        def write_entry(key, entry, options)
           method = options && options[:unless_exist] ? :add : :set
           value = options[:raw] ? entry.value.to_s : entry
           expires_in = options[:expires_in].to_i
@@ -159,16 +151,32 @@ module ActiveSupport
             expires_in += 5.minutes
           end
           rescue_error_with false do
-            @data.send(method, key, value, expires_in, options)
+            @data.with { |c| c.send(method, key, value, expires_in, options) }
           end
         end
 
-        # Delete an entry from the cache.
-        def delete_entry(key, options) # :nodoc:
-          rescue_error_with(false) { @data.delete(key) }
+        # Reads multiple entries from the cache implementation.
+        def read_multi_entries(names, options)
+          keys_to_names = Hash[names.map { |name| [normalize_key(name, options), name] }]
+
+          raw_values = @data.with { |c| c.get_multi(keys_to_names.keys) }
+          values = {}
+
+          raw_values.each do |key, value|
+            entry = deserialize_entry(value)
+
+            unless entry.expired? || entry.mismatched?(normalize_version(keys_to_names[key], options))
+              values[keys_to_names[key]] = entry.value
+            end
+          end
+
+          values
         end
 
-      private
+        # Delete an entry from the cache.
+        def delete_entry(key, options)
+          rescue_error_with(false) { @data.with { |c| c.delete(key) } }
+        end
 
         # Memcache keys are binaries. So we need to force their encoding to binary
         # before applying the regular expression to ensure we are escaping all
@@ -177,7 +185,7 @@ module ActiveSupport
           key = super.dup
           key = key.force_encoding(Encoding::ASCII_8BIT)
           key = key.gsub(ESCAPE_KEY_CHARS) { |match| "%#{match.getbyte(0).to_s(16).upcase}" }
-          key = "#{key[0, 213]}:md5:#{Digest::MD5.hexdigest(key)}" if key.size > 250
+          key = "#{key[0, 213]}:md5:#{ActiveSupport::Digest.hexdigest(key)}" if key.size > 250
           key
         end
 

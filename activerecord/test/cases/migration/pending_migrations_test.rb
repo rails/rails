@@ -1,50 +1,40 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
   class Migration
-    class PendingMigrationsTest < ActiveRecord::TestCase
-      def setup
-        super
-        @connection = Minitest::Mock.new
-        @app = Minitest::Mock.new
-        conn = @connection
-        @pending = Class.new(CheckPending) {
-          define_method(:connection) { conn }
-        }.new(@app)
-        @pending.instance_variable_set :@last_check, -1 # Force checking
-      end
+    if current_adapter?(:SQLite3Adapter) && !in_memory_db?
+      class PendingMigrationsTest < ActiveRecord::TestCase
+        setup do
+          file = ActiveRecord::Base.connection.raw_connection.filename
+          @conn = ActiveRecord::Base.establish_connection adapter: "sqlite3", database: ":memory:", migrations_paths: MIGRATIONS_ROOT + "/valid"
+          source_db = SQLite3::Database.new file
+          dest_db = ActiveRecord::Base.connection.raw_connection
+          backup = SQLite3::Backup.new(dest_db, "main", source_db, "main")
+          backup.step(-1)
+          backup.finish
+        end
 
-      def teardown
-        assert @connection.verify
-        assert @app.verify
-        super
-      end
+        teardown do
+          @conn.release_connection if @conn
+          ActiveRecord::Base.establish_connection :arunit
+        end
 
-      def test_errors_if_pending
-        @connection.expect :supports_migrations?, true
+        def test_errors_if_pending
+          ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
-        ActiveRecord::Migrator.stub :needs_migration?, true do
-          assert_raise ActiveRecord::PendingMigrationError do
-            @pending.call(nil)
+          assert_raises ActiveRecord::PendingMigrationError do
+            CheckPending.new(Proc.new {}).call({})
           end
         end
-      end
 
-      def test_checks_if_supported
-        @connection.expect :supports_migrations?, true
-        @app.expect :call, nil, [:foo]
+        def test_checks_if_supported
+          ActiveRecord::SchemaMigration.create_table
+          migrator = Base.connection.migration_context
+          capture(:stdout) { migrator.migrate }
 
-        ActiveRecord::Migrator.stub :needs_migration?, false do
-          @pending.call(:foo)
-        end
-      end
-
-      def test_doesnt_check_if_unsupported
-        @connection.expect :supports_migrations?, false
-        @app.expect :call, nil, [:foo]
-
-        ActiveRecord::Migrator.stub :needs_migration?, true do
-          @pending.call(:foo)
+          assert_nil CheckPending.new(Proc.new {}).call({})
         end
       end
     end

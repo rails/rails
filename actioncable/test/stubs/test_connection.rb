@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "stubs/user"
 
 class TestConnection
-  attr_reader :identifiers, :logger, :current_user, :server, :transmissions
+  attr_reader :identifiers, :logger, :current_user, :server, :subscriptions, :transmissions
 
   delegate :pubsub, to: :server
 

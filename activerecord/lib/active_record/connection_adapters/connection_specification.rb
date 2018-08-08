@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "uri"
 
 module ActiveRecord
@@ -55,9 +57,7 @@ module ActiveRecord
 
         private
 
-          def uri
-            @uri
-          end
+          attr_reader :uri
 
           def uri_parser
             @uri_parser ||= URI::Parser.new
@@ -149,9 +149,17 @@ module ActiveRecord
         # Expands each key in @configurations hash into fully resolved hash
         def resolve_all
           config = configurations.dup
+
+          if env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+            env_config = config[env] if config[env].is_a?(Hash) && !(config[env].key?("adapter") || config[env].key?("url"))
+          end
+
+          config.merge! env_config if env_config
+
           config.each do |key, value|
             config[key] = resolve(value) if value
           end
+
           config
         end
 
@@ -172,13 +180,25 @@ module ActiveRecord
 
           raise(AdapterNotSpecified, "database configuration does not specify adapter") unless spec.key?(:adapter)
 
+          # Require the adapter itself and give useful feedback about
+          #   1. Missing adapter gems and
+          #   2. Adapter gems' missing dependencies.
           path_to_adapter = "active_record/connection_adapters/#{spec[:adapter]}_adapter"
           begin
             require path_to_adapter
-          rescue Gem::LoadError => e
-            raise Gem::LoadError, "Specified '#{spec[:adapter]}' for database adapter, but the gem is not loaded. Add `gem '#{e.name}'` to your Gemfile (and ensure its version is at the minimum required by ActiveRecord)."
           rescue LoadError => e
-            raise LoadError, "Could not load '#{path_to_adapter}'. Make sure that the adapter in config/database.yml is valid. If you use an adapter other than 'mysql2', 'postgresql' or 'sqlite3' add the necessary adapter gem to the Gemfile.", e.backtrace
+            # We couldn't require the adapter itself. Raise an exception that
+            # points out config typos and missing gems.
+            if e.path == path_to_adapter
+              # We can assume that a non-builtin adapter was specified, so it's
+              # either misspelled or missing from Gemfile.
+              raise e.class, "Could not load the '#{spec[:adapter]}' Active Record adapter. Ensure that the adapter is spelled correctly in config/database.yml and that you've added the necessary adapter gem to your Gemfile.", e.backtrace
+
+            # Bubbled up from the adapter require. Prefix the exception message
+            # with some guidance about how to address it and reraise.
+            else
+              raise e.class, "Error loading the '#{spec[:adapter]}' Active Record adapter. Missing a gem it depends on? #{e.message}", e.backtrace
+            end
           end
 
           adapter_method = "#{spec[:adapter]}_connection"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/initializable"
 require "active_support/inflector"
 require "active_support/core_ext/module/introspection"
@@ -103,6 +105,9 @@ module Rails
   #     end
   #   end
   #
+  # Since filenames on the load path are shared across gems, be sure that files you load
+  # through a railtie have unique names.
+  #
   # == Application and Engine
   #
   # An engine is nothing more than a railtie with some initializers already set. And since
@@ -162,10 +167,6 @@ module Rails
         @instance ||= new
       end
 
-      def respond_to_missing?(*args)
-        instance.respond_to?(*args) || super
-      end
-
       # Allows you to configure the railtie. This is the same method seen in
       # Railtie::Configurable, but this module is no longer required for all
       # subclasses of Railtie so we provide the class method here.
@@ -173,9 +174,13 @@ module Rails
         instance.configure(&block)
       end
 
-      protected
-        def generate_railtie_name(string) #:nodoc:
+      private
+        def generate_railtie_name(string)
           ActiveSupport::Inflector.underscore(string).tr("/", "_")
+        end
+
+        def respond_to_missing?(name, _)
+          instance.respond_to?(name) || super
         end
 
         # If the class method does not have a method, then send the method call
@@ -188,7 +193,6 @@ module Rails
           end
         end
 
-      private
         # receives an instance variable identifier, set the variable value if is
         # blank and append given block to value, which will be used later in
         # `#each_registered_block(type, &block)`

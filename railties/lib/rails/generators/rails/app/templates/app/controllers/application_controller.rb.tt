@@ -1,5 +1,2 @@
-class ApplicationController < ActionController::<%= options[:api] ? "API" : "Base" %>
-<%- unless options[:api] -%>
-  protect_from_forgery with: :exception
-<%- end -%>
+class ApplicationController < ActionController::<%= options.api? ? "API" : "Base" %>
 end

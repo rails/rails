@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/execution_wrapper"
 
 module ActiveSupport
@@ -26,14 +28,17 @@ module ActiveSupport
 
     define_callbacks :class_unload
 
+    # Registers a callback that will run once at application startup and every time the code is reloaded.
     def self.to_prepare(*args, &block)
       set_callback(:prepare, *args, &block)
     end
 
+    # Registers a callback that will run immediately before the classes are unloaded.
     def self.before_class_unload(*args, &block)
       set_callback(:class_unload, *args, &block)
     end
 
+    # Registers a callback that will run immediately after the classes are unloaded.
     def self.after_class_unload(*args, &block)
       set_callback(:class_unload, :after, *args, &block)
     end
@@ -69,11 +74,8 @@ module ActiveSupport
       end
     end
 
-    class_attribute :executor
-    class_attribute :check
-
-    self.executor = Executor
-    self.check = lambda { false }
+    class_attribute :executor, default: Executor
+    class_attribute :check, default: lambda { false }
 
     def self.check! # :nodoc:
       @should_reload ||= check.call
