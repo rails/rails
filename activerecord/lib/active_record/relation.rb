@@ -678,10 +678,9 @@ module ActiveRecord
       end
 
       def build_preloader
-        query_runner = skip_query_cache_value || !connection.query_cache_enabled ?
-          klass.method(:uncached) :
-          klass.method(:cache)
-        ActiveRecord::Associations::Preloader.new query_runner
+        skip_query_cache = skip_query_cache_value || !connection.query_cache_enabled
+        query_runner_type = skip_query_cache ? :uncached : :cache
+        ::ActiveRecord::Associations::Preloader.new query_runner_type, klass
       end
 
       def references_eager_loaded_tables?

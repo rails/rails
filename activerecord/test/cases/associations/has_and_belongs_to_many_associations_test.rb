@@ -971,8 +971,9 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
         projects.
         detect { |p| p.id == first_project.id }
 
-    assert preloaded_first_project.salaried_developers.loaded?, true
+    assert_not_predicate preloaded_first_project.salaried_developers, :loaded?
     assert_equal first_project.salaried_developers.size, preloaded_first_project.salaried_developers.size
+    assert_predicate preloaded_first_project.salaried_developers, :loaded?
   end
 
   def test_has_and_belongs_to_many_is_useable_with_belongs_to_required_by_default

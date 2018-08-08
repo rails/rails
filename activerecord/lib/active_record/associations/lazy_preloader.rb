@@ -47,7 +47,6 @@ module ActiveRecord
       end
 
       def initialize(records, preloader, associations)
-        @record_finalizer = -> object_id { @records.delete object_id }
         @records = weak_references records
         @preloader = preloader
         @associations = associations
@@ -75,9 +74,13 @@ module ActiveRecord
 
         def weak_references(records)
           records.index_by(&:object_id).transform_values! do |record|
-            ::ObjectSpace.define_finalizer record, @record_finalizer
+            ::ObjectSpace.define_finalizer record, record_finalizer
             ::WeakRef.new record
           end
+        end
+
+        def record_finalizer
+          -> object_id { @records.delete object_id }
         end
 
         def loaded_records(association)

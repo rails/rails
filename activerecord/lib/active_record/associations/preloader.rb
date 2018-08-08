@@ -48,8 +48,9 @@ module ActiveRecord
         autoload :ThroughAssociation, "active_record/associations/preloader/through_association"
       end
 
-      def initialize(query_runner)
-        @query_runner = query_runner
+      def initialize(query_runner_type, klass)
+        @query_runner_type = query_runner_type
+        @klass = klass
       end
 
       # Eager loads the named associations for the given Active Record record(s).
@@ -92,7 +93,7 @@ module ActiveRecord
         if records.empty?
           []
         else
-          @query_runner.call { preload_now associations, records.uniq, preload_scope }
+          query_runner.call { preload_now associations, records.uniq, preload_scope }
         end
       end
 
@@ -107,6 +108,9 @@ module ActiveRecord
       end
 
       private
+        def query_runner
+          @klass.method @query_runner_type
+        end
 
         def preload_now(associations, records, preload_scope)
           Array.wrap(associations).flat_map do |association|
