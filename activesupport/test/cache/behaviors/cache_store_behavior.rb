@@ -148,7 +148,7 @@ module CacheStoreBehavior
     end
   end
 
-  # Use strings that are guarenteed to compress well, so we can easily tell if
+  # Use strings that are guaranteed to compress well, so we can easily tell if
   # the compression kicked in or not.
   SMALL_STRING = "0" * 100
   LARGE_STRING = "0" * 2.kilobytes
