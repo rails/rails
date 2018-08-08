@@ -1,7 +1,7 @@
-*  Stop exposing public methods in view's helpers.
+*  Deprecate exposing public methods in view's helpers.
 
    For example, in methods like `options_from_collection_for_select`
-   and `collection_select` it was possible to call private methods from
+   and `collection_select` it is possible to call private methods from
    the objects used.
 
    See [#33546](https://github.com/rails/rails/issues/33546) for details.
