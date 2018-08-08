@@ -20,11 +20,6 @@ module Rails
         require_application_and_environment!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
-
-        if Rails.application.credentials.key.nil?
-          return say missing_credentials_message if Rails.application.credentials.content_path.exist?
-        end
-
         ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
         ensure_credentials_have_been_added
 
@@ -43,8 +38,13 @@ module Rails
 
       private
         def ensure_master_key_has_been_added
-          master_key_generator.add_master_key_file
-          master_key_generator.ignore_master_key_file
+          if !Rails.application.credentials.content_path.exist?
+            master_key_generator.add_master_key_file
+            master_key_generator.ignore_master_key_file
+          else
+            say missing_credentials_message
+            exit 1
+          end
         end
 
         def ensure_credentials_have_been_added
