@@ -521,6 +521,7 @@ DEPENDENCIES
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
   hiredis
+  i18n (~> 1.0.1)
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby

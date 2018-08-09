@@ -56,6 +56,7 @@ gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
+gem "i18n", "~> 1.0.1"
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
