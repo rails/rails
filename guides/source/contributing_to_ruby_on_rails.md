@@ -53,7 +53,7 @@ You can then share your executable test case as a [gist](https://gist.github.com
 
 ### Special Treatment for Security Issues
 
-WARNING: Please do not report security vulnerabilities with public GitHub issue reports. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
+WARNING: Please do not report security vulnerabilities with public GitHub issue reports. Ruby on Rails takes web security very seriously. The [Rails security policy page](http://rubyonrails.org/security) details the procedure to follow for security issues.
 
 ### What about Feature Requests?
 
