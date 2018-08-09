@@ -342,6 +342,14 @@ class FlashIntegrationTest < ActionDispatch::IntegrationTest
     end
   end
 
+  def test_flash_usable_in_metal_without_helper
+    assert_nothing_raised do
+      Class.new ActionController::Metal do
+        include ActionController::Flash
+      end
+    end
+  end
+
   private
 
     # Overwrite get to send SessionSecret in env hash
