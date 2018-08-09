@@ -96,7 +96,7 @@
 
     *Godfrey Chan*
 
-*   Fix bug where `URI.unscape` would fail with mixed Unicode/escaped character input:
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character input:
 
         URI.unescape("\xe3\x83\x90")  # => "バ"
         URI.unescape("%E3%83%90")  # => "バ"
