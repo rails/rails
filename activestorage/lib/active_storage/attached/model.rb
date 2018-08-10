@@ -22,7 +22,7 @@ module ActiveStorage
       # Under the covers, this relationship is implemented as a +has_one+ association to a
       # ActiveStorage::Attachment record and a +has_one-through+ association to a
       # ActiveStorage::Blob record. These associations are available as +avatar_attachment+
-      # and +avatar_blob+. But you shouldn't need to work with these associations directly in
+      # and +avatar_blob+. However, you shouldn't need to work with these associations directly in
       # most circumstances.
       #
       # The system has been designed to having you go through the ActiveStorage::Attached::One
@@ -78,7 +78,7 @@ module ActiveStorage
       # Under the covers, this relationship is implemented as a +has_many+ association to a
       # ActiveStorage::Attachment record and a +has_many-through+ association to a
       # ActiveStorage::Blob record. These associations are available as +photos_attachments+
-      # and +photos_blobs+. But you shouldn't need to work with these associations directly in
+      # and +photos_blobs+. However, you shouldn't need to work with these associations directly in
       # most circumstances.
       #
       # The system has been designed to having you go through the ActiveStorage::Attached::Many
