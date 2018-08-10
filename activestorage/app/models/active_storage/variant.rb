@@ -101,14 +101,8 @@ class ActiveStorage::Variant
       end
     end
 
-    def transform(image)
-      result = variation.transform(image, format: format)
-
-      begin
-        yield result
-      ensure
-        result.close!
-      end
+    def transform(image, &block)
+      variation.transform(image, format: format, &block)
     end
 
     def upload(file)
