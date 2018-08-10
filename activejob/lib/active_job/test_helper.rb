@@ -89,7 +89,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a specific job was enqueued can be asserted.
+    # Asserts the number of times a specific job was enqueued by passing +:only+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 1, only: LoggingJob do
@@ -98,7 +98,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a job except specific class was enqueued can be asserted.
+    # Asserts the number of times a job except specific class was enqueued by passing +:except+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 1, except: HelloJob do
@@ -107,7 +107,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The number of times a job is enqueued to a specific queue can also be asserted.
+    # Asserts the number of times a job is enqueued to a specific queue by passing +:queue+ option.
     #
     #   def test_logging_job
     #     assert_enqueued_jobs 2, queue: 'default' do
@@ -143,7 +143,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs of a specific kind are enqueued:
+    # Asserts that no jobs of a specific kind are enqueued by passing +:only+ option.
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs only: LoggingJob do
@@ -151,7 +151,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs except specific class are enqueued:
+    # Asserts that no jobs except specific class are enqueued by passing +:except+ option.
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs except: HelloJob do
@@ -159,7 +159,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # It can be asserted that no jobs are enqueued to a specific queue:
+    # Asserts that no jobs are enqueued to a specific queue by passing +:queue+ option
     #
     #   def test_no_logging
     #     assert_no_enqueued_jobs queue: 'default' do
