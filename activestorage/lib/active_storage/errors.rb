@@ -1,11 +1,14 @@
 # frozen_string_literal: true
 
 module ActiveStorage
-  class InvariableError < StandardError; end
-  class UnpreviewableError < StandardError; end
-  class UnrepresentableError < StandardError; end
+  # Generic base class for all Active Storage exceptions.
+  class Error < StandardError; end
+
+  class InvariableError < Error; end
+  class UnpreviewableError < Error; end
+  class UnrepresentableError < Error; end
 
   # Raised when uploaded or downloaded data does not match a precomputed checksum.
   # Indicates that a network error or a software bug caused data corruption.
-  class IntegrityError < StandardError; end
+  class IntegrityError < Error; end
 end
