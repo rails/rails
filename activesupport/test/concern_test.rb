@@ -128,4 +128,15 @@ class ConcernTest < ActiveSupport::TestCase
       end
     end
   end
+
+  def test_dont_raise_on_same_included_call
+    content = capture(:stderr) {
+      assert_nothing_raised do
+        2.times do
+          load File.expand_path('../fixtures/some_module.rb', __FILE__)
+        end
+      end
+    }
+    assert_match(/Redefining 'included' block/, content)
+  end
 end

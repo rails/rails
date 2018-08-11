@@ -125,7 +125,16 @@ module ActiveSupport
 
     def included(base = nil, &block)
       if base.nil?
-        raise MultipleIncludedBlocks if instance_variable_defined?(:@_included_block)
+        if instance_variable_defined?(:@_included_block)
+          if @_included_block.source_location == block.source_location
+            ActiveSupport::Deprecation.behavior.first.call(
+              "Redefining 'included' block in #{block.source_location.join('#')}",
+              caller
+            )
+          else
+            raise MultipleIncludedBlocks
+          end
+        end
 
         @_included_block = block
       else
