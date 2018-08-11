@@ -142,7 +142,7 @@ class JsonSerializationTest < ActiveModel::TestCase
       assert_kind_of Hash, json
       assert_kind_of Hash, json["contact"]
       %w(name age created_at awesome preferences).each do |field|
-        assert_equal @contact.send(field), json["contact"][field]
+        assert_equal @contact.send(field).as_json, json["contact"][field]
       end
     ensure
       Contact.include_root_in_json = original_include_root_in_json
