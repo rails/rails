@@ -1,8 +1,12 @@
 # Be sure to restart your server when you modify this file.
 #
-# This file contains migration options to ease your Rails 6.0 upgrade.
+# This file contains explicit, new configuration defaults to ease your Rails 6.0
+# upgrade.
 #
-# Once upgraded flip defaults one by one to migrate to the new default.
+# After upgrading Rails, uncomment each of these new defaults one at a time and
+# test your application. If you accept all of the new configuration defaults,
+# you may update the argument to `config.load_defaults` in config/application.rb
+# and delete this file.
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 
