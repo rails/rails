@@ -93,7 +93,7 @@ module ActiveRecord
         if records.empty?
           []
         else
-          query_runner.call { preload_now associations, records.uniq, preload_scope }
+          query_runner.call { preload_now associations, records.uniq, preload_scope } unless records.empty?
         end
       end
 
@@ -102,12 +102,13 @@ module ActiveRecord
 
         unless records.empty?
           records.uniq!
-          preloader = LazyPreloader.new(records, self, associations)
+          preloader = LazyPreloader.new records, self, associations
           records.each { |record| LazyPreloader::Registry.store record, preloader }
         end
       end
 
       private
+
         def query_runner
           @klass.method @query_runner_type
         end

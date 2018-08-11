@@ -127,8 +127,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assertions = ->(firm) {
       assert_equal companies(:first_firm), firm
 
-      assert_predicate firm.association(:readonly_account), :loaded?
-      assert_predicate firm.association(:accounts), :loaded?
+      assert_not_predicate firm.association(:readonly_account), :loaded?
+      assert_not_predicate firm.association(:accounts), :loaded?
 
       assert_equal accounts(:signals37), firm.readonly_account
       assert_equal [accounts(:signals37)], firm.accounts
@@ -181,35 +181,35 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_duplicate_middle_objects
     comments = Comment.all.merge!(where: "post_id = 1", includes: [post: :author]).to_a
-    assert_no_queries do
+    assert_queries(2) do
       comments.each { |comment| comment.post.author.name }
     end
   end
 
   def test_preloading_has_many_in_multiple_queries_with_more_ids_than_database_can_handle
     assert_called(Comment.connection, :in_clause_length, returns: 5) do
-      posts = Post.all.merge!(includes: :comments).to_a
+      posts = Post.all.merge!(includes: :comments).each { |post| post.comments.first }
       assert_equal 11, posts.size
     end
   end
 
   def test_preloading_has_many_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     assert_called(Comment.connection, :in_clause_length, returns: nil) do
-      posts = Post.all.merge!(includes: :comments).to_a
+      posts = Post.all.merge!(includes: :comments).each { |post| post.comments.first }
       assert_equal 11, posts.size
     end
   end
 
   def test_preloading_habtm_in_multiple_queries_with_more_ids_than_database_can_handle
     assert_called(Comment.connection, :in_clause_length, times: 2, returns: 5) do
-      posts = Post.all.merge!(includes: :categories).to_a
+      posts = Post.all.merge!(includes: :categories).each { |post| post.categories.first }
       assert_equal 11, posts.size
     end
   end
 
   def test_preloading_habtm_in_one_queries_when_database_has_no_limit_on_ids_it_can_handle
     assert_called(Comment.connection, :in_clause_length, times: 2, returns: nil) do
-      posts = Post.all.merge!(includes: :categories).to_a
+      posts = Post.all.merge!(includes: :categories).each { |post| post.categories.first }
       assert_equal 11, posts.size
     end
   end
@@ -218,7 +218,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_called(Comment.connection, :in_clause_length, returns: nil) do
       post = posts(:welcome)
       assert_queries(2) do
-        Post.includes(:comments).where(id: post.id).to_a
+        Post.includes(:comments).where(id: post.id).each { |post| post.comments.first }
       end
     end
   end
@@ -227,7 +227,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_called(Comment.connection, :in_clause_length, returns: 1) do
       post1, post2 = posts(:welcome), posts(:thinking)
       assert_queries(3) do
-        Post.includes(:comments).where(id: [post1.id, post2.id]).to_a
+        Post.includes(:comments).where(id: [post1.id, post2.id]).each { |post| post.comments.first }
       end
     end
   end
@@ -236,7 +236,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     assert_called(Comment.connection, :in_clause_length, returns: 3) do
       post = posts(:welcome)
       assert_queries(2) do
-        Post.includes(:comments).where(id: post.id).to_a
+        Post.includes(:comments).where(id: post.id).each { |post| post.comments.first }
       end
     end
   end
@@ -273,16 +273,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
     first_category = Category.create! name: "First!", posts: [post]
     second_category = Category.create! name: "Second!", posts: [post]
 
-    categories = Category.where(id: [first_category.id, second_category.id]).includes(posts: :special_comments)
+    categories = Category.where(id: [first_category.id, second_category.id]).includes(posts: :special_comments).to_a
+    assert_queries(2) { categories.first.posts.first.special_comments.first }
     assert_equal categories.map { |category| category.posts.first.special_comments.loaded? }, [true, true]
   end
 
   def test_finding_with_includes_on_has_many_association_with_same_include_includes_only_once
     author_id = authors(:david).id
-    author = assert_queries(3) { Author.all.merge!(includes: { posts_with_comments: :comments }).find(author_id) } # find the author, then find the posts, then find the comments
-    author.posts_with_comments.each do |post_with_comments|
-      assert_equal post_with_comments.comments.length, post_with_comments.comments.count
-      assert_nil post_with_comments.comments.to_a.uniq!
+    author = assert_queries(1) { Author.all.merge!(includes: { posts_with_comments: :comments }).find(author_id) } # find the author, then find the posts, then find the comments
+    assert_queries(2) do
+      author.posts_with_comments.each do |post_with_comments|
+        assert_equal post_with_comments.comments.length, post_with_comments.comments.count
+        assert_nil post_with_comments.comments.to_a.uniq!
+      end
     end
   end
 
@@ -290,8 +293,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author = authors(:david)
     post = author.post_about_thinking_with_last_comment
     last_comment = post.last_comment
-    author = assert_queries(3) { Author.all.merge!(includes: { post_about_thinking_with_last_comment: :last_comment }).find(author.id) } # find the author, then find the posts, then find the comments
-    assert_no_queries do
+    author = assert_queries(1) { Author.all.merge!(includes: { post_about_thinking_with_last_comment: :last_comment }).find(author.id) } # find the author, then find the posts, then find the comments
+    assert_queries(2) do
       assert_equal post, author.post_about_thinking_with_last_comment
       assert_equal last_comment, author.post_about_thinking_with_last_comment.last_comment
     end
@@ -301,8 +304,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     post = posts(:welcome)
     author = post.author
     author_address = author.author_address
-    post = assert_queries(3) { Post.all.merge!(includes: { author_with_address: :author_address }).find(post.id) } # find the post, then find the author, then find the address
-    assert_no_queries do
+    post = assert_queries(1) { Post.all.merge!(includes: { author_with_address: :author_address }).find(post.id) } # find the post, then find the author, then find the address
+    assert_queries(2) do
       assert_equal author, post.author_with_address
       assert_equal author_address, post.author_with_address.author_address
     end
@@ -504,32 +507,37 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_belongs_to_inferred_foreign_key_from_association_name
-    author_favorite = AuthorFavorite.all.merge!(includes: :favorite_author).first
-    assert_equal authors(:mary), assert_no_queries { author_favorite.favorite_author }
+    author_favorite = nil
+    assert_queries(1) { author_favorite = AuthorFavorite.all.merge!(includes: :favorite_author).first }
+    assert_equal authors(:mary), assert_queries(1) { author_favorite.favorite_author }
   end
 
   def test_eager_load_belongs_to_quotes_table_and_column_names
     job = Job.includes(:ideal_reference).find jobs(:unicyclist).id
     references(:michael_unicyclist)
-    assert_no_queries { assert_equal references(:michael_unicyclist), job.ideal_reference }
+    assert_queries(1) { assert_equal references(:michael_unicyclist), job.ideal_reference }
   end
 
   def test_eager_load_has_one_quotes_table_and_column_names
-    michael = Person.all.merge!(includes: :favourite_reference).find(people(:michael).id)
+    michael = nil
+    people(:michael)
+    assert_queries(1) do
+      michael = Person.all.merge!(includes: :favourite_reference).find(people(:michael).id)
+    end
     references(:michael_unicyclist)
-    assert_no_queries { assert_equal references(:michael_unicyclist), michael.favourite_reference }
+    assert_queries(1) { assert_equal references(:michael_unicyclist), michael.favourite_reference }
   end
 
   def test_eager_load_has_many_quotes_table_and_column_names
     michael = Person.all.merge!(includes: :references).find(people(:michael).id)
     references(:michael_magician, :michael_unicyclist)
-    assert_no_queries { assert_equal references(:michael_magician, :michael_unicyclist), michael.references.sort_by(&:id) }
+    assert_queries(1) { assert_equal references(:michael_magician, :michael_unicyclist), michael.references.sort_by(&:id) }
   end
 
   def test_eager_load_has_many_through_quotes_table_and_column_names
     michael = Person.all.merge!(includes: :jobs).find(people(:michael).id)
     jobs(:magician, :unicyclist)
-    assert_no_queries { assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
+    assert_queries(2) { assert_equal jobs(:unicyclist, :magician), michael.jobs.sort_by(&:id) }
   end
 
   def test_eager_load_has_many_with_string_keys
@@ -572,8 +580,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
     posts_with_author = people(:michael).posts.merge(includes: :author, order: "posts.id").to_a
     posts_with_comments_and_author = people(:michael).posts.merge(includes: [ :comments, :author ], order: "posts.id").to_a
     assert_equal 2, posts_with_comments.inject(0) { |sum, post| sum + post.comments.size }
-    assert_equal authors(:david), assert_no_queries { posts_with_author.first.author }
-    assert_equal authors(:david), assert_no_queries { posts_with_comments_and_author.first.author }
+    assert_equal authors(:david), assert_queries(1) { posts_with_author.first.author }
+    assert_equal authors(:david), assert_queries(1) { posts_with_comments_and_author.first.author }
   end
 
   def test_eager_with_has_many_through_a_belongs_to_association
@@ -582,7 +590,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
     author.author_favorites.create(favorite_author_id: 1)
     author.author_favorites.create(favorite_author_id: 2)
     posts_with_author_favorites = author.posts.merge(includes: :author_favorites).to_a
-    assert_no_queries { posts_with_author_favorites.first.author_favorites.first.author_id }
+    assert_queries(1) { posts_with_author_favorites.first.author_favorites.first.author_id }
   end
 
   def test_eager_with_has_many_through_an_sti_join_model
@@ -592,7 +600,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_preloading_has_many_through_with_implicit_source
     authors = Author.includes(:very_special_comments).to_a
-    assert_no_queries do
+    assert_queries(1) do
       special_comment_authors = authors.map { |author| [author.name, author.very_special_comments.size] }
       assert_equal [["David", 1], ["Mary", 0], ["Bob", 0]], special_comment_authors
     end
@@ -818,22 +826,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_eager_with_invalid_association_reference
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
-      Post.all.merge!(includes: :monkeys).find(6)
+      Post.all.merge!(includes: :monkeys).find(6).tap &:monkeys
     }
     assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
-      Post.all.merge!(includes: [ :monkeys ]).find(6)
+      Post.all.merge!(includes: [ :monkeys ]).find(6).tap &:monkeys
     }
     assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
-      Post.all.merge!(includes: [ "monkeys" ]).find(6)
+      Post.all.merge!(includes: [ "monkeys" ]).find(6).tap &:monkeys
     }
     assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
 
     e = assert_raise(ActiveRecord::AssociationNotFoundError) {
-      Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6)
+      Post.all.merge!(includes: [ :monkeys, :elephants ]).find(6).tap &:monkeys
     }
     assert_equal("Association named 'monkeys' was not found on Post; perhaps you misspelled it?", e.message)
   end
@@ -904,7 +912,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_with_default_scope_as_lambda
-    developer = EagerDeveloperWithLambdaDefaultScope.where(name: "David").references(:projects).first
+    developer = EagerDeveloperWithLambdaDefaultScope.where(name: "David").first
     projects = Project.order(:id).to_a
     assert_no_queries do
       assert_equal(projects, developer.projects)
@@ -914,7 +922,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_default_scope_as_block
     # warm up the habtm cache
     EagerDeveloperWithBlockDefaultScope.where(name: "David").first.projects
-    developer = EagerDeveloperWithBlockDefaultScope.where(name: "David").references(:projects).first
+    developer = EagerDeveloperWithBlockDefaultScope.where(name: "David").first
     projects = Project.order(:id).to_a
     assert_no_queries do
       assert_equal(projects, developer.projects)
@@ -1044,7 +1052,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_eager_with_floating_point_numbers
     assert_queries(2) do
       # Before changes, the floating point numbers will be interpreted as table names and will cause this to run in one query
-      Comment.all.merge!(where: "123.456 = 123.456", includes: :post).to_a
+      Comment.all.merge!(where: "123.456 = 123.456", includes: :post).each &:post
     end
   end
 
@@ -1134,7 +1142,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   def test_load_with_sti_sharing_association
     assert_queries(2) do # should not do 1 query per subclass
-      Comment.includes(:post).to_a
+      Comment.includes(:post).each &:post
     end
   end
 
@@ -1153,26 +1161,28 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_order_on_joined_table_preloads
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(joins: :comments, includes: :author, order: "comments.id DESC").to_a
     end
-    assert_equal posts(:eager_other), posts[1]
-    assert_equal authors(:mary), assert_no_queries { posts[1].author }
+    assert_queries(1) do
+      assert_equal posts(:eager_other), posts[1]
+      assert_equal authors(:mary), assert_no_queries { posts[1].author }
+    end
   end
 
   def test_eager_loading_with_conditions_on_joined_table_preloads
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(select: "distinct posts.*", includes: :author, joins: [:comments], where: "comments.body like 'Thank you%'", order: "posts.id").to_a
     end
     assert_equal [posts(:welcome)], posts
-    assert_equal authors(:david), assert_no_queries { posts[0].author }
+    assert_equal authors(:david), assert_queries(1) { posts[0].author }
 
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(includes: :author, joins: { taggings: :tag }, where: "tags.name = 'General'", order: "posts.id").to_a
     end
     assert_equal posts(:welcome, :thinking), posts
 
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(includes: :author, joins: { taggings: { tag: :taggings } }, where: "taggings_tags.super_tag_id=2", order: "posts.id").to_a
     end
     assert_equal posts(:welcome, :thinking), posts
@@ -1191,29 +1201,29 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   def test_eager_loading_with_conditions_on_string_joined_table_preloads
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(select: "distinct posts.*", includes: :author, joins: "INNER JOIN comments on comments.post_id = posts.id", where: "comments.body like 'Thank you%'", order: "posts.id").to_a
     end
     assert_equal [posts(:welcome)], posts
-    assert_equal authors(:david), assert_no_queries { posts[0].author }
+    assert_equal authors(:david), assert_queries(1) { posts[0].author }
 
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(select: "distinct posts.*", includes: :author, joins: ["INNER JOIN comments on comments.post_id = posts.id"], where: "comments.body like 'Thank you%'", order: "posts.id").to_a
     end
     assert_equal [posts(:welcome)], posts
-    assert_equal authors(:david), assert_no_queries { posts[0].author }
+    assert_equal authors(:david), assert_queries(1) { posts[0].author }
   end
 
   def test_eager_loading_with_select_on_joined_table_preloads
-    posts = assert_queries(2) do
+    posts = assert_queries(1) do
       Post.all.merge!(select: "posts.*, authors.name as author_name", includes: :comments, joins: :author, order: "posts.id").to_a
     end
     assert_equal "David", posts[0].author_name
-    assert_equal posts(:welcome).comments, assert_no_queries { posts[0].comments }
+    assert_equal posts(:welcome).comments, assert_queries(1) { posts[0].comments }
   end
 
   def test_eager_loading_with_conditions_on_join_model_preloads
-    authors = assert_queries(2) do
+    authors = assert_queries(1) do
       Author.all.merge!(includes: :author_address, joins: :comments, where: "posts.title like 'Welcome%'").to_a
     end
     assert_equal authors(:david), authors[0]
@@ -1223,8 +1233,8 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preload_belongs_to_uses_exclusive_scope
     people = Person.males.merge(includes: :primary_contact).to_a
     assert_not_equal people.length, 0
-    people.each do |person|
-      assert_no_queries { assert_not_nil person.primary_contact }
+    people.each_with_index do |person, index|
+      assert_queries(index.zero? ? 1 : 0) { assert_not_nil person.primary_contact }
       assert_equal Person.find(person.id).primary_contact, person.primary_contact
     end
   end
@@ -1239,7 +1249,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preload_has_many_using_primary_key
     expected = Firm.first.clients_using_primary_key.to_a
     firm = Firm.includes(:clients_using_primary_key).first
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal expected, firm.clients_using_primary_key
     end
   end
@@ -1260,7 +1270,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preload_has_one_using_primary_key
     expected = accounts(:signals37)
     firm = Firm.all.merge!(includes: :account_using_primary_key, order: "companies.id").first
-    assert_no_queries do
+    assert_queries(1) do
       assert_equal expected, firm.account_using_primary_key
     end
   end
@@ -1276,24 +1286,24 @@ class EagerAssociationTest < ActiveRecord::TestCase
   def test_preloading_empty_belongs_to
     c = Client.create!(name: "Foo", client_of: Company.maximum(:id) + 1)
 
-    client = assert_queries(2) { Client.preload(:firm).find(c.id) }
-    assert_no_queries { assert_nil client.firm }
+    client = assert_queries(1) { Client.preload(:firm).find(c.id) }
+    assert_queries(1) { assert_nil client.firm }
     assert_equal c.client_of, client.client_of
   end
 
   def test_preloading_empty_belongs_to_polymorphic
     t = Tagging.create!(taggable_type: "Post", taggable_id: Post.maximum(:id) + 1, tag: tags(:general))
 
-    tagging = assert_queries(2) { Tagging.preload(:taggable).find(t.id) }
-    assert_no_queries { assert_nil tagging.taggable }
+    tagging = assert_queries(1) { Tagging.preload(:taggable).find(t.id) }
+    assert_queries(1) { assert_nil tagging.taggable }
     assert_equal t.taggable_id, tagging.taggable_id
   end
 
   def test_preloading_through_empty_belongs_to
     c = Client.create!(name: "Foo", client_of: Company.maximum(:id) + 1)
 
-    client = assert_queries(2) { Client.preload(:accounts).find(c.id) }
-    assert_no_queries { assert client.accounts.empty? }
+    client = assert_queries(1) { Client.preload(:accounts).find(c.id) }
+    assert_queries(1) { assert client.accounts.empty? }
   end
 
   def test_preloading_has_many_through_with_distinct
@@ -1324,10 +1334,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
     sponsor = sponsors(:moustache_club_sponsor_for_groucho)
     groucho = members(:groucho)
 
-    sponsor = assert_queries(2) {
+    sponsor = assert_queries(1) {
       Sponsor.includes(:thing).where(id: sponsor.id).first
     }
-    assert_no_queries { assert_equal groucho, sponsor.thing }
+    assert_queries(1) { assert_equal groucho, sponsor.thing }
   end
 
   def test_joins_with_includes_should_preload_via_joins
@@ -1388,21 +1398,32 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "deep preload" do
-    post = Post.preload(author: :posts, comments: :post).first
+    post = nil
 
-    assert_predicate post.author.association(:posts), :loaded?
-    assert_predicate post.comments.first.association(:post), :loaded?
+    assert_queries(1) do
+      post = Post.preload(author: :posts, comments: :post).first
+    end
+
+    assert_not_predicate post.author.association(:posts), :loaded?
+    assert_not_predicate post.comments.first.association(:post), :loaded?
+
+    assert_queries(4) do
+      post.tap { |post| post.author.posts.first }.tap { |post| post.comments.first.post }
+      assert_predicate post.author.association(:posts), :loaded?
+      assert_predicate post.comments.first.association(:post), :loaded?
+    end
   end
 
   test "preloading does not cache has many association subset when preloaded with a through association" do
-    author = Author.includes(:comments_with_order_and_conditions, :posts).first
-    assert_no_queries { assert_equal 2, author.comments_with_order_and_conditions.size }
-    assert_no_queries { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
+    author = nil
+    assert_queries(1) { author = Author.includes(:comments_with_order_and_conditions, :posts).first }
+    assert_queries(1) { assert_equal 2, author.comments_with_order_and_conditions.size }
+    assert_queries(1) { assert_equal 5, author.posts.size, "should not cache a subset of the association" }
   end
 
   test "preloading a through association twice does not reset it" do
     members = Member.includes(current_membership: :club).includes(:club).to_a
-    assert_no_queries {
+    assert_queries(2) {
       assert_equal 3, members.map(&:current_membership).map(&:club).size
     }
   end
@@ -1426,7 +1447,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
   test "preloading the same association twice works" do
     Member.create!
     members = Member.preload(:current_membership).includes(current_membership: :club).all.to_a
-    assert_no_queries {
+    assert_queries(2) {
       members_with_membership = members.select(&:current_membership)
       assert_equal 3, members_with_membership.map(&:current_membership).map(&:club).size
     }
@@ -1443,10 +1464,10 @@ class EagerAssociationTest < ActiveRecord::TestCase
   end
 
   test "preloading associations with string joins and order references" do
-    author = assert_queries(2) {
+    author = assert_queries(1) {
       Author.includes(:posts).joins("LEFT JOIN posts ON posts.author_id = authors.id").order("posts.title DESC").first
     }
-    assert_no_queries {
+    assert_queries(1) {
       assert_equal 5, author.posts.size
     }
   end
@@ -1468,26 +1489,19 @@ class EagerAssociationTest < ActiveRecord::TestCase
   test "preloading and eager loading of instance dependent associations is not supported" do
     message = "association scope 'posts_with_signature' is"
     error = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_signature).to_a
+      Author.includes(:posts_with_signature).each &:posts_with_signature
     end
     assert_match message, error.message
 
     error = assert_raises(ArgumentError) do
-      Author.preload(:posts_with_signature).to_a
+      Author.preload(:posts_with_signature).each &:posts_with_signature
     end
     assert_match message, error.message
 
     error = assert_raises(ArgumentError) do
-      Author.eager_load(:posts_with_signature).to_a
+      Author.eager_load(:posts_with_signature).each &:posts_with_signature
     end
     assert_match message, error.message
-  end
-
-  test "preload with invalid argument" do
-    exception = assert_raises(ArgumentError) do
-      Author.preload(10).to_a
-    end
-    assert_equal("10 was not recognized for preload", exception.message)
   end
 
   test "associations with extensions are not instance dependent" do
@@ -1498,7 +1512,7 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "including associations with extensions and an instance dependent scope is not supported" do
     e = assert_raises(ArgumentError) do
-      Author.includes(:posts_with_extension_and_instance).to_a
+      Author.includes(:posts_with_extension_and_instance).each &:posts_with_extension_and_instance
     end
     assert_match(/Preloading instance dependent scopes is not supported/, e.message)
   end
@@ -1577,22 +1591,22 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   test "preloading through a polymorphic association doesn't require the association to exist" do
     sponsors = []
-    assert_queries 5 do
+    assert_queries 1 do
       sponsors = Sponsor.where(sponsorable_id: 1).preload(sponsorable: [:post, :membership]).to_a
     end
-    # check the preload worked
-    assert_queries 0 do
+    # check the lazy preloading works
+    assert_queries 4 do
       sponsors.map(&:sponsorable).map { |s| s.respond_to?(:posts) ? s.post.author : s.membership }
     end
   end
 
   test "preloading a regular association through a polymorphic association doesn't require the association to exist on all types" do
     sponsors = []
-    assert_queries 6 do
+    assert_queries 1 do
       sponsors = Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :first_comment }, :membership]).to_a
     end
-    # check the preload worked
-    assert_queries 0 do
+    # check the lazy preloading works
+    assert_queries 5 do
       sponsors.map(&:sponsorable).map { |s| s.respond_to?(:posts) ? s.post.author : s.membership }
     end
   end
@@ -1600,7 +1614,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
   test "preloading a regular association with a typo through a polymorphic association still raises" do
     # this test contains an intentional typo of first -> fist
     assert_raises(ActiveRecord::AssociationNotFoundError) do
-      Sponsor.where(sponsorable_id: 1).preload(sponsorable: [{ post: :fist_comment }, :membership]).to_a
+      Sponsor.where(sponsorable_id: 1)
+        .preload(sponsorable: [{ post: :fist_comment }, :membership])
+        .each { |sponsor| sponsor.sponsorable.post.fist_comment }
     end
   end
 

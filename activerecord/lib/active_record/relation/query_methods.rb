@@ -124,6 +124,21 @@ module ActiveRecord
       self
     end
 
+    # Works exactly like +includes+ method, but preloads associations
+    # right after main ActiveRecord::Relation execution
+    def includes_immediately(*args)
+      check_if_method_has_arguments!(:includes_immediately, args)
+      spawn.includes_immediately!(*args)
+    end
+
+    def includes_immediately!(*args) # :nodoc:
+      args.reject!(&:blank?)
+      args.flatten!
+
+      self.includes! args
+      self.includes_immediately_values |= args
+    end
+
     # Forces eager loading by performing a LEFT OUTER JOIN on +args+:
     #
     #   User.eager_load(:posts)

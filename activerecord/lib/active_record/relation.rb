@@ -3,7 +3,7 @@
 module ActiveRecord
   # = Active Record \Relation
   class Relation
-    MULTI_VALUE_METHODS  = [:includes, :eager_load, :preload, :select, :group,
+    MULTI_VALUE_METHODS  = [:includes, :includes_immediately, :eager_load, :preload, :select, :group,
                             :order, :joins, :left_outer_joins, :references,
                             :extending, :unscope]
 
@@ -620,13 +620,13 @@ module ActiveRecord
 
     def preload_associations(records) # :nodoc:
       preload = preload_values
-      preload += includes_values unless eager_loading?
+      preload += includes_values - includes_immediately_values unless eager_loading?
 
-      return if preload.empty?
+      return if preload.empty? && (includes_immediately_values.empty? || eager_loading?)
 
-      ExplainRegistry.collect? ?
-        build_preloader.preload(records, preload) :
-        build_preloader.lazy_preload(records, preload)
+      preloader = build_preloader
+      preloader.preload records, includes_immediately_values unless eager_loading?
+      ExplainRegistry.collect? ? preloader.preload(records, preload) : preloader.lazy_preload(records, preload)
     end
 
     protected

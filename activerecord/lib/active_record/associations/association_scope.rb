@@ -135,7 +135,7 @@ module ActiveRecord
               end
 
               reflection.all_includes do
-                scope.includes! item.includes_values
+                scope.includes_immediately! item.includes_values
               end
 
               scope.unscope!(*item.unscope_values)
