@@ -427,7 +427,7 @@ module Arel
           compile(node).must_equal %(("products"."price" - 7))
         end
 
-        it "should handle Concatination" do
+        it "should handle Concatenation" do
           table = Table.new(:users)
           node = table[:name].concat(table[:name])
           compile(node).must_equal %("users"."name" || "users"."name")

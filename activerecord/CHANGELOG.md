@@ -1,3 +1,12 @@
+*   Add environment & load_config dependency to `bin/rake db:seed` to enable
+    seed load in environments without Rails and custom DB configuration
+
+    *Tobias Bielohlawek*
+
+*   Fix default value for mysql time types with specified precision.
+
+    *Nikolay Kondratyev*
+
 *   Fix `touch` option to behave consistently with `Persistence#touch` method.
 
     *Ryuta Kamizono*

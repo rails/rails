@@ -1,12 +1,7 @@
 # frozen_string_literal: true
 
 gem "google-cloud-storage", "~> 1.11"
-
 require "google/cloud/storage"
-require "net/http"
-
-require "active_support/core_ext/object/to_query"
-require "active_storage/filename"
 
 module ActiveStorage
   # Wraps the Google Cloud Storage as an Active Storage service. See ActiveStorage::Service for the generic API
@@ -62,7 +57,13 @@ module ActiveStorage
 
     def delete_prefixed(prefix)
       instrument :delete_prefixed, prefix: prefix do
-        bucket.files(prefix: prefix).all(&:delete)
+        bucket.files(prefix: prefix).all do |file|
+          begin
+            file.delete
+          rescue Google::Cloud::NotFoundError
+            # Ignore concurrently-deleted files
+          end
+        end
       end
     end
 

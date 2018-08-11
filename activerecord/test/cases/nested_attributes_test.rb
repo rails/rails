@@ -669,7 +669,6 @@ module NestedAttributesOnACollectionAssociationTests
   def test_should_take_a_hash_with_composite_id_keys_and_assign_the_attributes_to_the_associated_models
     @child_1.stub(:id, "ABC1X") do
       @child_2.stub(:id, "ABC2X") do
-
         @pirate.attributes = {
           association_getter => [
             { id: @child_1.id, name: "Grace OMalley" },
@@ -1093,5 +1092,17 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
 
     assert_not_predicate part, :valid?
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
+  end
+end
+
+class TestNestedAttributesWithExtend < ActiveRecord::TestCase
+  setup do
+    Pirate.accepts_nested_attributes_for :treasures
+  end
+
+  def test_extend_affects_nested_attributes
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.treasures_attributes = [{ id: nil }]
+    assert_equal "from extension", pirate.treasures[0].name
   end
 end

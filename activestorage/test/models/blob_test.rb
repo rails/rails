@@ -7,21 +7,15 @@ require "active_support/testing/method_call_assertions"
 class ActiveStorage::BlobTest < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 
-  test ".unattached scope returns not attached blobs" do
-    class UserWithHasOneAttachedDependentFalse < User
-      has_one_attached :avatar, dependent: false
+  test "unattached scope" do
+    [ create_blob(filename: "funky.jpg"), create_blob(filename: "town.jpg") ].tap do |blobs|
+      User.create! name: "DHH", avatar: blobs.first
+      assert_includes ActiveStorage::Blob.unattached, blobs.second
+      assert_not_includes ActiveStorage::Blob.unattached, blobs.first
+
+      User.create! name: "Jason", avatar: blobs.second
+      assert_not_includes ActiveStorage::Blob.unattached, blobs.second
     end
-
-    ActiveStorage::Blob.delete_all
-    blob_1 = create_blob filename: "funky.jpg"
-    blob_2 = create_blob filename: "town.jpg"
-
-    user = UserWithHasOneAttachedDependentFalse.create!
-    user.avatar.attach blob_1
-
-    assert_equal [blob_2], ActiveStorage::Blob.unattached
-    user.destroy
-    assert_equal [blob_1, blob_2].map(&:id).sort, ActiveStorage::Blob.unattached.pluck(:id).sort
   end
 
   test "create after upload sets byte size and checksum" do
@@ -178,6 +172,14 @@ class ActiveStorage::BlobTest < ActiveSupport::TestCase
 
     blob.purge
     assert_not ActiveStorage::Blob.service.exist?(variant.key)
+  end
+
+  test "purge does nothing when attachments exist" do
+    create_blob.tap do |blob|
+      User.create! name: "DHH", avatar: blob
+      assert_no_difference(-> { ActiveStorage::Blob.count }) { blob.purge }
+      assert ActiveStorage::Blob.service.exist?(blob.key)
+    end
   end
 
   private

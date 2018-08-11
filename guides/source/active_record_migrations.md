@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Migrations
 ========================
@@ -12,7 +12,7 @@ After reading this guide, you will know:
 
 * The generators you can use to create them.
 * The methods Active Record provides to manipulate your database.
-* The bin/rails tasks that manipulate migrations and your schema.
+* The rails commands that manipulate migrations and your schema.
 * How migrations relate to `schema.rb`.
 
 --------------------------------------------------------------------------------
@@ -123,7 +123,7 @@ Of course, calculating timestamps is no fun, so Active Record provides a
 generator to handle making it for you:
 
 ```bash
-$ bin/rails generate migration AddPartNumberToProducts
+$ rails generate migration AddPartNumberToProducts
 ```
 
 This will create an empty but appropriately named migration:
@@ -140,7 +140,7 @@ followed by a list of column names and types then a migration containing the
 appropriate `add_column` and `remove_column` statements will be created.
 
 ```bash
-$ bin/rails generate migration AddPartNumberToProducts part_number:string
+$ rails generate migration AddPartNumberToProducts part_number:string
 ```
 
 will generate
@@ -156,7 +156,7 @@ end
 If you'd like to add an index on the new column, you can do that as well:
 
 ```bash
-$ bin/rails generate migration AddPartNumberToProducts part_number:string:index
+$ rails generate migration AddPartNumberToProducts part_number:string:index
 ```
 
 will generate
@@ -174,7 +174,7 @@ end
 Similarly, you can generate a migration to remove a column from the command line:
 
 ```bash
-$ bin/rails generate migration RemovePartNumberFromProducts part_number:string
+$ rails generate migration RemovePartNumberFromProducts part_number:string
 ```
 
 generates
@@ -190,7 +190,7 @@ end
 You are not limited to one magically generated column. For example:
 
 ```bash
-$ bin/rails generate migration AddDetailsToProducts part_number:string price:decimal
+$ rails generate migration AddDetailsToProducts part_number:string price:decimal
 ```
 
 generates
@@ -209,7 +209,7 @@ followed by a list of column names and types then a migration creating the table
 XXX with the columns listed will be generated. For example:
 
 ```bash
-$ bin/rails generate migration CreateProducts name:string part_number:string
+$ rails generate migration CreateProducts name:string part_number:string
 ```
 
 generates
@@ -233,7 +233,7 @@ Also, the generator accepts column type as `references` (also available as
 `belongs_to`). For instance:
 
 ```bash
-$ bin/rails generate migration AddUserRefToProducts user:references
+$ rails generate migration AddUserRefToProducts user:references
 ```
 
 generates
@@ -252,7 +252,7 @@ For more `add_reference` options, visit the [API documentation](http://api.rubyo
 There is also a generator which will produce join tables if `JoinTable` is part of the name:
 
 ```bash
-$ bin/rails g migration CreateJoinTableCustomerProduct customer product
+$ rails g migration CreateJoinTableCustomerProduct customer product
 ```
 
 will produce the following migration:
@@ -276,7 +276,7 @@ relevant table. If you tell Rails what columns you want, then statements for
 adding these columns will also be created. For example, running:
 
 ```bash
-$ bin/rails generate model Product name:string description:text
+$ rails generate model Product name:string description:text
 ```
 
 will create a migration that looks like this
@@ -304,7 +304,7 @@ the command line. They are enclosed by curly braces and follow the field type:
 For instance, running:
 
 ```bash
-$ bin/rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
+$ rails generate migration AddDetailsToProducts 'price:decimal{5,2}' supplier:references{polymorphic}
 ```
 
 will produce a migration that looks like this
@@ -560,7 +560,7 @@ argument. Provide the original column options too, otherwise Rails can't
 recreate the column exactly when rolling back:
 
 ```ruby
-remove_column :posts, :slug, :string, null: false, default: '', index: true
+remove_column :posts, :slug, :string, null: false, default: ''
 ```
 
 If you're going to need to use any other methods, you should use `reversible`
@@ -727,15 +727,15 @@ you will have to use `structure.sql` as dump method. See
 Running Migrations
 ------------------
 
-Rails provides a set of bin/rails tasks to run certain sets of migrations.
+Rails provides a set of rails commands to run certain sets of migrations.
 
-The very first migration related bin/rails task you will use will probably be
+The very first migration related rails command you will use will probably be
 `rails db:migrate`. In its most basic form it just runs the `change` or `up`
 method for all the migrations that have not yet been run. If there are
 no such migrations, it exits. It will run these migrations in order based
 on the date of the migration.
 
-Note that running the `db:migrate` task also invokes the `db:schema:dump` task, which
+Note that running the `db:migrate` command also invokes the `db:schema:dump` command, which
 will update your `db/schema.rb` file to match the structure of your database.
 
 If you specify a target version, Active Record will run the required migrations
@@ -744,7 +744,7 @@ is the numerical prefix on the migration's filename. For example, to migrate
 to version 20080906120000 run:
 
 ```bash
-$ bin/rails db:migrate VERSION=20080906120000
+$ rails db:migrate VERSION=20080906120000
 ```
 
 If version 20080906120000 is greater than the current version (i.e., it is
@@ -761,7 +761,7 @@ mistake in it and wish to correct it. Rather than tracking down the version
 number associated with the previous migration you can run:
 
 ```bash
-$ bin/rails db:rollback
+$ rails db:rollback
 ```
 
 This will rollback the latest migration, either by reverting the `change`
@@ -769,31 +769,31 @@ method or by running the `down` method. If you need to undo
 several migrations you can provide a `STEP` parameter:
 
 ```bash
-$ bin/rails db:rollback STEP=3
+$ rails db:rollback STEP=3
 ```
 
 will revert the last 3 migrations.
 
-The `db:migrate:redo` task is a shortcut for doing a rollback and then migrating
-back up again. As with the `db:rollback` task, you can use the `STEP` parameter
+The `db:migrate:redo` command is a shortcut for doing a rollback and then migrating
+back up again. As with the `db:rollback` command, you can use the `STEP` parameter
 if you need to go more than one version back, for example:
 
 ```bash
-$ bin/rails db:migrate:redo STEP=3
+$ rails db:migrate:redo STEP=3
 ```
 
-Neither of these bin/rails tasks do anything you could not do with `db:migrate`. They
+Neither of these rails commands do anything you could not do with `db:migrate`. They
 are simply more convenient, since you do not need to explicitly specify the
 version to migrate to.
 
 ### Setup the Database
 
-The `rails db:setup` task will create the database, load the schema, and initialize
+The `rails db:setup` command will create the database, load the schema, and initialize
 it with the seed data.
 
 ### Resetting the Database
 
-The `rails db:reset` task will drop the database and set it up again. This is
+The `rails db:reset` command will drop the database and set it up again. This is
 functionally equivalent to `rails db:drop db:setup`.
 
 NOTE: This is not the same as running all the migrations. It will only use the
@@ -804,28 +804,28 @@ contents of the current `db/schema.rb` or `db/structure.sql` file. If a migratio
 ### Running Specific Migrations
 
 If you need to run a specific migration up or down, the `db:migrate:up` and
-`db:migrate:down` tasks will do that. Just specify the appropriate version and
+`db:migrate:down` commands will do that. Just specify the appropriate version and
 the corresponding migration will have its `change`, `up` or `down` method
 invoked, for example:
 
 ```bash
-$ bin/rails db:migrate:up VERSION=20080906120000
+$ rails db:migrate:up VERSION=20080906120000
 ```
 
 will run the 20080906120000 migration by running the `change` method (or the
-`up` method). This task will
+`up` method). This command will
 first check whether the migration is already performed and will do nothing if
 Active Record believes that it has already been run.
 
 ### Running Migrations in Different Environments
 
-By default running `bin/rails db:migrate` will run in the `development` environment.
+By default running `rails db:migrate` will run in the `development` environment.
 To run migrations against another environment you can specify it using the
 `RAILS_ENV` environment variable while running the command. For example to run
 migrations against the `test` environment you could run:
 
 ```bash
-$ bin/rails db:migrate RAILS_ENV=test
+$ rails db:migrate RAILS_ENV=test
 ```
 
 ### Changing the Output of Running Migrations
@@ -896,7 +896,7 @@ Occasionally you will make a mistake when writing a migration. If you have
 already run the migration, then you cannot just edit the migration and run the
 migration again: Rails thinks it has already run the migration and so will do
 nothing when you run `rails db:migrate`. You must rollback the migration (for
-example with `bin/rails db:rollback`), edit your migration, and then run
+example with `rails db:rollback`), edit your migration, and then run
 `rails db:migrate` to run the corrected version.
 
 In general, editing existing migrations is not a good idea. You will be

@@ -3,7 +3,6 @@
 require "securerandom"
 require "abstract_unit"
 require "active_support/core_ext/string/inflections"
-require "active_support/core_ext/regexp"
 require "active_support/json"
 require "active_support/time"
 require "time_zone_test_helpers"

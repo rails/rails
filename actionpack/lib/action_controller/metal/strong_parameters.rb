@@ -793,9 +793,7 @@ module ActionController
     protected
       attr_reader :parameters
 
-      def permitted=(new_permitted)
-        @permitted = new_permitted
-      end
+      attr_writer :permitted
 
       def fields_for_style?
         @parameters.all? { |k, v| k =~ /\A-?\d+\z/ && (v.is_a?(Hash) || v.is_a?(Parameters)) }

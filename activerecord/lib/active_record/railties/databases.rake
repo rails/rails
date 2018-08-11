@@ -217,7 +217,7 @@ db_namespace = namespace :db do
   task setup: ["db:schema:load_if_ruby", "db:structure:load_if_sql", :seed]
 
   desc "Loads the seed data from db/seeds.rb"
-  task :seed do
+  task seed: :load_config do
     db_namespace["abort_if_pending_migrations"].invoke
     ActiveRecord::Tasks::DatabaseTasks.load_seed
   end

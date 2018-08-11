@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Validations
 =========================
@@ -87,7 +87,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ bin/rails console
+$ rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -927,6 +927,13 @@ class Account < ApplicationRecord
 end
 ```
 
+As `Lambdas` are a type of `Proc`, they can also be used to write inline
+conditions in a shorter way.
+
+```ruby
+validates :password, confirmation: true, unless: -> { password.blank? }
+```
+
 ### Grouping Conditional validations
 
 Sometimes it is useful to have multiple validations use one condition. It can
@@ -1131,24 +1138,6 @@ person.errors[:name]
 
 person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
-```
-
-An equivalent to `errors#add` is to use `<<` to append a message to the `errors.messages` array for an attribute:
-
-```ruby
-  class Person < ApplicationRecord
-    def a_method_used_for_validation_purposes
-      errors.messages[:name] << "cannot contain the characters !@#%*()_-+="
-    end
-  end
-
-  person = Person.create(name: "!@#")
-
-  person.errors[:name]
-   # => ["cannot contain the characters !@#%*()_-+="]
-
-  person.errors.to_a
-   # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
 ### `errors.details`

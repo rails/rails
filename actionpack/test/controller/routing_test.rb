@@ -937,7 +937,6 @@ class RouteSetTest < ActiveSupport::TestCase
     @default_route_set ||= begin
       set = ActionDispatch::Routing::RouteSet.new
       set.draw do
-
         ActiveSupport::Deprecation.silence do
           get "/:controller(/:action(/:id))"
         end
@@ -1342,11 +1341,9 @@ class RouteSetTest < ActiveSupport::TestCase
 
   def test_namespace
     set.draw do
-
       namespace "api" do
         get "inventory" => "products#inventory"
       end
-
     end
 
     params = request_path_params("/api/inventory", method: :get)

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Securing Rails Applications
 ===========================
@@ -419,7 +419,7 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the web site, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file "file.cgi" with code in it, which will be executed when someone downloads the file.
 
-_If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level downwards.
+_If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
 
 ### File Downloads
 
@@ -1214,7 +1214,7 @@ key that's generated into a version control ignored `config/master.key` — Rail
 will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
 key to boot in production, so the credentials can be read.
 
-To edit stored credentials use `bin/rails credentials:edit`.
+To edit stored credentials use `rails credentials:edit`.
 
 By default, this file contains the application's
 `secret_key_base`, but it could also be used to store other credentials such as

@@ -254,6 +254,11 @@ class RelationScopingTest < ActiveRecord::TestCase
     end
   end
 
+  def test_scoping_works_in_the_scope_block
+    expected = SpecialPostWithDefaultScope.unscoped.to_a
+    assert_equal expected, SpecialPostWithDefaultScope.unscoped_all
+  end
+
   def test_circular_joins_with_scoping_does_not_crash
     posts = Post.joins(comments: :post).scoping do
       Post.first(10)

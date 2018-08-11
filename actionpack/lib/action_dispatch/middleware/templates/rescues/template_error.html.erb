@@ -11,10 +11,10 @@
   </p>
   <pre><code><%= h @exception.message %></code></pre>
 
-  <%= render template: "rescues/_source" %>
+  <%= render "rescues/source", source_extracts: @source_extracts, show_source_idx: @show_source_idx %>
 
   <p><%= @exception.sub_template_message %></p>
 
-  <%= render template: "rescues/_trace" %>
+  <%= render "rescues/trace", traces: @traces, trace_to_show: @trace_to_show %>
   <%= render template: "rescues/_request_and_response" %>
 </div>

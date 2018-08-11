@@ -62,7 +62,7 @@ module ActiveStorage
       require "active_storage/attached"
 
       ActiveSupport.on_load(:active_record) do
-        extend ActiveStorage::Attached::Macros
+        include ActiveStorage::Attached::Model
       end
     end
 

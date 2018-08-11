@@ -229,6 +229,14 @@ module ActiveSupport
       # ask whether you should force a cache write. Otherwise, it's clearer to
       # just call <tt>Cache#write</tt>.
       #
+      # Setting <tt>skip_nil: true</tt> will not cache nil result:
+      #
+      #   cache.fetch('foo') { nil }
+      #   cache.fetch('bar', skip_nil: true) { nil }
+      #   cache.exist?('foo') # => true
+      #   cache.exist?('bar') # => false
+      #
+      #
       # Setting <tt>compress: false</tt> disables compression of the cache entry.
       #
       # Setting <tt>:expires_in</tt> will set an expiration time on the cache.
@@ -695,7 +703,7 @@ module ActiveSupport
             yield(name)
           end
 
-          write(name, result, options)
+          write(name, result, options) unless result.nil? && options[:skip_nil]
           result
         end
     end

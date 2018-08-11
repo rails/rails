@@ -15,7 +15,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   test "edit without editor gives hint" do
     run_edit_command(editor: "").tap do |output|
       assert_match "No $EDITOR to open file in", output
-      assert_match "bin/rails credentials:edit", output
+      assert_match "rails credentials:edit", output
     end
   end
 
@@ -49,7 +49,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
       FileUtils.rm("config/master.key")
 
       switch_env("RAILS_MASTER_KEY", key) do
-        run_edit_command
+        assert_match(/access_key_id: 123/, run_edit_command)
         assert_not File.exist?("config/master.key")
       end
     end

@@ -573,7 +573,6 @@ class TransactionTest < ActiveRecord::TestCase
     assert_called(Topic.connection, :begin_db_transaction) do
       Topic.connection.stub(:commit_db_transaction, -> { raise("OH NOES") }) do
         assert_called(Topic.connection, :rollback_db_transaction) do
-
           e = assert_raise RuntimeError do
             Topic.transaction do
               # do nothing

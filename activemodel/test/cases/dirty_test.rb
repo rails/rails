@@ -14,17 +14,11 @@ class DirtyTest < ActiveModel::TestCase
       @status = "initialized"
     end
 
-    def name
-      @name
-    end
+    attr_reader :name, :color, :size, :status
 
     def name=(val)
       name_will_change!
       @name = val
-    end
-
-    def color
-      @color
     end
 
     def color=(val)
@@ -32,17 +26,9 @@ class DirtyTest < ActiveModel::TestCase
       @color = val
     end
 
-    def size
-      @size
-    end
-
     def size=(val)
       attribute_will_change!(:size) unless val == @size
       @size = val
-    end
-
-    def status
-      @status
     end
 
     def status=(val)

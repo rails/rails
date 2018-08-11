@@ -244,8 +244,6 @@ module Arel
         @m2 = Arel::SelectManager.new table
         @m2.project Arel.star
         @m2.where(table[:age].gt(99))
-
-
       end
 
       it "should union two managers" do
@@ -266,7 +264,6 @@ module Arel
           ( SELECT * FROM "users"  WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users"  WHERE "users"."age" > 99 )
         }
       end
-
     end
 
     describe "intersect" do
@@ -279,11 +276,9 @@ module Arel
         @m2 = Arel::SelectManager.new table
         @m2.project Arel.star
         @m2.where(table[:age].lt(99))
-
-
       end
 
-      it "should interect two managers" do
+      it "should intersect two managers" do
         # FIXME should this intersect "managers" or "statements" ?
         # FIXME this probably shouldn't return a node
         node = @m1.intersect @m2
@@ -293,7 +288,6 @@ module Arel
           ( SELECT * FROM "users"  WHERE "users"."age" > 18 INTERSECT SELECT * FROM "users"  WHERE "users"."age" < 99 )
         }
       end
-
     end
 
     describe "except" do
@@ -318,7 +312,6 @@ module Arel
           ( SELECT * FROM "users"  WHERE "users"."age" BETWEEN 18 AND 60 EXCEPT SELECT * FROM "users"  WHERE "users"."age" BETWEEN 40 AND 99 )
         }
       end
-
     end
 
     describe "with" do
@@ -647,7 +640,6 @@ module Arel
     end
 
     describe "joins" do
-
       it "returns inner join sql" do
         table   = Table.new :users
         aliaz   = table.alias
@@ -1002,7 +994,6 @@ module Arel
     end
 
     describe "update" do
-
       it "creates an update statement" do
         table   = Table.new :users
         manager = Arel::SelectManager.new
@@ -1075,7 +1066,6 @@ module Arel
           UPDATE "users" SET "id" = 1 WHERE "users"."id" IN (SELECT "users"."id" FROM "users" WHERE "users"."foo" = 10 LIMIT 42)
         }
       end
-
     end
 
     describe "project" do
@@ -1097,7 +1087,6 @@ module Arel
         manager.project "*"
         manager.to_sql.must_be_like %{ SELECT * }
       end
-
     end
 
     describe "projections" do

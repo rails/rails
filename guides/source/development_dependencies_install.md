@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Development Dependencies Install
 ================================
@@ -377,30 +377,38 @@ command inside of the `activestorage` directory to install the dependencies:
 yarn install
 ```
 
-Extracting previews, tested in ActiveStorage's test suite requires third-party
+Extracting previews, tested in Active Storage's test suite requires third-party
 applications, FFmpeg for video and muPDF for PDFs, and on macOS also XQuartz
-and Poppler. Without these applications installed, ActiveStorage tests will
+and Poppler. Without these applications installed, Active Storage tests will
 raise errors.
 
 On macOS you can run:
 
 ```bash
-brew install ffmpeg
-brew cask install xquartz
-brew install mupdf-tools
-brew install poppler
+$ brew install ffmpeg
+$ brew cask install xquartz
+$ brew install mupdf-tools
+$ brew install poppler
 ```
 
 On Ubuntu, you can run:
 
 ```bash
-sudo apt-get update && install ffmpeg
-sudo apt-get update && install mupdf mupdf-tools
+$ sudo apt-get update
+$ sudo apt-get install ffmpeg
+$ sudo apt-get install mupdf mupdf-tools
 ```
 
 On Fedora or CentOS, just run:
 
 ```bash
-sudo yum install ffmpeg
-sudo yum install mupdf
+$ sudo yum install ffmpeg
+$ sudo yum install mupdf
+```
+
+FreeBSD users can just run:
+
+```bash
+# pkg install ffmpeg
+# pkg install mupdf
 ```

@@ -152,23 +152,13 @@ module ActionDispatch
       end
 
       def create_template(request, wrapper)
-        traces = wrapper.traces
-
-        trace_to_show = "Application Trace"
-        if traces[trace_to_show].empty? && wrapper.rescue_template != "routing_error"
-          trace_to_show = "Full Trace"
-        end
-
-        if source_to_show = traces[trace_to_show].first
-          source_to_show_id = source_to_show[:id]
-        end
-
         DebugView.new([RESCUES_TEMPLATE_PATH],
           request: request,
+          exception_wrapper: wrapper,
           exception: wrapper.exception,
-          traces: traces,
-          show_source_idx: source_to_show_id,
-          trace_to_show: trace_to_show,
+          traces: wrapper.traces,
+          show_source_idx: wrapper.source_to_show_id,
+          trace_to_show: wrapper.trace_to_show,
           routes_inspector: routes_inspector(wrapper.exception),
           source_extracts: wrapper.source_extracts,
           line_number: wrapper.line_number,

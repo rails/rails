@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Basics
 ====================
@@ -115,7 +115,7 @@ to Active Record instances:
 * `created_at` - Automatically gets set to the current date and time when the
   record is first created.
 * `updated_at` - Automatically gets set to the current date and time whenever
-  the record is updated.
+  the record is created or updated.
 * `lock_version` - Adds [optimistic
   locking](http://api.rubyonrails.org/classes/ActiveRecord/Locking.html) to
   a model.

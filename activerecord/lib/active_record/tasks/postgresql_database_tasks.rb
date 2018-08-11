@@ -90,9 +90,7 @@ module ActiveRecord
 
       private
 
-        def configuration
-          @configuration
-        end
+        attr_reader :configuration
 
         def encoding
           configuration["encoding"] || DEFAULT_ENCODING

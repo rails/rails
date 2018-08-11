@@ -126,7 +126,7 @@ module Rails
         )
 
         if ARGV.first == "mailer"
-          options[:rails].merge!(template_engine: :erb)
+          options[:rails][:template_engine] = :erb
         end
       end
 
@@ -258,7 +258,6 @@ module Rails
 
         namespaces = Hash[subclasses.map { |klass| [klass.namespace, klass] }]
         lookups.each do |namespace|
-
           klass = namespaces[namespace]
           return klass if klass
         end

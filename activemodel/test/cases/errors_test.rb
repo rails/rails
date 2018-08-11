@@ -185,6 +185,12 @@ class ErrorsTest < ActiveModel::TestCase
     assert person.errors.added?(:name, :blank)
   end
 
+  test "added? returns true when string attribute is used with a symbol message" do
+    person = Person.new
+    person.errors.add(:name, :blank)
+    assert person.errors.added?("name", :blank)
+  end
+
   test "added? handles proc messages" do
     person = Person.new
     message = Proc.new { "cannot be blank" }

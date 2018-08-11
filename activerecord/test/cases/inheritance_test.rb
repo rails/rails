@@ -91,7 +91,6 @@ class InheritanceTest < ActiveRecord::TestCase
     end
 
     ActiveSupport::Dependencies.stub(:safe_constantize, proc { raise e }) do
-
       exception = assert_raises NameError do
         Company.send :compute_type, "InvalidModel"
       end

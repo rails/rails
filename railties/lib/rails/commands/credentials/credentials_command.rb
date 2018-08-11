@@ -73,9 +73,9 @@ module Rails
 
         def missing_credentials_message
           if Rails.application.credentials.key.nil?
-            "Missing master key to decrypt credentials. See bin/rails credentials:help"
+            "Missing master key to decrypt credentials. See `rails credentials:help`"
           else
-            "No credentials have been added yet. Use bin/rails credentials:edit to change that."
+            "No credentials have been added yet. Use `rails credentials:edit` to change that."
           end
         end
     end
