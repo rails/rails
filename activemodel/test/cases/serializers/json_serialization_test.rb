@@ -129,6 +129,10 @@ class JsonSerializationTest < ActiveModel::TestCase
     assert_equal :name, options[:except]
   end
 
+  test "as_json should serialize timestamps" do
+    assert_equal "2006-08-01T00:00:00.000Z", @contact.as_json["created_at"]
+  end
+
   test "as_json should return a hash if include_root_in_json is true" do
     begin
       original_include_root_in_json = Contact.include_root_in_json
