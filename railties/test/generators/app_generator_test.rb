@@ -972,7 +972,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "binstubs bundler", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
