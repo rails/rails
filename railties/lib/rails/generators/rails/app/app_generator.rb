@@ -298,6 +298,8 @@ module Rails
         build(:bin)
       end
 
+      public_task :generate_bundler_binstub
+
       def update_bin_files
         build(:bin_when_updating)
       end
