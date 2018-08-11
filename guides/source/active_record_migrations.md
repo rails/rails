@@ -927,9 +927,10 @@ your database schema.
 
 It tends to be faster and less error prone to create a new instance of your
 application's database by loading the schema file via `rails db:schema:load`
-than it is to replay the entire migration history. Old migrations may fail to
-apply correctly if those migrations use changing external dependencies or rely
-on application code which evolves separately from your migrations.
+than it is to replay the entire migration history.
+[Old migrations](#old-migrations) may fail to apply correctly if those
+migrations use changing external dependencies or rely on application code which
+evolves separately from your migrations.
 
 Schema files are also useful if you want a quick look at what attributes an
 Active Record object has. This information is not in the model's code and is
@@ -1046,3 +1047,21 @@ end
 
 This is generally a much cleaner way to set up the database of a blank
 application.
+
+Old Migrations
+--------------
+
+The `schema.rb` or `structure.sql` is a snapshot of the current state of your
+database and is the authoritative source for rebuilding that database. This
+makes it possible to delete old migration files.
+
+When you delete migration files in the `db/migrate/` directory, any environment
+where `db:migrate` was run when those files still existed will hold a reference
+to the migration timestamp specific to them inside an internal Rails database
+table named `schema_migrations`. This table is used to keep track of whether
+migrations have been executed in a specific environment.
+
+If you run the `db:migrate:status` command, which displays the status
+(up or down) of each migration, you should see `********** NO FILE **********`
+displayed next to any deleted migration file which was once executed on a
+specific environment but can no longer be found in the `db/migrate` directory.
