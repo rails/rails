@@ -525,9 +525,18 @@ module ApplicationTests
     def test_run_in_parallel_with_processes
       file_name = create_parallel_processes_test_file
 
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
       output = run_test_command(file_name)
 
       assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_no_match "create_table(:users)", output
     end
 
     def test_run_in_parallel_with_threads
@@ -539,9 +548,18 @@ module ApplicationTests
 
       file_name = create_parallel_threads_test_file
 
+      app_file "db/schema.rb", <<-RUBY
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :users do |t|
+            t.string :name
+          end
+        end
+      RUBY
+
       output = run_test_command(file_name)
 
       assert_match %r{Finished in.*\n2 runs, 2 assertions}, output
+      assert_no_match "create_table(:users)", output
     end
 
     def test_raise_error_when_specified_file_does_not_exist

@@ -117,7 +117,6 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
         app/views/layouts
         app/views/layouts/mailer.html.erb
         app/views/layouts/mailer.text.erb
-        bin/bundle
         bin/rails
         bin/rake
         bin/setup

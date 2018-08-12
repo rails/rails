@@ -1,3 +1,18 @@
+*   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
+
+    `respond_to` can match multiple types and lead to undefined behavior when
+    multiple invocations are made and the types do not match:
+
+        respond_to do |outer_type|
+          outer_type.js do
+            respond_to do |inner_type|
+              inner_type.html { render body: "HTML" }
+            end
+          end
+        end
+
+    *Patrick Toomey*
+
 *   `ActionDispatch::Http::UploadedFile` now delegates `to_path` to its tempfile.
 
     This allows uploaded file objects to be passed directly to `File.read`

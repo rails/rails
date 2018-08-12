@@ -20,13 +20,13 @@ class ActiveStorage::Attachment < ActiveRecord::Base
   # Synchronously deletes the attachment and {purges the blob}[rdoc-ref:ActiveStorage::Blob#purge].
   def purge
     delete
-    blob.purge
+    blob&.purge
   end
 
   # Deletes the attachment and {enqueues a background job}[rdoc-ref:ActiveStorage::Blob#purge_later] to purge the blob.
   def purge_later
     delete
-    blob.purge_later
+    blob&.purge_later
   end
 
   private
@@ -39,7 +39,7 @@ class ActiveStorage::Attachment < ActiveRecord::Base
     end
 
     def purge_dependent_blob_later
-      blob.purge_later if dependent == :purge_later
+      blob&.purge_later if dependent == :purge_later
     end
 
 

@@ -1094,3 +1094,15 @@ class TestHasManyAutosaveAssociationWhichItselfHasAutosaveAssociations < ActiveR
     assert_equal ["Ship name can't be blank"], part.errors.full_messages
   end
 end
+
+class TestNestedAttributesWithExtend < ActiveRecord::TestCase
+  setup do
+    Pirate.accepts_nested_attributes_for :treasures
+  end
+
+  def test_extend_affects_nested_attributes
+    pirate = Pirate.create!(catchphrase: "Don' botharrr talkin' like one, savvy?")
+    pirate.treasures_attributes = [{ id: nil }]
+    assert_equal "from extension", pirate.treasures[0].name
+  end
+end

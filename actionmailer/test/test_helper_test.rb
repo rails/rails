@@ -290,7 +290,7 @@ class TestHelperMailerTest < ActionMailer::TestCase
     end
   end
 
-  def test_assert_enqueued_email_with_with_no_block_wiht_parameterized_args
+  def test_assert_enqueued_email_with_with_no_block_with_parameterized_args
     assert_nothing_raised do
       silence_stream($stdout) do
         TestHelperMailer.with(all: "good").test_parameter_args.deliver_later

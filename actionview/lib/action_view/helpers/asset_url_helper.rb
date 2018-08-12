@@ -98,8 +98,9 @@ module ActionView
     # have SSL certificates for each of the asset hosts this technique allows you
     # to avoid warnings in the client about mixed media.
     # Note that the +request+ parameter might not be supplied, e.g. when the assets
-    # are precompiled via a Rake task. Make sure to use a +Proc+ instead of a lambda,
-    # since a +Proc+ allows missing parameters and sets them to +nil+.
+    # are precompiled with the command `rails assets:precompile`. Make sure to use a
+    # +Proc+ instead of a lambda, since a +Proc+ allows missing parameters and sets them
+    # to +nil+.
     #
     #   config.action_controller.asset_host = Proc.new { |source, request|
     #     if request && request.ssl?

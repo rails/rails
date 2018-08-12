@@ -927,6 +927,13 @@ class Account < ApplicationRecord
 end
 ```
 
+As `Lambdas` are a type of `Proc`, they can also be used to write inline
+conditions in a shorter way.
+
+```ruby
+validates :password, confirmation: true, unless: -> { password.blank? }
+```
+
 ### Grouping Conditional validations
 
 Sometimes it is useful to have multiple validations use one condition. It can
