@@ -1,3 +1,16 @@
+*   Exclude additional flash types from `ActionController::Base.action_methods`
+
+    Ensures that additional flash types defined on ActionController::Base subclasses
+    are not listed as actions on that controller.
+
+        class MyController < ApplicationController
+          add_flash_types :hype
+        end
+
+        MyController.action_methods.include?('hype') # => false
+
+    *Gavin Morrice*
+
 *   Encode Content-Disposition filenames on `send_data` and `send_file`.
     Previously, `send_data 'data', filename: "\u{3042}.txt"` sends
     `"filename=\"\u{3042}.txt\""` as Content-Disposition and it can be
