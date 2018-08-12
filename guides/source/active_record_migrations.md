@@ -491,9 +491,8 @@ NOTE: Active Record only supports single column foreign keys. `execute` and
 `structure.sql` are required to use composite foreign keys. See
 [Schema Dumping and You](#schema-dumping-and-you).
 
-NOTE: At this time, only the mysql, mysql2 and postgresql adapters support
-foreign keys. Implementation for sqlite3 is partial, keys are created for new
-tables but not for existing tables via `ALTER TABLE` statement.
+NOTE: The SQLite3 adapter doesn't support `add_foreign_key` since SQLite supports
+only [a limited subset of ALTER TABLE](https://www.sqlite.org/lang_altertable.html).
 
 Removing a foreign key is easy as well:
 
