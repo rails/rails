@@ -1,3 +1,24 @@
+*   Fix issue with cached partial collections
+
+    It's possible to render a collection of partials with the `cached: true`
+    parameter, each of which are also cached.  If those partials also
+    have an `expires_in` value for their cache lifetime.  Because of the 
+    key collision between the partial's cache key and the individual
+    collection elements' cache key, the non-expiring version will win.
+
+    Fix is to allow cache parameters (well, only `expires_in`) to be passed
+    allong with the cache collection render call. i.e., from:
+
+    <%= render :partial => 'test/test', :collection => @models, :as => :test, :cached => true %>
+
+    to:
+
+    <%= render :partial => 'test/test2', :collection => @models, :as => :test, :cached => true, :expires_in => 5.seconds %>
+
+    For #33424
+
+    *Iain Bryson*
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that
