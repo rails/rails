@@ -1050,17 +1050,17 @@ application.
 Old Migrations
 --------------
 
-The `schema.rb` or `structure.sql` is a snapshot of the current state of your
+The `db/schema.rb` or `db/structure.sql` is a snapshot of the current state of your
 database and is the authoritative source for rebuilding that database. This
 makes it possible to delete old migration files.
 
 When you delete migration files in the `db/migrate/` directory, any environment
-where `db:migrate` was run when those files still existed will hold a reference
+where `rails db:migrate` was run when those files still existed will hold a reference
 to the migration timestamp specific to them inside an internal Rails database
 table named `schema_migrations`. This table is used to keep track of whether
 migrations have been executed in a specific environment.
 
-If you run the `db:migrate:status` command, which displays the status
+If you run the `rails db:migrate:status` command, which displays the status
 (up or down) of each migration, you should see `********** NO FILE **********`
 displayed next to any deleted migration file which was once executed on a
-specific environment but can no longer be found in the `db/migrate` directory.
+specific environment but can no longer be found in the `db/migrate/` directory.
