@@ -1,12 +1,8 @@
 # Be sure to restart your server when you modify this file.
 #
 # This file contains explicit, new configuration defaults to ease your Rails 6.0
-# upgrade.
-#
-# After upgrading Rails, uncomment each of these new defaults one at a time and
-# test your application. Once you have uncommented all of the new configuration
-# defaults, you can set `config.load_defaults` to `6.0` in
-# `config/application.rb` and delete this file.
+# upgrade. After upgrading Rails, uncomment each of these new defaults one at a
+# time and test your application.
 #
 # Read the Guide for Upgrading Ruby on Rails for more info on each option.
 
