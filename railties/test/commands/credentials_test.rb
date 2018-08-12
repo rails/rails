@@ -59,7 +59,7 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     Dir.chdir(app_path) do
       FileUtils.rm("config/master.key")
 
-      assert_match(/Missing master key to decrypt credentials/, run_edit_command)
+      assert_match(/Missing master key to decrypt credentials/, run_edit_command(allow_failure: true))
       assert_equal 1, $?.exitstatus
       assert_not File.exist?("config/master.key")
     end
@@ -84,9 +84,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   private
-    def run_edit_command(editor: "cat")
+    def run_edit_command(editor: "cat", allow_failure: false)
       switch_env("EDITOR", editor) do
-        rails "credentials:edit", allow_failure: true
+        rails "credentials:edit", allow_failure: allow_failure
       end
     end
 
