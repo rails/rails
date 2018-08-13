@@ -73,6 +73,7 @@ module AbstractController
       # * <tt>Set</tt> - A set of all methods that should be considered actions.
       def action_methods
         @action_methods ||= begin
+
           # All public instance methods of this class, including ancestors
           methods = (public_instance_methods(true) -
             # Except for public instance methods of Base and its ancestors
@@ -80,10 +81,18 @@ module AbstractController
             # Be sure to include shadowed public instance methods of this class
             public_instance_methods(false) -
             # Except for flash methods added to this controller class
-            _flash_types).uniq.map(&:to_s)
+            added_flash_types.to_a).map(&:to_s).uniq
 
           methods.to_set
         end
+      end
+
+      # A list of flash message types defined on this controller via `add_flash_types`.
+      #
+      # ==== Returns
+      # * <tt>Set</tt> - A set of all flash types defined on this controller.
+      def added_flash_types
+        @added_flash_types ||= Set.new
       end
 
       # action_methods are cached and there is sometimes a need to refresh
