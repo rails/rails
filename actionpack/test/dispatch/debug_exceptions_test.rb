@@ -96,11 +96,13 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
   Interceptor = proc { |request, exception| request.set_header("int", exception) }
   BadInterceptor = proc { |request, exception| raise "bad" }
+  AbortInterceptor = proc { |request, exception| throw :abort }
   RoutesApp = Struct.new(:routes).new(SharedTestRoutes)
   ProductionApp  = ActionDispatch::DebugExceptions.new(Boomer.new(false), RoutesApp)
   DevelopmentApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp)
   InterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [Interceptor])
   BadInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [BadInterceptor])
+  AbortInterceptedApp = ActionDispatch::DebugExceptions.new(Boomer.new(true), RoutesApp, :default, [AbortInterceptor])
 
   test "skip diagnosis if not showing detailed exceptions" do
     @app = ProductionApp
@@ -536,6 +538,31 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
 
     assert_response 500
     assert_match(/puke/, body)
+  end
+
+  test "bad interceptors doesn't duplicate log error" do
+    @app = BadInterceptedApp
+
+    output = StringIO.new
+    env = {
+      "action_dispatch.show_exceptions" => true,
+      "action_dispatch.logger" => Logger.new(output)
+    }
+
+    get "/puke", headers: env
+    assert_equal 1, output.string.scan(/puke/).size
+  end
+
+  test "interceptor abort prevents backtrace log" do
+    @app = AbortInterceptedApp
+    output = StringIO.new
+    env = {
+      "action_dispatch.show_exceptions" => true,
+      "action_dispatch.logger" => Logger.new(output)
+    }
+
+    get "/", headers: env
+    assert_empty output.string
   end
 
   test "debug exceptions app shows all the nested exceptions in source view" do

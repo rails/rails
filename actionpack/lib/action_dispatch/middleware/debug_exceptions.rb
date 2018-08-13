@@ -51,6 +51,11 @@ module ActionDispatch
     end
 
     cattr_reader :interceptors, instance_accessor: false, default: []
+    attr_reader :request, :wrapper
+
+    include ActiveSupport::Callbacks
+    define_callbacks :log_exception
+    set_callback :log_exception, :invoke_interceptors
 
     def self.register_interceptor(object = nil, &block)
       interceptor = object || block
@@ -65,7 +70,7 @@ module ActionDispatch
     end
 
     def call(env)
-      request = ActionDispatch::Request.new env
+      @request = ActionDispatch::Request.new env
       _, headers, body = response = @app.call(env)
 
       if headers["X-Cascade"] == "pass"
@@ -75,30 +80,28 @@ module ActionDispatch
 
       response
     rescue Exception => exception
-      invoke_interceptors(request, exception)
       raise exception unless request.show_exceptions?
       render_exception(request, exception)
     end
 
     private
 
-      def invoke_interceptors(request, exception)
-        backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-
+      def invoke_interceptors
         @interceptors.each do |interceptor|
           begin
-            interceptor.call(request, exception)
+            interceptor.call(request, wrapper.exception)
           rescue Exception
-            log_error(request, wrapper)
+            # ignored
           end
         end
       end
 
       def render_exception(request, exception)
         backtrace_cleaner = request.get_header("action_dispatch.backtrace_cleaner")
-        wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
-        log_error(request, wrapper)
+        @wrapper = ExceptionWrapper.new(backtrace_cleaner, exception)
+        run_callbacks(:log_exception) do
+          log_error(request, wrapper)
+        end
 
         if request.get_header("action_dispatch.show_detailed_exceptions")
           content_type = request.formats.first
