@@ -186,6 +186,10 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
@@ -212,6 +216,8 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        materialize_transactions
+
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
@@ -252,6 +258,8 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.execute(sql)

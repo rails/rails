@@ -80,6 +80,8 @@ module ActiveRecord
       attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
+      set_callback :checkin, :after, :enable_lazy_transactions!
+
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
           config
@@ -338,6 +340,10 @@ module ActiveRecord
         false
       end
 
+      def supports_lazy_transactions?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
@@ -449,6 +455,7 @@ module ActiveRecord
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
       def raw_connection
+        disable_lazy_transactions!
         @connection
       end
 

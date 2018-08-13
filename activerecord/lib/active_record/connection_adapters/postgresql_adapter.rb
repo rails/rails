@@ -326,6 +326,10 @@ module ActiveRecord
         postgresql_version >= 90400
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       def get_advisory_lock(lock_id) # :nodoc:
         unless lock_id.is_a?(Integer) && lock_id.bit_length <= 63
           raise(ArgumentError, "PostgreSQL requires advisory lock ids to be a signed 64 bit integer")
@@ -597,6 +601,8 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
+          materialize_transactions
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -606,6 +612,8 @@ module ActiveRecord
         end
 
         def exec_cache(sql, name, binds)
+          materialize_transactions
+
           stmt_key = prepare_statement(sql)
           type_casted_binds = type_casted_binds(binds)
 
