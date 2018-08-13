@@ -104,8 +104,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_mysql_connection_collation_is_configured
-    assert_equal "utf8_unicode_ci", @connection.show_variable("collation_connection")
-    assert_equal "utf8_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_unicode_ci", @connection.show_variable("collation_connection")
+    assert_equal "utf8mb4_general_ci", ARUnit2Model.connection.show_variable("collation_connection")
   end
 
   def test_mysql_default_in_strict_mode
