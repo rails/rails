@@ -77,6 +77,7 @@ module ActiveRecord
       #
       # :nodoc:
       def instantiate_instance_of(klass, attributes, column_types = {}, &block)
+        attributes = attributes.reject { |key, _| klass.ignored_columns.include?(key) }
         attributes = klass.attributes_builder.build_from_database(attributes, column_types)
         klass.allocate.init_from_db(attributes, &block)
       end

@@ -1046,14 +1046,16 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
-        elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
         else
           arel.project(table[Arel.star])
         end
       end
 
       def arel_columns(columns)
+        if klass.ignored_columns.any?
+          columns.reject! { |field| klass.ignored_columns.include?(field.to_s) }
+        end
+
         columns.flat_map do |field|
           if (Symbol === field || String === field) && (klass.has_attribute?(field) || klass.attribute_alias?(field)) && !from_clause.value
             arel_attribute(field)
