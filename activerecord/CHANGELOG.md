@@ -1,3 +1,11 @@
+*   Allow `:to_table` option to `invert_remove_foreign_key`.
+
+    Example:
+
+       remove_foreign_key :accounts, to_table: :owners
+
+    *Nikolay Epifanov*, *Rich Chen*
+
 *   Add environment & load_config dependency to `bin/rake db:seed` to enable
     seed load in environments without Rails and custom DB configuration
 
@@ -72,10 +80,6 @@
 *   Add `Relation#pick` as short-hand for single-value plucks.
 
     *DHH*
-
-*   Allow `to_table` in `invert_remove_foreign_key`.
-
-    *Nikolay Epifanov*, *Rich Chen*
 
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.
