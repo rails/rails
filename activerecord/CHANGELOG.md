@@ -73,5 +73,9 @@
 
     *DHH*
 
+*   Allow `to_table` in `invert_remove_foreign_key`.
+
+    *Nikolay Epifanov*, *Rich Chen*
+
 
 Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activerecord/CHANGELOG.md) for previous changes.

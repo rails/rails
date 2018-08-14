@@ -334,6 +334,14 @@ module ActiveRecord
         assert_equal [:add_foreign_key, [:dogs, :people, on_delete: :nullify, on_update: :cascade]], enable
       end
 
+      def test_invert_remove_foreign_key_with_to_table_in_options
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people]
+        assert_equal [:add_foreign_key, [:dogs, :people]], enable
+
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, column: :owner_id]
+        assert_equal [:add_foreign_key, [:dogs, :people, column: :owner_id]], enable
+      end
+
       def test_invert_remove_foreign_key_is_irreversible_without_to_table
         assert_raises ActiveRecord::IrreversibleMigration do
           @recorder.inverse_of :remove_foreign_key, [:dogs, column: "owner_id"]
