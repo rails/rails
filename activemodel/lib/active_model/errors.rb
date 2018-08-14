@@ -379,9 +379,11 @@ module ActiveModel
     # * <tt>errors.format</tt>
     def full_message(attribute, message)
       return message if attribute == :base
+      attribute = attribute.to_s
 
       if self.class.i18n_full_message && @base.class.respond_to?(:i18n_scope)
-        parts = attribute.to_s.split(".")
+        attribute = attribute.remove(/\[\d\]/)
+        parts = attribute.split(".")
         attribute_name = parts.pop
         namespace = parts.join("/") unless parts.empty?
         attributes_scope = "#{@base.class.i18n_scope}.errors.models"
@@ -410,8 +412,9 @@ module ActiveModel
       defaults << :"errors.format"
       defaults << "%{attribute} %{message}"
 
-      attr_name = attribute.to_s.tr(".", "_").humanize
-      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
+      attr_name = attribute.tr(".", "_").humanize
+      attr_name = @base.class.human_attribute_name(attribute.to_sym, default: attr_name)
+
       I18n.t(defaults.shift,
         default:  defaults,
         attribute: attr_name,
