@@ -568,6 +568,42 @@ module ApplicationTests
       assert_not_equal default_verifier.object_id, text_verifier.object_id
     end
 
+    test "application verifier uses rotated secret key bases" do
+      make_basic_app do |application|
+        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        application.credentials.rotated_secret_key_bases = [
+          "66285b35e080e68ebb3182b50dae5e71", "1718ecf317b4be18e8895316d9bc8fff"
+        ]
+      end
+
+      old_key_gen_1 = ActiveSupport::KeyGenerator.new("66285b35e080e68ebb3182b50dae5e71", iterations: 1000)
+      old_msg_1 = ActiveSupport::MessageVerifier.new(old_key_gen_1.generate_key("verifier")).generate("old_msg_1")
+
+      old_key_gen_2 = ActiveSupport::KeyGenerator.new("1718ecf317b4be18e8895316d9bc8fff", iterations: 1000)
+      old_msg_2 = ActiveSupport::MessageVerifier.new(old_key_gen_2.generate_key("verifier")).generate("old_msg_2")
+
+      verifier = app.message_verifier(:verifier)
+
+      assert_equal "old_msg_1", verifier.verify(old_msg_1)
+      assert_equal "old_msg_2", verifier.verify(old_msg_2)
+    end
+
+    test "application verifier uses rotated secret key bases with configuration option" do
+      make_basic_app do |application|
+        application.credentials.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
+        application.credentials.rotated_secret_key_bases = [
+          { key: "66285b35e080e68ebb3182b50dae5e71", digest: "MD5" }
+        ]
+      end
+
+      old_key_gen = ActiveSupport::KeyGenerator.new("66285b35e080e68ebb3182b50dae5e71", iterations: 1000)
+      old_msg = ActiveSupport::MessageVerifier.new(old_key_gen.generate_key("verifier"), digest: "MD5").generate("old_msg")
+
+      verifier = app.message_verifier(:verifier)
+
+      assert_equal "old_msg", verifier.verify(old_msg)
+    end
+
     test "secrets.secret_key_base is used when config/secrets.yml is present" do
       app_file "config/secrets.yml", <<-YAML
         development:

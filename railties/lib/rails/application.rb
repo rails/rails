@@ -182,6 +182,16 @@ module Rails
         end
     end
 
+    # Return key generators, if any, for secret key bases being rotated out of use
+    def rotated_key_generators
+      @cahcing_rotated_key_generators ||=
+        if rotated_secret_key_bases?
+          rotated_secret_key_bases.map do |rotated_key_base|
+            ActiveSupport::KeyGenerator.new(rotated_key_base, iterations: 1000)
+          end
+        end
+    end
+
     # Returns a message verifier object.
     #
     # This verifier can be used to generate and verify signed messages in the application.
@@ -203,7 +213,16 @@ module Rails
     def message_verifier(verifier_name)
       @message_verifiers[verifier_name] ||= begin
         secret = key_generator.generate_key(verifier_name.to_s)
-        ActiveSupport::MessageVerifier.new(secret)
+
+        ActiveSupport::MessageVerifier.new(secret).tap do |verifier|
+          if rotated_secret_key_bases?
+            rotated_key_generators.each.with_index do |key_gen, index|
+              rotated_secret = key_gen.generate_key(verifier_name.to_s)
+
+              verifier.rotate rotated_secret, **rotated_secret_key_base_config(index)
+            end
+          end
+        end
       end
     end
 
@@ -256,6 +275,7 @@ module Rails
           "action_dispatch.logger" => Rails.logger,
           "action_dispatch.backtrace_cleaner" => Rails.backtrace_cleaner,
           "action_dispatch.key_generator" => key_generator,
+          "action_dispatch.rotated_key_generators" => rotated_key_generators,
           "action_dispatch.http_auth_salt" => config.action_dispatch.http_auth_salt,
           "action_dispatch.signed_cookie_salt" => config.action_dispatch.signed_cookie_salt,
           "action_dispatch.encrypted_cookie_salt" => config.action_dispatch.encrypted_cookie_salt,
@@ -432,6 +452,18 @@ module Rails
       end
     end
 
+    def rotated_secret_key_bases
+      @rotated_secret_key_bases ||= credentials.rotated_secret_key_bases.map do |rotated_entry|
+        case rotated_entry
+        when String then rotated_entry
+        when Hash then rotated_entry[:key]
+        else
+          raise ArgumentError,
+            "`rotated_secret_key_bases` entries for #{Rails.env} environment must be a type of String or Hash`"
+        end
+      end
+    end
+
     # Decrypts the credentials hash as kept in +config/credentials.yml.enc+. This file is encrypted with
     # the Rails master key, which is either taken from <tt>ENV["RAILS_MASTER_KEY"]</tt> or from loading
     # +config/master.key+.
@@ -594,6 +626,19 @@ module Rails
 
       def build_middleware
         config.app_middleware + super
+      end
+
+      def rotated_secret_key_bases?
+        Array === credentials.rotated_secret_key_bases
+      end
+
+      def rotated_secret_key_base_config(index)
+        entry = credentials.rotated_secret_key_bases[index]
+
+        case entry
+        when Hash then entry.without(:key)
+        else {}
+        end
       end
   end
 end
