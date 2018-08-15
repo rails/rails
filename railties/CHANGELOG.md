@@ -1,3 +1,7 @@
+*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
+
+    *Annie-Claude Côté*
+
 *   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
     The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
