@@ -36,6 +36,8 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_called(@object, :increment, returns: 10) do
       assert_equal 10, @object.increment
     end
+
+    assert_equal 1, @object.increment
   end
 
   def test_assert_called_failure
@@ -68,6 +70,14 @@ class MethodCallAssertionsTest < ActiveSupport::TestCase
     assert_called_with(@object, :<<, [ 2 ]) do
       @object << 2
     end
+  end
+
+  def test_assert_called_with_arguments_and_returns
+    assert_called_with(@object, :<<, [ 2 ], returns: 10) do
+      assert_equal(10, @object << 2)
+    end
+
+    assert_nil(@object << 2)
   end
 
   def test_assert_called_with_failure
