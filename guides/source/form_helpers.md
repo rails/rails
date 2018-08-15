@@ -257,7 +257,7 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
 
 ```erb
-<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
+<%= form_for @article, url: {action: "create"}, class: "nifty_form" do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, size: "60x12" %>
   <%= f.submit "Create" %>
