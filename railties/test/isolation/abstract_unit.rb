@@ -30,7 +30,7 @@ require "rails/secrets"
 module TestHelpers
   module Paths
     def app_template_path
-      File.join Dir.tmpdir, "app_template"
+      File.join Dir.tmpdir, "app/template"
     end
 
     def tmp_path(*args)
@@ -444,7 +444,7 @@ Module.new do
 
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
-  FileUtils.mkdir(app_template_path)
+  FileUtils.mkdir_p(app_template_path)
   Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
     `npm run-script build`
   end
