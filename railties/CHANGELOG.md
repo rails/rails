@@ -1,10 +1,10 @@
 *   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
     The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
-        - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
-        - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
-        - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
-        - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
+    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
 
     *Annie-Claude Côté*
 
