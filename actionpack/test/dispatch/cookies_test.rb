@@ -1405,8 +1405,7 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
 
-    freeze_time do
-      travel 1001.years
+    travel 1001.years do
       assert_nil cookies.encrypted[:favorite]
     end
 
@@ -1422,8 +1421,7 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
 
-    freeze_time do
-      travel 1001.years
+    travel 1001.years do
       assert_nil cookies.signed[:favorite]
     end
 
@@ -1439,8 +1437,7 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "5-2-Stable Chocolate Cookies", cookies.encrypted[:favorite]
 
-    freeze_time do
-      travel 1001.years
+    travel 1001.years do
       assert_nil cookies.encrypted[:favorite]
     end
 
@@ -1456,8 +1453,7 @@ class CookiesTest < ActionController::TestCase
 
     assert_equal "5-2-Stable Choco Chip Cookie", cookies.signed[:favorite]
 
-    freeze_time do
-      travel 1001.years
+    travel 1001.years do
       assert_nil cookies.signed[:favorite]
     end
 
