@@ -382,6 +382,8 @@ output:
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
 
+IMPORTANT: All forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [working with Javascript in Rails](https://guides.rubyonrails.org/working_with_javascript_in_rails.html#remote-elements).
+
 Making Select Boxes with Ease
 -----------------------------
 
