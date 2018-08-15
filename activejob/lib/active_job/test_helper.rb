@@ -117,12 +117,12 @@ module ActiveJob
     #   end
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
       if block_given?
-        original_count = enqueued_jobs_size(only: only, except: except, queue: queue)
+        original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
         yield
-        new_count = enqueued_jobs_size(only: only, except: except, queue: queue)
+        new_count = enqueued_jobs_with(only: only, except: except, queue: queue)
         assert_equal number, new_count - original_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
       else
-        actual_count = enqueued_jobs_size(only: only, except: except, queue: queue)
+        actual_count = enqueued_jobs_with(only: only, except: except, queue: queue)
         assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
       end
     end
@@ -362,7 +362,9 @@ module ActiveJob
       instantiate_job(matching_job)
     end
 
-    # Performs all enqueued jobs in the duration of the block.
+    # Performs all enqueued jobs. If a block is given, performs all of the jobs
+    # that were enqueued throughout the duration of the block. If a block is
+    # not given, performs all of the enqueued jobs up to this point in the test.
     #
     #   def test_perform_enqueued_jobs
     #     perform_enqueued_jobs do
@@ -405,7 +407,8 @@ module ActiveJob
         queue_adapter.perform_enqueued_at_jobs = true
         queue_adapter.filter = only
         queue_adapter.reject = except
-        yield
+
+        block_given? ? yield : flush_enqueued_jobs(only: only, except: except)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
@@ -432,10 +435,12 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def enqueued_jobs_size(only: nil, except: nil, queue: nil)
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil)
         validate_option(only: only, except: except)
+
         enqueued_jobs.count do |job|
           job_class = job.fetch(:job)
+
           if only
             next false unless Array(only).include?(job_class)
           elsif except
@@ -444,7 +449,17 @@ module ActiveJob
           if queue
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
           end
+
+          yield job if block_given?
           true
+        end
+      end
+
+      def flush_enqueued_jobs(only: nil, except: nil)
+        enqueued_jobs_with(only: only, except: except) do |payload|
+          args = ActiveJob::Arguments.deserialize(payload[:args])
+          instantiate_job(payload.merge(args: args)).perform_now
+          queue_adapter.performed_jobs << payload
         end
       end
 

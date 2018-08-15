@@ -1,3 +1,9 @@
+*   Allow `perform_enqueued_jobs` to be called without a block.
+
+    Performs all of the jobs that have been enqueued up to this point in the test.
+
+    *Kevin Deisz*
+
 *   Move `enqueue`/`enqueue_at` notifications to an around callback.
 
     Improves timing accuracy over the old after callback by including
