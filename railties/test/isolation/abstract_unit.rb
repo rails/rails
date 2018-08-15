@@ -30,7 +30,7 @@ require "rails/secrets"
 module TestHelpers
   module Paths
     def app_template_path
-      File.join Dir.tmpdir, "app/template"
+      File.join Dir.tmpdir, "templates/app_template"
     end
 
     def tmp_path(*args)
