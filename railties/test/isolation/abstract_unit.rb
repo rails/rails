@@ -445,7 +445,9 @@ Module.new do
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir(app_template_path)
-
+  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
+    `npm run-script build`
+  end
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
@@ -456,6 +458,16 @@ Module.new do
   contents = File.read("#{app_template_path}/config/application.rb")
   contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
+
+  contents = ActiveSupport::JSON.decode(File.read("#{app_template_path}/package.json"))
+  contents["dependencies"]["rails-ujs"] = "file:#{RAILS_FRAMEWORK_ROOT}/actionview"
+  contents["dependencies"]["activestorage"] = "file:#{RAILS_FRAMEWORK_ROOT}/activestorage"
+  contents["dependencies"]["actioncable"] = "file:#{RAILS_FRAMEWORK_ROOT}/actioncable"
+  File.write("#{app_template_path}/package.json", ActiveSupport::JSON.encode(contents))
+
+  Dir.chdir app_template_path do
+    `yarn add https://github.com/rails/webpacker.git`
+  end
 
   require "rails"
 
