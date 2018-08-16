@@ -118,13 +118,17 @@ module ActiveJob
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
       if block_given?
         original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
+
         yield
+
         new_count = enqueued_jobs_with(only: only, except: except, queue: queue)
-        assert_equal number, new_count - original_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
+
+        actual_count = new_count - original_count
       else
         actual_count = enqueued_jobs_with(only: only, except: except, queue: queue)
-        assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
       end
+
+      assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
     end
 
     # Asserts that no jobs have been enqueued.
