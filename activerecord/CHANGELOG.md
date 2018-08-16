@@ -1,3 +1,7 @@
+*   SQLite3 adapter `alter_table` method restores foreign keys.
+
+    *Yasuo Honda*
+
 *   Allow `:to_table` option to `invert_remove_foreign_key`.
 
     Example:
