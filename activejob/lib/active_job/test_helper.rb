@@ -373,6 +373,14 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
+    #   def test_perform_enqueued_jobs_without_block
+    #     MyJob.perform_later(1, 2, 3)
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_jobs 1
+    #   end
+    #
     # This method also supports filtering. If the +:only+ option is specified,
     # then only the listed job(s) will be performed.
     #
