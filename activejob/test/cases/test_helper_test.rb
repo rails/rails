@@ -677,7 +677,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob
+    assert_performed_jobs 1, only: LoggingJob
   end
 
   def test_perform_enqueued_jobs_without_block_with_only_option
@@ -687,7 +687,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs only: LoggingJob
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob
+    assert_performed_jobs 1, only: LoggingJob
   end
 
   def test_perform_enqueued_jobs_with_block_with_except_option
@@ -697,7 +697,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob
+    assert_performed_jobs 1, only: LoggingJob
   end
 
   def test_perform_enqueued_jobs_without_block_with_except_option
@@ -707,7 +707,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs except: HelloJob
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob
+    assert_performed_jobs 1, only: LoggingJob
   end
 
   def test_perform_enqueued_jobs_with_block_with_queue_option
@@ -718,7 +718,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: HelloJob, queue: :some_queue
+    assert_performed_jobs 1, only: HelloJob, queue: :some_queue
   end
 
   def test_perform_enqueued_jobs_without_block_with_queue_option
@@ -729,7 +729,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs queue: :some_queue
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: HelloJob, queue: :some_queue
+    assert_performed_jobs 1, only: HelloJob, queue: :some_queue
   end
 
   def test_perform_enqueued_jobs_with_block_with_only_and_queue_options
@@ -740,7 +740,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: HelloJob, queue: :other_queue
+    assert_performed_jobs 1, only: HelloJob, queue: :other_queue
   end
 
   def test_perform_enqueued_jobs_without_block_with_only_and_queue_options
@@ -751,7 +751,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs only: HelloJob, queue: :other_queue
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: HelloJob, queue: :other_queue
+    assert_performed_jobs 1, only: HelloJob, queue: :other_queue
   end
 
   def test_perform_enqueued_jobs_with_block_with_except_and_queue_options
@@ -762,7 +762,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
+    assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
   end
 
   def test_perform_enqueued_jobs_without_block_with_except_and_queue_options
@@ -773,7 +773,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     perform_enqueued_jobs except: HelloJob, queue: :other_queue
 
     assert_performed_jobs 1
-    # TODO assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
+    assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
   end
 
   def test_assert_performed_jobs
@@ -881,6 +881,28 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_without_block_with_only_option
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 1, only: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_option_failure
+    LoggingJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_jobs 1, only: HelloJob
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
   def test_assert_performed_jobs_with_except_option
     assert_nothing_raised do
       assert_performed_jobs 1, except: LoggingJob do
@@ -890,12 +912,47 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_performed_jobs_without_block_with_except_option
+    HelloJob.perform_later("jeremy")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 1, except: HelloJob
+  end
+
+  def test_assert_performed_jobs_without_block_with_except_option_failure
+    HelloJob.perform_later("jeremy")
+    HelloJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_jobs 1, except: HelloJob
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
   def test_assert_performed_jobs_with_only_and_except_option
     error = assert_raise ArgumentError do
       assert_performed_jobs 1, only: HelloJob, except: HelloJob do
         HelloJob.perform_later("jeremy")
         LoggingJob.perform_later
       end
+    end
+
+    assert_match(/`:only` and `:except`/, error.message)
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_and_except_options
+    error = assert_raise ArgumentError do
+      HelloJob.perform_later("jeremy")
+      LoggingJob.perform_later("bogdan")
+
+      perform_enqueued_jobs
+
+      assert_performed_jobs 1, only: HelloJob, except: HelloJob
     end
 
     assert_match(/`:only` and `:except`/, error.message)
@@ -1044,6 +1101,28 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_match(/1 .* but 0/, error.message)
   end
 
+  def test_assert_performed_jobs_without_block_with_queue_option
+    HelloJob.set(queue: :some_queue).perform_later("jeremy")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 1, queue: :some_queue
+  end
+
+  def test_assert_performed_jobs_without_block_with_queue_option_failure
+    HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_jobs 1, queue: :some_queue
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
   def test_assert_performed_jobs_with_only_and_queue_options
     assert_performed_jobs 1, only: HelloJob, queue: :some_queue do
       HelloJob.set(queue: :some_queue).perform_later("jeremy")
@@ -1059,6 +1138,30 @@ class PerformedJobsTest < ActiveJob::TestCase
         HelloJob.set(queue: :other_queue).perform_later("bogdan")
         LoggingJob.set(queue: :some_queue).perform_later("jeremy")
       end
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_and_queue_options
+    HelloJob.set(queue: :some_queue).perform_later("jeremy")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 1, only: HelloJob, queue: :some_queue
+  end
+
+  def test_assert_performed_jobs_without_block_with_only_and_queue_options_failure
+    HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_jobs 1, only: HelloJob, queue: :some_queue
     end
 
     assert_match(/1 .* but 0/, error.message)
@@ -1084,12 +1187,56 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_match(/1 .* but 0/, error.message)
   end
 
+  def test_assert_performed_jobs_without_block_with_except_and_queue_options
+    HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    LoggingJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :other_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 1, except: HelloJob, queue: :other_queue
+  end
+
+  def test_assert_performed_jobs_with_except_and_queue_options_failuree
+    HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    LoggingJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_performed_jobs 1, except: HelloJob, queue: :other_queue
+    end
+
+    assert_match(/1 .* but 0/, error.message)
+  end
+
   def test_assert_no_performed_jobs_with_only_option
     assert_nothing_raised do
       assert_no_performed_jobs only: HelloJob do
         LoggingJob.perform_later
       end
     end
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_only_option
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_no_performed_jobs only: HelloJob
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_only_option_failure
+    HelloJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_performed_jobs only: HelloJob
+    end
+
+    assert_match(/0 .* but 1/, error.message)
   end
 
   def test_assert_no_performed_jobs_with_except_option
@@ -1100,11 +1247,44 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_no_performed_jobs_without_block_with_except_option
+    HelloJob.perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_no_performed_jobs except: HelloJob
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_except_option_failure
+    LoggingJob.perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_performed_jobs except: HelloJob
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
   def test_assert_no_performed_jobs_with_only_and_except_option
     error = assert_raise ArgumentError do
       assert_no_performed_jobs only: HelloJob, except: HelloJob do
         LoggingJob.perform_later
       end
+    end
+
+    assert_match(/`:only` and `:except`/, error.message)
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_only_and_except_options
+    error = assert_raise ArgumentError do
+      HelloJob.perform_later("jeremy")
+      LoggingJob.perform_later("bogdan")
+
+      perform_enqueued_jobs
+
+      assert_no_performed_jobs only: HelloJob, except: HelloJob
     end
 
     assert_match(/`:only` and `:except`/, error.message)
@@ -1186,6 +1366,26 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_match(/0 .* but 1/, error.message)
   end
 
+  def test_assert_no_performed_jobs_without_block_with_queue_option
+    HelloJob.set(queue: :other_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_no_performed_jobs queue: :some_queue
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_queue_option_failure
+    HelloJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_performed_jobs queue: :some_queue
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
   def test_assert_no_performed_jobs_with_only_and_queue_options
     assert_no_performed_jobs only: HelloJob, queue: :some_queue do
       HelloJob.set(queue: :other_queue).perform_later("bogdan")
@@ -1199,6 +1399,28 @@ class PerformedJobsTest < ActiveJob::TestCase
         HelloJob.set(queue: :some_queue).perform_later("bogdan")
         LoggingJob.set(queue: :some_queue).perform_later("jeremy")
       end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_only_and_queue_options
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_no_performed_jobs only: HelloJob, queue: :some_queue
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_only_and_queue_options_failure
+    HelloJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_performed_jobs only: HelloJob, queue: :some_queue
     end
 
     assert_match(/0 .* but 1/, error.message)
@@ -1219,6 +1441,30 @@ class PerformedJobsTest < ActiveJob::TestCase
         HelloJob.set(queue: :some_queue).perform_later("bogdan")
         LoggingJob.set(queue: :some_queue).perform_later("jeremy")
       end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_except_and_queue_options
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    HelloJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :other_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    assert_no_performed_jobs except: HelloJob, queue: :some_queue
+  end
+
+  def test_assert_no_performed_jobs_without_block_with_except_and_queue_options_failure
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    HelloJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :some_queue).perform_later("jeremy")
+
+    perform_enqueued_jobs
+
+    error = assert_raise ActiveSupport::TestCase::Assertion do
+      assert_no_performed_jobs except: HelloJob, queue: :some_queue
     end
 
     assert_match(/0 .* but 1/, error.message)

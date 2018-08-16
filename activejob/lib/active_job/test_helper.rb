@@ -176,7 +176,7 @@ module ActiveJob
 
     # Asserts that the number of performed jobs matches the given number.
     # If no block is passed, <tt>perform_enqueued_jobs</tt>
-    # must be called around the job call.
+    # must be called around or after the job call.
     #
     #   def test_jobs
     #     assert_performed_jobs 0
@@ -186,10 +186,11 @@ module ActiveJob
     #     end
     #     assert_performed_jobs 1
     #
-    #     perform_enqueued_jobs do
-    #       HelloJob.perform_later('yves')
-    #       assert_performed_jobs 2
-    #     end
+    #     HelloJob.perform_later('yves')
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_jobs 2
     #   end
     #
     # If a block is passed, that block should cause the specified number of
@@ -206,7 +207,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The block form supports filtering. If the :only option is specified,
+    # This method also supports filtering. If the +:only+ option is specified,
     # then only the listed job(s) will be performed.
     #
     #     def test_hello_job
@@ -247,17 +248,20 @@ module ActiveJob
     #         HelloJob.set(queue: :other_queue).perform_later("bogdan")
     #       end
     #     end
-    def assert_performed_jobs(number, only: nil, except: nil, queue: nil)
+    def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
       if block_given?
         original_count = performed_jobs.size
-        perform_enqueued_jobs(only: only, except: except, queue: queue) { yield }
+
+        perform_enqueued_jobs(only: only, except: except, queue: queue, &block)
+
         new_count = performed_jobs.size
-        assert_equal number, new_count - original_count,
-          "#{number} jobs expected, but #{new_count - original_count} were performed"
+
+        performed_jobs_size = new_count - original_count
       else
-        performed_jobs_size = performed_jobs.size
-        assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
+        performed_jobs_size = performed_jobs_with(only: only, except: except, queue: queue)
       end
+
+      assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
     end
 
     # Asserts that no jobs have been performed.
@@ -479,10 +483,10 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def enqueued_jobs_with(only: nil, except: nil, queue: nil)
+      def jobs_with(jobs, only: nil, except: nil, queue: nil)
         validate_option(only: only, except: except)
 
-        enqueued_jobs.count do |job|
+        jobs.count do |job|
           job_class = job.fetch(:job)
 
           if only
@@ -490,13 +494,23 @@ module ActiveJob
           elsif except
             next false if Array(except).include?(job_class)
           end
+
           if queue
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
           end
 
           yield job if block_given?
+
           true
         end
+      end
+
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
+        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, &block)
+      end
+
+      def performed_jobs_with(only: nil, except: nil, queue: nil, &block)
+        jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
       end
 
       def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
