@@ -610,7 +610,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 end
 
 class PerformedJobsTest < ActiveJob::TestCase
-  def test_performed_enqueue_jobs_with_only_option_doesnt_leak_outside_the_block
+  def test_perform_enqueued_jobs_with_only_option_doesnt_leak_outside_the_block
     assert_nil queue_adapter.filter
     perform_enqueued_jobs only: HelloJob do
       assert_equal HelloJob, queue_adapter.filter
@@ -618,12 +618,28 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_nil queue_adapter.filter
   end
 
-  def test_performed_enqueue_jobs_with_except_option_doesnt_leak_outside_the_block
+  def test_perform_enqueued_jobs_with_except_option_doesnt_leak_outside_the_block
     assert_nil queue_adapter.reject
     perform_enqueued_jobs except: HelloJob do
       assert_equal HelloJob, queue_adapter.reject
     end
     assert_nil queue_adapter.reject
+  end
+
+  def test_perform_enqueued_jobs_without_block
+    HelloJob.perform_later("kevin")
+
+    assert_performed_jobs 1, only: HelloJob do
+      perform_enqueued_jobs
+    end
+  end
+
+  def test_perform_enqueued_jobs_without_block_respects_filter
+    HelloJob.perform_later("kevin")
+
+    assert_no_performed_jobs do
+      perform_enqueued_jobs only: LoggingJob
+    end
   end
 
   def test_assert_performed_jobs
