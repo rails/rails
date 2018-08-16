@@ -413,7 +413,7 @@ module ActiveModel
       defaults << "%{attribute} %{message}"
 
       attr_name = attribute.tr(".", "_").humanize
-      attr_name = @base.class.human_attribute_name(attribute.to_sym, default: attr_name)
+      attr_name = @base.class.human_attribute_name(attribute, default: attr_name)
 
       I18n.t(defaults.shift,
         default:  defaults,
