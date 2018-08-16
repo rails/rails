@@ -127,36 +127,36 @@ EOS
 
       test "db:create and db:drop works on all databases for env" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations[Rails.env].each do |namespace, config|
-          db_create_and_drop namespace, config["database"]
+        ActiveRecord::Base.configurations.configs_for(Rails.env).each do |db_config|
+          db_create_and_drop db_config.spec_name, db_config.config["database"]
         end
       end
 
       test "db:create:namespace and db:drop:namespace works on specified databases" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations[Rails.env].each do |namespace, config|
-          db_create_and_drop_namespace namespace, config["database"]
+        ActiveRecord::Base.configurations.configs_for(Rails.env).each do |db_config|
+          db_create_and_drop_namespace db_config.spec_name, db_config.config["database"]
         end
       end
 
       test "db:migrate and db:schema:dump and db:schema:load works on all databases" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations[Rails.env].each do |namespace, config|
-          db_migrate_and_schema_dump_and_load namespace, config["database"], "schema"
+        ActiveRecord::Base.configurations.configs_for(Rails.env).each do |db_config|
+          db_migrate_and_schema_dump_and_load db_config.spec_name, db_config.config["database"], "schema"
         end
       end
 
       test "db:migrate and db:structure:dump and db:structure:load works on all databases" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations[Rails.env].each do |namespace, config|
-          db_migrate_and_schema_dump_and_load namespace, config["database"], "structure"
+        ActiveRecord::Base.configurations.configs_for(Rails.env).each do |db_config|
+          db_migrate_and_schema_dump_and_load db_config.spec_name, db_config.config["database"], "structure"
         end
       end
 
       test "db:migrate:namespace works" do
         require "#{app_path}/config/environment"
-        ActiveRecord::Base.configurations[Rails.env].each do |namespace, config|
-          db_migrate_namespaced namespace, config["database"]
+        ActiveRecord::Base.configurations.configs_for(Rails.env).each do |db_config|
+          db_migrate_namespaced db_config.spec_name, db_config.config["database"]
         end
       end
     end
