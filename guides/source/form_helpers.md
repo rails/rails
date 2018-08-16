@@ -75,7 +75,7 @@ This will generate the following HTML:
 </form>
 ```
 
-TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, [as explained below](TOOD: insert link), you can also pass ActiveRecord objects to the form.
+TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, as explained below, you can also pass ActiveRecord objects to the form.
 
 TIP: For every form input, an ID attribute is generated from its name (`"q"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
