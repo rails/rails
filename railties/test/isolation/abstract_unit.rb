@@ -445,6 +445,8 @@ Module.new do
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
+  File.write("#{app_template_path}/../../.yarnrc", "--modules-folder \"#{app_template_path}/../../node_modules\"")
+
   Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
     `npm run-script build`
   end
@@ -468,6 +470,7 @@ Module.new do
   Dir.chdir app_template_path do
     `yarn add https://github.com/rails/webpacker.git`
   end
+
 
   require "rails"
 
