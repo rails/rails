@@ -8,6 +8,7 @@ module ApplicationTests
 
     def setup
       build_app
+      FileUtils.rm_rf "#{app_path}/config/webpacker.yml" # Prevent Webpacker::DevServerProxy from being added
       FileUtils.rm_rf "#{app_path}/config/environments"
     end
 
