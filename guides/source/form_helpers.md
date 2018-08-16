@@ -22,18 +22,17 @@ NOTE: This guide is not intended to be a complete documentation of available for
 Dealing with Basic Forms
 ------------------------
 
-The most basic form helper is `form_tag`.
+The main form helper is `form_with`.
 
 ```erb
-<%= form_tag do %>
+<%= form_with do %>
   Form contents
 <% end %>
 ```
-
 When called without arguments like this, it creates a `<form>` tag which, when submitted, will POST to the current page. For instance, assuming the current page is `/home/index`, the generated HTML will look like this (some line breaks added for readability):
 
 ```html
-<form accept-charset="UTF-8" action="/" method="post">
+<form accept-charset="UTF-8" action="/" data-remote="true" method="post">
   <input name="utf8" type="hidden" value="&#x2713;" />
   <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
   Form contents
@@ -44,6 +43,8 @@ You'll notice that the HTML contains an `input` element with type `hidden`. This
 
 The second input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
+IMPORTANT: `form_with` looks a bit funny by itself, doesn't it? In the wild you will be almost always be supplying it with `url` or `model` arguments, discussed more below.
+
 ### A Generic Search Form
 
 One of the most basic forms you see on the web is a search form. This form contains:
@@ -53,10 +54,10 @@ One of the most basic forms you see on the web is a search form. This form conta
 * a text input element, and
 * a submit element.
 
-To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
+To create this form you will use `form_with`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
 
 ```erb
-<%= form_tag("/search", method: "get") do %>
+<%= form_with(url: "/search", method: "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
@@ -66,13 +67,15 @@ To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and 
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" data-remote="true" method="get">
   <input name="utf8" type="hidden" value="&#x2713;" />
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
-  <input name="commit" type="submit" value="Search" />
+  <input name="commit" type="submit" value="Search" data-disable-with="Search" />
 </form>
 ```
+
+TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, [as explained below](TOOD: insert link), you can also pass ActiveRecord objects to the form.
 
 TIP: For every form input, an ID attribute is generated from its name (`"q"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
@@ -82,13 +85,17 @@ IMPORTANT: Always use "GET" as the method for search forms. This allows users to
 
 ### Multiple Hashes in Form Helper Calls
 
-The `form_tag` helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element's class.
+The `form_with` helper accepts 2 arguments: the path or model for the action and an options hash. This hash specifies the method of form submission and HTML options.
+
+TIP: You can directly specify `class` or `id` values without wrapping it in an `html` hash.
+
+###### WHERE I LEFT OFF - TOMORROW LOOK INTO INTEGRATIONS OF FORM OBJECT INTO THIS OR JUST GO ON PURE URL
 
 As with the `link_to` helper, the path argument doesn't have to be a string; it can be a hash of URL parameters recognizable by Rails' routing mechanism, which will turn the hash into a valid URL. However, since both arguments to `form_tag` are hashes, you can easily run into a problem if you would like to specify both. For instance, let's say you write this:
 
 ```ruby
-form_tag(controller: "people", action: "search", method: "get", class: "nifty_form")
-# => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
+form_with(controller: "people", action: "search", method: "get", class: "nifty_form")
+# => '<form accept-charset="UTF-8" data-remote="true" action="/people/search?method=get&class=nifty_form" method="post">'
 ```
 
 Here, `method` and `class` are appended to the query string of the generated URL because even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
