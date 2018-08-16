@@ -618,6 +618,12 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_nil queue_adapter.filter
   end
 
+  def test_perform_enqueued_jobs_without_block_with_only_option_doesnt_leak
+    perform_enqueued_jobs only: HelloJob
+
+    assert_nil queue_adapter.filter
+  end
+
   def test_perform_enqueued_jobs_with_except_option_doesnt_leak_outside_the_block
     assert_nil queue_adapter.reject
     perform_enqueued_jobs except: HelloJob do
@@ -626,20 +632,148 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_nil queue_adapter.reject
   end
 
-  def test_perform_enqueued_jobs_without_block
-    HelloJob.perform_later("kevin")
+  def test_perform_enqueued_jobs_without_block_with_except_option_doesnt_leak
+    perform_enqueued_jobs except: HelloJob
 
-    assert_performed_jobs 1, only: HelloJob do
-      perform_enqueued_jobs
-    end
+    assert_nil queue_adapter.reject
   end
 
-  def test_perform_enqueued_jobs_without_block_respects_filter
-    HelloJob.perform_later("kevin")
-
-    assert_no_performed_jobs do
-      perform_enqueued_jobs only: LoggingJob
+  def test_perform_enqueued_jobs_with_queue_option_doesnt_leak_outside_the_block
+    assert_nil queue_adapter.queue
+    perform_enqueued_jobs queue: :some_queue do
+      assert_equal :some_queue, queue_adapter.queue
     end
+    assert_nil queue_adapter.queue
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_queue_option_doesnt_leak
+    perform_enqueued_jobs queue: :some_queue
+
+    assert_nil queue_adapter.reject
+  end
+
+  def test_perform_enqueued_jobs_with_block
+    perform_enqueued_jobs do
+      HelloJob.perform_later("kevin")
+      LoggingJob.perform_later("bogdan")
+    end
+
+    assert_performed_jobs 2
+  end
+
+  def test_perform_enqueued_jobs_without_block
+    HelloJob.perform_later("kevin")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs
+
+    assert_performed_jobs 2
+  end
+
+  def test_perform_enqueued_jobs_with_block_with_only_option
+    perform_enqueued_jobs only: LoggingJob do
+      HelloJob.perform_later("kevin")
+      LoggingJob.perform_later("bogdan")
+    end
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_only_option
+    HelloJob.perform_later("kevin")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs only: LoggingJob
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob
+  end
+
+  def test_perform_enqueued_jobs_with_block_with_except_option
+    perform_enqueued_jobs except: HelloJob do
+      HelloJob.perform_later("kevin")
+      LoggingJob.perform_later("bogdan")
+    end
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_except_option
+    HelloJob.perform_later("kevin")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs except: HelloJob
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob
+  end
+
+  def test_perform_enqueued_jobs_with_block_with_queue_option
+    perform_enqueued_jobs queue: :some_queue do
+      HelloJob.set(queue: :some_queue).perform_later("kevin")
+      HelloJob.set(queue: :other_queue).perform_later("bogdan")
+      LoggingJob.perform_later("bogdan")
+    end
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: HelloJob, queue: :some_queue
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_queue_option
+    HelloJob.set(queue: :some_queue).perform_later("kevin")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    LoggingJob.perform_later("bogdan")
+
+    perform_enqueued_jobs queue: :some_queue
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: HelloJob, queue: :some_queue
+  end
+
+  def test_perform_enqueued_jobs_with_block_with_only_and_queue_options
+    perform_enqueued_jobs only: HelloJob, queue: :other_queue do
+      HelloJob.set(queue: :some_queue).perform_later("kevin")
+      HelloJob.set(queue: :other_queue).perform_later("bogdan")
+      LoggingJob.set(queue: :other_queue).perform_later("bogdan")
+    end
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: HelloJob, queue: :other_queue
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_only_and_queue_options
+    HelloJob.set(queue: :some_queue).perform_later("kevin")
+    HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :other_queue).perform_later("bogdan")
+
+    perform_enqueued_jobs only: HelloJob, queue: :other_queue
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: HelloJob, queue: :other_queue
+  end
+
+  def test_perform_enqueued_jobs_with_block_with_except_and_queue_options
+    perform_enqueued_jobs except: HelloJob, queue: :other_queue do
+      HelloJob.set(queue: :other_queue).perform_later("kevin")
+      LoggingJob.set(queue: :some_queue).perform_later("bogdan")
+      LoggingJob.set(queue: :other_queue).perform_later("bogdan")
+    end
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
+  end
+
+  def test_perform_enqueued_jobs_without_block_with_except_and_queue_options
+    HelloJob.set(queue: :other_queue).perform_later("kevin")
+    LoggingJob.set(queue: :some_queue).perform_later("bogdan")
+    LoggingJob.set(queue: :other_queue).perform_later("bogdan")
+
+    perform_enqueued_jobs except: HelloJob, queue: :other_queue
+
+    assert_performed_jobs 1
+    # TODO assert_performed_jobs 1, only: LoggingJob, queue: :other_queue
   end
 
   def test_assert_performed_jobs

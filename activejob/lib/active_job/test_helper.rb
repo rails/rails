@@ -403,25 +403,39 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    def perform_enqueued_jobs(only: nil, except: nil)
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will be performed.
+    #
+    #   def test_perform_enqueued_jobs_with_queue
+    #     perform_enqueued_jobs queue: :some_queue do
+    #       MyJob.set(queue: :some_queue).perform_later(1, 2, 3) # will be performed
+    #       HelloJob.set(queue: :other_queue).perform_later(1, 2, 3) # will not be performed
+    #     end
+    #     assert_performed_jobs 1
+    #   end
+    #
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
       validate_option(only: only, except: except)
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
       old_filter = queue_adapter.filter
       old_reject = queue_adapter.reject
+      old_queue = queue_adapter.queue
 
       begin
         queue_adapter.perform_enqueued_jobs = true
         queue_adapter.perform_enqueued_at_jobs = true
         queue_adapter.filter = only
         queue_adapter.reject = except
+        queue_adapter.queue = queue
 
-        block_given? ? yield : flush_enqueued_jobs(only: only, except: except)
+        block_given? ? yield : flush_enqueued_jobs(only: only, except: except, queue: queue)
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
         queue_adapter.filter = old_filter
         queue_adapter.reject = old_reject
+        queue_adapter.queue = old_queue
       end
     end
 
@@ -463,8 +477,8 @@ module ActiveJob
         end
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil)
-        enqueued_jobs_with(only: only, except: except) do |payload|
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
+        enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
           args = ActiveJob::Arguments.deserialize(payload[:args])
           instantiate_job(payload.merge(args: args)).perform_now
           queue_adapter.performed_jobs << payload
