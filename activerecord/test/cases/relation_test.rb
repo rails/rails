@@ -307,6 +307,14 @@ module ActiveRecord
       assert_equal 3, ratings.count
     end
 
+    test 'eql? aliases ==' do
+      assert Author.all.eql?(Author.all)
+    end
+
+    test 'hash values equal with same records' do
+      assert_equal Author.all.hash, Author.where('1=1').hash
+    end
+
     class EnsureRoundTripTypeCasting < ActiveRecord::Type::Value
       def type
         :string

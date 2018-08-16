@@ -582,6 +582,11 @@ module ActiveRecord
         records == other
       end
     end
+    alias eql? ==
+
+    def hash
+      records.hash
+    end
 
     def pretty_print(q)
       q.pp(records)
