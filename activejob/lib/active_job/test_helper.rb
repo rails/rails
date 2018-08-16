@@ -361,7 +361,25 @@ module ActiveJob
       instantiate_job(matching_job)
     end
 
-    # Asserts that the job passed in the block has been performed with the given arguments.
+    # Asserts that the job has been performed with the given arguments.
+    #
+    #   def test_assert_performed_with
+    #     MyJob.perform_later(1,2,3)
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high')
+    #
+    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
+    #   end
+    #
+    # If a block is passed, that block performs all of the jobs that were
+    # enqueued throughout the duration of the block and asserts that
+    # the job has been performed with the given arguments in the block.
     #
     #   def test_assert_performed_with
     #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
@@ -372,15 +390,24 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil)
-      original_performed_jobs_count = performed_jobs.count
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       serialized_args = serialize_args_for_assertion(expected)
-      perform_enqueued_jobs { yield }
-      in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
-      matching_job = in_block_jobs.find do |in_block_job|
-        serialized_args.all? { |key, value| value == in_block_job[key] }
+
+      if block_given?
+        original_performed_jobs_count = performed_jobs.count
+
+        perform_enqueued_jobs(&block)
+
+        jobs = performed_jobs.drop(original_performed_jobs_count)
+      else
+        jobs = performed_jobs
       end
+
+      matching_job = jobs.find do |performed_job|
+        serialized_args.all? { |key, value| value == performed_job[key] }
+      end
+
       assert matching_job, "No performed job found with #{expected}"
       instantiate_job(matching_job)
     end

@@ -1,3 +1,7 @@
+*   Allow `assert_performed_with` to be called without a block.
+
+    *bogdanvlviv*
+
 *   Execution of `assert_performed_jobs`, and `assert_no_performed_jobs`
     without a block should respect passed `:except`, `:only`, and `:queue` options.
 
