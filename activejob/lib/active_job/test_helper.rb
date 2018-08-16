@@ -237,10 +237,20 @@ module ActiveJob
     #         end
     #       end
     #     end
-    def assert_performed_jobs(number, only: nil, except: nil)
+    #
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will be performed.
+    #
+    #     def test_assert_performed_jobs_with_queue_option
+    #       assert_performed_jobs 1, queue: :some_queue do
+    #         HelloJob.set(queue: :some_queue).perform_later("jeremy")
+    #         HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    #       end
+    #     end
+    def assert_performed_jobs(number, only: nil, except: nil, queue: nil)
       if block_given?
         original_count = performed_jobs.size
-        perform_enqueued_jobs(only: only, except: except) { yield }
+        perform_enqueued_jobs(only: only, except: except, queue: queue) { yield }
         new_count = performed_jobs.size
         assert_equal number, new_count - original_count,
           "#{number} jobs expected, but #{new_count - original_count} were performed"
