@@ -1,3 +1,8 @@
+*   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
+    controllers that can't inherit from `ActiveStorage::BaseController`.
+
+    *George Claghorn*
+
 *   Active Storage error classes like `ActiveStorage::IntegrityError` and
     `ActiveStorage::UnrepresentableError` now inherit from `ActiveStorage::Error`
     instead of `StandardError`. This permits rescuing `ActiveStorage::Error` to
