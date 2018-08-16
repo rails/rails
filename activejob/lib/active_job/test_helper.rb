@@ -415,7 +415,10 @@ module ActiveJob
     #   end
     #
     def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
+      return flush_enqueued_jobs(only: only, except: except, queue: queue) unless block_given?
+
       validate_option(only: only, except: except)
+
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
       old_filter = queue_adapter.filter
@@ -429,7 +432,7 @@ module ActiveJob
         queue_adapter.reject = except
         queue_adapter.queue = queue
 
-        block_given? ? yield : flush_enqueued_jobs(only: only, except: except, queue: queue)
+        yield
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
