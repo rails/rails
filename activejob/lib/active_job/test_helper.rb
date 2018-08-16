@@ -52,7 +52,7 @@ module ActiveJob
       queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
-    # Specifies the queue adapter to use with all active job test helpers.
+    # Specifies the queue adapter to use with all Active Job test helpers.
     #
     # Returns an instance of the queue adapter and defaults to
     # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
@@ -217,7 +217,7 @@ module ActiveJob
     #       end
     #     end
     #
-    # Also if the :except option is specified,
+    # Also if the +:except+ option is specified,
     # then the job(s) except specific class will be performed.
     #
     #     def test_hello_job
@@ -283,7 +283,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The block form supports filtering. If the :only option is specified,
+    # The block form supports filtering. If the +:only+ option is specified,
     # then only the listed job(s) will not be performed.
     #
     #   def test_no_logging
@@ -292,7 +292,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # Also if the :except option is specified,
+    # Also if the +:except+ option is specified,
     # then the job(s) except specific class will not be performed.
     #
     #   def test_no_logging
