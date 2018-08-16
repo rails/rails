@@ -781,7 +781,7 @@ class HasAndBelongsToManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_has_many_through_polymorphic_has_manys_works
-    assert_equal [10, 20].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
+    assert_equal ["$10.00", "$20.00"].to_set, pirates(:redbeard).treasure_estimates.map(&:price).to_set
   end
 
   def test_symbols_as_keys
