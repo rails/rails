@@ -276,9 +276,9 @@ GEM
     httpclient (2.8.3)
     i18n (1.0.1)
       concurrent-ruby (~> 1.0)
-    image_processing (1.2.0)
+    image_processing (1.6.0)
       mini_magick (~> 4.0)
-      ruby-vips (>= 2.0.10, < 3)
+      ruby-vips (>= 2.0.11, < 3)
     io-like (0.3.0)
     jaro_winkler (1.5.1)
     jaro_winkler (1.5.1-java)
@@ -411,7 +411,7 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
-    ruby-vips (2.0.12)
+    ruby-vips (2.0.13)
       ffi (~> 1.9)
     ruby_dep (1.5.0)
     rubyzip (1.2.1)
@@ -579,4 +579,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.2
+   1.16.3
