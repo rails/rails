@@ -1,3 +1,16 @@
+
+The guide is revamped in this version.
+
+* There are no more references to `form_for` or `form_tag` except for the footnote that points to older documentation.
+
+* All functionality that is now utilized with `form_with` has been updated
+
+* There is a note about the `remote: true` default and `local: true` option
+
+* There is a note about the ability for users to include non-attribute inputs on form builder now
+
+* Notes that `class` and `id` are no longer required in HTML hash.
+
 Using form_with
 ---------------
 
