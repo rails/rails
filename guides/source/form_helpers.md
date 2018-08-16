@@ -83,28 +83,6 @@ Besides `text_field_tag` and `submit_tag`, there is a similar helper for _every_
 
 IMPORTANT: Always use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
 
-### Multiple Hashes in Form Helper Calls
-
-The `form_with` helper accepts 2 arguments: the path or model for the action and an options hash. This hash specifies the method of form submission and HTML options.
-
-TIP: You can directly specify `class` or `id` values without wrapping it in an `html` hash.
-
-###### WHERE I LEFT OFF - TOMORROW LOOK INTO INTEGRATIONS OF FORM OBJECT INTO THIS OR JUST GO ON PURE URL
-
-As with the `link_to` helper, the path argument doesn't have to be a string; it can be a hash of URL parameters recognizable by Rails' routing mechanism, which will turn the hash into a valid URL. However, since both arguments to `form_tag` are hashes, you can easily run into a problem if you would like to specify both. For instance, let's say you write this:
-
-```ruby
-form_with(controller: "people", action: "search", method: "get", class: "nifty_form")
-# => '<form accept-charset="UTF-8" data-remote="true" action="/people/search?method=get&class=nifty_form" method="post">'
-```
-
-Here, `method` and `class` are appended to the query string of the generated URL because even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
-
-```ruby
-form_tag({controller: "people", action: "search"}, method: "get", class: "nifty_form")
-# => '<form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">'
-```
-
 ### Helpers for Generating Form Elements
 
 Rails provides a series of helpers for generating form elements such as
