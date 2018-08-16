@@ -27,7 +27,7 @@ namespace :test do
 
     require "bundler/setup" unless defined?(Bundler)
     require "active_support"
-
+    require_relative 'test/isolation/abstract_unit'
     failing_files = []
 
     dirs = (ENV["TEST_DIR"] || ENV["TEST_DIRS"] || "**").split(",")
