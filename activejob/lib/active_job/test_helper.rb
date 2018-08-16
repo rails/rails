@@ -297,11 +297,20 @@ module ActiveJob
     #     end
     #   end
     #
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will not be performed.
+    #
+    #   def test_assert_no_performed_jobs_with_queue_option
+    #     assert_no_performed_jobs queue: :some_queue do
+    #       HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    #     end
+    #   end
+    #
     # Note: This assertion is simply a shortcut for:
     #
     #   assert_performed_jobs 0, &block
-    def assert_no_performed_jobs(only: nil, except: nil, &block)
-      assert_performed_jobs 0, only: only, except: except, &block
+    def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
+      assert_performed_jobs 0, only: only, except: except, queue: queue, &block
     end
 
     # Asserts that the job has been enqueued with the given arguments.
