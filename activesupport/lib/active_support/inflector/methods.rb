@@ -81,19 +81,21 @@ module ActiveSupport
     #
     # Changes '::' to '/' to convert namespaces to paths.
     #
-    #   underscore('ActiveModel')         # => "active_model"
-    #   underscore('ActiveModel::Errors') # => "active_model/errors"
+    #   underscore('ActiveModel')          # => "active_model"
+    #   underscore('ActiveModel1')         # => "active_model_1"
+    #   underscore('ActiveModel::Errors')  # => "active_model/errors"
     #
     # As a rule of thumb you can think of +underscore+ as the inverse of
     # #camelize, though there are cases where that does not hold:
     #
     #   camelize(underscore('SSLError'))  # => "SslError"
     def underscore(camel_cased_word)
-      return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
+      return camel_cased_word unless /[A-Z-]|[0-9-]|::/.match?(camel_cased_word)
       word = camel_cased_word.to_s.gsub("::".freeze, "/".freeze)
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_'.freeze }#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
       word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
+      word.gsub!(/\d+/, '_\0_'.freeze)
       word.tr!("-".freeze, "_".freeze)
       word.downcase!
       word
