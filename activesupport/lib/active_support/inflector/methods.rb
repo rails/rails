@@ -95,7 +95,7 @@ module ActiveSupport
       word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_'.freeze }#{$2.downcase}" }
       word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2'.freeze)
       word.gsub!(/([a-z\d])([A-Z])/, '\1_\2'.freeze)
-      word.gsub!(/\d+/, '_\0_'.freeze)
+      word.gsub!(/\d+/, '_\0_'.freeze).chomp!("_")
       word.tr!("-".freeze, "_".freeze)
       word.downcase!
       word
