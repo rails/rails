@@ -30,7 +30,7 @@ require "rails/secrets"
 module TestHelpers
   module Paths
     def app_template_path
-      File.join Dir.tmpdir, "app_template"
+      File.join Dir.tmpdir, "templates/app_template"
     end
 
     def tmp_path(*args)
@@ -112,6 +112,8 @@ module TestHelpers
           f.puts $` + "\nActiveSupport::Deprecation.silence { match ':controller(/:action(/:id))(.:format)', via: :all }\n" + $1
         end
       end
+
+      remove_from_env_config("development", "config.webpacker.check_yarn_integrity = true")
 
       if options[:multi_db]
         File.open("#{app_path}/config/database.yml", "w") do |f|
@@ -444,8 +446,12 @@ Module.new do
 
   # Build a rails app
   FileUtils.rm_rf(app_template_path)
-  FileUtils.mkdir(app_template_path)
-
+  FileUtils.mkdir_p(app_template_path)
+  File.write("#{app_template_path}/../../.yarnrc", "--modules-folder \"#{app_template_path}/../../node_modules\"")
+  FileUtils.rm_rf("#{app_template_path}/../../node_modules")
+  Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
+    `npm run-script build`
+  end
   `#{Gem.ruby} #{RAILS_FRAMEWORK_ROOT}/railties/exe/rails new #{app_template_path} --skip-gemfile --skip-listen --no-rc`
   File.open("#{app_template_path}/config/boot.rb", "w") do |f|
     f.puts "require 'rails/all'"
@@ -456,6 +462,17 @@ Module.new do
   contents = File.read("#{app_template_path}/config/application.rb")
   contents.sub!(/^Bundler\.require.*/, "%w(turbolinks webpacker).each { |r| require r }")
   File.write("#{app_template_path}/config/application.rb", contents)
+
+  contents = ActiveSupport::JSON.decode(File.read("#{app_template_path}/package.json"))
+  contents["dependencies"]["rails-ujs"] = "file:#{RAILS_FRAMEWORK_ROOT}/actionview"
+  contents["dependencies"]["activestorage"] = "file:#{RAILS_FRAMEWORK_ROOT}/activestorage"
+  contents["dependencies"]["actioncable"] = "file:#{RAILS_FRAMEWORK_ROOT}/actioncable"
+  File.write("#{app_template_path}/package.json", ActiveSupport::JSON.encode(contents))
+
+  Dir.chdir app_template_path do
+    `yarn add https://github.com/rails/webpacker.git`
+  end
+
 
   require "rails"
 

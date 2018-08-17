@@ -232,6 +232,21 @@ module Rails
         options[:skip_active_storage] || options[:skip_active_record]
       end
 
+      def rails_ujs_version
+        #TODO Rails::VERSION::STRING
+        "file:" + File.expand_path(File.join(__dir__, '../../../../actionview'))
+      end
+
+      def actioncable_version
+        #TODO Rails::VERSION::STRING
+        "file:" + File.expand_path(File.join(__dir__, '../../../../actioncable'))
+      end
+
+      def activestorage_version
+        #TODO Rails::VERSION::STRING
+        "file:" + File.expand_path(File.join(__dir__, '../../../../activestorage'))
+      end
+
       class GemfileEntry < Struct.new(:name, :version, :comment, :options, :commented_out)
         def initialize(name, version, comment, options = {}, commented_out = false)
           super

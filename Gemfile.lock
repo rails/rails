@@ -30,6 +30,15 @@ GIT
     queue_classic (3.2.0.RC1)
       pg (>= 0.17, < 2.0)
 
+GIT
+  remote: https://github.com/rails/webpacker.git
+  revision: 40386e215a4016a83fd55f691c7e653976581b93
+  specs:
+    webpacker (4.0.0.pre.pre.2)
+      activesupport (>= 4.2)
+      rack-proxy (>= 0.6.1)
+      railties (>= 4.2)
+
 PATH
   remote: .
   specs:
@@ -371,6 +380,8 @@ GEM
       rack (>= 0.4)
     rack-protection (2.0.1)
       rack
+    rack-proxy (0.6.4)
+      rack
     rack-test (1.0.0)
       rack (>= 1.0, < 3)
     rails-dom-testing (2.0.3)
@@ -576,7 +587,8 @@ DEPENDENCIES
   uglifier (>= 1.3.0)
   w3c_validators
   wdm (>= 0.1.0)
+  webpacker!
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.2
+   1.16.3
