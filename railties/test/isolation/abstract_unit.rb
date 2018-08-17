@@ -448,7 +448,7 @@ Module.new do
   FileUtils.rm_rf(app_template_path)
   FileUtils.mkdir_p(app_template_path)
   File.write("#{app_template_path}/../../.yarnrc", "--modules-folder \"#{app_template_path}/../../node_modules\"")
-
+  FileUtils.rm_rf("#{app_template_path}/../../node_modules")
   Dir.chdir "#{RAILS_FRAMEWORK_ROOT}/actionview" do
     `npm run-script build`
   end
