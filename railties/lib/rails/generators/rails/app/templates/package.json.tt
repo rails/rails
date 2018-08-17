@@ -2,9 +2,9 @@
   "name": "<%= app_name %>",
   "private": true,
   "dependencies": {
-    "rails-ujs": "<%= Rails::VERSION::STRING %>"<% unless options[:skip_turbolinks] %>,
+    "rails-ujs": "<%= rails_ujs_version %>"<% unless options[:skip_turbolinks] %>,
     "turbolinks": "5.1.1"<% end -%><% unless skip_active_storage? %>,
-    "activestorage": "<%= Rails::VERSION::STRING %>"<% end -%><% unless options[:skip_action_cable] %>,
-    "actioncable": "<%= Rails::VERSION::STRING %>"<% end -%>
+    "activestorage": "<%= activestorage_version %>"<% end -%><% unless options[:skip_action_cable] %>,
+    "actioncable": "<%= actioncable_version %>"<% end -%>
   }
 }
