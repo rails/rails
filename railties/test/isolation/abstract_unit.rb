@@ -113,6 +113,8 @@ module TestHelpers
         end
       end
 
+      remove_from_env_config("development", "config.webpacker.check_yarn_integrity = true")
+
       if options[:multi_db]
         File.open("#{app_path}/config/database.yml", "w") do |f|
           f.puts <<-YAML
