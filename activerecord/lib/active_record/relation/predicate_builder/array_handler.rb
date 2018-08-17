@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_support/core_ext/array/extract"
+
 module ActiveRecord
   class PredicateBuilder
     class ArrayHandler # :nodoc:
@@ -11,8 +13,8 @@ module ActiveRecord
         return attribute.in([]) if value.empty?
 
         values = value.map { |x| x.is_a?(Base) ? x.id : x }
-        nils, values = values.partition(&:nil?)
-        ranges, values = values.partition { |v| v.is_a?(Range) }
+        nils = values.extract!(&:nil?)
+        ranges = values.extract! { |v| v.is_a?(Range) }
 
         values_predicate =
           case values.length

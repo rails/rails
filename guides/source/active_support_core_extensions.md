@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Support Core Extensions
 ==============================
@@ -2155,6 +2155,19 @@ This method is an alias of `Array#<<`.
 ```
 
 NOTE: Defined in `active_support/core_ext/array/prepend_and_append.rb`.
+
+### Extracting
+
+The method `extract!` removes and returns the elements for which the block returns a true value.
+If no block is given, an Enumerator is returned instead.
+
+```ruby
+numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+numbers # => [0, 2, 4, 6, 8]
+```
+
+NOTE: Defined in `active_support/core_ext/array/extract.rb`.
 
 ### Options Extraction
 

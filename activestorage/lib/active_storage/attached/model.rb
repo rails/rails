@@ -33,7 +33,7 @@ module ActiveStorage
       def has_one_attached(name, dependent: :purge_later)
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+            @active_storage_attached_#{name} ||= ActiveStorage::Attached::One.new("#{name}", self)
           end
 
           def #{name}=(attachable)
@@ -89,7 +89,7 @@ module ActiveStorage
       def has_many_attached(name, dependent: :purge_later)
         generated_association_methods.class_eval <<-CODE, __FILE__, __LINE__ + 1
           def #{name}
-            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self, dependent: #{dependent == :purge_later ? ":purge_later" : "false"})
+            @active_storage_attached_#{name} ||= ActiveStorage::Attached::Many.new("#{name}", self)
           end
 
           def #{name}=(attachables)

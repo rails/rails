@@ -8,7 +8,7 @@ module ActiveRecord
     # ActiveRecord::Tasks::DatabaseTasks is a utility class, which encapsulates
     # logic behind common tasks used to manage database and migrations.
     #
-    # The tasks defined here are used with Rake tasks provided by Active Record.
+    # The tasks defined here are used with Rails commands provided by Active Record.
     #
     # In order to use DatabaseTasks, a few config values need to be set. All the needed
     # config values are set by Rails already, so it's necessary to do it only if you
@@ -248,6 +248,7 @@ module ActiveRecord
       def load_schema(configuration, format = ActiveRecord::Base.schema_format, file = nil, environment = env, spec_name = "primary") # :nodoc:
         file ||= dump_filename(spec_name, format)
 
+        verbose_was, Migration.verbose = Migration.verbose, verbose? && ENV["VERBOSE"]
         check_schema_file(file)
         ActiveRecord::Base.establish_connection(configuration)
 
@@ -261,6 +262,8 @@ module ActiveRecord
         end
         ActiveRecord::InternalMetadata.create_table
         ActiveRecord::InternalMetadata[:environment] = environment
+      ensure
+        Migration.verbose = verbose_was
       end
 
       def schema_file(format = ActiveRecord::Base.schema_format)

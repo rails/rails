@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Controller Overview
 ==========================
@@ -395,7 +395,7 @@ You can also pass a `:domain` key and specify the domain name for the cookie:
 Rails.application.config.session_store :cookie_store, key: '_your_app_session', domain: ".example.com"
 ```
 
-Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `bin/rails credentials:edit`.
+Rails sets up (for the CookieStore) a secret key used for signing the session data in `config/credentials.yml.enc`. This can be changed with `rails credentials:edit`.
 
 ```ruby
 # aws:

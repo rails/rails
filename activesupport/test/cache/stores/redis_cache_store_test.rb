@@ -103,9 +103,7 @@ module ActiveSupport::Cache::RedisCacheStoreTests
 
     private
       def build(**kwargs)
-        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap do |cache|
-          cache.redis
-        end
+        ActiveSupport::Cache::RedisCacheStore.new(driver: DRIVER, **kwargs).tap(&:redis)
       end
   end
 

@@ -409,13 +409,14 @@ module ActiveRecord
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
+          options_to_restore = { foreign_keys: foreign_keys(table_name) }
           caller = lambda { |definition| yield definition if block_given? }
 
           transaction do
             disable_referential_integrity do
               move_table(table_name, altered_table_name,
                 options.merge(temporary: true))
-              move_table(altered_table_name, table_name, &caller)
+              move_table(altered_table_name, table_name, options_to_restore, &caller)
             end
           end
         end
@@ -446,6 +447,13 @@ module ActiveRecord
                 primary_key: column_name == from_primary_key
               )
             end
+
+            if options[:foreign_keys]
+              options[:foreign_keys].each do |fk|
+                @definition.foreign_key(fk.to_table, fk.options)
+              end
+            end
+
             yield @definition if block_given?
           end
           copy_table_indexes(from, to, options[:rename] || {})

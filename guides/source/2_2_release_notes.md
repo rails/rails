@@ -1,11 +1,11 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 2.2 Release Notes
 ===============================
 
 Rails 2.2 delivers a number of new and improved features. This list covers the major upgrades, but doesn't include every little bug fix and change. If you want to see everything, check out the [list of commits](https://github.com/rails/rails/commits/2-2-stable) in the main Rails repository on GitHub.
 
-Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](http://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
+Along with Rails, 2.2 marks the launch of the [Ruby on Rails Guides](https://guides.rubyonrails.org/), the first results of the ongoing [Rails Guides hackfest](http://hackfest.rubyonrails.org/guide). This site will deliver high-quality documentation of the major features of Rails.
 
 --------------------------------------------------------------------------------
 
@@ -31,7 +31,7 @@ Along with thread safety, a lot of work has been done to make Rails work well wi
 Documentation
 -------------
 
-The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](http://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
+The internal documentation of Rails, in the form of code comments, has been improved in numerous places. In addition, the [Ruby on Rails Guides](https://guides.rubyonrails.org/) project is the definitive source for information on major Rails components. In its first official release, the Guides page includes:
 
 * [Getting Started with Rails](getting_started.html)
 * [Rails Database Migrations](active_record_migrations.html)

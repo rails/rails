@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/array/extract"
 
 module ActionDispatch
   module Http
@@ -38,8 +39,8 @@ module ActionDispatch
             end
           end
 
-          deep_regexps, regexps = regexps.partition { |r| r.to_s.include?("\\.".freeze) }
-          deep_strings, strings = strings.partition { |s| s.include?("\\.".freeze) }
+          deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.".freeze) }
+          deep_strings = strings.extract! { |s| s.include?("\\.".freeze) }
 
           regexps << Regexp.new(strings.join("|".freeze), true) unless strings.empty?
           deep_regexps << Regexp.new(deep_strings.join("|".freeze), true) unless deep_strings.empty?

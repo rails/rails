@@ -156,7 +156,7 @@ class HeaderTest < ActiveSupport::TestCase
     env = { "HTTP_REFERER" => "/" }
     headers = make_headers(env)
     headers["Referer"] = "http://example.com/"
-    headers.merge! "CONTENT_TYPE" => "text/plain"
+    headers["CONTENT_TYPE"] = "text/plain"
     assert_equal({ "HTTP_REFERER" => "http://example.com/",
                   "CONTENT_TYPE" => "text/plain" }, env)
   end

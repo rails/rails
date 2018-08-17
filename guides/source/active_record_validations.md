@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Validations
 =========================
@@ -87,7 +87,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ bin/rails console
+$ rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -925,6 +925,13 @@ class Account < ApplicationRecord
   validates :password, confirmation: true,
     unless: Proc.new { |a| a.password.blank? }
 end
+```
+
+As `Lambdas` are a type of `Proc`, they can also be used to write inline
+conditions in a shorter way.
+
+```ruby
+validates :password, confirmation: true, unless: -> { password.blank? }
 ```
 
 ### Grouping Conditional validations

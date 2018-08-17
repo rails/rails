@@ -1,3 +1,15 @@
+*   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
+    controllers that can't inherit from `ActiveStorage::BaseController`.
+
+    *George Claghorn*
+
+*   Active Storage error classes like `ActiveStorage::IntegrityError` and
+    `ActiveStorage::UnrepresentableError` now inherit from `ActiveStorage::Error`
+    instead of `StandardError`. This permits rescuing `ActiveStorage::Error` to
+    handle all Active Storage errors.
+
+    *Andrei Makarov*, *George Claghorn*
+
 *   Uploaded files assigned to a record are persisted to storage when the record
     is saved instead of immediately.
 

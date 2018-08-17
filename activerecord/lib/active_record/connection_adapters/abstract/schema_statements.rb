@@ -741,22 +741,13 @@ module ActiveRecord
       # ====== Creating an index with a specific operator class
       #
       #   add_index(:developers, :name, using: 'gist', opclass: :gist_trgm_ops)
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name ON developers USING gist (name gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name ON developers USING gist (name gist_trgm_ops) -- PostgreSQL
       #
       #   add_index(:developers, [:name, :city], using: 'gist', opclass: { city: :gist_trgm_ops })
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name, city gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name_and_city ON developers USING gist (name, city gist_trgm_ops) -- PostgreSQL
       #
       #   add_index(:developers, [:name, :city], using: 'gist', opclass: :gist_trgm_ops)
-      #
-      # generates:
-      #
-      #   CREATE INDEX developers_on_name_and_city ON developers USING gist (name gist_trgm_ops, city gist_trgm_ops) -- PostgreSQL
+      #   # CREATE INDEX developers_on_name_and_city ON developers USING gist (name gist_trgm_ops, city gist_trgm_ops) -- PostgreSQL
       #
       # Note: only supported by PostgreSQL
       #
@@ -989,11 +980,18 @@ module ActiveRecord
       #
       #   remove_foreign_key :accounts, column: :owner_id
       #
+      # Removes the foreign key on +accounts.owner_id+.
+      #
+      #   remove_foreign_key :accounts, to_table: :owners
+      #
       # Removes the foreign key named +special_fk_name+ on the +accounts+ table.
       #
       #   remove_foreign_key :accounts, name: :special_fk_name
       #
-      # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key.
+      # The +options+ hash accepts the same keys as SchemaStatements#add_foreign_key
+      # with an addition of
+      # [<tt>:to_table</tt>]
+      #   The name of the table that contains the referenced primary key.
       def remove_foreign_key(from_table, options_or_to_table = {})
         return unless supports_foreign_keys?
 

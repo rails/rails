@@ -120,6 +120,10 @@ module Rails
           if respond_to?(:action_view)
             action_view.default_enforce_utf8 = false
           end
+
+          if respond_to?(:action_dispatch)
+            action_dispatch.use_cookies_with_metadata = true
+          end
         else
           raise "Unknown version #{target_version.to_s.inspect}"
         end
@@ -146,9 +150,7 @@ module Rails
         @debug_exception_response_format || :default
       end
 
-      def debug_exception_response_format=(value)
-        @debug_exception_response_format = value
-      end
+      attr_writer :debug_exception_response_format
 
       def paths
         @paths ||= begin

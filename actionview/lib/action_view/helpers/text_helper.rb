@@ -188,7 +188,7 @@ module ActionView
 
         unless separator.empty?
           text.split(separator).each do |value|
-            if value.match(regex)
+            if value.match?(regex)
               phrase = value
               break
             end

@@ -52,6 +52,13 @@ module CacheStoreBehavior
     end
   end
 
+  def test_fetch_cache_miss_with_skip_nil
+    assert_not_called(@cache, :write) do
+      assert_nil @cache.fetch("foo", skip_nil: true) { nil }
+      assert_equal false, @cache.exist?("foo")
+    end
+  end
+
   def test_fetch_with_forced_cache_miss_with_block
     @cache.write("foo", "bar")
     assert_equal "foo_bar", @cache.fetch("foo", force: true) { "foo_bar" }
@@ -141,7 +148,7 @@ module CacheStoreBehavior
     end
   end
 
-  # Use strings that are guarenteed to compress well, so we can easily tell if
+  # Use strings that are guaranteed to compress well, so we can easily tell if
   # the compression kicked in or not.
   SMALL_STRING = "0" * 100
   LARGE_STRING = "0" * 2.kilobytes

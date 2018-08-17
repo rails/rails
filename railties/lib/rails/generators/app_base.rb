@@ -376,7 +376,7 @@ module Rails
         comment = "See https://github.com/rails/execjs#readme for more supported runtimes"
         if defined?(JRUBY_VERSION)
           GemfileEntry.version "therubyrhino", nil, comment
-        elsif RUBY_PLATFORM =~ /mingw|mswin/
+        elsif RUBY_PLATFORM.match?(/mingw|mswin/)
           GemfileEntry.version "duktape", nil, comment
         else
           GemfileEntry.new "mini_racer", nil, comment, { platforms: :ruby }, true
@@ -455,6 +455,12 @@ module Rails
         if !(webpack = options[:webpack]).nil?
           rails_command "webpacker:install"
           rails_command "webpacker:install:#{webpack}" unless webpack == "webpack"
+        end
+      end
+
+      def generate_bundler_binstub
+        if bundle_install?
+          bundle_command("binstubs bundler")
         end
       end
 

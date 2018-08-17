@@ -700,6 +700,11 @@ module ActiveRecord
             sql
           end
 
+          def add_column_for_alter(table_name, column_name, type, options = {})
+            return super unless options.key?(:comment)
+            [super, Proc.new { change_column_comment(table_name, column_name, options[:comment]) }]
+          end
+
           def change_column_for_alter(table_name, column_name, type, options = {})
             sqls = [change_column_sql(table_name, column_name, type, options)]
             sqls << change_column_default_for_alter(table_name, column_name, options[:default]) if options.key?(:default)
@@ -707,7 +712,6 @@ module ActiveRecord
             sqls << Proc.new { change_column_comment(table_name, column_name, options[:comment]) } if options.key?(:comment)
             sqls
           end
-
 
           # Changes the default value of a table column.
           def change_column_default_for_alter(table_name, column_name, default_or_changes) # :nodoc:
@@ -751,7 +755,7 @@ module ActiveRecord
 
           def data_source_sql(name = nil, type: nil)
             scope = quoted_scope(name, type: type)
-            scope[:type] ||= "'r','v','m','f'" # (r)elation/table, (v)iew, (m)aterialized view, (f)oreign table
+            scope[:type] ||= "'r','v','m','p','f'" # (r)elation/table, (v)iew, (m)aterialized view, (p)artitioned table, (f)oreign table
 
             sql = "SELECT c.relname FROM pg_class c LEFT JOIN pg_namespace n ON n.oid = c.relnamespace".dup
             sql << " WHERE n.nspname = #{scope[:schema]}"
@@ -765,7 +769,7 @@ module ActiveRecord
             type = \
               case type
               when "BASE TABLE"
-                "'r'"
+                "'r','p'"
               when "VIEW"
                 "'v','m'"
               when "FOREIGN TABLE"

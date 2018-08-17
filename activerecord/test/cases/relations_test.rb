@@ -30,7 +30,9 @@ class RelationTest < ActiveRecord::TestCase
 
   class TopicWithCallbacks < ActiveRecord::Base
     self.table_name = :topics
+    cattr_accessor :topic_count
     before_update { |topic| topic.author_name = "David" if topic.author_name.blank? }
+    after_update { |topic| topic.class.topic_count = topic.class.count }
   end
 
   def test_do_not_double_quote_string_id
@@ -1575,6 +1577,8 @@ class RelationTest < ActiveRecord::TestCase
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
     topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
     topics.update(title: "adequaterecord")
+
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
 
     assert_equal "adequaterecord", topic1.reload.title
     assert_equal "adequaterecord", topic2.reload.title

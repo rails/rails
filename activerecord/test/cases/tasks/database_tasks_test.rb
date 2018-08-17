@@ -143,9 +143,6 @@ module ActiveRecord
     def setup
       @configurations = { "development" => { "database" => "my-db" } }
 
-      # To refrain from connecting to a newly created empty DB in sqlite3_mem tests
-      ActiveRecord::Base.connection_handler.stubs(:establish_connection)
-
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
     end
@@ -155,9 +152,9 @@ module ActiveRecord
     end
 
     def test_ignores_configurations_without_databases
-      @configurations["development"].merge!("database" => nil)
+      @configurations["development"]["database"] = nil
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -165,9 +162,9 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations["development"].merge!("host" => "my.server.tld")
+      @configurations["development"]["host"] = "my.server.tld"
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -175,9 +172,9 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations["development"].merge!("host" => "my.server.tld")
+      @configurations["development"]["host"] = "my.server.tld"
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         ActiveRecord::Tasks::DatabaseTasks.create_all
 
         assert_match "This task only modifies local databases. my-db is on a remote host.",
@@ -186,9 +183,9 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_local_ip
-      @configurations["development"].merge!("host" => "127.0.0.1")
+      @configurations["development"]["host"] = "127.0.0.1"
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -196,9 +193,9 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_local_host
-      @configurations["development"].merge!("host" => "localhost")
+      @configurations["development"]["host"] = "localhost"
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -206,9 +203,9 @@ module ActiveRecord
     end
 
     def test_creates_configurations_with_blank_hosts
-      @configurations["development"].merge!("host" => nil)
+      @configurations["development"]["host"] = nil
 
-      with_stubbed_configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -217,9 +214,16 @@ module ActiveRecord
 
     private
 
-      def with_stubbed_configurations
+      def with_stubbed_configurations_establish_connection
         ActiveRecord::Base.stub(:configurations, @configurations) do
-          yield
+          # To refrain from connecting to a newly created empty DB in
+          # sqlite3_mem tests
+          ActiveRecord::Base.connection_handler.stub(
+            :establish_connection,
+            nil
+          ) do
+            yield
+          end
         end
       end
   end
@@ -459,7 +463,7 @@ module ActiveRecord
     end
 
     def test_ignores_configurations_without_databases
-      @configurations[:development].merge!("database" => nil)
+      @configurations[:development]["database"] = nil
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
@@ -469,7 +473,7 @@ module ActiveRecord
     end
 
     def test_ignores_remote_databases
-      @configurations[:development].merge!("host" => "my.server.tld")
+      @configurations[:development]["host"] = "my.server.tld"
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
@@ -479,7 +483,7 @@ module ActiveRecord
     end
 
     def test_warning_for_remote_databases
-      @configurations[:development].merge!("host" => "my.server.tld")
+      @configurations[:development]["host"] = "my.server.tld"
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         ActiveRecord::Tasks::DatabaseTasks.drop_all
@@ -490,7 +494,7 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_local_ip
-      @configurations[:development].merge!("host" => "127.0.0.1")
+      @configurations[:development]["host"] = "127.0.0.1"
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
@@ -500,7 +504,7 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_local_host
-      @configurations[:development].merge!("host" => "localhost")
+      @configurations[:development]["host"] = "localhost"
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
@@ -510,7 +514,7 @@ module ActiveRecord
     end
 
     def test_drops_configurations_with_blank_hosts
-      @configurations[:development].merge!("host" => nil)
+      @configurations[:development]["host"] = nil
 
       ActiveRecord::Base.stub(:configurations, @configurations) do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do

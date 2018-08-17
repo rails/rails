@@ -1,5 +1,3 @@
-require: './ci/custom_cops/lib/custom_cops'
-
 AllCops:
   TargetRubyVersion: 2.4
   # RuboCop has a bunch of cops enabled by default. This setting tells RuboCop
@@ -11,13 +9,20 @@ AllCops:
     - 'actionpack/lib/action_dispatch/journey/parser.rb'
     - 'railties/test/fixtures/tmp/**/*'
 
-# Prefer assert_not_x over refute_x
-CustomCops/RefuteNot:
+Performance:
+  Exclude:
+    - '**/test/**/*'
+
+Rails:
+  Enabled: true
+
+# Prefer assert_not over assert !
+Rails/AssertNot:
   Include:
     - '**/test/**/*'
 
-# Prefer assert_not over assert !
-CustomCops/AssertNot:
+# Prefer assert_not_x over refute_x
+Rails/RefuteMethods:
   Include:
     - '**/test/**/*'
 
@@ -168,6 +173,9 @@ Lint/RequireParentheses:
 Lint/StringConversionInInterpolation:
   Enabled: true
 
+Lint/UriEscapeUnescape:
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
@@ -178,4 +186,22 @@ Style/Semicolon:
 
 # Prefer Foo.method over Foo::method
 Style/ColonMethodCall:
+  Enabled: true
+
+Style/TrivialAccessors:
+  Enabled: true
+
+Performance/FlatMap:
+  Enabled: true
+
+Performance/RedundantMerge:
+  Enabled: true
+
+Performance/StartWith:
+  Enabled: true
+
+Performance/EndWith:
+  Enabled: true
+
+Performance/RegexpMatch:
   Enabled: true
