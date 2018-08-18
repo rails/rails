@@ -1,3 +1,12 @@
+*   `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open` raise
+    `ActiveStorage::FileNotFoundError` when the corresponding file is missing
+    from the storage service. Services translate service-specific missing object
+    exceptions (e.g. `Google::Cloud::NotFoundError` for the GCS service and
+    `Errno::ENOENT` for the disk service) into
+    `ActiveStorage::FileNotFoundError`.
+
+    *Cameron Bothner*
+
 *   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
     controllers that can't inherit from `ActiveStorage::BaseController`.
 

@@ -19,4 +19,8 @@ module ActiveStorage
   # Raised when uploaded or downloaded data does not match a precomputed checksum.
   # Indicates that a network error or a software bug caused data corruption.
   class IntegrityError < Error; end
+
+  # Raised when ActiveStorage::Blob#download is called on a blob where the
+  # backing file is no longer present in its service.
+  class FileNotFoundError < Error; end
 end

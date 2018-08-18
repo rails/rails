@@ -34,16 +34,20 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          _, io = blobs.get_blob(container, key)
-          io.force_encoding(Encoding::BINARY)
+          handle_errors do
+            _, io = blobs.get_blob(container, key)
+            io.force_encoding(Encoding::BINARY)
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
-        io.force_encoding(Encoding::BINARY)
+        handle_errors do
+          _, io = blobs.get_blob(container, key, start_range: range.begin, end_range: range.exclude_end? ? range.end - 1 : range.end)
+          io.force_encoding(Encoding::BINARY)
+        end
       end
     end
 
@@ -139,10 +143,22 @@ module ActiveStorage
         chunk_size = 5.megabytes
         offset = 0
 
+        raise ActiveStorage::FileNotFoundError unless blob.present?
+
         while offset < blob.properties[:content_length]
           _, chunk = blobs.get_blob(container, key, start_range: offset, end_range: offset + chunk_size - 1)
           yield chunk.force_encoding(Encoding::BINARY)
           offset += chunk_size
+        end
+      end
+
+      def handle_errors
+        yield
+      rescue Azure::Core::Http::HTTPError => e
+        if e.type == "BlobNotFound"
+          raise ActiveStorage::FileNotFoundError
+        else
+          raise
         end
       end
   end
