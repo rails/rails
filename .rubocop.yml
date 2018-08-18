@@ -176,6 +176,9 @@ Lint/StringConversionInInterpolation:
 Lint/UriEscapeUnescape:
   Enabled: true
 
+Style/ParenthesesAroundCondition:
+  Enabled: true
+
 Style/RedundantReturn:
   Enabled: true
   AllowMultipleReturnValues: true
