@@ -82,9 +82,17 @@ module ActiveRecord
 
         def update_counters_on_replace(record)
           if require_counter_update? && different_target?(record)
-            owner.instance_variable_set :@_after_replace_counter_called, true
+            update_after_replace_counter_called
             record.increment!(reflection.counter_cache_column, touch: reflection.options[:touch])
             decrement_counters
+          end
+        end
+
+        def update_after_replace_counter_called
+          if (after_replace_counter_called = owner.instance_variable_get(:@_after_replace_counter_called))
+            after_replace_counter_called[reflection.foreign_key] = true
+          else
+            owner.instance_variable_set(:@_after_replace_counter_called, reflection.foreign_key => true)
           end
         end
 

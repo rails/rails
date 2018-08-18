@@ -25,6 +25,8 @@ require "models/admin/user"
 require "models/ship"
 require "models/treasure"
 require "models/parrot"
+require "models/dog"
+require "models/dog_lover"
 
 class BelongsToAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :companies, :developers, :projects, :topics,
@@ -844,6 +846,15 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     topic.reload
 
     assert_equal 1, topic.replies_count
+  end
+
+  def test_decrement_counter_cache_once
+    original_trainer = DogLover.create!
+    dog = Dog.create!(trainer: original_trainer)
+
+    assert_difference -> { original_trainer.reload.trained_dogs_count }, -1 do
+      dog.update!(trainer: DogLover.create!)
+    end
   end
 
   def test_association_assignment_sticks
