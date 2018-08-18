@@ -13,6 +13,8 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
     else
       head :not_found
     end
+  rescue Errno::ENOENT
+    head :not_found
   end
 
   def update

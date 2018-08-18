@@ -1,3 +1,9 @@
+*   `ActiveStorage::DiskController#show` generates a 404 Not Found response when
+    the requested file is missing from the disk service. It previously raised
+    `Errno::ENOENT`.
+
+    *Cameron Bothner*
+
 *   `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open` raise
     `ActiveStorage::FileNotFoundError` when the corresponding file is missing
     from the storage service. Services translate service-specific missing object
