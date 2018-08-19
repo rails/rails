@@ -8,7 +8,7 @@ module Rails
         require_application_and_environment!
 
         Rails.application.initializers.tsort_each do |initializer|
-          puts "#{initializer.context_class}.#{initializer.name}"
+          say "#{initializer.context_class}.#{initializer.name}"
         end
       end
     end
