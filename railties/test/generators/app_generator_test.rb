@@ -54,7 +54,7 @@ DEFAULT_APP_FILES = %w(
   config/initializers/application_controller_renderer.rb
   config/initializers/assets.rb
   config/initializers/backtrace_silencers.rb
-  config/initializers/cookies_serializer.rb
+  config/initializers/cookies.rb
   config/initializers/content_security_policy.rb
   config/initializers/filter_parameter_logging.rb
   config/initializers/inflections.rb
@@ -201,7 +201,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
   def test_new_application_use_json_serializer
     run_generator
 
-    assert_file("config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+    assert_file("config/initializers/cookies.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+  end
+
+  def test_new_application_use_cookies_same_site_protection
+    run_generator
+
+    assert_file("config/environments/production.rb", /Rails\.application\.config\.action_dispatch\.cookies_same_site_protection = :lax/)
   end
 
   def test_new_application_not_include_api_initializers
@@ -246,7 +252,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file("#{app_root}/config/initializers/cookies_serializer.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
+      assert_file("#{app_root}/config/initializers/cookies.rb", /Rails\.application\.config\.action_dispatch\.cookies_serializer = :json/)
     end
   end
 
@@ -254,13 +260,13 @@ class AppGeneratorTest < Rails::Generators::TestCase
     app_root = File.join(destination_root, "myapp")
     run_generator [app_root]
 
-    FileUtils.rm("#{app_root}/config/initializers/cookies_serializer.rb")
+    FileUtils.rm("#{app_root}/config/initializers/cookies.rb")
 
     stub_rails_application(app_root) do
       generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
       generator.send(:app_const)
       quietly { generator.send(:update_config_files) }
-      assert_file("#{app_root}/config/initializers/cookies_serializer.rb",
+      assert_file("#{app_root}/config/initializers/cookies.rb",
                   /Valid options are :json, :marshal, and :hybrid\.\nRails\.application\.config\.action_dispatch\.cookies_serializer = :marshal/)
     end
   end
@@ -346,6 +352,20 @@ class AppGeneratorTest < Rails::Generators::TestCase
       quietly { generator.send(:update_config_files) }
 
       assert_no_file "#{app_root}/config/spring.rb"
+    end
+  end
+
+  def test_rails_update_set_the_cookies_same_site_protection_for_production
+    app_root = File.join(destination_root, "myapp")
+    run_generator [app_root]
+
+    FileUtils.rm("#{app_root}/config/environments/production.rb")
+
+    stub_rails_application(app_root) do
+      generator = Rails::Generators::AppGenerator.new ["rails"], [], destination_root: app_root, shell: @shell
+      generator.send(:app_const)
+      quietly { generator.send(:update_config_files) }
+      assert_file("#{app_root}/config/environments/production.rb", /Rails\.application\.config\.action_dispatch\.cookies_same_site_protection = :lax/)
     end
   end
 

@@ -93,7 +93,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
       { api: true, update: true }, { destination_root: destination_root, shell: @shell }
     quietly { generator.send(:update_config_files) }
 
-    assert_no_file "config/initializers/cookies_serializer.rb"
+    assert_no_file "config/initializers/cookies.rb"
     assert_no_file "config/initializers/assets.rb"
     assert_no_file "config/initializers/content_security_policy.rb"
     assert_no_file "config/initializers/feature_policy.rb"
@@ -170,7 +170,7 @@ class ApiAppGeneratorTest < Rails::Generators::TestCase
          app/views/layouts/application.html.erb
          bin/yarn
          config/initializers/assets.rb
-         config/initializers/cookies_serializer.rb
+         config/initializers/cookies.rb
          config/initializers/content_security_policy.rb
          config/initializers/feature_policy.rb
          lib/assets

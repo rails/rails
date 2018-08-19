@@ -119,7 +119,7 @@ module Rails
     end
 
     def config_when_updating
-      cookie_serializer_config_exist = File.exist?("config/initializers/cookies_serializer.rb")
+      cookies_config_exist           = File.exist?("config/initializers/cookies.rb")
       action_cable_config_exist      = File.exist?("config/cable.yml")
       active_storage_config_exist    = File.exist?("config/storage.yml")
       rack_cors_config_exist         = File.exist?("config/initializers/cors.rb")
@@ -131,8 +131,12 @@ module Rails
 
       config
 
-      unless cookie_serializer_config_exist
-        gsub_file "config/initializers/cookies_serializer.rb", /json(?!,)/, "marshal"
+      unless cookies_config_exist
+        gsub_file "config/initializers/cookies.rb", /json(?!,)/, "marshal"
+      end
+
+      unless cookies_config_exist
+        gsub_file "config/initializers/cookies.rb", /no_protection(?!,)/, "lax"
       end
 
       if !options[:skip_action_cable] && !action_cable_config_exist
@@ -152,8 +156,8 @@ module Rails
       end
 
       if options[:api]
-        unless cookie_serializer_config_exist
-          remove_file "config/initializers/cookies_serializer.rb"
+        unless cookies_config_exist
+          remove_file "config/initializers/cookies.rb"
         end
 
         unless csp_config_exist
@@ -463,7 +467,7 @@ module Rails
 
       def delete_non_api_initializers_if_api_option
         if options[:api]
-          remove_file "config/initializers/cookies_serializer.rb"
+          remove_file "config/initializers/cookies.rb"
           remove_file "config/initializers/content_security_policy.rb"
           remove_file "config/initializers/feature_policy.rb"
         end

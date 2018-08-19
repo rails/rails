@@ -1,3 +1,18 @@
+*   Add SameSite to cookies.
+
+    `SameSite` cookie is an addition to the CSRF protection.
+    For now, the default is `:no_protection` which makes it backward compatible.
+    By switching from `:no_protection` to `:lax` in `config/initializers/cookies.rb`,
+    cookies won't be sent by browsers in cross-site POST requests.
+    `:strict` will disable cookies from being sent in both cross-site GET and POST requests.
+
+    More info [here](https://tools.ietf.org/html/draft-west-first-party-cookies-07)
+
+    _NB: That this is already possible with Cookies as this is already supported by Rack._
+    _With this change in place, this will make this the default and will apply to all cookies_
+
+    *Cédric Fabianski*
+
 *   Bring back the feature that allows loading external route files from the router.
 
     This feature existed back in 2012 but got reverted with the incentive that

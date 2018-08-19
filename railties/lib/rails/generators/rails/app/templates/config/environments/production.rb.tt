@@ -54,6 +54,10 @@ Rails.application.configure do
   # Force all access to the app over SSL, use Strict-Transport-Security, and use secure cookies.
   # config.force_ssl = true
 
+  # Specify the SameSite level protection for the cookies
+  # Valid options are :no_protection, :lax, and :strict.
+  Rails.application.config.action_dispatch.cookies_same_site_protection = :lax
+
   # Use the lowest log level to ensure availability of diagnostic information
   # when problems arise.
   config.log_level = :debug

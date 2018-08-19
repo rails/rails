@@ -69,6 +69,10 @@ module ActionDispatch
       get_header Cookies::COOKIES_SERIALIZER
     end
 
+    def cookies_same_site_protection
+      get_header Cookies::COOKIES_SAME_SITE_PROTECTION
+    end
+
     def cookies_digest
       get_header Cookies::COOKIES_DIGEST
     end
@@ -181,6 +185,7 @@ module ActionDispatch
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
     COOKIES_DIGEST = "action_dispatch.cookies_digest"
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
+    COOKIES_SAME_SITE_PROTECTION = "action_dispatch.cookies_same_site_protection"
     USE_COOKIES_WITH_METADATA = "action_dispatch.use_cookies_with_metadata"
 
     # Cookies can typically store 4096 bytes.
@@ -284,6 +289,8 @@ module ActionDispatch
       # lots.of.subdomains.example.local gives:
       # $& => example.local
       DOMAIN_REGEXP = /[^.]*\.([^.]*|..\...|...\...)$/
+      COOKIES_SAME_SITE_COOKIES_LAX = "Lax"
+      COOKIES_SAME_SITE_COOKIES_STRICT = "Strict"
 
       def self.build(req, cookies)
         jar = new(req)
@@ -432,6 +439,18 @@ module ActionDispatch
           end
 
           options[:path] ||= "/"
+
+          options[:same_site] ||=
+            case request.cookies_same_site_protection
+            when :no_protection, false, nil
+              nil
+            when :lax, "Lax"
+              COOKIES_SAME_SITE_COOKIES_LAX
+            when true, :strict, "Strict"
+              COOKIES_SAME_SITE_COOKIES_STRICT
+            else
+              raise ArgumentError, "Invalid SameSite value: #{request.cookies_same_site_protection.inspect}"
+            end
 
           if options[:domain] == :all || options[:domain] == "all"
             # If there is a provided tld length then we use it otherwise default domain regexp.
