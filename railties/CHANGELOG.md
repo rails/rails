@@ -1,3 +1,7 @@
+*   Deprecate `rake initializers` in favor of `rails initializers`.
+
+    *Annie-Claude Côté*
+
 *   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
 
     *Annie-Claude Côté*
