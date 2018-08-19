@@ -1281,7 +1281,7 @@ This is almost the same as defining a class method, except for that scopes alway
 
 ```ruby
 class Article < ApplicationRecord
-  scope :by_user, ()-> { where(user: user) if user }
+  scope :by_user, ->(user) { where(user: user) if user }
   def self.published_since(date)
     where('published_at > ?', date) if date
   end
