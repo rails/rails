@@ -156,6 +156,43 @@ module ActiveRecord
         @pool.connections.each { |conn| conn.close if conn.in_use? }
       end
 
+      def test_idle_timeout_configuration
+        @pool.disconnect!
+        spec = ActiveRecord::Base.connection_pool.spec
+        spec.config.merge!(idle_timeout: "0.02")
+        @pool = ConnectionPool.new(spec)
+        idle_conn = @pool.checkout
+        @pool.checkin(idle_conn)
+
+        def idle_conn.seconds_idle
+          @seconds_idle
+        end
+
+        idle_conn.instance_variable_set(:@seconds_idle, 0.01)
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+
+        idle_conn.instance_variable_set(:@seconds_idle, 0.02)
+        @pool.flush
+        assert_equal 0, @pool.connections.length
+      end
+
+      def test_disable_flush
+        @pool.disconnect!
+        spec = ActiveRecord::Base.connection_pool.spec
+        spec.config.merge!(idle_timeout: -5)
+        @pool = ConnectionPool.new(spec)
+        idle_conn = @pool.checkout
+        @pool.checkin(idle_conn)
+
+        def idle_conn.seconds_idle
+          1
+        end
+
+        @pool.flush
+        assert_equal 1, @pool.connections.length
+      end
+
       def test_flush
         idle_conn = @pool.checkout
         recent_conn = @pool.checkout
