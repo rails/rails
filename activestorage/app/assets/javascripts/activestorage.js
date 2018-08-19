@@ -855,7 +855,7 @@
     return DirectUploadsController;
   }();
   var processingAttribute = "data-direct-uploads-processing";
-  var submitButtonsByForm = new WeakMap;
+  var submitButtonsByForm = new WeakMap();
   var started = false;
   function start() {
     if (!started) {
@@ -866,8 +866,9 @@
     }
   }
   function didClick(event) {
-    if (event.target.tagName == "INPUT" && event.target.type == "submit" && event.target.form) {
-      submitButtonsByForm.set(event.target.form, event.target);
+    var target = event.target;
+    if (target.tagName == "INPUT" && target.type == "submit" && target.form) {
+      submitButtonsByForm.set(target.form, target);
     }
   }
   function didSubmitForm(event) {
@@ -902,7 +903,6 @@
   }
   function submitForm(form) {
     var button = submitButtonsByForm.get(form) || findElement(form, "input[type=submit]");
-
     if (button) {
       var _button = button, disabled = _button.disabled;
       button.disabled = false;
