@@ -1,3 +1,9 @@
+*   Fix numericality validator to still use value before type cast except Active Record.
+
+    Fixes #33651, #33686.
+
+    *Ryuta Kamizono*
+
 *   Fix `ActiveModel::Serializers::JSON#as_json` method for timestamps.
 
      Before:
