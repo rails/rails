@@ -1,3 +1,7 @@
+*   Deprecate `rake routes` in favor of `rails routes`.
+
+    *Yuji Yaginuma*
+
 *   Deprecate `rake initializers` in favor of `rails initializers`.
 
     *Annie-Claude Côté*
