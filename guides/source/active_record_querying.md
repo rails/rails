@@ -1277,22 +1277,6 @@ class Article < ApplicationRecord
 end
 ```
 
-This is almost the same as defining a class method, except for that scopes always return an `ActiveRecord::Relation` object. 
-
-```ruby
-class Article < ApplicationRecord
-  scope :by_user, ->(user) { where(user: user) if user }
-  def self.published_since(date)
-    where('published_at > ?', date) if date
-  end
-end
-
-Article.by_user(nil)
-# => #<ActiveRecord::Relation []>
-Article.published_since(nil)
-# => nil
-```
-
 Scopes are also chainable within scopes:
 
 ```ruby
