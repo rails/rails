@@ -91,7 +91,9 @@ module ActiveRecord
       end
 
       def test_full_pool_exception
+        @pool.checkout_timeout = 0.001 # no need to delay test suite by waiting the whole full default timeout
         @pool.size.times { assert @pool.checkout }
+
         assert_raises(ConnectionTimeoutError) do
           @pool.checkout
         end
@@ -164,15 +166,19 @@ module ActiveRecord
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
-        def idle_conn.seconds_idle
-          @seconds_idle
-        end
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 0.01
+        )
 
-        idle_conn.instance_variable_set(:@seconds_idle, 0.01)
         @pool.flush
         assert_equal 1, @pool.connections.length
 
-        idle_conn.instance_variable_set(:@seconds_idle, 0.02)
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 0.02
+        )
+
         @pool.flush
         assert_equal 0, @pool.connections.length
       end
@@ -185,9 +191,10 @@ module ActiveRecord
         idle_conn = @pool.checkout
         @pool.checkin(idle_conn)
 
-        def idle_conn.seconds_idle
-          1
-        end
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 1
+        )
 
         @pool.flush
         assert_equal 1, @pool.connections.length
@@ -203,9 +210,10 @@ module ActiveRecord
 
         assert_equal 3, @pool.connections.length
 
-        def idle_conn.seconds_idle
-          1000
-        end
+        idle_conn.instance_variable_set(
+          :@idle_since,
+          Concurrent.monotonic_time - 1000
+        )
 
         @pool.flush(30)
 
