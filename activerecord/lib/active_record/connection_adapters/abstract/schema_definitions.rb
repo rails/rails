@@ -121,33 +121,33 @@ module ActiveRecord
     end
 
     class ReferenceDefinition # :nodoc:
+      def self.create(name, polymorphic: false, **options)
+        if polymorphic
+          PolymorphicReferenceDefinition.new(name, polymorphic: polymorphic, **options)
+        else
+          new(name, **options)
+        end
+      end
+
       def initialize(
         name,
-        polymorphic: false,
         index: true,
         foreign_key: false,
         type: :bigint,
         **options
       )
         @name = name
-        @polymorphic = polymorphic
         @index = index
         @foreign_key = foreign_key
         @type = type
         @options = options
-
-        if polymorphic && foreign_key
-          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
-        end
       end
 
       def add_to(table)
-        columns.each do |column_options|
-          table.column(*column_options)
-        end
+        table.column(column_name, type, options)
 
         if index
-          table.index(column_names, index_options)
+          table.index(column_name, index_options)
         end
 
         if foreign_key
@@ -156,22 +156,10 @@ module ActiveRecord
       end
 
       private
-        attr_reader :name, :polymorphic, :index, :foreign_key, :type, :options
+        attr_reader :name, :index, :foreign_key, :type, :options
 
         def as_options(value)
           value.is_a?(Hash) ? value : {}
-        end
-
-        def polymorphic_options
-          as_options(polymorphic).merge(options.slice(:null)).merge(polymorphic_position)
-        end
-
-        def polymorphic_position
-          if options.has_key?(:first) || options.has_key?(:after)
-            { after: column_name }
-          else
-            {}
-          end
         end
 
         def index_options
@@ -182,25 +170,53 @@ module ActiveRecord
           as_options(foreign_key).merge(column: column_name)
         end
 
-        def columns
-          result = [[column_name, type, options]]
-          if polymorphic
-            result << ["#{name}_type", :string, polymorphic_options]
-          end
-          result
-        end
-
         def column_name
           "#{name}_id"
-        end
-
-        def column_names
-          columns.map(&:first).reverse
         end
 
         def foreign_table_name
           foreign_key_options.fetch(:to_table) do
             Base.pluralize_table_names ? name.to_s.pluralize : name
+          end
+        end
+    end
+
+    class PolymorphicReferenceDefinition < ReferenceDefinition # :nodoc:
+      def initialize(name, foreign_key: false, polymorphic: true, **options)
+        if polymorphic && foreign_key
+          raise ArgumentError, "Cannot add a foreign key to a polymorphic relation"
+        end
+
+        super(name, **options)
+
+        @polymorphic = polymorphic
+      end
+
+      def add_to(table)
+        table.column(column_name, type, options)
+        table.column(type_column_name, :string, type_options)
+
+        if index
+          table.index([type_column_name, column_name], index_options)
+        end
+      end
+
+      private
+        attr_reader :polymorphic
+
+        def type_column_name
+          "#{name}_type"
+        end
+
+        def type_options
+          as_options(polymorphic).merge(options.slice(:null)).merge(polymorphic_position)
+        end
+
+        def polymorphic_position
+          if options.has_key?(:first) || options.has_key?(:after)
+            { after: column_name }
+          else
+            {}
           end
         end
     end
@@ -418,7 +434,7 @@ module ActiveRecord
       # See {connection.add_reference}[rdoc-ref:SchemaStatements#add_reference] for details of the options you can use.
       def references(*args, **options)
         args.each do |ref_name|
-          ReferenceDefinition.new(ref_name, options).add_to(self)
+          ReferenceDefinition.create(ref_name, options).add_to(self)
         end
       end
       alias :belongs_to :references
