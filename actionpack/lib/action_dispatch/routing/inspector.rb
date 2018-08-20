@@ -84,7 +84,7 @@ module ActionDispatch
 
         def normalize_filter(filter)
           if filter.is_a?(Hash) && filter[:controller]
-            { controller: /#{filter[:controller].downcase.sub(/_?controller\z/, '').sub('::', '/')}/ }
+            { controller: /#{filter[:controller].underscore.sub(/_?controller\z/, "")}/ }
           elsif filter
             { controller: /#{filter}/, action: /#{filter}/, verb: /#{filter}/, name: /#{filter}/, path: /#{filter}/ }
           end

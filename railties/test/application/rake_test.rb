@@ -146,20 +146,33 @@ module ApplicationTests
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           resource :post
+          resource :user_permission
         end
       RUBY
 
-      expected_output = ["   Prefix Verb   URI Pattern          Controller#Action",
-                         " new_post GET    /post/new(.:format)  posts#new",
-                         "edit_post GET    /post/edit(.:format) posts#edit",
-                         "     post GET    /post(.:format)      posts#show",
-                         "          PATCH  /post(.:format)      posts#update",
-                         "          PUT    /post(.:format)      posts#update",
-                         "          DELETE /post(.:format)      posts#destroy",
-                         "          POST   /post(.:format)      posts#create\n"].join("\n")
+      expected_post_output = ["   Prefix Verb   URI Pattern          Controller#Action",
+                              " new_post GET    /post/new(.:format)  posts#new",
+                              "edit_post GET    /post/edit(.:format) posts#edit",
+                              "     post GET    /post(.:format)      posts#show",
+                              "          PATCH  /post(.:format)      posts#update",
+                              "          PUT    /post(.:format)      posts#update",
+                              "          DELETE /post(.:format)      posts#destroy",
+                              "          POST   /post(.:format)      posts#create\n"].join("\n")
 
       output = rails("routes", "-c", "PostController")
-      assert_equal expected_output, output
+      assert_equal expected_post_output, output
+
+      expected_perm_output = ["              Prefix Verb   URI Pattern                     Controller#Action",
+                              " new_user_permission GET    /user_permission/new(.:format)  user_permissions#new",
+                              "edit_user_permission GET    /user_permission/edit(.:format) user_permissions#edit",
+                              "     user_permission GET    /user_permission(.:format)      user_permissions#show",
+                              "                     PATCH  /user_permission(.:format)      user_permissions#update",
+                              "                     PUT    /user_permission(.:format)      user_permissions#update",
+                              "                     DELETE /user_permission(.:format)      user_permissions#destroy",
+                              "                     POST   /user_permission(.:format)      user_permissions#create\n"].join("\n")
+
+      output = rails("routes", "-c", "UserPermissionController")
+      assert_equal expected_perm_output, output
     end
 
     def test_rails_routes_with_global_search_key
@@ -197,17 +210,30 @@ module ApplicationTests
         Rails.application.routes.draw do
           get '/cart', to: 'cart#show'
           get '/basketball', to: 'basketball#index'
+          get '/user_permission', to: 'user_permission#index'
         end
       RUBY
 
+      expected_cart_output = "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n"
       output = rails("routes", "-c", "cart")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal expected_cart_output, output
 
       output = rails("routes", "-c", "Cart")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal expected_cart_output, output
 
       output = rails("routes", "-c", "CartController")
-      assert_equal "Prefix Verb URI Pattern     Controller#Action\n  cart GET  /cart(.:format) cart#show\n", output
+      assert_equal expected_cart_output, output
+
+      expected_perm_output = ["         Prefix Verb URI Pattern                Controller#Action",
+                              "user_permission GET  /user_permission(.:format) user_permission#index\n"].join("\n")
+      output = rails("routes", "-c", "user_permission")
+      assert_equal expected_perm_output, output
+
+      output = rails("routes", "-c", "UserPermission")
+      assert_equal expected_perm_output, output
+
+      output = rails("routes", "-c", "UserPermissionController")
+      assert_equal expected_perm_output, output
     end
 
     def test_rails_routes_with_namespaced_controller_search_key
@@ -215,23 +241,39 @@ module ApplicationTests
         Rails.application.routes.draw do
           namespace :admin do
             resource :post
+            resource :user_permission
           end
         end
       RUBY
-      expected_output = ["         Prefix Verb   URI Pattern                Controller#Action",
-                         " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
-                         "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
-                         "     admin_post GET    /admin/post(.:format)      admin/posts#show",
-                         "                PATCH  /admin/post(.:format)      admin/posts#update",
-                         "                PUT    /admin/post(.:format)      admin/posts#update",
-                         "                DELETE /admin/post(.:format)      admin/posts#destroy",
-                         "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
+      expected_post_output = ["         Prefix Verb   URI Pattern                Controller#Action",
+                              " new_admin_post GET    /admin/post/new(.:format)  admin/posts#new",
+                              "edit_admin_post GET    /admin/post/edit(.:format) admin/posts#edit",
+                              "     admin_post GET    /admin/post(.:format)      admin/posts#show",
+                              "                PATCH  /admin/post(.:format)      admin/posts#update",
+                              "                PUT    /admin/post(.:format)      admin/posts#update",
+                              "                DELETE /admin/post(.:format)      admin/posts#destroy",
+                              "                POST   /admin/post(.:format)      admin/posts#create\n"].join("\n")
 
       output = rails("routes", "-c", "Admin::PostController")
-      assert_equal expected_output, output
+      assert_equal expected_post_output, output
 
       output = rails("routes", "-c", "PostController")
-      assert_equal expected_output, output
+      assert_equal expected_post_output, output
+
+      expected_perm_output = ["                    Prefix Verb   URI Pattern                           Controller#Action",
+                              " new_admin_user_permission GET    /admin/user_permission/new(.:format)  admin/user_permissions#new",
+                              "edit_admin_user_permission GET    /admin/user_permission/edit(.:format) admin/user_permissions#edit",
+                              "     admin_user_permission GET    /admin/user_permission(.:format)      admin/user_permissions#show",
+                              "                           PATCH  /admin/user_permission(.:format)      admin/user_permissions#update",
+                              "                           PUT    /admin/user_permission(.:format)      admin/user_permissions#update",
+                              "                           DELETE /admin/user_permission(.:format)      admin/user_permissions#destroy",
+                              "                           POST   /admin/user_permission(.:format)      admin/user_permissions#create\n"].join("\n")
+
+      output = rails("routes", "-c", "Admin::UserPermissionController")
+      assert_equal expected_perm_output, output
+
+      output = rails("routes", "-c", "UserPermissionController")
+      assert_equal expected_perm_output, output
     end
 
     def test_rails_routes_displays_message_when_no_routes_are_defined
