@@ -52,7 +52,7 @@ module ActiveJob
       queue_adapter_changed_jobs.each { |klass| klass.disable_test_adapter }
     end
 
-    # Specifies the queue adapter to use with all active job test helpers.
+    # Specifies the queue adapter to use with all Active Job test helpers.
     #
     # Returns an instance of the queue adapter and defaults to
     # <tt>ActiveJob::QueueAdapters::TestAdapter</tt>.
@@ -118,13 +118,17 @@ module ActiveJob
     def assert_enqueued_jobs(number, only: nil, except: nil, queue: nil)
       if block_given?
         original_count = enqueued_jobs_with(only: only, except: except, queue: queue)
+
         yield
+
         new_count = enqueued_jobs_with(only: only, except: except, queue: queue)
-        assert_equal number, new_count - original_count, "#{number} jobs expected, but #{new_count - original_count} were enqueued"
+
+        actual_count = new_count - original_count
       else
         actual_count = enqueued_jobs_with(only: only, except: except, queue: queue)
-        assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
       end
+
+      assert_equal number, actual_count, "#{number} jobs expected, but #{actual_count} were enqueued"
     end
 
     # Asserts that no jobs have been enqueued.
@@ -176,7 +180,7 @@ module ActiveJob
 
     # Asserts that the number of performed jobs matches the given number.
     # If no block is passed, <tt>perform_enqueued_jobs</tt>
-    # must be called around the job call.
+    # must be called around or after the job call.
     #
     #   def test_jobs
     #     assert_performed_jobs 0
@@ -186,10 +190,11 @@ module ActiveJob
     #     end
     #     assert_performed_jobs 1
     #
-    #     perform_enqueued_jobs do
-    #       HelloJob.perform_later('yves')
-    #       assert_performed_jobs 2
-    #     end
+    #     HelloJob.perform_later('yves')
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_jobs 2
     #   end
     #
     # If a block is passed, that block should cause the specified number of
@@ -206,7 +211,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The block form supports filtering. If the :only option is specified,
+    # This method also supports filtering. If the +:only+ option is specified,
     # then only the listed job(s) will be performed.
     #
     #     def test_hello_job
@@ -216,7 +221,7 @@ module ActiveJob
     #       end
     #     end
     #
-    # Also if the :except option is specified,
+    # Also if the +:except+ option is specified,
     # then the job(s) except specific class will be performed.
     #
     #     def test_hello_job
@@ -237,17 +242,30 @@ module ActiveJob
     #         end
     #       end
     #     end
-    def assert_performed_jobs(number, only: nil, except: nil)
+    #
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will be performed.
+    #
+    #     def test_assert_performed_jobs_with_queue_option
+    #       assert_performed_jobs 1, queue: :some_queue do
+    #         HelloJob.set(queue: :some_queue).perform_later("jeremy")
+    #         HelloJob.set(queue: :other_queue).perform_later("bogdan")
+    #       end
+    #     end
+    def assert_performed_jobs(number, only: nil, except: nil, queue: nil, &block)
       if block_given?
         original_count = performed_jobs.size
-        perform_enqueued_jobs(only: only, except: except) { yield }
+
+        perform_enqueued_jobs(only: only, except: except, queue: queue, &block)
+
         new_count = performed_jobs.size
-        assert_equal number, new_count - original_count,
-          "#{number} jobs expected, but #{new_count - original_count} were performed"
+
+        performed_jobs_size = new_count - original_count
       else
-        performed_jobs_size = performed_jobs.size
-        assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
+        performed_jobs_size = performed_jobs_with(only: only, except: except, queue: queue)
       end
+
+      assert_equal number, performed_jobs_size, "#{number} jobs expected, but #{performed_jobs_size} were performed"
     end
 
     # Asserts that no jobs have been performed.
@@ -269,7 +287,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # The block form supports filtering. If the :only option is specified,
+    # The block form supports filtering. If the +:only+ option is specified,
     # then only the listed job(s) will not be performed.
     #
     #   def test_no_logging
@@ -278,7 +296,7 @@ module ActiveJob
     #     end
     #   end
     #
-    # Also if the :except option is specified,
+    # Also if the +:except+ option is specified,
     # then the job(s) except specific class will not be performed.
     #
     #   def test_no_logging
@@ -287,11 +305,20 @@ module ActiveJob
     #     end
     #   end
     #
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will not be performed.
+    #
+    #   def test_assert_no_performed_jobs_with_queue_option
+    #     assert_no_performed_jobs queue: :some_queue do
+    #       HelloJob.set(queue: :other_queue).perform_later("jeremy")
+    #     end
+    #   end
+    #
     # Note: This assertion is simply a shortcut for:
     #
     #   assert_performed_jobs 0, &block
-    def assert_no_performed_jobs(only: nil, except: nil, &block)
-      assert_performed_jobs 0, only: only, except: except, &block
+    def assert_no_performed_jobs(only: nil, except: nil, queue: nil, &block)
+      assert_performed_jobs 0, only: only, except: except, queue: queue, &block
     end
 
     # Asserts that the job has been enqueued with the given arguments.
@@ -338,7 +365,25 @@ module ActiveJob
       instantiate_job(matching_job)
     end
 
-    # Asserts that the job passed in the block has been performed with the given arguments.
+    # Asserts that the job has been performed with the given arguments.
+    #
+    #   def test_assert_performed_with
+    #     MyJob.perform_later(1,2,3)
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high')
+    #
+    #     MyJob.set(wait_until: Date.tomorrow.noon).perform_later
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
+    #   end
+    #
+    # If a block is passed, that block performs all of the jobs that were
+    # enqueued throughout the duration of the block and asserts that
+    # the job has been performed with the given arguments in the block.
     #
     #   def test_assert_performed_with
     #     assert_performed_with(job: MyJob, args: [1,2,3], queue: 'high') do
@@ -349,15 +394,24 @@ module ActiveJob
     #       MyJob.set(wait_until: Date.tomorrow.noon).perform_later
     #     end
     #   end
-    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil)
-      original_performed_jobs_count = performed_jobs.count
+    def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
       serialized_args = serialize_args_for_assertion(expected)
-      perform_enqueued_jobs { yield }
-      in_block_jobs = performed_jobs.drop(original_performed_jobs_count)
-      matching_job = in_block_jobs.find do |in_block_job|
-        serialized_args.all? { |key, value| value == in_block_job[key] }
+
+      if block_given?
+        original_performed_jobs_count = performed_jobs.count
+
+        perform_enqueued_jobs(&block)
+
+        jobs = performed_jobs.drop(original_performed_jobs_count)
+      else
+        jobs = performed_jobs
       end
+
+      matching_job = jobs.find do |performed_job|
+        serialized_args.all? { |key, value| value == performed_job[key] }
+      end
+
       assert matching_job, "No performed job found with #{expected}"
       instantiate_job(matching_job)
     end
@@ -403,25 +457,42 @@ module ActiveJob
     #     assert_performed_jobs 1
     #   end
     #
-    def perform_enqueued_jobs(only: nil, except: nil)
+    # If the +:queue+ option is specified,
+    # then only the job(s) enqueued to a specific queue will be performed.
+    #
+    #   def test_perform_enqueued_jobs_with_queue
+    #     perform_enqueued_jobs queue: :some_queue do
+    #       MyJob.set(queue: :some_queue).perform_later(1, 2, 3) # will be performed
+    #       HelloJob.set(queue: :other_queue).perform_later(1, 2, 3) # will not be performed
+    #     end
+    #     assert_performed_jobs 1
+    #   end
+    #
+    def perform_enqueued_jobs(only: nil, except: nil, queue: nil)
+      return flush_enqueued_jobs(only: only, except: except, queue: queue) unless block_given?
+
       validate_option(only: only, except: except)
+
       old_perform_enqueued_jobs = queue_adapter.perform_enqueued_jobs
       old_perform_enqueued_at_jobs = queue_adapter.perform_enqueued_at_jobs
       old_filter = queue_adapter.filter
       old_reject = queue_adapter.reject
+      old_queue = queue_adapter.queue
 
       begin
         queue_adapter.perform_enqueued_jobs = true
         queue_adapter.perform_enqueued_at_jobs = true
         queue_adapter.filter = only
         queue_adapter.reject = except
+        queue_adapter.queue = queue
 
-        block_given? ? yield : flush_enqueued_jobs(only: only, except: except)
+        yield
       ensure
         queue_adapter.perform_enqueued_jobs = old_perform_enqueued_jobs
         queue_adapter.perform_enqueued_at_jobs = old_perform_enqueued_at_jobs
         queue_adapter.filter = old_filter
         queue_adapter.reject = old_reject
+        queue_adapter.queue = old_queue
       end
     end
 
@@ -443,10 +514,10 @@ module ActiveJob
         performed_jobs.clear
       end
 
-      def enqueued_jobs_with(only: nil, except: nil, queue: nil)
+      def jobs_with(jobs, only: nil, except: nil, queue: nil)
         validate_option(only: only, except: except)
 
-        enqueued_jobs.count do |job|
+        jobs.count do |job|
           job_class = job.fetch(:job)
 
           if only
@@ -454,17 +525,27 @@ module ActiveJob
           elsif except
             next false if Array(except).include?(job_class)
           end
+
           if queue
             next false unless queue.to_s == job.fetch(:queue, job_class.queue_name)
           end
 
           yield job if block_given?
+
           true
         end
       end
 
-      def flush_enqueued_jobs(only: nil, except: nil)
-        enqueued_jobs_with(only: only, except: except) do |payload|
+      def enqueued_jobs_with(only: nil, except: nil, queue: nil, &block)
+        jobs_with(enqueued_jobs, only: only, except: except, queue: queue, &block)
+      end
+
+      def performed_jobs_with(only: nil, except: nil, queue: nil, &block)
+        jobs_with(performed_jobs, only: only, except: except, queue: queue, &block)
+      end
+
+      def flush_enqueued_jobs(only: nil, except: nil, queue: nil)
+        enqueued_jobs_with(only: only, except: except, queue: queue) do |payload|
           args = ActiveJob::Arguments.deserialize(payload[:args])
           instantiate_job(payload.merge(args: args)).perform_now
           queue_adapter.performed_jobs << payload
