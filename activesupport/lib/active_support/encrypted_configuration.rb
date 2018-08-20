@@ -39,7 +39,7 @@ module ActiveSupport
       end
 
       def deserialize(config)
-        config.present? ? YAML.load(config, content_path) : {}
+        config.present? ? YAML.load(config, filename: content_path) : {}
       end
   end
 end
