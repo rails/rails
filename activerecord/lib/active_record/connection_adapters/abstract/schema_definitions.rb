@@ -163,7 +163,15 @@ module ActiveRecord
         end
 
         def polymorphic_options
-          as_options(polymorphic).merge(options.slice(:null, :first, :after))
+          as_options(polymorphic).merge(options.slice(:null)).merge(polymorphic_position)
+        end
+
+        def polymorphic_position
+          if options.has_key?(:first) || options.has_key?(:after)
+            { after: column_name }
+          else
+            {}
+          end
         end
 
         def index_options
@@ -177,7 +185,7 @@ module ActiveRecord
         def columns
           result = [[column_name, type, options]]
           if polymorphic
-            result.unshift(["#{name}_type", :string, polymorphic_options])
+            result << ["#{name}_type", :string, polymorphic_options]
           end
           result
         end
@@ -187,7 +195,7 @@ module ActiveRecord
         end
 
         def column_names
-          columns.map(&:first)
+          columns.map(&:first).reverse
         end
 
         def foreign_table_name

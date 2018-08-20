@@ -32,6 +32,14 @@ module ActiveRecord
         assert column_exists?(table_name, :taggable_type, :string)
       end
 
+      def test_creates_reference_id_before_type
+        add_reference table_name, :taggable, polymorphic: true
+        column_names = connection.columns(@table_name).map(&:name)
+        id_index = column_names.index("taggable_id")
+        type_index = column_names.index("taggable_type")
+        assert_operator id_index, :<, type_index, "id should be before type"
+      end
+
       def test_does_not_create_reference_id_index_if_index_is_false
         add_reference table_name, :user, index: false
         assert_not index_exists?(table_name, :user_id)
