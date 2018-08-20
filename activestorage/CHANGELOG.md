@@ -1,3 +1,10 @@
+*   `ActiveStorage::Service::AzureStorageService` only handles specifically
+    relevant types of `Azure::Core::Http::HTTPError`. It previously obscured
+    other types of `HTTPError`, which is the azure-storage gem’s catch-all
+    exception class.
+
+    *Cameron Bothner*
+
 *   `ActiveStorage::DiskController#show` generates a 404 Not Found response when
     the requested file is missing from the disk service. It previously raised
     `Errno::ENOENT`.
