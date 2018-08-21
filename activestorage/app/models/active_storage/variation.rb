@@ -66,7 +66,7 @@ class ActiveStorage::Variation
         rescue LoadError
           ActiveSupport::Deprecation.warn <<~WARNING
             Generating image variants will require the image_processing gem in Rails 6.1.
-            Please add `gem 'image_processing', '~> 1.2'` to your Gemfile.
+            Please add `gem 'image_processing', '~> 1.6'` to your Gemfile.
           WARNING
 
           ActiveStorage::Transformers::MiniMagickTransformer.new(transformations)

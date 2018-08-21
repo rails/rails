@@ -535,7 +535,7 @@ DEPENDENCIES
   google-cloud-storage (~> 1.11)
   hiredis
   i18n (~> 1.0.1)
-  image_processing (~> 1.2)
+  image_processing (~> 1.6)
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby

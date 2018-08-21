@@ -89,7 +89,7 @@ group :storage do
   gem "google-cloud-storage", "~> 1.11", require: false
   gem "azure-storage", require: false
 
-  gem "image_processing", "~> 1.2"
+  gem "image_processing", "~> 1.6"
   gem "ffi", "<= 1.9.21"
 end
 
