@@ -1175,7 +1175,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_jobs_with_except_and_queue_options_failuree
+  def test_assert_performed_jobs_with_except_and_queue_options_failure
     error = assert_raise ActiveSupport::TestCase::Assertion do
       assert_performed_jobs 1, except: HelloJob, queue: :other_queue do
         HelloJob.set(queue: :other_queue).perform_later("jeremy")
@@ -1197,7 +1197,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     assert_performed_jobs 1, except: HelloJob, queue: :other_queue
   end
 
-  def test_assert_performed_jobs_with_except_and_queue_options_failuree
+  def test_assert_performed_jobs_without_block_with_except_and_queue_options_failure
     HelloJob.set(queue: :other_queue).perform_later("jeremy")
     LoggingJob.set(queue: :some_queue).perform_later("bogdan")
     LoggingJob.set(queue: :some_queue).perform_later("jeremy")
