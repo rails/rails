@@ -416,7 +416,7 @@ can also use [Vips](http://www.rubydoc.info/gems/ruby-vips/Vips/Image).
 To enable variants, add the `image_processing` gem to your `Gemfile`:
 
 ```ruby
-gem 'image_processing', '~> 1.2'
+gem 'image_processing', '~> 1.6'
 ```
 
 When the browser hits the variant URL, Active Storage will lazily transform the
