@@ -418,6 +418,7 @@ FreeBSD users can just run:
 ```
 
 On Arch Linux, you can run:
+
 ```bash
 $ sudo pacman -S ffmpeg
 $ sudo pacman -S imagemagick
