@@ -989,6 +989,14 @@ development:
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
 
+Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
+
+```yaml
+production:
+  adapter: mysql2
+  advisory_locks: false
+```
+
 #### Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your `config/database.yml` will be customized to use PostgreSQL databases:
@@ -1001,12 +1009,13 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
+By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
+  advisory_locks: false
 ```
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:

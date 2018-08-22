@@ -1,3 +1,13 @@
+*   Add database configuration to disable advisory locks.
+
+    ```
+    production:
+      adapter: postgresql
+      advisory_locks: false
+    ```
+
+    *Guo Xiang*
+
 *   SQLite3 adapter `alter_table` method restores foreign keys.
 
     *Yasuo Honda*

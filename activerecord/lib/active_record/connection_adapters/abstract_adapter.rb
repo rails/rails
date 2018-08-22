@@ -77,7 +77,14 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :visitor, :pool
-      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
+
+      attr_reader :schema_cache,
+                  :owner,
+                  :logger,
+                  :prepared_statements,
+                  :lock,
+                  :advisory_locks
+
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
@@ -119,6 +126,10 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
+          config.fetch(:advisory_locks, true)
+        )
       end
 
       def migrations_paths # :nodoc:
