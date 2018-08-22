@@ -126,7 +126,7 @@ module ActiveRecord
           To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :integer. (For example `t.integer #{foreign_key}`).
         EOM
       else
-        msg = <<-EOM
+        msg = <<-EOM.strip_heredoc
           There is a mismatch between the foreign key and primary key column types.
           Verify that the foreign key column type and the primary key of the associated table match types.
         EOM
