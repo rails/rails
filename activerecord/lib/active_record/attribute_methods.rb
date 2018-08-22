@@ -190,6 +190,11 @@ module ActiveRecord
         \z
       /ix
 
+      def enforce_raw_sql_whitelist(args, allowlist: COLUMN_NAME_ALLOWLIST) # :nodoc:
+        ActiveSupport::Deprecation.warn("enforce_raw_sql_whitelist is deprecated and will be removed from Rails 6.0.")
+        enforce_raw_sql_allowlist(args, allowlist: allowlist)
+      end
+
       def enforce_raw_sql_allowlist(args, allowlist: COLUMN_NAME_ALLOWLIST) # :nodoc:
         unexpected = args.reject do |arg|
           arg.kind_of?(Arel::Node) ||
