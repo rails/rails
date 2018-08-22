@@ -80,7 +80,6 @@ module AbstractController
             # Be sure to include shadowed public instance methods of this class
             public_instance_methods(false))
 
-          methods.uniq!
           methods.map!(&:to_s)
 
           methods.to_set
