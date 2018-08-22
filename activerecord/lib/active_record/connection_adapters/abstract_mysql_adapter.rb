@@ -111,7 +111,7 @@ module ActiveRecord
       end
 
       def supports_advisory_locks?
-        true
+        @advisory_locks_enabled
       end
 
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:

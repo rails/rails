@@ -298,7 +298,7 @@ module ActiveRecord
       end
 
       def supports_advisory_locks?
-        true
+        @advisory_locks_enabled
       end
 
       def supports_explain?
