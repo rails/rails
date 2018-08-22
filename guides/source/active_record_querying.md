@@ -1748,6 +1748,13 @@ Client.pluck(:id)
 Client.pluck(:id, :name)
 ```
 
+
+`pluck` also allows you to select multiple fields from multiple tables.
+
+```ruby
+User.distinct.joins(categories, :comments: :likes).pluck("users.first_name || ' ' || users.last_name, categories.name, comments.title, likes.photo_id")
+```
+
 Unlike `select`, `pluck` directly converts a database result into a Ruby `Array`,
 without constructing `ActiveRecord` objects. This can mean better performance for
 a large or often-running query. However, any model method overrides will
