@@ -10,7 +10,7 @@ module ActionView
     # These helper methods extend Action View making them callable within your template files.
     module SanitizeHelper
       extend ActiveSupport::Concern
-      # Sanitizes HTML input, stripping all tags and attributes that aren't whitelisted.
+      # Sanitizes HTML input, stripping all tags and attributes that aren't allowlisted.
       #
       # It also strips href/src attributes with unsafe protocols like
       # <tt>javascript:</tt>, while also protecting against attempts to use Unicode,
@@ -40,7 +40,7 @@ module ActionView
       #
       #   <%= sanitize @comment.body %>
       #
-      # Providing custom whitelisted tags and attributes:
+      # Providing custom allowlisted tags and attributes:
       #
       #   <%= sanitize @comment.body, tags: %w(strong em a), attributes: %w(href) %>
       #
@@ -125,7 +125,7 @@ module ActionView
       module ClassMethods #:nodoc:
         attr_writer :full_sanitizer, :link_sanitizer, :white_list_sanitizer
 
-        # Vendors the full, link and white list sanitizers.
+        # Vendors the full, link and allow list sanitizers.
         # Provided strictly for compatibility and can be removed in Rails 6.
         def sanitizer_vendor
           Rails::Html::Sanitizer

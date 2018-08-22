@@ -779,7 +779,7 @@ extra fields with values that violated your application's integrity? They would
 be 'mass assigned' into your model and then into the database along with the
 good stuff - potentially breaking your application or worse.
 
-We have to whitelist our controller parameters to prevent wrongful mass
+We have to allowlist our controller parameters to prevent wrongful mass
 assignment. In this case, we want to both allow and require the `title` and
 `text` parameters for valid use of `create`. The syntax for this introduces
 `require` and `permit`. The change will involve one line in the `create` action:

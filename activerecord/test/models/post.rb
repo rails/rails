@@ -324,7 +324,7 @@ class FakeKlass
       table[name]
     end
 
-    def enforce_raw_sql_whitelist(*args)
+    def enforce_raw_sql_allowlist(*args)
       # noop
     end
 

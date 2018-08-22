@@ -40,7 +40,7 @@ if ActiveRecord::Base.connection.supports_explain?
       assert_equal binds, queries[0][1]
     end
 
-    def test_collects_nothing_if_the_statement_is_not_whitelisted
+    def test_collects_nothing_if_the_statement_is_not_allowlisted
       SUBSCRIBER.finish(nil, nil, name: "SQL", sql: "SHOW max_identifier_length")
       assert_empty queries
     end
