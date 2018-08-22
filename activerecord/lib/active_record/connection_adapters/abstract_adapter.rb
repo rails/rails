@@ -77,14 +77,7 @@ module ActiveRecord
       SIMPLE_INT = /\A\d+\z/
 
       attr_accessor :visitor, :pool
-
-      attr_reader :schema_cache,
-                  :owner,
-                  :logger,
-                  :prepared_statements,
-                  :lock,
-                  :advisory_locks
-
+      attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
       def self.type_cast_config_to_integer(config)
