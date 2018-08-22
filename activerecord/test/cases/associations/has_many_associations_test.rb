@@ -2134,21 +2134,29 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
   end
 
   def test_defining_has_many_association_with_delete_all_dependency_lazily_evaluates_target_class
-    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class DeleteAllModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :delete_all
-      end
-    EOF
+    assert_not_called_on_instance_of(
+      ActiveRecord::Reflection::AssociationReflection,
+      :class_name,
+    ) do
+      class_eval(<<-EOF, __FILE__, __LINE__ + 1)
+        class DeleteAllModel < ActiveRecord::Base
+          has_many :nonentities, :dependent => :delete_all
+        end
+      EOF
+    end
   end
 
   def test_defining_has_many_association_with_nullify_dependency_lazily_evaluates_target_class
-    ActiveRecord::Reflection::AssociationReflection.any_instance.expects(:class_name).never
-    class_eval(<<-EOF, __FILE__, __LINE__ + 1)
-      class NullifyModel < ActiveRecord::Base
-        has_many :nonentities, :dependent => :nullify
-      end
-    EOF
+    assert_not_called_on_instance_of(
+      ActiveRecord::Reflection::AssociationReflection,
+      :class_name,
+    ) do
+      class_eval(<<-EOF, __FILE__, __LINE__ + 1)
+        class NullifyModel < ActiveRecord::Base
+          has_many :nonentities, :dependent => :nullify
+        end
+      EOF
+    end
   end
 
   def test_attributes_are_being_set_when_initialized_from_has_many_association_with_where_clause
