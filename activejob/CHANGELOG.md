@@ -1,3 +1,7 @@
+*   Add `retry`, `retry_stopped`, and `discard` callbacks to jobs.
+
+    *steves*
+
 *   Allow `assert_performed_with` to be called without a block.
 
     *bogdanvlviv*

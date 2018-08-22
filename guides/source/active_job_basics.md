@@ -302,6 +302,15 @@ end
 * `before_perform`
 * `around_perform`
 * `after_perform`
+* `before_retry`
+* `around_retry`
+* `after_retry`
+* `before_retry_stopped`
+* `around_retry_stopped`
+* `after_retry_stopped`
+* `before_discard`
+* `around_discard`
+* `after_discard`
 
 
 Action Mailer

@@ -45,14 +45,18 @@ module ActiveJob
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
           if executions < attempts
-            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{error.class}. The original exception was #{error.cause.inspect}."
-            retry_job wait: determine_delay(wait), queue: queue, priority: priority
+            run_callbacks :retry do
+              logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{error.class}. The original exception was #{error.cause.inspect}."
+              retry_job wait: determine_delay(wait), queue: queue, priority: priority
+            end
           else
-            if block_given?
-              yield self, error
-            else
-              logger.error "Stopped retrying #{self.class} due to a #{error.class}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
-              raise error
+            run_callbacks :retry_stopped do
+              if block_given?
+                yield self, error
+              else
+                logger.error "Stopped retrying #{self.class} due to a #{error.class}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+                raise error
+              end
             end
           end
         end
@@ -78,10 +82,12 @@ module ActiveJob
       #  end
       def discard_on(*exceptions)
         rescue_from(*exceptions) do |error|
-          if block_given?
-            yield self, error
-          else
-            logger.error "Discarded #{self.class} due to a #{error.class}. The original exception was #{error.cause.inspect}."
+          run_callbacks :discard do
+            if block_given?
+              yield self, error
+            else
+              logger.error "Discarded #{self.class} due to a #{error.class}. The original exception was #{error.cause.inspect}."
+            end
           end
         end
       end
