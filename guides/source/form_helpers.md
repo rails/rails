@@ -953,7 +953,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### The Controller
 
 As usual you need to
-[allowlist the parameters](action_controller_overview.html#strong-parameters) in
+[declare the allowed parameters](action_controller_overview.html#strong-parameters) in
 the controller before you pass them to the model:
 
 ```ruby
@@ -999,7 +999,7 @@ remove addresses:
 <% end %>
 ```
 
-Don't forget to update the allowlisted params in your controller to also include
+Don't forget to update the permitted params in your controller to also include
 the `_destroy` field:
 
 ```ruby

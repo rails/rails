@@ -275,7 +275,7 @@ config.middleware.delete Rack::MethodOverride
 
 All these configuration options are delegated to the `I18n` library.
 
-* `config.i18n.available_locales` allowlists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+* `config.i18n.available_locales` defines the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 
@@ -444,7 +444,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
-* `config.action_controller.always_permitted_parameters` sets a list of allowlisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+* `config.action_controller.always_permitted_parameters` sets a list of allowed parameters that are permitted by default. The default values are `['controller', 'action']`.
 
 * `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
 

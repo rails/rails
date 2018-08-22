@@ -888,7 +888,7 @@ do that with `local_variables`.
 
 ### Settings
 
-* `config.web_console.allowlisted_ips`: Authorized list of IPv4 or IPv6
+* `config.web_console.whitelisted_ips`: Authorized list of IPv4 or IPv6
 addresses and networks (defaults: `127.0.0.1/8, ::1`).
 * `config.web_console.whiny_requests`: Log a message when a console rendering
 is prevented (defaults: `true`).

@@ -193,7 +193,7 @@ In a given request, the method is not actually called for every single generated
 
 With strong parameters, Action Controller parameters are forbidden to
 be used in Active Model mass assignments until they have been
-allowlisted. This means that you'll have to make a conscious decision about
+allowed. This means that you'll have to make a conscious decision about
 which attributes to allow for mass update. This is a better security
 practice to help prevent accidentally allowing users to update sensitive
 model attributes.
@@ -269,7 +269,7 @@ but be careful because this opens the door to arbitrary input. In this
 case, `permit` ensures values in the returned structure are permitted
 scalars and filters out anything else.
 
-To allowlist an entire hash of parameters, the `permit!` method can be
+To allow an entire hash of parameters, the `permit!` method can be
 used:
 
 ```ruby
@@ -291,7 +291,7 @@ params.permit(:name, { emails: [] },
                          { family: [ :name ], hobbies: [] }])
 ```
 
-This declaration allowlists the `name`, `emails`, and `friends`
+This declaration allows the `name`, `emails`, and `friends`
 attributes. It is expected that `emails` will be an array of permitted
 scalar values, and that `friends` will be an array of resources with
 specific attributes: they should have a `name` attribute (any
@@ -326,7 +326,7 @@ parameters when you use `accepts_nested_attributes_for` in combination
 with a `has_many` association:
 
 ```ruby
-# To allowlist the following data:
+# To allow the following data:
 # {"book" => {"title" => "Some Book",
 #             "chapters_attributes" => { "1" => {"title" => "First Chapter"},
 #                                        "2" => {"title" => "Second Chapter"}}}}
@@ -336,7 +336,7 @@ params.require(:book).permit(:title, chapters_attributes: [:title])
 
 Imagine a scenario where you have parameters representing a product
 name and a hash of arbitrary data associated with that product, and
-you want to allowlist the product name attribute and also the whole
+you want to allow the product name attribute and also the whole
 data hash:
 
 ```ruby
