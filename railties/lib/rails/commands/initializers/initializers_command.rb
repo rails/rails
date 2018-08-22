@@ -3,7 +3,7 @@
 module Rails
   module Command
     class InitializersCommand < Base # :nodoc:
-      desc "Print out all defined initializers in the order they are invoked by Rails."
+      desc "initializers", "Print out all defined initializers in the order they are invoked by Rails."
       def perform
         require_application_and_environment!
 
