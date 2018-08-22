@@ -275,7 +275,7 @@ config.middleware.delete Rack::MethodOverride
 
 All these configuration options are delegated to the `I18n` library.
 
-* `config.i18n.available_locales` defines the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+* `config.i18n.available_locales` defines the allowed available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 

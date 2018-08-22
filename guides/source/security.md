@@ -378,7 +378,7 @@ This will redirect the user to the main action if they tried to access a legacy 
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
 ```
 
-If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _include only the expected parameters in a legacy action_ (again a allowlist approach, as opposed to removing unexpected parameters). _And if you redirect to a URL, check it with a allowlist or a regular expression_.
+If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _include only the expected parameters in a legacy action_ (again an allowlist approach, as opposed to removing unexpected parameters). _And if you redirect to a URL, check it with an allowlist or a regular expression_.
 
 #### Self-contained XSS
 
@@ -394,7 +394,7 @@ NOTE: _Make sure file uploads don't overwrite important files, and process media
 
 Many web applications allow users to upload files. _File names, which the user may choose (partly), should always be filtered_ as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like "../../../etc/passwd", it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so - one more reason to run web servers, database servers, and other programs as a less privileged Unix user.
 
-When filtering user input file names, _don't try to remove malicious parts_. Think of a situation where the web application removes all "../" in a file name and an attacker uses a string such as "....//" - the result will be "../". It is best to use a allowlist approach, which _checks for the validity of a file name with a set of accepted characters_. This is opposed to a denylist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master):
+When filtering user input file names, _don't try to remove malicious parts_. Think of a situation where the web application removes all "../" in a file name and an attacker uses a string such as "....//" - the result will be "../". It is best to use an allowlist approach, which _checks for the validity of a file name with a set of accepted characters_. This is opposed to a denylist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master):
 
 ```ruby
 def sanitize_filename(filename)
@@ -645,7 +645,7 @@ Injection is very tricky, because the same code or parameter can be malicious in
 
 NOTE: _When sanitizing, protecting, or verifying something, prefer allowlists over denylists._
 
-A denylist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a allowlist which lists the good e-mail addresses, public actions, good HTML tags, and so on. Although sometimes it is not possible to create a allowlist (in a SPAM filter, for example), _prefer to use allowlist approaches_:
+A denylist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to an allowlist which lists the good e-mail addresses, public actions, good HTML tags, and so on. Although sometimes it is not possible to create an allowlist (in a SPAM filter, for example), _prefer to use allowlist approaches_:
 
 * Use before_action except: [...] instead of only: [...] for security-related actions. This way you don't forget to enable security checks for newly added actions.
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
@@ -818,7 +818,7 @@ Imagine a denylist deletes "script" from the user input. Now the attacker inject
 strip_tags("some<<b>script>alert('hello')<</b>/script>")
 ```
 
-This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why a allowlist approach is better, using the updated Rails 2 method sanitize():
+This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why an allowlist approach is better, using the updated Rails 2 method sanitize():
 
 ```ruby
 tags = %w(a acronym b strong i em li ul ol h1 h2 h3 h4 h5 h6 blockquote br cite sub sup ins p)
@@ -896,7 +896,7 @@ The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS pr
 
 #### Countermeasures
 
-This example, again, showed that a denylist filter is never complete. However, as custom CSS in web applications is a quite rare feature, it may be hard to find a good allowlist CSS filter. _If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a allowlist CSS filter, if you really need one.
+This example, again, showed that a denylist filter is never complete. However, as custom CSS in web applications is a quite rare feature, it may be hard to find a good allowlist CSS filter. _If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for an allowlist CSS filter, if you really need one.
 
 ### Textile Injection
 
@@ -925,7 +925,7 @@ RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
 
 #### Countermeasures
 
-It is recommended to _use RedCloth in combination with a allowlist input filter_, as described in the countermeasures against XSS section.
+It is recommended to _use RedCloth in combination with an allowlist input filter_, as described in the countermeasures against XSS section.
 
 ### Ajax Injection
 
