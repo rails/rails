@@ -22,18 +22,17 @@ NOTE: This guide is not intended to be a complete documentation of available for
 Dealing with Basic Forms
 ------------------------
 
-The most basic form helper is `form_tag`.
+The main form helper is `form_with`.
 
 ```erb
-<%= form_tag do %>
+<%= form_with do %>
   Form contents
 <% end %>
 ```
-
 When called without arguments like this, it creates a `<form>` tag which, when submitted, will POST to the current page. For instance, assuming the current page is `/home/index`, the generated HTML will look like this (some line breaks added for readability):
 
 ```html
-<form accept-charset="UTF-8" action="/" method="post">
+<form accept-charset="UTF-8" action="/" data-remote="true" method="post">
   <input name="utf8" type="hidden" value="&#x2713;" />
   <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
   Form contents
@@ -44,6 +43,8 @@ You'll notice that the HTML contains an `input` element with type `hidden`. This
 
 The second input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
+TIP: `form_with` looks a bit funny by itself, doesn't it? In the wild you will be almost always be supplying it with `model`, `url`, or `scope` arguments, discussed more below.
+
 ### A Generic Search Form
 
 One of the most basic forms you see on the web is a search form. This form contains:
@@ -53,10 +54,10 @@ One of the most basic forms you see on the web is a search form. This form conta
 * a text input element, and
 * a submit element.
 
-To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
+To create this form you will use `form_with`, `label_tag`, `text_field_tag`, and `submit_tag`, respectively. Like this:
 
 ```erb
-<%= form_tag("/search", method: "get") do %>
+<%= form_with(url: "/search", method: "get") do %>
   <%= label_tag(:q, "Search for:") %>
   <%= text_field_tag(:q) %>
   <%= submit_tag("Search") %>
@@ -66,37 +67,21 @@ To create this form you will use `form_tag`, `label_tag`, `text_field_tag`, and 
 This will generate the following HTML:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="get">
+<form accept-charset="UTF-8" action="/search" data-remote="true" method="get">
   <input name="utf8" type="hidden" value="&#x2713;" />
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
-  <input name="commit" type="submit" value="Search" />
+  <input name="commit" type="submit" value="Search" data-disable-with="Search" />
 </form>
 ```
+
+TIP: Passing `url: my_specified_path` to `form_with` tells the form where to make the request. However, as explained below, you can also pass ActiveRecord objects to the form.
 
 TIP: For every form input, an ID attribute is generated from its name (`"q"` in above example). These IDs can be very useful for CSS styling or manipulation of form controls with JavaScript.
 
 Besides `text_field_tag` and `submit_tag`, there is a similar helper for _every_ form control in HTML.
 
 IMPORTANT: Always use "GET" as the method for search forms. This allows users to bookmark a specific search and get back to it. More generally Rails encourages you to use the right HTTP verb for an action.
-
-### Multiple Hashes in Form Helper Calls
-
-The `form_tag` helper accepts 2 arguments: the path for the action and an options hash. This hash specifies the method of form submission and HTML options such as the form element's class.
-
-As with the `link_to` helper, the path argument doesn't have to be a string; it can be a hash of URL parameters recognizable by Rails' routing mechanism, which will turn the hash into a valid URL. However, since both arguments to `form_tag` are hashes, you can easily run into a problem if you would like to specify both. For instance, let's say you write this:
-
-```ruby
-form_tag(controller: "people", action: "search", method: "get", class: "nifty_form")
-# => '<form accept-charset="UTF-8" action="/people/search?method=get&class=nifty_form" method="post">'
-```
-
-Here, `method` and `class` are appended to the query string of the generated URL because even though you mean to write two hashes, you really only specified one. So you need to tell Ruby which is which by delimiting the first hash (or both) with curly brackets. This will generate the HTML you expect:
-
-```ruby
-form_tag({controller: "people", action: "search"}, method: "get", class: "nifty_form")
-# => '<form accept-charset="UTF-8" action="/people/search" method="get" class="nifty_form">'
-```
 
 ### Helpers for Generating Form Elements
 
@@ -257,7 +242,7 @@ end
 The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
 
 ```erb
-<%= form_for @article, url: {action: "create"}, html: {class: "nifty_form"} do |f| %>
+<%= form_with model: @article, class: "nifty_form" do |f| %>
   <%= f.text_field :title %>
   <%= f.text_area :body, size: "60x12" %>
   <%= f.submit "Create" %>
@@ -267,8 +252,9 @@ The corresponding view `app/views/articles/new.html.erb` using `form_for` looks 
 There are a few things to note here:
 
 * `@article` is the actual object being edited.
-* There is a single hash of options. Routing options are passed in the `:url` hash, HTML options are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The namespace attribute will be prefixed with underscore on the generated HTML id.
-* The `form_for` method yields a **form builder** object (the `f` variable).
+* There is a single hash of options. HTML options (except `id` and `class`) are passed in the `:html` hash. Also you can provide a `:namespace` option for your form to ensure uniqueness of id attributes on form elements. The scope attribute will be prefixed with underscore on the generated HTML id.
+* The `form_with` method yields a **form builder** object (the `f` variable).
+* If you wish to direct your form request to a particular url, you would use `form_with url: my_nifty_url_path` instead. To see more in depth options on what `form_with` accepts be sure to [check out the API documentation](https://api.rubyonrails.org/classes/ActionView/Helpers/FormHelper.html#method-i-form_with)
 * Methods to create form controls are called **on** the form builder object `f`.
 
 The resulting HTML is:
@@ -283,14 +269,16 @@ The resulting HTML is:
 </form>
 ```
 
-The name passed to `form_for` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the [parameter_names section](#understanding-parameter-naming-conventions).
+The name passed to `:model` in `form_with` controls the key used in `params` to access the form's values. Here the name is `article` and so all the inputs have names of the form `article[attribute_name]`. Accordingly, in the `create` action `params[:article]` will be a hash with keys `:title` and `:body`. You can read more about the significance of input names in the [parameter_names section](#understanding-parameter-naming-conventions).
+
+TIP: Conventionally your inputs will mirror model attributes. However, they don't have to! If there is other information you need you can include it in your form just as with attributes and access it via `params[:article][:my_nifty_non_attribute_input]`.
 
 The helper methods called on the form builder are identical to the model object helpers except that it is not necessary to specify which object is being edited since this is already managed by the form builder.
 
 You can create a similar binding without actually creating `<form>` tags with the `fields_for` helper. This is useful for editing additional model objects with the same form. For example, if you had a `Person` model with an associated `ContactDetail` model, you could create a form for creating both like so:
 
 ```erb
-<%= form_for @person, url: {action: "create"} do |person_form| %>
+<%= form_with model: @person do |person_form| %>
   <%= person_form.text_field :name %>
   <%= fields_for @person.contact_detail do |contact_detail_form| %>
     <%= contact_detail_form.text_field :phone_number %>
@@ -309,7 +297,7 @@ which produces the following output:
 </form>
 ```
 
-The object yielded by `fields_for` is a form builder like the one yielded by `form_for` (in fact `form_for` calls `fields_for` internally).
+The object yielded by `fields_for` is a form builder like the one yielded by `form_with` (in fact `form_with` calls `fields_for` internally).
 
 ### Relying on Record Identification
 
@@ -321,23 +309,23 @@ resources :articles
 
 TIP: Declaring a resource has a number of side effects. See [Rails Routing From the Outside In](routing.html#resource-routing-the-rails-default) for more information on setting up and using resources.
 
-When dealing with RESTful resources, calls to `form_for` can get significantly easier if you rely on **record identification**. In short, you can just pass the model instance and have Rails figure out model name and the rest:
+When dealing with RESTful resources, calls to `form_with` can get significantly easier if you rely on **record identification**. In short, you can just pass the model instance and have Rails figure out model name and the rest:
 
 ```ruby
 ## Creating a new article
 # long-style:
-form_for(@article, url: articles_path)
+form_with(model: @article, url: articles_path)
 # same thing, short-style (record identification gets used):
-form_for(@article)
+form_with(model: @article)
 
 ## Editing an existing article
 # long-style:
-form_for(@article, url: article_path(@article), html: {method: "patch"})
+form_with(model: @article, url: article_path(@article), html: {method: "patch"})
 # short-style:
-form_for(@article)
+form_with(model: @article)
 ```
 
-Notice how the short-style `form_for` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
+Notice how the short-style `form_with` invocation is conveniently the same, regardless of the record being new or existing. Record identification is smart enough to figure out if the record is new by asking `record.new_record?`. It also selects the correct path to submit to and the name based on the class of the object.
 
 Rails will also automatically set the `class` and `id` of the form appropriately: a form creating an article would have `id` and `class` `new_article`. If you were editing the article with id 23, the `class` would be set to `edit_article` and the id to `edit_article_23`. These attributes will be omitted for brevity in the rest of this guide.
 
@@ -348,13 +336,13 @@ WARNING: When you're using STI (single-table inheritance) with your models, you 
 If you have created namespaced routes, `form_for` has a nifty shorthand for that too. If your application has an admin namespace then
 
 ```ruby
-form_for [:admin, @article]
+form_with model: [:admin, @article]
 ```
 
 will create a form that submits to the `ArticlesController` inside the admin namespace (submitting to `admin_article_path(@article)` in the case of an update). If you have several levels of namespacing then the syntax is similar:
 
 ```ruby
-form_for [:admin, :management, @article]
+form_with model: [:admin, :management, @article]
 ```
 
 For more information on Rails' routing system and the associated conventions, please see the [routing guide](routing.html).
@@ -366,7 +354,7 @@ The Rails framework encourages RESTful design of your applications, which means 
 Rails works around this issue by emulating other methods over POST with a hidden input named `"_method"`, which is set to reflect the desired method:
 
 ```ruby
-form_tag(search_path, method: "patch")
+form_with(url: search_path, method: "patch")
 ```
 
 output:
@@ -378,9 +366,12 @@ output:
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   ...
 </form>
+
 ```
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
+
+IMPORTANT: All forms using `form_with` implement `remote: true` by default. These forms will submit data using an XHR (Ajax) request. To disable this include `local: true`. To dive deeper see [working with Javascript in Rails](https://guides.rubyonrails.org/working_with_javascript_in_rails.html#remote-elements).
 
 Making Select Boxes with Ease
 -----------------------------
@@ -662,10 +653,10 @@ Unlike other forms, making an asynchronous file upload form is not as simple as 
 Customizing Form Builders
 -------------------------
 
-As mentioned previously the object yielded by `form_for` and `fields_for` is an instance of `FormBuilder` (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way, you can also subclass `FormBuilder` and add the helpers there. For example:
+As mentioned previously the object yielded by `form_with` and `fields_for` is an instance of `FormBuilder` (or a subclass thereof). Form builders encapsulate the notion of displaying form elements for a single object. While you can of course write helpers for your forms in the usual way, you can also subclass `FormBuilder` and add the helpers there. For example:
 
 ```erb
-<%= form_for @person do |f| %>
+<%= form_with model: @person do |f| %>
   <%= text_field_with_label f, :first_name %>
 <% end %>
 ```
@@ -673,7 +664,7 @@ As mentioned previously the object yielded by `form_for` and `fields_for` is an 
 can be replaced with
 
 ```erb
-<%= form_for @person, builder: LabellingFormBuilder do |f| %>
+<%= form_with model: @person, builder: LabellingFormBuilder do |f| %>
   <%= f.text_field :first_name %>
 <% end %>
 ```
@@ -774,7 +765,7 @@ The previous sections did not use the Rails form helpers at all. While you can c
 You might want to render a form with a set of edit fields for each of a person's addresses. For example:
 
 ```erb
-<%= form_for @person do |person_form| %>
+<%= form_with model: @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% @person.addresses.each do |address| %>
     <%= person_form.fields_for address, index: address.id do |address_form|%>
@@ -823,7 +814,7 @@ will create inputs like
 <input id="person_address_primary_1_city" name="person[address][primary][1][city]" type="text" value="bologna" />
 ```
 
-As a general rule the final input name is the concatenation of the name given to `fields_for`/`form_for`, the index value, and the name of the attribute. You can also pass an `:index` option directly to helpers such as `text_field`, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
+As a general rule the final input name is the concatenation of the name given to `fields_for`/`form_with`, the index value, and the name of the attribute. You can also pass an `:index` option directly to helpers such as `text_field`, but it is usually less repetitive to specify this at the form builder level rather than on individual input controls.
 
 As a shortcut you can append [] to the name and omit the `:index` option. This is the same as specifying `index: address` so
 
@@ -841,7 +832,7 @@ Forms to External Resources
 Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: 'external_token' do %>
+<%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
   Form contents
 <% end %>
 ```
@@ -849,15 +840,15 @@ Rails' form helpers can also be used to build a form for posting data to an exte
 Sometimes when submitting data to an external resource, like a payment gateway, the fields that can be used in the form are limited by an external API and it may be undesirable to generate an `authenticity_token`. To not send a token, simply pass `false` to the `:authenticity_token` option:
 
 ```erb
-<%= form_tag 'http://farfar.away/form', authenticity_token: false do %>
+<%= form_with url: 'http://farfar.away/form', authenticity_token: false do %>
   Form contents
 <% end %>
 ```
 
-The same technique is also available for `form_for`:
+The same technique is also available for `form_with model:`:
 
 ```erb
-<%= form_for @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
+<%= form_with model: @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
   Form contents
 <% end %>
 ```
@@ -865,7 +856,7 @@ The same technique is also available for `form_for`:
 Or if you don't want to render an `authenticity_token` field:
 
 ```erb
-<%= form_for @invoice, url: external_url, authenticity_token: false do |f| %>
+<%= form_with model: @invoice, url: external_url, authenticity_token: false do |f| %>
   Form contents
 <% end %>
 ```
@@ -897,7 +888,7 @@ This creates an `addresses_attributes=` method on `Person` that allows you to cr
 The following form allows a user to create a `Person` and its associated addresses.
 
 ```html+erb
-<%= form_for @person do |f| %>
+<%= form_with model: @person do |f| %>
   Addresses:
   <ul>
     <%= f.fields_for :addresses do |addresses_form| %>
@@ -984,7 +975,7 @@ of `1` or `true` then the object will be destroyed. This form allows users to
 remove addresses:
 
 ```erb
-<%= form_for @person do |f| %>
+<%= form_with model: @person do |f| %>
   Addresses:
   <ul>
     <%= f.fields_for :addresses do |addresses_form| %>
@@ -1025,3 +1016,8 @@ As a convenience you can instead pass the symbol `:all_blank` which will create 
 ### Adding Fields on the Fly
 
 Rather than rendering multiple sets of fields ahead of time you may wish to add them only when a user clicks on an 'Add new address' button. Rails does not provide any built-in support for this. When generating new sets of fields you must ensure the key of the associated array is unique - the current JavaScript date (milliseconds after the epoch) is a common choice.
+
+Using form_for and form_tag
+---------------------------
+
+Before `form_with` was introduced in Rails 5.1 its functionality used to be split between `form_tag` and `form_for`. Both are now soft-deprecated. Documentation on their usage can be found in [older versions of this guide](https://guides.rubyonrails.org/v5.2/form_helpers.html).
