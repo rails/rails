@@ -91,18 +91,28 @@ module ActiveRecord
     end
 
     class Transaction #:nodoc:
-      attr_reader :connection, :state, :records, :savepoint_name
+      attr_reader :connection, :state, :records, :savepoint_name, :isolation_level
 
       def initialize(connection, options, run_commit_callbacks: false)
         @connection = connection
         @state = TransactionState.new
         @records = []
+        @isolation_level = options[:isolation]
+        @materialized = false
         @joinable = options.fetch(:joinable, true)
         @run_commit_callbacks = run_commit_callbacks
       end
 
       def add_record(record)
         records << record
+      end
+
+      def materialize!
+        @materialized = true
+      end
+
+      def materialized?
+        @materialized
       end
 
       def rollback_records
@@ -141,24 +151,30 @@ module ActiveRecord
     end
 
     class SavepointTransaction < Transaction
-      def initialize(connection, savepoint_name, parent_transaction, options, *args)
-        super(connection, options, *args)
+      def initialize(connection, savepoint_name, parent_transaction, *args)
+        super(connection, *args)
 
         parent_transaction.state.add_child(@state)
 
-        if options[:isolation]
+        if isolation_level
           raise ActiveRecord::TransactionIsolationError, "cannot set transaction isolation in a nested transaction"
         end
-        connection.create_savepoint(@savepoint_name = savepoint_name)
+
+        @savepoint_name = savepoint_name
+      end
+
+      def materialize!
+        connection.create_savepoint(savepoint_name)
+        super
       end
 
       def rollback
-        connection.rollback_to_savepoint(savepoint_name)
+        connection.rollback_to_savepoint(savepoint_name) if materialized?
         @state.rollback!
       end
 
       def commit
-        connection.release_savepoint(savepoint_name)
+        connection.release_savepoint(savepoint_name) if materialized?
         @state.commit!
       end
 
@@ -166,22 +182,23 @@ module ActiveRecord
     end
 
     class RealTransaction < Transaction
-      def initialize(connection, options, *args)
-        super
-        if options[:isolation]
-          connection.begin_isolated_db_transaction(options[:isolation])
+      def materialize!
+        if isolation_level
+          connection.begin_isolated_db_transaction(isolation_level)
         else
           connection.begin_db_transaction
         end
+
+        super
       end
 
       def rollback
-        connection.rollback_db_transaction
+        connection.rollback_db_transaction if materialized?
         @state.full_rollback!
       end
 
       def commit
-        connection.commit_db_transaction
+        connection.commit_db_transaction if materialized?
         @state.full_commit!
       end
     end
@@ -190,6 +207,9 @@ module ActiveRecord
       def initialize(connection)
         @stack = []
         @connection = connection
+        @has_unmaterialized_transactions = false
+        @materializing_transactions = false
+        @lazy_transactions_enabled = true
       end
 
       def begin_transaction(options = {})
@@ -203,8 +223,38 @@ module ActiveRecord
                                        run_commit_callbacks: run_commit_callbacks)
             end
 
+          transaction.materialize! unless @connection.supports_lazy_transactions? && lazy_transactions_enabled?
           @stack.push(transaction)
+          @has_unmaterialized_transactions = true if @connection.supports_lazy_transactions?
           transaction
+        end
+      end
+
+      def disable_lazy_transactions!
+        materialize_transactions
+        @lazy_transactions_enabled = false
+      end
+
+      def enable_lazy_transactions!
+        @lazy_transactions_enabled = true
+      end
+
+      def lazy_transactions_enabled?
+        @lazy_transactions_enabled
+      end
+
+      def materialize_transactions
+        return if @materializing_transactions
+        return unless @has_unmaterialized_transactions
+
+        @connection.lock.synchronize do
+          begin
+            @materializing_transactions = true
+            @stack.each { |t| t.materialize! unless t.materialized? }
+          ensure
+            @materializing_transactions = false
+          end
+          @has_unmaterialized_transactions = false
         end
       end
 
