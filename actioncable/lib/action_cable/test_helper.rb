@@ -125,7 +125,7 @@ module ActionCable
     delegate :broadcasts, :clear_messages, to: :pubsub_adapter
 
     private
-      def broadcasts_size(channel) # :nodoc:
+      def broadcasts_size(channel)
         broadcasts(channel).size
       end
   end
