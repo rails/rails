@@ -47,11 +47,12 @@ module ActionCable
         original_count = broadcasts_size(stream)
         yield
         new_count = broadcasts_size(stream)
-        assert_equal number, new_count - original_count, "#{number} broadcasts to #{stream} expected, but #{new_count - original_count} were sent"
+        actual_count = new_count - original_count
       else
         actual_count = broadcasts_size(stream)
-        assert_equal number, actual_count, "#{number} broadcasts to #{stream} expected, but #{actual_count} were sent"
       end
+
+      assert_equal number, actual_count, "#{number} broadcasts to #{stream} expected, but #{actual_count} were sent"
     end
 
     # Asserts that no messages have been sent to the stream.
