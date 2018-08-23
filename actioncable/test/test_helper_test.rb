@@ -62,6 +62,16 @@ class TransmissionsTest < ActionCable::TestCase
 
     assert_match(/1 .* but 2/, error.message)
   end
+
+  def test_assert_no_broadcasts_failure
+    error = assert_raises Minitest::Assertion do
+      assert_no_broadcasts "test" do
+        ActionCable.server.broadcast "test", "hello"
+      end
+    end
+
+    assert_match(/0 .* but 1/, error.message)
+  end
 end
 
 class TransmitedDataTest < ActionCable::TestCase
