@@ -193,6 +193,17 @@ class HelperTest < ActiveSupport::TestCase
     assert_includes master_helper_methods, :baz
   end
 
+  def test_all_helpers_with_helper_dir_with_mixed_case
+    @controller_class.helpers_path = File.expand_path('../../FiXtUrEs', __FILE__)
+
+    # Reload helpers
+    @controller_class._helpers = Module.new
+    @controller_class.helper :all
+
+    # helpers/abc_helper.rb should be included
+    assert master_helper_methods.include?(:bare_a)
+  end
+
   def test_helper_proxy
     methods = AllHelpersController.helpers.methods
 
