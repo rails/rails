@@ -24,6 +24,13 @@ module ActiveJob
         Backburner::Worker.enqueue JobWrapper, [ job.serialize ], queue: job.queue_name, delay: delay
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       class JobWrapper #:nodoc:
         class << self
           def perform(job_data)

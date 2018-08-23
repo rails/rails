@@ -41,6 +41,13 @@ module ActiveJob
         Resque.enqueue_at_with_queue job.queue_name, timestamp, JobWrapper, job.serialize
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       class JobWrapper #:nodoc:
         class << self
           def perform(job_data)

@@ -29,6 +29,13 @@ module ActiveJob
         que_job
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       class JobWrapper < Que::Job #:nodoc:
         def run(job_data)
           Base.execute job_data

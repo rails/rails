@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require "active_job/locking"
+
 module ActiveJob
   # Provides general behavior that will be included into every Active Job
   # object that inherits from ActiveJob::Base.
@@ -34,11 +36,30 @@ module ActiveJob
 
       # Timezone to be used during the job.
       attr_accessor :timezone
+
+      # Timeout used if job is locking
+      attr_accessor :lock_timeout
+
+      # The key used within the set if the job is locking
+      attr_accessor :lock_key
     end
 
     # These methods will be included into any Active Job object, adding
     # helpers for de/serialization and creation of job instances.
     module ClassMethods
+      attr_accessor :lock_key
+      attr_accessor :lock_timeout
+
+      def lock_key=(lock_key)
+        include Locking unless self <= Locking
+        @lock_key = lock_key
+      end
+
+      def lock_timeout=(lock_timeout)
+        include Locking unless self <= Locking
+        @lock_timeout = lock_timeout
+      end
+
       # Creates a new job instance from a hash created with +serialize+
       def deserialize(job_data)
         job = job_data["job_class"].constantize.new
@@ -130,6 +151,10 @@ module ActiveJob
       self.executions           = job_data["executions"]
       self.locale               = job_data["locale"] || I18n.locale.to_s
       self.timezone             = job_data["timezone"] || Time.zone.try(:name)
+    end
+
+    def locking?
+      false
     end
 
     private

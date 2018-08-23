@@ -50,7 +50,7 @@ module ActiveJob
           self._queue_adapter = queue_adapter
         end
 
-        QUEUE_ADAPTER_METHODS = [:enqueue, :enqueue_at].freeze
+        QUEUE_ADAPTER_METHODS = [:enqueue, :enqueue_at, :locked?, :clear_lock].freeze
 
         def queue_adapter?(object)
           QUEUE_ADAPTER_METHODS.all? { |meth| object.respond_to?(meth) }

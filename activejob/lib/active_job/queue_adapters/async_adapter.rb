@@ -44,6 +44,13 @@ module ActiveJob
         @scheduler.enqueue_at JobWrapper.new(job), timestamp, queue_name: job.queue_name
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       # Gracefully stop processing jobs. Finishes in-progress work and handles
       # any new jobs following the executor's fallback policy (`caller_runs`).
       # Waits for termination by default. Pass `wait: false` to continue.

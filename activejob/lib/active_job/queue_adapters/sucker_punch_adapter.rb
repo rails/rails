@@ -37,6 +37,13 @@ module ActiveJob
         end
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       class JobWrapper #:nodoc:
         include SuckerPunch::Job
 

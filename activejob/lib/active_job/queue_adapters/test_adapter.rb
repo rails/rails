@@ -39,6 +39,28 @@ module ActiveJob
         perform_or_enqueue(perform_enqueued_at_jobs, job, job_data)
       end
 
+      def locked?(job)
+        @job_locks ||= {}
+
+        now = Time.now.to_i
+        timeout = now + job.lock_timeout + 1
+        lock_key = job.lock_key
+
+        if @job_locks[lock_key].nil?
+          @job_locks[lock_key] = timeout
+          return false
+        end
+
+        old = @job_locks[lock_key]
+        @job_locks[lock_key] = timeout
+        now <= old
+      end
+
+      def clear_lock(job)
+        @job_locks ||= {}
+        @job_locks.delete(job.lock_key)
+      end
+
       private
         def job_to_hash(job, extras = {})
           { job: job.class, args: job.serialize.fetch("arguments"), queue: job.queue_name }.merge!(extras)

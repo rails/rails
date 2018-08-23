@@ -37,6 +37,13 @@ module ActiveJob
         qc_job
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       # Builds a <tt>QC::Queue</tt> object to schedule jobs on.
       #
       # If you have a custom <tt>QC::Queue</tt> subclass you'll need to subclass

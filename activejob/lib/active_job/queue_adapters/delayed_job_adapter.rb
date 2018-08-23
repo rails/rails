@@ -27,6 +27,13 @@ module ActiveJob
         delayed_job
       end
 
+      def locked?(job) #:nodoc:
+        false
+      end
+
+      def clear_lock(job) #:nodoc:
+      end
+
       class JobWrapper #:nodoc:
         attr_accessor :job_data
 

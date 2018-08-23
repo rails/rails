@@ -40,6 +40,10 @@ module ActiveJob
       end
     rescue => exception
       rescue_with_handler(exception) || raise
+    ensure
+      if locking?
+        clear_lock
+      end
     end
 
     def perform(*)
