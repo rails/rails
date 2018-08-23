@@ -113,7 +113,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_assets
-    run_generator
+    run_generator [destination_root, "--no-skip-javascript"]
 
     assert_file("app/views/layouts/application.html.erb", /stylesheet_link_tag\s+'application', media: 'all', 'data-turbolinks-track': 'reload'/)
     assert_file("app/views/layouts/application.html.erb", /javascript_pack_tag\s+'application', 'data-turbolinks-track': 'reload'/)
@@ -214,7 +214,8 @@ class AppGeneratorTest < Rails::Generators::TestCase
 
   def test_new_application_load_defaults
     app_root = File.join(destination_root, "myfirstapp")
-    run_generator [app_root]
+    run_generator [app_root, "--no-skip-javascript"]
+
     output = nil
 
     assert_file "#{app_root}/config/application.rb", /\s+config\.load_defaults #{Rails::VERSION::STRING.to_f}/
@@ -825,7 +826,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generator_if_skip_turbolinks_is_given
-    run_generator [destination_root, "--skip-turbolinks"]
+    run_generator [destination_root, "--skip-turbolinks", "--no-skip-javascript"]
 
     assert_no_gem "turbolinks"
     assert_file "app/views/layouts/application.html.erb" do |content|
@@ -837,7 +838,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_bootsnap
-    run_generator
+    run_generator [destination_root, "--no-skip-bootsnap"]
 
     unless defined?(JRUBY_VERSION)
       assert_gem "bootsnap"
@@ -938,7 +939,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "webpacker:install", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -955,7 +956,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 5, @sequence_step
+    assert_equal 6, @sequence_step
   end
 
   def test_gitignore

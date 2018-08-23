@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "workspaces": [
+    "actioncable",
+    "activestorage",
+    "actionview",
+    "tmp/templates/app_template",
+    "railties/test/fixtures/tmp/bukkits/**/test/dummy",
+    "railties/test/fixtures/tmp/bukkits/**/spec/dummy"
+  ],
+  "dependencies": {
+    "webpack": "^4.17.1"
+  }
+}

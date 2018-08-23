@@ -126,6 +126,8 @@ module Rails
       assets_config_exist            = File.exist?("config/initializers/assets.rb")
       csp_config_exist               = File.exist?("config/initializers/content_security_policy.rb")
 
+      @generator.skip_javascript = !File.exist?("bin/webpack")
+
       @config_target_version = Rails.application.config.loaded_config_version || "5.0"
 
       config

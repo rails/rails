@@ -228,6 +228,12 @@ module Rails
         !options[:skip_active_record] && options[:database] == "sqlite3"
       end
 
+      attr_writer :skip_javascript
+
+      def skip_javascript?
+        defined?(@skip_javascript) ? @skip_javascript : options[:skip_javascript]
+      end
+
       def skip_active_storage? # :doc:
         options[:skip_active_storage] || options[:skip_active_record]
       end
