@@ -953,7 +953,7 @@ If the associated object is already saved, `fields_for` autogenerates a hidden i
 ### The Controller
 
 As usual you need to
-[declare the allowed parameters](action_controller_overview.html#strong-parameters) in
+[declare the permitted parameters](action_controller_overview.html#strong-parameters) in
 the controller before you pass them to the model:
 
 ```ruby

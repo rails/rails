@@ -779,7 +779,11 @@ extra fields with values that violated your application's integrity? They would
 be 'mass assigned' into your model and then into the database along with the
 good stuff - potentially breaking your application or worse.
 
-We have to define our permitted controller parameters to prevent wrongful mass assignment. In this case, we want to both allow and require the `title` and `text` parameters for valid use of `create`. The syntax for this introduces `require` and `permit`. The change will involve one line in the `create` action:
+We have to define our permitted controller parameters to prevent wrongful mass
+assignment. In this case, we want to both allow and require the `title` and
+`text` parameters for valid use of `create`. The syntax for this introduces
+`require` and `permit`. The change will involve one line in the `create`
+action:
 
 ```ruby
   @article = Article.new(params.require(:article).permit(:title, :text))
