@@ -5,7 +5,7 @@ require "models/post"
 require "models/comment"
 
 module ActiveRecord
-  module DelegationWhitelistTests
+  module DelegationAllowlistTests
     ARRAY_DELEGATES = [
       :+, :-, :|, :&, :[], :shuffle,
       :all?, :collect, :compact, :detect, :each, :each_cons, :each_with_index,
@@ -38,7 +38,7 @@ module ActiveRecord
   end
 
   class DelegationAssociationTest < ActiveRecord::TestCase
-    include DelegationWhitelistTests
+    include DelegationAllowlistTests
     include DeprecatedArelDelegationTests
 
     def target
@@ -47,7 +47,7 @@ module ActiveRecord
   end
 
   class DelegationRelationTest < ActiveRecord::TestCase
-    include DelegationWhitelistTests
+    include DelegationAllowlistTests
     include DeprecatedArelDelegationTests
 
     def target

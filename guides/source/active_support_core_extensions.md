@@ -2782,7 +2782,7 @@ NOTE: Defined in `active_support/core_ext/hash/keys.rb`.
 
 #### `assert_valid_keys`
 
-The method `assert_valid_keys` receives an arbitrary number of arguments, and checks whether the receiver has any key outside that white list. If it does `ArgumentError` is raised.
+The method `assert_valid_keys` receives an arbitrary number of arguments, and checks whether the receiver has any key outside that allow list. If it does `ArgumentError` is raised.
 
 ```ruby
 {a: 1}.assert_valid_keys(:a)  # passes
@@ -2812,7 +2812,7 @@ If the receiver responds to `convert_key` keys are normalized:
 # => {:a=>1}
 ```
 
-NOTE. Slicing may come in handy for sanitizing option hashes with a white list of keys.
+NOTE. Slicing may come in handy for sanitizing option hashes with a allow list of keys.
 
 There's also `slice!` which in addition to perform a slice in place returns what's removed:
 

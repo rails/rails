@@ -553,10 +553,10 @@ module ActionDispatch
         #
         #     match 'json_only', constraints: { format: 'json' }, via: :get
         #
-        #     class Whitelist
+        #     class Allowlist
         #       def matches?(request) request.remote_ip == '1.2.3.4' end
         #     end
-        #     match 'path', to: 'c#a', constraints: Whitelist.new, via: :get
+        #     match 'path', to: 'c#a', constraints: Allowlist.new, via: :get
         #
         #   See <tt>Scoping#constraints</tt> for more examples with its scope
         #   equivalent.

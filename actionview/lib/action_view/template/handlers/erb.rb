@@ -14,7 +14,7 @@ module ActionView
         class_attribute :erb_implementation, default: Erubi
 
         # Do not escape templates of these mime types.
-        class_attribute :escape_whitelist, default: ["text/plain"]
+        class_attribute :escape_allowlist, default: ["text/plain"]
 
         ENCODING_TAG = Regexp.new("\\A(<%#{ENCODING_FLAG}-?%>)[ \\t]*")
 
@@ -47,7 +47,7 @@ module ActionView
 
           self.class.erb_implementation.new(
             erb,
-            escape: (self.class.escape_whitelist.include? template.type),
+            escape: (self.class.escape_allowlist.include? template.type),
             trim: (self.class.erb_trim_mode == "-")
           ).src
         end

@@ -11,7 +11,7 @@ module ActionController #:nodoc:
     #     @people = Person.all
     #   end
     #
-    # That action implicitly responds to all formats, but formats can also be whitelisted:
+    # That action implicitly responds to all formats, but formats can also be allowlisted:
     #
     #   def index
     #     @people = Person.all

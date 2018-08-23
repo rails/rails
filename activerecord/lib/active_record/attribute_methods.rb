@@ -31,7 +31,7 @@ module ActiveRecord
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    DENYLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
     class GeneratedAttributeMethods < Module #:nodoc:
       include Mutex_m
@@ -123,7 +123,7 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
+        DENYLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
       def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
@@ -167,12 +167,12 @@ module ActiveRecord
         end
       end
 
-      # Regexp whitelist. Matches the following:
+      # Regexp allowlist. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{column_name}"
-      COLUMN_NAME_WHITELIST = /\A(?:\w+\.)?\w+\z/i
+      COLUMN_NAME_ALLOWLIST = /\A(?:\w+\.)?\w+\z/i
 
-      # Regexp whitelist. Matches the following:
+      # Regexp allowlist. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
@@ -181,7 +181,7 @@ module ActiveRecord
       #   "#{column_name} #{direction}"
       #   "#{column_name} #{direction} NULLS FIRST"
       #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_ORDER_WHITELIST = /
+      COLUMN_NAME_ORDER_ALLOWLIST = /
         \A
         (?:\w+\.)?
         \w+
@@ -190,12 +190,17 @@ module ActiveRecord
         \z
       /ix
 
-      def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
+      def enforce_raw_sql_whitelist(args, allowlist: COLUMN_NAME_ALLOWLIST) # :nodoc:
+        ActiveSupport::Deprecation.warn("enforce_raw_sql_whitelist is deprecated and will be removed from Rails 6.0.")
+        enforce_raw_sql_allowlist(args, allowlist: allowlist)
+      end
+
+      def enforce_raw_sql_allowlist(args, allowlist: COLUMN_NAME_ALLOWLIST) # :nodoc:
         unexpected = args.reject do |arg|
           arg.kind_of?(Arel::Node) ||
             arg.is_a?(Arel::Nodes::SqlLiteral) ||
             arg.is_a?(Arel::Attributes::Attribute) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| whitelist.match?(part) }
+            arg.to_s.split(/\s*,\s*/).all? { |part| allowlist.match?(part) }
         end
 
         return if unexpected.none?

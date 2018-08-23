@@ -719,12 +719,12 @@ NOTE: There is an exception for the `format` constraint: while it's a method on 
 
 ### Advanced Constraints
 
-If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a blacklist to the `BlacklistController`. You could do:
+If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a denylist to the `DenylistController`. You could do:
 
 ```ruby
-class BlacklistConstraint
+class DenylistConstraint
   def initialize
-    @ips = Blacklist.retrieve_ips
+    @ips = Denylist.retrieve_ips
   end
 
   def matches?(request)
@@ -733,8 +733,8 @@ class BlacklistConstraint
 end
 
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: BlacklistConstraint.new
+  get '*path', to: 'denylist#index',
+    constraints: DenylistConstraint.new
 end
 ```
 
@@ -742,8 +742,8 @@ You can also specify constraints as a lambda:
 
 ```ruby
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+  get '*path', to: 'denylist#index',
+    constraints: lambda { |request| Denylist.retrieve_ips.include?(request.remote_ip) }
 end
 ```
 
