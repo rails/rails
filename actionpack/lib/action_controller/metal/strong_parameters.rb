@@ -58,7 +58,7 @@ module ActionController
 
   # == Action Controller \Parameters
   #
-  # Allows you to choose which attributes should be whitelisted for mass updating
+  # Allows you to choose which attributes should be permitted for mass updating
   # and thus prevent accidentally exposing that which shouldn't be exposed.
   # Provides two methods for this purpose: #require and #permit. The former is
   # used to mark parameters as required. The latter is used to set the parameter
@@ -505,7 +505,7 @@ module ActionController
     #
     # Note that if you use +permit+ in a key that points to a hash,
     # it won't allow all the hash. You also need to specify which
-    # attributes inside the hash should be whitelisted.
+    # attributes inside the hash should be permitted.
     #
     #   params = ActionController::Parameters.new({
     #     person: {
@@ -998,7 +998,7 @@ module ActionController
   # It provides an interface for protecting attributes from end-user
   # assignment. This makes Action Controller parameters forbidden
   # to be used in Active Model mass assignment until they have been
-  # whitelisted.
+  # permitted.
   #
   # In addition, parameters can be marked as required and flow through a
   # predefined raise/rescue flow to end up as a <tt>400 Bad Request</tt> with no
@@ -1034,7 +1034,7 @@ module ActionController
   #   end
   #
   # In order to use <tt>accepts_nested_attributes_for</tt> with Strong \Parameters, you
-  # will need to specify which nested attributes should be whitelisted. You might want
+  # will need to specify which nested attributes should be permitted. You might want
   # to allow +:id+ and +:_destroy+, see ActiveRecord::NestedAttributes for more information.
   #
   #   class Person
@@ -1052,7 +1052,7 @@ module ActionController
   #     private
   #
   #       def person_params
-  #         # It's mandatory to specify the nested attributes that should be whitelisted.
+  #         # It's mandatory to specify the nested attributes that should be permitted.
   #         # If you use `permit` with just the key that points to the nested attributes hash,
   #         # it will return an empty hash.
   #         params.require(:person).permit(:name, :age, pets_attributes: [ :id, :name, :category ])

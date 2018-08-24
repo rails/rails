@@ -167,12 +167,12 @@ module ActiveRecord
         end
       end
 
-      # Regexp whitelist. Matches the following:
+      # Regexp permitted list. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{column_name}"
-      COLUMN_NAME_WHITELIST = /\A(?:\w+\.)?\w+\z/i
+      COLUMN_NAME_PERMIT_LIST = /\A(?:\w+\.)?\w+\z/i
 
-      # Regexp whitelist. Matches the following:
+      # Regexp permitted list. Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
@@ -181,7 +181,7 @@ module ActiveRecord
       #   "#{column_name} #{direction}"
       #   "#{column_name} #{direction} NULLS FIRST"
       #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_ORDER_WHITELIST = /
+      COLUMN_NAME_ORDER_PERMIT_LIST = /
         \A
         (?:\w+\.)?
         \w+
@@ -190,12 +190,12 @@ module ActiveRecord
         \z
       /ix
 
-      def enforce_raw_sql_whitelist(args, whitelist: COLUMN_NAME_WHITELIST) # :nodoc:
+      def enforce_raw_sql_permit_list(args, permit_list: COLUMN_NAME_PERMIT_LIST) # :nodoc:
         unexpected = args.reject do |arg|
           arg.kind_of?(Arel::Node) ||
             arg.is_a?(Arel::Nodes::SqlLiteral) ||
             arg.is_a?(Arel::Attributes::Attribute) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| whitelist.match?(part) }
+            arg.to_s.split(/\s*,\s*/).all? { |part| permit_list.match?(part) }
         end
 
         return if unexpected.none?

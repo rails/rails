@@ -61,8 +61,8 @@ module ActiveRecord
       #   # => "id ASC"
       def sanitize_sql_for_order(condition)
         if condition.is_a?(Array) && condition.first.to_s.include?("?")
-          enforce_raw_sql_whitelist([condition.first],
-            whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          enforce_raw_sql_permit_list([condition.first],
+            permit_list: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_PERMIT_LIST
           )
 
           # Ensure we aren't dealing with a subclass of String that might

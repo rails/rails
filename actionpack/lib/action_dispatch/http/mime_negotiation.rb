@@ -87,7 +87,7 @@ module ActionDispatch
         else
           raise ArgumentError, "request.variant must be set to a Symbol or an Array of Symbols. " \
             "For security reasons, never directly set the variant to a user-provided value, " \
-            "like params[:variant].to_sym. Check user-provided value against a whitelist first, " \
+            "like params[:variant].to_sym. Check user-provided value against a permitted list first, " \
             "then set the variant: request.variant = :tablet if params[:variant] == 'tablet'"
         end
       end

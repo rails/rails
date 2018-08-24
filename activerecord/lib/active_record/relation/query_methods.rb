@@ -1133,9 +1133,9 @@ module ActiveRecord
         end
         order_args.flatten!
 
-        @klass.enforce_raw_sql_whitelist(
+        @klass.enforce_raw_sql_permit_list(
           order_args.flat_map { |a| a.is_a?(Hash) ? a.keys : a },
-          whitelist: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_WHITELIST
+          permit_list: AttributeMethods::ClassMethods::COLUMN_NAME_ORDER_PERMIT_LIST
         )
 
         validate_order_args(order_args)
