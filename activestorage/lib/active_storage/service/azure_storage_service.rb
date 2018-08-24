@@ -19,10 +19,8 @@ module ActiveStorage
 
     def upload(key, io, checksum: nil)
       instrument :upload, key: key, checksum: checksum do
-        begin
+        handle_errors do
           blobs.create_block_blob(container, key, IO.try_convert(io) || io, content_md5: checksum)
-        rescue Azure::Core::Http::HTTPError
-          raise ActiveStorage::IntegrityError
         end
       end
     end
@@ -55,7 +53,8 @@ module ActiveStorage
       instrument :delete, key: key do
         begin
           blobs.delete_blob(container, key)
-        rescue Azure::Core::Http::HTTPError
+        rescue Azure::Core::Http::HTTPError => e
+          raise unless e.type == "BlobNotFound"
           # Ignore files already deleted
         end
       end
@@ -155,8 +154,11 @@ module ActiveStorage
       def handle_errors
         yield
       rescue Azure::Core::Http::HTTPError => e
-        if e.type == "BlobNotFound"
+        case e.type
+        when "BlobNotFound"
           raise ActiveStorage::FileNotFoundError
+        when "Md5Mismatch"
+          raise ActiveStorage::IntegrityError
         else
           raise
         end
