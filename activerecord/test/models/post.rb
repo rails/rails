@@ -51,6 +51,8 @@ class Post < ActiveRecord::Base
 
   scope :typographically_interesting, -> { containing_the_letter_a.or(titled_with_an_apostrophe) }
 
+  scope :having_tag_count_one, -> { where(tags_count: 1) }
+
   has_many :comments do
     def find_most_recent
       order("id DESC").first

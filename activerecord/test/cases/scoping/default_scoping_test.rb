@@ -8,10 +8,11 @@ require "models/project"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
+require "models/author"
 require "concurrent/atomic/cyclic_barrier"
 
 class DefaultScopingTest < ActiveRecord::TestCase
-  fixtures :developers, :posts, :comments
+  fixtures :developers, :posts, :comments, :authors
 
   def test_default_scope
     expected = Developer.all.merge!(order: "salary DESC").to_a.collect(&:salary)
@@ -174,6 +175,24 @@ class DefaultScopingTest < ActiveRecord::TestCase
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
     assert_equal expected.sort, received.sort
+  end
+
+  def test_unscope_nested_attributes_where_clause
+    david_author = Author.find_by(name: "David")
+
+    received = david_author.comments_having_post_tag_count_one.unscope(where: { posts: :tags_count })
+    expected = david_author.comments
+
+    assert_equal expected, received
+  end
+
+  def test_unscope_nested_attributes_where_clause_for_unknown_columns
+    expected = Developer.all
+    received_1 = Developer.where(name: "Jamis").unscope(where: :name)
+    received_2 = Developer.where(name: "Jamis").unscope(where: { name: :unknown_column })
+
+    assert_equal expected.sort, received_1.sort
+    assert_equal expected.sort, received_2.sort
   end
 
   def test_unscope_with_grouping_attributes

@@ -553,6 +553,12 @@
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
+*   Fix `ActiveRecord::QueryMethod#unscope` for nested attributes.
+
+    Fixes #35150.
+
+    *Abhay Nikam*
+
 *   Add database configuration to disable advisory locks.
 
     ```

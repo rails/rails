@@ -47,6 +47,7 @@ class Author < ActiveRecord::Base
   has_many :ordered_uniq_comments, -> { distinct.order("comments.id") }, through: :posts, source: :comments
   has_many :ordered_uniq_comments_desc, -> { distinct.order("comments.id DESC") }, through: :posts, source: :comments
   has_many :readonly_comments, -> { readonly }, through: :posts, source: :comments
+  has_many :comments_having_post_tag_count_one, -> { posts_having_tag_count_one }, through: :posts, source: :comments
 
   has_many :special_posts
   has_many :special_post_comments, through: :special_posts, source: :comments

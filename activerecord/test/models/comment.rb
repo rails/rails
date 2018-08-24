@@ -10,6 +10,7 @@ class Comment < ActiveRecord::Base
   scope :for_first_post, -> { where(post_id: 1) }
   scope :for_first_author, -> { joins(:post).where("posts.author_id" => 1) }
   scope :created, -> { all }
+  scope :posts_having_tag_count_one, -> { where(posts: { tags_count: 1 }) }
 
   belongs_to :post, counter_cache: true
   belongs_to :author,   polymorphic: true

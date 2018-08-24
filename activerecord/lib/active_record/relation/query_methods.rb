@@ -387,7 +387,7 @@ module ActiveRecord
               raise ArgumentError, "Hash arguments in .unscope(*args) must have :where as the key."
             end
 
-            target_values = Array(target_value).map(&:to_s)
+            target_values = Array(target_value).flatten.map(&:to_s)
             self.where_clause = where_clause.except(*target_values)
           end
         else
