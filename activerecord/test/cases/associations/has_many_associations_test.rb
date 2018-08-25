@@ -12,7 +12,6 @@ require "models/category"
 require "models/image"
 require "models/post"
 require "models/author"
-require "models/book"
 require "models/essay"
 require "models/comment"
 require "models/person"
@@ -28,7 +27,6 @@ require "models/categorization"
 require "models/minivan"
 require "models/speedometer"
 require "models/reference"
-require "models/job"
 require "models/college"
 require "models/student"
 require "models/pirate"
@@ -115,7 +113,7 @@ end
 class HasManyAssociationsTest < ActiveRecord::TestCase
   fixtures :accounts, :categories, :companies, :developers, :projects,
            :developers_projects, :topics, :authors, :author_addresses, :comments,
-           :posts, :readers, :taggings, :cars, :jobs, :tags,
+           :posts, :readers, :taggings, :cars, :tags,
            :categorizations, :zines, :interests
 
   def setup
