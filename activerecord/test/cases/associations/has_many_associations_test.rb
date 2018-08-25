@@ -12,6 +12,7 @@ require "models/category"
 require "models/image"
 require "models/post"
 require "models/author"
+require "models/book"
 require "models/essay"
 require "models/comment"
 require "models/person"
@@ -375,6 +376,27 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
 
     line_item = invoice.line_items.create invoice_id: invoice.id + 1
     assert_equal invoice.id, line_item.invoice_id
+  end
+
+  class SpecialAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_many :books, class_name: "SpecialBook", foreign_key: :author_id
+  end
+
+  class SpecialBook < ActiveRecord::Base
+    self.table_name = "books"
+
+    belongs_to :author
+    enum read_status: { unread: 0, reading: 2, read: 3, forgotten: nil }
+  end
+
+  def test_association_enum_works_properly
+    author = SpecialAuthor.create!(name: "Test")
+    book = SpecialBook.create!(read_status: "reading")
+    author.books << book
+
+    assert_equal "reading", book.read_status
+    assert_not_equal 0, SpecialAuthor.joins(:books).where(books: { read_status: "reading" }).count
   end
 
   # When creating objects on the association, we must not do it within a scope (even though it
