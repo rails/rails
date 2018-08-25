@@ -28,7 +28,7 @@ module ActiveSupport
           captured_stream = Tempfile.new(stream)
           stream_io = eval("$#{stream}")
           origin_stream = stream_io.dup
-          stream_io.reopen(captured_stream)
+          stream_io.reopen(captured_stream.read)
 
           yield
 
