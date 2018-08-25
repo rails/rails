@@ -540,7 +540,7 @@ DEPENDENCIES
   minitest-bisect
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
-  pg (>= 0.18.0)
+  pg (>= 0.18.0, < 1.1)
   psych (~> 3.0)
   puma
   que
@@ -575,4 +575,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.3
+   1.16.4
