@@ -15,7 +15,7 @@ class HashExtTest < ActiveSupport::TestCase
     @nested_strings = { "a" => { "b" => { "c" => 3 } } }
     @symbols = { a: 1, b: 2 }
     @nested_symbols = { a: { b: { c: 3 } } }
-    @mixed = { :a => 1, "b" => 2 }
+    @mixed = { a: 1, "b" => 2 }
     @nested_mixed = { "a" => { b: { "c" => 3 } } }
     @integers = { 0 => 1, 1 => 2 }
     @nested_integers = { 0 => { 1 => { 2 => 3 } } }
@@ -43,6 +43,8 @@ class HashExtTest < ActiveSupport::TestCase
     assert_respond_to h, :stringify_keys!
     assert_respond_to h, :deep_stringify_keys
     assert_respond_to h, :deep_stringify_keys!
+    assert_respond_to h, :replace_key
+    assert_respond_to h, :replace_key!
     assert_respond_to h, :to_options
     assert_respond_to h, :to_options!
     assert_respond_to h, :except
@@ -86,7 +88,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.transform_keys! { |key| key.to_s.upcase }
     assert_equal @upcase_strings, transformed_hash
-    assert_equal({ :a => 1, "b" => 2 }, @mixed)
+    assert_equal({ a: 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_transform_keys!
@@ -142,7 +144,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.deep_symbolize_keys!
     assert_equal @symbols, transformed_hash
-    assert_equal({ :a => 1, "b" => 2 }, @mixed)
+    assert_equal({ a: 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_symbolize_keys!
@@ -218,7 +220,7 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash = @mixed.dup
     transformed_hash.stringify_keys!
     assert_equal @strings, transformed_hash
-    assert_equal({ :a => 1, "b" => 2 }, @mixed)
+    assert_equal({ a: 1, "b" => 2 }, @mixed)
   end
 
   def test_deep_stringify_keys!
@@ -235,6 +237,43 @@ class HashExtTest < ActiveSupport::TestCase
     transformed_hash.deep_stringify_keys!
     assert_equal @nested_strings, transformed_hash
     assert_equal({ "a" => { b: { "c" => 3 } } }, @nested_mixed)
+  end
+
+  def test_replace_key
+    assert_equal({ c: 1, b: 2 }, @symbols.replace_key(:a, :c))
+    assert_equal({ "c" => 1, "b" => 2 }, @strings.replace_key("a", "c"))
+    assert_equal({ c: 1, "b" => 2 }, @mixed.replace_key(:a, :c))
+    assert_equal({ "c" => 1, "b" => 2 }, @mixed.replace_key(:a, "c"))
+    assert_equal({ a: 1, "b" => 2 }, @mixed.replace_key(:a, :a))
+    exception = assert_raise ArgumentError do
+      @mixed.replace_key(:d, "c")
+    end
+    assert_equal "Unknown key: :d", exception.message
+  end
+
+  def test_replace_key_not_mutates
+    transformed_hash = @mixed.dup
+    assert_equal({ "c" => 1, "b" => 2 }, transformed_hash.replace_key(:a, "c"))
+    assert_equal @mixed, transformed_hash
+  end
+
+  def test_replace_key!
+    assert_equal({ c: 1, b: 2 }, @symbols.dup.replace_key!(:a, :c))
+    assert_equal({ "c" => 1, "b" => 2 }, @strings.dup.replace_key!("a", "c"))
+    assert_equal({ c: 1, "b" => 2 }, @mixed.dup.replace_key!(:a, :c))
+    assert_equal({ "c" => 1, "b" => 2 }, @mixed.dup.replace_key!(:a, "c"))
+    assert_equal({ a: 1, "b" => 2 }, @mixed.dup.replace_key!(:a, :a))
+    exception = assert_raise ArgumentError do
+      @mixed.dup.replace_key!(:d, "c")
+    end
+    assert_equal "Unknown key: :d", exception.message
+  end
+
+  def test_replace_key_with_bang_mutates
+    transformed_hash = @mixed.dup
+    transformed_hash.replace_key!(:a, "c")
+    assert_equal({ "c" => 1, "b" => 2 }, transformed_hash)
+    assert_equal({ a: 1, "b" => 2 }, @mixed)
   end
 
   def test_assert_valid_keys

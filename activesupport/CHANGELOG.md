@@ -1,3 +1,14 @@
+*   Add `Hash#replace_key` and `Hash#replace_key!`.
+
+    These two methods replace a hash's `old_key` with `new_key`, following Ruby's bang (`!`)
+    convention. If `old_key` is not a key of the current hash, an `ArgumentError` is thrown.
+
+        hash = { 'name' => 'Rob', 'age' => '28' }
+        hash.replace_key('name', 'first_name')
+        # => {"age"=>"28", "first_name"=>"Rob"}
+
+    *Evan Chan*
+
 *   Add `Array#extract!`.
 
     The method removes and returns the elements for which the block returns a true value.
