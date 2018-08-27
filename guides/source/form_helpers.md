@@ -29,21 +29,18 @@ The main form helper is `form_with`.
   Form contents
 <% end %>
 ```
+
 When called without arguments like this, it creates a `<form>` tag which, when submitted, will POST to the current page. For instance, assuming the current page is `/home/index`, the generated HTML will look like this (some line breaks added for readability):
 
 ```html
 <form accept-charset="UTF-8" action="/" data-remote="true" method="post">
-  <input name="utf8" type="hidden" value="&#x2713;" />
   <input name="authenticity_token" type="hidden" value="J7CBxfHalt49OSHp27hblqK20c9PgwJ108nDHX/8Cts=" />
   Form contents
 </form>
 ```
 
-You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because the form cannot be successfully submitted without it. The hidden input element with the name `utf8` enforces browsers to properly respect your form's character encoding and is generated for all forms whether their action is "GET" or "POST".
-
-The second input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
-
-TIP: `form_with` looks a bit funny by itself, doesn't it? In the wild you will be almost always be supplying it with `model`, `url`, or `scope` arguments, discussed more below.
+You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because the form cannot be successfully submitted without it.
+The hidden input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf).
 
 ### A Generic Search Form
 
@@ -68,7 +65,6 @@ This will generate the following HTML:
 
 ```html
 <form accept-charset="UTF-8" action="/search" data-remote="true" method="get">
-  <input name="utf8" type="hidden" value="&#x2713;" />
   <label for="q">Search for:</label>
   <input id="q" name="q" type="text" />
   <input name="commit" type="submit" value="Search" data-disable-with="Search" />
@@ -229,7 +225,7 @@ Rails provides helpers for displaying the validation errors associated with a mo
 
 ### Binding a Form to an Object
 
-While this is an increase in comfort it is far from perfect. If `Person` has many attributes to edit then we would be repeating the name of the edited object many times. What we want to do is somehow bind a form to a model object, which is exactly what `form_for` does.
+While this is an increase in comfort it is far from perfect. If `Person` has many attributes to edit then we would be repeating the name of the edited object many times. What we want to do is somehow bind a form to a model object, which is exactly what `form_with` with `:model` does.
 
 Assume we have a controller for dealing with articles `app/controllers/articles_controller.rb`:
 
@@ -239,7 +235,7 @@ def new
 end
 ```
 
-The corresponding view `app/views/articles/new.html.erb` using `form_for` looks like this:
+The corresponding view `app/views/articles/new.html.erb` using `form_with` looks like this:
 
 ```erb
 <%= form_with model: @article, class: "nifty_form" do |f| %>
@@ -260,8 +256,7 @@ There are a few things to note here:
 The resulting HTML is:
 
 ```html
-<form class="nifty_form" id="new_article" action="/articles" accept-charset="UTF-8" method="post">
-  <input name="utf8" type="hidden" value="&#x2713;" />
+<form class="nifty_form" action="/articles" accept-charset="UTF-8" data-remote="true" method="post">
   <input type="hidden" name="authenticity_token" value="NRkFyRWxdYNfUg7vYxLOp2SLf93lvnl+QwDWorR42Dp6yZXPhHEb6arhDOIWcqGit8jfnrPwL781/xlrzj63TA==" />
   <input type="text" name="article[title]" id="article_title" />
   <textarea name="article[body]" id="article_body" cols="60" rows="12"></textarea>
@@ -289,15 +284,14 @@ You can create a similar binding without actually creating `<form>` tags with th
 which produces the following output:
 
 ```html
-<form class="new_person" id="new_person" action="/people" accept-charset="UTF-8" method="post">
-  <input name="utf8" type="hidden" value="&#x2713;" />
+<form action="/people" accept-charset="UTF-8" data-remote="true" method="post">
   <input type="hidden" name="authenticity_token" value="bL13x72pldyDD8bgtkjKQakJCpd4A8JdXGbfksxBDHdf1uC0kCMqe2tvVdUYfidJt0fj3ihC4NxiVHv8GVYxJA==" />
   <input type="text" name="person[name]" id="person_name" />
   <input type="text" name="contact_detail[phone_number]" id="contact_detail_phone_number" />
 </form>
 ```
 
-The object yielded by `fields_for` is a form builder like the one yielded by `form_with` (in fact `form_with` calls `fields_for` internally).
+The object yielded by `fields_for` is a form builder like the one yielded by `form_with`.
 
 ### Relying on Record Identification
 
@@ -333,7 +327,7 @@ WARNING: When you're using STI (single-table inheritance) with your models, you 
 
 #### Dealing with Namespaces
 
-If you have created namespaced routes, `form_for` has a nifty shorthand for that too. If your application has an admin namespace then
+If you have created namespaced routes, `form_with` has a nifty shorthand for that too. If your application has an admin namespace then
 
 ```ruby
 form_with model: [:admin, @article]
@@ -360,13 +354,11 @@ form_with(url: search_path, method: "patch")
 output:
 
 ```html
-<form accept-charset="UTF-8" action="/search" method="post">
+<form accept-charset="UTF-8" action="/search"  data-remote="true" method="post">
   <input name="_method" type="hidden" value="patch" />
-  <input name="utf8" type="hidden" value="&#x2713;" />
   <input name="authenticity_token" type="hidden" value="f755bb0ed134b76c432144748a6d4b7a7ddf2b71" />
   ...
 </form>
-
 ```
 
 When parsing POSTed data, Rails will take into account the special `_method` parameter and act as if the HTTP method was the one specified inside it ("PATCH" in this example).
@@ -613,16 +605,16 @@ will produce the same output if the current year is 2009 and the value chosen by
 Uploading Files
 ---------------
 
-A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's encoding **MUST** be set to "multipart/form-data". If you use `form_for`, this is done automatically. If you use `form_tag`, you must set it yourself, as per the following example.
+A common task is uploading some sort of file, whether it's a picture of a person or a CSV file containing data to process. The most important thing to remember with file uploads is that the rendered form's enctype attribute **must** be set to "multipart/form-data". If you use `form_with` with `:model`, this is done automatically. If you use `form_with` without `:model`, you must set it yourself, as per the following example.
 
 The following two forms both upload a file.
 
 ```erb
-<%= form_tag({action: :upload}, multipart: true) do %>
+<%= form_with(url: {action: :upload}, multipart: true) do %>
   <%= file_field_tag 'picture' %>
 <% end %>
 
-<%= form_for @person do |f| %>
+<%= form_with model: @person do |f| %>
   <%= f.file_field :picture %>
 <% end %>
 ```
@@ -642,13 +634,7 @@ def upload
 end
 ```
 
-Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on disk, Amazon S3, etc) and associating them with models to resizing image files and generating thumbnails. [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html) is designed to assist with these tasks.
-
-NOTE: If the user has not selected a file the corresponding parameter will be an empty string.
-
-### Dealing with Ajax
-
-Unlike other forms, making an asynchronous file upload form is not as simple as providing `form_for` with `remote: true`. With an Ajax form the serialization is done by JavaScript running inside the browser and since JavaScript cannot read files from your hard drive the file cannot be uploaded. The most common workaround is to use an invisible iframe that serves as the target for the form submission.
+Once a file has been uploaded, there are a multitude of potential tasks, ranging from where to store the files (on Disk, Amazon S3, etc), associating them with models, resizing image files, and generating thumbnails, etc. [Active Storage](https://guides.rubyonrails.org/active_storage_overview.html) is designed to assist with these tasks.
 
 Customizing Form Builders
 -------------------------
@@ -679,12 +665,12 @@ class LabellingFormBuilder < ActionView::Helpers::FormBuilder
 end
 ```
 
-If you reuse this frequently you could define a `labeled_form_for` helper that automatically applies the `builder: LabellingFormBuilder` option:
+If you reuse this frequently you could define a `labeled_form_with` helper that automatically applies the `builder: LabellingFormBuilder` option:
 
 ```ruby
-def labeled_form_for(record, options = {}, &block)
+def labeled_form_with(model: nil, scope: nil, url: nil, format: nil, **options, &block)
   options.merge! builder: LabellingFormBuilder
-  form_for record, options, &block
+  form_with model: model, scope: scope, url: url, format: format, **options, &block
 end
 ```
 
@@ -760,7 +746,7 @@ WARNING: Array parameters do not play well with the `check_box` helper. Accordin
 
 ### Using Form Helpers
 
-The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support. The two tools at your disposal here are the name parameter to `form_for` and `fields_for` and the `:index` option that helpers take.
+The previous sections did not use the Rails form helpers at all. While you can craft the input names yourself and pass them directly to helpers such as `text_field_tag` Rails also provides higher level support. The two tools at your disposal here are the name parameter to `form_with` and `fields_for` and the `:index` option that helpers take.
 
 You might want to render a form with a set of edit fields for each of a person's addresses. For example:
 
@@ -778,7 +764,7 @@ You might want to render a form with a set of edit fields for each of a person's
 Assuming the person had two addresses, with ids 23 and 45 this would create output similar to this:
 
 ```html
-<form accept-charset="UTF-8" action="/people/1" class="edit_person" id="edit_person_1" method="post">
+<form accept-charset="UTF-8" action="/people/1" data-remote="true" method="post">
   <input id="person_name" name="person[name]" type="text" />
   <input id="person_address_23_city" name="person[address][23][city]" type="text" />
   <input id="person_address_45_city" name="person[address][45][city]" type="text" />
@@ -829,7 +815,7 @@ produces exactly the same output as the previous example.
 Forms to External Resources
 ---------------------------
 
-Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_tag` options:
+Rails' form helpers can also be used to build a form for posting data to an external resource. However, at times it can be necessary to set an `authenticity_token` for the resource; this can be done by passing an `authenticity_token: 'your_external_token'` parameter to the `form_with` options:
 
 ```erb
 <%= form_with url: 'http://farfar.away/form', authenticity_token: 'external_token' do %>
@@ -841,22 +827,6 @@ Sometimes when submitting data to an external resource, like a payment gateway, 
 
 ```erb
 <%= form_with url: 'http://farfar.away/form', authenticity_token: false do %>
-  Form contents
-<% end %>
-```
-
-The same technique is also available for `form_with model:`:
-
-```erb
-<%= form_with model: @invoice, url: external_url, authenticity_token: 'external_token' do |f| %>
-  Form contents
-<% end %>
-```
-
-Or if you don't want to render an `authenticity_token` field:
-
-```erb
-<%= form_with model: @invoice, url: external_url, authenticity_token: false do |f| %>
   Form contents
 <% end %>
 ```
