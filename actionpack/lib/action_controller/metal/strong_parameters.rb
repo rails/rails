@@ -997,8 +997,8 @@ module ActionController
   #
   # It provides an interface for protecting attributes from end-user
   # assignment. This makes Action Controller parameters forbidden
-  # to be used in Active Model mass assignment until they have been
-  # permitted.
+  # to be used in Active Model mass assignment until they have been explicitly
+  # enumerated.
   #
   # In addition, parameters can be marked as required and flow through a
   # predefined raise/rescue flow to end up as a <tt>400 Bad Request</tt> with no

@@ -324,7 +324,7 @@ class FakeKlass
       table[name]
     end
 
-    def enforce_raw_sql_permit_list(*args)
+    def disallow_raw_sql!(*args)
       # noop
     end
 

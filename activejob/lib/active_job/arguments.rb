@@ -26,16 +26,18 @@ module ActiveJob
     # :nodoc:
     PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
 
-    # Serializes a set of arguments. Permitted types are returned
-    # as-is. Arrays/Hashes are serialized element by element.
-    # All other types are serialized using GlobalID.
+    # Serializes a set of arguments. Intrinsic types that can safely be
+    # serialized without mutation are returned as-is. Arrays/Hashes are
+    # serialized element by element. All other types are serialized using
+    # GlobalID.
     def serialize(arguments)
       arguments.map { |argument| serialize_argument(argument) }
     end
 
-    # Deserializes a set of arguments. Permitted types are returned
-    # as-is. Arrays/Hashes are deserialized element by element.
-    # All other types are deserialized using GlobalID.
+    # Deserializes a set of arguments. Instrinsic types that can safely be
+    # deserialized without mutation are returned as-is. Arrays/Hashes are
+    # deserialized element by element. All other types are deserialized using
+    # GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
     rescue

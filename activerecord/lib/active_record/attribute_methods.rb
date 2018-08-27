@@ -167,12 +167,14 @@ module ActiveRecord
         end
       end
 
-      # Regexp permitted list. Matches the following:
+      # Regexp for column names (with or without a table name prefix). Matches
+      # the following:
       #   "#{table_name}.#{column_name}"
       #   "#{column_name}"
-      COLUMN_NAME_PERMIT_LIST = /\A(?:\w+\.)?\w+\z/i
+      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
 
-      # Regexp permitted list. Matches the following:
+      # Regexp for column names with order (with or without a table name
+      # prefix, with or without various order modifiers). Matches the following:
       #   "#{table_name}.#{column_name}"
       #   "#{table_name}.#{column_name} #{direction}"
       #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
@@ -181,7 +183,7 @@ module ActiveRecord
       #   "#{column_name} #{direction}"
       #   "#{column_name} #{direction} NULLS FIRST"
       #   "#{column_name} NULLS LAST"
-      COLUMN_NAME_ORDER_PERMIT_LIST = /
+      COLUMN_NAME_WITH_ORDER = /
         \A
         (?:\w+\.)?
         \w+
@@ -190,12 +192,12 @@ module ActiveRecord
         \z
       /ix
 
-      def enforce_raw_sql_permit_list(args, permit_list: COLUMN_NAME_PERMIT_LIST) # :nodoc:
+      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
         unexpected = args.reject do |arg|
           arg.kind_of?(Arel::Node) ||
             arg.is_a?(Arel::Nodes::SqlLiteral) ||
             arg.is_a?(Arel::Attributes::Attribute) ||
-            arg.to_s.split(/\s*,\s*/).all? { |part| permit_list.match?(part) }
+            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
         end
 
         return if unexpected.none?
