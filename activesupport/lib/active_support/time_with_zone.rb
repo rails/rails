@@ -288,7 +288,7 @@ module ActiveSupport
 
     # Subtracts an interval of time and returns a new TimeWithZone object unless
     # the other value `acts_like?` time. Then it will return a Float of the difference
-    # between the two times) that represents the difference between the current
+    # between the two times that represents the difference between the current
     # object's time and the +other+ time.
     #
     #   Time.zone = 'Eastern Time (US & Canada)' # => 'Eastern Time (US & Canada)'
