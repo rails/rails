@@ -1204,19 +1204,25 @@ module ActiveRecord
     alias :current :current_migration
 
     def run
-      if use_advisory_lock?
-        with_advisory_lock { run_without_lock }
-      else
-        run_without_lock
-      end
+      migration = migrations.detect { |m| m.version == @target_version }
+      raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
+      result = execute_migration_in_transaction(migration, @direction)
+
+      record_environment
+      result
     end
 
     def migrate
-      if use_advisory_lock?
-        with_advisory_lock { migrate_without_lock }
-      else
-        migrate_without_lock
+      if invalid_target?
+        raise UnknownMigrationVersionError.new(@target_version)
       end
+
+      result = runnable.each do |migration|
+        execute_migration_in_transaction(migration, @direction)
+      end
+
+      record_environment
+      result
     end
 
     def runnable
@@ -1249,30 +1255,6 @@ module ActiveRecord
 
     private
 
-      # Used for running a specific migration.
-      def run_without_lock
-        migration = migrations.detect { |m| m.version == @target_version }
-        raise UnknownMigrationVersionError.new(@target_version) if migration.nil?
-        result = execute_migration_in_transaction(migration, @direction)
-
-        record_environment
-        result
-      end
-
-      # Used for running multiple migrations up to or down to a certain value.
-      def migrate_without_lock
-        if invalid_target?
-          raise UnknownMigrationVersionError.new(@target_version)
-        end
-
-        result = runnable.each do |migration|
-          execute_migration_in_transaction(migration, @direction)
-        end
-
-        record_environment
-        result
-      end
-
       # Stores the current environment in the database.
       def record_environment
         return if down?
@@ -1295,14 +1277,24 @@ module ActiveRecord
         Base.logger.info "Migrating to #{migration.name} (#{migration.version})" if Base.logger
 
         ddl_transaction(migration) do
-          migration.migrate(direction)
-          record_version_state_after_migrating(migration.version)
+          if use_advisory_lock?
+            with_advisory_lock { execute_migration_without_lock(migration, direction) }
+          else
+            execute_migration_without_lock(migration, direction)
+          end
         end
+      rescue ConcurrentMigrationError => e
+        raise e
       rescue => e
         msg = "An error has occurred, ".dup
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace
+      end
+
+      def execute_migration_without_lock(migration, direction)
+        migration.migrate(direction)
+        record_version_state_after_migrating(migration.version)
       end
 
       def target
