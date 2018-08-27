@@ -65,6 +65,46 @@ class Hash
   end
   alias_method :to_options!, :symbolize_keys!
 
+  # Returns a copy of the current hash, with its +old_key+ replaced with
+  # +new_key+. If +old_key+ is not a key of the current hash, an +ArgumentError+
+  # is thrown. This method does not modify +self+.
+  #
+  #   hash = { 'name' => 'Rob', 'age' => '28' }
+  #
+  #   new_hash = hash.replace_key('name', 'first_name')
+  #   # => {"age"=>"28", "first_name"=>"Rob"}
+  #   hash
+  #   # => {"name"=>"Rob", "age"=>"28"}
+  #
+  #   hash = { 'name' => 'Rob', 'age' => '28' }
+  #
+  #   hash.replace_key('first_name', 'last_name')
+  #   # => ArgumentError: Unknown key: "first_name"
+  def replace_key(old_key, new_key)
+    new_hash = self.dup.replace_key!(old_key, new_key)
+  end
+
+  # Replace current hash's +old_key+ with +new_key+. If +old_key+ is not a key
+  # of the current hash, an +ArgumentError+ is thrown.
+  #
+  #   hash = { 'name' => 'Rob', 'age' => '28' }
+  #
+  #   hash.replace_key!('name', 'first_name')
+  #   # => {"age"=>"28", "first_name"=>"Rob"}
+  #   hash
+  #   # => {"age"=>"28", "first_name"=>"Rob"}
+  #
+  #   hash = { 'name' => 'Rob', 'age' => '28' }
+  #
+  #   hash.replace_key!('first_name', 'last_name')
+  #   # => ArgumentError: Unknown key: "first_name"
+  def replace_key!(old_key, new_key)
+    raise ArgumentError.new("Unknown key: #{old_key.inspect}") unless has_key?(old_key)
+    return self if old_key == new_key
+    self[new_key] = self.delete(old_key)
+    self
+  end
+
   # Validates all keys in a hash match <tt>*valid_keys</tt>, raising
   # +ArgumentError+ on a mismatch.
   #
