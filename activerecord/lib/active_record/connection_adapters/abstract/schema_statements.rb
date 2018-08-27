@@ -521,7 +521,10 @@ module ActiveRecord
       # * <tt>:precision</tt> -
       #   Specifies the precision for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
       # * <tt>:scale</tt> -
-      #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns.
+      #   Specifies the scale for the <tt>:decimal</tt> and <tt>:numeric</tt> columns. 
+      # * <tt>:collation</tt> -
+      #   Specifies the collation for a <tt>:string</tt> or <tt>:text</tt> column. If not specified, the
+      #   column will have the same collation as the table.
       # * <tt>:comment</tt> -
       #   Specifies the comment for the column. This option is ignored by some backends.
       #
