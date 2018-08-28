@@ -108,7 +108,10 @@ module ActiveSupport #:nodoc:
       #
       #   'Café'.mb_chars.reverse.to_s # => 'éfaC'
       def reverse
-        chars(Unicode.unpack_graphemes(@wrapped_string).reverse.flatten.pack("U*"))
+        array = Unicode.unpack_graphemes(@wrapped_string)
+        array.reverse!
+        array.flatten!
+        chars(array.pack("U*"))
       end
 
       # Limits the byte size of the string to a number of bytes without breaking
