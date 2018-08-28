@@ -34,9 +34,11 @@ module ActiveRecord
 
       unless (payload[:binds] || []).empty?
         casted_params = type_casted_binds(payload[:type_casted_binds])
-        binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
+        casted_binds = payload[:binds].zip(casted_params)
+        casted_binds.map! { |attr, value|
           render_bind(attr, value)
-        }.inspect
+        }
+        binds = "  " + casted_binds.inspect
       end
 
       name = colorize_payload_name(name, payload[:name])
