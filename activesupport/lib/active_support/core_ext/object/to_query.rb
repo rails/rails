@@ -79,7 +79,8 @@ class Hash
       unless (value.is_a?(Hash) || value.is_a?(Array)) && value.empty?
         value.to_query(namespace ? "#{namespace}[#{key}]" : key)
       end
-    end.compact
+    end
+    query.compact!
 
     query.sort! unless namespace.to_s.include?("[]")
     query.join("&")
