@@ -192,7 +192,10 @@ module ActiveModel
       #   #      #<StrictValidator:0x007fbff3204a30 @options={strict:true}>
       #   #    ]
       def validators
-        _validators.values.flatten.uniq
+        array = _validators.values
+        array.flatten!
+        array.uniq!
+        array
       end
 
       # Clears all of the validators and validations.
