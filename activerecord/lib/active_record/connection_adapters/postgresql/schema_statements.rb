@@ -115,12 +115,13 @@ module ActiveRecord
             if indkey.include?(0)
               columns = expressions
             else
-              columns = Hash[query(<<~SQL, "SCHEMA")].values_at(*indkey).compact
+              columns = Hash[query(<<~SQL, "SCHEMA")].values_at(*indkey)
                 SELECT a.attnum, a.attname
                 FROM pg_attribute a
                 WHERE a.attrelid = #{oid}
                 AND a.attnum IN (#{indkey.join(",")})
               SQL
+              columns.compact!
 
               # add info on sort order (only desc order is explicitly specified, asc is the default)
               # and non-default opclasses
@@ -575,13 +576,16 @@ module ActiveRecord
         # PostgreSQL requires the ORDER BY columns in the select list for distinct queries, and
         # requires that the ORDER BY include the distinct column.
         def columns_for_distinct(columns, orders) #:nodoc:
-          order_columns = orders.reject(&:blank?).map { |s|
-              # Convert Arel node to string
-              s = s.to_sql unless s.is_a?(String)
-              # Remove any ASC/DESC modifiers
-              s.gsub(/\s+(?:ASC|DESC)\b/i, "")
-               .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
-            }.reject(&:blank?).map.with_index { |column, i| "#{column} AS alias_#{i}" }
+          order_columns = orders.reject(&:blank?)
+          order_columns.map! do |s|
+            # Convert Arel node to string
+            s = s.to_sql unless s.is_a?(String)
+            # Remove any ASC/DESC modifiers
+            s.gsub(/\s+(?:ASC|DESC)\b/i, "")
+             .gsub(/\s+NULLS\s+(?:FIRST|LAST)\b/i, "")
+          end
+          order_columns.reject!(&:blank?)
+          order_columns = order_columns.map.with_index { |column, i| "#{column} AS alias_#{i}" }
 
           (order_columns << super).join(", ")
         end
