@@ -1001,6 +1001,12 @@ class FinderTest < ActiveRecord::TestCase
     end
   end
 
+  def test_condition_arel_attribute
+    relation = Company.where(name: Company.arel_table[:name])
+    assert_sql(/\bname\b.*=.*\bname\b/) { relation.first }
+    assert_equal Company.count, relation.count
+  end
+
   def test_bind_variables
     assert_kind_of Firm, Company.where(["name = ?", "37signals"]).first
     assert_nil Company.where(["name = ?", "37signals!"]).first
