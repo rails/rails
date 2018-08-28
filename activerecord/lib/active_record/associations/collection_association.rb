@@ -61,7 +61,8 @@ module ActiveRecord
 
         records = klass.where(primary_key => ids).index_by do |r|
           r.public_send(primary_key)
-        end.values_at(*ids).compact
+        end.values_at(*ids)
+        records.compact!
 
         if records.size != ids.size
           found_ids = records.map { |record| record.public_send(primary_key) }
@@ -501,7 +502,10 @@ module ActiveRecord
         # specified, then #find scans the entire collection.
         def find_by_scan(*args)
           expects_array = args.first.kind_of?(Array)
-          ids           = args.flatten.compact.map(&:to_s).uniq
+          ids           = args.flatten
+          ids.compact!
+          ids.map!(&:to_s)
+          ids.uniq!
 
           if ids.size == 1
             id = ids.first
