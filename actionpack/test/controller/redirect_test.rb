@@ -5,6 +5,12 @@ require "abstract_unit"
 class Workshop
   extend ActiveModel::Naming
   include ActiveModel::Conversion
+
+  OUT_OF_SCOPE_BLOCK = proc do
+    raise "Not executed in controller's context" unless RedirectController === self
+    request.original_url
+  end
+
   attr_accessor :id
 
   def initialize(id)
@@ -120,12 +126,7 @@ class RedirectController < ActionController::Base
   end
 
   def redirect_to_out_of_scope_block
-    redirect_to self.class.class_eval(<<~END)
-      Proc.new do
-        raise "Not executed in controller's context" unless RedirectController === self
-        request.original_url
-      end
-    END
+    redirect_to Workshop::OUT_OF_SCOPE_BLOCK
   end
 
   def redirect_with_header_break
