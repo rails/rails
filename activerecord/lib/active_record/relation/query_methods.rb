@@ -953,7 +953,12 @@ module ActiveRecord
           )
           arel.skip(Arel::Nodes::BindParam.new(offset_attribute))
         end
-        arel.group(*arel_columns(group_values.uniq.reject(&:blank?))) unless group_values.empty?
+
+        unless group_values.empty?
+          group_columns = group_values.uniq
+          group_columns.reject!(&:blank?)
+          arel.group(*arel_columns(group_columns))
+        end
 
         build_order(arel)
 
@@ -1021,7 +1026,8 @@ module ActiveRecord
         association_joins = buckets[:association_join]
         stashed_joins     = buckets[:stashed_join]
         join_nodes        = buckets[:join_node].uniq
-        string_joins      = buckets[:string_join].map(&:strip).uniq
+        string_joins      = buckets[:string_join].map(&:strip)
+        string_joins.uniq!
 
         join_list = join_nodes + convert_join_strings_to_ast(string_joins)
         alias_tracker = alias_tracker(join_list, aliases)
@@ -1037,10 +1043,10 @@ module ActiveRecord
       end
 
       def convert_join_strings_to_ast(joins)
-        joins
-          .flatten
-          .reject(&:blank?)
-          .map { |join| table.create_string_join(Arel.sql(join)) }
+        ast = joins.flatten
+        ast.reject!(&:blank?)
+        ast.map! { |join| table.create_string_join(Arel.sql(join)) }
+        ast
       end
 
       def build_select(arel)
