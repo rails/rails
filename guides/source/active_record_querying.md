@@ -1277,16 +1277,6 @@ class Article < ApplicationRecord
 end
 ```
 
-This is exactly the same as defining a class method, and which you use is a matter of personal preference:
-
-```ruby
-class Article < ApplicationRecord
-  def self.published
-    where(published: true)
-  end
-end
-```
-
 Scopes are also chainable within scopes:
 
 ```ruby

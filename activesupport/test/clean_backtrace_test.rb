@@ -74,3 +74,43 @@ class BacktraceCleanerFilterAndSilencerTest < ActiveSupport::TestCase
     assert_equal [ "/class.rb" ], @bc.clean([ "/mongrel/class.rb" ])
   end
 end
+
+class BacktraceCleanerDefaultFilterAndSilencerTest < ActiveSupport::TestCase
+  def setup
+    @bc = ActiveSupport::BacktraceCleaner.new
+  end
+
+  test "should format installed gems correctly" do
+    backtrace = [ "#{Gem.default_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    result = @bc.clean(backtrace, :all)
+    assert_equal "nosuchgem (1.2.3) lib/foo.rb", result[0]
+  end
+
+  test "should format installed gems not in Gem.default_dir correctly" do
+    target_dir = Gem.path.detect { |p| p != Gem.default_dir }
+    # skip this test if default_dir is the only directory on Gem.path
+    if target_dir
+      backtrace = [ "#{target_dir}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+      result = @bc.clean(backtrace, :all)
+      assert_equal "nosuchgem (1.2.3) lib/foo.rb", result[0]
+    end
+  end
+
+  test "should format gems installed by bundler" do
+    backtrace = [ "#{Gem.default_dir}/bundler/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    result = @bc.clean(backtrace, :all)
+    assert_equal "nosuchgem (1.2.3) lib/foo.rb", result[0]
+  end
+
+  test "should silence gems from the backtrace" do
+    backtrace = [ "#{Gem.path[0]}/gems/nosuchgem-1.2.3/lib/foo.rb" ]
+    result = @bc.clean(backtrace)
+    assert_empty result
+  end
+
+  test "should silence stdlib" do
+    backtrace = ["#{RbConfig::CONFIG["rubylibdir"]}/lib/foo.rb"]
+    result = @bc.clean(backtrace)
+    assert_empty result
+  end
+end

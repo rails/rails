@@ -319,6 +319,14 @@ class Order < ApplicationRecord
 end
 ```
 
+As the proc is evaluated in the context of the object, it is also possible to write this as:
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number, if: Proc.new { paid_with_card? }
+end
+```
+
 ### Multiple Conditions for Callbacks
 
 When writing conditional callbacks, it is possible to mix both `:if` and `:unless` in the same callback declaration:

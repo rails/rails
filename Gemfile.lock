@@ -276,9 +276,9 @@ GEM
     httpclient (2.8.3)
     i18n (1.0.1)
       concurrent-ruby (~> 1.0)
-    image_processing (1.2.0)
+    image_processing (1.6.0)
       mini_magick (~> 4.0)
-      ruby-vips (>= 2.0.10, < 3)
+      ruby-vips (>= 2.0.11, < 3)
     io-like (0.3.0)
     jaro_winkler (1.5.1)
     jaro_winkler (1.5.1-java)
@@ -309,7 +309,6 @@ GEM
     marcel (0.3.2)
       mimemagic (~> 0.3.2)
     memoist (0.16.0)
-    metaclass (0.0.4)
     method_source (0.9.0)
     mime-types (3.1)
       mime-types-data (~> 3.2015)
@@ -324,8 +323,6 @@ GEM
       path_expander (~> 1.0)
     minitest-server (1.0.5)
       minitest (~> 5.0)
-    mocha (1.5.0)
-      metaclass (~> 0.0.1)
     mono_logger (1.1.0)
     msgpack (1.2.4)
     msgpack (1.2.4-java)
@@ -411,7 +408,7 @@ GEM
       ruby-progressbar (~> 1.7)
       unicode-display_width (~> 1.0, >= 1.0.1)
     ruby-progressbar (1.9.0)
-    ruby-vips (2.0.12)
+    ruby-vips (2.0.13)
       ffi (~> 1.9)
     ruby_dep (1.5.0)
     rubyzip (1.2.1)
@@ -541,10 +538,9 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest-bisect
-  mocha
   mysql2 (>= 0.4.10)
   nokogiri (>= 1.8.1)
-  pg (>= 0.18.0)
+  pg (>= 0.18.0, < 1.1)
   psych (~> 3.0)
   puma
   que
@@ -579,4 +575,4 @@ DEPENDENCIES
   websocket-client-simple!
 
 BUNDLED WITH
-   1.16.2
+   1.16.4

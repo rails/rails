@@ -31,6 +31,14 @@ class ActiveStorage::DiskControllerTest < ActionDispatch::IntegrationTest
     assert_equal " worl", response.body
   end
 
+  test "showing blob that does not exist" do
+    blob = create_blob
+    blob.delete
+
+    get blob.service_url
+    assert_response :not_found
+  end
+
 
   test "directly uploading blob with integrity" do
     data = "Something else entirely!"

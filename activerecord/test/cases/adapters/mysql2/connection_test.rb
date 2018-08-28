@@ -170,6 +170,8 @@ class Mysql2ConnectionTest < ActiveRecord::Mysql2TestCase
   end
 
   def test_logs_name_show_variable
+    ActiveRecord::Base.connection.materialize_transactions
+    @subscriber.logged.clear
     @connection.show_variable "foo"
     assert_equal "SCHEMA", @subscriber.logged[0][1]
   end

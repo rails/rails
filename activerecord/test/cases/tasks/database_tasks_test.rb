@@ -46,35 +46,46 @@ module ActiveRecord
 
   class DatabaseTasksUtilsTask < ActiveRecord::TestCase
     def test_raises_an_error_when_called_with_protected_environment
-      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
-      assert_not_includes protected_environments, current_env
-      # Assert no error
-      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
 
-      ActiveRecord::Base.protected_environments = [current_env]
-
-      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+      assert_called_on_instance_of(
+        ActiveRecord::MigrationContext,
+        :current_version,
+        times: 6,
+        returns: 1
+      ) do
+        assert_not_includes protected_environments, current_env
+        # Assert no error
         ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+        ActiveRecord::Base.protected_environments = [current_env]
+
+        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        end
       end
     ensure
       ActiveRecord::Base.protected_environments = protected_environments
     end
 
     def test_raises_an_error_when_called_with_protected_environment_which_name_is_a_symbol
-      ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
       protected_environments = ActiveRecord::Base.protected_environments
       current_env            = ActiveRecord::Base.connection.migration_context.current_environment
-      assert_not_includes protected_environments, current_env
-      # Assert no error
-      ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
-
-      ActiveRecord::Base.protected_environments = [current_env.to_sym]
-      assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+      assert_called_on_instance_of(
+        ActiveRecord::MigrationContext,
+        :current_version,
+        times: 6,
+        returns: 1
+      ) do
+        assert_not_includes protected_environments, current_env
+        # Assert no error
         ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+
+        ActiveRecord::Base.protected_environments = [current_env.to_sym]
+        assert_raise(ActiveRecord::ProtectedEnvironmentError) do
+          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        end
       end
     ensure
       ActiveRecord::Base.protected_environments = protected_environments
@@ -82,10 +93,14 @@ module ActiveRecord
 
     def test_raises_an_error_if_no_migrations_have_been_made
       ActiveRecord::InternalMetadata.stub(:table_exists?, false) do
-        ActiveRecord::MigrationContext.any_instance.stubs(:current_version).returns(1)
-
-        assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
-          ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+        assert_called_on_instance_of(
+          ActiveRecord::MigrationContext,
+          :current_version,
+          returns: 1
+        ) do
+          assert_raise(ActiveRecord::NoEnvironmentInSchemaError) do
+            ActiveRecord::Tasks::DatabaseTasks.check_protected_environments!
+          end
         end
       end
     end

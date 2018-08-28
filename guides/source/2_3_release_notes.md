@@ -52,7 +52,7 @@ After some versions without an upgrade, Rails 2.3 offers some new features for R
 Documentation
 -------------
 
-The [Ruby on Rails guides](https://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](http://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
+The [Ruby on Rails guides](https://guides.rubyonrails.org/) project has published several additional guides for Rails 2.3. In addition, a [separate site](https://edgeguides.rubyonrails.org/) maintains updated copies of the Guides for Edge Rails. Other documentation efforts include a relaunch of the [Rails wiki](http://newwiki.rubyonrails.org/) and early planning for a Rails Book.
 
 * More Information: [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 

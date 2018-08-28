@@ -1,3 +1,30 @@
+*   `ActiveStorage::Service::AzureStorageService` only handles specifically
+    relevant types of `Azure::Core::Http::HTTPError`. It previously obscured
+    other types of `HTTPError`, which is the azure-storage gem’s catch-all
+    exception class.
+
+    *Cameron Bothner*
+
+*   `ActiveStorage::DiskController#show` generates a 404 Not Found response when
+    the requested file is missing from the disk service. It previously raised
+    `Errno::ENOENT`.
+
+    *Cameron Bothner*
+
+*   `ActiveStorage::Blob#download` and `ActiveStorage::Blob#open` raise
+    `ActiveStorage::FileNotFoundError` when the corresponding file is missing
+    from the storage service. Services translate service-specific missing object
+    exceptions (e.g. `Google::Cloud::NotFoundError` for the GCS service and
+    `Errno::ENOENT` for the disk service) into
+    `ActiveStorage::FileNotFoundError`.
+
+    *Cameron Bothner*
+
+*   Added the `ActiveStorage::SetCurrent` concern for custom Active Storage
+    controllers that can't inherit from `ActiveStorage::BaseController`.
+
+    *George Claghorn*
+
 *   Active Storage error classes like `ActiveStorage::IntegrityError` and
     `ActiveStorage::UnrepresentableError` now inherit from `ActiveStorage::Error`
     instead of `StandardError`. This permits rescuing `ActiveStorage::Error` to

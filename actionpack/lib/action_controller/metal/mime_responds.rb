@@ -105,7 +105,7 @@ module ActionController #:nodoc:
     #
     #   Mime::Type.register "image/jpg", :jpg
     #
-    # Respond to also allows you to specify a common block for different formats by using +any+:
+    # +respond_to+ also allows you to specify a common block for different formats by using +any+:
     #
     #   def index
     #     @people = Person.all

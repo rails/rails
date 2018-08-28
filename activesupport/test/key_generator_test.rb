@@ -9,9 +9,6 @@ rescue LoadError, NameError
   $stderr.puts "Skipping KeyGenerator test: broken OpenSSL install"
 else
 
-  require "active_support/time"
-  require "active_support/json"
-
   class KeyGeneratorTest < ActiveSupport::TestCase
     def setup
       @secret    = SecureRandom.hex(64)

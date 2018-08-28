@@ -275,7 +275,7 @@ config.middleware.delete Rack::MethodOverride
 
 All these configuration options are delegated to the `I18n` library.
 
-* `config.i18n.available_locales` whitelists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+* `config.i18n.available_locales` defines the permitted available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 
@@ -444,7 +444,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
-* `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+* `config.action_controller.always_permitted_parameters` sets a list of permitted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
 * `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
 
@@ -989,6 +989,14 @@ development:
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
 
+Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
+
+```yaml
+production:
+  adapter: mysql2
+  advisory_locks: false
+```
+
 #### Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your `config/database.yml` will be customized to use PostgreSQL databases:
@@ -1001,12 +1009,13 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
+By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
+  advisory_locks: false
 ```
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:

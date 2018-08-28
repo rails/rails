@@ -1,3 +1,25 @@
+*   Add database configuration to disable advisory locks.
+
+    ```
+    production:
+      adapter: postgresql
+      advisory_locks: false
+    ```
+
+    *Guo Xiang*
+
+*   SQLite3 adapter `alter_table` method restores foreign keys.
+
+    *Yasuo Honda*
+
+*   Allow `:to_table` option to `invert_remove_foreign_key`.
+
+    Example:
+
+       remove_foreign_key :accounts, to_table: :owners
+
+    *Nikolay Epifanov*, *Rich Chen*
+
 *   Add environment & load_config dependency to `bin/rake db:seed` to enable
     seed load in environments without Rails and custom DB configuration
 

@@ -34,14 +34,22 @@ module ActiveStorage
         end
       else
         instrument :download, key: key do
-          file_for(key).download.string
+          begin
+            file_for(key).download.string
+          rescue Google::Cloud::NotFoundError
+            raise ActiveStorage::FileNotFoundError
+          end
         end
       end
     end
 
     def download_chunk(key, range)
       instrument :download_chunk, key: key, range: range do
-        file_for(key).download(range: range).string
+        begin
+          file_for(key).download(range: range).string
+        rescue Google::Cloud::NotFoundError
+          raise ActiveStorage::FileNotFoundError
+        end
       end
     end
 
@@ -115,6 +123,8 @@ module ActiveStorage
 
         chunk_size = 5.megabytes
         offset = 0
+
+        raise ActiveStorage::FileNotFoundError unless file.present?
 
         while offset < file.size
           yield file.download(range: offset..(offset + chunk_size - 1)).string

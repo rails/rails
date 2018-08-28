@@ -1,3 +1,25 @@
+*   Fix numericality validator to still use value before type cast except Active Record.
+
+    Fixes #33651, #33686.
+
+    *Ryuta Kamizono*
+
+*   Fix `ActiveModel::Serializers::JSON#as_json` method for timestamps.
+
+     Before:
+     ```
+     contact = Contact.new(created_at: Time.utc(2006, 8, 1))
+     contact.as_json["created_at"] # => 2006-08-01 00:00:00 UTC
+     ```
+
+     After:
+     ```
+     contact = Contact.new(created_at: Time.utc(2006, 8, 1))
+     contact.as_json["created_at"] # => "2006-08-01T00:00:00.000Z"
+     ```
+
+    *Bogdan Gusiev*
+
 *   Allows configurable attribute name for `#has_secure_password`. This
     still defaults to an attribute named 'password', causing no breaking
     change. There is a new method `#authenticate_XXX` where XXX is the

@@ -10,6 +10,7 @@ module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     def setup
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
     end
 
     ##

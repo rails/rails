@@ -1,3 +1,19 @@
+*   Purpose metadata for signed/encrypted cookies.
+
+    Rails can now thwart attacks that attempt to copy signed/encrypted value
+    of a cookie and use it as the value of another cookie.
+
+    It does so by stashing the cookie-name in the purpose field which is
+    then signed/encrypted along with the cookie value. Then, on a server-side
+    read, we verify the cookie-names and discard any attacked cookies.
+
+    Enable `action_dispatch.use_cookies_with_metadata` to use this feature, which
+    writes cookies with the new purpose and expiry metadata embedded.
+
+    Pull Request: #32937
+
+    *Assain Jaleel*
+
 *   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
 
     `respond_to` can match multiple types and lead to undefined behavior when

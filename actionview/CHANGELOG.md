@@ -19,6 +19,16 @@
 
     *Iain Bryson*
 
+*   Deprecate calling private model methods from view helpers.
+
+    For example, in methods like `options_from_collection_for_select`
+    and `collection_select` it is possible to call private methods from
+    the objects used.
+
+    Fixes #33546.
+
+    *Ana María Martínez Gómez*
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that
