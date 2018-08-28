@@ -112,7 +112,9 @@ module ActiveSupport
             raise_parsing_error("time part marker is present but time part is empty")
           end
 
-          fractions = parts.values.reject(&:zero?).select { |a| (a % 1) != 0 }
+          fractions = parts.values
+          fractions.reject!(&:zero?)
+          fractions.select! { |a| (a % 1) != 0 }
           unless fractions.empty? || (fractions.size == 1 && fractions.last == @parts.values.reject(&:zero?).last)
             raise_parsing_error "(only last part can be fractional)"
           end
