@@ -268,7 +268,10 @@ module ActiveRecord
                 part.each_key.all? { |k| k.is_a?(Integer) }
               if hash_from_multiparameter_assignment
                 raise ArgumentError unless part.size == part.each_key.max
-                part = klass.new(*part.sort.map(&:last))
+                array = part.sort
+                array.map!(&:last)
+
+                part = klass.new(*array)
               end
 
               if part.nil? && allow_nil
