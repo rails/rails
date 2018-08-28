@@ -56,15 +56,28 @@ module ActionDispatch
         # Returns set of NFA states to which there is a transition on ast symbol
         # +a+ from some state +s+ in +t+.
         def move(t, a)
-          Array(t).map { |s|
-            inverted[s].keys.compact.find_all { |sym|
-              sym === a
-            }.map { |sym| inverted[s][sym] }
-          }.flatten.uniq
+          array = Array(t)
+          array.map! { |s|
+            keys = inverted[s].keys
+            keys.compact!
+
+            keys.reject! { |sym|
+              !(sym === a)
+            }
+            keys.map! { |sym| inverted[s][sym] }
+            keys
+          }
+          array.flatten!
+          array.uniq!
+          array
         end
 
         def alphabet
-          inverted.values.flat_map(&:keys).compact.uniq.sort_by(&:to_s)
+          array = inverted.values.flat_map(&:keys)
+          array.compact!
+          array.uniq!
+          array.sort_by!(&:to_s)
+          array
         end
 
         # Returns a set of NFA states reachable from some NFA state +s+ in set
