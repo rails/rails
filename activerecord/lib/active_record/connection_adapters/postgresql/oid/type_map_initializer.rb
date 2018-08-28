@@ -37,18 +37,18 @@ module ActiveRecord
             known_type_names = @store.keys.map { |n| "'#{n}'" }
             known_type_types = %w('r' 'e' 'd')
             <<-SQL % [known_type_names.join(", "), known_type_types.join(", ")]
-              LEFT join pg_type as composite_children on t.typelem=composite_children.oid
+              LEFT JOIN pg_type AS composite_children ON t.typelem = composite_children.oid
               WHERE
-              t.typname IN (%s)
-              OR t.typtype IN (%s)
-              OR
-              (
+                t.typname IN (%s)
+                OR t.typtype IN (%s)
+                OR
                 (
-                  t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
-                  OR t.typelem != 0
+                  (
+                    t.typinput = 'array_in(cstring,oid,integer)'::regprocedure
+                    OR t.typelem != 0
+                  )
+                  AND composite_children.typtype != 'c'
                 )
-                AND composite_children.typtype != 'c'
-              )
             SQL
           end
 
