@@ -119,6 +119,15 @@ class RedirectController < ActionController::Base
     redirect_to proc { { action: "hello_world" } }
   end
 
+  def redirect_to_out_of_scope_block
+    redirect_to self.class.class_eval(<<~END)
+      Proc.new do
+        raise "Not executed in controller's context" unless RedirectController === self
+        request.original_url
+      end
+    END
+  end
+
   def redirect_with_header_break
     redirect_to "/lol\r\nwat"
   end
@@ -324,6 +333,12 @@ class RedirectTest < ActionController::TestCase
     get :redirect_to_with_block_and_assigns
     assert_response :redirect
     assert_redirected_to "http://www.rubyonrails.org/"
+  end
+
+  def test_redirect_to_out_of_scope_block
+    get :redirect_to_out_of_scope_block
+    assert_response :redirect
+    assert_redirected_to "http://test.host/redirect/redirect_to_out_of_scope_block"
   end
 
   def test_redirect_to_with_block_and_accepted_options
