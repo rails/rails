@@ -102,9 +102,11 @@ module ActionDispatch
         end
 
         def collect_routes(routes)
-          routes.collect do |route|
+          route_array = routes.collect do |route|
             RouteWrapper.new(route)
-          end.reject(&:internal?).collect do |route|
+          end
+          route_array.reject!(&:internal?)
+          route_array.collect! do |route|
             collect_engine_routes(route)
 
             { name: route.name,
@@ -179,7 +181,8 @@ module ActionDispatch
         private
 
           def draw_section(routes)
-            header_lengths = ["Prefix", "Verb", "URI Pattern"].map(&:length)
+            header_lengths = ["Prefix", "Verb", "URI Pattern"]
+            header_lengths.map!(&:length)
             name_width, verb_width, path_width = widths(routes).zip(header_lengths).map(&:max)
 
             routes.map do |r|
