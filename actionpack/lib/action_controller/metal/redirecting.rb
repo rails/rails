@@ -105,7 +105,7 @@ module ActionController
       when String
         request.protocol + request.host_with_port + options
       when Proc
-        _compute_redirect_to_location request, options.call
+        _compute_redirect_to_location request, instance_eval(&options)
       else
         url_for(options)
       end.delete("\0\r\n")
