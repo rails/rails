@@ -244,11 +244,14 @@ module ActionView
       end
 
       def find_template_paths(query)
-        Dir[query].uniq.reject do |filename|
+        dirs = Dir[query]
+        dirs.uniq!
+        dirs.reject! do |filename|
           File.directory?(filename) ||
             # deals with case-insensitive file systems.
             !File.fnmatch(query, filename, File::FNM_EXTGLOB)
         end
+        dirs
       end
 
       def inside_path?(path, filename)
@@ -271,7 +274,9 @@ module ActionView
           if ext == :variants && candidates == :any
             query.gsub!(/:#{ext}/, "*")
           else
-            query.gsub!(/:#{ext}/, "{#{candidates.compact.uniq.join(',')}}")
+            array = candidates.compact
+            array.uniq!
+            query.gsub!(/:#{ext}/, "{#{array.join(',')}}")
           end
         end
 
@@ -369,7 +374,11 @@ module ActionView
         if ext == :variants && details[ext] == :any
           "{#{prefix}*,}"
         else
-          "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+          array = details[ext].compact
+          array.uniq!
+          array.map! { |e| "#{prefix}#{e}," }
+
+          "{#{array.join}}"
         end
       end.join
 
