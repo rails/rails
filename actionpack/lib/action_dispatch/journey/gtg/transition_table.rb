@@ -45,8 +45,8 @@ module ActionDispatch
           return [] if t.empty?
 
           regexps = []
-
-          t.map { |s|
+          t = t.dup
+          t.map! { |s|
             if states = @regexp_states[s]
               regexps.concat states.map { |re, v| re === a ? v : nil }
             end
@@ -54,7 +54,9 @@ module ActionDispatch
             if states = @string_states[s]
               states[a]
             end
-          }.compact.concat regexps
+          }
+          t.compact!
+          t.concat regexps
         end
 
         def as_json(options = nil)
@@ -90,7 +92,8 @@ module ActionDispatch
           erb       = File.read File.join(viz_dir, "index.html.erb")
           states    = "function tt() { return #{to_json}; }"
 
-          fun_routes = paths.sample(3).map do |ast|
+          fun_routes = paths.sample(3)
+          fun_routes.map! do |ast|
             ast.map { |n|
               case n
               when Nodes::Symbol
@@ -104,7 +107,9 @@ module ActionDispatch
               else
                 nil
               end
-            }.compact.join
+            }
+            fun_routes.compact!
+            fun_routes.join
           end
 
           stylesheets = [fsm_css]
