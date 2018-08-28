@@ -3,13 +3,40 @@
 module ActiveJob
   # Provides behavior for controlling how many of a job can be enqueued.
   module Locking
-    def initialize(*arguments)
-      super
+    extend ActiveSupport::Concern
 
-      @lock_timeout = self.class.lock_timeout.to_i
-      if @lock_timeout > 0 && !self.class.lock_key.nil?
-        @lock_key = self.class.lock_key.call(self)
+    included do
+      class_attribute :_lock_key, instance_accessor: false
+      class_attribute :_lock_timeout, instance_accessor: false
+    end
+
+    module ClassMethods
+      def lock_key
+        self._lock_key
       end
+
+      def lock_timeout
+        self._lock_timeout
+      end
+
+      # Provide a Proc that returns the lock key this job should use
+      def lock_key=(lock_key)
+        self._lock_key = lock_key
+      end
+
+      # Provide the timeout that this jobs lock key should use
+      def lock_timeout=(lock_timeout)
+        self._lock_timeout = lock_timeout
+      end
+    end
+
+    def lock_timeout
+      @lock_timeout ||= self.class.lock_timeout.to_i
+    end
+
+    def lock_key
+      return nil unless lock_timeout > 0 && !self.class.lock_key.nil?
+      @lock_key ||= self.class.lock_key.call(self)
     end
 
     # We determine if a job is locking based on whether or not a timeout

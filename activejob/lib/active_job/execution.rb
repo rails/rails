@@ -38,12 +38,12 @@ module ActiveJob
       run_callbacks :perform do
         perform(*arguments)
       end
+
+      clear_lock
     rescue => exception
+      # ensure runs after rescue, which may re-enqueue the job, so we need to clear the lock first
+      clear_lock
       rescue_with_handler(exception) || raise
-    ensure
-      if locking?
-        clear_lock
-      end
     end
 
     def perform(*)
