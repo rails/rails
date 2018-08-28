@@ -489,7 +489,9 @@ module ActiveRecord
         existing_records = if association.loaded?
           association.target
         else
-          attribute_ids = attributes_collection.map { |a| a["id"] || a[:id] }.compact
+          attribute_ids = attributes_collection.map { |a| a["id"] || a[:id] }
+          attribute_ids.compact!
+
           attribute_ids.empty? ? [] : association.scope.where(association.klass.primary_key => attribute_ids)
         end
 
