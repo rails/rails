@@ -418,7 +418,9 @@ module ActiveRecord
         expects_array = ids.first.kind_of?(Array)
         return ids.first if expects_array && ids.first.empty?
 
-        ids = ids.flatten.compact.uniq
+        ids = ids.flatten
+        ids.compact!
+        ids.uniq!
 
         model_name = @klass.name
 
