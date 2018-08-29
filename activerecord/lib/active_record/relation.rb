@@ -337,8 +337,12 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
-    def update(attributes) # :nodoc:
-      each { |record| record.update(attributes) }
+    def update(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update(attributes) }
+      else
+        klass.update(id, attributes)
+      end
     end
 
     # Destroys the records by instantiating each
