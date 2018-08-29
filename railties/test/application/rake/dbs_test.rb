@@ -52,17 +52,21 @@ module ApplicationTests
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
           development:
-            database: <%= Rails.application.config.database %>
+            database: db/development.sqlite3
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.read_encrypted_secrets = true
           end
         RUBY
 
-        db_create_and_drop "db/development.sqlite3", environment_loaded: false
+        app "development"
+
+        assert_equal true, Rails.application.config.read_encrypted_secrets
+
+        db_create_and_drop "db/development.sqlite3"
       end
 
       def with_database_existing
