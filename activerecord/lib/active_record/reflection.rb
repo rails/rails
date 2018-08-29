@@ -612,9 +612,21 @@ module ActiveRecord
 
         # returns either +nil+ or the inverse association name that it finds.
         def automatic_inverse_of
-          if can_find_inverse_of_automatically?(self)
-            inverse_name = ActiveSupport::Inflector.underscore(options[:as] || active_record.name.demodulize).to_sym
+          return unless can_find_inverse_of_automatically?(self)
 
+          inverse_name_candidates =
+            if options[:as]
+              [options[:as]]
+            else
+              active_record_name = active_record.name.demodulize
+              [active_record_name, ActiveSupport::Inflector.pluralize(active_record_name)]
+            end
+
+          inverse_name_candidates.map! do |candidate|
+            ActiveSupport::Inflector.underscore(candidate).to_sym
+          end
+
+          inverse_name_candidates.detect do |inverse_name|
             begin
               reflection = klass._reflect_on_association(inverse_name)
             rescue NameError
@@ -623,9 +635,7 @@ module ActiveRecord
               reflection = false
             end
 
-            if valid_inverse_reflection?(reflection)
-              return inverse_name
-            end
+            valid_inverse_reflection?(reflection)
           end
         end
 

@@ -20,6 +20,7 @@ require "models/company"
 require "models/project"
 require "models/author"
 require "models/post"
+require "models/department"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
@@ -723,6 +724,16 @@ class InversePolymorphicBelongsToTests < ActiveRecord::TestCase
     assert_nothing_raised { Face.first.polymorphic_man = Man.first }
     # fails because Interest does have the correct inverse_of
     assert_raise(ActiveRecord::InverseOfAssociationNotFoundError) { Face.first.polymorphic_man = Interest.first }
+  end
+
+  def test_favors_has_one_associations_for_inverse_of
+    inverse_name = Post.reflect_on_association(:author).inverse_of.name
+    assert_equal :post, inverse_name
+  end
+
+  def test_finds_inverse_of_for_plural_associations
+    inverse_name = Department.reflect_on_association(:hotel).inverse_of.name
+    assert_equal :departments, inverse_name
   end
 end
 
