@@ -514,7 +514,7 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
 
     assert_file "test/system/users_test.rb" do |content|
       assert_match(/fill_in "Password", with: 'secret'/, content)
-      assert_match(/fill_in "Password Confirmation", with: 'secret'/, content)
+      assert_match(/fill_in "Password confirmation", with: 'secret'/, content)
     end
 
     assert_file "test/fixtures/users.yml" do |content|
