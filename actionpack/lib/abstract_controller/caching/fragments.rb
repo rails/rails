@@ -88,7 +88,11 @@ module AbstractController
       def combined_fragment_cache_key(key)
         head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
-        [ :views, (ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"]), *head, *tail ].compact
+
+        cache_key = [:views, ENV["RAILS_CACHE_ID"] || ENV["RAILS_APP_VERSION"], head, tail]
+        cache_key.flatten!(1)
+        cache_key.compact!
+        cache_key
       end
 
       # Writes +content+ to the location signified by
