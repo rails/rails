@@ -112,7 +112,7 @@ if current_adapter?(:PostgreSQLAdapter)
         ActiveRecord::Base.stub(:connection, @connection) do
           ActiveRecord::Base.stub(:establish_connection, -> * { raise Exception }) do
             assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
-            assert_match "Couldn't create database for #{@configuration.inspect}", $stderr.string
+            assert_match "Couldn't create '#{@configuration['database']}' database. Please check your configuration.", $stderr.string
           end
         end
       end

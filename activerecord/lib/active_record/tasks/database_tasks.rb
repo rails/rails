@@ -122,7 +122,7 @@ module ActiveRecord
         $stderr.puts "Database '#{configuration['database']}' already exists" if verbose?
       rescue Exception => error
         $stderr.puts error
-        $stderr.puts "Couldn't create database for #{configuration.inspect}"
+        $stderr.puts "Couldn't create '#{configuration['database']}' database. Please check your configuration."
         raise
       end
 
