@@ -1,3 +1,7 @@
+*   Added `enqueue_retry.active_job`, `retry_stopped.active_job`, and `discard.active_job` hooks.
+
+    *steves*
+
 *   Allow `assert_performed_with` to be called without a block.
 
     *bogdanvlviv*
