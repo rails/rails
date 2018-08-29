@@ -68,7 +68,7 @@ if current_adapter?(:PostgreSQLAdapter)
 
         $stderr.stubs(:puts).returns(true)
         $stderr.expects(:puts).
-          with("Couldn't create database for #{@configuration.inspect}")
+          with("Couldn't create '#{@configuration['database']}' database. Please check your configuration.")
 
         assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration }
       end
