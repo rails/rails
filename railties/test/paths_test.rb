@@ -296,3 +296,4 @@ class PathsIntegrationTest < ActiveSupport::TestCase
     end
   end
 end
+
