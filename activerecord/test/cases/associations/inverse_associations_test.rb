@@ -21,6 +21,7 @@ require "models/project"
 require "models/author"
 require "models/post"
 require "models/department"
+require "models/hotel"
 
 class AutomaticInverseFindingTests < ActiveRecord::TestCase
   fixtures :ratings, :comments, :cars
