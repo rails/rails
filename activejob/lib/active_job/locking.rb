@@ -19,14 +19,9 @@ module ActiveJob
         self._lock_timeout
       end
 
-      # Provide a Proc that returns the lock key this job should use
-      def lock_key=(lock_key)
-        self._lock_key = lock_key
-      end
-
-      # Provide the timeout that this jobs lock key should use
-      def lock_timeout=(lock_timeout)
-        self._lock_timeout = lock_timeout
+      def locked_by(key:, timeout:)
+        self._lock_key = key
+        self._lock_timeout = timeout
       end
     end
 

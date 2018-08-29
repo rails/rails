@@ -456,6 +456,23 @@ end
 
 To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
+### Locking jobs
+
+It's also possible to lock jobs as a way of throttling how many can be enqueued.
+For example:
+
+```ruby
+class GenerateSummaryJob < ApplicationJob
+  locked_by timeout: 30.minutes, key: -> job {
+    job.arguments.join(":")
+  }
+
+  def perform(*args)
+    # Only one job with these args will be queued at a time, with a 30 minute timeout
+  end
+end
+```
+
 ### Deserialization
 
 GlobalID allows serializing full Active Record objects passed to `#perform`.

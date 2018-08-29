@@ -46,13 +46,16 @@ module ActiveJob
       self.scheduled_at = options[:wait_until].to_f if options[:wait_until]
       self.queue_name   = self.class.queue_name_from_part(options[:queue]) if options[:queue]
       self.priority     = options[:priority].to_i if options[:priority]
-      unless locking? && self.class.queue_adapter.locked?(self)
-        run_callbacks :enqueue do
-          if scheduled_at
-            self.class.queue_adapter.enqueue_at self, scheduled_at
-          else
-            self.class.queue_adapter.enqueue self
-          end
+
+      if locking? && self.class.queue_adapter.locked?(self)
+        return false
+      end
+
+      run_callbacks :enqueue do
+        if scheduled_at
+          self.class.queue_adapter.enqueue_at self, scheduled_at
+        else
+          self.class.queue_adapter.enqueue self
         end
       end
       self

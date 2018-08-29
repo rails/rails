@@ -1,3 +1,7 @@
+*   Add support for locking jobs to ActiveJob.
+
+    *steves*
+
 *   Allow `assert_performed_with` to be called without a block.
 
     *bogdanvlviv*

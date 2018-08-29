@@ -5,14 +5,13 @@ require_relative "../support/job_buffer"
 class LockingJobRetryError < StandardError; end
 
 class LockingJob < ActiveJob::Base
-  self.lock_timeout = 1.hour
-  self.lock_key = proc do |job|
+  locked_by timeout: 1.hour, key: -> job {
     if job.arguments.blank?
       "raising_false"
     else
       "raising_#{job.arguments[0][:raising]}"
     end
-  end
+  }
 
   retry_on LockingJobRetryError do |job, error|
     # Nothing
