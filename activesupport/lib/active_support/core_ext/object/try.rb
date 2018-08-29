@@ -4,28 +4,27 @@ require "delegate"
 
 module ActiveSupport
   module Tryable #:nodoc:
-    def try(*a, &b)
-      return unless a.empty? || respond_to?(a.first)
-      if a.empty? && block_given?
+    def try(method_name = nil, *args, &b)
+      if method_name.nil? && block_given?
         if b.arity == 0
           instance_eval(&b)
         else
           yield self
         end
-      else
-        public_send(*a, &b)
+      elsif respond_to?(method_name)
+        public_send(method_name, *args, &b)
       end
     end
 
-    def try!(*a, &b)
-      if a.empty? && block_given?
+    def try!(method_name = nil, *args, &b)
+      if method_name.nil? && block_given?
         if b.arity == 0
           instance_eval(&b)
         else
           yield self
         end
       else
-        public_send(*a, &b)
+        public_send(method_name, *args, &b)
       end
     end
   end
