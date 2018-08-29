@@ -76,7 +76,7 @@ module ApplicationTests
       test "db:create failure because bad permissions" do
         with_bad_permissions do
           output = `bin/rails db:create 2>&1`
-          assert_match(/Couldn't create database/, output)
+          assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
           assert_equal 1, $?.exitstatus
         end
       end
