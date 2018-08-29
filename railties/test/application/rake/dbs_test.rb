@@ -26,7 +26,7 @@ module ApplicationTests
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
-      def db_create_and_drop(expected_database, environment_loaded: true)
+      def db_create_and_drop(expected_database)
         Dir.chdir(app_path) do
           output = rails("db:create")
           assert_match(/Created database/, output)
