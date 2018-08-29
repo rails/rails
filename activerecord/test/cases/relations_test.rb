@@ -1587,6 +1587,24 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "David", topic2.reload.author_name
   end
 
+  def test_update_with_ids_on_relation
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.none
+    topics.update(
+      [topic1.id, topic2.id],
+      [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+    )
+
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "adequaterecord", topic2.reload.title
+    # Testing that the before_update callbacks have run
+    assert_equal "David", topic1.reload.author_name
+    assert_equal "David", topic2.reload.author_name
+  end
+
   def test_update_on_relation_passing_active_record_object_is_not_permitted
     topic = Topic.create!(title: "Foo", author_name: nil)
     assert_raises(ArgumentError) do
