@@ -28,12 +28,16 @@ module ActionMailer
     module ClassMethods
       # Register one or more Interceptors which will be called before mail is previewed.
       def register_preview_interceptors(*interceptors)
-        interceptors.flatten.compact.each { |interceptor| register_preview_interceptor(interceptor) }
+        intercepts = interceptors.flatten
+        intercepts.compact!
+        intercepts.each { |interceptor| register_preview_interceptor(interceptor) }
       end
 
       # Unregister one or more previously registered Interceptors.
       def unregister_preview_interceptors(*interceptors)
-        interceptors.flatten.compact.each { |interceptor| unregister_preview_interceptor(interceptor) }
+        intercepts = interceptors.flatten
+        intercepts.compact!
+        intercepts.each { |interceptor| unregister_preview_interceptor(interceptor) }
       end
 
       # Register an Interceptor which will be called before mail is previewed.
@@ -95,7 +99,10 @@ module ActionMailer
 
       # Returns all of the available email previews.
       def emails
-        public_instance_methods(false).map(&:to_s).sort
+        emails = public_instance_methods(false)
+        emails.map!(&:to_s)
+        emails.sort!
+        emails
       end
 
       # Returns +true+ if the email exists.
