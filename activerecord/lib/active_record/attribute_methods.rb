@@ -451,14 +451,6 @@ module ActiveRecord
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
-      def attributes_with_values_for_create(attribute_names)
-        attributes_with_values(attributes_for_create(attribute_names))
-      end
-
-      def attributes_with_values_for_update(attribute_names)
-        attributes_with_values(attributes_for_update(attribute_names))
-      end
-
       def attributes_with_values(attribute_names)
         attribute_names.each_with_object({}) do |name, attrs|
           attrs[name] = _read_attribute(name)
