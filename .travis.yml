@@ -2,8 +2,8 @@ language: ruby
 sudo: false
 
 cache:
-  bundler: true
   directories:
+    - vendor/bundle
     - /tmp/cache/unicode_conformance
     - /tmp/beanstalkd-1.10
     - node_modules
@@ -15,6 +15,7 @@ services:
 
 addons:
   postgresql: "9.4"
+  chrome: stable
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -26,7 +27,6 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
-  - "[[ $GEM != 'av:ujs' ]] || [[ $(phantomjs --version) > '2' ]] || npm install -g phantomjs-prebuilt"
 
 
 before_script:

@@ -92,6 +92,11 @@ group :cable do
   gem "sprockets-export", require: false
 end
 
+group :ujs do
+  gem "qunit-selenium"
+  gem "chromedriver-helper"
+end
+
 # Add your own local bundler stuff.
 local_gemfile = File.dirname(__FILE__) + "/.Gemfile"
 instance_eval File.read local_gemfile if File.exist? local_gemfile
