@@ -718,7 +718,6 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
       attribute_names = attributes_for_update(attribute_names)
 
       if attribute_names.empty?
@@ -737,7 +736,6 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
       attribute_names = attributes_for_create(attribute_names)
 
       new_id = self.class._insert_record(

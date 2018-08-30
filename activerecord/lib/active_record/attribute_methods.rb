@@ -459,7 +459,8 @@ module ActiveRecord
 
       # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           readonly_attribute?(name)
         end
       end
@@ -467,7 +468,8 @@ module ActiveRecord
       # Filters out the primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
         end
       end
