@@ -904,6 +904,16 @@ module ActionController
         PERMITTED_SCALAR_TYPES.any? { |type| value.is_a?(type) }
       end
 
+      # Adds existing keys to the params if their values are scalar.
+      #
+      # For example:
+      #
+      #   puts self.keys #=> ["zipcode(90210i)"]
+      #   params = {}
+      #
+      #   permitted_scalar_filter(params, "zipcode")
+      #
+      #   puts params.keys # => ["zipcode"]
       def permitted_scalar_filter(params, key)
         if has_key?(key) && permitted_scalar?(self[key])
           params[key] = self[key]
