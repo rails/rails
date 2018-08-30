@@ -254,6 +254,15 @@ class MigrationGeneratorTest < Rails::Generators::TestCase
     end
   end
 
+  def test_migrations_paths_puts_migrations_in_that_folder
+    run_generator ["create_books", "--migrations_paths=db/test_migrate"]
+    assert_migration "db/test_migrate/create_books.rb" do |content|
+      assert_method :change, content do |change|
+        assert_match(/create_table :books/, change)
+      end
+    end
+  end
+
   def test_should_create_empty_migrations_if_name_not_start_with_add_or_remove_or_create
     migration = "delete_books"
     run_generator [migration, "title:string", "content:text"]
