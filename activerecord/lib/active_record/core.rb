@@ -26,7 +26,7 @@ module ActiveRecord
 
       ##
       # Contains the database configuration - as is typically stored in config/database.yml -
-      # as a Hash.
+      # as an ActiveRecord::DatabaseConfigurations object.
       #
       # For example, the following database.yml...
       #
@@ -40,22 +40,18 @@ module ActiveRecord
       #
       # ...would result in ActiveRecord::Base.configurations to look like this:
       #
-      #   {
-      #      'development' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/development.sqlite3'
-      #      },
-      #      'production' => {
-      #         'adapter'  => 'sqlite3',
-      #         'database' => 'db/production.sqlite3'
-      #      }
-      #   }
+      #   #<ActiveRecord::DatabaseConfigurations:0x00007fd1acbdf800 @configurations=[
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10 @env_name="development",
+      #       @spec_name="primary", @config={"adapter"=>"sqlite3", "database"=>"db/development.sqlite3"}>,
+      #     #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbdea90 @env_name="production",
+      #       @spec_name="primary", @config={"adapter"=>"mysql2", "database"=>"db/production.sqlite3"}>
+      #   ]>
       def self.configurations=(config)
-        @@configurations = ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+        @@configurations = ActiveRecord::DatabaseConfigurations.new(config)
       end
       self.configurations = {}
 
-      # Returns fully resolved configurations hash
+      # Returns fully resolved ActiveRecord::DatabaseConfigurations object
       def self.configurations
         @@configurations
       end

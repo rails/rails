@@ -911,7 +911,15 @@ $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost"}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Here the adapter, host, and database match the information in `ENV['DATABASE_URL']`.
@@ -928,7 +936,15 @@ $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
@@ -938,13 +954,21 @@ The only way to explicitly not use the connection information in `ENV['DATABASE_
 ```
 $ cat config/database.yml
 development:
-  url: sqlite3:NOT_my_database
+  url: sqlite3://NOT_my_database
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database", "host"=>"localhost"}
+    @url="sqlite3://NOT_my_database">
+  ]
 ```
 
 Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.

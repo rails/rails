@@ -5,31 +5,32 @@ require "active_support/testing/parallelization"
 module ActiveRecord
   module TestDatabases # :nodoc:
     ActiveSupport::Testing::Parallelization.after_fork_hook do |i|
-      create_and_load_schema(i, spec_name: Rails.env)
+      create_and_load_schema(i, env_name: Rails.env)
     end
 
-    ActiveSupport::Testing::Parallelization.run_cleanup_hook do |_|
-      drop(spec_name: Rails.env)
+    ActiveSupport::Testing::Parallelization.run_cleanup_hook do
+      drop(env_name: Rails.env)
     end
 
-    def self.create_and_load_schema(i, spec_name:)
+    def self.create_and_load_schema(i, env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
-      connection_spec = ActiveRecord::Base.configurations[spec_name]
-
-      connection_spec["database"] += "-#{i}"
-      ActiveRecord::Tasks::DatabaseTasks.create(connection_spec)
-      ActiveRecord::Tasks::DatabaseTasks.load_schema(connection_spec)
+      ActiveRecord::Base.configurations.configs_for(env_name).each do |db_config|
+        db_config.config["database"] += "-#{i}"
+        ActiveRecord::Tasks::DatabaseTasks.create(db_config.config)
+        ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, ActiveRecord::Base.schema_format, nil, env_name, db_config.spec_name)
+      end
     ensure
-      ActiveRecord::Base.establish_connection(ActiveRecord::Base.configurations[Rails.env])
+      ActiveRecord::Base.establish_connection(Rails.env.to_sym)
       ENV["VERBOSE"] = old
     end
 
-    def self.drop(spec_name:)
+    def self.drop(env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
-      connection_spec = ActiveRecord::Base.configurations[spec_name]
 
-      ActiveRecord::Tasks::DatabaseTasks.drop(connection_spec)
+      ActiveRecord::Base.configurations.configs_for(env_name).each do |db_config|
+        ActiveRecord::Tasks::DatabaseTasks.drop(db_config.config)
+      end
     ensure
       ENV["VERBOSE"] = old
     end
