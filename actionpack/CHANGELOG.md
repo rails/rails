@@ -10,8 +10,6 @@
     Enable `action_dispatch.use_cookies_with_metadata` to use this feature, which
     writes cookies with the new purpose and expiry metadata embedded.
 
-    Pull Request: #32937
-
     *Assain Jaleel*
 
 *   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
@@ -39,7 +37,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`
+*   Pass along arguments to underlying `get` method in `follow_redirect!`.
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the
@@ -56,7 +54,7 @@
 
     *Vinicius Stock*
 
-*   Introduce ActionDispatch::DebugExceptions.register_interceptor
+*   Introduce `ActionDispatch::DebugExceptions.register_interceptor`.
 
     Exception aware plugin authors can use the newly introduced
     `.register_interceptor` method to get the processed exception, instead of
