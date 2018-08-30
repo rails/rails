@@ -458,6 +458,14 @@ Active Job
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
 
+### enqueue_retry.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:job`       | Job object                             |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:error`     | The error that caused the retry        |
+
 ### perform_start.active_job
 
 | Key          | Value                                  |
@@ -471,6 +479,22 @@ Active Job
 | ------------ | -------------------------------------- |
 | `:adapter`   | QueueAdapter object processing the job |
 | `:job`       | Job object                             |
+
+### retry_stopped.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+| `:error`     | The error that caused the retry        |
+
+### discard.active_job
+
+| Key          | Value                                  |
+| ------------ | -------------------------------------- |
+| `:adapter`   | QueueAdapter object processing the job |
+| `:job`       | Job object                             |
+| `:error`     | The error that caused the discard      |
 
 Action Cable
 ------------
