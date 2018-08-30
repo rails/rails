@@ -127,6 +127,10 @@ module ActiveRecord
         )
       end
 
+      def replica?
+        @config[:replica] || false
+      end
+
       def migrations_paths # :nodoc:
         @config[:migrations_paths] || Migrator.migrations_paths
       end
