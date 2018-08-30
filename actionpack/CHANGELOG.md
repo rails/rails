@@ -1,3 +1,8 @@
+*   Expose ActionController::Parameters#each_key which allows iterating over
+    keys without allocating an array.
+
+    *Richard Schneeman*
+
 *   Purpose metadata for signed/encrypted cookies.
 
     Rails can now thwart attacks that attempt to copy signed/encrypted value

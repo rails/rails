@@ -133,6 +133,15 @@ module ActionController
     # Returns a hash that can be used as the JSON representation for the parameters.
 
     ##
+    # :method: each_key
+    #
+    # :call-seq:
+    #   each_key()
+    #
+    # Calls block once for each key in the parameters, passing the key.
+    # If no block is given, an enumerator is returned instead.
+
+    ##
     # :method: empty?
     #
     # :call-seq:
@@ -204,7 +213,7 @@ module ActionController
     #
     # Returns a new array of the values of the parameters.
     delegate :keys, :key?, :has_key?, :values, :has_value?, :value?, :empty?, :include?,
-      :as_json, :to_s, to: :@parameters
+      :as_json, :to_s, :each_key, to: :@parameters
 
     # By default, never raise an UnpermittedParameters exception if these
     # params are present. The default includes both 'controller' and 'action'
@@ -914,15 +923,18 @@ module ActionController
       #   permitted_scalar_filter(params, "zipcode")
       #
       #   puts params.keys # => ["zipcode"]
-      def permitted_scalar_filter(params, key)
-        if has_key?(key) && permitted_scalar?(self[key])
-          params[key] = self[key]
+      def permitted_scalar_filter(params, permitted_key)
+        permitted_key = permitted_key.to_s
+
+        if has_key?(permitted_key) && permitted_scalar?(self[permitted_key])
+          params[permitted_key] = self[permitted_key]
         end
 
-        keys.grep(/\A#{Regexp.escape(key)}\(\d+[if]?\)\z/) do |k|
-          if permitted_scalar?(self[k])
-            params[k] = self[k]
-          end
+        each_key do |key|
+          next unless key =~ /\(\d+[if]?\)\z/
+          next unless $~.pre_match == permitted_key
+
+          params[key] = self[key] if permitted_scalar?(self[key])
         end
       end
 
