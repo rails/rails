@@ -164,20 +164,20 @@ module ActiveRecord
           result
         end
 
-        def _update_record(*)
-          affected_rows = partial_writes? ? super(keys_for_partial_write) : super
+        def _update_record(attribute_names = attribute_names_for_partial_writes)
+          affected_rows = super
           changes_applied
           affected_rows
         end
 
-        def _create_record(*)
-          id = partial_writes? ? super(keys_for_partial_write) : super
+        def _create_record(attribute_names = attribute_names_for_partial_writes)
+          id = super
           changes_applied
           id
         end
 
-        def keys_for_partial_write
-          changed_attribute_names_to_save & self.class.column_names
+        def attribute_names_for_partial_writes
+          partial_writes? ? changed_attribute_names_to_save : attribute_names
         end
     end
   end
