@@ -516,6 +516,9 @@ Defaults to `'signed cookie'`.
   signed and encrypted cookies use the AES-256-GCM cipher or
   the older AES-256-CBC cipher. It defaults to `true`.
 
+* `config.action_dispatch.use_cookies_with_metadata` enables writing
+  cookies with the purpose and expiry metadata embedded. It defaults to `true`.
+
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
   for more information. It defaults to `true`.
