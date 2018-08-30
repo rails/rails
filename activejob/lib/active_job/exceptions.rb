@@ -48,11 +48,11 @@ module ActiveJob
             job: self,
             adapter: self.class.queue_adapter,
             error: error,
+            wait: wait
           }
 
           if executions < attempts
             ActiveSupport::Notifications.instrument("enqueue_retry.active_job", payload) do
-              logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{error.class}. The original exception was #{error.cause.inspect}."
               retry_job wait: determine_delay(wait), queue: queue, priority: priority
             end
           else
@@ -61,7 +61,7 @@ module ActiveJob
                 yield self, error
               end
             else
-              logger.error "Stopped retrying #{self.class} due to a #{error.class}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload)
               raise error
             end
           end
@@ -91,14 +91,12 @@ module ActiveJob
           payload = {
             job: self,
             adapter: self.class.queue_adapter,
-            error: error,
+            error: error
           }
 
           ActiveSupport::Notifications.instrument("discard.active_job", payload) do
             if block_given?
               yield self, error
-            else
-              logger.error "Discarded #{self.class} due to a #{error.class}. The original exception was #{error.cause.inspect}."
             end
           end
         end
