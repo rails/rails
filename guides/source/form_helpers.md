@@ -40,7 +40,7 @@ When called without arguments like this, it creates a form tag which, when submi
 ```
 
 You'll notice that the HTML contains an `input` element with type `hidden`. This `input` is important, because non-GET form cannot be successfully submitted without it.
-The hidden input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Security Guide](security.html#cross-site-request-forgery-csrf) guide.
+The hidden input element with the name `authenticity_token` is a security feature of Rails called **cross-site request forgery protection**, and form helpers generate it for every non-GET form (provided that this security feature is enabled). You can read more about this in the [Securing Rails Applications](security.html#cross-site-request-forgery-csrf) guide.
 
 ### A Generic Search Form
 
