@@ -66,6 +66,36 @@ module CacheStoreBehavior
     assert_equal "bar", @cache.read("foo")
   end
 
+  def test_should_not_raise_stack_too_deep
+    obj = Object.new
+    def obj.cache_key
+      :foo
+    end
+    def obj.to_a
+      [self]
+    end
+    assert_nothing_raised do
+      @cache.write(obj, 'foo')
+      @cache.read(obj)
+      @cache.fetch(obj){ 'foo' }
+      @cache.delete(obj)
+    end
+  end
+
+  def test_should_read_store_expected_key_when_obj_respond_to_a
+    obj = Object.new
+    def obj.cache_key
+      :foo
+    end
+    def obj.to_a
+      [self]
+    end
+    assert_nothing_raised do
+      @cache.write(obj, 'foo')
+    end
+    assert_equal @cache.read(obj), 'foo'
+  end
+
   def test_should_read_and_write_hash
     assert @cache.write("foo", a: "b")
     assert_equal({ a: "b" }, @cache.read("foo"))
