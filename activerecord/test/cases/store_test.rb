@@ -248,4 +248,8 @@ class StoreTest < ActiveRecord::TestCase
   test "prefix/suffix do not affect stored attributes" do
     assert_equal [:secret_question, :two_factor_auth, :login_retry], Admin::User.stored_attributes[:configs]
   end
+
+  test "attributes created by store_accessor casted with cast_type" do
+    assert_equal 2, Admin::User.new(foo: 2.2).foo
+  end
 end
