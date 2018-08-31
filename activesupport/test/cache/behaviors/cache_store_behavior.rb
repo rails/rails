@@ -75,9 +75,9 @@ module CacheStoreBehavior
       [self]
     end
     assert_nothing_raised do
-      @cache.write(obj, 'foo')
+      @cache.write(obj, "foo")
       @cache.read(obj)
-      @cache.fetch(obj){ 'foo' }
+      @cache.fetch(obj){ "foo" }
       @cache.delete(obj)
     end
   end
@@ -91,9 +91,9 @@ module CacheStoreBehavior
       [self]
     end
     assert_nothing_raised do
-      @cache.write(obj, 'foo')
+      @cache.write(obj, "foo")
     end
-    assert_equal @cache.read(obj), 'foo'
+    assert_equal @cache.read(obj), "foo"
   end
 
   def test_should_read_and_write_hash
