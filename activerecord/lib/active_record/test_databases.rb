@@ -15,7 +15,7 @@ module ActiveRecord
     def self.create_and_load_schema(i, env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
-      ActiveRecord::Base.configurations.configs_for(env_name).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
         db_config.config["database"] += "-#{i}"
         ActiveRecord::Tasks::DatabaseTasks.create(db_config.config)
         ActiveRecord::Tasks::DatabaseTasks.load_schema(db_config.config, ActiveRecord::Base.schema_format, nil, env_name, db_config.spec_name)
@@ -28,7 +28,7 @@ module ActiveRecord
     def self.drop(env_name:)
       old, ENV["VERBOSE"] = ENV["VERBOSE"], "false"
 
-      ActiveRecord::Base.configurations.configs_for(env_name).each do |db_config|
+      ActiveRecord::Base.configurations.configs_for(env_name: env_name).each do |db_config|
         ActiveRecord::Tasks::DatabaseTasks.drop(db_config.config)
       end
     ensure
