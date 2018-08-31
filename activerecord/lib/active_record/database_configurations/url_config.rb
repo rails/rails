@@ -41,6 +41,10 @@ module ActiveRecord
         true
       end
 
+      def replica?
+        config["replica"]
+      end
+
       private
         def build_config(original_config, url)
           if /^jdbc:/.match?(url)

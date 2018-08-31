@@ -31,6 +31,10 @@ module ActiveRecord
         super(env_name, spec_name)
         @config = config
       end
+
+      def replica?
+        config["replica"]
+      end
     end
   end
 end

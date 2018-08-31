@@ -13,6 +13,10 @@ module ActiveRecord
         @spec_name = spec_name
       end
 
+      def replica?
+        raise NotImplementedError
+      end
+
       def url_config?
         false
       end
