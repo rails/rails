@@ -567,8 +567,6 @@ class DirtyTest < ActiveRecord::TestCase
     assert_not_nil pirate.previous_changes["updated_on"][1]
     assert_not pirate.previous_changes.key?("parrot_id")
     assert_not pirate.previous_changes.key?("created_on")
-  ensure
-    travel_back
   end
 
   class Testings < ActiveRecord::Base; end
