@@ -1,3 +1,7 @@
+*   Emit warning for unknown inflection rule when generating model.
+
+    *Yoshiyuki Kinjo*
+
 *   Add `--migrations_paths` option to migration generator.
 
     If you're using multiple databases and have a folder for each database
