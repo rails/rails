@@ -149,9 +149,7 @@ module ActiveSupport #:nodoc:
     end
 
     def [](*args)
-      if args.size < 2
-        super
-      elsif html_safe?
+      if html_safe?
         new_safe_buffer = super
 
         if new_safe_buffer
