@@ -41,6 +41,13 @@ module ActiveRecord
         true
       end
 
+      # Determines whether a database configuration is for a replica / readonly
+      # connection. If the `replica` key is present in the config, `replica?` will
+      # return true.
+      def replica?
+        config["replica"]
+      end
+
       private
         def build_config(original_config, url)
           if /^jdbc:/.match?(url)

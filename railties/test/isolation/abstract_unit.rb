@@ -124,26 +124,53 @@ module TestHelpers
             primary:
               <<: *default
               database: db/development.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/development.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/development_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
           test:
             primary:
               <<: *default
               database: db/test.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/test.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/test_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
           production:
             primary:
               <<: *default
               database: db/production.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/production.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/production_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              readonly: true
           YAML
         end
       else

@@ -117,7 +117,7 @@ module ActiveRecord
         if options.has_key?(:config)
           @current_config = options[:config]
         else
-          @current_config ||= ActiveRecord::Base.configurations.configs_for(options[:env], options[:spec]).config
+          @current_config ||= ActiveRecord::Base.configurations.configs_for(env_name: options[:env], spec_name: options[:spec]).config
         end
       end
 
@@ -143,7 +143,7 @@ module ActiveRecord
 
       def for_each
         databases = Rails.application.config.database_configuration
-        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(Rails.env)
+        database_configs = ActiveRecord::DatabaseConfigurations.new(databases).configs_for(env_name: Rails.env)
 
         # if this is a single database application we don't want tasks for each primary database
         return if database_configs.count == 1
@@ -208,7 +208,7 @@ module ActiveRecord
       end
 
       def charset_current(environment = env, specification_name = spec)
-        charset ActiveRecord::Base.configurations.configs_for(environment, specification_name).config
+        charset ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
       end
 
       def charset(*arguments)
@@ -217,7 +217,7 @@ module ActiveRecord
       end
 
       def collation_current(environment = env, specification_name = spec)
-        collation ActiveRecord::Base.configurations.configs_for(environment, specification_name).config
+        collation ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: specification_name).config
       end
 
       def collation(*arguments)
@@ -351,7 +351,7 @@ module ActiveRecord
           environments << "test" if environment == "development"
 
           environments.each do |env|
-            ActiveRecord::Base.configurations.configs_for(env).each do |db_config|
+            ActiveRecord::Base.configurations.configs_for(env_name: env).each do |db_config|
               yield db_config.config, db_config.spec_name, env
             end
           end

@@ -16,17 +16,34 @@ module ActiveRecord
     end
 
     # Collects the configs for the environment and optionally the specification
-    # name passed in.
+    # name passed in. To include replica configurations pass `include_replicas: true`.
     #
     # If a spec name is provided a single DatabaseConfiguration object will be
     # returned, otherwise an array of DatabaseConfiguration objects will be
-    # returned that corresponds with the environment requested.
-    def configs_for(env = nil, spec = nil, &blk)
-      configs = env_with_configs(env)
+    # returned that corresponds with the environment and type requested.
+    #
+    # Options:
+    #
+    # <tt>env_name:</tt> The environment name. Defaults to nil which will collect
+    # configs for all environments.
+    # <tt>spec_name:</tt> The specification name (ie primary, animals, etc). Defailts
+    # to nil.
+    # <tt>include_replicas:</tt> Determines whether to include replicas in the
+    # the returned list. Most of the time we're only iterating over the write
+    # connection (ie migrations don't need to run for the write and read connection).
+    # Defaults to false.
+    def configs_for(env_name: nil, spec_name: nil, include_replicas: false, &blk)
+      configs = env_with_configs(env_name)
 
-      if spec
+      unless include_replicas
+        configs = configs.select do |db_config|
+          !db_config.replica?
+        end
+      end
+
+      if spec_name
         configs.find do |db_config|
-          db_config.spec_name == spec
+          db_config.spec_name == spec_name
         end
       else
         configs
@@ -157,7 +174,7 @@ module ActiveRecord
         when :each, :first
           configurations.send(method, *args, &blk)
         when :fetch
-          configs_for(args.first)
+          configs_for(env_name: args.first)
         when :values
           configurations.map(&:config)
         else

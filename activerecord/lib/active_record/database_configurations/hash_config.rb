@@ -31,6 +31,13 @@ module ActiveRecord
         super(env_name, spec_name)
         @config = config
       end
+
+      # Determines whether a database configuration is for a replica / readonly
+      # connection. If the `replica` key is present in the config, `replica?` will
+      # return true.
+      def replica?
+        config["replica"]
+      end
     end
   end
 end
