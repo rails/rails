@@ -170,7 +170,6 @@ module TestHelpers
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
-        config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
@@ -194,7 +193,6 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.active_support.test_order = :random
       @app.config.log_level = :info
 
       yield @app if block_given?
