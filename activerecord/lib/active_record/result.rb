@@ -140,6 +140,8 @@ module ActiveRecord
             # We freeze the strings to prevent them getting duped when
             # used as keys in ActiveRecord::Base's @attributes hash
             columns = @columns.map(&:-@)
+            length  = columns.length
+
             @rows.map { |row|
               # In the past we used Hash[columns.zip(row)]
               #  though elegant, the verbose way is much more efficient
@@ -148,8 +150,6 @@ module ActiveRecord
               hash = {}
 
               index = 0
-              length = columns.length
-
               while index < length
                 hash[columns[index]] = row[index]
                 index += 1

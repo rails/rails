@@ -27,13 +27,13 @@ module ActiveJob
         end
       end
 
-      after_enqueue do |job|
+      around_enqueue do |job, block|
         if job.scheduled_at
-          ActiveSupport::Notifications.instrument "enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job
+          ActiveSupport::Notifications.instrument("enqueue_at.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         else
-          ActiveSupport::Notifications.instrument "enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job
+          ActiveSupport::Notifications.instrument("enqueue.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         end
       end
     end
@@ -85,6 +85,34 @@ module ActiveJob
             info do
               "Performed #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms"
             end
+          end
+        end
+
+        def enqueue_retry(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+          wait = event.payload[:wait]
+
+          error do
+            "Retrying #{job.class} in #{wait} seconds, due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
+          end
+        end
+
+        def retry_stopped(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts. The original exception was #{ex.cause.inspect}."
+          end
+        end
+
+        def discard(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Discarded #{job.class} due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
           end
         end
 

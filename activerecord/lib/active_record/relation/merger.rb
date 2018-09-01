@@ -152,10 +152,10 @@ module ActiveRecord
         def merge_multi_values
           if other.reordering_value
             # override any order specified in the original relation
-            relation.reorder! other.order_values
+            relation.reorder!(*other.order_values)
           elsif other.order_values.any?
             # merge in order_values from relation
-            relation.order! other.order_values
+            relation.order!(*other.order_values)
           end
 
           extensions = other.extensions - relation.extensions

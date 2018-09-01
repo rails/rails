@@ -165,7 +165,7 @@ module ActiveRecord
             def inherited(subclass)
               subclass.class_eval do
                 is_lock_column = ->(name, _) { lock_optimistically && name == locking_column }
-                decorate_matching_attribute_types(is_lock_column, :_optimistic_locking) do |type|
+                decorate_matching_attribute_types(is_lock_column, "_optimistic_locking") do |type|
                   LockingType.new(type)
                 end
               end

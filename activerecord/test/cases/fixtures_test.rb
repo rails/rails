@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 require "models/admin"
 require "models/admin/account"
 require "models/admin/randomly_named_c1"
@@ -35,6 +36,8 @@ require "models/treasure"
 require "tempfile"
 
 class FixturesTest < ActiveRecord::TestCase
+  include ConnectionHelper
+
   self.use_instantiated_fixtures = true
   self.use_transactional_tests = false
 
@@ -117,9 +120,96 @@ class FixturesTest < ActiveRecord::TestCase
         end
       end
     end
+
+    def test_bulk_insert_with_a_multi_statement_query_in_a_nested_transaction
+      fixtures = {
+        "traffic_lights" => [
+          { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+        ]
+      }
+
+      assert_difference "TrafficLight.count" do
+        ActiveRecord::Base.transaction do
+          conn = ActiveRecord::Base.connection
+          assert_equal 1, conn.open_transactions
+          conn.insert_fixtures_set(fixtures)
+          assert_equal 1, conn.open_transactions
+        end
+      end
+    end
   end
 
   if current_adapter?(:Mysql2Adapter)
+    def test_bulk_insert_with_multi_statements_enabled
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(flags: %w[MULTI_STATEMENTS])
+        )
+
+        fixtures = {
+          "traffic_lights" => [
+            { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+          ]
+        }
+
+        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
+          assert_nothing_raised do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+
+          assert_difference "TrafficLight.count" do
+            ActiveRecord::Base.transaction do
+              conn = ActiveRecord::Base.connection
+              assert_equal 1, conn.open_transactions
+              conn.insert_fixtures_set(fixtures)
+              assert_equal 1, conn.open_transactions
+            end
+          end
+
+          assert_nothing_raised do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+        end
+      end
+    end
+
+    def test_bulk_insert_with_multi_statements_disabled
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(flags: [])
+        )
+
+        fixtures = {
+          "traffic_lights" => [
+            { "location" => "US", "state" => ["NY"], "long_state" => ["a"] },
+          ]
+        }
+
+        ActiveRecord::Base.connection.stub(:supports_set_server_option?, false) do
+          assert_raises(ActiveRecord::StatementInvalid) do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+
+          assert_difference "TrafficLight.count" do
+            conn = ActiveRecord::Base.connection
+            conn.insert_fixtures_set(fixtures)
+          end
+
+          assert_raises(ActiveRecord::StatementInvalid) do
+            conn = ActiveRecord::Base.connection
+            conn.execute("SELECT 1; SELECT 2;")
+            conn.raw_connection.abandon_results!
+          end
+        end
+      end
+    end
+
     def test_insert_fixtures_set_raises_an_error_when_max_allowed_packet_is_smaller_than_fixtures_set_size
       conn = ActiveRecord::Base.connection
       mysql_margin = 2
@@ -849,9 +939,9 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
       def lock_thread=(lock_thread); end
     end.new
 
-    connection.expects(:begin_transaction).with(joinable: false)
-
-    fire_connection_notification(connection)
+    assert_called_with(connection, :begin_transaction, [joinable: false]) do
+      fire_connection_notification(connection)
+    end
   end
 
   def test_notification_established_transactions_are_rolled_back
@@ -879,15 +969,16 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
   private
 
     def fire_connection_notification(connection)
-      ActiveRecord::Base.connection_handler.stubs(:retrieve_connection).with("book").returns(connection)
-      message_bus = ActiveSupport::Notifications.instrumenter
-      payload = {
-        spec_name: "book",
-        config: nil,
-        connection_id: connection.object_id
-      }
+      assert_called_with(ActiveRecord::Base.connection_handler, :retrieve_connection, ["book"], returns: connection) do
+        message_bus = ActiveSupport::Notifications.instrumenter
+        payload = {
+          spec_name: "book",
+          config: nil,
+          connection_id: connection.object_id
+        }
 
-      message_bus.instrument("!connection.active_record", payload) {}
+        message_bus.instrument("!connection.active_record", payload) {}
+      end
     end
 end
 

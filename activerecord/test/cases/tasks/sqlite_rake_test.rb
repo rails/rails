@@ -47,9 +47,9 @@ if current_adapter?(:SQLite3Adapter)
 
       def test_db_create_with_file_does_nothing
         File.stub(:exist?, true) do
-          ActiveRecord::Base.expects(:establish_connection).never
-
-          ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+          assert_not_called(ActiveRecord::Base, :establish_connection) do
+            ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root"
+          end
         end
       end
 
@@ -62,7 +62,7 @@ if current_adapter?(:SQLite3Adapter)
       def test_db_create_with_error_prints_message
         ActiveRecord::Base.stub(:establish_connection, proc { raise Exception }) do
           assert_raises(Exception) { ActiveRecord::Tasks::DatabaseTasks.create @configuration, "/rails/root" }
-          assert_match "Couldn't create database for #{@configuration.inspect}", $stderr.string
+          assert_match "Couldn't create '#{@configuration['database']}' database. Please check your configuration.", $stderr.string
         end
       end
     end
@@ -88,9 +88,9 @@ if current_adapter?(:SQLite3Adapter)
       end
 
       def test_creates_path_from_database
-        Pathname.expects(:new).with(@database).returns(@path)
-
-        ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+        assert_called_with(Pathname, :new, [@database], returns: @path) do
+          ActiveRecord::Tasks::DatabaseTasks.drop @configuration, "/rails/root"
+        end
       end
 
       def test_removes_file_with_absolute_path

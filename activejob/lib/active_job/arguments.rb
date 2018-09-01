@@ -24,18 +24,20 @@ module ActiveJob
   module Arguments
     extend self
     # :nodoc:
-    TYPE_WHITELIST = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
+    PERMITTED_TYPES = [ NilClass, String, Integer, Float, BigDecimal, TrueClass, FalseClass ]
 
-    # Serializes a set of arguments. Whitelisted types are returned
-    # as-is. Arrays/Hashes are serialized element by element.
-    # All other types are serialized using GlobalID.
+    # Serializes a set of arguments. Intrinsic types that can safely be
+    # serialized without mutation are returned as-is. Arrays/Hashes are
+    # serialized element by element. All other types are serialized using
+    # GlobalID.
     def serialize(arguments)
       arguments.map { |argument| serialize_argument(argument) }
     end
 
-    # Deserializes a set of arguments. Whitelisted types are returned
-    # as-is. Arrays/Hashes are deserialized element by element.
-    # All other types are deserialized using GlobalID.
+    # Deserializes a set of arguments. Instrinsic types that can safely be
+    # deserialized without mutation are returned as-is. Arrays/Hashes are
+    # deserialized element by element. All other types are deserialized using
+    # GlobalID.
     def deserialize(arguments)
       arguments.map { |argument| deserialize_argument(argument) }
     rescue
@@ -64,7 +66,7 @@ module ActiveJob
 
       def serialize_argument(argument)
         case argument
-        when *TYPE_WHITELIST
+        when *PERMITTED_TYPES
           argument
         when GlobalID::Identification
           convert_to_global_id_hash(argument)
@@ -88,7 +90,7 @@ module ActiveJob
         case argument
         when String
           GlobalID::Locator.locate(argument) || argument
-        when *TYPE_WHITELIST
+        when *PERMITTED_TYPES
           argument
         when Array
           argument.map { |arg| deserialize_argument(arg) }

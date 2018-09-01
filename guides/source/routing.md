@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Rails Routing from the Outside In
 =================================
@@ -506,7 +506,7 @@ resources :photos do
 end
 ```
 
-This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `photo_preview_url` and `photo_preview_path` helpers.
+This will recognize `/photos/1/preview` with GET, and route to the `preview` action of `PhotosController`, with the resource id value passed in `params[:id]`. It will also create the `preview_photo_url` and `preview_photo_path` helpers.
 
 Within the block of member routes, each route name specifies the HTTP verb
 will be recognized. You can use `get`, `patch`, `put`, `post`, or `delete` here
@@ -719,12 +719,12 @@ NOTE: There is an exception for the `format` constraint: while it's a method on 
 
 ### Advanced Constraints
 
-If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a blacklist to the `BlacklistController`. You could do:
+If you have a more advanced constraint, you can provide an object that responds to `matches?` that Rails should use. Let's say you wanted to route all users on a restricted list to the `RestrictedListController`. You could do:
 
 ```ruby
-class BlacklistConstraint
+class RestrictedListConstraint
   def initialize
-    @ips = Blacklist.retrieve_ips
+    @ips = RestrictedList.retrieve_ips
   end
 
   def matches?(request)
@@ -733,8 +733,8 @@ class BlacklistConstraint
 end
 
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: BlacklistConstraint.new
+  get '*path', to: 'restricted_list#index',
+    constraints: RestrictedListConstraint.new
 end
 ```
 
@@ -742,8 +742,8 @@ You can also specify constraints as a lambda:
 
 ```ruby
 Rails.application.routes.draw do
-  get '*path', to: 'blacklist#index',
-    constraints: lambda { |request| Blacklist.retrieve_ips.include?(request.remote_ip) }
+  get '*path', to: 'restricted_list#index',
+    constraints: lambda { |request| RestrictedList.retrieve_ips.include?(request.remote_ip) }
 end
 ```
 
@@ -1191,18 +1191,18 @@ edit_user GET    /users/:id/edit(.:format) users#edit
 You can search through your routes with the grep option: -g. This outputs any routes that partially match the URL helper method name, the HTTP verb, or the URL path.
 
 ```
-$ bin/rails routes -g new_comment
-$ bin/rails routes -g POST
-$ bin/rails routes -g admin
+$ rails routes -g new_comment
+$ rails routes -g POST
+$ rails routes -g admin
 ```
 
 If you only want to see the routes that map to a specific controller, there's the -c option.
 
 ```
-$ bin/rails routes -c users
-$ bin/rails routes -c admin/users
-$ bin/rails routes -c Comments
-$ bin/rails routes -c Articles::CommentsController
+$ rails routes -c users
+$ rails routes -c admin/users
+$ rails routes -c Comments
+$ rails routes -c Articles::CommentsController
 ```
 
 TIP: You'll find that the output from `rails routes` is much more readable if you widen your terminal window until the output lines don't wrap. You can also use --expanded option to turn on the expanded table formatting mode.

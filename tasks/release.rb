@@ -89,7 +89,7 @@ npm_version = version.gsub(/\./).with_index { |s, i| i >= 2 ? "-" : s }
 
       if File.exist?("#{framework}/package.json")
         Dir.chdir("#{framework}") do
-          npm_tag = version =~ /[a-z]/ ? "pre" : "latest"
+          npm_tag = /[a-z]/.match?(version) ? "pre" : "latest"
           sh "npm publish --tag #{npm_tag}"
         end
       end
@@ -105,7 +105,7 @@ namespace :changelog do
       current_contents = File.read(fname)
 
       header = "## Rails #{version} (#{Date.today.strftime('%B %d, %Y')}) ##\n\n"
-      header += "*   No changes.\n\n\n" if current_contents =~ /\A##/
+      header += "*   No changes.\n\n\n" if current_contents.start_with?("##")
       contents = header + current_contents
       File.write(fname, contents)
     end

@@ -24,7 +24,9 @@ module ActiveRecord
         end
 
         def db_migrate_path
-          if defined?(Rails.application) && Rails.application
+          if migrations_paths = options[:migrations_paths]
+            migrations_paths
+          elsif defined?(Rails.application) && Rails.application
             Rails.application.config.paths["db/migrate"].to_ary.first
           else
             "db/migrate"

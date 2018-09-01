@@ -60,13 +60,7 @@ module ActiveRecord
 
       private
 
-        def configuration
-          @configuration
-        end
-
-        def root
-          @root
-        end
+        attr_reader :configuration, :root
 
         def run_cmd(cmd, args, out)
           fail run_cmd_error(cmd, args) unless Kernel.system(cmd, *args, out: out)

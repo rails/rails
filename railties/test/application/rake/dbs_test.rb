@@ -26,12 +26,12 @@ module ApplicationTests
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
-      def db_create_and_drop(expected_database, environment_loaded: true)
+      def db_create_and_drop(expected_database)
         Dir.chdir(app_path) do
           output = rails("db:create")
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
+          assert_equal expected_database, ActiveRecord::Base.connection_config[:database]
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
@@ -52,17 +52,21 @@ module ApplicationTests
       test "db:create and db:drop respect environment setting" do
         app_file "config/database.yml", <<-YAML
           development:
-            database: <%= Rails.application.config.database %>
+            database: db/development.sqlite3
             adapter: sqlite3
         YAML
 
         app_file "config/environments/development.rb", <<-RUBY
           Rails.application.configure do
-            config.database = "db/development.sqlite3"
+            config.read_encrypted_secrets = true
           end
         RUBY
 
-        db_create_and_drop "db/development.sqlite3", environment_loaded: false
+        app "development"
+
+        assert_equal true, Rails.application.config.read_encrypted_secrets
+
+        db_create_and_drop "db/development.sqlite3"
       end
 
       def with_database_existing
@@ -93,7 +97,7 @@ module ApplicationTests
       test "db:create failure because bad permissions" do
         with_bad_permissions do
           output = rails("db:create", allow_failure: true)
-          assert_match(/Couldn't create database/, output)
+          assert_match("Couldn't create '#{database_url_db_name}' database. Please check your configuration.", output)
           assert_equal 1, $?.exitstatus
         end
       end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Securing Rails Applications
 ===========================
@@ -378,7 +378,7 @@ This will redirect the user to the main action if they tried to access a legacy 
 http://www.example.com/site/legacy?param1=xy&param2=23&host=www.attacker.com
 ```
 
-If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _include only the expected parameters in a legacy action_ (again a whitelist approach, as opposed to removing unexpected parameters). _And if you redirect to a URL, check it with a whitelist or a regular expression_.
+If it is at the end of the URL it will hardly be noticed and redirects the user to the attacker.com host. A simple countermeasure would be to _include only the expected parameters in a legacy action_ (again a permitted list approach, as opposed to removing unexpected parameters). _And if you redirect to a URL, check it with a permitted list or a regular expression_.
 
 #### Self-contained XSS
 
@@ -394,7 +394,7 @@ NOTE: _Make sure file uploads don't overwrite important files, and process media
 
 Many web applications allow users to upload files. _File names, which the user may choose (partly), should always be filtered_ as an attacker could use a malicious file name to overwrite any file on the server. If you store file uploads at /var/www/uploads, and the user enters a file name like "../../../etc/passwd", it may overwrite an important file. Of course, the Ruby interpreter would need the appropriate permissions to do so - one more reason to run web servers, database servers, and other programs as a less privileged Unix user.
 
-When filtering user input file names, _don't try to remove malicious parts_. Think of a situation where the web application removes all "../" in a file name and an attacker uses a string such as "....//" - the result will be "../". It is best to use a whitelist approach, which _checks for the validity of a file name with a set of accepted characters_. This is opposed to a blacklist approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master):
+When filtering user input file names, _don't try to remove malicious parts_. Think of a situation where the web application removes all "../" in a file name and an attacker uses a string such as "....//" - the result will be "../". It is best to use a permitted list approach, which _checks for the validity of a file name with a set of accepted characters_. This is opposed to a restricted list approach which attempts to remove not allowed characters. In case it isn't a valid file name, reject it (or replace not accepted characters), but don't remove them. Here is the file name sanitizer from the [attachment_fu plugin](https://github.com/technoweenie/attachment_fu/tree/master):
 
 ```ruby
 def sanitize_filename(filename)
@@ -419,7 +419,7 @@ WARNING: _Source code in uploaded files may be executed when placed in specific 
 
 The popular Apache web server has an option called DocumentRoot. This is the home directory of the web site, everything in this directory tree will be served by the web server. If there are files with a certain file name extension, the code in it will be executed when requested (might require some options to be set). Examples for this are PHP and CGI files. Now think of a situation where an attacker uploads a file "file.cgi" with code in it, which will be executed when someone downloads the file.
 
-_If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level downwards.
+_If your Apache DocumentRoot points to Rails' /public directory, do not put file uploads in it_, store files at least one level upwards.
 
 ### File Downloads
 
@@ -641,19 +641,19 @@ INFO: _Injection is a class of attacks that introduce malicious code or paramete
 
 Injection is very tricky, because the same code or parameter can be malicious in one context, but totally harmless in another. A context can be a scripting, query, or programming language, the shell, or a Ruby/Rails method. The following sections will cover all important contexts where injection attacks may happen. The first section, however, covers an architectural decision in connection with Injection.
 
-### Whitelists versus Blacklists
+### Permitted lists versus Restricted lists
 
-NOTE: _When sanitizing, protecting, or verifying something, prefer whitelists over blacklists._
+NOTE: _When sanitizing, protecting, or verifying something, prefer permitted lists over restricted lists._
 
-A blacklist can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a whitelist which lists the good e-mail addresses, public actions, good HTML tags, and so on. Although sometimes it is not possible to create a whitelist (in a SPAM filter, for example), _prefer to use whitelist approaches_:
+A restricted list can be a list of bad e-mail addresses, non-public actions or bad HTML tags. This is opposed to a permitted list which lists the good e-mail addresses, public actions, good HTML tags, and so on. Although sometimes it is not possible to create a permitted list (in a SPAM filter, for example), _prefer to use permitted list approaches_:
 
 * Use before_action except: [...] instead of only: [...] for security-related actions. This way you don't forget to enable security checks for newly added actions.
 * Allow &lt;strong&gt; instead of removing &lt;script&gt; against Cross-Site Scripting (XSS). See below for details.
-* Don't try to correct user input by blacklists:
+* Don't try to correct user input using restricted lists:
     * This will make the attack work: "&lt;sc&lt;script&gt;ript&gt;".gsub("&lt;script&gt;", "")
     * But reject malformed input
 
-Whitelists are also a good approach against the human factor of forgetting something in the blacklist.
+Permitted lists are also a good approach against the human factor of forgetting something in the restricted list.
 
 ### SQL Injection
 
@@ -810,15 +810,15 @@ http://www.cbsnews.com/stories/2002/02/15/weather_local/main501644.shtml?zipcode
 
 _It is very important to filter malicious input, but it is also important to escape the output of the web application_.
 
-Especially for XSS, it is important to do _whitelist input filtering instead of blacklist_. Whitelist filtering states the values allowed as opposed to the values not allowed. Blacklists are never complete.
+Especially for XSS, it is important to do _permitted input filtering instead of restricted_. Permitted list filtering states the values allowed as opposed to the values not allowed. Restricted lists are never complete.
 
-Imagine a blacklist deletes "script" from the user input. Now the attacker injects "&lt;scrscriptipt&gt;", and after the filter, "&lt;script&gt;" remains. Earlier versions of Rails used a blacklist approach for the strip_tags(), strip_links() and sanitize() method. So this kind of injection was possible:
+Imagine a restricted list deletes "script" from the user input. Now the attacker injects "&lt;scrscriptipt&gt;", and after the filter, "&lt;script&gt;" remains. Earlier versions of Rails used a restricted list approach for the strip_tags(), strip_links() and sanitize() method. So this kind of injection was possible:
 
 ```ruby
 strip_tags("some<<b>script>alert('hello')<</b>/script>")
 ```
 
-This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why a whitelist approach is better, using the updated Rails 2 method sanitize():
+This returned "some&lt;script&gt;alert('hello')&lt;/script&gt;", which makes an attack work. That's why a permitted list approach is better, using the updated Rails 2 method sanitize():
 
 ```ruby
 tags = %w(a acronym b strong i em li ul ol h1 h2 h3 h4 h5 h6 blockquote br cite sub sup ins p)
@@ -852,7 +852,7 @@ The following is an excerpt from the [Js.Yamanner@m](http://www.symantec.com/sec
   var IDList = '';   var CRumb = '';   function makeRequest(url, Func, Method,Param) { ...
 ```
 
-The worms exploit a hole in Yahoo's HTML/JavaScript filter, which usually filters all targets and onload attributes from tags (because there can be JavaScript). The filter is applied only once, however, so the onload attribute with the worm code stays in place. This is a good example why blacklist filters are never complete and why it is hard to allow HTML/JavaScript in a web application.
+The worms exploit a hole in Yahoo's HTML/JavaScript filter, which usually filters all targets and onload attributes from tags (because there can be JavaScript). The filter is applied only once, however, so the onload attribute with the worm code stays in place. This is a good example why restricted list filters are never complete and why it is hard to allow HTML/JavaScript in a web application.
 
 Another proof-of-concept webmail worm is Nduja, a cross-domain worm for four Italian webmail services. Find more details on [Rosario Valotta's paper](http://www.xssed.com/news/37/Nduja_Connection_A_cross_webmail_worm_XWW/). Both webmail worms have the goal to harvest email addresses, something a criminal hacker could make money with.
 
@@ -876,7 +876,7 @@ So the payload is in the style attribute. But there are no quotes allowed in the
 <div id="mycode" expr="alert('hah!')" style="background:url('javascript:eval(document.all.mycode.expr)')">
 ```
 
-The eval() function is a nightmare for blacklist input filters, as it allows the style attribute to hide the word "innerHTML":
+The eval() function is a nightmare for restricted list input filters, as it allows the style attribute to hide the word "innerHTML":
 
 ```
 alert(eval('document.body.inne' + 'rHTML'));
@@ -896,7 +896,7 @@ The [moz-binding](http://www.securiteam.com/securitynews/5LP051FHPE.html) CSS pr
 
 #### Countermeasures
 
-This example, again, showed that a blacklist filter is never complete. However, as custom CSS in web applications is a quite rare feature, it may be hard to find a good whitelist CSS filter. _If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a whitelist CSS filter, if you really need one.
+This example, again, showed that a restricted list filter is never complete. However, as custom CSS in web applications is a quite rare feature, it may be hard to find a good permitted CSS filter. _If you want to allow custom colors or images, you can allow the user to choose them and build the CSS in the web application_. Use Rails' `sanitize()` method as a model for a permitted CSS filter, if you really need one.
 
 ### Textile Injection
 
@@ -925,7 +925,7 @@ RedCloth.new("<a href='javascript:alert(1)'>hello</a>", [:filter_html]).to_html
 
 #### Countermeasures
 
-It is recommended to _use RedCloth in combination with a whitelist input filter_, as described in the countermeasures against XSS section.
+It is recommended to _use RedCloth in combination with a permitted input filter_, as described in the countermeasures against XSS section.
 
 ### Ajax Injection
 
@@ -1214,7 +1214,7 @@ key that's generated into a version control ignored `config/master.key` — Rail
 will also look for that key in `ENV["RAILS_MASTER_KEY"]`. Rails also requires the
 key to boot in production, so the credentials can be read.
 
-To edit stored credentials use `bin/rails credentials:edit`.
+To edit stored credentials use `rails credentials:edit`.
 
 By default, this file contains the application's
 `secret_key_base`, but it could also be used to store other credentials such as

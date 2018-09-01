@@ -51,4 +51,6 @@ module ActionCable
   autoload :Channel
   autoload :RemoteConnections
   autoload :SubscriptionAdapter
+  autoload :TestHelper
+  autoload :TestCase
 end

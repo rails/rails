@@ -70,7 +70,13 @@ module ActiveModel
           # Doesn't handle time zones.
           def fast_string_to_time(string)
             if string =~ ISO_DATETIME
-              microsec = ($7.to_r * 1_000_000).to_i
+              microsec_part = $7
+              if microsec_part && microsec_part.start_with?(".") && microsec_part.length == 7
+                microsec_part[0] = ""
+                microsec = microsec_part.to_i
+              else
+                microsec = (microsec_part.to_r * 1_000_000).to_i
+              end
               new_time $1.to_i, $2.to_i, $3.to_i, $4.to_i, $5.to_i, $6.to_i, microsec
             end
           end

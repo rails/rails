@@ -107,13 +107,11 @@ module ActiveRecord
       # When running callbacks is not needed for each record update,
       # it is preferred to use {update_all}[rdoc-ref:Relation#update_all]
       # for updating all records in a single query.
-      def update(id = :all, attributes)
+      def update(id, attributes)
         if id.is_a?(Array)
           id.map { |one_id| find(one_id) }.each_with_index { |object, idx|
             object.update(attributes[idx])
           }
-        elsif id == :all
-          all.each { |record| record.update(attributes) }
         else
           if ActiveRecord::Base === id
             raise ArgumentError,
@@ -720,7 +718,6 @@ module ActiveRecord
     # Updates the associated record with values matching those of the instance attributes.
     # Returns the number of affected rows.
     def _update_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
       attribute_names = attributes_for_update(attribute_names)
 
       if attribute_names.empty?
@@ -739,10 +736,12 @@ module ActiveRecord
     # Creates a record with values matching those of the instance attributes
     # and returns its id.
     def _create_record(attribute_names = self.attribute_names)
-      attribute_names &= self.class.column_names
-      attributes_values = attributes_with_values_for_create(attribute_names)
+      attribute_names = attributes_for_create(attribute_names)
 
-      new_id = self.class._insert_record(attributes_values)
+      new_id = self.class._insert_record(
+        attributes_with_values(attribute_names)
+      )
+
       self.id ||= new_id if self.class.primary_key
 
       @new_record = false

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Action Mailer Basics
 ====================
@@ -44,7 +44,7 @@ views.
 #### Create the Mailer
 
 ```bash
-$ bin/rails generate mailer UserMailer
+$ rails generate mailer UserMailer
 create  app/mailers/user_mailer.rb
 create  app/mailers/application_mailer.rb
 invoke  erb
@@ -173,8 +173,8 @@ Setting this up is painfully simple.
 First, let's create a simple `User` scaffold:
 
 ```bash
-$ bin/rails generate scaffold user name email login
-$ bin/rails db:migrate
+$ rails generate scaffold user name email login
+$ rails db:migrate
 ```
 
 Now that we have a user model to play with, we will just edit the
@@ -421,6 +421,21 @@ This will render the template 'another_template.html.erb' for the HTML part and
 use the rendered text for the text part. The render command is the same one used
 inside of Action Controller, so you can use all the same options, such as
 `:text`, `:inline` etc.
+
+If you would like to render a template located outside of the default `app/views/mailer_name/` directory, you can apply the `prepend_view_path`, like so:
+
+```ruby
+class UserMailer < ApplicationMailer
+  prepend_view_path "custom/path/to/mailer/view"
+  
+  # This will try to load "custom/path/to/mailer/view/welcome_email" template
+  def welcome_email
+    # ...
+  end
+end
+```
+
+You can also consider using the [append_view_path](https://guides.rubyonrails.org/action_view_overview.html#view-paths) method.
 
 #### Caching mailer view
 

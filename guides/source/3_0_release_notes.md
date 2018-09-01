@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Ruby on Rails 3.0 Release Notes
 ===============================
@@ -153,7 +153,7 @@ More information: - [New Action Mailer API in Rails 3](http://lindsaar.net/2010/
 Documentation
 -------------
 
-The documentation in the Rails tree is being updated with all the API changes, additionally, the [Rails Edge Guides](http://edgeguides.rubyonrails.org/) are being updated one by one to reflect the changes in Rails 3.0. The guides at [guides.rubyonrails.org](http://guides.rubyonrails.org/) however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
+The documentation in the Rails tree is being updated with all the API changes, additionally, the [Rails Edge Guides](https://edgeguides.rubyonrails.org/) are being updated one by one to reflect the changes in Rails 3.0. The guides at [guides.rubyonrails.org](https://guides.rubyonrails.org/) however will continue to contain only the stable version of Rails (at this point, version 2.3.5, until 3.0 is released).
 
 More Information: - [Rails Documentation Projects](https://weblog.rubyonrails.org/2009/1/15/rails-documentation-projects)
 

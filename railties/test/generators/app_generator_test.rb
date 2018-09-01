@@ -37,7 +37,6 @@ DEFAULT_APP_FILES = %w(
   app/views/layouts/application.html.erb
   app/views/layouts/mailer.html.erb
   app/views/layouts/mailer.text.erb
-  bin/bundle
   bin/rails
   bin/rake
   bin/setup
@@ -763,17 +762,23 @@ class AppGeneratorTest < Rails::Generators::TestCase
   end
 
   def test_generation_runs_bundle_install
-    assert_generates_with_bundler
+    generator([destination_root], {})
+
+    assert_bundler_command_called("install")
   end
 
   def test_dev_option
-    assert_generates_with_bundler dev: true
+    generator([destination_root], dev: true)
+
+    assert_bundler_command_called("install")
     rails_path = File.expand_path("../../..", Rails.root)
     assert_file "Gemfile", /^gem\s+["']rails["'],\s+path:\s+["']#{Regexp.escape(rails_path)}["']$/
   end
 
   def test_edge_option
-    assert_generates_with_bundler edge: true
+    generator([destination_root], edge: true)
+
+    assert_bundler_command_called("install")
     assert_file "Gemfile", %r{^gem\s+["']rails["'],\s+github:\s+["']#{Regexp.escape("rails/rails")}["']$}
   end
 
@@ -782,23 +787,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
     assert_gem "spring"
   end
 
+  def test_bundler_binstub
+    assert_bundler_command_called("binstubs bundler")
+  end
+
   def test_spring_binstubs
     jruby_skip "spring doesn't run on JRuby"
-    command_check = -> command do
-      @binstub_called ||= 0
 
-      case command
-      when "install"
-        # Called when running bundle, we just want to stub it so nothing to do here.
-      when "exec spring binstub --all"
-        @binstub_called += 1
-        assert_equal 1, @binstub_called, "exec spring binstub --all expected to be called once, but was called #{@install_called} times."
-      end
-    end
-
-    generator.stub :bundle_command, command_check do
-      quietly { generator.invoke_all }
-    end
+    assert_bundler_command_called("exec spring binstub --all")
   end
 
   def test_spring_no_fork
@@ -976,7 +972,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       template
     end
 
-    sequence = ["git init", "install", "exec spring binstub --all", "echo ran after_bundle"]
+    sequence = ["git init", "install", "binstubs bundler", "exec spring binstub --all", "echo ran after_bundle"]
     @sequence_step ||= 0
     ensure_bundler_first = -> command, options = nil do
       assert_equal sequence[@sequence_step], command, "commands should be called in sequence #{sequence}"
@@ -993,7 +989,7 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    assert_equal 4, @sequence_step
+    assert_equal 5, @sequence_step
   end
 
   def test_gitignore
@@ -1063,18 +1059,14 @@ class AppGeneratorTest < Rails::Generators::TestCase
       end
     end
 
-    def assert_generates_with_bundler(options = {})
-      generator([destination_root], options)
-
+    def assert_bundler_command_called(target_command)
       command_check = -> command do
-        @install_called ||= 0
+        @command_called ||= 0
 
         case command
-        when "install"
-          @install_called += 1
-          assert_equal 1, @install_called, "install expected to be called once, but was called #{@install_called} times"
-        when "exec spring binstub --all"
-          # Called when running tests with spring, let through unscathed.
+        when target_command
+          @command_called += 1
+          assert_equal 1, @command_called, "#{command} expected to be called once, but was called #{@command_called} times."
         end
       end
 

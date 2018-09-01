@@ -298,7 +298,7 @@ module ActiveRecord
       end
 
       def supports_advisory_locks?
-        true
+        @advisory_locks_enabled
       end
 
       def supports_explain?
@@ -324,6 +324,10 @@ module ActiveRecord
 
       def supports_pgcrypto_uuid?
         postgresql_version >= 90400
+      end
+
+      def supports_lazy_transactions?
+        true
       end
 
       def get_advisory_lock(lock_id) # :nodoc:
@@ -597,6 +601,8 @@ module ActiveRecord
         end
 
         def exec_no_cache(sql, name, binds)
+          materialize_transactions
+
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
@@ -606,6 +612,8 @@ module ActiveRecord
         end
 
         def exec_cache(sql, name, binds)
+          materialize_transactions
+
           stmt_key = prepare_statement(sql)
           type_casted_binds = type_casted_binds(binds)
 

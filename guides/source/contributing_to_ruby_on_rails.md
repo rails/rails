@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Contributing to Ruby on Rails
 =============================
@@ -239,7 +239,6 @@ Now get busy and add/edit code. You're on your branch now, so you can write what
 * Include tests that fail without your code, and pass with it.
 * Update the (surrounding) documentation, examples elsewhere, and the guides: whatever is affected by your contribution.
 
-
 TIP: Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of Rails will generally not be accepted (read more about [our rationales behind this decision](https://github.com/rails/rails/pull/13771#issuecomment-32746700)).
 
 #### Follow the Coding Conventions
@@ -254,11 +253,23 @@ Rails follows a simple set of coding style conventions:
 * Prefer class << self over self.method for class methods.
 * Use `my_method(my_arg)` not `my_method( my_arg )` or `my_method my_arg`.
 * Use `a = b` and not `a=b`.
-* Use assert_not methods instead of refute.
+* Use assert\_not methods instead of refute.
 * Prefer `method { do_stuff }` instead of `method{do_stuff}` for single-line blocks.
 * Follow the conventions in the source you see used already.
 
 The above are guidelines - please use your best judgment in using them.
+
+Additionally, we have [RuboCop](https://www.rubocop.org/) rules defined to codify some of our coding conventions. You can run RuboCop locally against the file that you have modified before submitting a pull request:
+
+```bash
+$ rubocop actionpack/lib/action_controller/metal/strong_parameters.rb
+Inspecting 1 file
+.
+
+1 file inspected, no offenses detected
+```
+
+For `rails-ujs` CoffeeScript and JavaScript files, you can run `npm run lint` in `actionview` folder.
 
 ### Benchmark Your Code
 

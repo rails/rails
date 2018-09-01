@@ -77,6 +77,10 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
@@ -141,8 +145,8 @@ Oops - You have a database configured, but it doesn't exist yet!
 Here's how to get started:
 
   1. Configure your database in config/database.yml.
-  2. Run `bin/rails db:create` to create the database.
-  3. Run `bin/rails db:setup` to load your database schema.
+  2. Run `rails db:create` to create the database.
+  3. Run `rails db:setup` to load your database schema.
 end_warning
           raise
         end

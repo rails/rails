@@ -58,6 +58,10 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       # HELPER METHODS ===========================================
 
       def each_hash(result) # :nodoc:
@@ -117,7 +121,7 @@ module ActiveRecord
         end
 
         def configure_connection
-          @connection.query_options.merge!(as: :array)
+          @connection.query_options[:as] = :array
           super
         end
 

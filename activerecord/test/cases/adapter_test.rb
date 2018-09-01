@@ -10,6 +10,7 @@ module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
     def setup
       @connection = ActiveRecord::Base.connection
+      @connection.materialize_transactions
     end
 
     ##
@@ -304,6 +305,8 @@ module ActiveRecord
   class AdapterForeignKeyTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
+    fixtures :fk_test_has_pk
+
     def setup
       @connection = ActiveRecord::Base.connection
     end
@@ -322,9 +325,19 @@ module ActiveRecord
       assert_not_nil error.cause
     end
 
-    def test_foreign_key_violations_are_translated_to_specific_exception
+    def test_foreign_key_violations_on_insert_are_translated_to_specific_exception
       error = assert_raises(ActiveRecord::InvalidForeignKey) do
         insert_into_fk_test_has_fk
+      end
+
+      assert_not_nil error.cause
+    end
+
+    def test_foreign_key_violations_on_delete_are_translated_to_specific_exception
+      insert_into_fk_test_has_fk fk_id: 1
+
+      error = assert_raises(ActiveRecord::InvalidForeignKey) do
+        @connection.execute "DELETE FROM fk_test_has_pk WHERE pk_id = 1"
       end
 
       assert_not_nil error.cause
@@ -342,14 +355,13 @@ module ActiveRecord
     end
 
     private
-
-      def insert_into_fk_test_has_fk
+      def insert_into_fk_test_has_fk(fk_id: 0)
         # Oracle adapter uses prefetched primary key values from sequence and passes them to connection adapter insert method
         if @connection.prefetch_primary_key?
           id_value = @connection.next_sequence_value(@connection.default_sequence_name("fk_test_has_fk", "id"))
-          @connection.execute "INSERT INTO fk_test_has_fk (id,fk_id) VALUES (#{id_value},0)"
+          @connection.execute "INSERT INTO fk_test_has_fk (id,fk_id) VALUES (#{id_value},#{fk_id})"
         else
-          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (0)"
+          @connection.execute "INSERT INTO fk_test_has_fk (fk_id) VALUES (#{fk_id})"
         end
       end
   end

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Storage Overview
 =======================
@@ -36,10 +36,10 @@ files.
 ## Setup
 
 Active Storage uses two tables in your application’s database named
-`active_storage_blobs` and `active_storage_attachments`. After upgrading your
-application to Rails 5.2, run `rails active_storage:install` to generate a
-migration that creates these tables. Use `rails db:migrate` to run the
-migration.
+`active_storage_blobs` and `active_storage_attachments`. After creating a new
+application (or upgrading your application to Rails 5.2), run
+`rails active_storage:install` to generate a migration that creates these
+tables. Use `rails db:migrate` to run the migration.
 
 Declare Active Storage services in `config/storage.yml`. For each service your
 application uses, provide a name and the requisite configuration. The example
@@ -174,7 +174,7 @@ google:
 Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
 
 ```ruby
-gem "google-cloud-storage", "~> 1.8", require: false
+gem "google-cloud-storage", "~> 1.11", require: false
 ```
 
 ### Mirror Service

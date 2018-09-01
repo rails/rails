@@ -26,25 +26,21 @@ module ActiveSupport
         def pop; @queue.pop; end
       end
 
-      @after_fork_hooks = []
+      @@after_fork_hooks = []
 
       def self.after_fork_hook(&blk)
-        @after_fork_hooks << blk
+        @@after_fork_hooks << blk
       end
 
-      def self.after_fork_hooks
-        @after_fork_hooks
-      end
+      cattr_reader :after_fork_hooks
 
-      @run_cleanup_hooks = []
+      @@run_cleanup_hooks = []
 
       def self.run_cleanup_hook(&blk)
-        @run_cleanup_hooks << blk
+        @@run_cleanup_hooks << blk
       end
 
-      def self.run_cleanup_hooks
-        @run_cleanup_hooks
-      end
+      cattr_reader :run_cleanup_hooks
 
       def initialize(queue_size)
         @queue_size = queue_size

@@ -17,7 +17,7 @@ module AbstractController
         @path  = "helpers/#{path}.rb"
         set_backtrace error.backtrace
 
-        if error.path =~ /^#{path}(\.rb)?$/
+        if /^#{path}(\.rb)?$/.match?(error.path)
           super("Missing helper file helpers/%s.rb" % path)
         else
           raise error

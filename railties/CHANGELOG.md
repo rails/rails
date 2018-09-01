@@ -1,10 +1,41 @@
+*   Emit warning for unknown inflection rule when generating model.
+
+    *Yoshiyuki Kinjo*
+
+*   Add `--migrations_paths` option to migration generator.
+
+    If you're using multiple databases and have a folder for each database
+    for migrations (ex db/migrate and db/new_db_migrate) you can now pass the
+    `--migrations_paths` option to the generator to make sure the the migration
+    is inserted into the correct folder.
+
+    ```
+    rails g migration CreateHouses --migrations_paths=db/kingston_migrate
+      invoke  active_record
+      create    db/kingston_migrate/20180830151055_create_houses.rb
+    ```
+
+    *Eileen M. Uchitelle*
+
+*   Deprecate `rake routes` in favor of `rails routes`.
+
+    *Yuji Yaginuma*
+
+*   Deprecate `rake initializers` in favor of `rails initializers`.
+
+    *Annie-Claude Côté*
+
+*   Deprecate `rake dev:cache` in favor of `rails dev:cache`.
+
+    *Annie-Claude Côté*
+
 *   Deprecate `rails notes` subcommands in favor of passing an `annotations` argument to `rails notes`.
 
     The following subcommands are replaced by passing `--annotations` or `-a` to `rails notes`:
-        - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
-        - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
-        - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
-        - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
+    - `rails notes:custom ANNOTATION=custom` is deprecated in favor of using `rails notes -a custom`.
+    - `rails notes:optimize` is deprecated in favor of using `rails notes -a OPTIMIZE`.
+    - `rails notes:todo` is deprecated in favor of  using`rails notes -a TODO`.
+    - `rails notes:fixme` is deprecated in favor of using `rails notes -a FIXME`.
 
     *Annie-Claude Côté*
 

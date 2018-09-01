@@ -50,6 +50,13 @@ module ActiveStorage::Service::SharedServiceTests
       assert_equal FIXTURE_DATA, @service.download(@key)
     end
 
+    test "downloading a nonexistent file" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download(SecureRandom.base58(24))
+      end
+    end
+
+
     test "downloading in chunks" do
       key = SecureRandom.base58(24)
       expected_chunks = [ "a" * 5.megabytes, "b" ]
@@ -68,10 +75,24 @@ module ActiveStorage::Service::SharedServiceTests
       end
     end
 
+    test "downloading a nonexistent file in chunks" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download(SecureRandom.base58(24)) {}
+      end
+    end
+
+
     test "downloading partially" do
       assert_equal "\x10\x00\x00", @service.download_chunk(@key, 19..21)
       assert_equal "\x10\x00\x00", @service.download_chunk(@key, 19...22)
     end
+
+    test "partially downloading a nonexistent file" do
+      assert_raises(ActiveStorage::FileNotFoundError) do
+        @service.download_chunk(SecureRandom.base58(24), 19..21)
+      end
+    end
+
 
     test "existing" do
       assert @service.exist?(@key)

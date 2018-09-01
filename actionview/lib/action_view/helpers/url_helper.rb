@@ -634,7 +634,7 @@ module ActionView
         # suitable for use as the names and values of form input fields:
         #
         #   to_form_params(name: 'David', nationality: 'Danish')
-        #   # => [{name: :name, value: 'David'}, {name: 'nationality', value: 'Danish'}]
+        #   # => [{name: 'name', value: 'David'}, {name: 'nationality', value: 'Danish'}]
         #
         #   to_form_params(country: { name: 'Denmark' })
         #   # => [{name: 'country[name]', value: 'Denmark'}]
@@ -666,7 +666,7 @@ module ActionView
               params.push(*to_form_params(value, array_prefix))
             end
           else
-            params << { name: namespace, value: attribute.to_param }
+            params << { name: namespace.to_s, value: attribute.to_param }
           end
 
           params.sort_by { |pair| pair[:name] }
