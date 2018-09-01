@@ -87,7 +87,7 @@ module ApplicationTests
         %w(Rails::Rack::Logger Rack::MethodOverride ActionDispatch::RequestId ActionDispatch::RemoteIp),
 
         # Serving public/ doesn't invoke user code, so it should skip
-        # locks etc
+        # locks etc.
         %w(ActionDispatch::Executor ActionDispatch::Static),
 
         # Errors during reload must be reported

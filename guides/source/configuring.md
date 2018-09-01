@@ -1130,7 +1130,7 @@ Many modern web servers can be used as a proxy server to balance third-party ele
 
 One such application server you can use is [Unicorn](https://bogomips.org/unicorn/) to run behind a reverse proxy.
 
-In this case, you would need to configure the proxy server (NGINX, Apache, etc) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
+In this case, you would need to configure the proxy server (NGINX, Apache, etc.) to accept connections from your application server (Unicorn). By default Unicorn will listen for TCP connections on port 8080, but you can change the port or configure it to use sockets instead.
 
 You can find more information in the [Unicorn readme](https://bogomips.org/unicorn/README.html) and understand the [philosophy](https://bogomips.org/unicorn/PHILOSOPHY.html) behind it.
 

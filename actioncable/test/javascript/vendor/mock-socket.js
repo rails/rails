@@ -229,7 +229,7 @@
     // ----
     // publicsuffix.org is more current and actually used by a couple of browsers internally.
     // downside is it also contains domains like "dyndns.org" - which is fine for the security
-    // issues browser have to deal with (SOP for cookies, etc) - but is way overboard for URI.js
+    // issues browser have to deal with (SOP for cookies, etc.) - but is way overboard for URI.js
     // ----
     list: {
       'ac':' com gov mil net org ',
