@@ -28,7 +28,6 @@ update_rails_disk_service PUT  /rails/active_storage/disk/:encoded_token(.:forma
       end
 
       test "`rake routes` outputs a deprecation warning" do
-        remove_from_env_config("development", ".*config\.active_support\.deprecation.*\n")
         add_to_env_config("development", "config.active_support.deprecation = :stderr")
 
         stderr = capture(:stderr) { run_rake_routes }

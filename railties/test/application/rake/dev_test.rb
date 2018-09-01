@@ -9,6 +9,7 @@ module ApplicationTests
 
       def setup
         build_app
+        add_to_env_config("development", "config.active_support.deprecation = :stderr")
       end
 
       def teardown
