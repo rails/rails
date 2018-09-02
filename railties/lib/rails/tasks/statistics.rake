@@ -24,7 +24,7 @@ STATS_DIRECTORIES = [
   [ name, "#{File.dirname(Rake.application.rakefile_location)}/#{dir}" ]
 end.select { |name, dir| File.directory?(dir) }
 
-desc "Report code statistics (KLOCs, etc) from the application or engine"
+desc "Report code statistics (KLOCs, etc.) from the application or engine"
 task :stats do
   require "rails/code_statistics"
   CodeStatistics.new(*STATS_DIRECTORIES).to_s

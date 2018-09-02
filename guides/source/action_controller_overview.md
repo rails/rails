@@ -34,7 +34,7 @@ Controller Naming Convention
 
 The naming convention of controllers in Rails favors pluralization of the last word in the controller's name, although it is not strictly required (e.g. `ApplicationController`). For example, `ClientsController` is preferable to `ClientController`, `SiteAdminsController` is preferable to `SiteAdminController` or `SitesAdminsController`, and so on.
 
-Following this convention will allow you to use the default route generators (e.g. `resources`, etc) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
+Following this convention will allow you to use the default route generators (e.g. `resources`, etc.) without needing to qualify each `:path` or `:controller`, and will keep URL and path helpers' usage consistent throughout your application. See [Layouts & Rendering Guide](layouts_and_rendering.html) for more details.
 
 NOTE: The controller naming convention differs from the naming convention of models, which are expected to be named in singular form.
 
