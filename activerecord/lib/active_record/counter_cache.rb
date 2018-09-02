@@ -159,8 +159,7 @@ module ActiveRecord
     end
 
     private
-
-      def _create_record(*)
+      def _create_record(attribute_names = self.attribute_names)
         id = super
 
         each_counter_cached_associations do |association|
