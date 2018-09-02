@@ -26,12 +26,12 @@ module ActiveRecord
     #
     # <tt>env_name:</tt> The environment name. Defaults to nil which will collect
     # configs for all environments.
-    # <tt>spec_name:</tt> The specification name (ie primary, animals, etc). Defailts
-    # to nil.
+    # <tt>spec_name:</tt> The specification name (ie primary, animals, etc.). Defaults
+    # to +nil+.
     # <tt>include_replicas:</tt> Determines whether to include replicas in the
     # the returned list. Most of the time we're only iterating over the write
-    # connection (ie migrations don't need to run for the write and read connection).
-    # Defaults to false.
+    # connection (i.e. migrations don't need to run for the write and read connection).
+    # Defaults to +false+.
     def configs_for(env_name: nil, spec_name: nil, include_replicas: false, &blk)
       configs = env_with_configs(env_name)
 
