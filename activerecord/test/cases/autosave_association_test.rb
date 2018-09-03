@@ -559,20 +559,32 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 1, Client.count
   end
 
+  def test_parent_should_save_children_record_with_foreign_key_validation_set_in_before_save_callback
+    company = NewlyContractedCompany.new(name: "test")
+
+    assert company.save
+    assert_not_empty company.reload.new_contracts
+  end
+
   def test_parent_should_not_get_saved_with_duplicate_children_records
-    Topic.delete_all
+    assert_no_difference "Reply.count" do
+      assert_no_difference "SillyUniqueReply.count" do
+        reply = Reply.new
+        reply.silly_unique_replies.build([
+          { content: "Best content" },
+          { content: "Best content" }
+        ])
 
-    content = "Best content"
-    reply1 = ValidateUniqueContentReply.new(content: content)
-    reply2 = ValidateUniqueContentReply.new(content: content)
+        assert_not reply.save
+        assert_equal ["is invalid"], reply.errors[:silly_unique_replies]
+        assert_empty reply.silly_unique_replies.first.errors
 
-    topic = Topic.new(validate_unique_content_replies: [reply1, reply2])
-
-    assert_not topic.save
-    assert topic.errors.any?
-
-    assert_equal 0, Topic.count
-    assert_equal 0, ValidateUniqueContentReply.count
+        assert_equal(
+          ["has already been taken"],
+          reply.silly_unique_replies.last.errors[:content]
+        )
+      end
+    end
   end
 
   def test_invalid_build
