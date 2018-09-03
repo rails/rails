@@ -24,25 +24,10 @@ module ApplicationTests
           assert_no_match(/already exists/, output)
           assert File.exist?(expected_database)
 
-
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_match_namespace(namespace, output)
           assert_no_match(/does not exist/, output)
-          assert_not File.exist?(expected_database)
-        end
-      end
-
-      def db_create_and_drop_namespace(namespace, expected_database)
-        Dir.chdir(app_path) do
-          output = rails("db:create:#{namespace}")
-          assert_match(/Created database/, output)
-          assert_match_namespace(namespace, output)
-          assert File.exist?(expected_database)
-
-          output = rails("db:drop:#{namespace}")
-          assert_match(/Dropped database/, output)
-          assert_match_namespace(namespace, output)
           assert_not File.exist?(expected_database)
         end
       end
@@ -138,7 +123,7 @@ EOS
       test "db:create:namespace and db:drop:namespace works on specified databases" do
         require "#{app_path}/config/environment"
         ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
-          db_create_and_drop_namespace db_config.spec_name, db_config.config["database"]
+          db_create_and_drop db_config.spec_name, db_config.config["database"]
         end
       end
 
