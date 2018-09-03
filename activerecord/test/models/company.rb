@@ -204,4 +204,12 @@ end
 class VerySpecialClient < SpecialClient
 end
 
+class NewlyContractedCompany < Company
+  has_many :new_contracts, foreign_key: "company_id"
+
+  before_save do
+    self.new_contracts << NewContract.new
+  end
+end
+
 require "models/account"
