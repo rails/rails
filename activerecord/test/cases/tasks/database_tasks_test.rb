@@ -156,24 +156,20 @@ module ActiveRecord
 
   class DatabaseTasksCreateAllTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
       @configurations = { "development" => { "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
-
-      ActiveRecord::Base.configurations = @configurations
     end
 
     def teardown
       $stdout, $stderr = @original_stdout, @original_stderr
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_ignores_configurations_without_databases
       @configurations["development"]["database"] = nil
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -183,7 +179,7 @@ module ActiveRecord
     def test_ignores_remote_databases
       @configurations["development"]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -193,7 +189,7 @@ module ActiveRecord
     def test_warning_for_remote_databases
       @configurations["development"]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         ActiveRecord::Tasks::DatabaseTasks.create_all
 
         assert_match "This task only modifies local databases. my-db is on a remote host.",
@@ -204,7 +200,7 @@ module ActiveRecord
     def test_creates_configurations_with_local_ip
       @configurations["development"]["host"] = "127.0.0.1"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -214,7 +210,7 @@ module ActiveRecord
     def test_creates_configurations_with_local_host
       @configurations["development"]["host"] = "localhost"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
@@ -224,33 +220,39 @@ module ActiveRecord
     def test_creates_configurations_with_blank_hosts
       @configurations["development"]["host"] = nil
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :create) do
           ActiveRecord::Tasks::DatabaseTasks.create_all
         end
       end
     end
+
+    private
+      def with_stubbed_configurations_establish_connection
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        # To refrain from connecting to a newly created empty DB in
+        # sqlite3_mem tests
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
+        end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCreateCurrentTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
-
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "url" => "abstract://prod-db-url" }
+        "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
-
-      ActiveRecord::Base.configurations = @configurations
-    end
-
-    def teardown
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_creates_current_environment_database
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -264,11 +266,11 @@ module ActiveRecord
     end
 
     def test_creates_current_environment_database_with_url
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
-          ["url" => "prod-db-url"],
+          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
             ActiveSupport::StringInquirer.new("production")
@@ -278,7 +280,7 @@ module ActiveRecord
     end
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -298,7 +300,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -325,27 +327,31 @@ module ActiveRecord
         end
       end
     end
+
+    private
+      def with_stubbed_configurations_establish_connection
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
+        end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksCreateCurrentThreeTierTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
-
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "abstract://prod-db-url" }, "secondary" => { "url" => "abstract://secondary-prod-db-url" } }
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
       }
-
-      ActiveRecord::Base.configurations = @configurations
-    end
-
-    def teardown
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_creates_current_environment_database
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -362,13 +368,13 @@ module ActiveRecord
     end
 
     def test_creates_current_environment_database_with_url
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
           [
-            ["url" => "prod-db-url"],
-            ["url" => "secondary-prod-db-url"]
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.create_current(
@@ -379,7 +385,7 @@ module ActiveRecord
     end
 
     def test_creates_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -401,7 +407,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations_establish_connection do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :create,
@@ -434,6 +440,18 @@ module ActiveRecord
         end
       end
     end
+
+    private
+      def with_stubbed_configurations_establish_connection
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        ActiveRecord::Base.connection_handler.stub(:establish_connection, nil) do
+          yield
+        end
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksDropTest < ActiveRecord::TestCase
@@ -452,24 +470,20 @@ module ActiveRecord
 
   class DatabaseTasksDropAllTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
       @configurations = { development: { "database" => "my-db" } }
 
       $stdout, @original_stdout = StringIO.new, $stdout
       $stderr, @original_stderr = StringIO.new, $stderr
-
-      ActiveRecord::Base.configurations = @configurations
     end
 
     def teardown
       $stdout, $stderr = @original_stdout, @original_stderr
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_ignores_configurations_without_databases
       @configurations[:development]["database"] = nil
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -479,7 +493,7 @@ module ActiveRecord
     def test_ignores_remote_databases
       @configurations[:development]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_not_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -489,7 +503,7 @@ module ActiveRecord
     def test_warning_for_remote_databases
       @configurations[:development]["host"] = "my.server.tld"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         ActiveRecord::Tasks::DatabaseTasks.drop_all
 
         assert_match "This task only modifies local databases. my-db is on a remote host.",
@@ -500,7 +514,7 @@ module ActiveRecord
     def test_drops_configurations_with_local_ip
       @configurations[:development]["host"] = "127.0.0.1"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -510,7 +524,7 @@ module ActiveRecord
     def test_drops_configurations_with_local_host
       @configurations[:development]["host"] = "localhost"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
@@ -520,32 +534,35 @@ module ActiveRecord
     def test_drops_configurations_with_blank_hosts
       @configurations[:development]["host"] = nil
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called(ActiveRecord::Tasks::DatabaseTasks, :drop) do
           ActiveRecord::Tasks::DatabaseTasks.drop_all
         end
       end
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksDropCurrentTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
       @configurations = {
         "development" => { "database" => "dev-db" },
         "test"        => { "database" => "test-db" },
-        "production"  => { "url" => "abstract://prod-db-url" }
+        "production"  => { "url" => "abstract://prod-db-host/prod-db" }
       }
-
-      ActiveRecord::Base.configurations = @configurations
-    end
-
-    def teardown
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_drops_current_environment_database
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
           ["database" => "test-db"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -556,9 +573,9 @@ module ActiveRecord
     end
 
     def test_drops_current_environment_database_with_url
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(ActiveRecord::Tasks::DatabaseTasks, :drop,
-          ["url" => "prod-db-url"]) do
+          ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"]) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
             ActiveSupport::StringInquirer.new("production")
           )
@@ -567,7 +584,7 @@ module ActiveRecord
     end
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -587,7 +604,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -604,26 +621,29 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   class DatabaseTasksDropCurrentThreeTierTest < ActiveRecord::TestCase
     def setup
-      @old_configurations = ActiveRecord::Base.configurations
       @configurations = {
         "development" => { "primary" => { "database" => "dev-db" }, "secondary" => { "database" => "secondary-dev-db" } },
         "test" => { "primary" => { "database" => "test-db" }, "secondary" => { "database" => "secondary-test-db" } },
-        "production" => { "primary" => { "url" => "abstract://prod-db-url" }, "secondary" => { "url" => "abstract://secondary-prod-db-url" } }
+        "production" => { "primary" => { "url" => "abstract://prod-db-host/prod-db" }, "secondary" => { "url" => "abstract://secondary-prod-db-host/secondary-prod-db" } }
       }
-
-      ActiveRecord::Base.configurations = @configurations
-    end
-
-    def teardown
-      ActiveRecord::Base.configurations = @old_configurations
     end
 
     def test_drops_current_environment_database
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -640,13 +660,13 @@ module ActiveRecord
     end
 
     def test_drops_current_environment_database_with_url
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
           [
-            ["url" => "prod-db-url"],
-            ["url" => "secondary-prod-db-url"]
+            ["adapter" => "abstract", "database" => "prod-db", "host" => "prod-db-host"],
+            ["adapter" => "abstract", "database" => "secondary-prod-db", "host" => "secondary-prod-db-host"]
           ]
         ) do
           ActiveRecord::Tasks::DatabaseTasks.drop_current(
@@ -657,7 +677,7 @@ module ActiveRecord
     end
 
     def test_drops_test_and_development_databases_when_env_was_not_specified
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -679,7 +699,7 @@ module ActiveRecord
       old_env = ENV["RAILS_ENV"]
       ENV["RAILS_ENV"] = "development"
 
-      ActiveRecord::Base.configurations do
+      with_stubbed_configurations do
         assert_called_with(
           ActiveRecord::Tasks::DatabaseTasks,
           :drop,
@@ -698,6 +718,16 @@ module ActiveRecord
     ensure
       ENV["RAILS_ENV"] = old_env
     end
+
+    private
+      def with_stubbed_configurations
+        old_configurations = ActiveRecord::Base.configurations
+        ActiveRecord::Base.configurations = @configurations
+
+        yield
+      ensure
+        ActiveRecord::Base.configurations = old_configurations
+      end
   end
 
   if current_adapter?(:SQLite3Adapter) && !in_memory_db?
@@ -860,15 +890,13 @@ module ActiveRecord
 
       ActiveRecord::Base.configurations = configurations
 
-      ActiveRecord::Base.configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
-          :purge,
-          ["database" => "prod-db"]
-        ) do
-          assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
-            ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
-          end
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :purge,
+        ["database" => "prod-db"]
+      ) do
+        assert_called_with(ActiveRecord::Base, :establish_connection, [:production]) do
+          ActiveRecord::Tasks::DatabaseTasks.purge_current("production")
         end
       end
     ensure
@@ -881,14 +909,13 @@ module ActiveRecord
       old_configurations = ActiveRecord::Base.configurations
       configurations = { development: { "database" => "my-db" } }
       ActiveRecord::Base.configurations = configurations
-      ActiveRecord::Base.configurations do
-        assert_called_with(
-          ActiveRecord::Tasks::DatabaseTasks,
-          :purge,
-          ["database" => "my-db"]
-        ) do
-          ActiveRecord::Tasks::DatabaseTasks.purge_all
-        end
+
+      assert_called_with(
+        ActiveRecord::Tasks::DatabaseTasks,
+        :purge,
+        ["database" => "my-db"]
+      ) do
+        ActiveRecord::Tasks::DatabaseTasks.purge_all
       end
     ensure
       ActiveRecord::Base.configurations = old_configurations
