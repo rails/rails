@@ -1,3 +1,7 @@
+*   Make :null_store the default store in the test environment.
+
+    *Michael C. Nelson*
+
 *   Emit warning for unknown inflection rule when generating model.
 
     *Yoshiyuki Kinjo*
