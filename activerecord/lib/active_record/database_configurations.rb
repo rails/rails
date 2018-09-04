@@ -32,7 +32,7 @@ module ActiveRecord
     # the returned list. Most of the time we're only iterating over the write
     # connection (i.e. migrations don't need to run for the write and read connection).
     # Defaults to +false+.
-    def configs_for(env_name: nil, spec_name: nil, include_replicas: false, &blk)
+    def configs_for(env_name: nil, spec_name: nil, include_replicas: false)
       configs = env_with_configs(env_name)
 
       unless include_replicas
