@@ -109,6 +109,10 @@ module ActiveStorage
       {}
     end
 
+    # Returns a HTTP Method for +url_for_direct_upload+ requests.
+    def method_for_direct_upload
+    end
+
     private
       def instrument(operation, payload = {}, &block)
         ActiveSupport::Notifications.instrument(

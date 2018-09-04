@@ -141,6 +141,10 @@ class ActiveStorage::Blob < ActiveRecord::Base
     service.headers_for_direct_upload key, filename: filename, content_type: content_type, content_length: byte_size, checksum: checksum
   end
 
+  # Returns a HTTP Methods for +service_url_for_direct_upload+ requests.
+  def service_method_for_direct_upload
+    service.method_for_direct_upload
+  end
 
   # Uploads the +io+ to the service on the +key+ for this blob. Blobs are intended to be immutable, so you shouldn't be
   # using this method after a file has already been uploaded to fit with a blob. If you want to create a derivative blob,

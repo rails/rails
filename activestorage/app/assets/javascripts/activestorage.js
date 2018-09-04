@@ -628,9 +628,9 @@
       classCallCheck(this, BlobUpload);
       this.blob = blob;
       this.file = blob.file;
-      var _blob$directUploadDat = blob.directUploadData, url = _blob$directUploadDat.url, headers = _blob$directUploadDat.headers;
+      var _blob$directUploadDat = blob.directUploadData, url = _blob$directUploadDat.url, method = _blob$directUploadDat.method, headers = _blob$directUploadDat.headers;
       this.xhr = new XMLHttpRequest();
-      this.xhr.open("PUT", url, true);
+      this.xhr.open(method || "PUT", url, true);
       this.xhr.responseType = "text";
       for (var key in headers) {
         this.xhr.setRequestHeader(key, headers[key]);

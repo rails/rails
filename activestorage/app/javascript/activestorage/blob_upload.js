@@ -3,10 +3,10 @@ export class BlobUpload {
     this.blob = blob
     this.file = blob.file
 
-    const { url, headers } = blob.directUploadData
+    const { url, method, headers } = blob.directUploadData
 
     this.xhr = new XMLHttpRequest
-    this.xhr.open("PUT", url, true)
+    this.xhr.open(method || "PUT", url, true)
     this.xhr.responseType = "text"
     for (const key in headers) {
       this.xhr.setRequestHeader(key, headers[key])
