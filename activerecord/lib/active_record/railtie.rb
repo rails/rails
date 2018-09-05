@@ -153,6 +153,12 @@ end_warning
       end
     end
 
+    initializer "active_record.register_connection_handlers" do
+      ActiveSupport.on_load(:active_record) do
+        ActiveRecord::ConnectionHandling::Registration.call
+      end
+    end
+
     # Expose database runtime to controller for logging.
     initializer "active_record.log_runtime" do
       require "active_record/railties/controller_runtime"
