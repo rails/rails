@@ -237,10 +237,10 @@ GEM
     faye-websocket (0.10.7)
       eventmachine (>= 0.12.0)
       websocket-driver (>= 0.5.1)
-    ffi (1.9.21)
-    ffi (1.9.21-java)
-    ffi (1.9.21-x64-mingw32)
-    ffi (1.9.21-x86-mingw32)
+    ffi (1.9.25)
+    ffi (1.9.25-java)
+    ffi (1.9.25-x64-mingw32)
+    ffi (1.9.25-x86-mingw32)
     fugit (1.1.6)
       et-orbi (~> 1.1, >= 1.1.6)
       raabro (~> 1.1)
@@ -523,7 +523,6 @@ DEPENDENCIES
   dalli
   delayed_job
   delayed_job_active_record
-  ffi (<= 1.9.21)
   google-cloud-storage (~> 1.11)
   hiredis
   i18n (~> 1.0.1)
