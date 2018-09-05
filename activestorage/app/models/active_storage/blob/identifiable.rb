@@ -15,6 +15,14 @@ module ActiveStorage::Blob::Identifiable
     end
 
     def download_identifiable_chunk
-      service.download_chunk key, 0...4.kilobytes
+      if byte_size.positive?
+        service.download_chunk key, 0...4.kilobytes
+      else
+        ""
+      end
+    end
+
+    def content_empty?
+      service.bucket.object(key).content_length.zero?
     end
 end
