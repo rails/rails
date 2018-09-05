@@ -91,7 +91,7 @@ module ActiveJob
       def deserialize_argument(argument)
         case argument
         when String
-          GlobalID::Locator.locate(argument) || argument
+          argument
         when *PERMITTED_TYPES
           argument
         when Array
