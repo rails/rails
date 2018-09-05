@@ -3,8 +3,8 @@
 require "concurrent/map"
 
 class Object
-  # An object is blank if it's false, empty, or a whitespace string.
-  # For example, +false+, '', '   ', +nil+, [], and {} are all blank.
+  # An object is blank if it's falsey, empty, or a whitespace string.
+  # For example, +nil+, +false+, [], {}, '', and '   ' are all blank.
   #
   # This simplifies
   #
