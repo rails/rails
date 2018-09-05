@@ -300,6 +300,34 @@ module ActiveRecord
     def test_supports_multi_insert_is_deprecated
       assert_deprecated { @connection.supports_multi_insert? }
     end
+
+    def test_column_name_length_is_deprecated
+      assert_deprecated { @connection.column_name_length }
+    end
+
+    def test_table_name_length_is_deprecated
+      assert_deprecated { @connection.table_name_length }
+    end
+
+    def test_columns_per_table_is_deprecated
+      assert_deprecated { @connection.columns_per_table }
+    end
+
+    def test_indexes_per_table_is_deprecated
+      assert_deprecated { @connection.indexes_per_table }
+    end
+
+    def test_columns_per_multicolumn_index_is_deprecated
+      assert_deprecated { @connection.columns_per_multicolumn_index }
+    end
+
+    def test_sql_query_length_is_deprecated
+      assert_deprecated { @connection.sql_query_length }
+    end
+
+    def test_joins_per_query_is_deprecated
+      assert_deprecated { @connection.joins_per_query }
+    end
   end
 
   class AdapterForeignKeyTest < ActiveRecord::TestCase

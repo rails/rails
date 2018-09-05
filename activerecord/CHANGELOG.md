@@ -1,3 +1,9 @@
+*   Deprecate `column_name_length`, `table_name_length`, `columns_per_table`,
+    `indexes_per_table`, `columns_per_multicolumn_index`, `sql_query_length`,
+    and `joins_per_query` methods in `DatabaseLimits`.
+
+    *Ryuta Kamizono*
+
 *   ActiveRecord::Base.configurations now returns an object.
 
     ActiveRecord::Base.configurations used to return a hash, but this
