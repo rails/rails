@@ -88,8 +88,12 @@ module I18n
         when Hash, Array
           Array.wrap(fallbacks)
         else # TrueClass
-          []
+          [I18n.default_locale]
         end
+
+      if args.empty? || args.first.is_a?(Hash)
+        args.unshift I18n.default_locale
+      end
 
       I18n.fallbacks = I18n::Locale::Fallbacks.new(*args)
     end

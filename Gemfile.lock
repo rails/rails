@@ -269,7 +269,7 @@ GEM
     hiredis (0.6.1-java)
     http_parser.rb (0.6.0)
     httpclient (2.8.3)
-    i18n (1.0.1)
+    i18n (1.1.0)
       concurrent-ruby (~> 1.0)
     io-like (0.3.0)
     jdbc-mysql (5.1.46)
@@ -521,7 +521,6 @@ DEPENDENCIES
   delayed_job_active_record
   google-cloud-storage (~> 1.8)
   hiredis
-  i18n (~> 1.0.1)
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
   libxml-ruby
