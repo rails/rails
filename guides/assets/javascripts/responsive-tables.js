@@ -3,16 +3,6 @@
 
   var switched = false;
 
-  // For old browsers
-  var each = function(node, callback) {
-    var array = Array.prototype.slice.call(node);
-    for(var i = 0; i < array.length; i++) callback(array[i]);
-  }
-
-  each(document.querySelectorAll(":not(.syntaxhighlighter)>table"), function(element) {
-    element.classList.add("responsive");
-  });
-
   var updateTables = function() {
     if (document.documentElement.clientWidth < 767 && !switched) {
       switched = true;
@@ -23,7 +13,13 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", updateTables);
+  document.addEventListener("turbolinks:load", function() {
+    each(document.querySelectorAll(":not(.syntaxhighlighter)>table"), function(element) {
+      element.classList.add("responsive");
+    });
+    updateTables();
+  });
+
   window.addEventListener("resize", updateTables);
 
   var splitTable = function(original) {
