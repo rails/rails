@@ -39,10 +39,10 @@ class RedisAdapterTest::Connector < ActionCable::TestCase
   end
 
   test "adds default id if it is not specified" do
-    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "ActionCable1-PID-#{$$}" }
+    config = { url: 1, host: 2, port: 3, db: 4, password: 5, id: "ActionCable-PID-#{$$}" }
 
     assert_called_with ::Redis, :new, [ config ] do
-      connect config
+      connect config.except(:id)
     end
   end
 
