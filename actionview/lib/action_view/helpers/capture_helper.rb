@@ -36,6 +36,11 @@ module ActionView
       #   </body>
       #   </html>
       #
+      # The output of `capture` is the rendered string. For Example:
+      #
+      #   puts @greeting
+      #   # => "Welcome to my shiny new web page! The date and time is 2018-09-06 11:09:16 -0500"
+      #
       def capture(*args)
         value = nil
         buffer = with_output_buffer { value = yield(*args) }
