@@ -11,10 +11,10 @@ class ActiveStorage::DiskController < ActiveStorage::BaseController
 
   def show
     if key = decode_verified_key
-      response.headers["Content-Type"] = params[:content_type] || DEFAULT_SEND_FILE_TYPE
-      response.headers["Content-Disposition"] = params[:disposition] || DEFAULT_SEND_FILE_DISPOSITION
+      response.headers["Content-Type"] = key[:content_type] || DEFAULT_SEND_FILE_TYPE
+      response.headers["Content-Disposition"] = key[:disposition] || DEFAULT_SEND_FILE_DISPOSITION
 
-      disk_service.download key do |chunk|
+      disk_service.download key[:key] do |chunk|
         response.stream.write chunk
       end
     else
