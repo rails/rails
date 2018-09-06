@@ -54,7 +54,6 @@ end
 gem "dalli", ">= 2.2.1"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
-gem "i18n", "~> 1.0.1"
 
 # Action View. For testing Erubis handler deprecation.
 gem "erubis", "~> 2.7.0", require: false

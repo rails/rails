@@ -194,7 +194,7 @@ GEM
       activesupport (>= 4.2.0)
     hiredis (0.6.1)
     http_parser.rb (0.6.0)
-    i18n (1.0.1)
+    i18n (1.1.0)
       concurrent-ruby (~> 1.0)
     io-like (0.3.0)
     jquery-rails (4.3.1)
@@ -406,7 +406,6 @@ DEPENDENCIES
   em-hiredis
   erubis (~> 2.7.0)
   hiredis
-  i18n (~> 1.0.1)
   jquery-rails
   json (>= 2.0.0)
   kindlerb (~> 1.2.0)
