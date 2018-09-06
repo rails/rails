@@ -599,6 +599,7 @@ module ActiveRecord
       # The +type+ and +options+ parameters will be ignored if present. It can be helpful
       # to provide these in a migration's +change+ method so it can be reverted.
       # In that case, +type+ and +options+ will be used by #add_column.
+      # Indexes on the column are automatically removed.
       def remove_column(table_name, column_name, type = nil, options = {})
         execute "ALTER TABLE #{quote_table_name(table_name)} #{remove_column_for_alter(table_name, column_name, type, options)}"
       end
