@@ -52,13 +52,13 @@
 
     *Annie-Claude Côté*
 
-*   Don't generate unused files in `app:update` task
+*   Don't generate unused files in `app:update` task.
 
-     Skip the assets' initializer when sprockets isn't loaded.
+    Skip the assets' initializer when sprockets isn't loaded.
 
-     Skip `config/spring.rb` when spring isn't loaded.
+    Skip `config/spring.rb` when spring isn't loaded.
 
-     Skip yarn's contents when yarn integration isn't used.
+    Skip yarn's contents when yarn integration isn't used.
 
     *Tsukuru Tanimichi*
 

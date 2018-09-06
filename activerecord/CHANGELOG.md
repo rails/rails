@@ -4,9 +4,9 @@
 
     *Ryuta Kamizono*
 
-*   ActiveRecord::Base.configurations now returns an object.
+*   `ActiveRecord::Base.configurations` now returns an object.
 
-    ActiveRecord::Base.configurations used to return a hash, but this
+    `ActiveRecord::Base.configurations` used to return a hash, but this
     is an inflexible data model. In order to improve multiple-database
     handling in Rails, we've changed this to return an object. Some methods
     are provided to make the object behave hash-like in order to ease the
@@ -139,8 +139,8 @@
 
     *Eddie Lebow*
 
-*   Add ActiveRecord::Base.create_or_find_by/! to deal with the SELECT/INSERT race condition in
-    ActiveRecord::Base.find_or_create_by/! by leaning on unique constraints in the database.
+*   Add `ActiveRecord::Base.create_or_find_by`/`!` to deal with the SELECT/INSERT race condition in
+    `ActiveRecord::Base.find_or_create_by`/`!` by leaning on unique constraints in the database.
 
     *DHH*
 

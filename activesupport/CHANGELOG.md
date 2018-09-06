@@ -1,9 +1,9 @@
-*   Maintain `html_safe?` on html_safe strings when sliced
+*   Maintain `html_safe?` on html_safe strings when sliced.
 
         string = "<div>test</div>".html_safe
         string[-1..1].html_safe? # => true
 
-    *Elom Gomez, Yumin Wong*
+    *Elom Gomez*, *Yumin Wong*
 
 *   Add `Array#extract!`.
 
@@ -57,7 +57,7 @@
 
     *Aaron "t.lo" Patterson*
 
-*   Add cpu_time, idle_time, and allocations to Event
+*   Add cpu_time, idle_time, and allocations to Event.
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
 
@@ -71,7 +71,7 @@
 
     *Jason Lee*
 
-*   Allow Range#=== and Range#cover? on Range
+*   Allow `Range#===` and `Range#cover?` on Range.
 
     `Range#cover?` can now accept a range argument like `Range#include?` and
     `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
