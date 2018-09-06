@@ -150,6 +150,18 @@ class SafeBufferTest < ActiveSupport::TestCase
     assert_not y.html_safe?, "should not be safe"
   end
 
+  test "Should continue safe on slice" do
+    x = "<div>foo</div>".html_safe
+
+    assert_predicate x, :html_safe?
+
+    # getting a slice of it
+    y = x[0..-1]
+
+    # should still be safe
+    assert_predicate y, :html_safe?
+  end
+
   test "Should work with interpolation (array argument)" do
     x = "foo %s bar".html_safe % ["qux"]
     assert_equal "foo qux bar", x
