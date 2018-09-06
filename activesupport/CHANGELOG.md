@@ -1,3 +1,10 @@
+*   Maintain `html_safe?` on html_safe strings when sliced
+
+        string = "<div>test</div>".html_safe
+        string[-1..1].html_safe? # => true
+
+    *Elom Gomez, Yumin Wong*
+
 *   Add `Array#extract!`.
 
     The method removes and returns the elements for which the block returns a true value.
