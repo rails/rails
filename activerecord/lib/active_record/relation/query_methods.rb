@@ -1046,10 +1046,8 @@ module ActiveRecord
       def build_select(arel)
         if select_values.any?
           arel.project(*arel_columns(select_values.uniq))
-        elsif klass.ignored_columns.any?
-          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
         else
-          arel.project(table[Arel.star])
+          arel.project(*klass.column_names.map { |field| arel_attribute(field) })
         end
       end
 
