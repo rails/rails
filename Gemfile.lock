@@ -163,7 +163,7 @@ GEM
       activesupport (>= 4.2.0)
     hiredis (0.6.1)
     http_parser.rb (0.6.0)
-    i18n (1.0.0)
+    i18n (1.1.0)
       concurrent-ruby (~> 1.0)
     jquery-rails (4.3.1)
       rails-dom-testing (>= 1, < 3)
