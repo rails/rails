@@ -326,7 +326,7 @@ module ActiveRecord
     #   person.attributes
     #   # => {"id"=>3, "created_at"=>Sun, 21 Oct 2012 04:53:04, "updated_at"=>Sun, 21 Oct 2012 04:53:04, "name"=>"Francesco", "age"=>22}
     def attributes
-      @attributes.to_hash
+      @attributes.to_hash.slice(*self.class.column_names)
     end
 
     # Returns an <tt>#inspect</tt>-like string for the value of the

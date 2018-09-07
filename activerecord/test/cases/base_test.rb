@@ -1455,6 +1455,17 @@ class BasicsTest < ActiveRecord::TestCase
     assert query.include?("name")
   end
 
+  def test_only_known_attributes_selected
+    Computer.connection.add_column :computers, :new_field, :string
+
+    attributes = Computer.first.attributes
+
+    assert_not attributes.key?("new_field")
+  ensure
+    Computer.connection.remove_column :new_field, :new_field rescue nil
+    Computer.reset_column_information
+  end
+
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
     query = Developer.from("developers").to_sql
