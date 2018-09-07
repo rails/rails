@@ -1129,4 +1129,20 @@ class DependenciesTest < ActiveSupport::TestCase
   ensure
     ActiveSupport::Dependencies.hook!
   end
+
+  def test_no_autoload_module_race_condition
+    with_autoloading_fixtures do
+      # need to ensure that if multiple threads run const_missing for the same module (A), they all get the class definition (A::B) at the end
+      the_lambda = lambda do
+        Object.const_missing(:A)
+        A::B
+      end
+      the_lambda.call
+      assert_nothing_raised do # can't seem to specify a specific exception here - expect no LoadError raised
+        the_lambda.call
+      end
+    end
+  ensure
+    remove_constants(:A)
+  end
 end

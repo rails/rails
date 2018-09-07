@@ -447,12 +447,15 @@ module ActiveSupport #:nodoc:
     # the directory was loaded from a reloadable base path, it is added to the
     # set of constants that are to be unloaded.
     def autoload_module!(into, const_name, qualified_name, path_suffix)
-      return nil unless base_path = autoloadable_module?(path_suffix)
-      mod = Module.new
-      into.const_set const_name, mod
-      autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
-      autoloaded_constants.uniq!
-      mod
+      Dependencies.load_interlock do
+        return nil unless base_path = autoloadable_module?(path_suffix)
+        return into.const_get(const_name) if into.const_defined?(const_name, false)
+        mod = Module.new
+        into.const_set const_name, mod
+        autoloaded_constants << qualified_name unless autoload_once_paths.include?(base_path)
+        autoloaded_constants.uniq!
+        return mod
+      end
     end
 
     # Load the file at the provided path. +const_paths+ is a set of qualified
