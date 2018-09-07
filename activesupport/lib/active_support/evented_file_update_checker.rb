@@ -52,7 +52,10 @@ module ActiveSupport
       @pid        = Process.pid
       @boot_mutex = Mutex.new
 
-      if (@dtw = directories_to_watch).any?
+      dtw = directories_to_watch
+      @dtw, @missing = dtw.partition(&:exist?)
+
+      if @dtw.any?
         # Loading listen triggers warnings. These are originated by a legit
         # usage of attr_* macros for private attributes, but adds a lot of noise
         # to our test suite. Thus, we lazy load it and disable warnings locally.
@@ -75,6 +78,19 @@ module ActiveSupport
           @updated.make_true
         end
       end
+
+      if @missing.any?(&:exist?)
+        @boot_mutex.synchronize do
+          appeared, @missing = @missing.partition(&:exist?)
+          shutdown!
+
+          @dtw += appeared
+          boot!
+
+          @updated.make_true
+        end
+      end
+
       @updated.true?
     end
 
@@ -94,6 +110,10 @@ module ActiveSupport
     private
       def boot!
         Listen.to(*@dtw, &method(:changed)).start
+      end
+
+      def shutdown!
+        Listen.stop
       end
 
       def changed(modified, added, removed)
@@ -123,7 +143,7 @@ module ActiveSupport
       end
 
       def directories_to_watch
-        dtw = (@files + @dirs.keys).map { |f| @ph.existing_parent(f) }
+        dtw = @files.map(&:dirname) + @dirs.keys
         dtw.compact!
         dtw.uniq!
 
