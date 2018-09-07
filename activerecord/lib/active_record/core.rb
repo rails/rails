@@ -8,6 +8,8 @@ module ActiveRecord
   module Core
     extend ActiveSupport::Concern
 
+    FILTERED = "[FILTERED]" # :nodoc:
+
     included do
       ##
       # :singleton-method:
@@ -122,6 +124,10 @@ module ActiveRecord
       mattr_accessor :belongs_to_required_by_default, instance_accessor: false
 
       class_attribute :default_connection_handler, instance_writer: false
+
+      ##
+      # Specifies columns which don't want to be exposed while calling #inspect
+      class_attribute :filter_attributes, instance_writer: false, default: []
 
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
@@ -487,12 +493,17 @@ module ActiveRecord
 
     # Returns the contents of the record as a nicely formatted string.
     def inspect
+      filter_attributes = self.filter_attributes.map(&:to_s).to_set
       # We check defined?(@attributes) not to issue warnings if the object is
       # allocated but not initialized.
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
+            if filter_attributes.include?(name) && !read_attribute(name).nil?
+              "#{name}: #{ActiveRecord::Core::FILTERED}"
+            else
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
           end
         end.compact.join(", ")
       else
@@ -506,6 +517,7 @@ module ActiveRecord
     # when pp is required.
     def pretty_print(pp)
       return super if custom_inspect_method_defined?
+      filter_attributes = self.filter_attributes.map(&:to_s).to_set
       pp.object_address_group(self) do
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
@@ -516,7 +528,11 @@ module ActiveRecord
               pp.text column_name
               pp.text ":"
               pp.breakable
-              pp.pp column_value
+              if filter_attributes.include?(column_name) && !column_value.nil?
+                pp.text ActiveRecord::Core::FILTERED
+              else
+                pp.pp column_value
+              end
             end
           end
         else

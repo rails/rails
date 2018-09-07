@@ -1996,6 +1996,15 @@ module ApplicationTests
       assert_equal false, ActionView::Template.finalize_compiled_template_methods
     end
 
+    test "ActiveRecord::Base.filter_attributes should equal to filter_parameters" do
+      app_file "config/initializers/filter_parameters_logging.rb", <<-RUBY
+        Rails.application.config.filter_parameters += [ :password, :credit_card_number ]
+      RUBY
+      app "development"
+      assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
+      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
+    end
+
     private
       def force_lazy_load_hooks
         yield # Tasty clarifying sugar, homie! We only need to reference a constant to load it.
