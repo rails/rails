@@ -141,19 +141,26 @@ gem "azure-storage", require: false
 
 ### Google Cloud Storage Service
 
+Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
+
+```ruby
+gem "google-cloud-storage"
+```
+
 Declare a Google Cloud Storage service in `config/storage.yml`:
 
 ```yaml
+# config/storage.yml
 google:
   service: GCS
   credentials: <%= Rails.root.join("path/to/keyfile.json") %>
   project: ""
   bucket: ""
 ```
-
 Optionally provide a Hash of credentials instead of a keyfile path:
 
 ```yaml
+# config/storage.yml
 google:
   service: GCS
   credentials:
@@ -171,10 +178,23 @@ google:
   bucket: ""
 ```
 
-Add the [`google-cloud-storage`](https://github.com/GoogleCloudPlatform/google-cloud-ruby/tree/master/google-cloud-storage) gem to your `Gemfile`:
+#### Example Using Rails Encrypted Credentials
 
-```ruby
-gem "google-cloud-storage", "~> 1.11", require: false
+As an example you could have the following in your `config/credentials.yml.enc` file (which can be opened and edited with the following command: `EDITOR="subl --wait" bin/rails credentials:edit` - substituting 'subl' with your favourite text editor):
+
+```yaml
+# config/credentials.yml.enc
+gcs:
+  private_key: "-----BEGIN PRIVATE KEY-----\nBlithesome our hearts are\nand free is our fancy...\n-----END PRIVATE KEY-----\n
+```
+
+If you get a YAML parser error then consider adding the following lines in your config `config/storage.yml`:
+
+```yaml
+# config/storage.yml
+google:
+  credentials:
+    private_key: "<%= Rails.application.credentials.gcs[:private_key].lines.join("\\n") %>"
 ```
 
 ### Mirror Service
