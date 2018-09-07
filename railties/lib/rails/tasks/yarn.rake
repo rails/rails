@@ -9,7 +9,7 @@ namespace :yarn do
       rails_env = ENV["RAILS_ENV"]
       valid_node_envs.include?(rails_env) ? rails_env : "production"
     end
-    system({ "NODE_ENV" => node_env }, "./bin/yarn install --no-progress --frozen-lockfile")
+    system({ "NODE_ENV" => node_env }, "#{Rails.root}/bin/yarn install --no-progress --frozen-lockfile")
   end
 end
 
