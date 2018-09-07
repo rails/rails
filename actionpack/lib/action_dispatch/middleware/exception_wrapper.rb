@@ -155,7 +155,9 @@ module ActionDispatch
           File.open(full_path, "r") do |file|
             start = [line - 3, 0].max
             lines = file.each_line.drop(start).take(6)
-            Hash[*(start + 1..(lines.count + start)).zip(lines).flatten]
+            array = (start + 1..(lines.count + start)).zip(lines)
+            array.flatten!
+            Hash[*array]
           end
         end
       end

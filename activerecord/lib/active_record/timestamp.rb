@@ -134,11 +134,10 @@ module ActiveRecord
     end
 
     def max_updated_column_timestamp(timestamp_names = timestamp_attributes_for_update_in_model)
-      timestamp_names
-        .map { |attr| self[attr] }
-        .compact
-        .map(&:to_time)
-        .max
+      names = timestamp_names.map { |attr| self[attr] }
+      names.compact!
+      names.map!(&:to_time)
+      names.max
     end
 
     # Clear attributes and changed_attributes

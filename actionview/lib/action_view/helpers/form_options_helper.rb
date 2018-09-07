@@ -793,9 +793,11 @@ module ActionView
 
         def extract_values_from_collection(collection, value_method, selected)
           if selected.is_a?(Proc)
-            collection.map do |element|
+            selection_array = collection.map do |element|
               public_or_deprecated_send(element, value_method) if selected.call(element)
-            end.compact
+            end
+            selection_array.compact!
+            selection_array
           else
             selected
           end

@@ -354,8 +354,12 @@ module ActiveModel
           attribute_method_matchers_cache.compute_if_absent(method_name) do
             # Must try to match prefixes/suffixes first, or else the matcher with no prefix/suffix
             # will match every time.
-            matchers = attribute_method_matchers.partition(&:plain?).reverse.flatten(1)
-            matchers.map { |method| method.match(method_name) }.compact
+            matchers = attribute_method_matchers.partition(&:plain?)
+            matchers.reverse!
+            matchers.flatten!(1)
+            matchers.map! { |method| method.match(method_name) }
+            matchers.compact!
+            matchers
           end
         end
 

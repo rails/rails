@@ -372,7 +372,8 @@ module ActiveRecord
           next if fixtures.empty?
 
           build_fixture_sql(fixtures, table_name)
-        end.compact
+        end
+        fixture_inserts.compact!
 
         table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
         total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))

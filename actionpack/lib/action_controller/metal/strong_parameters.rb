@@ -853,7 +853,10 @@ module ActionController
       def each_element(object)
         case object
         when Array
-          object.grep(Parameters).map { |el| yield el }.compact
+          array = object.grep(Parameters)
+          array.map! { |el| yield el }
+          array.compact!
+          array
         when Parameters
           if object.fields_for_style?
             hash = object.class.new

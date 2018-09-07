@@ -895,7 +895,8 @@ module ActiveRecord
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
-          fixture_set_names = fixture_set_names.flatten.map(&:to_s)
+          fixture_set_names = fixture_set_names.flatten
+          fixture_set_names.map!(&:to_s)
         end
 
         self.fixture_table_names |= fixture_set_names

@@ -63,9 +63,15 @@ module ActionDispatch
         end
 
         def optional_names
-          @optional_names ||= spec.find_all(&:group?).flat_map { |group|
-            group.find_all(&:symbol?)
-          }.map(&:name).uniq
+          @optional_names ||= begin
+            array = spec.find_all(&:group?)
+            array = array.flat_map { |group|
+              group.find_all(&:symbol?)
+            }
+            array.map!(&:name)
+            array.uniq!
+            array
+          end
         end
 
         class AnchoredRegexp < Journey::Visitors::Visitor # :nodoc:

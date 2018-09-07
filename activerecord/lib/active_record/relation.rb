@@ -697,7 +697,10 @@ module ActiveRecord
         joined_tables += [table.name, table.table_alias]
 
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
-        joined_tables = joined_tables.flatten.compact.map(&:downcase).uniq
+        joined_tables.flatten!
+        joined_tables.compact!
+        joined_tables.map!(&:downcase)
+        joined_tables.uniq!
 
         (references_values - joined_tables).any?
       end
@@ -706,7 +709,11 @@ module ActiveRecord
         return [] if string.blank?
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
-        string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+        tables = string.scan(/([a-zA-Z_][.\w]+).?\./)
+        tables.flatten!
+        tables.map!(&:downcase)
+        tables.uniq!
+        tables - ["raw_sql_"]
       end
   end
 end

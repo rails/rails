@@ -22,14 +22,16 @@ module ActiveRecord
     end
 
     def self.references(attributes)
-      attributes.map do |key, value|
+      refs = attributes.map do |key, value|
         if value.is_a?(Hash)
           key
         else
           key = key.to_s
-          key.split(".".freeze).first if key.include?(".".freeze)
+          key.split(".").first if key.include?(".")
         end
-      end.compact
+      end
+      refs.compact!
+      refs
     end
 
     # Define how a class is converted to Arel nodes when passed to +where+.

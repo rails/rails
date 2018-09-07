@@ -98,7 +98,9 @@ module Arel # :nodoc: all
     end
 
     def froms
-      @ast.cores.map { |x| x.from }.compact
+      froms = @ast.cores.map { |x| x.from }
+      froms.compact!
+      froms
     end
 
     def join(relation, klass = Nodes::InnerJoin)
@@ -254,7 +256,8 @@ module Arel # :nodoc: all
     private
       def collapse(exprs, existing = nil)
         exprs = exprs.unshift(existing.expr) if existing
-        exprs = exprs.compact.map { |expr|
+        exprs.compact!
+        exprs.map! { |expr|
           if String === expr
             # FIXME: Don't do this automatically
             Arel.sql(expr)

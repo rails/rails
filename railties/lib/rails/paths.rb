@@ -187,17 +187,19 @@ module Rails
       # Expands all paths against the root and return all unique values.
       def expanded
         raise "You need to set a path root" unless @root.path
-        result = []
-
-        each do |p|
+        result = flat_map do |p|
           path = File.expand_path(p, @root.path)
 
           if @glob && File.directory?(path)
             Dir.chdir(path) do
-              result.concat(Dir.glob(@glob).map { |file| File.join path, file }.sort)
+              files = Dir.glob(@glob)
+              files.map! { |file| File.join path, file }
+              files.sort!
+
+              files
             end
           else
-            result << path
+            path
           end
         end
 

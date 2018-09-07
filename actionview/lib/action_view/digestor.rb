@@ -20,7 +20,10 @@ module ActionView
       # * <tt>dependencies</tt>  - An array of dependent views
       def digest(name:, finder:, dependencies: [])
         dependencies ||= []
-        cache_key = [ name, finder.rendered_format, dependencies ].flatten.compact.join(".")
+        cache_array = [ name, finder.rendered_format, dependencies ]
+        cache_array.flatten!
+        cache_array.compact!
+        cache_key = cache_array.join(".")
 
         # this is a correctly done double-checked locking idiom
         # (Concurrent::Map's lookups have volatile semantics)

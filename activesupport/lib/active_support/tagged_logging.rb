@@ -31,9 +31,11 @@ module ActiveSupport
       end
 
       def push_tags(*tags)
-        tags.flatten.reject(&:blank?).tap do |new_tags|
-          current_tags.concat new_tags
-        end
+        tag_array = tags.flatten
+        tag_array.reject!(&:blank?)
+        current_tags.concat tag_array
+
+        tag_array
       end
 
       def pop_tags(size = 1)
