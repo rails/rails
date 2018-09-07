@@ -235,5 +235,11 @@ MSG
         end
       end
     end
+
+    initializer "active_record.set_filter_attributes" do
+      ActiveSupport.on_load(:active_record) do
+        self.filter_attributes += Rails.application.config.filter_parameters
+      end
+    end
   end
 end

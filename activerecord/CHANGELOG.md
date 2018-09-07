@@ -1,3 +1,12 @@
+*   Configuration item `config.filter_parameters` could also filter out sensitive value of database column when call `#inspect`.
+
+    ```
+    Rails.application.config.filter_parameters += [:credit_card_number]
+    Account.last.insepct # => #<Account id: 123, credit_card_number: [FILTERED] ...>
+    ```
+
+    *Zhang Kang*
+
 *   Deprecate `column_name_length`, `table_name_length`, `columns_per_table`,
     `indexes_per_table`, `columns_per_multicolumn_index`, `sql_query_length`,
     and `joins_per_query` methods in `DatabaseLimits`.
