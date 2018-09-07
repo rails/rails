@@ -1,3 +1,9 @@
+# frozen_string_literal: true
+
+require "fileutils"
+require "open-uri"
+require "tmpdir"
+
 module MultibyteTestHelpers
   class Downloader
     def self.download(from, to)
@@ -18,12 +24,12 @@ module MultibyteTestHelpers
   end
 
   UNIDATA_URL = "http://www.unicode.org/Public/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}/ucd"
-  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance"
+  CACHE_DIR = "#{Dir.tmpdir}/cache/unicode_conformance/#{ActiveSupport::Multibyte::Unicode::UNICODE_VERSION}"
   FileUtils.mkdir_p(CACHE_DIR)
 
   UNICODE_STRING = "こにちわ".freeze
   ASCII_STRING = "ohayo".freeze
-  BYTE_STRING = "\270\236\010\210\245".force_encoding("ASCII-8BIT").freeze
+  BYTE_STRING = "\270\236\010\210\245".dup.force_encoding("ASCII-8BIT").freeze
 
   def chars(str)
     ActiveSupport::Multibyte::Chars.new(str)

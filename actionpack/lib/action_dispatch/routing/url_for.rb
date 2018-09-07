@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Routing
     # In <tt>config/routes.rb</tt> you define URL-to-controller mappings, but the reverse
@@ -107,16 +109,16 @@ module ActionDispatch
       end
 
       # Hook overridden in controller to add request information
-      # with `default_url_options`. Application logic should not
+      # with +default_url_options+. Application logic should not
       # go into url_options.
       def url_options
         default_url_options
       end
 
-      # Generate a url based on the options provided, default_url_options and the
+      # Generate a URL based on the options provided, default_url_options and the
       # routes defined in routes.rb. The following options are supported:
       #
-      # * <tt>:only_path</tt> - If true, the relative url is returned. Defaults to +false+.
+      # * <tt>:only_path</tt> - If true, the relative URL is returned. Defaults to +false+.
       # * <tt>:protocol</tt> - The protocol to connect to. Defaults to 'http'.
       # * <tt>:host</tt> - Specifies the host the link should be targeted at.
       #   If <tt>:only_path</tt> is false, this option must be
@@ -153,7 +155,7 @@ module ActionDispatch
       # Missing routes keys may be filled in from the current request's parameters
       # (e.g. +:controller+, +:action+, +:id+ and any other parameters that are
       # placed in the path). Given that the current action has been reached
-      # through `GET /users/1`:
+      # through <tt>GET /users/1</tt>:
       #
       #   url_for(only_path: true)                        # => '/users/1'
       #   url_for(only_path: true, action: 'edit')        # => '/users/1/edit'
@@ -164,20 +166,17 @@ module ActionDispatch
       # implicitly used by +url_for+ can always be overwritten like shown on the
       # last +url_for+ calls.
       def url_for(options = nil)
+        full_url_for(options)
+      end
+
+      def full_url_for(options = nil) # :nodoc:
         case options
         when nil
           _routes.url_for(url_options.symbolize_keys)
-        when Hash
+        when Hash, ActionController::Parameters
           route_name = options.delete :use_route
-          _routes.url_for(options.symbolize_keys.reverse_merge!(url_options),
-                         route_name)
-        when ActionController::Parameters
-          unless options.permitted?
-            raise ArgumentError.new(ActionDispatch::Routing::INSECURE_URL_PARAMETERS_MESSAGE)
-          end
-          route_name = options.delete :use_route
-          _routes.url_for(options.to_h.symbolize_keys.
-                          reverse_merge!(url_options), route_name)
+          merged_url_options = options.to_h.symbolize_keys.reverse_merge!(url_options)
+          _routes.url_for(merged_url_options, route_name)
         when String
           options
         when Symbol
@@ -190,6 +189,28 @@ module ActionDispatch
         else
           HelperMethodBuilder.url.handle_model_call self, options
         end
+      end
+
+      # Allows calling direct or regular named route.
+      #
+      #   resources :buckets
+      #
+      #   direct :recordable do |recording|
+      #     route_for(:bucket, recording.bucket)
+      #   end
+      #
+      #   direct :threadable do |threadable|
+      #     route_for(:recordable, threadable.parent)
+      #   end
+      #
+      # This maintains the context of the original caller on
+      # whether to return a path or full URL, e.g:
+      #
+      #   threadable_path(threadable)  # => "/buckets/1"
+      #   threadable_url(threadable)   # => "http://example.com/buckets/1"
+      #
+      def route_for(name, *args)
+        public_send(:"#{name}_url", *args)
       end
 
       protected

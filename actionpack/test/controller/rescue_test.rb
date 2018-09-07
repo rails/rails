@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class RescueController < ActionController::Base
@@ -31,7 +33,7 @@ class RescueController < ActionController::Base
   class ResourceUnavailableToRescueAsString < StandardError
   end
 
-  # We use a fully-qualified name in some strings, and a relative constant
+  # We use a fully qualified name in some strings, and a relative constant
   # name in some other to test correct handling of both cases.
 
   rescue_from NotAuthorized, with: :deny_access

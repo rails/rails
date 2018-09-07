@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     # == Active \Model \Type \Boolean
@@ -16,6 +18,10 @@ module ActiveModel
 
       def type # :nodoc:
         :boolean
+      end
+
+      def serialize(value) # :nodoc:
+        cast(value)
       end
 
       private

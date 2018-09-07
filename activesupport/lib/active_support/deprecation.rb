@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "singleton"
 
 module ActiveSupport
@@ -15,6 +17,7 @@ module ActiveSupport
     require "active_support/deprecation/instance_delegator"
     require "active_support/deprecation/behaviors"
     require "active_support/deprecation/reporting"
+    require "active_support/deprecation/constant_accessor"
     require "active_support/deprecation/method_wrappers"
     require "active_support/deprecation/proxy_wrappers"
     require "active_support/core_ext/module/deprecation"
@@ -29,10 +32,10 @@ module ActiveSupport
     attr_accessor :deprecation_horizon
 
     # It accepts two parameters on initialization. The first is a version of library
-    # and the second is a library name
+    # and the second is a library name.
     #
     #   ActiveSupport::Deprecation.new('2.0', 'MyLibrary')
-    def initialize(deprecation_horizon = "5.2", gem_name = "Rails")
+    def initialize(deprecation_horizon = "6.1", gem_name = "Rails")
       self.gem_name = gem_name
       self.deprecation_horizon = deprecation_horizon
       # By default, warnings are not silenced and debugging is off.

@@ -1,12 +1,40 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
+require "rails/engine"
 require "controller/fake_controllers"
 
 class SecureArticlesController < ArticlesController; end
 class BlockArticlesController < ArticlesController; end
 class QueryArticlesController < ArticlesController; end
 
+class SecureBooksController < BooksController; end
+class BlockBooksController < BooksController; end
+class QueryBooksController < BooksController; end
+
 class RoutingAssertionsTest < ActionController::TestCase
   def setup
+    engine = Class.new(Rails::Engine) do
+      def self.name
+        "blog_engine"
+      end
+    end
+    engine.routes.draw do
+      resources :books
+
+      scope "secure", constraints: { protocol: "https://" } do
+        resources :books, controller: "secure_books"
+      end
+
+      scope "block", constraints: lambda { |r| r.ssl? } do
+        resources :books, controller: "block_books"
+      end
+
+      scope "query", constraints: lambda { |r| r.params[:use_query] == "true" } do
+        resources :books, controller: "query_books"
+      end
+    end
+
     @routes = ActionDispatch::Routing::RouteSet.new
     @routes.draw do
       resources :articles
@@ -22,6 +50,10 @@ class RoutingAssertionsTest < ActionController::TestCase
       scope "query", constraints: lambda { |r| r.params[:use_query] == "true" } do
         resources :articles, controller: "query_articles"
       end
+
+      mount engine => "/shelf"
+
+      get "/shelf/foo", controller: "query_articles", action: "index"
     end
   end
 
@@ -31,11 +63,11 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_generates_with_defaults
-    assert_generates("/articles/1/edit", { controller: "articles", action: "edit" }, id: "1")
+    assert_generates("/articles/1/edit", { controller: "articles", action: "edit" }, { id: "1" })
   end
 
   def test_assert_generates_with_extras
-    assert_generates("/articles", { controller: "articles", action: "index", page: "1" }, {}, page: "1")
+    assert_generates("/articles", { controller: "articles", action: "index", page: "1" }, {}, { page: "1" })
   end
 
   def test_assert_recognizes
@@ -48,8 +80,8 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_recognizes_with_method
-    assert_recognizes({ controller: "articles", action: "create" }, path: "/articles", method: :post)
-    assert_recognizes({ controller: "articles", action: "update", id: "1" }, path: "/articles/1", method: :put)
+    assert_recognizes({ controller: "articles", action: "create" }, { path: "/articles", method: :post })
+    assert_recognizes({ controller: "articles", action: "update", id: "1" }, { path: "/articles/1", method: :put })
   end
 
   def test_assert_recognizes_with_hash_constraint
@@ -81,6 +113,53 @@ class RoutingAssertionsTest < ActionController::TestCase
     assert_match err.message, "This is a really bad msg"
   end
 
+  def test_assert_recognizes_with_engine
+    assert_recognizes({ controller: "books", action: "index" }, "/shelf/books")
+    assert_recognizes({ controller: "books", action: "show", id: "1" }, "/shelf/books/1")
+  end
+
+  def test_assert_recognizes_with_engine_and_extras
+    assert_recognizes({ controller: "books", action: "index", page: "1" }, "/shelf/books", page: "1")
+  end
+
+  def test_assert_recognizes_with_engine_and_method
+    assert_recognizes({ controller: "books", action: "create" }, { path: "/shelf/books", method: :post })
+    assert_recognizes({ controller: "books", action: "update", id: "1" }, { path: "/shelf/books/1", method: :put })
+  end
+
+  def test_assert_recognizes_with_engine_and_hash_constraint
+    assert_raise(Assertion) do
+      assert_recognizes({ controller: "secure_books", action: "index" }, "http://test.host/shelf/secure/books")
+    end
+    assert_recognizes({ controller: "secure_books", action: "index", protocol: "https://" }, "https://test.host/shelf/secure/books")
+  end
+
+  def test_assert_recognizes_with_engine_and_block_constraint
+    assert_raise(Assertion) do
+      assert_recognizes({ controller: "block_books", action: "index" }, "http://test.host/shelf/block/books")
+    end
+    assert_recognizes({ controller: "block_books", action: "index" }, "https://test.host/shelf/block/books")
+  end
+
+  def test_assert_recognizes_with_engine_and_query_constraint
+    assert_raise(Assertion) do
+      assert_recognizes({ controller: "query_books", action: "index", use_query: "false" }, "/shelf/query/books", use_query: "false")
+    end
+    assert_recognizes({ controller: "query_books", action: "index", use_query: "true" }, "/shelf/query/books", use_query: "true")
+  end
+
+  def test_assert_recognizes_raises_message_with_engine
+    err = assert_raise(Assertion) do
+      assert_recognizes({ controller: "secure_books", action: "index" }, "http://test.host/shelf/secure/books", {}, "This is a really bad msg")
+    end
+
+    assert_match err.message, "This is a really bad msg"
+  end
+
+  def test_assert_recognizes_continue_to_recoginize_after_it_tried_engines
+    assert_recognizes({ controller: "query_articles", action: "index" }, "/shelf/foo")
+  end
+
   def test_assert_routing
     assert_routing("/articles", controller: "articles", action: "index")
   end
@@ -94,11 +173,11 @@ class RoutingAssertionsTest < ActionController::TestCase
   end
 
   def test_assert_routing_with_defaults
-    assert_routing("/articles/1/edit", { controller: "articles", action: "edit", id: "1" }, id: "1")
+    assert_routing("/articles/1/edit", { controller: "articles", action: "edit", id: "1" }, { id: "1" })
   end
 
   def test_assert_routing_with_extras
-    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, {}, page: "1")
+    assert_routing("/articles", { controller: "articles", action: "index", page: "1" }, {}, { page: "1" })
   end
 
   def test_assert_routing_with_hash_constraint

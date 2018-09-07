@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/comment"
@@ -59,17 +61,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal "Jamis", DeveloperCalledJamis.create!.name
   end
 
-  unless in_memory_db?
-    def test_default_scoping_with_threads
-      2.times do
-        Thread.new {
-          assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
-          DeveloperOrderedBySalary.connection.close
-        }.join
-      end
-    end
-  end
-
   def test_default_scope_with_inheritance
     wheres = InheritedPoorDeveloperCalledJamis.all.where_values_hash
     assert_equal "Jamis", wheres["name"]
@@ -129,49 +120,49 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_with_where_attributes
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "David").unscope(where: :name).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     expected_2 = Developer.order("salary DESC").collect(&:name)
     received_2 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope({ where: :name }, :select).collect(&:name)
-    assert_equal expected_2, received_2
+    assert_equal expected_2.sort, received_2.sort
 
     expected_3 = Developer.order("salary DESC").collect(&:name)
     received_3 = DeveloperOrderedBySalary.select("id").where("name" => "Jamis").unscope(:select, :where).collect(&:name)
-    assert_equal expected_3, received_3
+    assert_equal expected_3.sort, received_3.sort
 
     expected_4 = Developer.order("salary DESC").collect(&:name)
     received_4 = DeveloperOrderedBySalary.where.not("name" => "Jamis").unscope(where: :name).collect(&:name)
-    assert_equal expected_4, received_4
+    assert_equal expected_4.sort, received_4.sort
 
     expected_5 = Developer.order("salary DESC").collect(&:name)
     received_5 = DeveloperOrderedBySalary.where.not("name" => ["Jamis", "David"]).unscope(where: :name).collect(&:name)
-    assert_equal expected_5, received_5
+    assert_equal expected_5.sort, received_5.sort
 
     expected_6 = Developer.order("salary DESC").collect(&:name)
     received_6 = DeveloperOrderedBySalary.where(Developer.arel_table["name"].eq("David")).unscope(where: :name).collect(&:name)
-    assert_equal expected_6, received_6
+    assert_equal expected_6.sort, received_6.sort
 
     expected_7 = Developer.order("salary DESC").collect(&:name)
     received_7 = DeveloperOrderedBySalary.where(Developer.arel_table[:name].eq("David")).unscope(where: :name).collect(&:name)
-    assert_equal expected_7, received_7
+    assert_equal expected_7.sort, received_7.sort
   end
 
   def test_unscope_comparison_where_clauses
     # unscoped for WHERE (`developers`.`id` <= 2)
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY..2).unscope(where: :id).collect { |dev| dev.name }
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     # unscoped for WHERE (`developers`.`id` < 2)
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(id: -Float::INFINITY...2).unscope(where: :id).collect { |dev| dev.name }
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_multiple_where_clauses
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.where(name: "Jamis").where(id: 1).unscope(where: [:name, :id]).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_string_where_clauses_involved
@@ -181,28 +172,28 @@ class DefaultScopingTest < ActiveRecord::TestCase
     dev_ordered_relation = DeveloperOrderedBySalary.where(name: "Jamis").where("created_at > ?", 1.year.ago)
     received = dev_ordered_relation.unscope(where: [:name]).collect(&:name)
 
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_unscope_with_grouping_attributes
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.group(:name).unscope(:group).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
 
     expected_2 = Developer.order("salary DESC").collect(&:name)
     received_2 = DeveloperOrderedBySalary.group("name").unscope(:group).collect(&:name)
-    assert_equal expected_2, received_2
+    assert_equal expected_2.sort, received_2.sort
   end
 
   def test_unscope_with_limit_in_query
     expected = Developer.order("salary DESC").collect(&:name)
     received = DeveloperOrderedBySalary.limit(1).unscope(:limit).collect(&:name)
-    assert_equal expected, received
+    assert_equal expected.sort, received.sort
   end
 
   def test_order_to_unscope_reordering
     scope = DeveloperOrderedBySalary.order("salary DESC, name ASC").reverse_order.unscope(:order)
-    assert !/order/i.match?(scope.to_sql)
+    assert_no_match(/order/i, scope.to_sql)
   end
 
   def test_unscope_reverse_order
@@ -230,6 +221,18 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_unscope_joins_and_select_on_developers_projects
     expected = Developer.all.collect(&:name)
     received = Developer.joins("JOIN developers_projects ON id = developer_id").select(:id).unscope(:joins, :select).collect(&:name)
+    assert_equal expected, received
+  end
+
+  def test_unscope_left_outer_joins
+    expected = Developer.all.collect(&:name)
+    received = Developer.left_outer_joins(:projects).select(:id).unscope(:left_outer_joins, :select).collect(&:name)
+    assert_equal expected, received
+  end
+
+  def test_unscope_left_joins
+    expected = Developer.all.collect(&:name)
+    received = Developer.left_joins(:projects).select(:id).unscope(:left_joins, :select).collect(&:name)
     assert_equal expected, received
   end
 
@@ -299,8 +302,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_unscope_merging
     merged = Developer.where(name: "Jamis").merge(Developer.unscope(:where))
-    assert merged.where_clause.empty?
-    assert !merged.where(name: "Jon").where_clause.empty?
+    assert_empty merged.where_clause
+    assert_not_empty merged.where(name: "Jon").where_clause
   end
 
   def test_order_in_default_scope_should_not_prevail
@@ -343,7 +346,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
 
   def test_create_with_merge
     aaron = PoorDeveloperCalledJamis.create_with(name: "foo", salary: 20).merge(
-              PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
+      PoorDeveloperCalledJamis.create_with(name: "Aaron")).new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
 
@@ -351,6 +354,11 @@ class DefaultScopingTest < ActiveRecord::TestCase
                                      create_with(name: "Aaron").new
     assert_equal 20, aaron.salary
     assert_equal "Aaron", aaron.name
+  end
+
+  def test_create_with_using_both_string_and_symbol
+    jamis = PoorDeveloperCalledJamis.create_with(name: "foo").create_with("name" => "Aaron").new
+    assert_equal "Aaron", jamis.name
   end
 
   def test_create_with_reset
@@ -383,9 +391,37 @@ class DefaultScopingTest < ActiveRecord::TestCase
                  Comment.joins(:post).count
   end
 
+  def test_joins_not_affected_by_scope_other_than_default_or_unscoped
+    without_scope_on_post = Comment.joins(:post).to_a
+    with_scope_on_post = nil
+    Post.where(id: [1, 5, 6]).scoping do
+      with_scope_on_post = Comment.joins(:post).to_a
+    end
+
+    assert_equal with_scope_on_post, without_scope_on_post
+  end
+
   def test_unscoped_with_joins_should_not_have_default_scope
     assert_equal SpecialPostWithDefaultScope.unscoped { Comment.joins(:special_post_with_default_scope).to_a },
                  Comment.joins(:post).to_a
+  end
+
+  def test_sti_association_with_unscoped_not_affected_by_default_scope
+    post = posts(:thinking)
+    comments = [comments(:does_it_hurt)]
+
+    post.special_comments.update_all(deleted_at: Time.now)
+
+    assert_raises(ActiveRecord::RecordNotFound) { Post.joins(:special_comments).find(post.id) }
+    assert_equal [], post.special_comments
+
+    SpecialComment.unscoped do
+      assert_equal post, Post.joins(:special_comments).find(post.id)
+      assert_equal comments, Post.joins(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.eager_load(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.includes(:special_comments).find(post.id).special_comments
+      assert_equal comments, Post.preload(:special_comments).find(post.id).special_comments
+    end
   end
 
   def test_default_scope_select_ignored_by_aggregations
@@ -433,29 +469,6 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_equal comment, CommentWithDefaultScopeReferencesAssociation.find_by(id: comment.id)
   end
 
-  unless in_memory_db?
-    def test_default_scope_is_threadsafe
-      threads = []
-      assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
-
-      barrier_1 = Concurrent::CyclicBarrier.new(2)
-      barrier_2 = Concurrent::CyclicBarrier.new(2)
-
-      threads << Thread.new do
-        Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
-        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
-      end
-      threads << Thread.new do
-        Thread.current[:default_scope_delay] = -> { barrier_2.wait }
-        barrier_1.wait
-        assert_equal 1, ThreadsafeDeveloper.all.to_a.count
-        ThreadsafeDeveloper.connection.close
-      end
-      threads.each(&:join)
-    end
-  end
-
   test "additional conditions are ANDed with the default scope" do
     scope = DeveloperCalledJamis.where(name: "David")
     assert_equal 2, scope.where_clause.ast.children.length
@@ -471,7 +484,7 @@ class DefaultScopingTest < ActiveRecord::TestCase
   test "a scope can remove the condition from the default scope" do
     scope = DeveloperCalledJamis.david2
     assert_equal 1, scope.where_clause.ast.children.length
-    assert_equal Developer.where(name: "David"), scope
+    assert_equal Developer.where(name: "David").map(&:id), scope.map(&:id)
   end
 
   def test_with_abstract_class_where_clause_should_not_be_duplicated
@@ -496,6 +509,8 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_with_abstract_class_scope_should_be_executed_in_correct_context
     vegetarian_pattern, gender_pattern = if current_adapter?(:Mysql2Adapter)
       [/`lions`.`is_vegetarian`/, /`lions`.`gender`/]
+    elsif current_adapter?(:OracleAdapter)
+      [/"LIONS"."IS_VEGETARIAN"/, /"LIONS"."GENDER"/]
     else
       [/"lions"."is_vegetarian"/, /"lions"."gender"/]
     end
@@ -504,3 +519,41 @@ class DefaultScopingTest < ActiveRecord::TestCase
     assert_match gender_pattern, Lion.female.to_sql
   end
 end
+
+class DefaultScopingWithThreadTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  def test_default_scoping_with_threads
+    2.times do
+      Thread.new {
+        assert_includes DeveloperOrderedBySalary.all.to_sql, "salary DESC"
+        DeveloperOrderedBySalary.connection.close
+      }.join
+    end
+  end
+
+  def test_default_scope_is_threadsafe
+    2.times { ThreadsafeDeveloper.unscoped.create! }
+
+    threads = []
+    assert_not_equal 1, ThreadsafeDeveloper.unscoped.count
+
+    barrier_1 = Concurrent::CyclicBarrier.new(2)
+    barrier_2 = Concurrent::CyclicBarrier.new(2)
+
+    threads << Thread.new do
+      Thread.current[:default_scope_delay] = -> { barrier_1.wait; barrier_2.wait }
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
+    end
+    threads << Thread.new do
+      Thread.current[:default_scope_delay] = -> { barrier_2.wait }
+      barrier_1.wait
+      assert_equal 1, ThreadsafeDeveloper.all.to_a.count
+      ThreadsafeDeveloper.connection.close
+    end
+    threads.each(&:join)
+  ensure
+    ThreadsafeDeveloper.unscoped.destroy_all
+  end
+end unless in_memory_db?

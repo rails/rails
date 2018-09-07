@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     class SchemaCache
@@ -26,7 +28,7 @@ module ActiveRecord
         coder["columns_hash"] = @columns_hash
         coder["primary_keys"] = @primary_keys
         coder["data_sources"] = @data_sources
-        coder["version"] = ActiveRecord::Migrator.current_version
+        coder["version"] = connection.migration_context.current_version
       end
 
       def init_with(coder)
@@ -98,7 +100,7 @@ module ActiveRecord
 
       def marshal_dump
         # if we get current version during initialization, it happens stack over flow.
-        @version = ActiveRecord::Migrator.current_version
+        @version = connection.migration_context.current_version
         [@version, @columns, @columns_hash, @primary_keys, @data_sources]
       end
 

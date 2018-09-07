@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/active_record"
 
 module ActiveRecord
@@ -6,19 +8,16 @@ module ActiveRecord
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :migrations_paths, type: :string, desc: "The migration path for your generated migrations. If this is not set it will default to db/migrate"
 
       def create_migration_file
         set_local_assigns!
         validate_file_name!
-        migration_template @migration_template, "db/migrate/#{file_name}.rb"
+        migration_template @migration_template, File.join(db_migrate_path, "#{file_name}.rb")
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
-      protected
-        attr_reader :migration_action, :join_tables
-
       private
+        attr_reader :migration_action, :join_tables
 
         # Sets the default migration template that is being used for the generation of the migration.
         # Depending on command line arguments, the migration template and the table name instance
@@ -26,7 +25,7 @@ module ActiveRecord
         def set_local_assigns!
           @migration_template = "migration.rb"
           case file_name
-          when /^(add|remove)_.*_(?:to|from)_(.*)/
+          when /^(add)_.*_to_(.*)/, /^(remove)_.*?_from_(.*)/
             @migration_action = $1
             @table_name       = normalize_table_name($2)
           when /join_table/

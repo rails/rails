@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -32,9 +34,9 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_binary_columns_are_limitless_the_upper_limit_is_one_GB
-    assert_equal "bytea", @connection.type_to_sql(:binary, 100_000)
+    assert_equal "bytea", @connection.type_to_sql(:binary, limit: 100_000)
     assert_raise ActiveRecord::ActiveRecordError do
-      @connection.type_to_sql :binary, 4294967295
+      @connection.type_to_sql(:binary, limit: 4294967295)
     end
   end
 
@@ -47,7 +49,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   end
 
   def test_type_cast_binary_value
-    data = "\u001F\x8B".force_encoding("BINARY")
+    data = "\u001F\x8B".dup.force_encoding("BINARY")
     assert_equal(data, @type.deserialize(data))
   end
 
@@ -73,7 +75,7 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
   def test_write_value
     data = "\u001F"
     record = ByteaDataType.create(payload: data)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_equal(data, record.payload)
   end
 
@@ -89,23 +91,24 @@ class PostgresqlByteaTest < ActiveRecord::PostgreSQLTestCase
     Thread.new do
       other_conn = ActiveRecord::Base.connection
       other_conn.execute("SET standard_conforming_strings = off")
+      other_conn.execute("SET escape_string_warning = off")
     end.join
 
     test_via_to_sql
   end
 
   def test_write_binary
-    data = File.read(File.join(File.dirname(__FILE__), "..", "..", "..", "assets", "example.log"))
+    data = File.read(File.join(__dir__, "..", "..", "..", "assets", "example.log"))
     assert(data.size > 1)
     record = ByteaDataType.create(payload: data)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_equal(data, record.payload)
     assert_equal(data, ByteaDataType.where(id: record.id).first.payload)
   end
 
   def test_write_nil
     record = ByteaDataType.create(payload: nil)
-    assert_not record.new_record?
+    assert_not_predicate record, :new_record?
     assert_nil(record.payload)
     assert_nil(ByteaDataType.where(id: record.id).first.payload)
   end

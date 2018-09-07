@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/connection_helper"
 
@@ -49,10 +51,10 @@ class PostgresqlCompositeTest < ActiveRecord::PostgreSQLTestCase
     column = PostgresqlComposite.columns_hash["address"]
     assert_nil column.type
     assert_equal "full_address", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_composite_mapping
@@ -104,17 +106,17 @@ class PostgresqlCompositeWithCustomOIDTest < ActiveRecord::PostgreSQLTestCase
   def setup
     super
 
-    @connection.type_map.register_type "full_address", FullAddressType.new
+    @connection.send(:type_map).register_type "full_address", FullAddressType.new
   end
 
   def test_column
     column = PostgresqlComposite.columns_hash["address"]
     assert_equal :full_address, column.type
     assert_equal "full_address", column.sql_type
-    assert_not column.array?
+    assert_not_predicate column, :array?
 
     type = PostgresqlComposite.type_for_attribute("address")
-    assert_not type.binary?
+    assert_not_predicate type, :binary?
   end
 
   def test_composite_mapping

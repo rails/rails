@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/filters"
 
 module ActiveRecord
@@ -7,12 +9,19 @@ module ActiveRecord
     included do
       ##
       # :singleton-method:
-      # Indicates the format used to generate the timestamp in the cache key.
-      # Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
+      # Indicates the format used to generate the timestamp in the cache key, if
+      # versioning is off. Accepts any of the symbols in <tt>Time::DATE_FORMATS</tt>.
       #
       # This is +:usec+, by default.
-      class_attribute :cache_timestamp_format, instance_writer: false
-      self.cache_timestamp_format = :usec
+      class_attribute :cache_timestamp_format, instance_writer: false, default: :usec
+
+      ##
+      # :singleton-method:
+      # Indicates whether to use a stable #cache_key method that is accompanied
+      # by a changing version in the #cache_version method.
+      #
+      # This is +false+, by default until Rails 6.0.
+      class_attribute :cache_versioning, instance_writer: false, default: false
     end
 
     # Returns a +String+, which Action Pack uses for constructing a URL to this
@@ -42,32 +51,62 @@ module ActiveRecord
       id && id.to_s # Be sure to stringify the id for routes
     end
 
-    # Returns a cache key that can be used to identify this record.
+    # Returns a stable cache key that can be used to identify this record.
     #
     #   Product.new.cache_key     # => "products/new"
-    #   Product.find(5).cache_key # => "products/5" (updated_at not available)
+    #   Product.find(5).cache_key # => "products/5"
+    #
+    # If ActiveRecord::Base.cache_versioning is turned off, as it was in Rails 5.1 and earlier,
+    # the cache key will also include a version.
+    #
+    #   Product.cache_versioning = false
     #   Person.find(5).cache_key  # => "people/5-20071224150000" (updated_at available)
-    #
-    # You can also pass a list of named timestamps, and the newest in the list will be
-    # used to generate the key:
-    #
-    #   Person.find(5).cache_key(:updated_at, :last_reviewed_at)
     def cache_key(*timestamp_names)
       if new_record?
         "#{model_name.cache_key}/new"
       else
-        timestamp = if timestamp_names.any?
-          max_updated_column_timestamp(timestamp_names)
-        else
-          max_updated_column_timestamp
-        end
-
-        if timestamp
-          timestamp = timestamp.utc.to_s(cache_timestamp_format)
-          "#{model_name.cache_key}/#{id}-#{timestamp}"
-        else
+        if cache_version && timestamp_names.none?
           "#{model_name.cache_key}/#{id}"
+        else
+          timestamp = if timestamp_names.any?
+            ActiveSupport::Deprecation.warn(<<-MSG.squish)
+              Specifying a timestamp name for #cache_key has been deprecated in favor of
+              the explicit #cache_version method that can be overwritten.
+            MSG
+
+            max_updated_column_timestamp(timestamp_names)
+          else
+            max_updated_column_timestamp
+          end
+
+          if timestamp
+            timestamp = timestamp.utc.to_s(cache_timestamp_format)
+            "#{model_name.cache_key}/#{id}-#{timestamp}"
+          else
+            "#{model_name.cache_key}/#{id}"
+          end
         end
+      end
+    end
+
+    # Returns a cache version that can be used together with the cache key to form
+    # a recyclable caching scheme. By default, the #updated_at column is used for the
+    # cache_version, but this method can be overwritten to return something else.
+    #
+    # Note, this method will return nil if ActiveRecord::Base.cache_versioning is set to
+    # +false+ (which it is by default until Rails 6.0).
+    def cache_version
+      if cache_versioning && timestamp = try(:updated_at)
+        timestamp.utc.to_s(:usec)
+      end
+    end
+
+    # Returns a cache key along with the version.
+    def cache_key_with_version
+      if version = cache_version
+        "#{cache_key}-#{version}"
+      else
+        cache_key
       end
     end
 

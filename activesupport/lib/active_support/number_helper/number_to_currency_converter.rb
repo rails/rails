@@ -1,4 +1,4 @@
-require "active_support/core_ext/numeric/inquiry"
+# frozen_string_literal: true
 
 module ActiveSupport
   module NumberHelper

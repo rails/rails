@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/enumerable"
 
 module ActionView
@@ -6,9 +8,6 @@ module ActionView
   end
 
   class EncodingError < StandardError #:nodoc:
-  end
-
-  class MissingRequestError < StandardError #:nodoc:
   end
 
   class WrongEncodingError < EncodingError #:nodoc:

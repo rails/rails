@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -20,7 +22,7 @@ module ApplicationTests
           end
         RUBY
 
-        list_tables = lambda { `bin/rails runner 'p ActiveRecord::Base.connection.tables'`.strip }
+        list_tables = lambda { rails("runner", "p ActiveRecord::Base.connection.tables").strip }
         File.write("log/test.log", "zomg!")
 
         assert_equal "[]", list_tables.call
@@ -38,9 +40,12 @@ module ApplicationTests
         app_file "db/schema.rb", ""
 
         output = `bin/setup 2>&1`
+
+        # Ignore line that's only output by Bundler < 1.14
+        output.sub!(/^Resolving dependencies\.\.\.\n/, "")
+
         assert_equal(<<-OUTPUT, output)
 == Installing dependencies ==
-Resolving dependencies...
 The Gemfile's dependencies are satisfied
 
 == Preparing database ==

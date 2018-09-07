@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/kernel"
 
@@ -47,21 +49,5 @@ class KernelSuppressTest < ActiveSupport::TestCase
     suppress(LoadError) { raise LoadError }
     suppress(LoadError, ArgumentError) { raise LoadError }
     suppress(LoadError, ArgumentError) { raise ArgumentError }
-  end
-end
-
-class MockStdErr
-  attr_reader :output
-  def puts(message)
-    @output ||= []
-    @output << message
-  end
-
-  def info(message)
-    puts(message)
-  end
-
-  def write(message)
-    puts(message)
   end
 end

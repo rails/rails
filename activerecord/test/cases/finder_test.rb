@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/post"
 require "models/author"
@@ -7,6 +9,7 @@ require "models/company"
 require "models/tagging"
 require "models/topic"
 require "models/reply"
+require "models/rating"
 require "models/entrant"
 require "models/project"
 require "models/developer"
@@ -117,6 +120,21 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal "The Fourth Topic of the day", records[2].title
   end
 
+  def test_find_with_ids_with_no_id_passed
+    exception = assert_raises(ActiveRecord::RecordNotFound) { Topic.find }
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
+  def test_find_with_ids_with_id_out_of_range
+    exception = assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.find("9999999999999999999999999999999")
+    end
+
+    assert_equal exception.model, "Topic"
+    assert_equal exception.primary_key, "id"
+  end
+
   def test_find_passing_active_record_object_is_not_permitted
     assert_raises(ArgumentError) do
       Topic.find(Topic.last)
@@ -152,6 +170,32 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal false, Topic.exists?(Topic.new.id)
 
     assert_raise(NoMethodError) { Topic.exists?([1, 2]) }
+  end
+
+  def test_exists_with_scope
+    davids = Author.where(name: "David")
+    assert_equal true, davids.exists?
+    assert_equal true, davids.exists?(authors(:david).id)
+    assert_equal false, davids.exists?(authors(:mary).id)
+    assert_equal false, davids.exists?("42")
+    assert_equal false, davids.exists?(42)
+    assert_equal false, davids.exists?(davids.new.id)
+
+    fake = Author.where(name: "fake author")
+    assert_equal false, fake.exists?
+    assert_equal false, fake.exists?(authors(:david).id)
+  end
+
+  def test_exists_uses_existing_scope
+    post = authors(:david).posts.first
+    authors = Author.includes(:posts).where(name: "David", posts: { id: post.id })
+    assert_equal true, authors.exists?(authors(:david).id)
+  end
+
+  def test_any_with_scope_on_hash_includes
+    post = authors(:david).posts.first
+    categories = Categorization.includes(author: :posts).where(posts: { id: post.id })
+    assert_equal true, categories.exists?
   end
 
   def test_exists_with_polymorphic_relation
@@ -202,26 +246,51 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal true, Topic.first.replies.exists?
   end
 
-  # ensures +exists?+ runs valid SQL by excluding order value
-  def test_exists_with_order
+  # Ensure +exists?+ runs without an error by excluding distinct value.
+  # See https://github.com/rails/rails/pull/26981.
+  def test_exists_with_order_and_distinct
     assert_equal true, Topic.order(:id).distinct.exists?
   end
 
+  # Ensure +exists?+ runs without an error by excluding order value.
+  def test_exists_with_order
+    assert_equal true, Topic.order(Arel.sql("invalid sql here")).exists?
+  end
+
+  def test_exists_with_joins
+    assert_equal true, Topic.joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_left_joins
+    assert_equal true, Topic.left_joins(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
+  def test_exists_with_eager_load
+    assert_equal true, Topic.eager_load(:replies).where(replies_topics: { approved: true }).order("replies_topics.created_at DESC").exists?
+  end
+
   def test_exists_with_includes_limit_and_empty_result
-    assert_equal false, Topic.includes(:replies).limit(0).exists?
-    assert_equal false, Topic.includes(:replies).limit(1).where("0 = 1").exists?
+    assert_no_queries { assert_equal false, Topic.includes(:replies).limit(0).exists? }
+    assert_queries(1) { assert_equal false, Topic.includes(:replies).limit(1).where("0 = 1").exists? }
   end
 
   def test_exists_with_distinct_association_includes_and_limit
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).limit(1).exists?
+    unique_categorized_posts = author.unique_categorized_posts.includes(:special_comments)
+    assert_no_queries { assert_equal false, unique_categorized_posts.limit(0).exists? }
+    assert_queries(1) { assert_equal true, unique_categorized_posts.limit(1).exists? }
   end
 
   def test_exists_with_distinct_association_includes_limit_and_order
     author = Author.first
-    assert_equal false, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(0).exists?
-    assert_equal true, author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC").limit(1).exists?
+    unique_categorized_posts = author.unique_categorized_posts.includes(:special_comments).order("comments.tags_count DESC")
+    assert_no_queries { assert_equal false, unique_categorized_posts.limit(0).exists? }
+    assert_queries(1) { assert_equal true, unique_categorized_posts.limit(1).exists? }
+  end
+
+  def test_exists_should_reference_correct_aliases_while_joining_tables_of_has_many_through_association
+    ratings = developers(:david).ratings.includes(comment: :post).where(posts: { id: 1 })
+    assert_queries(1) { assert_not_predicate ratings.limit(1), :exists? }
   end
 
   def test_exists_with_empty_table_and_no_args_given
@@ -236,9 +305,9 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_exists_with_aggregate_having_three_mappings_with_one_difference
     existing_address = customers(:david).address
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
-    assert_equal false, Customer.exists?(address:       Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city, existing_address.country + "1"))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street, existing_address.city + "1", existing_address.country))
+    assert_equal false, Customer.exists?(address: Address.new(existing_address.street + "1", existing_address.city, existing_address.country))
   end
 
   def test_exists_does_not_instantiate_records
@@ -286,6 +355,12 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_on_relation_with_large_number
+    assert_raises(ActiveRecord::RecordNotFound) do
+      Topic.where("1=1").find(9999999999999999999999999999999)
+    end
+  end
+
+  def test_find_by_on_relation_with_large_number
     assert_nil Topic.where("1=1").find_by(id: 9999999999999999999999999999999)
   end
 
@@ -345,7 +420,7 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_take
-    assert_equal topics(:first), Topic.take
+    assert_equal topics(:first), Topic.where("title = 'The First Topic'").take
   end
 
   def test_take_failing
@@ -388,6 +463,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:first)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.first
+    assert_equal expected, Topic.limit(5).first
   end
 
   def test_model_class_responds_to_first_bang
@@ -410,6 +486,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:second)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.second
+    assert_equal expected, Topic.limit(5).second
   end
 
   def test_model_class_responds_to_second_bang
@@ -432,6 +509,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:third)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.third
+    assert_equal expected, Topic.limit(5).third
   end
 
   def test_model_class_responds_to_third_bang
@@ -454,6 +532,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fourth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fourth
+    assert_equal expected, Topic.limit(5).fourth
   end
 
   def test_model_class_responds_to_fourth_bang
@@ -476,6 +555,7 @@ class FinderTest < ActiveRecord::TestCase
     expected = topics(:fifth)
     expected.touch # PostgreSQL changes the default order if no order clause is used
     assert_equal expected, Topic.fifth
+    assert_equal expected, Topic.limit(5).fifth
   end
 
   def test_model_class_responds_to_fifth_bang
@@ -496,8 +576,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(4).second_to_last
     assert_nil Topic.offset(5).second_to_last
 
-    #test with limit
-    # assert_nil Topic.limit(1).second # TODO: currently failing
+    # test with limit
+    assert_nil Topic.limit(1).second
     assert_nil Topic.limit(1).second_to_last
   end
 
@@ -526,9 +606,9 @@ class FinderTest < ActiveRecord::TestCase
     assert_nil Topic.offset(5).third_to_last
 
     # test with limit
-    # assert_nil Topic.limit(1).third # TODO: currently failing
+    assert_nil Topic.limit(1).third
     assert_nil Topic.limit(1).third_to_last
-    # assert_nil Topic.limit(2).third # TODO: currently failing
+    assert_nil Topic.limit(2).third
     assert_nil Topic.limit(2).third_to_last
   end
 
@@ -579,13 +659,13 @@ class FinderTest < ActiveRecord::TestCase
   def test_last_with_integer_and_order_should_use_sql_limit
     relation = Topic.order("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_with_integer_and_reorder_should_use_sql_limit
     relation = Topic.reorder("title")
     assert_queries(1) { relation.last(5) }
-    assert !relation.loaded?
+    assert_not_predicate relation, :loaded?
   end
 
   def test_last_on_loaded_relation_should_not_use_sql
@@ -598,7 +678,7 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_last_with_irreversible_order
     assert_raises(ActiveRecord::IrreversibleOrderError) do
-      Topic.order("coalesce(author_name, title)").last
+      Topic.order(Arel.sql("coalesce(author_name, title)")).last
     end
   end
 
@@ -610,10 +690,40 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
 
+    assert_equal comments.offset(2).to_a.last, comments.offset(2).last
+    assert_equal comments.offset(2).to_a.last(2), comments.offset(2).last(2)
+    assert_equal comments.offset(2).to_a.last(3), comments.offset(2).last(3)
+
     comments = comments.offset(1)
     assert_equal comments.limit(2).to_a.last, comments.limit(2).last
     assert_equal comments.limit(2).to_a.last(2), comments.limit(2).last(2)
     assert_equal comments.limit(2).to_a.last(3), comments.limit(2).last(3)
+  end
+
+  def test_first_on_relation_with_limit_and_offset
+    post = posts("sti_comments")
+
+    comments = post.comments.order(id: :asc)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+
+    assert_equal comments.offset(2).to_a.first, comments.offset(2).first
+    assert_equal comments.offset(2).to_a.first(2), comments.offset(2).first(2)
+    assert_equal comments.offset(2).to_a.first(3), comments.offset(2).first(3)
+
+    comments = comments.offset(1)
+    assert_equal comments.limit(2).to_a.first, comments.limit(2).first
+    assert_equal comments.limit(2).to_a.first(2), comments.limit(2).first(2)
+    assert_equal comments.limit(2).to_a.first(3), comments.limit(2).first(3)
+  end
+
+  def test_first_have_determined_order_by_default
+    expected = [companies(:second_client), companies(:another_client)]
+    clients = Client.where(name: expected.map(&:name))
+
+    assert_equal expected, clients.first(2)
+    assert_equal expected, clients.limit(5).first(2)
   end
 
   def test_take_and_first_and_last_with_integer_should_return_an_array
@@ -636,8 +746,8 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ActiveModel::MissingAttributeError) { topic.title? }
     assert_nil topic.read_attribute("title")
     assert_equal "David", topic.author_name
-    assert !topic.attribute_present?("title")
-    assert !topic.attribute_present?(:title)
+    assert_not topic.attribute_present?("title")
+    assert_not topic.attribute_present?(:title)
     assert topic.attribute_present?("author_name")
     assert_respond_to topic, "author_name"
   end
@@ -721,11 +831,19 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal [1, 2, 6, 7, 8], Comment.where(id: [1..2, 6..8]).to_a.map(&:id).sort
   end
 
+  def test_find_on_hash_conditions_with_open_ended_range
+    assert_equal [1, 2, 3], Comment.where(id: Float::INFINITY..3).to_a.map(&:id).sort
+  end
+
+  def test_find_on_hash_conditions_with_numeric_range_for_string
+    topic = Topic.create!(title: "12 Factor App")
+    assert_equal [topic], Topic.where(title: 10..2).to_a
+  end
+
   def test_find_on_multiple_hash_conditions
     assert Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: false).find(1)
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
     assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "HHC", replies_count: 1, approved: false).find(1) }
-    assert_raise(ActiveRecord::RecordNotFound) { Topic.where(author_name: "David", title: "The First Topic", replies_count: 1, approved: true).find(1) }
   end
 
   def test_condition_interpolation
@@ -776,6 +894,25 @@ class FinderTest < ActiveRecord::TestCase
     assert_kind_of Money, balance
     found_customer = Customer.where(balance: balance).first
     assert_equal customers(:david), found_customer
+  end
+
+  def test_hash_condition_find_with_aggregate_having_three_mappings_array
+    david_address = customers(:david).address
+    zaphod_address = customers(:zaphod).address
+    barney_address = customers(:barney).address
+    assert_kind_of Address, david_address
+    assert_kind_of Address, zaphod_address
+    found_customers = Customer.where(address: [david_address, zaphod_address, barney_address])
+    assert_equal [customers(:david), customers(:zaphod), customers(:barney)], found_customers.sort_by(&:id)
+  end
+
+  def test_hash_condition_find_with_aggregate_having_one_mapping_array
+    david_balance = customers(:david).balance
+    zaphod_balance = customers(:zaphod).balance
+    assert_kind_of Money, david_balance
+    assert_kind_of Money, zaphod_balance
+    found_customers = Customer.where(balance: [david_balance, zaphod_balance])
+    assert_equal [customers(:david), customers(:zaphod)], found_customers.sort_by(&:id)
   end
 
   def test_hash_condition_find_with_aggregate_attribute_having_same_name_as_field_and_key_value_being_aggregate
@@ -863,13 +1000,13 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = ?", "37signals' go'es agains"]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = ?", "37signals' go'es against"]).first
   end
 
   def test_named_bind_variables_with_quotes
-    Company.create("name" => "37signals' go'es agains")
-    assert Company.where(["name = :name", { name: "37signals' go'es agains" }]).first
+    Company.create("name" => "37signals' go'es against")
+    assert Company.where(["name = :name", { name: "37signals' go'es against" }]).first
   end
 
   def test_named_bind_variables
@@ -983,14 +1120,6 @@ class FinderTest < ActiveRecord::TestCase
     assert_raise(ArgumentError) { Topic.find_by_title_and_author_name("The First Topic") }
   end
 
-  def test_find_last_with_offset
-    devs = Developer.order("id")
-
-    assert_equal devs[2], Developer.offset(2).first
-    assert_equal devs[-3], Developer.offset(2).last
-    assert_equal devs[-3], Developer.offset(2).order("id DESC").first
-  end
-
   def test_find_by_nil_attribute
     topic = Topic.find_by_last_read nil
     assert_not_nil topic
@@ -1004,16 +1133,6 @@ class FinderTest < ActiveRecord::TestCase
 
   def test_find_with_bad_sql
     assert_raise(ActiveRecord::StatementInvalid) { Topic.find_by_sql "select 1 from badtable" }
-  end
-
-  def test_find_all_with_join
-    developers_on_project_one = Developer.
-      joins("LEFT JOIN developers_projects ON developers.id = developers_projects.developer_id").
-      where("project_id=1").to_a
-    assert_equal 3, developers_on_project_one.length
-    developer_names = developers_on_project_one.map(&:name)
-    assert_includes developer_names, "David"
-    assert_includes developer_names, "Jamis"
   end
 
   def test_joins_dont_clobber_id
@@ -1089,6 +1208,11 @@ class FinderTest < ActiveRecord::TestCase
       order("author_addresses_authors.id DESC").limit(3).to_a.size
   end
 
+  def test_find_with_eager_loading_collection_and_ordering_by_collection_primary_key
+    assert_equal Post.first, Post.eager_load(comments: :ratings).
+      order("posts.id, ratings.id, comments.id").first
+  end
+
   def test_find_with_nil_inside_set_passed_for_one_attribute
     client_of = Company.
       where(client_of: [2, 1, nil],
@@ -1144,7 +1268,7 @@ class FinderTest < ActiveRecord::TestCase
       e = assert_raises(ActiveRecord::RecordNotFound) do
         model.find "Hello", "World!"
       end
-      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2)", e.message
+      assert_equal "Couldn't find all MercedesCars with 'name': (Hello, World!) (found 0 results, but was looking for 2).", e.message
     end
   end
 
@@ -1170,13 +1294,17 @@ class FinderTest < ActiveRecord::TestCase
     assert_equal posts(:eager_other), Post.find_by("id = ?", posts(:eager_other).id)
   end
 
+  test "find_by with range conditions returns the first matching record" do
+    assert_equal posts(:eager_other), Post.find_by(id: posts(:eager_other).id...posts(:misc_by_bob).id)
+  end
+
   test "find_by returns nil if the record is missing" do
     assert_nil Post.find_by("1 = 0")
   end
 
   test "find_by with associations" do
     assert_equal authors(:david), Post.find_by(author: authors(:david)).author
-    assert_equal authors(:mary) , Post.find_by(author: authors(:mary)).author
+    assert_equal authors(:mary), Post.find_by(author: authors(:mary)).author
   end
 
   test "find_by doesn't have implicit ordering" do
@@ -1223,6 +1351,34 @@ class FinderTest < ActiveRecord::TestCase
 
     assert_equal tyre, honda.tyres.custom_find_by(id: tyre.id)
     assert_equal tyre2, zyke.tyres.custom_find_by(id: tyre2.id)
+  end
+
+  test "#skip_query_cache! for #exists?" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.exists?
+        Topic.exists?
+      end
+
+      assert_queries(2) do
+        Topic.all.skip_query_cache!.exists?
+        Topic.all.skip_query_cache!.exists?
+      end
+    end
+  end
+
+  test "#skip_query_cache! for #exists? with a limited eager load" do
+    Topic.cache do
+      assert_queries(1) do
+        Topic.eager_load(:replies).limit(1).exists?
+        Topic.eager_load(:replies).limit(1).exists?
+      end
+
+      assert_queries(2) do
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+        Topic.eager_load(:replies).limit(1).skip_query_cache!.exists?
+      end
+    end
   end
 
   private

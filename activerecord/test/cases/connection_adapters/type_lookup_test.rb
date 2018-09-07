@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strings for lookup
@@ -80,28 +82,36 @@ unless current_adapter?(:PostgreSQLAdapter) # PostgreSQL does not use type strin
         end
 
         def test_bigint_limit
-          cast_type = @connection.type_map.lookup("bigint")
+          limit = @connection.send(:type_map).lookup("bigint").send(:_limit)
           if current_adapter?(:OracleAdapter)
-            assert_equal 19, cast_type.limit
+            assert_equal 19, limit
           else
-            assert_equal 8, cast_type.limit
+            assert_equal 8, limit
           end
         end
 
         def test_decimal_without_scale
-          types = %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)}
-          types.each do |type|
-            cast_type = @connection.type_map.lookup(type)
+          if current_adapter?(:OracleAdapter)
+            {
+              decimal: %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0)},
+              integer: %w{number(2) number(2,0)}
+            }
+          else
+            { decimal: %w{decimal(2) decimal(2,0) numeric(2) numeric(2,0) number(2) number(2,0)} }
+          end.each do |expected_type, types|
+            types.each do |type|
+              cast_type = @connection.send(:type_map).lookup(type)
 
-            assert_equal :decimal, cast_type.type
-            assert_equal 2, cast_type.cast(2.1)
+              assert_equal expected_type, cast_type.type
+              assert_equal 2, cast_type.cast(2.1)
+            end
           end
         end
 
         private
 
           def assert_lookup_type(type, lookup)
-            cast_type = @connection.type_map.lookup(lookup)
+            cast_type = @connection.send(:type_map).lookup(lookup)
             assert_equal type, cast_type.type
           end
       end

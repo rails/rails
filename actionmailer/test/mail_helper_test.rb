@@ -1,12 +1,14 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class HelperMailer < ActionMailer::Base
   def use_mail_helper
-    @text = "But soft! What light through yonder window breaks? It is the east, " +
-            "and Juliet is the sun. Arise, fair sun, and kill the envious moon, " +
-            "which is sick and pale with grief that thou, her maid, art far more " +
-            "fair than she. Be not her maid, for she is envious! Her vestal " +
-            "livery is but sick and green, and none but fools do wear it. Cast " +
+    @text = "But soft! What light through yonder window breaks? It is the east, " \
+            "and Juliet is the sun. Arise, fair sun, and kill the envious moon, " \
+            "which is sick and pale with grief that thou, her maid, art far more " \
+            "fair than she. Be not her maid, for she is envious! Her vestal " \
+            "livery is but sick and green, and none but fools do wear it. Cast " \
             "it off!"
 
     mail_with_defaults do |format|

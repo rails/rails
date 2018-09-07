@@ -1,18 +1,19 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
   module AttributeMethods
     class ReadTest < ActiveRecord::TestCase
-      class FakeColumn < Struct.new(:name)
+      FakeColumn = Struct.new(:name) do
         def type; :integer; end
       end
 
       def setup
-        @klass = Class.new do
+        @klass = Class.new(Class.new { def self.initialize_generated_modules; end }) do
           def self.superclass; Base; end
-          def self.base_class; self; end
+          def self.base_class?; true; end
           def self.decorate_matching_attribute_types(*); end
-          def self.initialize_generated_modules; end
 
           include ActiveRecord::DefineCallbacks
           include ActiveRecord::AttributeMethods

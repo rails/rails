@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Callbacks
 =======================
@@ -117,6 +117,10 @@ Here is a list with all the available Active Record callbacks, listed in the sam
 
 WARNING. `after_save` runs both on create and update, but always _after_ the more specific callbacks `after_create` and `after_update`, no matter the order in which the macro calls were executed.
 
+NOTE: `before_destroy` callbacks should be placed before `dependent: :destroy`
+associations (or use the `prepend: true` option), to ensure they execute before
+the records are deleted by `dependent: :destroy`.
+
 ### `after_initialize` and `after_find`
 
 The `after_initialize` callback will be called whenever an Active Record object is instantiated, either by directly using `new` or when a record is loaded from the database. It can be useful to avoid the need to directly override your Active Record `initialize` method.
@@ -180,9 +184,9 @@ class Company < ApplicationRecord
   after_touch :log_when_employees_or_company_touched
 
   private
-  def log_when_employees_or_company_touched
-    puts 'Employee/Company was touched'
-  end
+    def log_when_employees_or_company_touched
+      puts 'Employee/Company was touched'
+    end
 end
 
 >> @employee = Employee.last
@@ -190,8 +194,8 @@ end
 
 # triggers @employee.company.touch
 >> @employee.touch
-Employee/Company was touched
 An Employee was touched
+Employee/Company was touched
 => true
 ```
 
@@ -209,6 +213,7 @@ The following methods trigger callbacks:
 * `save!`
 * `save(validate: false)`
 * `toggle!`
+* `touch`
 * `update_attribute`
 * `update`
 * `update!`
@@ -241,7 +246,6 @@ Just as with validations, it is also possible to skip callbacks by using the fol
 * `increment`
 * `increment_counter`
 * `toggle`
-* `touch`
 * `update_column`
 * `update_columns`
 * `update_all`
@@ -254,9 +258,13 @@ Halting Execution
 
 As you start registering new callbacks for your models, they will be queued for execution. This queue will include all your model's validations, the registered callbacks, and the database operation to be executed.
 
-The whole callback chain is wrapped in a transaction. If any _before_ callback method returns exactly `false` or raises an exception, the execution chain gets halted and a ROLLBACK is issued; _after_ callbacks can only accomplish that by raising an exception.
+The whole callback chain is wrapped in a transaction. If any callback raises an exception, the execution chain gets halted and a ROLLBACK is issued. To intentionally stop a chain use:
 
-WARNING. Any exception that is not `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` may break code that does not expect methods like `save` and `update_attributes` (which normally try to return `true` or `false`) to raise an exception.
+```ruby
+throw :abort
+```
+
+WARNING. Any exception that is not `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` will be re-raised by Rails after the callback chain is halted. Raising an exception other than `ActiveRecord::Rollback` or `ActiveRecord::RecordInvalid` may break code that does not expect methods like `save` and `update` (which normally try to return `true` or `false`) to raise an exception.
 
 Relational Callbacks
 --------------------
@@ -288,7 +296,7 @@ Article destroyed
 Conditional Callbacks
 ---------------------
 
-As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
+As with validations, we can also make the calling of a callback method conditional on the satisfaction of a given predicate. We can do this using the `:if` and `:unless` options, which can take a symbol, a `Proc` or an `Array`. You may use the `:if` option when you want to specify under which conditions the callback **should** be called. If you want to specify the conditions under which the callback **should not** be called, then you may use the `:unless` option.
 
 ### Using `:if` and `:unless` with a `Symbol`
 
@@ -300,16 +308,6 @@ class Order < ApplicationRecord
 end
 ```
 
-### Using `:if` and `:unless` with a String
-
-You can also use a string that will be evaluated using `eval` and hence needs to contain valid Ruby code. You should use this option only when the string represents a really short condition:
-
-```ruby
-class Order < ApplicationRecord
-  before_save :normalize_card_number, if: "paid_with_card?"
-end
-```
-
 ### Using `:if` and `:unless` with a `Proc`
 
 Finally, it is possible to associate `:if` and `:unless` with a `Proc` object. This option is best suited when writing short validation methods, usually one-liners:
@@ -318,6 +316,14 @@ Finally, it is possible to associate `:if` and `:unless` with a `Proc` object. T
 class Order < ApplicationRecord
   before_save :normalize_card_number,
     if: Proc.new { |order| order.paid_with_card? }
+end
+```
+
+As the proc is evaluated in the context of the object, it is also possible to write this as:
+
+```ruby
+class Order < ApplicationRecord
+  before_save :normalize_card_number, if: Proc.new { paid_with_card? }
 end
 ```
 
@@ -410,7 +416,7 @@ end
 NOTE: The `:on` option specifies when a callback will be fired. If you
 don't supply the `:on` option the callback will fire for every action.
 
-Since using `after_commit` callback only on create, update or delete is
+Since using `after_commit` callback only on create, update, or delete is
 common, there are aliases for those operations:
 
 * `after_create_commit`
@@ -430,3 +436,32 @@ end
 ```
 
 WARNING. The `after_commit` and `after_rollback` callbacks are called for all models created, updated, or destroyed within a transaction block. However, if an exception is raised within one of these callbacks, the exception will bubble up and any remaining `after_commit` or `after_rollback` methods will _not_ be executed. As such, if your callback code could raise an exception, you'll need to rescue it and handle it within the callback in order to allow other callbacks to run.
+
+WARNING. Using both `after_create_commit` and `after_update_commit` in the same model will only allow the last callback defined to take effect, and will override all others.
+
+```ruby
+class User < ApplicationRecord
+  after_create_commit :log_user_saved_to_db
+  after_update_commit :log_user_saved_to_db
+
+  private
+  def log_user_saved_to_db
+    puts 'User was saved to database'
+  end
+end
+
+# prints nothing
+>> @user = User.create
+
+# updating @user
+>> @user.save
+=> User was saved to database
+```
+
+To register callbacks for both create and update actions, use `after_commit` instead.
+
+```ruby
+class User < ApplicationRecord
+  after_commit :log_user_saved_to_db, on: [:create, :update]
+end
+```

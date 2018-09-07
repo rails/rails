@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "erb"
 require "yaml"
 require "zlib"
@@ -70,11 +72,30 @@ module ActiveRecord
   # test. To ensure consistent data, the environment deletes the fixtures before running the load.
   #
   # In addition to being available in the database, the fixture's data may also be accessed by
-  # using a special dynamic method, which has the same name as the model, and accepts the
-  # name of the fixture to instantiate:
+  # using a special dynamic method, which has the same name as the model.
   #
-  #   test "find" do
+  # Passing in a fixture name to this dynamic method returns the fixture matching this name:
+  #
+  #   test "find one" do
   #     assert_equal "Ruby on Rails", web_sites(:rubyonrails).name
+  #   end
+  #
+  # Passing in multiple fixture names returns all fixtures matching these names:
+  #
+  #   test "find all by name" do
+  #     assert_equal 2, web_sites(:rubyonrails, :google).length
+  #   end
+  #
+  # Passing in no arguments returns all fixtures:
+  #
+  #   test "find all" do
+  #     assert_equal 2, web_sites.length
+  #   end
+  #
+  # Passing in any fixture name that does not exist will raise <tt>StandardError</tt>:
+  #
+  #   test "find by name that does not exist" do
+  #     assert_raise(StandardError) { web_sites(:reddit) }
   #   end
   #
   # Alternatively, you may enable auto-instantiation of the fixture data. For instance, take the
@@ -126,7 +147,7 @@ module ActiveRecord
   # unwanted inter-test dependencies. Methods used by multiple fixtures should be defined in a module
   # that is included in ActiveRecord::FixtureSet.context_class.
   #
-  # - define a helper method in `test_helper.rb`
+  # - define a helper method in <tt>test_helper.rb</tt>
   #     module FixtureFileHelpers
   #       def file_sha(path)
   #         Digest::SHA2.hexdigest(File.read(Rails.root.join('test/fixtures', path)))
@@ -148,18 +169,18 @@ module ActiveRecord
   #     self.use_transactional_tests = true
   #
   #     test "godzilla" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #       Foo.destroy_all
-  #       assert Foo.all.empty?
+  #       assert_empty Foo.all
   #     end
   #
   #     test "godzilla aftermath" do
-  #       assert !Foo.all.empty?
+  #       assert_not_empty Foo.all
   #     end
   #   end
   #
-  # If you preload your test database with all fixture data (probably in the rake task) and use
-  # transactional tests, then you may omit all fixtures declarations in your test cases since
+  # If you preload your test database with all fixture data (probably by running `rails db:fixtures:load`)
+  # and use transactional tests, then you may omit all fixtures declarations in your test cases since
   # all the data's already there and every case rolls back its changes.
   #
   # In order to use instantiated fixtures with preloaded data, set +self.pre_loaded_fixtures+ to
@@ -473,8 +494,7 @@ module ActiveRecord
       end
     end
 
-    cattr_accessor :all_loaded_fixtures
-    self.all_loaded_fixtures = {}
+    cattr_accessor :all_loaded_fixtures, default: {}
 
     class ClassCache
       def initialize(class_names, config)
@@ -520,49 +540,38 @@ module ActiveRecord
       }
 
       unless files_to_read.empty?
-        connection.disable_referential_integrity do
-          fixtures_map = {}
+        fixtures_map = {}
 
-          fixture_sets = files_to_read.map do |fs_name|
-            klass = class_names[fs_name]
-            conn = klass ? klass.connection : connection
-            fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
-              conn,
-              fs_name,
-              klass,
-              ::File.join(fixtures_directory, fs_name))
-          end
+        fixture_sets = files_to_read.map do |fs_name|
+          klass = class_names[fs_name]
+          conn = klass ? klass.connection : connection
+          fixtures_map[fs_name] = new( # ActiveRecord::FixtureSet.new
+            conn,
+            fs_name,
+            klass,
+            ::File.join(fixtures_directory, fs_name))
+        end
 
-          update_all_loaded_fixtures fixtures_map
+        update_all_loaded_fixtures fixtures_map
+        fixture_sets_by_connection = fixture_sets.group_by { |fs| fs.model_class ? fs.model_class.connection : connection }
 
-          connection.transaction(requires_new: true) do
-            deleted_tables = Hash.new { |h, k| h[k] = Set.new }
-            fixture_sets.each do |fs|
-              conn = fs.model_class.respond_to?(:connection) ? fs.model_class.connection : connection
-              table_rows = fs.table_rows
+        fixture_sets_by_connection.each do |conn, set|
+          table_rows_for_connection = Hash.new { |h, k| h[k] = [] }
 
-              table_rows.each_key do |table|
-                unless deleted_tables[conn].include? table
-                  conn.delete "DELETE FROM #{conn.quote_table_name(table)}", "Fixture Delete"
-                end
-                deleted_tables[conn] << table
-              end
-
-              table_rows.each do |fixture_set_name, rows|
-                rows.each do |row|
-                  conn.insert_fixture(row, fixture_set_name)
-                end
-              end
-
-              # Cap primary key sequences to max(pk).
-              if conn.respond_to?(:reset_pk_sequence!)
-                conn.reset_pk_sequence!(fs.table_name)
-              end
+          set.each do |fs|
+            fs.table_rows.each do |table, rows|
+              table_rows_for_connection[table].unshift(*rows)
             end
           end
+          conn.insert_fixtures_set(table_rows_for_connection, table_rows_for_connection.keys)
 
-          cache_fixtures(connection, fixtures_map)
+          # Cap primary key sequences to max(pk).
+          if conn.respond_to?(:reset_pk_sequence!)
+            set.each { |fs| conn.reset_pk_sequence!(fs.table_name) }
+          end
         end
+
+        cache_fixtures(connection, fixtures_map)
       end
       cached_fixtures(connection, fixture_set_names)
     end
@@ -859,20 +868,13 @@ module ActiveRecord
 
     included do
       class_attribute :fixture_path, instance_writer: false
-      class_attribute :fixture_table_names
-      class_attribute :fixture_class_names
-      class_attribute :use_transactional_tests
-      class_attribute :use_instantiated_fixtures # true, false, or :no_instances
-      class_attribute :pre_loaded_fixtures
-      class_attribute :config
-
-      self.fixture_table_names = []
-      self.use_instantiated_fixtures = false
-      self.pre_loaded_fixtures = false
-      self.config = ActiveRecord::Base
-
-      self.fixture_class_names = {}
-      self.use_transactional_tests = true
+      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_class_names, default: {}
+      class_attribute :use_transactional_tests, default: true
+      class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
+      class_attribute :pre_loaded_fixtures, default: false
+      class_attribute :config, default: ActiveRecord::Base
+      class_attribute :lock_threads, default: true
     end
 
     module ClassMethods
@@ -909,6 +911,8 @@ module ActiveRecord
 
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
+              return_single_record = fixture_names.size == 1
+              fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
 
               @fixture_cache[fs_name] ||= {}
 
@@ -923,7 +927,7 @@ module ActiveRecord
                 end
               end
 
-              instances.size == 1 ? instances.first : instances
+              return_single_record ? instances.first : instances
             end
             private accessor_name
           end
@@ -970,6 +974,7 @@ module ActiveRecord
         @fixture_connections = enlist_fixture_connections
         @fixture_connections.each do |connection|
           connection.begin_transaction joinable: false
+          connection.pool.lock_thread = true if lock_threads
         end
 
         # When connections are established in the future, begin a transaction too
@@ -985,6 +990,7 @@ module ActiveRecord
 
             if connection && !@fixture_connections.include?(connection)
               connection.begin_transaction joinable: false
+              connection.pool.lock_thread = true if lock_threads
               @fixture_connections << connection
             end
           end
@@ -1007,6 +1013,7 @@ module ActiveRecord
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
         @fixture_connections.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
+          connection.pool.lock_thread = false
         end
         @fixture_connections.clear
       else
@@ -1049,6 +1056,10 @@ class ActiveRecord::FixtureSet::RenderContext # :nodoc:
     Class.new ActiveRecord::FixtureSet.context_class do
       def get_binding
         binding()
+      end
+
+      def binary(path)
+        %(!!binary "#{Base64.strict_encode64(File.read(path))}")
       end
     end
   end

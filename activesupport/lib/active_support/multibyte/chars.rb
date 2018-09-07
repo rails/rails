@@ -1,8 +1,9 @@
+# frozen_string_literal: true
+
 require "active_support/json"
 require "active_support/core_ext/string/access"
 require "active_support/core_ext/string/behavior"
 require "active_support/core_ext/module/delegation"
-require "active_support/core_ext/regexp"
 
 module ActiveSupport #:nodoc:
   module Multibyte #:nodoc:
@@ -16,7 +17,8 @@ module ActiveSupport #:nodoc:
     # through the +mb_chars+ method. Methods which would normally return a
     # String object now return a Chars object so methods can be chained.
     #
-    #   'The Perfect String  '.mb_chars.downcase.strip.normalize # => "the perfect string"
+    #   'The Perfect String  '.mb_chars.downcase.strip.normalize
+    #   # => #<ActiveSupport::Multibyte::Chars:0x007fdc434ccc10 @wrapped_string="the perfect string">
     #
     # Chars objects are perfectly interchangeable with String objects as long as
     # no explicit class checks are made. If certain methods do explicitly check
@@ -134,7 +136,7 @@ module ActiveSupport #:nodoc:
 
       # Converts characters in the string to the opposite case.
       #
-      #    'El Cañón".mb_chars.swapcase.to_s # => "eL cAÑÓN"
+      #    'El Cañón'.mb_chars.swapcase.to_s # => "eL cAÑÓN"
       def swapcase
         chars Unicode.swapcase(@wrapped_string)
       end
@@ -148,8 +150,8 @@ module ActiveSupport #:nodoc:
 
       # Capitalizes the first letter of every word, when possible.
       #
-      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize    # => "Él Que Se Enteró"
-      #   "日本語".mb_chars.titleize                 # => "日本語"
+      #   "ÉL QUE SE ENTERÓ".mb_chars.titleize.to_s    # => "Él Que Se Enteró"
+      #   "日本語".mb_chars.titleize.to_s               # => "日本語"
       def titleize
         chars(downcase.to_s.gsub(/\b('?\S)/u) { Unicode.upcase($1) })
       end

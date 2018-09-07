@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # ---------------------------------------------------------------------------
 #
 # This script validates the generated guides against the W3C Validator.
@@ -32,7 +34,8 @@ include W3CValidators
 module RailsGuides
   class Validator
     def validate
-      validator = MarkupValidator.new
+      # https://github.com/w3c-validators/w3c_validators/issues/25
+      validator = NuValidator.new
       STDOUT.sync = true
       errors_on_guides = {}
 
@@ -44,11 +47,11 @@ module RailsGuides
           next
         end
 
-        if results.validity
-          print "."
-        else
+        if results.errors.length > 0
           print "E"
           errors_on_guides[f] = results.errors
+        else
+          print "."
         end
       end
 

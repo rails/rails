@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "config"
 
 require "stringio"
@@ -6,7 +8,6 @@ require "active_record"
 require "cases/test_case"
 require "active_support/dependencies"
 require "active_support/logger"
-require "active_support/core_ext/string/strip"
 
 require "support/config"
 require "support/connection"
@@ -142,6 +143,8 @@ def load_schema
   if File.exist?(adapter_specific_schema_file)
     load adapter_specific_schema_file
   end
+
+  ActiveRecord::FixtureSet.reset_cache
 ensure
   $stdout = original_stdout
 end
@@ -180,5 +183,3 @@ module InTimeZone
       ActiveRecord::Base.time_zone_aware_attributes = old_tz
     end
 end
-
-require "mocha/setup" # FIXME: stop using mocha

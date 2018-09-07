@@ -1,6 +1,7 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/car"
-require "active_support/core_ext/string/strip"
 
 if ActiveRecord::Base.connection.supports_explain?
   class ExplainTest < ActiveRecord::TestCase
@@ -51,7 +52,7 @@ if ActiveRecord::Base.connection.supports_explain?
       queries = sqls.zip(binds)
 
       stub_explain_for_query_plans(["query plan foo\n", "query plan bar\n"]) do
-        expected = <<-SQL.strip_heredoc
+        expected = <<~SQL
           EXPLAIN for: #{sqls[0]} [["wadus", 1]]
           query plan foo
 

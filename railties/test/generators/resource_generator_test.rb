@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/resource/resource_generator"
 
@@ -5,7 +7,11 @@ class ResourceGeneratorTest < Rails::Generators::TestCase
   include GeneratorsTestHelper
   arguments %w(account)
 
-  setup :copy_routes
+  def setup
+    super
+    copy_routes
+    Rails::Generators::ModelHelpers.skip_warn = false
+  end
 
   def test_help_with_inherited_options
     content = run_generator ["--help"]

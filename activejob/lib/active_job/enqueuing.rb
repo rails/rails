@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_job/arguments"
 
 module ActiveJob
@@ -8,7 +10,7 @@ module ActiveJob
     # Includes the +perform_later+ method for job initialization.
     module ClassMethods
       # Push a job onto the queue. The arguments must be legal JSON types
-      # (string, int, float, nil, true, false, hash or array) or
+      # (+string+, +int+, +float+, +nil+, +true+, +false+, +hash+ or +array+) or
       # GlobalID::Identification instances. Arbitrary Ruby objects
       # are not supported.
       #

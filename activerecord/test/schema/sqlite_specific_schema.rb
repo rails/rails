@@ -1,18 +1,11 @@
+# frozen_string_literal: true
+
 ActiveRecord::Schema.define do
-  execute "DROP TABLE fk_test_has_fk" rescue nil
-  execute "DROP TABLE fk_test_has_pk" rescue nil
-  execute <<_SQL
-  CREATE TABLE 'fk_test_has_pk' (
-    'pk_id' INTEGER NOT NULL PRIMARY KEY
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE 'fk_test_has_fk' (
-    'id'    INTEGER NOT NULL PRIMARY KEY,
-    'fk_id' INTEGER NOT NULL,
-
-    FOREIGN KEY ('fk_id') REFERENCES 'fk_test_has_pk'('pk_id')
-  );
-_SQL
+  create_table :defaults, force: true do |t|
+    t.date :fixed_date, default: "2004-01-01"
+    t.datetime :fixed_time, default: "2004-01-01 00:00:00"
+    t.column :char1, "char(1)", default: "Y"
+    t.string :char2, limit: 50, default: "a varchar field"
+    t.text :char3, limit: 50, default: "a text field"
+  end
 end

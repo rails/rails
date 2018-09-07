@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -12,7 +14,7 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def america; end
         }.new)
-        assert recorder.respond_to?(:america)
+        assert_respond_to recorder, :america
       end
 
       def test_send_calls_super
@@ -25,7 +27,7 @@ module ActiveRecord
         recorder = CommandRecorder.new(Class.new {
           def create_table(name); end
         }.new)
-        assert recorder.respond_to?(:create_table), "respond_to? create_table"
+        assert_respond_to recorder, :create_table
         recorder.send(:create_table, :horses)
         assert_equal [[:create_table, [:horses], nil]], recorder.commands
       end
@@ -211,9 +213,9 @@ module ActiveRecord
         assert_equal [:remove_index, [:table, { name: "new_index" }]], remove
       end
 
-      def test_invert_add_index_with_no_options
-        remove = @recorder.inverse_of :add_index, [:table, [:one, :two]]
-        assert_equal [:remove_index, [:table, { column: [:one, :two] }]], remove
+      def test_invert_add_index_with_algorithm_option
+        remove = @recorder.inverse_of :add_index, [:table, :one, algorithm: :concurrently]
+        assert_equal [:remove_index, [:table, { column: :one, algorithm: :concurrently }]], remove
       end
 
       def test_invert_remove_index
@@ -327,9 +329,22 @@ module ActiveRecord
         assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "person_id"]], enable
       end
 
+      def test_invert_remove_foreign_key_with_primary_key_and_to_table_in_options
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, primary_key: "uuid"]
+        assert_equal [:add_foreign_key, [:dogs, :people, primary_key: "uuid"]], enable
+      end
+
       def test_invert_remove_foreign_key_with_on_delete_on_update
         enable = @recorder.inverse_of :remove_foreign_key, [:dogs, :people, on_delete: :nullify, on_update: :cascade]
         assert_equal [:add_foreign_key, [:dogs, :people, on_delete: :nullify, on_update: :cascade]], enable
+      end
+
+      def test_invert_remove_foreign_key_with_to_table_in_options
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people]
+        assert_equal [:add_foreign_key, [:dogs, :people]], enable
+
+        enable = @recorder.inverse_of :remove_foreign_key, [:dogs, to_table: :people, column: :owner_id]
+        assert_equal [:add_foreign_key, [:dogs, :people, column: :owner_id]], enable
       end
 
       def test_invert_remove_foreign_key_is_irreversible_without_to_table

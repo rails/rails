@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class ModelWithAttributes
@@ -116,7 +118,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
 
   test "#define_attribute_method does not generate attribute method if already defined in attribute module" do
     klass = Class.new(ModelWithAttributes)
-    klass.generated_attribute_methods.module_eval do
+    klass.send(:generated_attribute_methods).module_eval do
       def foo
         "<3"
       end
@@ -218,7 +220,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     ModelWithAttributes.define_attribute_methods(:foo)
     ModelWithAttributes.undefine_attribute_methods
 
-    assert !ModelWithAttributes.new.respond_to?(:foo)
+    assert_not_respond_to ModelWithAttributes.new, :foo
     assert_raises(NoMethodError) { ModelWithAttributes.new.foo }
   end
 
@@ -253,7 +255,7 @@ class AttributeMethodsTest < ActiveModel::TestCase
     m = ModelWithAttributes2.new
     m.attributes = { "private_method" => "<3", "protected_method" => "O_o" }
 
-    assert !m.respond_to?(:private_method)
+    assert_not_respond_to m, :private_method
     assert m.respond_to?(:private_method, true)
 
     c = ClassWithProtected.new

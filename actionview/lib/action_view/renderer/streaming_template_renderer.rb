@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require "fiber"
 
 module ActionView
   # == TODO
   #
   # * Support streaming from child templates, partials and so on.
-  # * Integrate exceptions with exceptron
   # * Rack::Cache needs to support streaming bodies
   class StreamingTemplateRenderer < TemplateRenderer #:nodoc:
     # A valid Rack::Body (i.e. it responds to each).
@@ -28,12 +29,11 @@ module ActionView
       private
 
         # This is the same logging logic as in ShowExceptions middleware.
-        # TODO Once "exceptron" is in, refactor this piece to simply re-use exceptron.
         def log_error(exception)
           logger = ActionView::Base.logger
           return unless logger
 
-          message = "\n#{exception.class} (#{exception.message}):\n"
+          message = "\n#{exception.class} (#{exception.message}):\n".dup
           message << exception.annoted_source_code.to_s if exception.respond_to?(:annoted_source_code)
           message << "  " << exception.backtrace.join("\n  ")
           logger.fatal("#{message}\n\n")
@@ -65,7 +65,9 @@ module ActionView
         yielder = lambda { |*name| view._layout_for(*name) }
 
         instrument(:template, identifier: template.identifier, layout: layout.try(:virtual_path)) do
+          outer_config = I18n.config
           fiber = Fiber.new do
+            I18n.config = outer_config
             if layout
               layout.render(view, locals, output, &yielder)
             else

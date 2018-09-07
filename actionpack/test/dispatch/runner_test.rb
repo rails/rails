@@ -1,10 +1,11 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class RunnerTest < ActiveSupport::TestCase
   test "runner preserves the setting of integration_session" do
     runner = Class.new do
       def before_setup
-
       end
     end.new
 

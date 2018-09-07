@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   # = Active Record Errors
   #
@@ -105,11 +107,12 @@ module ActiveRecord
   class WrappedDatabaseException < StatementInvalid
   end
 
-  # Raised when a record cannot be inserted because it would violate a uniqueness constraint.
+  # Raised when a record cannot be inserted or updated because it would violate a uniqueness constraint.
   class RecordNotUnique < WrappedDatabaseException
   end
 
-  # Raised when a record cannot be inserted or updated because it references a non-existent record.
+  # Raised when a record cannot be inserted or updated because it references a non-existent record,
+  # or when a record cannot be deleted because a parent record references it.
   class InvalidForeignKey < WrappedDatabaseException
   end
 
@@ -118,13 +121,13 @@ module ActiveRecord
     def initialize(adapter = nil, message: nil, table: nil, foreign_key: nil, target_table: nil, primary_key: nil)
       @adapter = adapter
       if table
-        msg = <<-EOM.strip_heredoc
+        msg = +<<~EOM
           Column `#{foreign_key}` on table `#{table}` has a type of `#{column_type(table, foreign_key)}`.
           This does not match column `#{primary_key}` on `#{target_table}`, which has type `#{column_type(target_table, primary_key)}`.
           To resolve this issue, change the type of the `#{foreign_key}` column on `#{table}` to be :integer. (For example `t.integer #{foreign_key}`).
         EOM
       else
-        msg = <<-EOM
+        msg = +<<~EOM
           There is a mismatch between the foreign key and primary key column types.
           Verify that the foreign key column type and the primary key of the associated table match types.
         EOM
@@ -167,7 +170,7 @@ module ActiveRecord
   class NoDatabaseError < StatementInvalid
   end
 
-  # Raised when Postgres returns 'cached plan must not change result type' and
+  # Raised when PostgreSQL returns 'cached plan must not change result type' and
   # we cannot retry gracefully (e.g. inside a transaction)
   class PreparedStatementCacheExpired < StatementInvalid
   end
@@ -313,7 +316,7 @@ module ActiveRecord
   #
   # See the following:
   #
-  # * http://www.postgresql.org/docs/current/static/transaction-iso.html
+  # * https://www.postgresql.org/docs/current/static/transaction-iso.html
   # * https://dev.mysql.com/doc/refman/5.7/en/error-messages-server.html#error_er_lock_deadlock
   class TransactionRollbackError < StatementInvalid
   end
@@ -331,5 +334,42 @@ module ActiveRecord
   # IrreversibleOrderError is raised when a relation's order is too complex for
   # +reverse_order+ to automatically reverse.
   class IrreversibleOrderError < ActiveRecordError
+  end
+
+  # LockWaitTimeout will be raised when lock wait timeout exceeded.
+  class LockWaitTimeout < StatementInvalid
+  end
+
+  # StatementTimeout will be raised when statement timeout exceeded.
+  class StatementTimeout < StatementInvalid
+  end
+
+  # QueryCanceled will be raised when canceling statement due to user request.
+  class QueryCanceled < StatementInvalid
+  end
+
+  # UnknownAttributeReference is raised when an unknown and potentially unsafe
+  # value is passed to a query method when allow_unsafe_raw_sql is set to
+  # :disabled. For example, passing a non column name value to a relation's
+  # #order method might cause this exception.
+  #
+  # When working around this exception, caution should be taken to avoid SQL
+  # injection vulnerabilities when passing user-provided values to query
+  # methods. Known-safe values can be passed to query methods by wrapping them
+  # in Arel.sql.
+  #
+  # For example, with allow_unsafe_raw_sql set to :disabled, the following
+  # code would raise this exception:
+  #
+  #   Post.order("length(title)").first
+  #
+  # The desired result can be accomplished by wrapping the known-safe string
+  # in Arel.sql:
+  #
+  #   Post.order(Arel.sql("length(title)")).first
+  #
+  # Again, such a workaround should *not* be used when passing user-provided
+  # values, such as request parameters or model attributes to query methods.
+  class UnknownAttributeReference < ActiveRecordError
   end
 end

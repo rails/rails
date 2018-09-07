@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/object"
 
@@ -8,25 +10,25 @@ class ObjectTryTest < ActiveSupport::TestCase
 
   def test_nonexisting_method
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_nil @string.try(method)
   end
 
   def test_nonexisting_method_with_arguments
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_nil @string.try(method, "llo", "y")
   end
 
   def test_nonexisting_method_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_raise(NoMethodError) { @string.try!(method) }
   end
 
   def test_nonexisting_method_with_arguments_bang
     method = :undefined_method
-    assert !@string.respond_to?(method)
+    assert_not_respond_to @string, method
     assert_raise(NoMethodError) { @string.try!(method, "llo", "y") }
   end
 
@@ -76,7 +78,6 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_try_with_private_method_bang
     klass = Class.new do
       private
-
         def private_method
           "private method"
         end
@@ -88,7 +89,6 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_try_with_private_method
     klass = Class.new do
       private
-
         def private_method
           "private method"
         end
@@ -107,7 +107,6 @@ class ObjectTryTest < ActiveSupport::TestCase
     end
 
     private
-
       def private_delegator_method
         "private delegator method"
       end
@@ -118,11 +117,11 @@ class ObjectTryTest < ActiveSupport::TestCase
   end
 
   def test_try_with_method_on_delegator_target
-    assert_equal 5, Decorator.new(@string).size
+    assert_equal 5, Decorator.new(@string).try(:size)
   end
 
   def test_try_with_overridden_method_on_delegator
-    assert_equal "overridden reverse", Decorator.new(@string).reverse
+    assert_equal "overridden reverse", Decorator.new(@string).try(:reverse)
   end
 
   def test_try_with_private_method_on_delegator
@@ -138,7 +137,6 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_try_with_private_method_on_delegator_target
     klass = Class.new do
       private
-
         def private_method
           "private method"
         end
@@ -150,7 +148,6 @@ class ObjectTryTest < ActiveSupport::TestCase
   def test_try_with_private_method_on_delegator_target_bang
     klass = Class.new do
       private
-
         def private_method
           "private method"
         end

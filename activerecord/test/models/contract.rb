@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 class Contract < ActiveRecord::Base
   belongs_to :company
-  belongs_to :developer
+  belongs_to :developer, primary_key: :id
   belongs_to :firm, foreign_key: "company_id"
 
   before_save :hi
@@ -17,4 +19,8 @@ class Contract < ActiveRecord::Base
     @bye_count ||= 0
     @bye_count += 1
   end
+end
+
+class NewContract < Contract
+  validates :company_id, presence: true
 end

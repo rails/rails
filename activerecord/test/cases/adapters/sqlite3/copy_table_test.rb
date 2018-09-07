@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class CopyTableTest < ActiveRecord::SQLite3TestCase
@@ -41,8 +43,8 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
     test_copy_table("comments", "comments_with_index") do
       @connection.add_index("comments_with_index", ["post_id", "type"])
       test_copy_table("comments_with_index", "comments_with_index2") do
-        assert_equal table_indexes_without_name("comments_with_index"),
-                     table_indexes_without_name("comments_with_index2")
+        assert_nil table_indexes_without_name("comments_with_index")
+        assert_nil table_indexes_without_name("comments_with_index2")
       end
     end
   end
@@ -59,7 +61,8 @@ class CopyTableTest < ActiveRecord::SQLite3TestCase
       copied_id = @connection.columns("goofy_string_id2").detect { |col| col.name == "id" }
       assert_equal original_id.type, copied_id.type
       assert_equal original_id.sql_type, copied_id.sql_type
-      assert_equal original_id.limit, copied_id.limit
+      assert_nil original_id.limit
+      assert_nil copied_id.limit
     end
   end
 

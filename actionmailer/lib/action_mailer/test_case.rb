@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "active_support/test_case"
 require "rails-dom-testing"
 
 module ActionMailer
   class NonInferrableMailerError < ::StandardError
     def initialize(name)
-      super "Unable to determine the mailer to test from #{name}. " +
-        "You'll need to specify it using tests YourMailer in your " +
+      super "Unable to determine the mailer to test from #{name}. " \
+        "You'll need to specify it using tests YourMailer in your " \
         "test case definition"
     end
   end

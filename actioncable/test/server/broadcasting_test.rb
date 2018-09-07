@@ -1,7 +1,9 @@
+# frozen_string_literal: true
+
 require "test_helper"
 require "stubs/test_server"
 
-class BroadcastingTest < ActiveSupport::TestCase
+class BroadcastingTest < ActionCable::TestCase
   test "fetching a broadcaster converts the broadcasting queue to a string" do
     broadcasting = :test_queue
     server = TestServer.new

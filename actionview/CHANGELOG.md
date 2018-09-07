@@ -1,168 +1,128 @@
-*   Add `check_parameters` option to `current_page?` which makes it more strict.
+*   Deprecate calling private model methods from view helpers.
 
-    *Maksym Pugach*
+    For example, in methods like `options_from_collection_for_select`
+    and `collection_select` it is possible to call private methods from
+    the objects used.
 
-*   Return correct object name in form helper method after `fields_for`.
+    Fixes #33546.
 
-    Fixes #26931.
+    *Ana María Martínez Gómez*
+
+*   Fix issue with `button_to`'s `to_form_params`
+
+    `button_to` was throwing exception when invoked with `params` hash that
+    contains symbol and string keys. The reason for the exception was that
+    `to_form_params` was comparing the given symbol and string keys.
+
+    The issue is fixed by turning all keys to strings inside
+    `to_form_params` before comparing them.
+
+    *Georgi Georgiev*
+
+*   Mark arrays of translations as trusted safe by using the `_html` suffix.
+
+    Example:
+
+        en:
+          foo_html:
+            - "One"
+            - "<strong>Two</strong>"
+            - "Three &#128075; &#128578;"
+
+    *Juan Broullon*
+
+*   Add `year_format` option to date_select tag. This option makes it possible to customize year
+    names. Lambda should be passed to use this option.
+
+    Example:
+
+        date_select('user_birthday', '', start_year: 1998, end_year: 2000, year_format: ->year { "Heisei #{year - 1988}" })
+
+    The HTML produced:
+
+        <select id="user_birthday__1i" name="user_birthday[(1i)]">
+        <option value="1998">Heisei 10</option>
+        <option value="1999">Heisei 11</option>
+        <option value="2000">Heisei 12</option>
+        </select>
+        /* The rest is omitted */
+
+    *Koki Ryu*
+
+*   Fix JavaScript views rendering does not work with Firefox when using
+    Content Security Policy.
+
+    Fixes #32577.
 
     *Yuji Yaginuma*
 
-*   Use `ActionView::Resolver.caching?` (`config.action_view.cache_template_loading`)
-    to enable template recompilation.
+*   Add the `nonce: true` option for `javascript_include_tag` helper to
+    support automatic nonce generation for Content Security Policy.
+    Works the same way as `javascript_tag nonce: true` does.
 
-    Before it was enabled by `consider_all_requests_local`, which caused
-    recompilation in tests.
+    *Yaroslav Markin*
 
-    *Max Melentiev*
+*   Remove `ActionView::Helpers::RecordTagHelper`.
 
-*   Add `form_with` to unify `form_tag` and `form_for` usage.
+    *Yoshiyuki Hirano*
 
-    Used like `form_tag` (where just the open tag is output):
+*   Disable `ActionView::Template` finalizers in test environment.
 
-    ```erb
-    <%= form_with scope: :post, url: super_special_posts_path %>
-    ```
+    Template finalization can be expensive in large view test suites.
+    Add a configuration option,
+    `action_view.finalize_compiled_template_methods`, and turn it off in
+    the test environment.
 
-    Used like `form_for`:
+    *Simon Coffey*
 
-    ```erb
-    <%= form_with model: @post do |form| %>
-      <%= form.text_field :title %>
-    <% end %>
-    ```
+*   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
 
-    *Kasper Timm Hansen*, *Marek Kirejczyk*
+    Example:
 
-*   Add `fields` form helper method.
+        Rails.confirm = function(message, element) {
+          return (my_bootstrap_modal_confirm(message));
+        }
 
-    ```erb
-    <%= fields :comment, model: @comment do |fields| %>
-      <%= fields.text_field :title %>
-    <% end %>
-    ```
+    *Mathieu Mahé*
 
-    Can also be used within form helpers such as `form_with`.
+*   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
+    field.
 
-    *Kasper Timm Hansen*
+    Example:
 
-*   Removed deprecated `#original_exception` in `ActionView::Template::Error`.
+        select :post,
+               :category,
+               ["lifestyle", "programming", "spiritual"],
+               { selected: "", disabled: "", prompt: "Choose one" },
+               { required: true }
 
-    *Rafael Mendonça França*
+    Placeholder option would be selected and disabled.
 
-*   Render now accepts any keys for locals, including reserved keywords.
+    The HTML produced:
 
-    Only locals with valid variable names get set directly. Others
-    will still be available in `local_assigns`.
+        <select required="required" name="post[category]" id="post_category">
+        <option disabled="disabled" selected="selected" value="">Choose one</option>
+        <option value="lifestyle">lifestyle</option>
+        <option value="programming">programming</option>
+        <option value="spiritual">spiritual</option></select>
 
-    Example of render with reserved keywords:
+    *Sergey Prikhodko*
 
-    ```erb
-    <%= render "example", class: "text-center", message: "Hello world!" %>
+*   Don't enforce UTF-8 by default.
 
-    <!-- _example.html.erb: -->
-    <%= tag.div class: local_assigns[:class] do %>
-      <p><%= message %></p>
-    <% end %>
-    ```
+    With the disabling of TLS 1.0 by most major websites, continuing to run
+    IE8 or lower becomes increasingly difficult so default to not enforcing
+    UTF-8 encoding as it's not relevant to other browsers.
 
-    *Peter Schilling*, *Matthew Draper*
+    *Andrew White*
 
-*   Show cache hits and misses when rendering partials.
+*   Change translation key of `submit_tag` from `module_name_class_name` to `module_name/class_name`.
 
-    Partials using the `cache` helper will show whether a render hit or missed
-    the cache:
+    *Rui Onodera*
 
-    ```
-    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
-    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
-    ```
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    This removes the need for the old fragment cache logging:
+    *Jeremy Daer*
 
-    ```
-    Read fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/d0bdf2974e1ef6d31685c3b392ad0b74 (0.6ms)
-    Rendered messages/_message.html.erb in 1.2 ms [cache hit]
-    Write fragment views/v1/2914079/v1/2914079/recordings/70182313-20160225015037000000/3b4e249ac9d168c617e32e84b99218b5 (1.1ms)
-    Rendered recordings/threads/_thread.html.erb in 1.5 ms [cache miss]
-    ```
 
-    Though that full output can be reenabled with
-    `config.action_controller.enable_fragment_cache_logging = true`.
-
-    *Stan Lo*
-
-*   Changed partial rendering with a collection to allow collections which
-    implement `to_a`.
-
-    Extracting the collection option had an optimization to avoid unnecessary
-    queries of ActiveRecord Relations by calling `#to_ary` on the given
-    collection. Instances of `Enumerator` or `Enumerable` are valid
-    collections, but they do not implement `#to_ary`. By changing this to
-    `#to_a`, they will now be extracted and rendered as expected.
-
-    *Steven Harman*
-
-*   New syntax for tag helpers. Avoid positional parameters and support HTML5 by default.
-    Example usage of tag helpers before:
-
-    ```ruby
-    tag(:br, nil, true)
-    content_tag(:div, content_tag(:p, "Hello world!"), class: "strong")
-
-    <%= content_tag :div, class: "strong" do -%>
-      Hello world!
-    <% end -%>
-    ```
-
-    Example usage of tag helpers after:
-
-    ```ruby
-    tag.br
-    tag.div tag.p("Hello world!"), class: "strong"
-
-    <%= tag.div class: "strong" do %>
-      Hello world!
-    <% end %>
-    ```
-
-    *Marek Kirejczyk*, *Kasper Timm Hansen*
-
-*   Change `datetime_field` and `datetime_field_tag` to generate `datetime-local` fields.
-
-    As a new specification of the HTML 5 the text field type `datetime` will no longer exist
-    and it is recommended to use `datetime-local`.
-    Ref: https://html.spec.whatwg.org/multipage/forms.html#local-date-and-time-state-(type=datetime-local)
-
-    *Herminio Torres*
-
-*   Raw template handler (which is also the default template handler in Rails 5) now outputs
-    HTML-safe strings.
-
-    In Rails 5 the default template handler was changed to the raw template handler. Because
-    the ERB template handler escaped strings by default this broke some applications that
-    expected plain JS or HTML files to be rendered unescaped. This fixes the issue caused
-    by changing the default handler by changing the Raw template handler to output HTML-safe
-    strings.
-
-    *Eileen M. Uchitelle*
-
-*   `select_tag`'s `include_blank` option for generation for blank option tag, now adds an empty space label,
-     when the value as well as content for option tag are empty, so that we conform with html specification.
-     Ref: https://www.w3.org/TR/html5/forms.html#the-option-element.
-
-    Generation of option before:
-
-    ```html
-    <option value=""></option>
-    ```
-
-    Generation of option after:
-
-    ```html
-    <option value="" label=" "></option>
-    ```
-
-    *Vipul A M*
-
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actionview/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actionview/CHANGELOG.md) for previous changes.

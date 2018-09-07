@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/keys"
 require "active_support/core_ext/string/output_safety"
 require "active_support/number_helper"
@@ -92,12 +94,15 @@ module ActionView
       #   (defaults to "%u%n").  Fields are <tt>%u</tt> for the
       #   currency, and <tt>%n</tt> for the number.
       # * <tt>:negative_format</tt> - Sets the format for negative
-      #   numbers (defaults to prepending an hyphen to the formatted
+      #   numbers (defaults to prepending a hyphen to the formatted
       #   number given by <tt>:format</tt>).  Accepts the same fields
       #   than <tt>:format</tt>, except <tt>%n</tt> is here the
       #   absolute value of the number.
       # * <tt>:raise</tt> - If true, raises +InvalidNumberError+ when
       #   the argument is invalid.
+      # * <tt>:strip_insignificant_zeros</tt> - If +true+ removes
+      #   insignificant zeros after the decimal separator (defaults to
+      #   +false+).
       #
       # ==== Examples
       #
@@ -115,6 +120,8 @@ module ActionView
       #   # => R$1234567890,50
       #   number_to_currency(1234567890.50, unit: "R$", separator: ",", delimiter: "", format: "%n %u")
       #   # => 1234567890,50 R$
+      #   number_to_currency(1234567890.50, strip_insignificant_zeros: true)
+      #   # => "$1,234,567,890.5"
       def number_to_currency(number, options = {})
         delegate_number_helper_method(:number_to_currency, number, options)
       end

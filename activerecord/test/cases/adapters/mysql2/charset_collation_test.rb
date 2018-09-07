@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -48,7 +50,7 @@ class Mysql2CharsetCollationTest < ActiveRecord::Mysql2TestCase
 
   test "schema dump includes collation" do
     output = dump_table_schema("charset_collations")
-    assert_match %r{t.string\s+"string_ascii_bin",\s+collation: "ascii_bin"$}, output
-    assert_match %r{t.text\s+"text_ucs2_unicode_ci",\s+collation: "ucs2_unicode_ci"$}, output
+    assert_match %r{t\.string\s+"string_ascii_bin",\s+collation: "ascii_bin"$}, output
+    assert_match %r{t\.text\s+"text_ucs2_unicode_ci",\s+collation: "ucs2_unicode_ci"$}, output
   end
 end

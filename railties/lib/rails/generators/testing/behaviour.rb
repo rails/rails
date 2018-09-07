@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/class/attribute"
 require "active_support/core_ext/module/delegation"
 require "active_support/core_ext/hash/reverse_merge"
@@ -14,12 +16,12 @@ module Rails
         include ActiveSupport::Testing::Stream
 
         included do
-          class_attribute :destination_root, :current_path, :generator_class, :default_arguments
-
           # Generators frequently change the current path using +FileUtils.cd+.
           # So we need to store the path at file load and revert back to it after each test.
-          self.current_path = File.expand_path(Dir.pwd)
-          self.default_arguments = []
+          class_attribute :current_path, default: File.expand_path(Dir.pwd)
+          class_attribute :default_arguments, default: []
+          class_attribute :destination_root
+          class_attribute :generator_class
         end
 
         module ClassMethods
@@ -40,7 +42,7 @@ module Rails
 
           # Sets the destination of generator files:
           #
-          #   destination File.expand_path("../tmp", File.dirname(__FILE__))
+          #   destination File.expand_path("../tmp", __dir__)
           def destination(path)
             self.destination_root = path
           end
@@ -51,7 +53,7 @@ module Rails
         #
         #   class AppGeneratorTest < Rails::Generators::TestCase
         #     tests AppGenerator
-        #     destination File.expand_path("../tmp", File.dirname(__FILE__))
+        #     destination File.expand_path("../tmp", __dir__)
         #     setup :prepare_destination
         #
         #     test "database.yml is not created when skipping Active Record" do

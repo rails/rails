@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/topic"
 require "models/reply"
-require "models/person"
 require "models/developer"
 require "models/computer"
 require "models/parrot"
 require "models/company"
+require "models/price_estimate"
 
 class ValidationsTest < ActiveRecord::TestCase
   fixtures :topics, :developers
@@ -17,7 +19,7 @@ class ValidationsTest < ActiveRecord::TestCase
   def test_valid_uses_create_context_when_new
     r = WrongReply.new
     r.title = "Wrong Create"
-    assert_not r.valid?
+    assert_not_predicate r, :valid?
     assert r.errors[:title].any?, "A reply with a bad title should mark that attribute as invalid"
     assert_equal ["is Wrong Create"], r.errors[:title], "A reply with a bad content should contain an error"
   end
@@ -37,7 +39,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_valid_using_special_context
     r = WrongReply.new(title: "Valid title")
-    assert !r.valid?(:special_case)
+    assert_not r.valid?(:special_case)
     assert_equal "Invalid", r.errors[:author_name].join
 
     r.author_name = "secret"
@@ -123,7 +125,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_save_without_validation
     reply = WrongReply.new
-    assert !reply.save
+    assert_not reply.save
     assert reply.save(validate: false)
   end
 
@@ -137,7 +139,7 @@ class ValidationsTest < ActiveRecord::TestCase
 
   def test_throw_away_typing
     d = Developer.new("name" => "David", "salary" => "100,000")
-    assert !d.valid?
+    assert_not_predicate d, :valid?
     assert_equal 100, d.salary
     assert_equal "100,000", d.salary_before_type_cast
   end
@@ -164,7 +166,37 @@ class ValidationsTest < ActiveRecord::TestCase
     topic = klass.new(wibble: "123-4567")
     topic.wibble.gsub!("-", "")
 
-    assert topic.valid?
+    assert_predicate topic, :valid?
+  end
+
+  def test_numericality_validation_checks_against_raw_value
+    klass = Class.new(Topic) do
+      def self.model_name
+        ActiveModel::Name.new(self, nil, "Topic")
+      end
+      attribute :wibble, :decimal, scale: 2, precision: 9
+      validates_numericality_of :wibble, greater_than_or_equal_to: BigDecimal("97.18")
+    end
+
+    assert_not_predicate klass.new(wibble: "97.179"), :valid?
+    assert_not_predicate klass.new(wibble: 97.179), :valid?
+    assert_not_predicate klass.new(wibble: BigDecimal("97.179")), :valid?
+  end
+
+  def test_numericality_validator_wont_be_affected_by_custom_getter
+    price_estimate = PriceEstimate.new(price: 50)
+
+    assert_equal "$50.00", price_estimate.price
+    assert_equal 50, price_estimate.price_before_type_cast
+    assert_equal 50, price_estimate.read_attribute(:price)
+
+    assert_predicate price_estimate, :price_came_from_user?
+    assert_predicate price_estimate, :valid?
+
+    price_estimate.save!
+
+    assert_not_predicate price_estimate, :price_came_from_user?
+    assert_predicate price_estimate, :valid?
   end
 
   def test_acceptance_validator_doesnt_require_db_connection

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "mail"
 require "action_mailer/collector"
 require "active_support/core_ext/string/inflections"
@@ -57,7 +59,7 @@ module ActionMailer
   # The hash passed to the mail method allows you to specify any header that a <tt>Mail::Message</tt>
   # will accept (any valid email header including optional fields).
   #
-  # The mail method, if not passed a block, will inspect your views and send all the views with
+  # The +mail+ method, if not passed a block, will inspect your views and send all the views with
   # the same name as the method, so the above action would send the +welcome.text.erb+ view
   # file as well as the +welcome.html.erb+ view file in a +multipart/alternative+ email.
   #
@@ -133,7 +135,10 @@ module ActionMailer
   #
   #   config.action_mailer.default_url_options = { host: "example.com" }
   #
-  # By default when <tt>config.force_ssl</tt> is true, URLs generated for hosts will use the HTTPS protocol.
+  # You can also define a <tt>default_url_options</tt> method on individual mailers to override these
+  # default settings per-mailer.
+  #
+  # By default when <tt>config.force_ssl</tt> is +true+, URLs generated for hosts will use the HTTPS protocol.
   #
   # = Sending mail
   #
@@ -288,20 +293,19 @@ module ActionMailer
   #             content_description: 'This is a description'
   #   end
   #
-  # Finally, Action Mailer also supports passing <tt>Proc</tt> objects into the default hash, so you
-  # can define methods that evaluate as the message is being generated:
+  # Finally, Action Mailer also supports passing <tt>Proc</tt> and <tt>Lambda</tt> objects into the default hash,
+  # so you can define methods that evaluate as the message is being generated:
   #
   #   class NotifierMailer < ApplicationMailer
-  #     default 'X-Special-Header' => Proc.new { my_method }
+  #     default 'X-Special-Header' => Proc.new { my_method }, to: -> { @inviter.email_address }
   #
   #     private
-  #
   #       def my_method
   #         'some complex call'
   #       end
   #   end
   #
-  # Note that the proc is evaluated right at the start of the mail message generation, so if you
+  # Note that the proc/lambda is evaluated right at the start of the mail message generation, so if you
   # set something in the default hash using a proc, and then set the same thing inside of your
   # mailer method, it will get overwritten by the mailer method.
   #
@@ -312,7 +316,7 @@ module ActionMailer
   #
   # = Callbacks
   #
-  # You can specify callbacks using before_action and after_action for configuring your messages.
+  # You can specify callbacks using <tt>before_action</tt> and <tt>after_action</tt> for configuring your messages.
   # This may be useful, for example, when you want to add default inline attachments for all
   # messages sent out by a certain mailer class:
   #
@@ -324,7 +328,6 @@ module ActionMailer
   #     end
   #
   #     private
-  #
   #       def add_inline_attachment!
   #         attachments.inline["footer.jpg"] = File.read('/path/to/filename.jpg')
   #       end
@@ -430,10 +433,11 @@ module ActionMailer
   # * <tt>deliveries</tt> - Keeps an array of all the emails sent out through the Action Mailer with
   #   <tt>delivery_method :test</tt>. Most useful for unit and functional testing.
   #
-  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>.
+  # * <tt>deliver_later_queue_name</tt> - The name of the queue used with <tt>deliver_later</tt>. Defaults to +mailers+.
   class Base < AbstractController::Base
     include DeliveryMethods
     include Rescuable
+    include Parameterized
     include Previews
 
     abstract!
@@ -457,8 +461,8 @@ module ActionMailer
 
     helper ActionMailer::MailHelper
 
-    class_attribute :default_params
-    self.default_params = {
+    class_attribute :delivery_job, default: ::ActionMailer::DeliveryJob
+    class_attribute :default_params, default: {
       mime_version: "1.0",
       charset:      "UTF-8",
       content_type: "text/plain",
@@ -471,9 +475,19 @@ module ActionMailer
         observers.flatten.compact.each { |observer| register_observer(observer) }
       end
 
+      # Unregister one or more previously registered Observers.
+      def unregister_observers(*observers)
+        observers.flatten.compact.each { |observer| unregister_observer(observer) }
+      end
+
       # Register one or more Interceptors which will be called before mail is sent.
       def register_interceptors(*interceptors)
         interceptors.flatten.compact.each { |interceptor| register_interceptor(interceptor) }
+      end
+
+      # Unregister one or more previously registered Interceptors.
+      def unregister_interceptors(*interceptors)
+        interceptors.flatten.compact.each { |interceptor| unregister_interceptor(interceptor) }
       end
 
       # Register an Observer which will be notified when mail is delivered.
@@ -483,11 +497,25 @@ module ActionMailer
         Mail.register_observer(observer_class_for(observer))
       end
 
+      # Unregister a previously registered Observer.
+      # Either a class, string or symbol can be passed in as the Observer.
+      # If a string or symbol is passed in it will be camelized and constantized.
+      def unregister_observer(observer)
+        Mail.unregister_observer(observer_class_for(observer))
+      end
+
       # Register an Interceptor which will be called before mail is sent.
       # Either a class, string or symbol can be passed in as the Interceptor.
       # If a string or symbol is passed in it will be camelized and constantized.
       def register_interceptor(interceptor)
         Mail.register_interceptor(observer_class_for(interceptor))
+      end
+
+      # Unregister a previously registered Interceptor.
+      # Either a class, string or symbol can be passed in as the Interceptor.
+      # If a string or symbol is passed in it will be camelized and constantized.
+      def unregister_interceptor(interceptor)
+        Mail.unregister_interceptor(observer_class_for(interceptor))
       end
 
       def observer_class_for(value) # :nodoc:
@@ -580,16 +608,12 @@ module ActionMailer
       end
 
       def respond_to_missing?(method, include_all = false)
-        action_methods.include?(method.to_s)
+        action_methods.include?(method.to_s) || super
       end
     end
 
     attr_internal :message
 
-    # Instantiate a new mailer object. If +method_name+ is not +nil+, the mailer
-    # will be initialized according to the named method. If not, the mailer will
-    # remain uninitialized (useful when you only need to invoke the "receive"
-    # method, for instance).
     def initialize
       super()
       @_mail_was_called = false
@@ -599,7 +623,8 @@ module ActionMailer
     def process(method_name, *args) #:nodoc:
       payload = {
         mailer: self.class.name,
-        action: method_name
+        action: method_name,
+        args: args
       }
 
       ActiveSupport::Notifications.instrument("process.action_mailer", payload) do
@@ -888,13 +913,23 @@ module ActionMailer
         default_values = self.class.default.map do |key, value|
           [
             key,
-            value.is_a?(Proc) ? instance_eval(&value) : value
+            compute_default(value)
           ]
         end.to_h
 
         headers_with_defaults = headers.reverse_merge(default_values)
         headers_with_defaults[:subject] ||= default_i18n_subject
         headers_with_defaults
+      end
+
+      def compute_default(value)
+        return value unless value.is_a?(Proc)
+
+        if value.arity == 1
+          instance_exec(self, &value)
+        else
+          instance_exec(&value)
+        end
       end
 
       def assign_headers_to_message(message, headers)
@@ -972,7 +1007,7 @@ module ActionMailer
       end
 
       def instrument_name
-        "action_mailer"
+        "action_mailer".freeze
       end
 
       ActiveSupport.run_load_hooks(:action_mailer, self)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/resource_helpers"
 
 module Rails
@@ -19,7 +21,6 @@ module Rails
         template_file = options.api? ? "api_controller.rb" : "controller.rb"
         template template_file, File.join("app/controllers", controller_class_path, "#{controller_file_name}_controller.rb")
       end
-
 
       hook_for :template_engine, as: :scaffold do |template_engine|
         invoke template_engine unless options.api?

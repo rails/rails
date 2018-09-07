@@ -1,18 +1,25 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     module Actions
-      # Change to the application's path if there is no config.ru file in current directory.
-      # This allows us to run `rails server` from other directories, but still get
-      # the main config.ru and properly set the tmp directory.
+      # Change to the application's path if there is no <tt>config.ru</tt> file in current directory.
+      # This allows us to run <tt>rails server</tt> from other directories, but still get
+      # the main <tt>config.ru</tt> and properly set the <tt>tmp</tt> directory.
       def set_application_directory!
-        Dir.chdir(File.expand_path("../../", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+        Dir.chdir(File.expand_path("../..", APP_PATH)) unless File.exist?(File.expand_path("config.ru"))
+      end
+
+      def require_application_and_environment!
+        require ENGINE_PATH if defined?(ENGINE_PATH)
+
+        if defined?(APP_PATH)
+          require APP_PATH
+          Rails.application.require_environment!
+        end
       end
 
       if defined?(ENGINE_PATH)
-        def require_application_and_environment!
-          require ENGINE_PATH
-        end
-
         def load_tasks
           Rake.application.init("rails")
           Rake.application.load_rakefile
@@ -24,11 +31,6 @@ module Rails
           engine.load_generators
         end
       else
-        def require_application_and_environment!
-          require APP_PATH
-          Rails.application.require_environment!
-        end
-
         def load_tasks
           Rails.application.load_tasks
         end

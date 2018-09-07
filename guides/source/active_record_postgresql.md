@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record and PostgreSQL
 ============================
@@ -29,8 +29,8 @@ that are supported by the PostgreSQL adapter.
 
 ### Bytea
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-binary.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-binarystring.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-binary.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-binarystring.html)
 
 ```ruby
 # db/migrate/20140207133952_create_documents.rb
@@ -49,8 +49,8 @@ Document.create payload: data
 
 ### Array
 
-* [type definition](http://www.postgresql.org/docs/current/static/arrays.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-array.html)
+* [type definition](https://www.postgresql.org/docs/current/static/arrays.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-array.html)
 
 ```ruby
 # db/migrate/20140207133952_create_books.rb
@@ -83,8 +83,8 @@ Book.where("array_length(ratings, 1) >= 3")
 
 ### Hstore
 
-* [type definition](http://www.postgresql.org/docs/current/static/hstore.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/hstore.html#AEN167712)
+* [type definition](https://www.postgresql.org/docs/current/static/hstore.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/hstore.html#id-1.11.7.26.5)
 
 NOTE: You need to enable the `hstore` extension to use hstore.
 
@@ -114,15 +114,20 @@ Profile.where("settings->'color' = ?", "yellow")
 # => #<ActiveRecord::Relation [#<Profile id: 1, settings: {"color"=>"yellow", "resolution"=>"1280x1024"}>]>
 ```
 
-### JSON
+### JSON and JSONB
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-json.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-json.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-json.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-json.html)
 
 ```ruby
 # db/migrate/20131220144913_create_events.rb
+# ... for json datatype:
 create_table :events do |t|
   t.json 'payload'
+end
+# ... or for jsonb datatype:
+create_table :events do |t|
+  t.jsonb 'payload'
 end
 
 # app/models/event.rb
@@ -142,8 +147,8 @@ Event.where("payload->>'kind' = ?", "user_renamed")
 
 ### Range Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/rangetypes.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-range.html)
+* [type definition](https://www.postgresql.org/docs/current/static/rangetypes.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-range.html)
 
 This type is mapped to Ruby [`Range`](http://www.ruby-doc.org/core-2.2.2/Range.html) objects.
 
@@ -177,7 +182,7 @@ event.ends_at # => Thu, 13 Feb 2014
 
 ### Composite Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/rowtypes.html)
+* [type definition](https://www.postgresql.org/docs/current/static/rowtypes.html)
 
 Currently there is no special support for composite types. They are mapped to
 normal text columns:
@@ -217,7 +222,7 @@ contact.save!
 
 ### Enumerated Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-enum.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-enum.html)
 
 Currently there is no special support for enumerated types. They are mapped as
 normal text columns:
@@ -255,7 +260,7 @@ article.status = "published"
 article.save!
 ```
 
-To add a new value before/after existing one you should use [ALTER TYPE](http://www.postgresql.org/docs/current/static/sql-altertype.html):
+To add a new value before/after existing one you should use [ALTER TYPE](https://www.postgresql.org/docs/current/static/sql-altertype.html):
 
 ```ruby
 # db/migrate/20150720144913_add_new_state_to_articles.rb
@@ -269,9 +274,9 @@ def up
 end
 ```
 
-NOTE: ENUM values can't be dropped currently. You can read why [here](http://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
+NOTE: ENUM values can't be dropped currently. You can read why [here](https://www.postgresql.org/message-id/29F36C7C98AB09499B1A209D48EAA615B7653DBC8A@mail2a.alliedtesting.com).
 
-Hint: to show all the values of the all enums you have, you should call this query in `bin/rails db` or `psql` console:
+Hint: to show all the values of the all enums you have, you should call this query in `rails db` or `psql` console:
 
 ```sql
 SELECT n.nspname AS enum_schema,
@@ -284,9 +289,9 @@ SELECT n.nspname AS enum_schema,
 
 ### UUID
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-uuid.html)
-* [pgcrypto generator function](http://www.postgresql.org/docs/current/static/pgcrypto.html#AEN159361)
-* [uuid-ossp generator functions](http://www.postgresql.org/docs/current/static/uuid-ossp.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-uuid.html)
+* [pgcrypto generator function](https://www.postgresql.org/docs/current/static/pgcrypto.html#id-1.11.7.35.7)
+* [uuid-ossp generator functions](https://www.postgresql.org/docs/current/static/uuid-ossp.html)
 
 NOTE: You need to enable the `pgcrypto` (only PostgreSQL >= 9.4) or `uuid-ossp`
 extension to use uuid.
@@ -335,8 +340,8 @@ See [this section](#uuid-primary-keys) for more details on using UUIDs as primar
 
 ### Bit String Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-bit.html)
-* [functions and operators](http://www.postgresql.org/docs/current/static/functions-bitstring.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-bit.html)
+* [functions and operators](https://www.postgresql.org/docs/current/static/functions-bitstring.html)
 
 ```ruby
 # db/migrate/20131220144913_create_users.rb
@@ -344,7 +349,7 @@ create_table :users, force: true do |t|
   t.column :settings, "bit(8)"
 end
 
-# app/models/device.rb
+# app/models/user.rb
 class User < ApplicationRecord
 end
 
@@ -359,7 +364,7 @@ user.save!
 
 ### Network Address Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-net-types.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-net-types.html)
 
 The types `inet` and `cidr` are mapped to Ruby
 [`IPAddr`](http://www.ruby-doc.org/stdlib-2.2.2/libdoc/ipaddr/rdoc/IPAddr.html)
@@ -394,7 +399,7 @@ macbook.address
 
 ### Geometric Types
 
-* [type definition](http://www.postgresql.org/docs/current/static/datatype-geometric.html)
+* [type definition](https://www.postgresql.org/docs/current/static/datatype-geometric.html)
 
 All geometric types, with the exception of `points` are mapped to normal text.
 A point is casted to an array containing `x` and `y` coordinates.
@@ -452,7 +457,7 @@ Document.where("to_tsvector('english', title || ' ' || body) @@ to_tsquery(?)",
 Database Views
 --------------
 
-* [view creation](http://www.postgresql.org/docs/current/static/sql-createview.html)
+* [view creation](https://www.postgresql.org/docs/current/static/sql-createview.html)
 
 Imagine you need to work with a legacy database containing the following table:
 

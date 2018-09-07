@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/strip"
+# frozen_string_literal: true
 
 module ActiveRecord
   module AttributeMethods
@@ -56,17 +56,13 @@ module ActiveRecord
       extend ActiveSupport::Concern
 
       included do
-        mattr_accessor :time_zone_aware_attributes, instance_writer: false
-        self.time_zone_aware_attributes = false
+        mattr_accessor :time_zone_aware_attributes, instance_writer: false, default: false
 
-        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false
-        self.skip_time_zone_conversion_for_attributes = []
-
-        class_attribute :time_zone_aware_types, instance_writer: false
-        self.time_zone_aware_types = [:datetime, :time]
+        class_attribute :skip_time_zone_conversion_for_attributes, instance_writer: false, default: []
+        class_attribute :time_zone_aware_types, instance_writer: false, default: [ :datetime, :time ]
       end
 
-      module ClassMethods
+      module ClassMethods # :nodoc:
         private
 
           def inherited(subclass)
@@ -77,7 +73,7 @@ module ActiveRecord
             # `skip_time_zone_conversion_for_attributes` would not be picked up.
             subclass.class_eval do
               matcher = ->(name, type) { create_time_zone_conversion_attribute?(name, type) }
-              decorate_matching_attribute_types(matcher, :_time_zone_conversion) do |type|
+              decorate_matching_attribute_types(matcher, "_time_zone_conversion") do |type|
                 TimeZoneConverter.new(type)
               end
             end

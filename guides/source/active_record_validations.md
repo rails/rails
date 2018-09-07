@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Record Validations
 =========================
@@ -87,7 +87,7 @@ end
 We can see how it works by looking at some `rails console` output:
 
 ```ruby
-$ bin/rails console
+$ rails console
 >> p = Person.new(name: "John Doe")
 => #<Person id: nil, name: "John Doe", created_at: nil, updated_at: nil>
 >> p.new_record?
@@ -490,9 +490,6 @@ If you set `:only_integer` to `true`, then it will use the
 regular expression to validate the attribute's value. Otherwise, it will try to
 convert the value to a number using `Float`.
 
-WARNING. Note that the regular expression above allows a trailing newline
-character.
-
 ```ruby
 class Player < ApplicationRecord
   validates :points, numericality: true
@@ -641,7 +638,7 @@ class Holiday < ApplicationRecord
     message: "should happen once per year" }
 end
 ```
-Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](http://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
+Should you wish to create a database constraint to prevent possible violations of a uniqueness validation using the `:scope` option, you must create a unique index on both columns in your database. See [the MySQL manual](http://dev.mysql.com/doc/refman/5.7/en/multiple-column-indexes.html) for more details about multiple column indexes or [the PostgreSQL manual](https://www.postgresql.org/docs/current/static/ddl-constraints.html) for examples of unique constraints that refer to a group of columns.
 
 There is also a `:case_sensitive` option that you can use to define whether the
 uniqueness constraint will be case sensitive or not. This option defaults to
@@ -748,7 +745,7 @@ class Person < ApplicationRecord
 end
 ```
 
-The block receives the record, the attribute's name and the attribute's value.
+The block receives the record, the attribute's name, and the attribute's value.
 You can do anything you like to check for valid data within the block. If your
 validation fails, you should add an error message to the model, therefore
 making it invalid.
@@ -895,7 +892,7 @@ Conditional Validation
 
 Sometimes it will make sense to validate an object only when a given predicate
 is satisfied. You can do that by using the `:if` and `:unless` options, which
-can take a symbol, a string, a `Proc` or an `Array`. You may use the `:if`
+can take a symbol, a `Proc` or an `Array`. You may use the `:if`
 option when you want to specify when the validation **should** happen. If you
 want to specify when the validation **should not** happen, then you may use the
 `:unless` option.
@@ -916,18 +913,6 @@ class Order < ApplicationRecord
 end
 ```
 
-### Using a String with `:if` and `:unless`
-
-You can also use a string that will be evaluated using `eval` and needs to
-contain valid Ruby code. You should use this option only when the string
-represents a really short condition.
-
-```ruby
-class Person < ApplicationRecord
-  validates :surname, presence: true, if: "name.nil?"
-end
-```
-
 ### Using a Proc with `:if` and `:unless`
 
 Finally, it's possible to associate `:if` and `:unless` with a `Proc` object
@@ -940,6 +925,13 @@ class Account < ApplicationRecord
   validates :password, confirmation: true,
     unless: Proc.new { |a| a.password.blank? }
 end
+```
+
+As `Lambdas` are a type of `Proc`, they can also be used to write inline
+conditions in a shorter way.
+
+```ruby
+validates :password, confirmation: true, unless: -> { password.blank? }
 ```
 
 ### Grouping Conditional validations
@@ -968,7 +960,7 @@ should happen, an `Array` can be used. Moreover, you can apply both `:if` and
 ```ruby
 class Computer < ApplicationRecord
   validates :mouse, presence: true,
-                    if: ["market.retail?", :desktop?],
+                    if: [Proc.new { |c| c.market.retail? }, :desktop?],
                     unless: Proc.new { |c| c.trackpad.present? }
 end
 ```
@@ -1146,24 +1138,6 @@ person.errors[:name]
 
 person.errors.full_messages
  # => ["Name cannot contain the characters !@#%*()_-+="]
-```
-
-An equivalent to `errors#add` is to use `<<` to append a message to the `errors.messages` array for an attribute:
-
-```ruby
-  class Person < ApplicationRecord
-    def a_method_used_for_validation_purposes
-      errors.messages[:name] << "cannot contain the characters !@#%*()_-+="
-    end
-  end
-
-  person = Person.create(name: "!@#")
-
-  person.errors[:name]
-   # => ["cannot contain the characters !@#%*()_-+="]
-
-  person.errors.to_a
-   # => ["Name cannot contain the characters !@#%*()_-+="]
 ```
 
 ### `errors.details`

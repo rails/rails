@@ -1,5 +1,8 @@
+# frozen_string_literal: true
+
 require "helper"
 require "jobs/retry_job"
+require "models/person"
 
 class ExceptionsTest < ActiveJob::TestCase
   setup do
@@ -56,10 +59,17 @@ class ExceptionsTest < ActiveJob::TestCase
     end
   end
 
+  test "custom handling of discarded job" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "CustomDiscardableError", 2
+      assert_equal "Dealt with a job that was discarded in a custom way. Message: CustomDiscardableError", JobBuffer.last_value
+    end
+  end
+
   test "custom handling of job that exceeds retry attempts" do
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6
-      assert_equal "Dealt with a job that failed to retry in a custom way after 6 attempts", JobBuffer.last_value
+      assert_equal "Dealt with a job that failed to retry in a custom way after 6 attempts. Message: CustomCatchError", JobBuffer.last_value
     end
   end
 
@@ -102,6 +112,31 @@ class ExceptionsTest < ActiveJob::TestCase
           end
         end
       end
+    end
+  end
+
+  test "successfully retry job throwing one of two retryable exceptions" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "SecondRetryableErrorOfTwo", 3
+
+      assert_equal [
+        "Raised SecondRetryableErrorOfTwo for the 1st time",
+        "Raised SecondRetryableErrorOfTwo for the 2nd time",
+        "Successfully completed job" ], JobBuffer.values
+    end
+  end
+
+  test "discard job throwing one of two discardable exceptions" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later "SecondDiscardableErrorOfTwo", 2
+      assert_equal [ "Raised SecondDiscardableErrorOfTwo for the 1st time" ], JobBuffer.values
+    end
+  end
+
+  test "successfully retry job throwing DeserializationError" do
+    perform_enqueued_jobs do
+      RetryJob.perform_later Person.new(404), 5
+      assert_equal ["Raised ActiveJob::DeserializationError for the 5 time"], JobBuffer.values
     end
   end
 end

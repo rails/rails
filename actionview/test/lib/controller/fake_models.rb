@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_model"
 
-class Customer < Struct.new(:name, :id)
+Customer = Struct.new(:name, :id) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
 
@@ -26,12 +28,16 @@ class Customer < Struct.new(:name, :id)
   def persisted?
     id.present?
   end
+
+  def cache_key
+    name.to_s
+  end
 end
 
-class GoodCustomer < Customer
-end
+class BadCustomer < Customer; end
+class GoodCustomer < Customer; end
 
-class Post < Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost)
+Post = Struct.new(:title, :author_name, :body, :secret, :persisted, :written_on, :cost) do
   extend ActiveModel::Naming
   include ActiveModel::Conversion
   extend ActiveModel::Translation
@@ -163,7 +169,7 @@ module Blog
     true
   end
 
-  class Post < Struct.new(:title, :id)
+  Post = Struct.new(:title, :id) do
     extend ActiveModel::Naming
     include ActiveModel::Conversion
 
@@ -183,8 +189,7 @@ class ArelLike
   end
 end
 
-class Car < Struct.new(:color)
-end
+Car = Struct.new(:color)
 
 class Plane
   attr_reader :to_key

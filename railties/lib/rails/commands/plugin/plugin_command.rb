@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rails
   module Command
     class PluginCommand < Base # :nodoc:
@@ -24,7 +26,7 @@ module Rails
 
           if File.exist?(railsrc)
             extra_args = File.read(railsrc).split(/\n+/).flat_map(&:split)
-            puts "Using #{extra_args.join(" ")} from #{railsrc}"
+            say "Using #{extra_args.join(" ")} from #{railsrc}"
             plugin_args.insert(1, *extra_args)
           end
         end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/owner"
 require "models/pet"
@@ -137,6 +139,23 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_equal [], reply.history
   end
 
+  def test_only_call_after_commit_on_destroy_after_transaction_commits_for_destroyed_new_record
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+
+    new_record.destroy
+    assert_equal [:commit_on_destroy], new_record.history
+  end
+
+  def test_save_in_after_create_commit_wont_invoke_extra_after_create_commit
+    new_record = TopicWithCallbacks.new(title: "New topic", written_on: Date.today)
+    add_transaction_execution_blocks new_record
+    new_record.after_commit_block(:create) { |r| r.save! }
+
+    new_record.save!
+    assert_equal [:commit_on_create, :commit_on_update], new_record.history
+  end
+
   def test_only_call_after_commit_on_create_and_doesnt_leaky
     r = ReplyWithCallbacks.new(content: "foo")
     r.save_on_after_create = true
@@ -156,13 +175,13 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
 
   def test_only_call_after_commit_on_top_level_transactions
     @first.after_commit_block { |r| r.history << :after_commit }
-    assert @first.history.empty?
+    assert_empty @first.history
 
     @first.transaction do
       @first.transaction(requires_new: true) do
         @first.touch
       end
-      assert @first.history.empty?
+      assert_empty @first.history
     end
     assert_equal [:after_commit], @first.history
   end
@@ -365,6 +384,26 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
     assert_match(/:on conditions for after_commit and after_rollback callbacks have to be one of \[:create, :destroy, :update\]/, e.message)
   end
 
+  def test_after_commit_chain_not_called_on_errors
+    record_1 = TopicWithCallbacks.create!
+    record_2 = TopicWithCallbacks.create!
+    record_3 = TopicWithCallbacks.create!
+    callbacks = []
+    record_1.after_commit_block { raise }
+    record_2.after_commit_block { callbacks << record_2.id }
+    record_3.after_commit_block { callbacks << record_3.id }
+    begin
+      TopicWithCallbacks.transaction do
+        record_1.save!
+        record_2.save!
+        record_3.save!
+      end
+    rescue
+      # From record_1.after_commit
+    end
+    assert_equal [], callbacks
+  end
+
   def test_saving_a_record_with_a_belongs_to_that_specifies_touching_the_parent_should_call_callbacks_on_the_parent_object
     pet   = Pet.first
     owner = pet.owner
@@ -390,6 +429,28 @@ class TransactionCallbacksTest < ActiveRecord::TestCase
       record.after_rollback_block(:update) { |r| r.history << :rollback_on_update }
       record.after_rollback_block(:destroy) { |r| r.history << :rollback_on_destroy }
     end
+end
+
+class TransactionAfterCommitCallbacksWithOptimisticLockingTest < ActiveRecord::TestCase
+  class PersonWithCallbacks < ActiveRecord::Base
+    self.table_name = :people
+
+    after_create_commit { |record| record.history << :commit_on_create }
+    after_update_commit { |record| record.history << :commit_on_update }
+    after_destroy_commit { |record| record.history << :commit_on_destroy }
+
+    def history
+      @history ||= []
+    end
+  end
+
+  def test_after_commit_callbacks_with_optimistic_locking
+    person = PersonWithCallbacks.create!(first_name: "first name")
+    person.update!(first_name: "another name")
+    person.destroy
+
+    assert_equal [:commit_on_create, :commit_on_update, :commit_on_destroy], person.history
+  end
 end
 
 class CallbacksOnMultipleActionsTest < ActiveRecord::TestCase
@@ -516,7 +577,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.content = "foo"
       @topic.save!
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_commit_run_transactions_callbacks_with_explicit_enrollment
@@ -536,7 +597,7 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       @topic.save!
       raise ActiveRecord::Rollback
     end
-    assert @topic.history.empty?
+    assert_empty @topic.history
   end
 
   def test_rollback_run_transactions_callbacks_with_explicit_enrollment
@@ -549,5 +610,45 @@ class TransactionEnrollmentCallbacksTest < ActiveRecord::TestCase
       raise ActiveRecord::Rollback
     end
     assert_equal [:rollback], @topic.history
+  end
+end
+
+class CallbacksOnActionAndConditionTest < ActiveRecord::TestCase
+  self.use_transactional_tests = false
+
+  class TopicWithCallbacksOnActionAndCondition < ActiveRecord::Base
+    self.table_name = :topics
+
+    after_commit(on: [:create, :update], if: :run_callback?) { |record| record.history << :create_or_update }
+
+    def clear_history
+      @history = []
+    end
+
+    def history
+      @history ||= []
+    end
+
+    def run_callback?
+      self.history << :run_callback?
+      true
+    end
+
+    attr_accessor :save_before_commit_history, :update_title
+  end
+
+  def test_callback_on_action_with_condition
+    topic = TopicWithCallbacksOnActionAndCondition.new
+    topic.save
+    assert_equal [:run_callback?, :create_or_update], topic.history
+
+    topic.clear_history
+    topic.approved = true
+    topic.save
+    assert_equal [:run_callback?, :create_or_update], topic.history
+
+    topic.clear_history
+    topic.destroy
+    assert_equal [], topic.history
   end
 end

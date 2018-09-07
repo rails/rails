@@ -65,16 +65,12 @@
       url: routing.html
       description: This guide covers the user-facing features of Rails routing. If you want to understand how to use routing in your own Rails applications, start here.
 -
-  name: Digging Deeper
+  name: Other Components
   documents:
     -
       name: Active Support Core Extensions
       url: active_support_core_extensions.html
       description: This guide documents the Ruby core extensions defined in Active Support.
-    -
-      name: Rails Internationalization API
-      url: i18n.html
-      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Action Mailer Basics
       url: action_mailer_basics.html
@@ -83,6 +79,22 @@
       name: Active Job Basics
       url: active_job_basics.html
       description: This guide provides you with all you need to get started creating, enqueuing, and executing background jobs.
+    -
+      name: Active Storage Overview
+      url: active_storage_overview.html
+      description: This guide covers how to attach files to your Active Record models.
+    -
+      name: Action Cable Overview
+      url: action_cable_overview.html
+      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
+
+-
+  name: Digging Deeper
+  documents:
+    -
+      name: Rails Internationalization (I18n) API
+      url: i18n.html
+      description: This guide covers how to add internationalization to your applications. Your application will be able to translate content to different languages, change pluralization rules, use correct date formats for each country, and so on.
     -
       name: Testing Rails Applications
       url: testing.html
@@ -104,7 +116,7 @@
       url: command_line.html
       description: This guide covers the command line tools provided by Rails.
     -
-      name: Asset Pipeline
+      name: The Asset Pipeline
       url: asset_pipeline.html
       description: This guide documents the asset pipeline.
     -
@@ -130,18 +142,9 @@
       url: active_support_instrumentation.html
       description: This guide explains how to use the instrumentation API inside of Active Support to measure events inside of Rails and other Ruby code.
     -
-      name: Profiling Rails Applications
-      work_in_progress: true
-      url: profiling.html
-      description: This guide explains how to profile your Rails applications to improve performance.
-    -
       name: Using Rails for API-only Applications
       url: api_app.html
       description: This guide explains how to effectively use Rails to develop a JSON API application.
-    -
-      name: Action Cable Overview
-      url: action_cable_overview.html
-      description: This guide explains how Action Cable works, and how to use WebSockets to create real-time features.
 
 -
   name: Extending Rails
@@ -156,13 +159,18 @@
       url: rails_on_rack.html
       description: This guide covers Rails integration with Rack and interfacing with other Rack components.
     -
-      name: Creating and Customizing Rails Generators
+      name: Creating and Customizing Rails Generators & Templates
       url: generators.html
       description: This guide covers the process of adding a brand new generator to your extension or providing an alternative to an element of a built-in Rails generator (such as providing alternative test stubs for the scaffold generator).
     -
       name: Getting Started with Engines
       url: engines.html
       description: This guide explains how to write a mountable engine.
+      work_in_progress: true
+    -
+      name: Threading and Code Execution in Rails
+      url: threading_and_code_execution.html
+      description: This guide describes the considerations needed and tools available when working directly with concurrency in a Rails application.
       work_in_progress: true
 -
   name: Contributing to Ruby on Rails
@@ -183,7 +191,7 @@
   name: Maintenance Policy
   documents:
     -
-      name: Maintenance Policy
+      name: Maintenance Policy for Ruby on Rails
       url: maintenance_policy.html
       description: What versions of Ruby on Rails are currently supported, and when to expect new versions.
 -
@@ -193,6 +201,19 @@
       name: Upgrading Ruby on Rails
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
+    -
+      name: Ruby on Rails 6.0 Release Notes
+      work_in_progress: true
+      url: 6_0_release_notes.html
+      description: Release notes for Rails 6.0.
+    -
+      name: Ruby on Rails 5.2 Release Notes
+      url: 5_2_release_notes.html
+      description: Release notes for Rails 5.2.
+    -
+      name: Ruby on Rails 5.1 Release Notes
+      url: 5_1_release_notes.html
+      description: Release notes for Rails 5.1.
     -
       name: Ruby on Rails 5.0 Release Notes
       url: 5_0_release_notes.html

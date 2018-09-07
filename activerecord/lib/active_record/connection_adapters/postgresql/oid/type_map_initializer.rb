@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/core_ext/array/extract"
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -14,12 +18,12 @@ module ActiveRecord
 
           def run(records)
             nodes = records.reject { |row| @store.key? row["oid"].to_i }
-            mapped, nodes = nodes.partition { |row| @store.key? row["typname"] }
-            ranges, nodes = nodes.partition { |row| row["typtype"] == "r".freeze }
-            enums, nodes = nodes.partition { |row| row["typtype"] == "e".freeze }
-            domains, nodes = nodes.partition { |row| row["typtype"] == "d".freeze }
-            arrays, nodes = nodes.partition { |row| row["typinput"] == "array_in".freeze }
-            composites, nodes = nodes.partition { |row| row["typelem"].to_i != 0 }
+            mapped = nodes.extract! { |row| @store.key? row["typname"] }
+            ranges = nodes.extract! { |row| row["typtype"] == "r".freeze }
+            enums = nodes.extract! { |row| row["typtype"] == "e".freeze }
+            domains = nodes.extract! { |row| row["typtype"] == "d".freeze }
+            arrays = nodes.extract! { |row| row["typinput"] == "array_in".freeze }
+            composites = nodes.extract! { |row| row["typelem"].to_i != 0 }
 
             mapped.each     { |row| register_mapped_type(row)    }
             enums.each      { |row| register_enum_type(row)      }
@@ -29,8 +33,8 @@ module ActiveRecord
             composites.each { |row| register_composite_type(row) }
           end
 
-          def query_conditions_for_initial_load(type_map)
-            known_type_names = type_map.keys.map { |n| "'#{n}'" }
+          def query_conditions_for_initial_load
+            known_type_names = @store.keys.map { |n| "'#{n}'" }
             known_type_types = %w('r' 'e' 'd')
             <<-SQL % [known_type_names.join(", "), known_type_types.join(", ")]
               WHERE

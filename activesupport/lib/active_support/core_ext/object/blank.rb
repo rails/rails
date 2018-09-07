@@ -1,4 +1,6 @@
-require "active_support/core_ext/regexp"
+# frozen_string_literal: true
+
+require "concurrent/map"
 
 class Object
   # An object is blank if it's false, empty, or a whitespace string.
@@ -100,6 +102,9 @@ end
 
 class String
   BLANK_RE = /\A[[:space:]]*\z/
+  ENCODED_BLANKS = Concurrent::Map.new do |h, enc|
+    h[enc] = Regexp.new(BLANK_RE.source.encode(enc), BLANK_RE.options | Regexp::FIXEDENCODING)
+  end
 
   # A string is blank if it's empty or contains whitespaces only:
   #
@@ -117,7 +122,12 @@ class String
     # The regexp that matches blank strings is expensive. For the case of empty
     # strings we can speed up this method (~3.5x) with an empty? call. The
     # penalty for the rest of strings is marginal.
-    empty? || BLANK_RE.match?(self)
+    empty? ||
+      begin
+        BLANK_RE.match?(self)
+      rescue Encoding::CompatibilityError
+        ENCODED_BLANKS[self.encoding].match?(self)
+      end
   end
 end
 

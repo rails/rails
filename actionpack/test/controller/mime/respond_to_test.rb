@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/log_subscriber/test_helper"
 
@@ -97,6 +99,26 @@ class RespondToController < ActionController::Base
       type.rss  { render body: "RSS"  }
       type.atom { render body: "ATOM" }
       type.all  { render body: "Nothing" }
+    end
+  end
+
+  def using_conflicting_nested_js_then_html
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.html { render body: "HTML" }
+        end
+      end
+    end
+  end
+
+  def using_non_conflicting_nested_js_then_js
+    respond_to do |outer_type|
+      outer_type.js do
+        respond_to do |inner_type|
+          inner_type.js { render body: "JS" }
+        end
+      end
     end
   end
 
@@ -428,6 +450,20 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "<p>Hello world!</p>\n", @response.body
   end
 
+  def test_using_conflicting_nested_js_then_html
+    @request.accept = "*/*"
+    assert_raises(ActionController::RespondToMismatchError) do
+      get :using_conflicting_nested_js_then_html
+    end
+  end
+
+  def test_using_non_conflicting_nested_js_then_js
+    @request.accept = "*/*"
+    get :using_non_conflicting_nested_js_then_js
+    assert_equal "text/javascript", @response.content_type
+    assert_equal "JS", @response.body
+  end
+
   def test_with_atom_content_type
     @request.accept = ""
     @request.env["CONTENT_TYPE"] = "application/atom+xml"
@@ -519,7 +555,7 @@ class RespondToControllerTest < ActionController::TestCase
     assert_equal "Whatever you ask for, I got it", @response.body
   end
 
-  def test_handle_any_any_unkown_format
+  def test_handle_any_any_unknown_format
     get :handle_any_any, format: "php"
     assert_equal "Whatever you ask for, I got it", @response.body
   end
@@ -656,13 +692,13 @@ class RespondToControllerTest < ActionController::TestCase
   end
 
   def test_variant_without_implicit_rendering_from_browser
-    assert_raises(ActionController::UnknownFormat) do
+    assert_raises(ActionController::MissingExactTemplate) do
       get :variant_without_implicit_template_rendering, params: { v: :does_not_matter }
     end
   end
 
   def test_variant_variant_not_set_and_without_implicit_rendering_from_browser
-    assert_raises(ActionController::UnknownFormat) do
+    assert_raises(ActionController::MissingExactTemplate) do
       get :variant_without_implicit_template_rendering
     end
   end

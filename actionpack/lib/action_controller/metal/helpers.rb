@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionController
   # The \Rails framework provides a large number of helpers for working with assets, dates, forms,
   # numbers and model objects, to name a few. These helpers are available to all templates
@@ -53,9 +55,8 @@ module ActionController
     include AbstractController::Helpers
 
     included do
-      class_attribute :helpers_path, :include_all_helpers
-      self.helpers_path ||= []
-      self.include_all_helpers = true
+      class_attribute :helpers_path, default: []
+      class_attribute :include_all_helpers, default: true
     end
 
     module ClassMethods
@@ -99,8 +100,7 @@ module ActionController
       #   # => ["application", "chart", "rubygems"]
       def all_helpers_from_path(path)
         helpers = Array(path).flat_map do |_path|
-          extract = /^#{Regexp.quote(_path.to_s)}\/?(.*)_helper.rb$/
-          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file.sub(extract, '\1'.freeze) }
+          names = Dir["#{_path}/**/*_helper.rb"].map { |file| file[_path.to_s.size + 1..-"_helper.rb".size - 1] }
           names.sort!
         end
         helpers.uniq!

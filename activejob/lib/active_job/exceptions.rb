@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/numeric/time"
 
 module ActiveJob
@@ -28,8 +30,8 @@ module ActiveJob
       #  class RemoteServiceJob < ActiveJob::Base
       #    retry_on CustomAppException # defaults to 3s wait, 5 attempts
       #    retry_on AnotherCustomAppException, wait: ->(executions) { executions * 2 }
-      #    retry_on(YetAnotherCustomAppException) do |job, exception|
-      #      ExceptionNotifier.caught(exception)
+      #    retry_on(YetAnotherCustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
       #    end
       #    retry_on ActiveRecord::Deadlocked, wait: 5.seconds, attempts: 3
       #    retry_on Net::OpenTimeout, wait: :exponentially_longer, attempts: 10
@@ -40,16 +42,26 @@ module ActiveJob
       #      # Might raise Net::OpenTimeout when the remote service is down
       #    end
       #  end
-      def retry_on(exception, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
-        rescue_from exception do |error|
+      def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
+        rescue_from(*exceptions) do |error|
+          payload = {
+            job: self,
+            adapter: self.class.queue_adapter,
+            error: error,
+            wait: wait
+          }
+
           if executions < attempts
-            logger.error "Retrying #{self.class} in #{wait} seconds, due to a #{exception}. The original exception was #{error.cause.inspect}."
-            retry_job wait: determine_delay(wait), queue: queue, priority: priority
+            ActiveSupport::Notifications.instrument("enqueue_retry.active_job", payload) do
+              retry_job wait: determine_delay(wait), queue: queue, priority: priority
+            end
           else
             if block_given?
-              yield self, exception
+              ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload) do
+                yield self, error
+              end
             else
-              logger.error "Stopped retrying #{self.class} due to a #{exception}, which reoccurred on #{executions} attempts. The original exception was #{error.cause.inspect}."
+              ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload)
               raise error
             end
           end
@@ -59,18 +71,34 @@ module ActiveJob
       # Discard the job with no attempts to retry, if the exception is raised. This is useful when the subject of the job,
       # like an Active Record, is no longer available, and the job is thus no longer relevant.
       #
+      # You can also pass a block that'll be invoked. This block is yielded with the job instance as the first and the error instance as the second parameter.
+      #
       # ==== Example
       #
       #  class SearchIndexingJob < ActiveJob::Base
       #    discard_on ActiveJob::DeserializationError
+      #    discard_on(CustomAppException) do |job, error|
+      #      ExceptionNotifier.caught(error)
+      #    end
       #
       #    def perform(record)
       #      # Will raise ActiveJob::DeserializationError if the record can't be deserialized
+      #      # Might raise CustomAppException for something domain specific
       #    end
       #  end
-      def discard_on(exception)
-        rescue_from exception do |error|
-          logger.error "Discarded #{self.class} due to a #{exception}. The original exception was #{error.cause.inspect}."
+      def discard_on(*exceptions)
+        rescue_from(*exceptions) do |error|
+          payload = {
+            job: self,
+            adapter: self.class.queue_adapter,
+            error: error
+          }
+
+          ActiveSupport::Notifications.instrument("discard.active_job", payload) do
+            if block_given?
+              yield self, error
+            end
+          end
         end
       end
     end

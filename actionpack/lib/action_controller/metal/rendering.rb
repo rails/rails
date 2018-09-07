@@ -1,4 +1,4 @@
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
 
 module ActionController
   module Rendering
@@ -36,11 +36,11 @@ module ActionController
       super
     end
 
-    # Overwrite render_to_string because body can now be set to a rack body.
+    # Overwrite render_to_string because body can now be set to a Rack body.
     def render_to_string(*)
       result = super
       if result.respond_to?(:each)
-        string = ""
+        string = "".dup
         result.each { |r| string << r }
         string
       else

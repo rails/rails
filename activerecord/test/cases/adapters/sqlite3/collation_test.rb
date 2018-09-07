@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "support/schema_dumping_helper"
 
@@ -47,7 +49,7 @@ class SQLite3CollationTest < ActiveRecord::SQLite3TestCase
 
   test "schema dump includes collation" do
     output = dump_table_schema("collation_table_sqlite3")
-    assert_match %r{t.string\s+"string_nocase",\s+collation: "NOCASE"$}, output
-    assert_match %r{t.text\s+"text_rtrim",\s+collation: "RTRIM"$}, output
+    assert_match %r{t\.string\s+"string_nocase",\s+collation: "NOCASE"$}, output
+    assert_match %r{t\.text\s+"text_rtrim",\s+collation: "RTRIM"$}, output
   end
 end

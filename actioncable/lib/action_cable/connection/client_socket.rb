@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "websocket/driver"
 
 module ActionCable
@@ -19,7 +21,7 @@ module ActionCable
         return true if env["HTTP_X_FORWARDED_PROTO"] == "https"
         return true if env["rack.url_scheme"] == "https"
 
-        return false
+        false
       end
 
       CONNECTING = 0
@@ -81,7 +83,7 @@ module ActionCable
         when Numeric then @driver.text(message.to_s)
         when String  then @driver.text(message)
         when Array   then @driver.binary(message)
-          else false
+        else false
         end
       end
 
@@ -90,8 +92,8 @@ module ActionCable
         reason ||= ""
 
         unless code == 1000 || (code >= 3000 && code <= 4999)
-          raise ArgumentError, "Failed to execute 'close' on WebSocket: " +
-                               "The code must be either 1000, or between 3000 and 4999. " +
+          raise ArgumentError, "Failed to execute 'close' on WebSocket: " \
+                               "The code must be either 1000, or between 3000 and 4999. " \
                                "#{code} is neither."
         end
 

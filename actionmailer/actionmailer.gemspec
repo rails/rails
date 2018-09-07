@@ -1,4 +1,6 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+# frozen_string_literal: true
+
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -7,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Email composition, delivery, and receiving framework (part of Rails)."
   s.description = "Email on Rails. Compose, deliver, receive, and test emails using the familiar controller/view pattern. First-class support for multipart email and attachments."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 
@@ -18,6 +20,11 @@ Gem::Specification.new do |s|
   s.files        = Dir["CHANGELOG.md", "README.rdoc", "MIT-LICENSE", "lib/**/*"]
   s.require_path = "lib"
   s.requirements << "none"
+
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionmailer",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionmailer/CHANGELOG.md"
+  }
 
   s.add_dependency "actionpack", version
   s.add_dependency "actionview", version

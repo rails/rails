@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/duration"
 require "active_support/core_ext/time/conversions"
 require "active_support/time_with_zone"
@@ -53,6 +55,29 @@ class Time
     end
     alias_method :at_without_coercion, :at
     alias_method :at, :at_with_coercion
+
+    # Creates a +Time+ instance from an RFC 3339 string.
+    #
+    #   Time.rfc3339('1999-12-31T14:00:00-10:00') # => 2000-01-01 00:00:00 -1000
+    #
+    # If the time or offset components are missing then an +ArgumentError+ will be raised.
+    #
+    #   Time.rfc3339('1999-12-31') # => ArgumentError: invalid date
+    def rfc3339(str)
+      parts = Date._rfc3339(str)
+
+      raise ArgumentError, "invalid date" if parts.empty?
+
+      Time.new(
+        parts.fetch(:year),
+        parts.fetch(:mon),
+        parts.fetch(:mday),
+        parts.fetch(:hour),
+        parts.fetch(:min),
+        parts.fetch(:sec) + parts.fetch(:sec_fraction, 0),
+        parts.fetch(:offset)
+      )
+    end
   end
 
   # Returns the number of seconds since 00:00:00.
@@ -84,21 +109,22 @@ class Time
   # to the +options+ parameter. The time options (<tt>:hour</tt>, <tt>:min</tt>,
   # <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>) reset cascadingly, so if only
   # the hour is passed, then minute, sec, usec and nsec is set to 0. If the hour
-  # and minute is passed, then sec, usec and nsec is set to 0. The +options+
-  # parameter takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>,
-  # <tt>:day</tt>, <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>
-  # <tt>:nsec</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
+  # and minute is passed, then sec, usec and nsec is set to 0. The +options+ parameter
+  # takes a hash with any of these keys: <tt>:year</tt>, <tt>:month</tt>, <tt>:day</tt>,
+  # <tt>:hour</tt>, <tt>:min</tt>, <tt>:sec</tt>, <tt>:usec</tt>, <tt>:nsec</tt>,
+  # <tt>:offset</tt>. Pass either <tt>:usec</tt> or <tt>:nsec</tt>, not both.
   #
   #   Time.new(2012, 8, 29, 22, 35, 0).change(day: 1)              # => Time.new(2012, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, day: 1)  # => Time.new(1981, 8, 1, 22, 35, 0)
   #   Time.new(2012, 8, 29, 22, 35, 0).change(year: 1981, hour: 0) # => Time.new(1981, 8, 29, 0, 0, 0)
   def change(options)
-    new_year  = options.fetch(:year, year)
-    new_month = options.fetch(:month, month)
-    new_day   = options.fetch(:day, day)
-    new_hour  = options.fetch(:hour, hour)
-    new_min   = options.fetch(:min, options[:hour] ? 0 : min)
-    new_sec   = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_year   = options.fetch(:year, year)
+    new_month  = options.fetch(:month, month)
+    new_day    = options.fetch(:day, day)
+    new_hour   = options.fetch(:hour, hour)
+    new_min    = options.fetch(:min, options[:hour] ? 0 : min)
+    new_sec    = options.fetch(:sec, (options[:hour] || options[:min]) ? 0 : sec)
+    new_offset = options.fetch(:offset, nil)
 
     if new_nsec = options[:nsec]
       raise ArgumentError, "Can't change both :nsec and :usec at the same time: #{options.inspect}" if options[:usec]
@@ -107,13 +133,18 @@ class Time
       new_usec = options.fetch(:usec, (options[:hour] || options[:min] || options[:sec]) ? 0 : Rational(nsec, 1000))
     end
 
-    if utc?
-      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+    raise ArgumentError, "argument out of range" if new_usec >= 1000000
+
+    new_sec += Rational(new_usec, 1000000)
+
+    if new_offset
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, new_offset)
+    elsif utc?
+      ::Time.utc(new_year, new_month, new_day, new_hour, new_min, new_sec)
     elsif zone
-      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec, new_usec)
+      ::Time.local(new_year, new_month, new_day, new_hour, new_min, new_sec)
     else
-      raise ArgumentError, "argument out of range" if new_usec >= 1000000
-      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec + (new_usec.to_r / 1000000), utc_offset)
+      ::Time.new(new_year, new_month, new_day, new_hour, new_min, new_sec, utc_offset)
     end
   end
 

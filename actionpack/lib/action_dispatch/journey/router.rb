@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "action_dispatch/journey/router/utils"
 require "action_dispatch/journey/routes"
 require "action_dispatch/journey/formatter"
@@ -22,6 +24,13 @@ module ActionDispatch
         @routes = routes
       end
 
+      def eager_load!
+        # Eagerly trigger the simulator's initialization so
+        # it doesn't happen during a request cycle.
+        simulator
+        nil
+      end
+
       def serve(req)
         find_routes(req).each do |match, parameters, route|
           set_params  = req.path_parameters
@@ -33,6 +42,10 @@ module ActionDispatch
             req.path_info = match.post_match
             req.path_info = "/" + req.path_info unless req.path_info.start_with? "/"
           end
+
+          parameters = route.defaults.merge parameters.transform_values { |val|
+            val.dup.force_encoding(::Encoding::UTF_8)
+          }
 
           req.path_parameters = set_params.merge parameters
 
@@ -48,7 +61,7 @@ module ActionDispatch
           return [status, headers, body]
         end
 
-        return [404, { "X-Cascade" => "pass" }, ["Not Found"]]
+        [404, { "X-Cascade" => "pass" }, ["Not Found"]]
       end
 
       def recognize(rails_req)
@@ -58,6 +71,7 @@ module ActionDispatch
             rails_req.path_info   = match.post_match.sub(/^([^\/])/, '/\1')
           end
 
+          parameters = route.defaults.merge parameters
           yield(route, parameters)
         end
       end
@@ -110,7 +124,7 @@ module ActionDispatch
 
           routes.map! { |r|
             match_data = r.path.match(req.path_info)
-            path_parameters = r.defaults.dup
+            path_parameters = {}
             match_data.names.zip(match_data.captures) { |name, val|
               path_parameters[name.to_sym] = Utils.unescape_uri(val) if val
             }

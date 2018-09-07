@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class CompiledTemplatesTest < ActiveSupport::TestCase
@@ -36,6 +38,10 @@ class CompiledTemplatesTest < ActiveSupport::TestCase
 
   def test_template_with_unicode_identifier
     assert_equal "🎂", render(file: "test/render_file_unicode_local", locals: { 🎃: "🎂" })
+  end
+
+  def test_template_with_instance_variable_identifier
+    assert_equal "bar", render(file: "test/render_file_instance_variable", locals: { "@foo": "bar" })
   end
 
   def test_template_gets_recompiled_when_using_different_keys_in_local_assigns

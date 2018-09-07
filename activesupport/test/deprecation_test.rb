@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/testing/stream"
 
@@ -33,6 +35,18 @@ class Deprecatee
     C = 1
   end
   A = ActiveSupport::Deprecation::DeprecatedConstantProxy.new("Deprecatee::A", "Deprecatee::B::C")
+end
+
+class DeprecateeWithAccessor
+  include ActiveSupport::Deprecation::DeprecatedConstantAccessor
+
+  module B
+    C = 1
+  end
+  deprecate_constant "A", "DeprecateeWithAccessor::B::C"
+
+  class NewException < StandardError; end
+  deprecate_constant "OldException", "DeprecateeWithAccessor::NewException"
 end
 
 class DeprecationTest < ActiveSupport::TestCase
@@ -88,16 +102,18 @@ class DeprecationTest < ActiveSupport::TestCase
   end
 
   def test_several_behaviors
-    @a, @b = nil, nil
+    @a, @b, @c = nil, nil, nil
 
     ActiveSupport::Deprecation.behavior = [
-      Proc.new { |msg, callstack| @a = msg },
-      Proc.new { |msg, callstack| @b = msg }
+      lambda { |msg, callstack, horizon, gem| @a = msg },
+      lambda { |msg, callstack| @b = msg },
+      lambda { |*args| @c = args },
     ]
 
     @dtc.partially
     assert_match(/foo=nil/, @a)
     assert_match(/foo=nil/, @b)
+    assert_equal 4, @c.size
   end
 
   def test_raise_behaviour
@@ -107,7 +123,7 @@ class DeprecationTest < ActiveSupport::TestCase
     callstack = caller_locations
 
     e = assert_raise ActiveSupport::DeprecationException do
-      ActiveSupport::Deprecation.behavior.first.call(message, callstack)
+      ActiveSupport::Deprecation.behavior.first.call(message, callstack, "horizon", "gem")
     end
     assert_equal message, e.message
     assert_equal callstack.map(&:to_s), e.backtrace.map(&:to_s)
@@ -118,7 +134,7 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     content = capture(:stderr) {
-      assert_nil behavior.call("Some error!", ["call stack!"])
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
     assert_match(/Some error!/, content)
     assert_match(/call stack!/, content)
@@ -140,9 +156,38 @@ class DeprecationTest < ActiveSupport::TestCase
     behavior = ActiveSupport::Deprecation.behavior.first
 
     stderr_output = capture(:stderr) {
-      assert_nil behavior.call("Some error!", ["call stack!"])
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "gem")
     }
-    assert stderr_output.empty?
+    assert_empty stderr_output
+  end
+
+  def test_default_notify_behavior
+    ActiveSupport::Deprecation.behavior = :notify
+    behavior = ActiveSupport::Deprecation.behavior.first
+
+    begin
+      events = []
+      ActiveSupport::Notifications.subscribe("deprecation.my_gem_custom") { |_, **args|
+        events << args
+      }
+
+      assert_nil behavior.call("Some error!", ["call stack!"], "horizon", "MyGem::Custom")
+      assert_equal 1, events.size
+      assert_equal "Some error!", events.first[:message]
+      assert_equal ["call stack!"], events.first[:callstack]
+      assert_equal "horizon", events.first[:deprecation_horizon]
+      assert_equal "MyGem::Custom", events.first[:gem_name]
+    ensure
+      ActiveSupport::Notifications.unsubscribe("deprecation.my_gem_custom")
+    end
+  end
+
+  def test_default_invalid_behavior
+    e = assert_raises(ArgumentError) do
+      ActiveSupport::Deprecation.behavior = :invalid
+    end
+
+    assert_equal ":invalid is not a valid deprecation behavior.", e.message
   end
 
   def test_deprecated_instance_variable_proxy
@@ -160,6 +205,17 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_not_deprecated { Deprecatee::B::C }
     assert_deprecated("Deprecatee::A") { assert_equal Deprecatee::B::C, Deprecatee::A }
     assert_not_deprecated { assert_equal Deprecatee::B::C.class, Deprecatee::A.class }
+  end
+
+  def test_deprecated_constant_accessor
+    assert_not_deprecated { DeprecateeWithAccessor::B::C }
+    assert_deprecated("DeprecateeWithAccessor::A") { assert_equal DeprecateeWithAccessor::B::C, DeprecateeWithAccessor::A }
+  end
+
+  def test_deprecated_constant_accessor_exception
+    raise DeprecateeWithAccessor::NewException.new("Test")
+  rescue DeprecateeWithAccessor::OldException => e
+    assert_kind_of DeprecateeWithAccessor::NewException, e
   end
 
   def test_assert_deprecated_raises_when_method_not_deprecated
@@ -283,6 +339,16 @@ class DeprecationTest < ActiveSupport::TestCase
     assert_difference("deprecator.messages.size") do
       klass::OLD.to_s
     end
+  end
+
+  def test_deprecated_constant_with_custom_message
+    deprecator = deprecator_with_messages
+
+    klass = Class.new
+    klass.const_set(:OLD, ActiveSupport::Deprecation::DeprecatedConstantProxy.new("klass::OLD", "Object", deprecator, message: "foo"))
+
+    klass::OLD.to_s
+    assert_match "foo", deprecator.messages.last
   end
 
   def test_deprecated_instance_variable_with_instance_deprecator

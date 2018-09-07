@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class SSLTest < ActionDispatch::IntegrationTest
@@ -96,13 +98,17 @@ class RedirectSSLTest < SSLTest
 end
 
 class StrictTransportSecurityTest < SSLTest
-  EXPECTED = "max-age=15552000"
-  EXPECTED_WITH_SUBDOMAINS = "max-age=15552000; includeSubDomains"
+  EXPECTED = "max-age=31536000"
+  EXPECTED_WITH_SUBDOMAINS = "max-age=31536000; includeSubDomains"
 
   def assert_hsts(expected, url: "https://example.org", hsts: { subdomains: true }, headers: {})
     self.app = build_app ssl_options: { hsts: hsts }, headers: headers
     get url
-    assert_equal expected, response.headers["Strict-Transport-Security"]
+    if expected.nil?
+      assert_nil response.headers["Strict-Transport-Security"]
+    else
+      assert_equal expected, response.headers["Strict-Transport-Security"]
+    end
   end
 
   test "enabled by default" do
@@ -130,7 +136,7 @@ class StrictTransportSecurityTest < SSLTest
   end
 
   test ":expires supports AS::Duration arguments" do
-    assert_hsts "max-age=31557600; includeSubDomains", hsts: { expires: 1.year }
+    assert_hsts "max-age=31556952; includeSubDomains", hsts: { expires: 1.year }
   end
 
   test "include subdomains" do
@@ -200,6 +206,14 @@ class SecureCookiesTest < SSLTest
   def test_cookies_as_not_secure_with_secure_cookies_disabled
     get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { secure_cookies: false }
     assert_cookies(*DEFAULT.split("\n"))
+  end
+
+  def test_cookies_as_not_secure_with_exclude
+    excluding = { exclude: -> request { request.domain =~ /example/ } }
+    get headers: { "Set-Cookie" => DEFAULT }, ssl_options: { redirect: excluding }
+
+    assert_cookies(*DEFAULT.split("\n"))
+    assert_response :ok
   end
 
   def test_no_cookies

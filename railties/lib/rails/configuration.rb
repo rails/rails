@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/ordered_options"
 require "active_support/core_ext/object"
 require "rails/paths"
@@ -77,13 +79,7 @@ module Rails
       end
 
       protected
-        def operations
-          @operations
-        end
-
-        def delete_operations
-          @delete_operations
-        end
+        attr_reader :operations, :delete_operations
     end
 
     class Generators #:nodoc:

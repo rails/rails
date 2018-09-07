@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rbconfig"
 
 module ActiveSupport
@@ -18,7 +20,7 @@ module ActiveSupport
 
         callstack ||= caller_locations(2)
         deprecation_message(callstack, message).tap do |m|
-          behavior.each { |b| b.call(m, callstack) }
+          behavior.each { |b| b.call(m, callstack, deprecation_horizon, gem_name) }
         end
       end
 
@@ -48,18 +50,18 @@ module ActiveSupport
       private
         # Outputs a deprecation warning message
         #
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name)
+        #   deprecated_method_warning(:method_name)
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon}"
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, :another_method)
+        #   deprecated_method_warning(:method_name, :another_method)
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (use another_method instead)"
-        #   ActiveSupport::Deprecation.deprecated_method_warning(:method_name, "Optional message")
+        #   deprecated_method_warning(:method_name, "Optional message")
         #   # => "method_name is deprecated and will be removed from Rails #{deprecation_horizon} (Optional message)"
         def deprecated_method_warning(method_name, message = nil)
           warning = "#{method_name} is deprecated and will be removed from #{gem_name} #{deprecation_horizon}"
           case message
           when Symbol then "#{warning} (use #{message} instead)"
           when String then "#{warning} (#{message})"
-            else warning
+          else warning
           end
         end
 
@@ -102,7 +104,7 @@ module ActiveSupport
           end
         end
 
-        RAILS_GEM_ROOT = File.expand_path("../../../../..", __FILE__) + "/"
+        RAILS_GEM_ROOT = File.expand_path("../../../..", __dir__) + "/"
 
         def ignored_callstack(path)
           path.start_with?(RAILS_GEM_ROOT) || path.start_with?(RbConfig::CONFIG["rubylibdir"])

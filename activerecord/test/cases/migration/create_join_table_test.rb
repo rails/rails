@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -12,7 +14,7 @@ module ActiveRecord
 
       teardown do
         %w(artists_musics musics_videos catalog).each do |table_name|
-          connection.drop_table table_name if connection.table_exists?(table_name)
+          connection.drop_table table_name, if_exists: true
         end
       end
 
@@ -67,7 +69,7 @@ module ActiveRecord
       def test_create_join_table_without_indexes
         connection.create_join_table :artists, :musics
 
-        assert connection.indexes(:artists_musics).blank?
+        assert_predicate connection.indexes(:artists_musics), :blank?
       end
 
       def test_create_join_table_with_index
@@ -78,46 +80,57 @@ module ActiveRecord
         assert_equal [%w(artist_id music_id)], connection.indexes(:artists_musics).map(&:columns)
       end
 
+      def test_create_join_table_respects_reference_key_type
+        connection.create_join_table :artists, :musics do |t|
+          t.references :video
+        end
+
+        artist_id, music_id, video_id = connection.columns(:artists_musics).sort_by(&:name)
+
+        assert_equal video_id.sql_type, artist_id.sql_type
+        assert_equal video_id.sql_type, music_id.sql_type
+      end
+
       def test_drop_join_table
         connection.create_join_table :artists, :musics
         connection.drop_join_table :artists, :musics
 
-        assert !connection.table_exists?("artists_musics")
+        assert_not connection.table_exists?("artists_musics")
       end
 
       def test_drop_join_table_with_strings
         connection.create_join_table :artists, :musics
         connection.drop_join_table "artists", "musics"
 
-        assert !connection.table_exists?("artists_musics")
+        assert_not connection.table_exists?("artists_musics")
       end
 
       def test_drop_join_table_with_the_proper_order
         connection.create_join_table :videos, :musics
         connection.drop_join_table :videos, :musics
 
-        assert !connection.table_exists?("musics_videos")
+        assert_not connection.table_exists?("musics_videos")
       end
 
       def test_drop_join_table_with_the_table_name
         connection.create_join_table :artists, :musics, table_name: :catalog
         connection.drop_join_table :artists, :musics, table_name: :catalog
 
-        assert !connection.table_exists?("catalog")
+        assert_not connection.table_exists?("catalog")
       end
 
       def test_drop_join_table_with_the_table_name_as_string
         connection.create_join_table :artists, :musics, table_name: "catalog"
         connection.drop_join_table :artists, :musics, table_name: "catalog"
 
-        assert !connection.table_exists?("catalog")
+        assert_not connection.table_exists?("catalog")
       end
 
       def test_drop_join_table_with_column_options
         connection.create_join_table :artists, :musics, column_options: { null: true }
         connection.drop_join_table :artists, :musics, column_options: { null: true }
 
-        assert !connection.table_exists?("artists_musics")
+        assert_not connection.table_exists?("artists_musics")
       end
 
       def test_create_and_drop_join_table_with_common_prefix
@@ -126,7 +139,7 @@ module ActiveRecord
           assert connection.table_exists?("audio_artists_musics")
 
           connection.drop_join_table "audio_artists", "audio_musics"
-          assert !connection.table_exists?("audio_artists_musics"), "Should have dropped join table, but didn't"
+          assert_not connection.table_exists?("audio_artists_musics"), "Should have dropped join table, but didn't"
         end
       end
 

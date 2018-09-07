@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/xml_mini"
 require "active_support/core_ext/hash/conversions"
@@ -73,6 +75,11 @@ class XMLMiniEngineTest < ActiveSupport::TestCase
     def test_blank_returns_empty_hash
       assert_equal({}, ActiveSupport::XmlMini.parse(nil))
       assert_equal({}, ActiveSupport::XmlMini.parse(""))
+    end
+
+    def test_parse_from_frozen_string
+      xml_string = "<root/>".freeze
+      assert_equal({ "root" => {} }, ActiveSupport::XmlMini.parse(xml_string))
     end
 
     def test_array_type_makes_an_array

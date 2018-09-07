@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/json"
 require "active_support/time"
@@ -75,12 +77,17 @@ class TestJSONDecoding < ActiveSupport::TestCase
   }
 
   TESTS.each_with_index do |(json, expected), index|
+    fail_message = "JSON decoding failed for #{json}"
+
     test "json decodes #{index}" do
       with_tz_default "Eastern Time (US & Canada)" do
         with_parse_json_times(true) do
           silence_warnings do
-            assert_equal expected, ActiveSupport::JSON.decode(json), "JSON decoding \
-            failed for #{json}"
+            if expected.nil?
+              assert_nil ActiveSupport::JSON.decode(json), fail_message
+            else
+              assert_equal expected, ActiveSupport::JSON.decode(json), fail_message
+            end
           end
         end
       end

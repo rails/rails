@@ -1,13 +1,16 @@
-ActiveRecord::Schema.define do
+# frozen_string_literal: true
 
+ActiveRecord::Schema.define do
   enable_extension!("uuid-ossp", ActiveRecord::Base.connection)
   enable_extension!("pgcrypto",  ActiveRecord::Base.connection) if ActiveRecord::Base.connection.supports_pgcrypto_uuid?
 
-  create_table :uuid_parents, id: :uuid, force: true do |t|
+  uuid_default = connection.supports_pgcrypto_uuid? ? {} : { default: "uuid_generate_v4()" }
+
+  create_table :uuid_parents, id: :uuid, force: true, **uuid_default do |t|
     t.string :name
   end
 
-  create_table :uuid_children, id: :uuid, force: true do |t|
+  create_table :uuid_children, id: :uuid, force: true, **uuid_default do |t|
     t.string :name
     t.uuid :uuid_parent_id
   end
@@ -23,15 +26,23 @@ ActiveRecord::Schema.define do
     t.string :char2, limit: 50, default: "a varchar field"
     t.text :char3, default: "a text field"
     t.bigint :bigint_default, default: -> { "0::bigint" }
-    t.text :multiline_default, default: '--- []
+    t.text :multiline_default, default: "--- []
 
-'
+"
   end
 
-  %w(postgresql_times postgresql_oids postgresql_timestamp_with_zones
-      postgresql_partitioned_table postgresql_partitioned_table_parent).each do |table_name|
-    drop_table table_name, if_exists: true
+  create_table :postgresql_times, force: true do |t|
+    t.interval :time_interval
+    t.interval :scaled_time_interval, precision: 6
   end
+
+  create_table :postgresql_oids, force: true do |t|
+    t.oid :obj_id
+  end
+
+  drop_table "postgresql_timestamp_with_zones", if_exists: true
+  drop_table "postgresql_partitioned_table", if_exists: true
+  drop_table "postgresql_partitioned_table_parent", if_exists: true
 
   execute "DROP SEQUENCE IF EXISTS companies_nonstd_seq CASCADE"
   execute "CREATE SEQUENCE companies_nonstd_seq START 101 OWNED BY companies.id"
@@ -43,21 +54,6 @@ ActiveRecord::Schema.define do
   %w(accounts_id_seq developers_id_seq projects_id_seq topics_id_seq customers_id_seq orders_id_seq).each do |seq_name|
     execute "SELECT setval('#{seq_name}', 100)"
   end
-
-  execute <<_SQL
-  CREATE TABLE postgresql_times (
-    id SERIAL PRIMARY KEY,
-    time_interval INTERVAL,
-    scaled_time_interval INTERVAL(6)
-  );
-_SQL
-
-  execute <<_SQL
-  CREATE TABLE postgresql_oids (
-    id SERIAL PRIMARY KEY,
-    obj_id OID
-  );
-_SQL
 
   execute <<_SQL
   CREATE TABLE postgresql_timestamp_with_zones (
@@ -109,7 +105,7 @@ _SQL
   end
 
   create_table :uuid_items, force: true, id: false do |t|
-    t.uuid :uuid, primary_key: true
+    t.uuid :uuid, primary_key: true, **uuid_default
     t.string :title
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/json"
 
 module ActiveModel
@@ -10,8 +12,7 @@ module ActiveModel
       included do
         extend ActiveModel::Naming
 
-        class_attribute :include_root_in_json, instance_writer: false
-        self.include_root_in_json = false
+        class_attribute :include_root_in_json, instance_writer: false, default: false
       end
 
       # Returns a hash representing the model. Some configuration can be
@@ -25,13 +26,13 @@ module ActiveModel
       #   user = User.find(1)
       #   user.as_json
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #     "created_at" => "2006/08/01", "awesome" => true}
+      #   #     "created_at" => "2006-08-01T17:27:133.000Z", "awesome" => true}
       #
       #   ActiveRecord::Base.include_root_in_json = true
       #
       #   user.as_json
       #   # => { "user" => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #                  "created_at" => "2006/08/01", "awesome" => true } }
+      #   #                  "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true } }
       #
       # This behavior can also be achieved by setting the <tt>:root</tt> option
       # to +true+ as in:
@@ -39,7 +40,7 @@ module ActiveModel
       #   user = User.find(1)
       #   user.as_json(root: true)
       #   # => { "user" => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #                  "created_at" => "2006/08/01", "awesome" => true } }
+      #   #                  "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true } }
       #
       # Without any +options+, the returned Hash will include all the model's
       # attributes.
@@ -47,7 +48,7 @@ module ActiveModel
       #   user = User.find(1)
       #   user.as_json
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #      "created_at" => "2006/08/01", "awesome" => true}
+      #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true}
       #
       # The <tt>:only</tt> and <tt>:except</tt> options can be used to limit
       # the attributes included, and work similar to the +attributes+ method.
@@ -62,14 +63,14 @@ module ActiveModel
       #
       #   user.as_json(methods: :permalink)
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #      "created_at" => "2006/08/01", "awesome" => true,
+      #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true,
       #   #      "permalink" => "1-konata-izumi" }
       #
       # To include associations use <tt>:include</tt>:
       #
       #   user.as_json(include: :posts)
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #      "created_at" => "2006/08/01", "awesome" => true,
+      #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true,
       #   #      "posts" => [ { "id" => 1, "author_id" => 1, "title" => "Welcome to the weblog" },
       #   #                   { "id" => 2, "author_id" => 1, "title" => "So I was thinking" } ] }
       #
@@ -80,7 +81,7 @@ module ActiveModel
       #                                             only: :body } },
       #                              only: :title } })
       #   # => { "id" => 1, "name" => "Konata Izumi", "age" => 16,
-      #   #      "created_at" => "2006/08/01", "awesome" => true,
+      #   #      "created_at" => "2006-08-01T17:27:13.000Z", "awesome" => true,
       #   #      "posts" => [ { "comments" => [ { "body" => "1st post!" }, { "body" => "Second!" } ],
       #   #                     "title" => "Welcome to the weblog" },
       #   #                   { "comments" => [ { "body" => "Don't think too hard" } ],
@@ -92,11 +93,12 @@ module ActiveModel
           include_root_in_json
         end
 
+        hash = serializable_hash(options).as_json
         if root
           root = model_name.element if root == true
-          { root => serializable_hash(options) }
+          { root => hash }
         else
-          serializable_hash(options)
+          hash
         end
       end
 

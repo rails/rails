@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "active_support/xml_mini"
 require "active_support/time"
 require "active_support/core_ext/object/blank"
@@ -163,7 +165,7 @@ module ActiveSupport
           Hash[params.map { |k, v| [k.to_s.tr("-", "_"), normalize_keys(v)] } ]
         when Array
           params.map { |v| normalize_keys(v) }
-          else
+        else
           params
         end
       end
@@ -176,7 +178,7 @@ module ActiveSupport
           process_array(value)
         when String
           value
-          else
+        else
           raise "can't typecast #{value.class.name} - #{value.inspect}"
         end
       end

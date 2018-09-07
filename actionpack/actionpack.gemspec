@@ -1,4 +1,6 @@
-version = File.read(File.expand_path("../../RAILS_VERSION", __FILE__)).strip
+# frozen_string_literal: true
+
+version = File.read(File.expand_path("../RAILS_VERSION", __dir__)).strip
 
 Gem::Specification.new do |s|
   s.platform    = Gem::Platform::RUBY
@@ -7,7 +9,7 @@ Gem::Specification.new do |s|
   s.summary     = "Web-flow and rendering framework putting the VC in MVC (part of Rails)."
   s.description = "Web apps on Rails. Simple, battle-tested conventions for building and testing MVC web applications. Works with any Rack-compatible server."
 
-  s.required_ruby_version = ">= 2.2.2"
+  s.required_ruby_version = ">= 2.4.1"
 
   s.license = "MIT"
 
@@ -19,10 +21,15 @@ Gem::Specification.new do |s|
   s.require_path = "lib"
   s.requirements << "none"
 
+  s.metadata = {
+    "source_code_uri" => "https://github.com/rails/rails/tree/v#{version}/actionpack",
+    "changelog_uri"   => "https://github.com/rails/rails/blob/v#{version}/actionpack/CHANGELOG.md"
+  }
+
   s.add_dependency "activesupport", version
 
   s.add_dependency "rack",      "~> 2.0"
-  s.add_dependency "rack-test", "~> 0.6.3"
+  s.add_dependency "rack-test", ">= 0.6.3"
   s.add_dependency "rails-html-sanitizer", "~> 1.0", ">= 1.0.2"
   s.add_dependency "rails-dom-testing", "~> 2.0"
   s.add_dependency "actionview", version

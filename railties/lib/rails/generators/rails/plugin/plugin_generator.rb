@@ -1,4 +1,5 @@
-require "active_support/core_ext/hash/slice"
+# frozen_string_literal: true
+
 require "rails/generators/rails/app/app_generator"
 require "date"
 
@@ -60,7 +61,12 @@ module Rails
       template "lib/%namespaced_name%.rb"
       template "lib/tasks/%namespaced_name%_tasks.rake"
       template "lib/%namespaced_name%/version.rb"
-      template "lib/%namespaced_name%/engine.rb" if engine?
+
+      if engine?
+        template "lib/%namespaced_name%/engine.rb"
+      else
+        template "lib/%namespaced_name%/railtie.rb"
+      end
     end
 
     def config
@@ -71,8 +77,8 @@ module Rails
       template "test/test_helper.rb"
       template "test/%namespaced_name%_test.rb"
       append_file "Rakefile", <<-EOF
-#{rakefile_test_tasks}
 
+#{rakefile_test_tasks}
 task default: :test
       EOF
       if engine?
@@ -81,16 +87,18 @@ task default: :test
     end
 
     PASSTHROUGH_OPTIONS = [
-      :skip_active_record, :skip_action_mailer, :skip_javascript, :skip_sprockets, :database,
-      :javascript, :quiet, :pretend, :force, :skip
+      :skip_active_record, :skip_active_storage, :skip_action_mailer, :skip_javascript, :skip_action_cable, :skip_sprockets, :database,
+      :javascript, :skip_yarn, :api, :quiet, :pretend, :skip
     ]
 
     def generate_test_dummy(force = false)
-      opts = (options || {}).slice(*PASSTHROUGH_OPTIONS)
+      opts = (options.dup || {}).keep_if { |k, _| PASSTHROUGH_OPTIONS.map(&:to_s).include?(k) }
       opts[:force] = force
       opts[:skip_bundle] = true
-      opts[:api] = options.api?
       opts[:skip_listen] = true
+      opts[:skip_git] = true
+      opts[:skip_turbolinks] = true
+      opts[:dummy_app] = true
 
       invoke Rails::Generators::AppGenerator,
         [ File.expand_path(dummy_path, destination_root) ], opts
@@ -112,9 +120,7 @@ task default: :test
 
     def test_dummy_clean
       inside dummy_path do
-        remove_file ".gitignore"
         remove_file "db/seeds.rb"
-        remove_file "doc"
         remove_file "Gemfile"
         remove_file "lib/tasks"
         remove_file "public/robots.txt"
@@ -161,7 +167,7 @@ task default: :test
 
       gemfile_in_app_path = File.join(rails_app_path, "Gemfile")
       if File.exist? gemfile_in_app_path
-        entry = "gem '#{name}', path: '#{relative_path}'"
+        entry = "\ngem '#{name}', path: '#{relative_path}'"
         append_file gemfile_in_app_path, entry
       end
     end
@@ -186,7 +192,7 @@ task default: :test
                                   desc: "Skip gemspec file"
 
       class_option :skip_gemfile_entry, type: :boolean, default: false,
-                                        desc: "If creating plugin in application's directory " +
+                                        desc: "If creating plugin in application's directory " \
                                                  "skip adding entry to Gemfile"
 
       class_option :api,          type: :boolean, default: false,
@@ -195,10 +201,6 @@ task default: :test
       def initialize(*args)
         @dummy_path = nil
         super
-
-        unless plugin_path
-          raise Error, "Plugin name should be provided in arguments. For details run: rails plugin new --help"
-        end
       end
 
       public_task :set_default_accessors!
@@ -261,6 +263,10 @@ task default: :test
       public_task :apply_rails_template
 
       def run_after_bundle_callbacks
+        unless @after_bundle_callbacks.empty?
+          ActiveSupport::Deprecation.warn("`after_bundle` is deprecated and will be removed in the next version of Rails. ")
+        end
+
         @after_bundle_callbacks.each do |callback|
           callback.call
         end
@@ -304,7 +310,7 @@ task default: :test
       end
 
       def engine?
-        full? || mountable?
+        full? || mountable? || options[:engine]
       end
 
       def full?
@@ -379,11 +385,11 @@ task default: :test
       end
 
       def valid_const?
-        if original_name =~ /-\d/
+        if /-\d/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not contain a namespace starting with numeric characters."
-        elsif original_name =~ /[^\w-]+/
+        elsif /[^\w-]+/.match?(original_name)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which uses only alphabetic, numeric, \"_\" or \"-\" characters."
-        elsif camelized =~ /^\d/
+        elsif /^\d/.match?(camelized)
           raise Error, "Invalid plugin name #{original_name}. Please give a name which does not start with numbers."
         elsif RESERVED_NAMES.include?(name)
           raise Error, "Invalid plugin name #{original_name}. Please give a " \
@@ -415,7 +421,6 @@ task default: :test
 require 'rake/testtask'
 
 Rake::TestTask.new(:test) do |t|
-  t.libs << 'lib'
   t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = false
@@ -437,7 +442,7 @@ end
       end
 
       def inside_application?
-        rails_app_path && app_path =~ /^#{rails_app_path}/
+        rails_app_path && destination_root.start_with?(rails_app_path.to_s)
       end
 
       def relative_path

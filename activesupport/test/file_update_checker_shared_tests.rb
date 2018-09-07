@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "fileutils"
 
 module FileUpdateCheckerSharedTests
@@ -28,7 +30,7 @@ module FileUpdateCheckerSharedTests
 
     checker = new_checker { i += 1 }
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -39,7 +41,7 @@ module FileUpdateCheckerSharedTests
 
     checker = new_checker(tmpfiles) { i += 1 }
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -87,12 +89,12 @@ module FileUpdateCheckerSharedTests
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "updated should become true when watched files are modified" do
@@ -101,12 +103,12 @@ module FileUpdateCheckerSharedTests
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "updated should become true when watched files are deleted" do
@@ -115,12 +117,12 @@ module FileUpdateCheckerSharedTests
     FileUtils.touch(tmpfiles)
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     rm_f(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
   end
 
   test "should be robust to handle files with wrong modified time" do
@@ -162,14 +164,14 @@ module FileUpdateCheckerSharedTests
     i = 0
 
     checker = new_checker(tmpfiles) { i += 1 }
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
 
     touch(tmpfiles)
     wait
 
-    assert checker.updated?
+    assert_predicate checker, :updated?
     checker.execute
-    assert !checker.updated?
+    assert_not_predicate checker, :updated?
   end
 
   test "should execute the block if files change in a watched directory one extension" do
@@ -210,7 +212,7 @@ module FileUpdateCheckerSharedTests
     touch(tmpfile("foo.rb"))
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
   end
 
@@ -236,7 +238,7 @@ module FileUpdateCheckerSharedTests
     mkdir(subdir)
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
 
     touch(File.join(subdir, "nested.rb"))
@@ -257,7 +259,7 @@ module FileUpdateCheckerSharedTests
     touch(tmpfile("new.txt"))
     wait
 
-    assert !checker.execute_if_updated
+    assert_not checker.execute_if_updated
     assert_equal 0, i
 
     # subdir does not look for Ruby files, but its parent tmpdir does.
@@ -272,5 +274,11 @@ module FileUpdateCheckerSharedTests
 
     assert checker.execute_if_updated
     assert_equal 2, i
+  end
+
+  test "initialize raises an ArgumentError if no block given" do
+    assert_raise ArgumentError do
+      new_checker([])
+    end
   end
 end

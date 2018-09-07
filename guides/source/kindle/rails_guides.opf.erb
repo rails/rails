@@ -5,7 +5,7 @@
   <meta name="cover" content="cover" />
   <dc-metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
 
-  	<dc:title>Ruby on Rails Guides (<%= @version %>)</dc:title>
+       <dc:title>Ruby on Rails Guides (<%= @version || "master@#{@edge[0, 7]}" %>)</dc:title>
 
   	<dc:language>en-us</dc:language>
   	<dc:creator>Ruby on Rails</dc:creator>
@@ -26,7 +26,7 @@
     <item id="<%= document['url'] %>" media-type="text/html" href="<%= document['url'] %>" />
   <% end %>
 
-  <% %w{toc.html credits.html welcome.html copyright.html}.each do |url| %>
+  <% %w{toc.html welcome.html copyright.html}.each do |url| %>
     <item id="<%= url %>" media-type="text/html" href="<%= url %>" />
   <% end %>
 
@@ -38,7 +38,6 @@
 <spine toc="toc">
   <itemref idref="toc.html" />
   <itemref idref="welcome.html" />
-  <itemref idref="credits.html" />
   <itemref idref="copyright.html" />
   <% documents_flat.each do |document| %>
     <itemref idref="<%= document['url'] %>" />

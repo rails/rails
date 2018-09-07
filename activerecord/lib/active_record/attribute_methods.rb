@@ -1,7 +1,6 @@
-require "active_support/core_ext/enumerable"
-require "active_support/core_ext/string/filters"
+# frozen_string_literal: true
+
 require "mutex_m"
-require "concurrent/map"
 
 module ActiveRecord
   # = Active Record Attribute Methods
@@ -27,14 +26,16 @@ module ActiveRecord
       def self.set_name_cache(name, value)
         const_name = "ATTR_#{name}"
         unless const_defined? const_name
-          const_set const_name, value.dup.freeze
+          const_set const_name, -value
         end
       end
     }
 
-    BLACKLISTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
+    RESTRICTED_CLASS_METHODS = %w(private public protected allocate new name parent superclass)
 
-    class GeneratedAttributeMethods < Module; end # :nodoc:
+    class GeneratedAttributeMethods < Module #:nodoc:
+      include Mutex_m
+    end
 
     module ClassMethods
       def inherited(child_class) #:nodoc:
@@ -43,7 +44,7 @@ module ActiveRecord
       end
 
       def initialize_generated_modules # :nodoc:
-        @generated_attribute_methods = GeneratedAttributeMethods.new { extend Mutex_m }
+        @generated_attribute_methods = GeneratedAttributeMethods.new
         @attribute_methods_generated = false
         include @generated_attribute_methods
 
@@ -58,11 +59,10 @@ module ActiveRecord
         # attribute methods.
         generated_attribute_methods.synchronize do
           return false if @attribute_methods_generated
-          superclass.define_attribute_methods unless self == base_class
+          superclass.define_attribute_methods unless base_class?
           super(attribute_names)
           @attribute_methods_generated = true
         end
-        true
       end
 
       def undefine_attribute_methods # :nodoc:
@@ -123,7 +123,7 @@ module ActiveRecord
       # A class method is 'dangerous' if it is already (re)defined by Active Record, but
       # not by any ancestors. (So 'puts' is not dangerous but 'new' is.)
       def dangerous_class_method?(method_name)
-        BLACKLISTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
+        RESTRICTED_CLASS_METHODS.include?(method_name.to_s) || class_method_defined_within?(method_name, Base)
       end
 
       def class_method_defined_within?(name, klass, superklass = klass.superclass) # :nodoc:
@@ -164,6 +164,59 @@ module ActiveRecord
           attribute_types.keys
         else
           []
+        end
+      end
+
+      # Regexp for column names (with or without a table name prefix). Matches
+      # the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{column_name}"
+      COLUMN_NAME = /\A(?:\w+\.)?\w+\z/i
+
+      # Regexp for column names with order (with or without a table name
+      # prefix, with or without various order modifiers). Matches the following:
+      #   "#{table_name}.#{column_name}"
+      #   "#{table_name}.#{column_name} #{direction}"
+      #   "#{table_name}.#{column_name} #{direction} NULLS FIRST"
+      #   "#{table_name}.#{column_name} NULLS LAST"
+      #   "#{column_name}"
+      #   "#{column_name} #{direction}"
+      #   "#{column_name} #{direction} NULLS FIRST"
+      #   "#{column_name} NULLS LAST"
+      COLUMN_NAME_WITH_ORDER = /
+        \A
+        (?:\w+\.)?
+        \w+
+        (?:\s+asc|\s+desc)?
+        (?:\s+nulls\s+(?:first|last))?
+        \z
+      /ix
+
+      def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
+        unexpected = args.reject do |arg|
+          arg.kind_of?(Arel::Node) ||
+            arg.is_a?(Arel::Nodes::SqlLiteral) ||
+            arg.is_a?(Arel::Attributes::Attribute) ||
+            arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
+        end
+
+        return if unexpected.none?
+
+        if allow_unsafe_raw_sql == :deprecated
+          ActiveSupport::Deprecation.warn(
+            "Dangerous query method (method whose arguments are used as raw " \
+            "SQL) called with non-attribute argument(s): " \
+            "#{unexpected.map(&:inspect).join(", ")}. Non-attribute " \
+            "arguments will be disallowed in Rails 6.0. This method should " \
+            "not be called with user-provided values, such as request " \
+            "parameters or model attributes. Known-safe values can be passed " \
+            "by wrapping them in Arel.sql()."
+          )
+        else
+          raise(ActiveRecord::UnknownAttributeReference,
+            "Query method called with non-attribute argument(s): " +
+            unexpected.map(&:inspect).join(", ")
+          )
         end
       end
 
@@ -236,7 +289,7 @@ module ActiveRecord
         return has_attribute?(name)
       end
 
-      return true
+      true
     end
 
     # Returns +true+ if the given attribute is in the attributes hash, otherwise +false+.
@@ -392,38 +445,22 @@ module ActiveRecord
       @attributes.accessed
     end
 
-    protected
-
-      def attribute_method?(attr_name) # :nodoc:
+    private
+      def attribute_method?(attr_name)
         # We check defined? because Syck calls respond_to? before actually calling initialize.
         defined?(@attributes) && @attributes.key?(attr_name)
       end
 
-    private
-
-      def arel_attributes_with_values_for_create(attribute_names)
-        arel_attributes_with_values(attributes_for_create(attribute_names))
-      end
-
-      def arel_attributes_with_values_for_update(attribute_names)
-        arel_attributes_with_values(attributes_for_update(attribute_names))
-      end
-
-      # Returns a Hash of the Arel::Attributes and attribute values that have been
-      # typecasted for use in an Arel insert/update method.
-      def arel_attributes_with_values(attribute_names)
-        attrs = {}
-        arel_table = self.class.arel_table
-
-        attribute_names.each do |name|
-          attrs[arel_table[name]] = typecasted_attribute_value(name)
+      def attributes_with_values(attribute_names)
+        attribute_names.each_with_object({}) do |name, attrs|
+          attrs[name] = _read_attribute(name)
         end
-        attrs
       end
 
       # Filters the primary keys and readonly attributes from the attribute names.
       def attributes_for_update(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           readonly_attribute?(name)
         end
       end
@@ -431,7 +468,8 @@ module ActiveRecord
       # Filters out the primary keys, from the attribute names, when the primary
       # key is to be generated (e.g. the id attribute has no value).
       def attributes_for_create(attribute_names)
-        attribute_names.reject do |name|
+        attribute_names &= self.class.column_names
+        attribute_names.delete_if do |name|
           pk_attribute?(name) && id.nil?
         end
       end
@@ -442,10 +480,6 @@ module ActiveRecord
 
       def pk_attribute?(name)
         name == self.class.primary_key
-      end
-
-      def typecasted_attribute_value(name)
-        _read_attribute(name)
       end
   end
 end

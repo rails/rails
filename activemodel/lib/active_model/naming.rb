@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "active_support/core_ext/hash/except"
 require "active_support/core_ext/module/introspection"
-require "active_support/core_ext/module/remove_method"
+require "active_support/core_ext/module/redefine_method"
 
 module ActiveModel
   class Name
@@ -47,7 +49,7 @@ module ActiveModel
     # :method: <=>
     #
     # :call-seq:
-    #   ==(other)
+    #   <=>(other)
     #
     # Equivalent to <tt>String#<=></tt>.
     #
@@ -109,6 +111,22 @@ module ActiveModel
     #   BlogPost.model_name.eql?('Blog Post') # => false
 
     ##
+    # :method: match?
+    #
+    # :call-seq:
+    #   match?(regexp)
+    #
+    # Equivalent to <tt>String#match?</tt>. Match the class name against the
+    # given regexp. Returns +true+ if there is a match, otherwise +false+.
+    #
+    #   class BlogPost
+    #     extend ActiveModel::Naming
+    #   end
+    #
+    #   BlogPost.model_name.match?(/Post/) # => true
+    #   BlogPost.model_name.match?(/\d/) # => false
+
+    ##
     # :method: to_s
     #
     # :call-seq:
@@ -129,7 +147,7 @@ module ActiveModel
     #   to_str()
     #
     # Equivalent to +to_s+.
-    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :to_s,
+    delegate :==, :===, :<=>, :=~, :"!~", :eql?, :match?, :to_s,
              :to_str, :as_json, to: :name
 
     # Returns a new ActiveModel::Name instance. By default, the +namespace+
@@ -216,7 +234,7 @@ module ActiveModel
   # provided method below, or rolling your own is required.
   module Naming
     def self.extended(base) #:nodoc:
-      base.remove_possible_method :model_name
+      base.silence_redefinition_of_method :model_name
       base.delegate :model_name, to: :class
     end
 

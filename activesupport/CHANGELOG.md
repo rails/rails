@@ -1,339 +1,208 @@
-*   Change return value of `Rational#duplicable?`, `ComplexClass#duplicable?`
-    to false.
+*   Maintain `html_safe?` on html_safe strings when sliced.
+
+        string = "<div>test</div>".html_safe
+        string[-1..1].html_safe? # => true
+
+    *Elom Gomez*, *Yumin Wong*
+
+*   Add `Array#extract!`.
+
+    The method removes and returns the elements for which the block returns a true value.
+    If no block is given, an Enumerator is returned instead.
+
+        numbers = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+        odd_numbers = numbers.extract! { |number| number.odd? } # => [1, 3, 5, 7, 9]
+        numbers # => [0, 2, 4, 6, 8]
+
+    *bogdanvlviv*
+
+*   Support not to cache `nil` for `ActiveSupport::Cache#fetch`.
+
+        cache.fetch('bar', skip_nil: true) { nil }
+        cache.exist?('bar') # => false
+
+    *Martin Hong*
+
+*   Add "event object" support to the notification system.
+    Before this change, end users were forced to create hand made artisanal
+    event objects on their own, like this:
+
+        ActiveSupport::Notifications.subscribe('wait') do |*args|
+          @event = ActiveSupport::Notifications::Event.new(*args)
+        end
+
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+
+        @event.duration # => 1000.138
+
+    After this change, if the block passed to `subscribe` only takes one
+    parameter, the framework will yield an event object to the block.  Now
+    end users are no longer required to make their own:
+
+        ActiveSupport::Notifications.subscribe('wait') do |event|
+          @event = event
+        end
+
+        ActiveSupport::Notifications.instrument('wait') do
+          sleep 1
+        end
+
+        p @event.allocations # => 7
+        p @event.cpu_time    # => 0.256
+        p @event.idle_time   # => 1003.2399
+
+    Now you can enjoy event objects without making them yourself.  Neat!
+
+    *Aaron "t.lo" Patterson*
+
+*   Add cpu_time, idle_time, and allocations to Event.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+*   RedisCacheStore: support key expiry in increment/decrement.
+
+    Pass `:expires_in` to `#increment` and `#decrement` to set a Redis EXPIRE on the key.
+
+    If the key is already set to expire, RedisCacheStore won't extend its expiry.
+
+        Rails.cache.increment("some_key", 1, expires_in: 2.minutes)
+
+    *Jason Lee*
+
+*   Allow `Range#===` and `Range#cover?` on Range.
+
+    `Range#cover?` can now accept a range argument like `Range#include?` and
+    `Range#===`. `Range#===` works correctly on Ruby 2.6. `Range#include?` is moved
+    into a new file, with these two methods.
+
+    *Requiring active_support/core_ext/range/include_range is now deprecated.*
+    *Use `require "active_support/core_ext/range/compare_range"` instead.*
 
     *utilum*
 
-*   Change return value of `NilClass#duplicable?`, `FalseClass#duplicable?`,
-    `TrueClass#duplicable?`, `Symbol#duplicable?` and `Numeric#duplicable?`
-    to true with Ruby 2.4+. These classes can dup with Ruby 2.4+.
+*   Add `index_with` to Enumerable.
 
-    *Yuji Yaginuma*
+    Allows creating a hash from an enumerable with the value from a passed block
+    or a default argument.
 
-*   Remove deprecated class `ActiveSupport::Concurrency::Latch`
+        %i( title body ).index_with { |attr| post.public_send(attr) }
+        # => { title: "hey", body: "what's up?" }
 
-    *Andrew White*
+        %i( title body ).index_with(nil)
+        # => { title: nil, body: nil }
 
-*   Remove deprecated separator argument from `parameterize`
+    Closely linked with `index_by`, which creates a hash where the keys are extracted from a block.
 
-    *Andrew White*
+    *Kasper Timm Hansen*
 
-*   Remove deprecated method `Numeric#to_formatted_s`
+*   Fix bug where `ActiveSupport::Timezone.all` would fail when tzinfo data for
+    any timezone defined in `ActiveSupport::TimeZone::MAPPING` is missing.
 
-    *Andrew White*
+    *Dominik Sander*
 
-*   Remove deprecated method `alias_method_chain`
+*   Redis cache store: `delete_matched` no longer blocks the Redis server.
+    (Switches from evaled Lua to a batched SCAN + DEL loop.)
 
-    *Andrew White*
+    *Gleb Mazovetskiy*
 
-*   Remove deprecated constant `MissingSourceFile`
+*   Fix bug where `ActiveSupport::Cache` will massively inflate the storage
+    size when compression is enabled (which is true by default). This patch
+    does not attempt to repair existing data: please manually flush the cache
+    to clear out the problematic entries.
 
-    *Andrew White*
+    *Godfrey Chan*
 
-*   Remove deprecated methods `Module.qualified_const_defined?`,
-    `Module.qualified_const_get` and `Module.qualified_const_set`
+*   Fix bug where `URI.unescape` would fail with mixed Unicode/escaped character input:
 
-    *Andrew White*
+        URI.unescape("\xe3\x83\x90")  # => "バ"
+        URI.unescape("%E3%83%90")  # => "バ"
+        URI.unescape("\xe3\x83\x90%E3%83%90")  # => Encoding::CompatibilityError
 
-*   Remove deprecated `:prefix` option from `number_to_human_size`
+    *Ashe Connor*, *Aaron Patterson*
 
-    *Andrew White*
+*   Add `before?` and `after?` methods to `Date`, `DateTime`,
+    `Time`, and `TimeWithZone`.
 
-*   Remove deprecated method `ActiveSupport::HashWithIndifferentAccess.new_from_hash_copying_default`
+    *Nick Holden*
 
-    *Andrew White*
+*   `ActiveSupport::Inflector#ordinal` and `ActiveSupport::Inflector#ordinalize` now support
+    translations through I18n.
 
-*   Remove deprecated file `active_support/core_ext/time/marshal.rb`
+        # locale/fr.rb
 
-    *Andrew White*
+        {
+          fr: {
+            number: {
+              nth: {
+                ordinals: lambda do |_key, number:, **_options|
+                  if number.to_i.abs == 1
+                    'er'
+                  else
+                    'e'
+                  end
+                end,
 
-*   Remove deprecated file `active_support/core_ext/struct.rb`
+                ordinalized: lambda do |_key, number:, **_options|
+                  "#{number}#{ActiveSupport::Inflector.ordinal(number)}"
+                end
+              }
+            }
+          }
+        }
 
-    *Andrew White*
 
-*   Remove deprecated file `active_support/core_ext/module/method_transplanting.rb`
+    *Christian Blais*
 
-    *Andrew White*
+*   Add `:private` option to ActiveSupport's `Module#delegate`
+    in order to delegate methods as private:
 
-*   Remove deprecated method `Module.local_constants`
+        class User < ActiveRecord::Base
+          has_one :profile
+          delegate :date_of_birth, to: :profile, private: true
 
-    *Andrew White*
-
-*   Remove deprecated file `active_support/core_ext/kernel/debugger.rb`
-
-    *Andrew White*
-
-*   Remove deprecated method `ActiveSupport::Cache::Store#namespaced_key`
-
-    *Andrew White*
-
-*   Remove deprecated method `ActiveSupport::Cache::Strategy::LocalCache::LocalStore#set_cache_value`
-
-    *Andrew White*
-
-*   Remove deprecated method `ActiveSupport::Cache::MemCacheStore#escape_key`
-
-    *Andrew White*
-
-*   Remove deprecated method `ActiveSupport::Cache::FileStore#key_file_path`
-
-    *Andrew White*
-
-*   Ensure duration parsing is consistent across DST changes
-
-    Previously `ActiveSupport::Duration.parse` used `Time.current` and
-    `Time#advance` to calculate the number of seconds in the duration
-    from an arbitrary collection of parts. However as `advance` tries to
-    be consistent across DST boundaries this meant that either the
-    duration was shorter or longer depending on the time of year.
-
-    This was fixed by using an absolute reference point in UTC which
-    isn't subject to DST transitions. An arbitrary date of Jan 1st, 2000
-    was chosen for no other reason that it seemed appropriate.
-
-    Additionally, duration parsing should now be marginally faster as we
-    are no longer creating instances of `ActiveSupport::TimeWithZone`
-    every time we parse a duration string.
-
-    Fixes #26941.
-
-    *Andrew White*
-
-*   Use `Hash#compact` and `Hash#compact!` from Ruby 2.4. Old Ruby versions
-    will continue to get these methods from Active Support as before.
-
-    *Prathamesh Sonpatki*
-
-*   Fix `ActiveSupport::TimeZone#strptime`.
-    Support for timestamps in format of seconds (%s) and milliseconds (%Q).
-
-    Fixes #26840.
-
-    *Lev Denisov*
-
-*   Fix `DateAndTime::Calculations#copy_time_to`. Copy `nsec` instead of `usec`.
-
-    Jumping forward or backward between weeks now preserves nanosecond digits.
-
-    *Josua Schmid*
-
-*   Fix `ActiveSupport::TimeWithZone#in` across DST boundaries.
-
-    Previously calls to `in` were being sent to the non-DST aware
-    method `Time#since` via `method_missing`. It is now aliased to
-    the DST aware `ActiveSupport::TimeWithZone#+` which handles
-    transitions across DST boundaries, e.g:
-
-        Time.zone = "US/Eastern"
-
-        t = Time.zone.local(2016,11,6,1)
-        # => Sun, 06 Nov 2016 01:00:00 EDT -05:00
-
-        t.in(1.hour)
-        # => Sun, 06 Nov 2016 01:00:00 EST -05:00
-
-    Fixes #26580.
-
-    *Thomas Balthazar*
-
-*   Remove unused parameter `options = nil` for `#clear` of
-    `ActiveSupport::Cache::Strategy::LocalCache::LocalStore` and
-    `ActiveSupport::Cache::Strategy::LocalCache`.
-
-    *Yosuke Kabuto*
-
-*   Fix `thread_mattr_accessor` subclass no longer overwrites parent.
-
-    Assigning a value to a subclass using `thread_mattr_accessor` no
-    longer changes the value of the parent class. This brings the
-    behavior inline with the documentation.
-
-    Given:
-
-        class Account
-          thread_mattr_accessor :user
-        end
-
-        class Customer < Account
-        end
-
-        Account.user = "DHH"
-        Customer.user = "Rafael"
-
-    Before:
-
-        Account.user  # => "Rafael"
-
-    After:
-
-        Account.user  # => "DHH"
-
-    *Shinichi Maeshima*
-
-*   Since weeks are no longer converted to days, add `:weeks` to the list of
-    parts that `ActiveSupport::TimeWithZone` will recognize as possibly being
-    of variable duration to take account of DST transitions.
-
-    Fixes #26039.
-
-    *Andrew White*
-
-*   Defines `Regexp.match?` for Ruby versions prior to 2.4. The predicate
-    has the same interface, but it does not have the performance boost. Its
-    purpose is to be able to write 2.4 compatible code.
-
-    *Xavier Noria*
-
-*   Allow `MessageEncryptor` to take advantage of authenticated encryption modes.
-
-    AEAD modes like `aes-256-gcm` provide both confidentiality and data
-    authenticity, eliminating the need to use `MessageVerifier` to check if the
-    encrypted data has been tampered with. This speeds up encryption/decryption
-    and results in shorter cipher text.
-
-    *Bart de Water*
-
-*   Introduce `assert_changes` and `assert_no_changes`.
-
-    `assert_changes` is a more general `assert_difference` that works with any
-    value.
-
-        assert_changes 'Error.current', from: nil, to: 'ERR' do
-          expected_bad_operation
-        end
-
-    Can be called with strings, to be evaluated in the binding (context) of
-    the block given to the assertion, or a lambda.
-
-        assert_changes -> { Error.current }, from: nil, to: 'ERR' do
-          expected_bad_operation
-        end
-
-    The `from` and `to` arguments are compared with the case operator (`===`).
-
-        assert_changes 'Error.current', from: nil, to: Error do
-          expected_bad_operation
-        end
-
-    This is pretty useful, if you need to loosely compare a value. For example,
-    you need to test a token has been generated and it has that many random
-    characters.
-
-        user = User.start_registration
-        assert_changes 'user.token', to: /\w{32}/ do
-          user.finish_registration
-        end
-
-    *Genadi Samokovarov*
-
-*   Fix `ActiveSupport::TimeZone#strptime`. Now raises `ArgumentError` when the
-    given time doesn't match the format. The error is the same as the one given
-    by Ruby's `Date.strptime`. Previously it raised
-    `NoMethodError: undefined method empty? for nil:NilClass.` due to a bug.
-
-    Fixes #25701.
-
-    *John Gesimondo*
-
-*   `travel/travel_to` travel time helpers, now raise on nested calls,
-     as this can lead to confusing time stubbing.
-
-     Instead of:
-
-         travel_to 2.days.from_now do
-           # 2 days from today
-           travel_to 3.days.from_now do
-             # 5 days from today
-           end
-         end
-
-     preferred way to achieve above is:
-
-         travel 2.days do
-           # 2 days from today
-         end
-
-         travel 5.days do
-           # 5 days from today
-         end
-
-     *Vipul A M*
-
-*   Support parsing JSON time in ISO8601 local time strings in
-    `ActiveSupport::JSON.decode` when `parse_json_times` is enabled.
-    Strings in the format of `YYYY-MM-DD hh:mm:ss` (without a `Z` at
-    the end) will be parsed in the local timezone (`Time.zone`). In
-    addition, date strings (`YYYY-MM-DD`) are now parsed into `Date`
-    objects.
-
-    *Grzegorz Witek*
-
-*   Fixed `ActiveSupport::Logger.broadcast` so that calls to `#silence` now
-    properly delegate to all loggers. Silencing now properly suppresses logging
-    to both the log and the console.
-
-    *Kevin McPhillips*
-
-*   Remove deprecated arguments in `assert_nothing_raised`.
-
-    *Rafel Mendonça França*
-
-*   `Date.to_s` doesn't produce too many spaces. For example, `to_s(:short)`
-    will now produce `01 Feb` instead of ` 1 Feb`.
-
-    Fixes #25251.
-
-    *Sean Griffin*
-
-*   Introduce `Module#delegate_missing_to`.
-
-    When building a decorator, a common pattern emerges:
-
-        class Partition
-          def initialize(first_event)
-            @events = [ first_event ]
-          end
-
-          def people
-            if @events.first.detail.people.any?
-              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-            else
-              @events.collect(&:creator).uniq
-            end
-          end
-
-          private
-            def respond_to_missing?(name, include_private = false)
-              @events.respond_to?(name, include_private)
-            end
-
-            def method_missing(method, *args, &block)
-              @events.send(method, *args, &block)
-            end
-        end
-
-    With `Module#delegate_missing_to`, the above is condensed to:
-
-        class Partition
-          delegate_missing_to :@events
-
-          def initialize(first_event)
-            @events = [ first_event ]
-          end
-
-          def people
-            if @events.first.detail.people.any?
-              @events.collect { |e| Array(e.detail.people) }.flatten.uniq
-            else
-              @events.collect(&:creator).uniq
-            end
+          def age
+            Date.today.year - date_of_birth.year
           end
         end
 
-    *Genadi Samokovarov*, *DHH*
+        # User.new.age  # => 29
+        # User.new.date_of_birth
+        # => NoMethodError: private method `date_of_birth' called for #<User:0x00000008221340>
 
-*   Rescuable: If a handler doesn't match the exception, check for handlers
-    matching the exception's cause.
+    *Tomas Valent*
+
+*   `String#truncate_bytes` to truncate a string to a maximum bytesize without
+    breaking multibyte characters or grapheme clusters like 👩‍👩‍👦‍👦.
 
     *Jeremy Daer*
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/activesupport/CHANGELOG.md) for previous changes.
+*   `String#strip_heredoc` preserves frozenness.
+
+        "foo".freeze.strip_heredoc.frozen?  # => true
+
+    Fixes that frozen string literals would inadvertently become unfrozen:
+
+        # frozen_string_literal: true
+
+        foo = <<-MSG.strip_heredoc
+          la la la
+        MSG
+
+        foo.frozen?  # => false !??
+
+    *Jeremy Daer*
+
+*   Rails 6 requires Ruby 2.4.1 or newer.
+
+    *Jeremy Daer*
+
+*   Adds parallel testing to Rails.
+
+    Parallelize your test suite with forked processes or threads.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
+
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/activesupport/CHANGELOG.md) for previous changes.

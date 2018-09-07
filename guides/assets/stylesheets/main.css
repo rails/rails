@@ -33,6 +33,13 @@ pre, code {
   overflow: auto;
   color: #222;
 }
+
+p code {
+  background: #eee;
+  border-radius: 2px;
+  padding: 1px 3px;
+}
+
 pre, tt, code {
  white-space: pre-wrap;       /* css-3 */
  white-space: -moz-pre-wrap !important;  /* Mozilla, since 1999 */
@@ -70,7 +77,7 @@ table {
 }
 
 table th, table td {
-  padding: 0.25em 1em;
+  padding: 9px 10px;
   border: 1px solid #CCC;
   border-collapse: collapse;
 }
@@ -79,7 +86,6 @@ table th {
   border-bottom: 2px solid #CCC;
   background: #EEE;
   font-weight: bold;
-  padding: 0.5em 1em;
 }
 
 img {
@@ -265,8 +271,6 @@ body {
   }
 }
 
-#extraCol {display: none;}
-
 #footer {
   padding: 2em 0;
   background: #222 url(../images/footer_tile.gif) repeat-x;
@@ -279,8 +283,12 @@ body {
 #header .wrapper, #topNav .wrapper, #feature .wrapper {padding-left: 1em; max-width: 960px;}
 #feature .wrapper {max-width: 640px; padding-right: 23em; position: relative; z-index: 0;}
 
+@media screen and (max-width: 960px) {
+  #container .wrapper { padding-right: 23em; }
+}
+
 @media screen and (max-width: 800px) {
-  #feature .wrapper { padding-right: 0; }
+  #feature .wrapper, #container .wrapper { padding-right: 0; }
 }
 
 /* Links
@@ -293,6 +301,10 @@ a, a:link, a:visited {
 
 #mainCol a, #subCol a, #feature a {color: #980905;}
 #mainCol a code, #subCol a code, #feature a code {color: #980905;}
+
+#mainCol a.anchorlink, #mainCol a.anchorlink code {color: #333;}
+#mainCol a.anchorlink { text-decoration: none; }
+#mainCol a.anchorlink:hover { text-decoration: underline; }
 
 /* Navigation
 --------------------------------------- */
@@ -404,6 +416,10 @@ a, a:link, a:visited {
   top: -0.25em;
   right: 0;
   padding-top: 2em;
+}
+
+#guides.visible {
+  display: block !important;
 }
 
 #guides dt, #guides dd {
@@ -551,8 +567,6 @@ h6 {
   font-size: 1.2857em;
   padding: 0.125em 0 0.25em 0;
   margin-bottom: 0;
-  /*background: url(../images/book_icon.gif) no-repeat left top;
-  padding: 0.125em 0 0.25em 28px;*/
 }
 
 @media screen and (max-width: 480px) {
@@ -629,7 +643,9 @@ div.code_container {
   margin: 0.25em 0 1.5em 0;
 }
 
-.note code, .info code, .todo code {border:none; background: none; padding: 0;}
+.note code, .info code, .todo code {
+  background: #fff;
+}
 
 #mainCol ul li {
   list-style:none;
@@ -661,10 +677,8 @@ div.code_container {
   visibility: hidden;
 }
 
-.clearfix {display: inline-block;}
 * html .clearfix {height: 1%;}
 .clearfix {display: block;}
-.clear { clear:both; }
 
 /* Same bottom margin for special boxes than for regular paragraphs, this way
 intermediate whitespace looks uniform. */
@@ -691,9 +705,6 @@ div.important p, div.caution p, div.warning p, div.note p, div.info p {
 
 /* Foundation v2.1.4 http://foundation.zurb.com */
 /* Artfully masterminded by ZURB  */
-
-table th { font-weight: bold; }
-table td, table th { padding: 9px 10px; text-align: left; }
 
 /* Mobile */
 @media only screen and (max-width: 767px) {

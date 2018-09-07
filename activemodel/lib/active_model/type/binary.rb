@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveModel
   module Type
     class Binary < Value # :nodoc:
@@ -38,7 +40,7 @@ module ActiveModel
         alias_method :to_str, :to_s
 
         def hex
-          @value.unpack("H*")[0]
+          @value.unpack1("H*")
         end
 
         def ==(other)

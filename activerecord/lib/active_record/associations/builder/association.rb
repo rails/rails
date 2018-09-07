@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # This is the parent Association class which defines the variables
 # used by all associations.
 #
@@ -35,11 +37,6 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.create_reflection(model, name, scope, options, extension = nil)
       raise ArgumentError, "association names must be a Symbol" unless name.kind_of?(Symbol)
-
-      if scope.is_a?(Hash)
-        options = scope
-        scope   = nil
-      end
 
       validate_options(options)
 
@@ -107,8 +104,8 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
     def self.define_readers(mixin, name)
       mixin.class_eval <<-CODE, __FILE__, __LINE__ + 1
-        def #{name}(*args)
-          association(:#{name}).reader(*args)
+        def #{name}
+          association(:#{name}).reader
         end
       CODE
     end

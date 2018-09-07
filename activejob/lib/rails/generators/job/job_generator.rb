@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rails/generators/named_base"
 
 module Rails # :nodoc:
@@ -12,7 +14,7 @@ module Rails # :nodoc:
       hook_for :test_framework
 
       def self.default_generator_root
-        File.dirname(__FILE__)
+        __dir__
       end
 
       def create_job_file
@@ -26,6 +28,10 @@ module Rails # :nodoc:
       end
 
       private
+        def file_name
+          @_file_name ||= super.sub(/_job\z/i, "")
+        end
+
         def application_job_file_name
           @application_job_file_name ||= if mountable_engine?
             "app/jobs/#{namespaced_path}/application_job.rb"

@@ -1,4 +1,4 @@
-**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON http://guides.rubyonrails.org.**
+**DO NOT READ THIS FILE ON GITHUB, GUIDES ARE PUBLISHED ON https://guides.rubyonrails.org.**
 
 Active Job Basics
 =================
@@ -50,7 +50,7 @@ Active Job provides a Rails generator to create jobs. The following will create 
 job in `app/jobs` (with an attached test case under `test/jobs`):
 
 ```bash
-$ bin/rails generate job guests_cleanup
+$ rails generate job guests_cleanup
 invoke  test_unit
 create    test/jobs/guests_cleanup_job_test.rb
 create  app/jobs/guests_cleanup_job.rb
@@ -59,7 +59,7 @@ create  app/jobs/guests_cleanup_job.rb
 You can also create a job that will run on a specific queue:
 
 ```bash
-$ bin/rails generate job guests_cleanup --queue urgent
+$ rails generate job guests_cleanup --queue urgent
 ```
 
 If you don't want to use a generator, you could create your own file inside of
@@ -114,13 +114,13 @@ For enqueuing and executing jobs in production you need to set up a queuing back
 that is to say you need to decide for a 3rd-party queuing library that Rails should use.
 Rails itself only provides an in-process queuing system, which only keeps the jobs in RAM.
 If the process crashes or the machine is reset, then all outstanding jobs are lost with the
-default async back-end. This may be fine for smaller apps or non-critical jobs, but most
+default async backend. This may be fine for smaller apps or non-critical jobs, but most
 production apps will need to pick a persistent backend.
 
 ### Backends
 
 Active Job has built-in adapters for multiple queuing backends (Sidekiq,
-Resque, Delayed Job and others). To get an up-to-date list of the adapters
+Resque, Delayed Job, and others). To get an up-to-date list of the adapters
 see the API Documentation for [ActiveJob::QueueAdapters](http://api.rubyonrails.org/classes/ActiveJob/QueueAdapters.html).
 
 ### Setting the Backend
@@ -147,7 +147,7 @@ class GuestsCleanupJob < ApplicationJob
   #....
 end
 
-# Now your job will use `resque` as it's backend queue adapter overriding what
+# Now your job will use `resque` as its backend queue adapter overriding what
 # was configured in `config.active_job.queue_adapter`.
 ```
 
@@ -162,6 +162,7 @@ Here is a noncomprehensive list of documentation:
 
 - [Sidekiq](https://github.com/mperham/sidekiq/wiki/Active-Job)
 - [Resque](https://github.com/resque/resque/wiki/ActiveJob)
+- [Sneakers](https://github.com/jondot/sneakers/wiki/How-To:-Rails-Background-Jobs-with-ActiveJob)
 - [Sucker Punch](https://github.com/brandonhilkert/sucker_punch#active-job)
 - [Queue Classic](https://github.com/QueueClassic/queue_classic#active-job)
 
@@ -260,8 +261,38 @@ backends you need to specify the queues to listen to.
 Callbacks
 ---------
 
-Active Job provides hooks during the life cycle of a job. Callbacks allow you to
-trigger logic during the life cycle of a job.
+Active Job provides hooks to trigger logic during the life cycle of a job. Like
+other callbacks in Rails, you can implement the callbacks as ordinary methods
+and use a macro-style class method to register them as callbacks:
+
+```ruby
+class GuestsCleanupJob < ApplicationJob
+  queue_as :default
+
+  around_perform :around_cleanup
+
+  def perform
+    # Do something later
+  end
+
+  private
+    def around_cleanup
+      # Do something before perform
+      yield
+      # Do something after perform
+    end
+end
+```
+
+The macro-style class methods can also receive a block. Consider using this
+style if the code inside your block is so short that it fits in a single line.
+For example, you could send metrics for every job enqueued:
+
+```ruby
+class ApplicationJob
+  before_enqueue { |job| $statsd.increment "#{job.class.name.underscore}.enqueue" }
+end
+```
 
 ### Available callbacks
 
@@ -271,28 +302,6 @@ trigger logic during the life cycle of a job.
 * `before_perform`
 * `around_perform`
 * `after_perform`
-
-### Usage
-
-```ruby
-class GuestsCleanupJob < ApplicationJob
-  queue_as :default
-
-  before_enqueue do |job|
-    # Do something with the job instance
-  end
-
-  around_perform do |job, block|
-    # Do something before perform
-    block.call
-    # Do something after perform
-  end
-
-  def perform
-    # Do something later
-  end
-end
-```
 
 
 Action Mailer
@@ -310,6 +319,12 @@ UserMailer.welcome(@user).deliver_now
 UserMailer.welcome(@user).deliver_later
 ```
 
+NOTE: Using the asynchronous queue from a Rake task (for example, to
+send an email using `.deliver_later`) will generally not work because Rake will
+likely end, causing the in-process thread pool to be deleted, before any/all
+of the `.deliver_later` emails are processed. To avoid this problem, use
+`.deliver_now` or run a persistent queue in development.
+
 
 Internationalization
 --------------------
@@ -324,8 +339,23 @@ UserMailer.welcome(@user).deliver_later # Email will be localized to Esperanto.
 ```
 
 
-GlobalID
---------
+Supported types for arguments
+----------------------------
+
+ActiveJob supports the following types of arguments by default:
+
+  - Basic types (`NilClass`, `String`, `Integer`, `Float`, `BigDecimal`, `TrueClass`, `FalseClass`)
+  - `Symbol`
+  - `Date`
+  - `Time`
+  - `DateTime`
+  - `ActiveSupport::TimeWithZone`
+  - `ActiveSupport::Duration`
+  - `Hash` (Keys should be of `String` or `Symbol` type)
+  - `ActiveSupport::HashWithIndifferentAccess`
+  - `Array`
+
+### GlobalID
 
 Active Job supports GlobalID for parameters. This makes it possible to pass live
 Active Record objects to your job instead of class/id pairs, which you then have
@@ -353,6 +383,39 @@ end
 This works with any class that mixes in `GlobalID::Identification`, which
 by default has been mixed into Active Record classes.
 
+### Serializers
+
+You can extend the list of supported argument types. You just need to define your own serializer:
+
+```ruby
+class MoneySerializer < ActiveJob::Serializers::ObjectSerializer
+  # Checks if an argument should be serialized by this serializer.
+  def serialize?(argument)
+    argument.is_a? Money
+  end
+
+  # Converts an object to a simpler representative using supported object types.
+  # The recommended representative is a Hash with a specific key. Keys can be of basic types only.
+  # You should call `super` to add the custom serializer type to the hash.
+  def serialize(money)
+    super(
+      "amount" => money.amount,
+      "currency" => money.currency
+    )
+  end
+
+  # Converts serialized value into a proper object.
+  def deserialize(hash)
+    Money.new(hash["amount"], hash["currency"])
+  end
+end
+```
+
+and add this serializer to the list:
+
+```ruby
+Rails.application.config.active_job.custom_serializers << MoneySerializer
+```
 
 Exceptions
 ----------
@@ -365,7 +428,7 @@ class GuestsCleanupJob < ApplicationJob
   queue_as :default
 
   rescue_from(ActiveRecord::RecordNotFound) do |exception|
-   # Do something with the exception
+    # Do something with the exception
   end
 
   def perform
@@ -373,6 +436,25 @@ class GuestsCleanupJob < ApplicationJob
   end
 end
 ```
+
+### Retrying or Discarding failed jobs
+
+It's also possible to retry or discard a job if an exception is raised during execution.
+For example:
+
+```ruby
+class RemoteServiceJob < ApplicationJob
+  retry_on CustomAppException # defaults to 3s wait, 5 attempts
+
+  discard_on ActiveJob::DeserializationError
+
+  def perform(*args)
+    # Might raise CustomAppException or ActiveJob::DeserializationError
+  end
+end
+```
+
+To get more details see the API Documentation for [ActiveJob::Exceptions](http://api.rubyonrails.org/classes/ActiveJob/Exceptions/ClassMethods.html).
 
 ### Deserialization
 

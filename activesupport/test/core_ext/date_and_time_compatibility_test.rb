@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/time"
 require "time_zone_test_helpers"
@@ -16,11 +18,13 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_time_to_time_preserves_timezone
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
-        time = Time.new(2016, 4, 23, 15, 11, 12, 3600).to_time
+        source = Time.new(2016, 4, 23, 15, 11, 12, 3600)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
         assert_equal @utc_offset, time.utc_offset
+        assert_equal source.object_id, time.object_id
       end
     end
   end
@@ -28,11 +32,43 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_time_to_time_does_not_preserve_time_zone
     with_preserve_timezone(false) do
       with_env_tz "US/Eastern" do
-        time = Time.new(2016, 4, 23, 15, 11, 12, 3600).to_time
+        source = Time.new(2016, 4, 23, 15, 11, 12, 3600)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
         assert_equal @system_offset, time.utc_offset
+        assert_not_equal source.object_id, time.object_id
+      end
+    end
+  end
+
+  def test_time_to_time_frozen_preserves_timezone
+    with_preserve_timezone(true) do
+      with_env_tz "US/Eastern" do
+        source = Time.new(2016, 4, 23, 15, 11, 12, 3600).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+        assert_equal source.object_id, time.object_id
+        assert_predicate time, :frozen?
+      end
+    end
+  end
+
+  def test_time_to_time_frozen_does_not_preserve_time_zone
+    with_preserve_timezone(false) do
+      with_env_tz "US/Eastern" do
+        source = Time.new(2016, 4, 23, 15, 11, 12, 3600).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+        assert_not_equal source.object_id, time.object_id
+        assert_not_predicate time, :frozen?
       end
     end
   end
@@ -40,7 +76,8 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_datetime_to_time_preserves_timezone
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
-        time = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24)).to_time
+        source = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24))
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
@@ -52,7 +89,8 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_datetime_to_time_does_not_preserve_time_zone
     with_preserve_timezone(false) do
       with_env_tz "US/Eastern" do
-        time = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24)).to_time
+        source = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24))
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
@@ -61,17 +99,47 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
     end
   end
 
+  def test_datetime_to_time_frozen_preserves_timezone
+    with_preserve_timezone(true) do
+      with_env_tz "US/Eastern" do
+        source = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24)).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+      end
+    end
+  end
+
+  def test_datetime_to_time_frozen_does_not_preserve_time_zone
+    with_preserve_timezone(false) do
+      with_env_tz "US/Eastern" do
+        source = DateTime.new(2016, 4, 23, 15, 11, 12, Rational(1, 24)).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+      end
+    end
+  end
+
   def test_twz_to_time_preserves_timezone
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
-        time = ActiveSupport::TimeWithZone.new(@utc_time, @zone).to_time
+        source = ActiveSupport::TimeWithZone.new(@utc_time, @zone)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
         assert_instance_of Time, time.getutc
         assert_equal @utc_offset, time.utc_offset
 
-        time = ActiveSupport::TimeWithZone.new(@date_time, @zone).to_time
+        source = ActiveSupport::TimeWithZone.new(@date_time, @zone)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @date_time, time.getutc
@@ -84,14 +152,16 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_twz_to_time_does_not_preserve_time_zone
     with_preserve_timezone(false) do
       with_env_tz "US/Eastern" do
-        time = ActiveSupport::TimeWithZone.new(@utc_time, @zone).to_time
+        source = ActiveSupport::TimeWithZone.new(@utc_time, @zone)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
         assert_instance_of Time, time.getutc
         assert_equal @system_offset, time.utc_offset
 
-        time = ActiveSupport::TimeWithZone.new(@date_time, @zone).to_time
+        source = ActiveSupport::TimeWithZone.new(@date_time, @zone)
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @date_time, time.getutc
@@ -101,10 +171,59 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
     end
   end
 
+  def test_twz_to_time_frozen_preserves_timezone
+    with_preserve_timezone(true) do
+      with_env_tz "US/Eastern" do
+        source = ActiveSupport::TimeWithZone.new(@utc_time, @zone).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+
+        source = ActiveSupport::TimeWithZone.new(@date_time, @zone).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @date_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+      end
+    end
+  end
+
+  def test_twz_to_time_frozen_does_not_preserve_time_zone
+    with_preserve_timezone(false) do
+      with_env_tz "US/Eastern" do
+        source = ActiveSupport::TimeWithZone.new(@utc_time, @zone).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+
+        source = ActiveSupport::TimeWithZone.new(@date_time, @zone).freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @date_time, time.getutc
+        assert_instance_of Time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+      end
+    end
+  end
+
   def test_string_to_time_preserves_timezone
     with_preserve_timezone(true) do
       with_env_tz "US/Eastern" do
-        time = "2016-04-23T15:11:12+01:00".to_time
+        source = "2016-04-23T15:11:12+01:00"
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
@@ -116,11 +235,40 @@ class DateAndTimeCompatibilityTest < ActiveSupport::TestCase
   def test_string_to_time_does_not_preserve_time_zone
     with_preserve_timezone(false) do
       with_env_tz "US/Eastern" do
-        time = "2016-04-23T15:11:12+01:00".to_time
+        source = "2016-04-23T15:11:12+01:00"
+        time = source.to_time
 
         assert_instance_of Time, time
         assert_equal @utc_time, time.getutc
         assert_equal @system_offset, time.utc_offset
+      end
+    end
+  end
+
+  def test_string_to_time_frozen_preserves_timezone
+    with_preserve_timezone(true) do
+      with_env_tz "US/Eastern" do
+        source = "2016-04-23T15:11:12+01:00".freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @utc_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
+      end
+    end
+  end
+
+  def test_string_to_time_frozen_does_not_preserve_time_zone
+    with_preserve_timezone(false) do
+      with_env_tz "US/Eastern" do
+        source = "2016-04-23T15:11:12+01:00".freeze
+        time = source.to_time
+
+        assert_instance_of Time, time
+        assert_equal @utc_time, time.getutc
+        assert_equal @system_offset, time.utc_offset
+        assert_not_predicate time, :frozen?
       end
     end
   end

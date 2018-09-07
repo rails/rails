@@ -53,8 +53,8 @@ module ApplicationCable
 
     private
       def find_verified_user
-        if current_user = User.find_by(id: cookies.signed[:user_id])
-          current_user
+        if verified_user = User.find_by(id: cookies.encrypted[:user_id])
+          verified_user
         else
           reject_unauthorized_connection
         end
@@ -409,7 +409,7 @@ application. The recommended basic setup is as follows:
 
 ```ruby
 # cable/config.ru
-require ::File.expand_path('../../config/environment', __FILE__)
+require_relative '../config/environment'
 Rails.application.eager_load!
 
 run ActionCable.server
@@ -425,7 +425,7 @@ The above will start a cable server on port 28080.
 
 ### In app
 
-If you are using a server that supports the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
+If you are using a server that supports the [Rack socket hijacking API](https://www.rubydoc.info/github/rack/rack/file/SPEC#label-Hijacking), Action Cable can run alongside your Rails application. For example, to listen for WebSocket requests on `/websocket`, specify that path to `config.action_cable.mount_path`:
 
 ```ruby
 # config/application.rb
@@ -446,7 +446,7 @@ The WebSocket server doesn't have access to the session, but it has access to th
 
 ## Dependencies
 
-Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, evented Redis, and non-evented Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within Action Cable as example implementations.
+Action Cable provides a subscription adapter interface to process its pubsub internals. By default, asynchronous, inline, PostgreSQL, and Redis adapters are included. The default adapter in new Rails applications is the asynchronous (`async`) adapter. To create your own adapter, you can look at `ActionCable::SubscriptionAdapter::Base` for all methods that must be implemented, and any of the adapters included within Action Cable as example implementations.
 
 The Ruby side of things is built on top of [websocket-driver](https://github.com/faye/websocket-driver-ruby), [nio4r](https://github.com/celluloid/nio4r), and [concurrent-ruby](https://github.com/ruby-concurrency/concurrent-ruby).
 
@@ -454,12 +454,12 @@ The Ruby side of things is built on top of [websocket-driver](https://github.com
 ## Deployment
 
 Action Cable is powered by a combination of WebSockets and threads. All of the
-connection management is handled internally by utilizing Ruby’s native thread
+connection management is handled internally by utilizing Ruby's native thread
 support, which means you can use all your regular Rails models with no problems
-as long as you haven’t committed any thread-safety sins.
+as long as you haven't committed any thread-safety sins.
 
 The Action Cable server does _not_ need to be a multi-threaded application server.
-This is because Action Cable uses the [Rack socket hijacking API](http://www.rubydoc.info/github/rack/rack/file/SPEC#Hijacking)
+This is because Action Cable uses the [Rack socket hijacking API](https://www.rubydoc.info/github/rack/rack/file/SPEC#label-Hijacking)
 to take over control of connections from the application server. Action Cable
 then manages connections internally, in a multithreaded manner, regardless of
 whether the application server is multi-threaded or not. So Action Cable works
@@ -549,7 +549,7 @@ Source code can be downloaded as part of the Rails project on GitHub
 
 Action Cable is released under the MIT license:
 
-* http://www.opensource.org/licenses/MIT
+* https://opensource.org/licenses/MIT
 
 
 ## Support
@@ -558,7 +558,7 @@ API documentation is at:
 
 * http://api.rubyonrails.org
 
-Bug reports can be filed for the Ruby on Rails project here:
+Bug reports for the Ruby on Rails project can be filed here:
 
 * https://github.com/rails/rails/issues
 

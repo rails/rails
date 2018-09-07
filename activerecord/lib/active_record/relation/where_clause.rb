@@ -1,68 +1,63 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class Relation
     class WhereClause # :nodoc:
-      attr_reader :binds
-
       delegate :any?, :empty?, to: :predicates
 
-      def initialize(predicates, binds)
+      def initialize(predicates)
         @predicates = predicates
-        @binds = binds
       end
 
       def +(other)
         WhereClause.new(
           predicates + other.predicates,
-          binds + other.binds,
+        )
+      end
+
+      def -(other)
+        WhereClause.new(
+          predicates - other.predicates,
         )
       end
 
       def merge(other)
         WhereClause.new(
           predicates_unreferenced_by(other) + other.predicates,
-          non_conflicting_binds(other) + other.binds,
         )
       end
 
       def except(*columns)
-        WhereClause.new(
-          predicates_except(columns),
-          binds_except(columns),
-        )
+        WhereClause.new(except_predicates(columns))
       end
 
       def or(other)
-        if empty?
-          self
-        elsif other.empty?
-          other
+        left = self - other
+        common = self - left
+        right = other - common
+
+        if left.empty? || right.empty?
+          common
         else
-          WhereClause.new(
-            [ast.or(other.ast)],
-            binds + other.binds
+          or_clause = WhereClause.new(
+            [left.ast.or(right.ast)],
           )
+          common + or_clause
         end
       end
 
       def to_h(table_name = nil)
-        equalities = predicates.grep(Arel::Nodes::Equality)
+        equalities = equalities(predicates)
         if table_name
           equalities = equalities.select do |node|
             node.left.relation.name == table_name
           end
         end
 
-        binds = self.binds.map { |attr| [attr.name, attr.value] }.to_h
-
         equalities.map { |node|
-          name = node.left.name
-          [name, binds.fetch(name.to_s) {
-            case node.right
-            when Array then node.right.map(&:val)
-            when Arel::Nodes::Casted, Arel::Nodes::Quoted
-              node.right.val
-            end
-          }]
+          name = node.left.name.to_s
+          value = extract_node_value(node.right)
+          [name, value]
         }.to_h
       end
 
@@ -72,20 +67,17 @@ module ActiveRecord
 
       def ==(other)
         other.is_a?(WhereClause) &&
-          predicates == other.predicates &&
-          binds == other.binds
+          predicates == other.predicates
       end
 
       def invert
-        WhereClause.new(inverted_predicates, binds)
+        WhereClause.new(inverted_predicates)
       end
 
       def self.empty
-        @empty ||= new([], [])
+        @empty ||= new([])
       end
 
-      # TODO Change this to private once we've dropped Ruby 2.2 support.
-      # Workaround for Ruby 2.2 "private attribute?" warning.
       protected
 
         attr_reader :predicates
@@ -98,6 +90,20 @@ module ActiveRecord
         end
 
       private
+        def equalities(predicates)
+          equalities = []
+
+          predicates.each do |node|
+            case node
+            when Arel::Nodes::Equality
+              equalities << node
+            when Arel::Nodes::And
+              equalities.concat equalities(node.children)
+            end
+          end
+
+          equalities
+        end
 
         def predicates_unreferenced_by(other)
           predicates.reject do |n|
@@ -107,12 +113,6 @@ module ActiveRecord
 
         def equality_node?(node)
           node.respond_to?(:operator) && node.operator == :==
-        end
-
-        def non_conflicting_binds(other)
-          conflicts = referenced_columns & other.referenced_columns
-          conflicts.map! { |node| node.name.to_s }
-          binds.reject { |attr| conflicts.include?(attr.name) }
         end
 
         def inverted_predicates
@@ -134,7 +134,7 @@ module ActiveRecord
           end
         end
 
-        def predicates_except(columns)
+        def except_predicates(columns)
           predicates.reject do |node|
             case node
             when Arel::Nodes::Between, Arel::Nodes::In, Arel::Nodes::NotIn, Arel::Nodes::Equality, Arel::Nodes::NotEqual, Arel::Nodes::LessThan, Arel::Nodes::LessThanOrEqual, Arel::Nodes::GreaterThan, Arel::Nodes::GreaterThanOrEqual
@@ -144,18 +144,12 @@ module ActiveRecord
           end
         end
 
-        def binds_except(columns)
-          binds.reject do |attr|
-            columns.include?(attr.name)
-          end
-        end
-
         def predicates_with_wrapped_sql_literals
           non_empty_predicates.map do |node|
-            if Arel::Nodes::Equality === node
-              node
-            else
+            case node
+            when Arel::Nodes::SqlLiteral, ::String
               wrap_sql_literal(node)
+            else node
             end
           end
         end
@@ -170,6 +164,22 @@ module ActiveRecord
             node = Arel.sql(node)
           end
           Arel::Nodes::Grouping.new(node)
+        end
+
+        def extract_node_value(node)
+          case node
+          when Array
+            node.map { |v| extract_node_value(v) }
+          when Arel::Nodes::Casted, Arel::Nodes::Quoted
+            node.val
+          when Arel::Nodes::BindParam
+            value = node.value
+            if value.respond_to?(:value_before_type_cast)
+              value.value_before_type_cast
+            else
+              value
+            end
+          end
         end
     end
   end

@@ -1,37 +1,24 @@
-*   Permit same-origin connections by default.
+*   Add `id` option to redis adapter so now you can distinguish
+    ActionCable's redis connections among others. Also, you can set
+    custom id in options.
 
-    Added new option `config.action_cable.allow_same_origin_as_host = false`
-    to disable this behaviour.
+    Before:
+    ```
+    $ redis-cli client list
+    id=669 addr=127.0.0.1:46442 fd=8 name= age=18 ...
+    ```
 
-    *Dávid Halász*, *Matthew Draper*
+    After:
+    ```
+    $ redis-cli client list
+    id=673 addr=127.0.0.1:46516 fd=8 name=ActionCable-PID-19413 age=2 ...
+    ```
 
-*   Prevent race where the client could receive and act upon a
-    subscription confirmation before the channel's `subscribed` method
-    completed.
+    *Ilia Kasianenko*
 
-    Fixes #25381.
+*   Rails 6 requires Ruby 2.4.1 or newer.
 
-    *Vladimir Dementyev*
-
-*   Buffer now writes to WebSocket connections, to avoid blocking threads
-    that could be doing more useful things.
-
-    *Matthew Draper*, *Tinco Andringa*
-
-*   Protect against concurrent writes to a WebSocket connection from
-    multiple threads; the underlying OS write is not always threadsafe.
-
-    *Tinco Andringa*
-
-*   Add `ActiveSupport::Notifications` hook to `Broadcaster#broadcast`.
-
-    *Matthew Wear*
-
-*   Close hijacked socket when connection is shut down.
-
-    Fixes #25613.
-
-    *Tinco Andringa*
+    *Jeremy Daer*
 
 
-Please check [5-0-stable](https://github.com/rails/rails/blob/5-0-stable/actioncable/CHANGELOG.md) for previous changes.
+Please check [5-2-stable](https://github.com/rails/rails/blob/5-2-stable/actioncable/CHANGELOG.md) for previous changes.

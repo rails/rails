@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Club < ActiveRecord::Base
   has_one :membership
   has_many :memberships, inverse_of: false
@@ -7,6 +9,8 @@ class Club < ActiveRecord::Base
   belongs_to :category
 
   has_many :favourites, -> { where(memberships: { favourite: true }) }, through: :memberships, source: :member
+
+  scope :general, -> { left_joins(:category).where(categories: { name: "General" }) }
 
   private
 

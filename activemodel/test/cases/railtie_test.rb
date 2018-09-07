@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "active_support/testing/isolation"
 
@@ -28,5 +30,25 @@ class RailtieTest < ActiveModel::TestCase
     @app.initialize!
 
     assert_equal true, ActiveModel::SecurePassword.min_cost
+  end
+
+  test "i18n full message defaults to false" do
+    @app.initialize!
+
+    assert_equal false, ActiveModel::Errors.i18n_full_message
+  end
+
+  test "i18n full message can be disabled" do
+    @app.config.active_model.i18n_full_message = false
+    @app.initialize!
+
+    assert_equal false, ActiveModel::Errors.i18n_full_message
+  end
+
+  test "i18n full message can be enabled" do
+    @app.config.active_model.i18n_full_message = true
+    @app.initialize!
+
+    assert_equal true, ActiveModel::Errors.i18n_full_message
   end
 end

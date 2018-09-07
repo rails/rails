@@ -1,4 +1,5 @@
-require "active_support/core_ext/hash/transform_values"
+# frozen_string_literal: true
+
 require "active_support/core_ext/string/filters"
 require "active_support/tagged_logging"
 require "active_support/logger"
@@ -8,15 +9,15 @@ module ActiveJob
     extend ActiveSupport::Concern
 
     included do
-      cattr_accessor(:logger) { ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT)) }
+      cattr_accessor :logger, default: ActiveSupport::TaggedLogging.new(ActiveSupport::Logger.new(STDOUT))
 
-      around_enqueue do |_, block, _|
+      around_enqueue do |_, block|
         tag_logger do
           block.call
         end
       end
 
-      around_perform do |job, block, _|
+      around_perform do |job, block|
         tag_logger(job.class.name, job.job_id) do
           payload = { adapter: job.class.queue_adapter, job: job }
           ActiveSupport::Notifications.instrument("perform_start.active_job", payload.dup)
@@ -26,13 +27,13 @@ module ActiveJob
         end
       end
 
-      after_enqueue do |job|
+      around_enqueue do |job, block|
         if job.scheduled_at
-          ActiveSupport::Notifications.instrument "enqueue_at.active_job",
-            adapter: job.class.queue_adapter, job: job
+          ActiveSupport::Notifications.instrument("enqueue_at.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         else
-          ActiveSupport::Notifications.instrument "enqueue.active_job",
-            adapter: job.class.queue_adapter, job: job
+          ActiveSupport::Notifications.instrument("enqueue.active_job",
+            adapter: job.class.queue_adapter, job: job, &block)
         end
       end
     end
@@ -69,14 +70,49 @@ module ActiveJob
         def perform_start(event)
           info do
             job = event.payload[:job]
-            "Performing #{job.class.name} from #{queue_name(event)}" + args_info(job)
+            "Performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)}" + args_info(job)
           end
         end
 
         def perform(event)
-          info do
-            job = event.payload[:job]
-            "Performed #{job.class.name} from #{queue_name(event)} in #{event.duration.round(2)}ms"
+          job = event.payload[:job]
+          ex = event.payload[:exception_object]
+          if ex
+            error do
+              "Error performing #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms: #{ex.class} (#{ex.message}):\n" + Array(ex.backtrace).join("\n")
+            end
+          else
+            info do
+              "Performed #{job.class.name} (Job ID: #{job.job_id}) from #{queue_name(event)} in #{event.duration.round(2)}ms"
+            end
+          end
+        end
+
+        def enqueue_retry(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+          wait = event.payload[:wait]
+
+          error do
+            "Retrying #{job.class} in #{wait} seconds, due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
+          end
+        end
+
+        def retry_stopped(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts. The original exception was #{ex.cause.inspect}."
+          end
+        end
+
+        def discard(event)
+          job = event.payload[:job]
+          ex = event.payload[:error]
+
+          error do
+            "Discarded #{job.class} due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
           end
         end
 

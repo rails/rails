@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 require "test_helper"
 
-class WorkerTest < ActiveSupport::TestCase
+class WorkerTest < ActionCable::TestCase
   class Receiver
     attr_accessor :last_action
 

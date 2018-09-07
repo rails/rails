@@ -17,6 +17,10 @@
     line-height: 15px;
   }
 
+  #route_table thead tr.bottom th input#search {
+    -webkit-appearance: textfield;
+  }
+
   #route_table tbody tr {
     border-bottom: 1px solid #ddd;
   }
@@ -60,7 +64,7 @@
         <%= link_to "Path", "#", 'data-route-helper' => '_path',
                     title: "Returns a relative path (without the http or domain)" %> /
         <%= link_to "Url", "#", 'data-route-helper' => '_url',
-                    title: "Returns an absolute url (with the http and domain)"   %>
+                    title: "Returns an absolute URL (with the http and domain)"   %>
       </th>
       <th><%# HTTP Verb %>
       </th>
@@ -93,7 +97,7 @@
       }
     }
 
-    // get JSON from url and invoke callback with result
+    // get JSON from URL and invoke callback with result
     function getJSON(url, success) {
       var xhr = new XMLHttpRequest();
       xhr.open('GET', url);
@@ -193,4 +197,7 @@
 
   setupMatchPaths();
   setupRouteToggleHelperLinks();
+
+  // Focus the search input after page has loaded
+  document.getElementById('search').focus();
 </script>

@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require "fileutils"
 require "abstract_unit"
 require "lib/controller/fake_models"
 
 CACHE_DIR = "test_cache"
 # Don't change '/../temp/' cavalierly or you might hose something you don't want hosed
-FILE_STORE_PATH = File.join(File.dirname(__FILE__), "/../temp/", CACHE_DIR)
+FILE_STORE_PATH = File.join(__dir__, "../temp/", CACHE_DIR)
 
 class FragmentCachingMetalTestController < ActionController::Metal
   abstract!
@@ -26,10 +28,6 @@ class FragmentCachingMetalTest < ActionController::TestCase
     @controller.request = @request
     @controller.response = @response
   end
-
-  def test_fragment_cache_key
-    assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-  end
 end
 
 class CachingController < ActionController::Base
@@ -43,6 +41,8 @@ class FragmentCachingTestController < CachingController
 end
 
 class FragmentCachingTest < ActionController::TestCase
+  ModelWithKeyAndVersion = Struct.new(:cache_key, :cache_version)
+
   def setup
     super
     @store = ActiveSupport::Cache::MemoryStore.new
@@ -53,12 +53,25 @@ class FragmentCachingTest < ActionController::TestCase
     @controller.params = @params
     @controller.request = @request
     @controller.response = @response
+
+    @m1v1 = ModelWithKeyAndVersion.new("model/1", "1")
+    @m1v2 = ModelWithKeyAndVersion.new("model/1", "2")
+    @m2v1 = ModelWithKeyAndVersion.new("model/2", "1")
+    @m2v2 = ModelWithKeyAndVersion.new("model/2", "2")
   end
 
   def test_fragment_cache_key
-    assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
-    assert_equal "views/test.host/fragment_caching_test/some_action",
-                  @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
+    assert_deprecated do
+      assert_equal "views/what a key", @controller.fragment_cache_key("what a key")
+      assert_equal "views/test.host/fragment_caching_test/some_action",
+        @controller.fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
+    end
+  end
+
+  def test_combined_fragment_cache_key
+    assert_equal [ :views, "what a key" ], @controller.combined_fragment_cache_key("what a key")
+    assert_equal [ :views, "test.host/fragment_caching_test/some_action" ],
+      @controller.combined_fragment_cache_key(controller: "fragment_caching_test", action: "some_action")
   end
 
   def test_read_fragment_with_caching_enabled
@@ -72,17 +85,23 @@ class FragmentCachingTest < ActionController::TestCase
     assert_nil @controller.read_fragment("name")
   end
 
+  def test_read_fragment_with_versioned_model
+    @controller.write_fragment([ "stuff", @m1v1 ], "hello")
+    assert_equal "hello", @controller.read_fragment([ "stuff", @m1v1 ])
+    assert_nil @controller.read_fragment([ "stuff", @m1v2 ])
+  end
+
   def test_fragment_exist_with_caching_enabled
     @store.write("views/name", "value")
     assert @controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_fragment_exist_with_caching_disabled
     @controller.perform_caching = false
     @store.write("views/name", "value")
-    assert !@controller.fragment_exist?("name")
-    assert !@controller.fragment_exist?("other_name")
+    assert_not @controller.fragment_exist?("name")
+    assert_not @controller.fragment_exist?("other_name")
   end
 
   def test_write_fragment_with_caching_enabled
@@ -125,7 +144,7 @@ class FragmentCachingTest < ActionController::TestCase
     buffer = "generated till now -> ".html_safe
     buffer << view_context.send(:fragment_for, "expensive") { fragment_computed = true }
 
-    assert !fragment_computed
+    assert_not fragment_computed
     assert_equal "generated till now -> fragment content", buffer
   end
 
@@ -140,7 +159,7 @@ class FragmentCachingTest < ActionController::TestCase
 
     html_safe = @controller.read_fragment("name")
     assert_equal content, html_safe
-    assert html_safe.html_safe?
+    assert_predicate html_safe, :html_safe?
   end
 end
 
@@ -152,6 +171,9 @@ class FunctionalCachingController < CachingController
     respond_to do |format|
       format.html
     end
+  end
+
+  def xml_fragment_cached_with_html_partial
   end
 
   def formatted_fragment_cached
@@ -198,7 +220,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "This bit's fragment cached",
-      @store.read("views/test.host/functional_caching/fragment_cached/#{template_digest("functional_caching/fragment_cached")}")
+      @store.read("views/functional_caching/fragment_cached:#{template_digest("functional_caching/fragment_cached")}/fragment")
   end
 
   def test_fragment_caching_in_partials
@@ -207,7 +229,7 @@ CACHED
     assert_match(/Old fragment caching in a partial/, @response.body)
 
     assert_match("Old fragment caching in a partial",
-      @store.read("views/test.host/functional_caching/html_fragment_cached_with_partial/#{template_digest("functional_caching/_partial")}"))
+      @store.read("views/functional_caching/_partial:#{template_digest("functional_caching/_partial")}/test.host/functional_caching/html_fragment_cached_with_partial"))
   end
 
   def test_skipping_fragment_cache_digesting
@@ -237,7 +259,7 @@ CACHED
     assert_match(/Some inline content/, @response.body)
     assert_match(/Some cached content/, @response.body)
     assert_match("Some cached content",
-      @store.read("views/test.host/functional_caching/inline_fragment_cached/#{template_digest("functional_caching/inline_fragment_cached")}"))
+      @store.read("views/functional_caching/inline_fragment_cached:#{template_digest("functional_caching/inline_fragment_cached")}/test.host/functional_caching/inline_fragment_cached"))
   end
 
   def test_fragment_cache_instrumentation
@@ -264,7 +286,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "<p>ERB</p>",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
   end
 
   def test_xml_formatted_fragment_caching
@@ -275,7 +297,7 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "  <p>Builder</p>\n",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached/#{template_digest("functional_caching/formatted_fragment_cached")}")
+      @store.read("views/functional_caching/formatted_fragment_cached:#{template_digest("functional_caching/formatted_fragment_cached")}/fragment")
   end
 
   def test_fragment_caching_with_variant
@@ -286,7 +308,12 @@ CACHED
     assert_equal expected_body, @response.body
 
     assert_equal "<p>PHONE</p>",
-      @store.read("views/test.host/functional_caching/formatted_fragment_cached_with_variant/#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}")
+      @store.read("views/functional_caching/formatted_fragment_cached_with_variant:#{template_digest("functional_caching/formatted_fragment_cached_with_variant")}/fragment")
+  end
+
+  def test_fragment_caching_with_html_partials_in_xml
+    get :xml_fragment_cached_with_html_partial, format: "*/*"
+    assert_response :success
   end
 
   private
@@ -298,7 +325,7 @@ end
 class CacheHelperOutputBufferTest < ActionController::TestCase
   class MockController
     def read_fragment(name, options)
-      return false
+      false
     end
 
     def write_fragment(name, fragment, options)
@@ -314,9 +341,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActionView::OutputBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -335,9 +362,9 @@ class CacheHelperOutputBufferTest < ActionController::TestCase
     output_buffer = ActiveSupport::SafeBuffer.new
     controller = MockController.new
     cache_helper = Class.new do
-      def self.controller; end;
-      def self.output_buffer; end;
-      def self.output_buffer=; end;
+      def self.controller; end
+      def self.output_buffer; end
+      def self.output_buffer=; end
     end
     cache_helper.extend(ActionView::Helpers::CacheHelper)
 
@@ -363,7 +390,7 @@ class ViewCacheDependencyTest < ActionController::TestCase
   end
 
   def test_view_cache_dependencies_are_empty_by_default
-    assert NoDependenciesController.new.view_cache_dependencies.empty?
+    assert_empty NoDependenciesController.new.view_cache_dependencies
   end
 
   def test_view_cache_dependencies_are_listed_in_declaration_order
@@ -412,7 +439,7 @@ class CollectionCacheTest < ActionController::TestCase
   def test_collection_fetches_cached_views
     get :index
     assert_equal 1, @controller.partial_rendered_times
-    assert_customer_cached "david/1", "david, 1"
+    assert_match "david, 1", ActionView::PartialRenderer.collection_cache.read("views/customers/_customer:7c228ab609f0baf0b1f2367469210937/david/1")
 
     get :index
     assert_equal 1, @controller.partial_rendered_times
@@ -444,14 +471,8 @@ class CollectionCacheTest < ActionController::TestCase
 
   def test_caching_with_callable_cache_key
     get :index_with_callable_cache_key
-    assert_customer_cached "cached_david", "david, 1"
+    assert_match "david, 1", ActionView::PartialRenderer.collection_cache.read("views/customers/_customer:7c228ab609f0baf0b1f2367469210937/cached_david")
   end
-
-  private
-    def assert_customer_cached(key, content)
-      assert_match content,
-        ActionView::PartialRenderer.collection_cache.read("views/#{key}/7c228ab609f0baf0b1f2367469210937")
-    end
 end
 
 class FragmentCacheKeyTestController < CachingController
@@ -470,11 +491,21 @@ class FragmentCacheKeyTest < ActionController::TestCase
     @controller.cache_store = @store
   end
 
-  def test_fragment_cache_key
+  def test_combined_fragment_cache_key
     @controller.account_id = "123"
-    assert_equal "views/v1/123/what a key", @controller.fragment_cache_key("what a key")
+    assert_equal [ :views, "v1", "123", "what a key" ], @controller.combined_fragment_cache_key("what a key")
 
     @controller.account_id = nil
-    assert_equal "views/v1//what a key", @controller.fragment_cache_key("what a key")
+    assert_equal [ :views, "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+  end
+
+  def test_combined_fragment_cache_key_with_envs
+    ENV["RAILS_APP_VERSION"] = "55"
+    assert_equal [ :views, "55", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+
+    ENV["RAILS_CACHE_ID"] = "66"
+    assert_equal [ :views, "66", "v1", "what a key" ], @controller.combined_fragment_cache_key("what a key")
+  ensure
+    ENV["RAILS_CACHE_ID"] = ENV["RAILS_APP_VERSION"] = nil
   end
 end

@@ -1,0 +1,41 @@
+{
+  "name": "activestorage",
+  "version": "6.0.0-alpha",
+  "description": "Attach cloud and local files in Rails applications",
+  "main": "app/assets/javascripts/activestorage.js",
+  "files": [
+    "app/assets/javascripts/*.js",
+    "src/*.js"
+  ],
+  "homepage": "http://rubyonrails.org/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rails/rails.git"
+  },
+  "bugs": {
+    "url": "https://github.com/rails/rails/issues"
+  },
+  "author": "Javan Makhmali <javan@javan.us>",
+  "license": "MIT",
+  "dependencies": {
+    "spark-md5": "^3.0.0"
+  },
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-env": "^1.6.0",
+    "eslint": "^4.3.0",
+    "eslint-plugin-import": "^2.7.0",
+    "rollup": "^0.58.2",
+    "rollup-plugin-babel": "^3.0.4",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-uglify": "^3.0.0"
+  },
+  "scripts": {
+    "prebuild": "yarn lint",
+    "build": "rollup --config rollup.config.js",
+    "lint": "eslint app/javascript",
+    "prepublishOnly": "rm -rf src && cp -R app/javascript/activestorage src"
+  }
+}

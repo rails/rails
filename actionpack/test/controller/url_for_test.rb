@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 module AbstractController
@@ -286,7 +288,7 @@ module AbstractController
           kls = Class.new { include set.url_helpers }
 
           controller = kls.new
-          assert controller.respond_to?(:home_url)
+          assert_respond_to controller, :home_url
           assert_equal "http://www.basecamphq.com/home/sweet/home/again",
             controller.send(:home_url, host: "www.basecamphq.com", user: "again")
 
@@ -386,7 +388,7 @@ module AbstractController
 
       def test_url_action_controller_parameters
         add_host!
-        assert_raise(ArgumentError) do
+        assert_raise(ActionController::UnfilteredParameters) do
           W.new.url_for(ActionController::Parameters.new(controller: "c", action: "a", protocol: "javascript", f: "%0Aeval(name)"))
         end
       end

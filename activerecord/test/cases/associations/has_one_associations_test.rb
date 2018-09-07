@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 require "models/developer"
 require "models/computer"
@@ -13,7 +15,7 @@ require "models/post"
 
 class HasOneAssociationsTest < ActiveRecord::TestCase
   self.use_transactional_tests = false unless supports_savepoints?
-  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates
+  fixtures :accounts, :companies, :developers, :projects, :developers_projects, :ships, :pirates, :authors, :author_addresses
 
   def setup
     Account.destroyed_account_ids.clear
@@ -28,7 +30,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ActiveRecord::SQLCounter.clear_log
     companies(:first_firm).account
   ensure
-    assert ActiveRecord::SQLCounter.log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query"
+    log_all = ActiveRecord::SQLCounter.log_all
+    assert log_all.all? { |sql| /order by/i !~ sql }, "ORDER BY was used in the query: #{log_all}"
   end
 
   def test_has_one_cache_nils
@@ -111,8 +114,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     developer = Developer.create!(name: "Someone")
     ship = Ship.create!(name: "Planet Caravan", developer: developer)
     ship.destroy
-    assert !ship.persisted?
-    assert !developer.persisted?
+    assert_not_predicate ship, :persisted?
+    assert_not_predicate developer, :persisted?
   end
 
   def test_natural_assignment_to_nil_after_destroy
@@ -183,7 +186,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     assert_raise(ActiveRecord::DeleteRestrictionError) { firm.destroy }
     assert RestrictedWithExceptionFirm.exists?(name: "restrict")
-    assert firm.account.present?
+    assert_predicate firm.account, :present?
   end
 
   def test_restrict_with_error
@@ -194,10 +197,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy
 
-    assert !firm.errors.empty?
+    assert_not_empty firm.errors
     assert_equal "Cannot delete record because a dependent account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
-    assert firm.account.present?
+    assert_predicate firm.account, :present?
   end
 
   def test_restrict_with_error_with_locale
@@ -210,10 +213,10 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
     firm.destroy
 
-    assert !firm.errors.empty?
+    assert_not_empty firm.errors
     assert_equal "Cannot delete record because a dependent firm account exists", firm.errors[:base].first
     assert RestrictedWithErrorFirm.exists?(name: "restrict")
-    assert firm.account.present?
+    assert_predicate firm.account, :present?
   ensure
     I18n.backend.reload!
   end
@@ -307,6 +310,15 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     end
   end
 
+  def test_create_when_parent_is_new_raises
+    firm = Firm.new
+    error = assert_raise(ActiveRecord::RecordNotSaved) do
+      firm.create_account
+    end
+
+    assert_equal "You cannot call create unless the parent is saved", error.message
+  end
+
   def test_reload_association
     odegy = companies(:odegy)
 
@@ -365,7 +377,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
   def test_assignment_before_child_saved
     firm = Firm.find(1)
     firm.account = a = Account.new("credit_limit" => 1000)
-    assert a.persisted?
+    assert_predicate a, :persisted?
     assert_equal a, firm.account
     assert_equal a, firm.account
     firm.association(:account).reload
@@ -383,7 +395,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_cant_save_readonly_association
     assert_raise(ActiveRecord::ReadOnlyRecord) { companies(:first_firm).readonly_account.save!  }
-    assert companies(:first_firm).readonly_account.readonly?
+    assert_predicate companies(:first_firm).readonly_account, :readonly?
   end
 
   def test_has_one_proxy_should_not_respond_to_private_methods
@@ -421,7 +433,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
 
   def test_create_respects_hash_condition
     account = companies(:first_firm).create_account_limit_500_with_hash_conditions
-    assert       account.persisted?
+    assert_predicate account, :persisted?
     assert_equal 500, account.credit_limit
   end
 
@@ -438,9 +450,9 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     new_ship = pirate.create_ship
     assert_not_equal ships(:black_pearl), new_ship
     assert_equal new_ship, pirate.ship
-    assert new_ship.new_record?
+    assert_predicate new_ship, :new_record?
     assert_nil orig_ship.pirate_id
-    assert !orig_ship.changed? # check it was saved
+    assert_not orig_ship.changed? # check it was saved
   end
 
   def test_creation_failure_with_dependent_option
@@ -448,8 +460,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     orig_ship = pirate.dependent_ship
 
     new_ship = pirate.create_dependent_ship
-    assert new_ship.new_record?
-    assert orig_ship.destroyed?
+    assert_predicate new_ship, :new_record?
+    assert_predicate orig_ship, :destroyed?
   end
 
   def test_creation_failure_due_to_new_record_should_raise_error
@@ -469,14 +481,14 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     pirate = pirates(:blackbeard)
     pirate.ship.name = nil
 
-    assert !pirate.ship.valid?
+    assert_not_predicate pirate.ship, :valid?
     error = assert_raise(ActiveRecord::RecordNotSaved) do
       pirate.ship = ships(:interceptor)
     end
 
     assert_equal ships(:black_pearl), pirate.ship
     assert_equal pirate.id, pirate.ship.pirate_id
-    assert_equal "Failed to remove the existing associated ship. " +
+    assert_equal "Failed to remove the existing associated ship. " \
                  "The record failed to save after its foreign key was set to nil.", error.message
   end
 
@@ -576,7 +588,7 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     ship.save!
 
     ship.name = "new name"
-    assert ship.changed?
+    assert_predicate ship, :changed?
     assert_queries(1) do
       # One query for updating name, not triggering query for updating pirate_id
       pirate.ship = ship
@@ -649,6 +661,8 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     self.table_name = "books"
     belongs_to :author, class_name: "SpecialAuthor"
     has_one :subscription, class_name: "SpecialSupscription", foreign_key: "subscriber_id"
+
+    enum status: [:proposed, :written, :published]
   end
 
   class SpecialAuthor < ActiveRecord::Base
@@ -661,15 +675,16 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     belongs_to :book, class_name: "SpecialBook"
   end
 
-  def test_assocation_enum_works_properly
+  def test_association_enum_works_properly
     author = SpecialAuthor.create!(name: "Test")
     book = SpecialBook.create!(status: "published")
     author.book = book
 
-    refute_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
+    assert_equal "published", book.status
+    assert_not_equal 0, SpecialAuthor.joins(:book).where(books: { status: "published" }).count
   end
 
-  def test_assocation_enum_works_properly_with_nested_join
+  def test_association_enum_works_properly_with_nested_join
     author = SpecialAuthor.create!(name: "Test")
     book = SpecialBook.create!(status: "published")
     author.book = book
@@ -677,6 +692,64 @@ class HasOneAssociationsTest < ActiveRecord::TestCase
     where_clause = { books: { subscriptions: { subscriber_id: nil } } }
     assert_nothing_raised do
       SpecialAuthor.joins(book: :subscription).where.not(where_clause)
+    end
+  end
+
+  class DestroyByParentBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyByParentAuthor"
+    before_destroy :dont, unless: :destroyed_by_association
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class DestroyByParentAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "DestroyByParentBook", foreign_key: "author_id", dependent: :destroy
+  end
+
+  test "destroyed_by_association set in child destroy callback on parent destroy" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.destroy
+
+    assert_not DestroyByParentBook.exists?(book.id)
+  end
+
+  test "destroyed_by_association set in child destroy callback on replace" do
+    author = DestroyByParentAuthor.create!(name: "Test")
+    book = DestroyByParentBook.create!(author: author)
+
+    author.book = DestroyByParentBook.create!
+    author.save!
+
+    assert_not DestroyByParentBook.exists?(book.id)
+  end
+
+  class UndestroyableBook < ActiveRecord::Base
+    self.table_name = "books"
+    belongs_to :author, class_name: "DestroyableAuthor"
+    before_destroy :dont
+
+    def dont
+      throw(:abort)
+    end
+  end
+
+  class DestroyableAuthor < ActiveRecord::Base
+    self.table_name = "authors"
+    has_one :book, class_name: "UndestroyableBook", foreign_key: "author_id", dependent: :destroy
+  end
+
+  def test_dependency_should_halt_parent_destruction
+    author = DestroyableAuthor.create!(name: "Test")
+    UndestroyableBook.create!(author: author)
+
+    assert_no_difference ["DestroyableAuthor.count", "UndestroyableBook.count"] do
+      assert_not author.destroy
     end
   end
 end

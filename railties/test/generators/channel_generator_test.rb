@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/channel/channel_generator"
 
@@ -25,7 +27,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+      assert_match(/App\.chat = App\.cable\.subscriptions\.create\("ChatChannel/, channel)
     end
   end
 
@@ -39,7 +41,7 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     end
 
     assert_file "app/assets/javascripts/channels/chat.js" do |channel|
-      assert_match(/App.chat = App.cable.subscriptions.create\("ChatChannel/, channel)
+      assert_match(/App\.chat = App\.cable\.subscriptions\.create\("ChatChannel/, channel)
       assert_match(/,\n\n  speak/, channel)
       assert_match(/,\n\n  mute: function\(\) \{\n    return this\.perform\('mute'\);\n  \}\n\}\);/, channel)
     end
@@ -73,5 +75,15 @@ class ChannelGeneratorTest < Rails::Generators::TestCase
     assert_file "app/channels/application_cable/channel.rb"
     assert_file "app/channels/application_cable/connection.rb"
     assert_file "app/assets/javascripts/cable.js"
+  end
+
+  def test_channel_suffix_is_not_duplicated
+    run_generator ["chat_channel"]
+
+    assert_no_file "app/channels/chat_channel_channel.rb"
+    assert_file "app/channels/chat_channel.rb"
+
+    assert_no_file "app/assets/javascripts/channels/chat_channel.js"
+    assert_file "app/assets/javascripts/channels/chat.js"
   end
 end

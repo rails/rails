@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/attribute_accessors_per_thread"
 
@@ -41,22 +43,22 @@ class ModuleAttributeAccessorPerThreadTest < ActiveSupport::TestCase
       assert_respond_to @class, :foo
       assert_respond_to @class, :foo=
       assert_respond_to @object, :bar
-      assert !@object.respond_to?(:bar=)
+      assert_not_respond_to @object, :bar=
     end.join
   end
 
   def test_should_not_create_instance_reader
     Thread.new do
       assert_respond_to @class, :shaq
-      assert !@object.respond_to?(:shaq)
+      assert_not_respond_to @object, :shaq
     end.join
   end
 
   def test_should_not_create_instance_accessors
     Thread.new do
       assert_respond_to @class, :camp
-      assert !@object.respond_to?(:camp)
-      assert !@object.respond_to?(:camp=)
+      assert_not_respond_to @object, :camp
+      assert_not_respond_to @object, :camp=
     end.join
   end
 

@@ -1,4 +1,10 @@
+# frozen_string_literal: true
+
 require "bigdecimal"
+require "date"
+require "time"
+require "pathname"
+require "uri"
 
 module JSONTest
   class Foo
@@ -23,7 +29,7 @@ module JSONTest
     end
   end
 
-  class MyStruct < Struct.new(:name, :value)
+  MyStruct = Struct.new(:name, :value) do
     def initialize(*)
       @unused = "unused instance variable"
       super

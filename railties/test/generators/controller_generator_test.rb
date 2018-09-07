@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "generators/generators_test_helper"
 require "rails/generators/rails/controller/controller_generator"
 
@@ -99,5 +101,41 @@ class ControllerGeneratorTest < Rails::Generators::TestCase
     assert_file "config/routes.rb" do |route|
       assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n  end$/, route)
     end
+  end
+
+  def test_namespaced_routes_with_multiple_actions_are_created_in_routes
+    run_generator ["admin/dashboard", "index", "show"]
+    assert_file "config/routes.rb" do |route|
+      assert_match(/^  namespace :admin do\n    get 'dashboard\/index'\n    get 'dashboard\/show'\n  end$/, route)
+    end
+  end
+
+  def test_does_not_add_routes_when_action_is_not_specified
+    run_generator ["admin/dashboard"]
+    assert_file "config/routes.rb" do |routes|
+      assert_no_match(/namespace :admin/, routes)
+    end
+  end
+
+  def test_controller_suffix_is_not_duplicated
+    run_generator ["account_controller"]
+
+    assert_no_file "app/controllers/account_controller_controller.rb"
+    assert_file "app/controllers/account_controller.rb"
+
+    assert_no_file "app/views/account_controller/"
+    assert_file "app/views/account/"
+
+    assert_no_file "test/controllers/account_controller_controller_test.rb"
+    assert_file "test/controllers/account_controller_test.rb"
+
+    assert_no_file "app/helpers/account_controller_helper.rb"
+    assert_file "app/helpers/account_helper.rb"
+
+    assert_no_file "app/assets/javascripts/account_controller.js"
+    assert_file "app/assets/javascripts/account.js"
+
+    assert_no_file "app/assets/stylesheets/account_controller.css"
+    assert_file "app/assets/stylesheets/account.css"
   end
 end

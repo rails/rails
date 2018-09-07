@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   module ConnectionAdapters
     module PostgreSQL
@@ -23,7 +25,7 @@ module ActiveRecord
             when ::String
               type_cast_array(@pg_decoder.decode(value), :deserialize)
             when Data
-              deserialize(value.values)
+              type_cast_array(value.values, :deserialize)
             else
               super
             end
@@ -62,6 +64,10 @@ module ActiveRecord
 
           def changed_in_place?(raw_old_value, new_value)
             deserialize(raw_old_value) != new_value
+          end
+
+          def force_equality?(value)
+            value.is_a?(::Array)
           end
 
           private

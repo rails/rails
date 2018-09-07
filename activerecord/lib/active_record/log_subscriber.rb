@@ -1,6 +1,10 @@
+# frozen_string_literal: true
+
 module ActiveRecord
   class LogSubscriber < ActiveSupport::LogSubscriber
     IGNORE_PAYLOAD_NAMES = ["SCHEMA", "EXPLAIN"]
+
+    class_attribute :backtrace_cleaner, default: ActiveSupport::BacktraceCleaner.new
 
     def self.runtime=(value)
       ActiveRecord::RuntimeRegistry.sql_runtime = value
@@ -29,7 +33,7 @@ module ActiveRecord
       binds = nil
 
       unless (payload[:binds] || []).empty?
-        casted_params = type_casted_binds(payload[:binds], payload[:type_casted_binds])
+        casted_params = type_casted_binds(payload[:type_casted_binds])
         binds = "  " + payload[:binds].zip(casted_params).map { |attr, value|
           render_bind(attr, value)
         }.inspect
@@ -42,19 +46,18 @@ module ActiveRecord
     end
 
     private
-
-      def type_casted_binds(binds, casted_binds)
-        casted_binds || binds.map { |attr| type_cast attr.value_for_database }
+      def type_casted_binds(casted_binds)
+        casted_binds.respond_to?(:call) ? casted_binds.call : casted_binds
       end
 
-      def render_bind(attr, type_casted_value)
-        value = if attr.type.binary? && attr.value
-          "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
-        else
-          type_casted_value
+      def render_bind(attr, value)
+        if attr.is_a?(Array)
+          attr = attr.first
+        elsif attr.type.binary? && attr.value
+          value = "<#{attr.value_for_database.to_s.bytesize} bytes of binary data>"
         end
 
-        [attr.name, value]
+        [attr && attr.name, value]
       end
 
       def colorize_payload_name(name, payload_name)
@@ -81,7 +84,7 @@ module ActiveRecord
           RED
         when /transaction\s*\Z/i
           CYAN
-          else
+        else
           MAGENTA
         end
       end
@@ -90,8 +93,24 @@ module ActiveRecord
         ActiveRecord::Base.logger
       end
 
-      def type_cast(value)
-        ActiveRecord::Base.connection.type_cast(value)
+      def debug(progname = nil, &block)
+        return unless super
+
+        if ActiveRecord::Base.verbose_query_logs
+          log_query_source
+        end
+      end
+
+      def log_query_source
+        source = extract_query_source_location(caller)
+
+        if source
+          logger.debug("  ↳ #{source}")
+        end
+      end
+
+      def extract_query_source_location(locations)
+        backtrace_cleaner.clean(locations).first
       end
   end
 end

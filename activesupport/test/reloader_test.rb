@@ -1,20 +1,34 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 
 class ReloaderTest < ActiveSupport::TestCase
   def test_prepare_callback
-    prepared = false
+    prepared = completed = false
     reloader.to_prepare { prepared = true }
+    reloader.to_complete { completed = true }
 
-    assert !prepared
+    assert_not prepared
+    assert_not completed
     reloader.prepare!
     assert prepared
+    assert_not completed
 
     prepared = false
     reloader.wrap do
       assert prepared
       prepared = false
     end
-    assert !prepared
+    assert_not prepared
+  end
+
+  def test_prepend_prepare_callback
+    i = 10
+    reloader.to_prepare { i += 1 }
+    reloader.to_prepare(prepend: true) { i = 0 }
+
+    reloader.prepare!
+    assert_equal 1, i
   end
 
   def test_only_run_when_check_passes
@@ -28,7 +42,7 @@ class ReloaderTest < ActiveSupport::TestCase
     invoked = false
     r.to_run { invoked = true }
     r.wrap {}
-    assert !invoked
+    assert_not invoked
   end
 
   def test_full_reload_sequence

@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 #--
-# Copyright (c) 2005-2017 David Heinemeier Hansson
+# Copyright (c) 2005-2018 David Heinemeier Hansson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -32,6 +34,7 @@ module ActiveSupport
   extend ActiveSupport::Autoload
 
   autoload :Concern
+  autoload :CurrentAttributes
   autoload :Dependencies
   autoload :DescendantsTracker
   autoload :ExecutionWrapper
@@ -50,6 +53,7 @@ module ActiveSupport
     autoload :Callbacks
     autoload :Configurable
     autoload :Deprecation
+    autoload :Digest
     autoload :Gzip
     autoload :Inflector
     autoload :JSON
@@ -78,14 +82,6 @@ module ActiveSupport
   end
 
   cattr_accessor :test_order # :nodoc:
-
-  def self.halt_callback_chains_on_return_false
-    Callbacks.halt_and_display_warning_on_return_false
-  end
-
-  def self.halt_callback_chains_on_return_false=(value)
-    Callbacks.halt_and_display_warning_on_return_false = value
-  end
 
   def self.to_time_preserves_timezone
     DateAndTime::Compatibility.preserve_timezone

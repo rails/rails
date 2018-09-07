@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "abstract_unit"
 require "active_support/core_ext/module/aliasing"
 
@@ -28,15 +30,15 @@ class AttributeAliasingTest < ActiveSupport::TestCase
   def test_attribute_alias
     e = AttributeAliasing::Email.new
 
-    assert !e.subject?
+    assert_not_predicate e, :subject?
 
     e.title = "Upgrade computer"
     assert_equal "Upgrade computer", e.subject
-    assert e.subject?
+    assert_predicate e, :subject?
 
     e.subject = "We got a long way to go"
     assert_equal "We got a long way to go", e.title
-    assert e.title?
+    assert_predicate e, :title?
   end
 
   def test_aliasing_to_uppercase_attributes
@@ -45,15 +47,15 @@ class AttributeAliasingTest < ActiveSupport::TestCase
     # to more sensible ones, everything goes *foof*.
     e = AttributeAliasing::Email.new
 
-    assert !e.body?
-    assert !e.Data?
+    assert_not_predicate e, :body?
+    assert_not_predicate e, :Data?
 
     e.body = "No, really, this is not a joke."
     assert_equal "No, really, this is not a joke.", e.Data
-    assert e.Data?
+    assert_predicate e, :Data?
 
-    e.Data = "Uppercased methods are teh suck"
-    assert_equal "Uppercased methods are teh suck", e.body
-    assert e.body?
+    e.Data = "Uppercased methods are the suck"
+    assert_equal "Uppercased methods are the suck", e.body
+    assert_predicate e, :body?
   end
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
@@ -31,7 +33,7 @@ class PostgresqlNumberTest < ActiveRecord::PostgreSQLTestCase
     assert_equal 123456.789, first.double
     assert_equal(-::Float::INFINITY, second.single)
     assert_equal ::Float::INFINITY, second.double
-    assert_send [third.double, :nan?]
+    assert third.double.nan?, "Expected #{third.double} to be NaN"
   end
 
   def test_update

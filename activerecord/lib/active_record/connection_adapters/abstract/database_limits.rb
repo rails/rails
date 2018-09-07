@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require "active_support/deprecation"
+
 module ActiveRecord
   module ConnectionAdapters # :nodoc:
     module DatabaseLimits
@@ -10,11 +14,13 @@ module ActiveRecord
       def column_name_length
         64
       end
+      deprecate :column_name_length
 
       # Returns the maximum length of a table name.
       def table_name_length
         64
       end
+      deprecate :table_name_length
 
       # Returns the maximum allowed length for an index name. This
       # limit is enforced by \Rails and is less than or equal to
@@ -34,16 +40,19 @@ module ActiveRecord
       def columns_per_table
         1024
       end
+      deprecate :columns_per_table
 
       # Returns the maximum number of indexes per table.
       def indexes_per_table
         16
       end
+      deprecate :indexes_per_table
 
       # Returns the maximum number of columns in a multicolumn index.
       def columns_per_multicolumn_index
         16
       end
+      deprecate :columns_per_multicolumn_index
 
       # Returns the maximum number of elements in an IN (x,y,z) clause.
       # +nil+ means no limit.
@@ -55,11 +64,13 @@ module ActiveRecord
       def sql_query_length
         1048575
       end
+      deprecate :sql_query_length
 
       # Returns maximum number of joins in a single query.
       def joins_per_query
         256
       end
+      deprecate :joins_per_query
     end
   end
 end

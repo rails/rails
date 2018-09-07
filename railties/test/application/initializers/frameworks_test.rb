@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
 
 module ApplicationTests
@@ -209,26 +211,22 @@ module ApplicationTests
     test "database middleware doesn't initialize when activerecord is not in frameworks" do
       use_frameworks []
       require "#{app_path}/config/environment"
-      assert_nil defined?(ActiveRecord::Base)
+      assert !defined?(ActiveRecord::Base) || ActiveRecord.autoload?(:Base)
     end
 
     test "use schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump)
       require "#{app_path}/config/environment"
       ActiveRecord::Base.connection.drop_table("posts") # force drop posts table for test.
       assert ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "expire schema cache dump" do
-      Dir.chdir(app_path) do
-        `rails generate model post title:string;
-         bin/rails db:migrate db:schema:cache:dump db:rollback`
-      end
+      rails %w(generate model post title:string)
+      rails %w(db:migrate db:schema:cache:dump db:rollback)
       require "#{app_path}/config/environment"
-      assert !ActiveRecord::Base.connection.schema_cache.data_sources("posts")
+      assert_not ActiveRecord::Base.connection.schema_cache.data_sources("posts")
     end
 
     test "active record establish_connection uses Rails.env if DATABASE_URL is not set" do
@@ -261,6 +259,14 @@ module ApplicationTests
         ENV["DATABASE_URL"] = orig_database_url if orig_database_url
         Rails.env = orig_rails_env if orig_rails_env
       end
+    end
+
+    test "connections checked out during initialization are returned to the pool" do
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.connection
+      RUBY
+      require "#{app_path}/config/environment"
+      assert_not_predicate ActiveRecord::Base.connection_pool, :active_connection?
     end
   end
 end

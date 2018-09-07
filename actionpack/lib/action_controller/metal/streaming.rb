@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 require "rack/chunked"
 
 module ActionController #:nodoc:
   # Allows views to be streamed back to the client as they are rendered.
   #
-  # The default way Rails renders views is by first rendering the template
+  # By default, Rails renders views by first rendering the template
   # and then the layout. The response is sent to the client after the whole
   # template is rendered, all queries are made, and the layout is processed.
   #
@@ -181,7 +183,7 @@ module ActionController #:nodoc:
   #   unicorn_rails --config-file unicorn.config.rb
   #
   # You may also want to configure other parameters like <tt>:tcp_nodelay</tt>.
-  # Please check its documentation for more information: http://unicorn.bogomips.org/Unicorn/Configurator.html#method-i-listen
+  # Please check its documentation for more information: https://bogomips.org/unicorn/Unicorn/Configurator.html#method-i-listen
   #
   # If you are using Unicorn with NGINX, you may need to tweak NGINX.
   # Streaming should work out of the box on Rainbows.

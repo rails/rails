@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
@@ -38,7 +40,7 @@ class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
     assert_equal :string, string_column.type
   end
 
-  test "test type casting with emulated booleans" do
+  test "type casting with emulated booleans" do
     emulate_booleans true
 
     boolean = BooleanType.create!(archived: true, published: true)
@@ -55,7 +57,7 @@ class Mysql2BooleanTest < ActiveRecord::Mysql2TestCase
     assert_equal 0, @connection.type_cast(false)
   end
 
-  test "test type casting without emulated booleans" do
+  test "type casting without emulated booleans" do
     emulate_booleans false
 
     boolean = BooleanType.create!(archived: true, published: true)

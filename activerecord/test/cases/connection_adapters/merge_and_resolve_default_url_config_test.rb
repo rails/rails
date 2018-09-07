@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "cases/helper"
 
 module ActiveRecord
@@ -16,11 +18,14 @@ module ActiveRecord
       end
 
       def resolve_config(config)
-        ActiveRecord::ConnectionHandling::MergeAndResolveDefaultUrlConfig.new(config).resolve
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        configs.to_h
       end
 
       def resolve_spec(spec, config)
-        ConnectionSpecification::Resolver.new(resolve_config(config)).resolve(spec)
+        configs = ActiveRecord::DatabaseConfigurations.new(config)
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(configs)
+        resolver.resolve(spec, spec)
       end
 
       def test_resolver_with_database_uri_and_current_env_symbol_key

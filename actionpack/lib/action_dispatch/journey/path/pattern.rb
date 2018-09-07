@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module ActionDispatch
   module Journey # :nodoc:
     module Path # :nodoc:
@@ -29,6 +31,13 @@ module ActionDispatch
 
         def build_formatter
           Visitors::FormatBuilder.new.accept(spec)
+        end
+
+        def eager_load!
+          required_names
+          offsets
+          to_regexp
+          nil
         end
 
         def ast
@@ -81,7 +90,7 @@ module ActionDispatch
             return @separator_re unless @matchers.key?(node)
 
             re = @matchers[node]
-            "(#{re})"
+            "(#{Regexp.union(re)})"
           end
 
           def visit_GROUP(node)
@@ -174,7 +183,7 @@ module ActionDispatch
               node = node.to_sym
 
               if @requirements.key?(node)
-                re = /#{@requirements[node]}|/
+                re = /#{Regexp.union(@requirements[node])}|/
                 @offsets.push((re.match("").length - 1) + @offsets.last)
               else
                 @offsets << @offsets.last

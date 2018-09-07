@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 require "isolation/abstract_unit"
+require "env_helpers"
 
 module ApplicationTests
   class IntegrationTestCaseTest < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::Isolation, EnvHelpers
 
     setup do
       build_app
@@ -13,7 +16,7 @@ module ApplicationTests
     end
 
     test "resets Action Mailer test deliveries" do
-      script("generate mailer BaseMailer welcome")
+      rails "generate", "mailer", "BaseMailer", "welcome"
 
       app_file "test/integration/mailer_integration_test.rb", <<-RUBY
         require 'test_helper'
@@ -37,14 +40,14 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails test 2>&1` }
-      assert_equal 0, $?.to_i, output
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
   end
 
   class IntegrationTestDefaultApp < ActiveSupport::TestCase
-    include ActiveSupport::Testing::Isolation
+    include ActiveSupport::Testing::Isolation, EnvHelpers
 
     setup do
       build_app
@@ -65,8 +68,8 @@ module ApplicationTests
         end
       RUBY
 
-      output = Dir.chdir(app_path) { `bin/rails test 2>&1` }
-      assert_equal 0, $?.to_i, output
+      with_rails_env("test") { rails("db:migrate") }
+      output = rails("test")
       assert_match(/0 failures, 0 errors/, output)
     end
   end

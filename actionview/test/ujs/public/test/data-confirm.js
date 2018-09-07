@@ -26,6 +26,13 @@ module('data-confirm', {
       'data-confirm': 'Are you absolutely sure?'
     }))
 
+    $('#qunit-fixture').append($('<button />', {
+      type: 'submit',
+      form: 'confirm',
+      disabled: 'disabled',
+      'data-confirm': 'Are you absolutely sure?'
+    }))
+
     this.windowConfirm = window.confirm
   },
   teardown: function() {
@@ -166,9 +173,9 @@ asyncTest('binding to confirm event of a link and returning false', 1, function(
   }
 
   $('a[data-confirm]')
-    .bindNative('confirm', function() {
+    .bindNative('confirm', function(e) {
       App.assertCallbackInvoked('confirm')
-      return false
+      e.preventDefault()
     })
     .bindNative('confirm:complete', function() {
       App.assertCallbackNotInvoked('confirm:complete')
@@ -187,9 +194,9 @@ asyncTest('binding to confirm event of a button and returning false', 1, functio
   }
 
   $('button[data-confirm]')
-    .bindNative('confirm', function() {
+    .bindNative('confirm', function(e) {
       App.assertCallbackInvoked('confirm')
-      return false
+      e.preventDefault()
     })
     .bindNative('confirm:complete', function() {
       App.assertCallbackNotInvoked('confirm:complete')
@@ -209,9 +216,9 @@ asyncTest('binding to confirm:complete event of a link and returning false', 2, 
   }
 
   $('a[data-confirm]')
-    .bindNative('confirm:complete', function() {
+    .bindNative('confirm:complete', function(e) {
       App.assertCallbackInvoked('confirm:complete')
-      return false
+      e.preventDefault()
     })
     .bindNative('ajax:beforeSend', function() {
       App.assertCallbackNotInvoked('ajax:beforeSend')
@@ -231,9 +238,9 @@ asyncTest('binding to confirm:complete event of a button and returning false', 2
   }
 
   $('button[data-confirm]')
-    .bindNative('confirm:complete', function() {
+    .bindNative('confirm:complete', function(e) {
       App.assertCallbackInvoked('confirm:complete')
-      return false
+      e.preventDefault()
     })
     .bindNative('ajax:beforeSend', function() {
       App.assertCallbackNotInvoked('ajax:beforeSend')
@@ -284,5 +291,52 @@ asyncTest('clicking on the children of a link should also trigger a confirm', 6,
       start()
     })
     .find('strong')
+    .triggerNative('click')
+})
+
+asyncTest('clicking on the children of a disabled button should not trigger a confirm.', 1, function() {
+  var message
+  // auto-decline:
+  window.confirm = function(msg) { message = msg; return false }
+
+  $('button[data-confirm][disabled]')
+    .html('<strong>Click me</strong>')
+    .bindNative('confirm', function() {
+      App.assertCallbackNotInvoked('confirm')
+    })
+    .find('strong')
+    .bindNative('click', function() {
+      App.assertCallbackInvoked('click')
+    })
+    .triggerNative('click')
+
+  setTimeout(function() {
+    start()
+  }, 50)
+})
+
+asyncTest('clicking on a link with data-confirm attribute with custom confirm handler. Confirm yes.', 7, function() {
+  var message, element
+  // redefine confirm function so we can make sure it's not called
+  window.confirm = function(msg) {
+    ok(false, 'confirm dialog should not be called')
+  }
+  // custom auto-confirm:
+  Rails.confirm = function(msg, elem) { message = msg; element = elem; return true }
+
+  $('a[data-confirm]')
+    .bindNative('confirm:complete', function(e, data) {
+      App.assertCallbackInvoked('confirm:complete')
+      ok(data == true, 'confirm:complete passes in confirm answer (true)')
+    })
+    .bindNative('ajax:success', function(e, data, status, xhr) {
+      App.assertCallbackInvoked('ajax:success')
+      App.assertRequestPath(data, '/echo')
+      App.assertGetRequest(data)
+
+      equal(message, 'Are you absolutely sure?')
+      equal(element, $('a[data-confirm]').get(0))
+      start()
+    })
     .triggerNative('click')
 })

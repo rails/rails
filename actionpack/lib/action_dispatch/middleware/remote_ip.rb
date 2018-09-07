@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "ipaddr"
 
 module ActionDispatch
@@ -10,7 +12,7 @@ module ActionDispatch
   # by @gingerlime. A more detailed explanation of the algorithm is given
   # at GetIp#calculate_ip.
   #
-  # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
+  # Some Rack servers concatenate repeated headers, like {HTTP RFC 2616}[https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2]
   # requires. Some Rack servers simply drop preceding headers, and only report
   # the value that was {given in the last header}[http://andre.arko.net/2011/12/26/repeated-headers-and-ruby-web-servers].
   # If you are behind multiple proxy servers (like NGINX to HAProxy to Unicorn)
@@ -29,7 +31,7 @@ module ActionDispatch
     # The default trusted IPs list simply includes IP addresses that are
     # guaranteed by the IP specification to be private addresses. Those will
     # not be the ultimate client IP in production, and so are discarded. See
-    # http://en.wikipedia.org/wiki/Private_network for details.
+    # https://en.wikipedia.org/wiki/Private_network for details.
     TRUSTED_PROXIES = [
       "127.0.0.1",      # localhost IPv4
       "::1",            # localhost IPv6
@@ -131,8 +133,8 @@ module ActionDispatch
         should_check_ip = @check_ip && client_ips.last && forwarded_ips.last
         if should_check_ip && !forwarded_ips.include?(client_ips.last)
           # We don't know which came from the proxy, and which from the user
-          raise IpSpoofAttackError, "IP spoofing attack?! " +
-            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " +
+          raise IpSpoofAttackError, "IP spoofing attack?! " \
+            "HTTP_CLIENT_IP=#{@req.client_ip.inspect} " \
             "HTTP_X_FORWARDED_FOR=#{@req.x_forwarded_for.inspect}"
         end
 
@@ -157,13 +159,13 @@ module ActionDispatch
 
       def ips_from(header) # :doc:
         return [] unless header
-        # Split the comma-separated list into an array of strings
+        # Split the comma-separated list into an array of strings.
         ips = header.strip.split(/[,\s]+/)
         ips.select do |ip|
           begin
-            # Only return IPs that are valid according to the IPAddr#new method
+            # Only return IPs that are valid according to the IPAddr#new method.
             range = IPAddr.new(ip).to_range
-            # we want to make sure nobody is sneaking a netmask in
+            # We want to make sure nobody is sneaking a netmask in.
             range.begin == range.end
           rescue ArgumentError
             nil
