@@ -1,3 +1,9 @@
+*   Define `unfreeze_time` as an alias of `travel_back` in `ActiveSupport::Testing::TimeHelpers`.
+
+    The alias is provided for symmetry with `freeze_time`.
+
+    *Ryan Davidson*
+
 *   Add support for tracing constant autoloads. Just throw
 
         ActiveSupport::Dependencies.logger = Rails.logger
