@@ -360,6 +360,10 @@ module ActiveRecord
       def enable_extension(name)
       end
 
+      def advisory_locks_enabled? # :nodoc:
+        supports_advisory_locks? && @advisory_locks_enabled
+      end
+
       # This is meant to be implemented by the adapters that support advisory
       # locks
       #

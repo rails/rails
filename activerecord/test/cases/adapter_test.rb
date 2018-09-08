@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "support/connection_helper"
 require "models/book"
 require "models/post"
 require "models/author"
@@ -442,6 +443,30 @@ module ActiveRecord
         sub = Subscriber.new(name: "robert drake")
         sub.id = "bob drake"
         assert_nothing_raised { sub.save! }
+      end
+    end
+  end
+end
+
+if ActiveRecord::Base.connection.supports_advisory_locks?
+  class AdvisoryLocksEnabledTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
+    def test_advisory_locks_enabled?
+      assert ActiveRecord::Base.connection.advisory_locks_enabled?
+
+      run_without_connection do |orig_connection|
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(advisory_locks: false)
+        )
+
+        assert_not ActiveRecord::Base.connection.advisory_locks_enabled?
+
+        ActiveRecord::Base.establish_connection(
+          orig_connection.merge(advisory_locks: true)
+        )
+
+        assert ActiveRecord::Base.connection.advisory_locks_enabled?
       end
     end
   end

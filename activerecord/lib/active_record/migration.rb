@@ -1357,7 +1357,7 @@ module ActiveRecord
       end
 
       def use_advisory_lock?
-        Base.connection.supports_advisory_locks?
+        Base.connection.advisory_locks_enabled?
       end
 
       def with_advisory_lock
