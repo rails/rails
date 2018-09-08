@@ -24,7 +24,7 @@
     a deprecation warning if used, however calling `ActiveRecord::Base.configurations`
     will use the new version internally and externally.
 
-    For example, the following database.yml...
+    For example, the following `database.yml`:
 
     ```
     development:
@@ -49,13 +49,14 @@
 
     Iterating over the database configurations has also changed. Instead of
     calling hash methods on the `configurations` hash directly, a new method `configs_for` has
-    been provided that allows you to select the correct configuration. `env_name` is a required
-    argument, `spec_name` is optional as well as passing a block. These return an array of
-    database config objects for the requested environment and specification name respectively.
+    been provided that allows you to select the correct configuration. `env_name`, and
+    `spec_name` arguments are optional. For example these return an array of
+    database config objects for the requested environment and a single database config object
+    will be returned for the requested environment and specification name respectively.
 
     ```
-    ActiveRecord::Base.configurations.configs_for("development")
-    ActiveRecord::Base.configurations.configs_for("development", "primary")
+    ActiveRecord::Base.configurations.configs_for(env_name: "development")
+    ActiveRecord::Base.configurations.configs_for(env_name: "development", spec_name: "primary")
     ```
 
     *Eileen M. Uchitelle*, *Aaron Patterson*
