@@ -18,8 +18,8 @@ module ActiveRecord
     # Collects the configs for the environment and optionally the specification
     # name passed in. To include replica configurations pass `include_replicas: true`.
     #
-    # If a spec name is provided a single DatabaseConfiguration object will be
-    # returned, otherwise an array of DatabaseConfiguration objects will be
+    # If a spec name is provided a single DatabaseConfig object will be
+    # returned, otherwise an array of DatabaseConfig objects will be
     # returned that corresponds with the environment and type requested.
     #
     # Options:
@@ -53,7 +53,7 @@ module ActiveRecord
     # Returns the config hash that corresponds with the environment
     #
     # If the application has multiple databases `default_hash` will
-    # the first config hash for the environment.
+    # return the first config hash for the environment.
     #
     #   { database: "my_db", adapter: "mysql2" }
     def default_hash(env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call.to_s)
@@ -64,7 +64,7 @@ module ActiveRecord
 
     # Returns a single DatabaseConfig object based on the requested environment.
     #
-    # If the application has multiple databases `select_db_config` will return
+    # If the application has multiple databases `find_db_config` will return
     # the first DatabaseConfig for the environment.
     def find_db_config(env)
       configurations.find do |db_config|
@@ -73,7 +73,7 @@ module ActiveRecord
       end
     end
 
-    # Returns the DatabaseConfig object as a Hash.
+    # Returns the DatabaseConfigurations object as a Hash.
     def to_h
       configs = configurations.reverse.inject({}) do |memo, db_config|
         memo.merge(db_config.to_legacy_hash)
