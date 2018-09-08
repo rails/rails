@@ -20,7 +20,7 @@ module ActiveRecord
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
-          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+          sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
           [sql.freeze, binds || []]
         else
           [arel_or_sql_string.dup.freeze, binds]
@@ -32,11 +32,11 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
-          sql, binds = visitor.accept(arel.ast, collector).value
+          sql, binds = visitor.compile(arel.ast, collector)
           query = klass.query(sql)
         else
           collector = PartialQueryCollector.new
-          parts, binds = visitor.accept(arel.ast, collector).value
+          parts, binds = visitor.compile(arel.ast, collector)
           query = klass.partial_query(parts)
         end
         [query, binds]
