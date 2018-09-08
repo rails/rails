@@ -579,6 +579,7 @@ module ActionMailer
       # calling +deliver_mail+ directly and passing a <tt>Mail::Message</tt> will do
       # nothing except tell the logger you sent the email.
       def deliver_mail(mail) #:nodoc:
+        return unless mail.perform_deliveries
         ActiveSupport::Notifications.instrument("deliver.action_mailer") do |payload|
           set_payload_for_mail(payload, mail)
           yield # Let Mail do the delivery actions

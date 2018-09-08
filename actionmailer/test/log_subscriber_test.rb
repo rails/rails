@@ -37,6 +37,17 @@ class AMLogSubscriberTest < ActionMailer::TestCase
     BaseMailer.deliveries.clear
   end
 
+  def test_deliver_is_not_notified_when_perform_deliveries_is_false
+    BaseMailer.welcome_without_deliveries.deliver_now
+    wait
+
+    assert_equal(0, @logger.logged(:info).size)
+    assert_equal(1, @logger.logged(:debug).size)
+    assert_match(/BaseMailer#welcome_without_deliveries: processed outbound mail in [\d.]+ms/, @logger.logged(:debug).first)
+  ensure
+    BaseMailer.deliveries.clear
+  end
+
   def test_receive_is_notified
     fixture = File.read(File.expand_path("fixtures/raw_email", __dir__))
     TestMailer.receive(fixture)

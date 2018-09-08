@@ -1,3 +1,7 @@
+*   Skip delivery notification when `perform_deliveries` is false.
+
+    *Yoshiyuki Kinjo*
+
 *   Allow call `assert_enqueued_email_with` with no block.
 
     Example:
