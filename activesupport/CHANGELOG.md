@@ -1,3 +1,12 @@
+*   Add support for tracing constant autoloads. Just throw
+
+        ActiveSupport::Dependencies.logger = Rails.logger
+        ActiveSupport::Dependencies.verbose = true
+
+    in an initializer.
+
+    *Xavier Noria*
+
 *   Maintain `html_safe?` on html_safe strings when sliced.
 
         string = "<div>test</div>".html_safe
