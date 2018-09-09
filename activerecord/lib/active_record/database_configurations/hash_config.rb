@@ -12,7 +12,7 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={"db_name"}>
+    #     @env_name="development", @spec_name="primary", @config={"database"=>"db_name"}>
     #
     # Options are:
     #

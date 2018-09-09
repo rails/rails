@@ -954,7 +954,7 @@ The only way to explicitly not use the connection information in `ENV['DATABASE_
 ```
 $ cat config/database.yml
 development:
-  url: sqlite3://NOT_my_database
+  url: sqlite3:NOT_my_database
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
@@ -966,8 +966,8 @@ $ rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
-    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database", "host"=>"localhost"}
-    @url="sqlite3://NOT_my_database">
+    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database"}
+    @url="sqlite3:NOT_my_database">
   ]
 ```
 
