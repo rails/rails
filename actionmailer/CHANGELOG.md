@@ -1,4 +1,8 @@
-*   Skip delivery notification when `perform_deliveries` is false.
+*   Add `perform_deliveries` to a payload of `deliver.action_mailer` notification.
+
+    *Yoshiyuki Kinjo*
+
+*   Change delivery logging message when `perform_deliveries` is false.
 
     *Yoshiyuki Kinjo*
 
