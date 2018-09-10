@@ -126,7 +126,7 @@ module ActiveRecord
       class_attribute :default_connection_handler, instance_writer: false
 
       ##
-      # Specifies columns which don't want to be exposed while calling #inspect
+      # Specifies columns which shouldn't be exposed while calling #inspect.
       class_attribute :filter_attributes, instance_writer: false, default: []
 
       def self.connection_handler

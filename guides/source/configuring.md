@@ -104,7 +104,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.filter_parameters` used for filtering out the parameters that
 you don't want shown in the logs, such as passwords or credit card
-numbers. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
