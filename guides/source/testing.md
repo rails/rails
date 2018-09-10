@@ -1028,8 +1028,8 @@ You should test for things such as:
 * was the web request successful?
 * was the user redirected to the right page?
 * was the user successfully authenticated?
-* was the correct object stored in the response template?
 * was the appropriate message displayed to the user in the view?
+* was the correct information displayed in the response?
 
 The easiest way to see functional tests in action is to generate a controller using the scaffold generator:
 
