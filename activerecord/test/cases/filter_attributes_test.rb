@@ -10,11 +10,12 @@ class FilterAttributesTest < ActiveRecord::TestCase
   fixtures :"admin/users", :"admin/accounts"
 
   setup do
+    @previous_filter_attributes = ActiveRecord::Base.filter_attributes
     ActiveRecord::Base.filter_attributes = [:name]
   end
 
   teardown do
-    ActiveRecord::Base.filter_attributes = []
+    ActiveRecord::Base.filter_attributes = @previous_filter_attributes
   end
 
   test "filter_attributes" do
@@ -35,20 +36,23 @@ class FilterAttributesTest < ActiveRecord::TestCase
       assert_equal 1, account.inspect.scan("[FILTERED]").length
     end
 
-    Admin::Account.filter_attributes = []
+    begin
+      previous_account_filter_attributes = Admin::Account.filter_attributes
+      Admin::Account.filter_attributes = []
 
-    # Above changes should not impact other models
-    Admin::User.all.each do |user|
-      assert_includes user.inspect, "name: [FILTERED]"
-      assert_equal 1, user.inspect.scan("[FILTERED]").length
+      # Above changes should not impact other models
+      Admin::User.all.each do |user|
+        assert_includes user.inspect, "name: [FILTERED]"
+        assert_equal 1, user.inspect.scan("[FILTERED]").length
+      end
+
+      Admin::Account.all.each do |account|
+        assert_not_includes account.inspect, "name: [FILTERED]"
+        assert_equal 0, account.inspect.scan("[FILTERED]").length
+      end
+    ensure
+      Admin::Account.filter_attributes = previous_account_filter_attributes
     end
-
-    Admin::Account.all.each do |account|
-      assert_not_includes account.inspect, "name: [FILTERED]"
-      assert_equal 0, account.inspect.scan("[FILTERED]").length
-    end
-
-    Admin::Account.filter_attributes = [:name]
   end
 
   test "filter_attributes should not filter nil value" do
