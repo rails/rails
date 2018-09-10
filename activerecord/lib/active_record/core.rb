@@ -139,7 +139,7 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods # :nodoc:
+    module ClassMethods
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
@@ -216,7 +216,7 @@ module ActiveRecord
         generated_association_methods
       end
 
-      def generated_association_methods
+      def generated_association_methods # :nodoc:
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
           private_constant :GeneratedAssociationMethods
@@ -226,7 +226,7 @@ module ActiveRecord
         end
       end
 
-      # Returns columns which shouldn't be exposed while calling #inspect.
+      # Returns columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes
         if defined?(@filter_attributes)
           @filter_attributes
@@ -235,13 +235,13 @@ module ActiveRecord
         end
       end
 
-      # Specifies columns which shouldn't be exposed while calling #inspect.
+      # Specifies columns which shouldn't be exposed while calling +#inspect+.
       def filter_attributes=(attributes_names)
         @filter_attributes = attributes_names.map(&:to_s).to_set
       end
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
-      def inspect
+      def inspect # :nodoc:
         if self == Base
           super
         elsif abstract_class?
@@ -257,7 +257,7 @@ module ActiveRecord
       end
 
       # Overwrite the default class equality method to provide support for decorated models.
-      def ===(object)
+      def ===(object) # :nodoc:
         object.is_a?(self)
       end
 

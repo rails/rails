@@ -9,11 +9,16 @@
 
     *Darwin Wu*
 
-*   Configuration item `config.filter_parameters` could also filter out sensitive value of database column when call `#inspect`.
+*   Configuration item `config.filter_parameters` could also filter out
+    sensitive values of database columns when call `#inspect`.
+    We also added `ActiveRecord::Base::filter_attributes`/`=` in order to
+    specify sensitive attributes to specific model.
 
     ```
     Rails.application.config.filter_parameters += [:credit_card_number]
-    Account.last.inspect # => #<Account id: 123, credit_card_number: [FILTERED] ...>
+    Account.last.inspect # => #<Account id: 123, name: "DHH", credit_card_number: [FILTERED] ...>
+    SecureAccount.filter_attributes += [:name]
+    SecureAccount.last.inspect # => #<SecureAccount id: 42, name: [FILTERED], credit_card_number: [FILTERED] ...>
     ```
 
     *Zhang Kang*
