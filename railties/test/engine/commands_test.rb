@@ -37,7 +37,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     spawn_command("console", replica)
     assert_output(">", primary)
   ensure
-    master.puts "quit"
+    primary.puts "quit"
   end
 
   def test_dbconsole_command_work_inside_engine
@@ -47,7 +47,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
     spawn_command("dbconsole", replica)
     assert_output("sqlite>", primary)
   ensure
-    master.puts ".exit"
+    primary.puts ".exit"
   end
 
   def test_server_command_work_inside_engine
