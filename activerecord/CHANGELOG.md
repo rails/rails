@@ -2,7 +2,7 @@
 
     ```
     Rails.application.config.filter_parameters += [:credit_card_number]
-    Account.last.insepct # => #<Account id: 123, credit_card_number: [FILTERED] ...>
+    Account.last.inspect # => #<Account id: 123, credit_card_number: [FILTERED] ...>
     ```
 
     *Zhang Kang*
