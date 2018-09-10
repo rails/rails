@@ -20,7 +20,7 @@ module AbstractController
       end
 
       def test_nested_optional
-        klass = Class.new {
+        h = Class.new {
           include ActionDispatch::Routing::RouteSet.new.tap { |r|
             r.draw {
               get "/foo/(:bar/(:baz))/:zot", as: "fun",
@@ -29,13 +29,65 @@ module AbstractController
             }
           }.url_helpers
           default_url_options[:host] = "example.com"
-        }
+        }.new
 
-        path = klass.new.fun_path(controller: :articles,
-                                   baz: "baz",
-                                   zot: "zot")
+        assert_equal "/foo/zot", h.fun_path(zot: "zot")
         # :bar key isn't provided
-        assert_equal "/foo/zot", path
+        assert_equal "/foo/zot?baz=baz", h.fun_path(baz: "baz", zot: "zot")
+      end
+
+      def test_deep_nested_optional
+        h = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "/test(/:foo(/:bar(/:baz)))", as: "test",
+                                                controller: :test,
+                                                action: :index
+            }
+          }.url_helpers
+        }.new
+
+        assert_equal "/test",                 h.test_path
+        assert_equal "/test/foo",             h.test_path(foo: "foo")
+        assert_equal "/test/foo/bar",         h.test_path(foo: "foo", bar: "bar")
+        assert_equal "/test/foo/bar/baz",     h.test_path(foo: "foo", bar: "bar", baz: "baz")
+        assert_equal "/test?bar=bar",         h.test_path(bar: "bar")
+        assert_equal "/test?baz=baz",         h.test_path(baz: "baz")
+        assert_equal "/test?bar=bar&baz=baz", h.test_path(bar: "bar", baz: "baz")
+        assert_equal "/test/foo?baz=baz",     h.test_path(foo: "foo", baz: "baz")
+
+        assert_equal "/test.json",                 h.test_path(format: :json)
+        assert_equal "/test/foo.json",             h.test_path(foo: "foo", format: :json)
+        assert_equal "/test/foo/bar.json",         h.test_path(foo: "foo", bar: "bar", format: :json)
+        assert_equal "/test/foo/bar/baz.json",     h.test_path(foo: "foo", bar: "bar", baz: "baz", format: :json)
+        assert_equal "/test.json?bar=bar",         h.test_path(bar: "bar", format: :json)
+        assert_equal "/test.json?baz=baz",         h.test_path(baz: "baz", format: :json)
+        assert_equal "/test.json?bar=bar&baz=baz", h.test_path(bar: "bar", baz: "baz", format: :json)
+        assert_equal "/test/foo.json?baz=baz",     h.test_path(foo: "foo", baz: "baz", format: :json)
+      end
+
+      def test_optional_groups
+        h = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "/test(/:foo/:bar/:baz)", as: "test",
+                                            controller: :test,
+                                            action: :index
+            }
+          }.url_helpers
+        }.new
+
+        assert_equal "/test",                 h.test_path
+        assert_equal "/test?foo=foo",         h.test_path(foo: "foo")
+        assert_equal "/test?bar=bar",         h.test_path(bar: "bar")
+        assert_equal "/test?baz=baz",         h.test_path(baz: "baz")
+        assert_equal "/test?bar=bar&foo=foo", h.test_path(foo: "foo", bar: "bar")
+        assert_equal "/test?baz=baz&foo=foo", h.test_path(foo: "foo", baz: "baz")
+        assert_equal "/test?bar=bar&baz=baz", h.test_path(bar: "bar", baz: "baz")
+        assert_equal "/test/foo/bar/baz",     h.test_path(foo: "foo", bar: "bar", baz: "baz")
+
+        assert_equal "/test.json?baz=baz&foo=foo", h.test_path(foo: "foo", baz: "baz", format: :json)
+        assert_equal "/test/foo/bar/baz.json",     h.test_path(foo: "foo", bar: "bar", baz: "baz", format: :json)
       end
 
       def add_host!(app = W)

@@ -37,12 +37,17 @@ module ActionDispatch
       def evaluate(hash)
         parts = @parts.dup
 
-        @parameters.each do |index|
+        used_keys = @parameters.each_with_object([]) do |index, keys|
           param = parts[index]
           value = hash[param.name]
           return "".freeze unless value
+
+          keys << param.name
           parts[index] = param.escape value
         end
+
+        # Delete used items from the hash
+        hash.except!(*used_keys)
 
         @children.each { |index| parts[index] = parts[index].evaluate(hash) }
 

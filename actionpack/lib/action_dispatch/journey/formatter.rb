@@ -44,7 +44,10 @@ module ActionDispatch
             parameterized_parts.delete(key)
           end
 
-          return [route.format(parameterized_parts), params]
+          path = route.format(parameterized_parts)
+          # Add all unused parameters back to params
+          params.merge!(parameterized_parts) unless parameterized_parts.empty?
+          return [path, params]
         end
 
         unmatched_keys = (missing_keys || []) & constraints.keys
