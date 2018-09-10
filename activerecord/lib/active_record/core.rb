@@ -3,6 +3,7 @@
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "concurrent/map"
+require "set"
 
 module ActiveRecord
   module Core
@@ -125,9 +126,7 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
-      ##
-      # Specifies columns which shouldn't be exposed while calling #inspect.
-      class_attribute :filter_attributes, instance_writer: false, default: []
+      self.filter_attributes = []
 
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
@@ -225,6 +224,20 @@ module ActiveRecord
 
           mod
         end
+      end
+
+      # Returns columns which shouldn't be exposed while calling #inspect.
+      def filter_attributes
+        if defined?(@filter_attributes)
+          @filter_attributes
+        else
+          superclass.filter_attributes
+        end
+      end
+
+      # Specifies columns which shouldn't be exposed while calling #inspect.
+      def filter_attributes=(attributes_names)
+        @filter_attributes = attributes_names.map(&:to_s).to_set
       end
 
       # Returns a string like 'Post(id:integer, title:string, body:text)'
@@ -582,9 +595,7 @@ module ActiveRecord
       end
 
       def filter_attribute?(attribute_name)
-        filter_attributes = self.filter_attributes.map(&:to_s).to_set
-
-        filter_attributes.include?(attribute_name) && !read_attribute(attribute_name).nil?
+        self.class.filter_attributes.include?(attribute_name) && !read_attribute(attribute_name).nil?
       end
   end
 end
