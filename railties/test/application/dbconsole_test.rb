@@ -33,9 +33,9 @@ module ApplicationTests
         end
       RUBY
 
-      master, slave = PTY.open
-      spawn_dbconsole(slave)
-      assert_output("sqlite>", master)
+      primary, replica = PTY.open
+      spawn_dbconsole(replica)
+      assert_output("sqlite>", primary)
     ensure
       master.puts ".exit"
     end
@@ -56,9 +56,9 @@ module ApplicationTests
           database: db/production.sqlite3
       YAML
 
-      master, slave = PTY.open
-      spawn_dbconsole(slave, "-e production")
-      assert_output("sqlite>", master)
+      primary, replica = PTY.open
+      spawn_dbconsole(replica, "-e production")
+      assert_output("sqlite>", primary)
 
       master.puts "pragma database_list;"
       assert_output("production.sqlite3", master)
