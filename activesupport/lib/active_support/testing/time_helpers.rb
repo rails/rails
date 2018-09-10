@@ -158,7 +158,7 @@ module ActiveSupport
       end
 
       # Returns the current time back to its original state, by removing the stubs added by
-      # +travel+, +travel_to+ and +freeze_time+.
+      # +travel+, +travel_to+, and +freeze_time+.
       #
       #   Time.current # => Sat, 09 Nov 2013 15:34:49 EST -05:00
       #   travel_to Time.zone.local(2004, 11, 24, 01, 04, 44)
