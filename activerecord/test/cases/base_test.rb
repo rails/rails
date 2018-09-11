@@ -1445,8 +1445,8 @@ class BasicsTest < ActiveRecord::TestCase
     assert_not_respond_to developer, :first_name=
   end
 
-  test "ignored columns not included in SELECT" do
-    query = Developer.all.to_sql.downcase
+  test "ignored columns not included in explicit selects" do
+    query = Developer.select(:id, :name, :first_name, :last_name).all.to_sql.downcase
 
     # ignored column
     assert_not query.include?("first_name")
@@ -1457,10 +1457,16 @@ class BasicsTest < ActiveRecord::TestCase
 
   test "column names are quoted when using #from clause and model has ignored columns" do
     assert_not_empty Developer.ignored_columns
-    query = Developer.from("developers").to_sql
-    quoted_id = "#{Developer.quoted_table_name}.#{Developer.quoted_primary_key}"
+    query = Developer.select(:id, :name, :first_name, :last_name).from("developers").to_sql
+    id_key = Developer.connection.quote_column_name(:id)
+    name_key = Developer.connection.quote_column_name(:name)
 
-    assert_match(/SELECT #{Regexp.escape(quoted_id)}.* FROM developers/, query)
+    assert_match(/SELECT #{id_key}, #{name_key} FROM developers/, query)
+  end
+
+  test "star selector is used when no explicit selects provided and ignored columns exist" do
+    query = Developer.where(name: "Johnson").to_sql
+    assert_match(/SELECT #{Developer.quoted_table_name}\.\* FROM #{Developer.quoted_table_name}/, query)
   end
 
   test "using table name qualified column names unless having SELECT list explicitly" do
