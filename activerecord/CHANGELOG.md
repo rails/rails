@@ -1,3 +1,14 @@
+*   Avoid an unnecessary UPDATE query in `ActiveRecord::CounterCache.reset_counters`
+
+    In the best case, when all counter rows are already up to date (so there's
+    nothing to reset), and the `touch: false` option is used, we avoid an
+    unnecessary UPDATE query.
+
+    Using the `touch: true` option will still issue the UPDATE query, though
+    only the timestamp will be updated.
+
+    *Steven Harman*
+
 *   Fix `transaction` reverting for migrations.
 
     Before: Commands inside a `transaction` in a reverted migration ran uninverted.
