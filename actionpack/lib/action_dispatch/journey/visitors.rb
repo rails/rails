@@ -48,6 +48,28 @@ module ActionDispatch
 
         parts.join
       end
+
+      def extract_nested_parameters
+        result = {}
+
+        if @parameters.present? && @children.present?
+          nested_keys = @children.inject([]) { |ar, index| ar += @parts[index].parameters_names }
+
+          if nested_keys.present?
+            @parameters.each { |index| result[@parts[index].name] = nested_keys }
+          end
+        end
+
+        @children.each { |index| result.merge! @parts[index].extract_nested_parameters }
+
+        result
+      end
+
+      protected
+
+        def parameters_names
+          @parameters.map { |index| @parts[index].name }
+        end
     end
 
     module Visitors # :nodoc:

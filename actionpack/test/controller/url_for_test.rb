@@ -38,6 +38,83 @@ module AbstractController
         assert_equal "/foo/zot", path
       end
 
+      def test_nested_optional_path_params_with_defaults
+        url_helpers = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "(/:locale)/projects(/:year(/:month(/:day)))", to: "projects#index", as: :projects,
+                defaults: { locale: "en", year: "2018", month: "01", day: "01" }
+            }
+          }.url_helpers
+        }.new
+
+        assert_equal "/projects", url_helpers.projects_path
+        assert_equal "/projects", url_helpers.projects_path(locale: "en")
+        assert_equal "/projects/2018/01/31", url_helpers.projects_path("en", "2018", "01", "31")
+        assert_equal "/projects/2018/01/31", url_helpers.projects_path(day: "31")
+        assert_equal "/projects/2018/02", url_helpers.projects_path(month: "02")
+        assert_equal "/projects/2017", url_helpers.projects_path(year: "2017")
+
+        assert_equal "/de/projects", url_helpers.projects_path(locale: "de")
+        assert_equal "/de/projects/2018/01/31", url_helpers.projects_path("de", "2018", "01", "31")
+        assert_equal "/de/projects/2018/01/31", url_helpers.projects_path(locale: "de", day: "31")
+        assert_equal "/de/projects/2018/02", url_helpers.projects_path(locale: "de", month: "02")
+        assert_equal "/de/projects/2017", url_helpers.projects_path(locale: "de", year: "2017")
+
+        assert_equal "/projects.json", url_helpers.projects_path("en", "2018", "01", "01", :json)
+        assert_equal "/de/projects.json", url_helpers.projects_path("de", "2018", "01", "01", :json)
+        assert_equal "/projects.json", url_helpers.projects_path(format: :json)
+        assert_equal "/de/projects.json", url_helpers.projects_path(locale: "de", format: :json)
+
+        assert_equal "/projects/2018/01/31.json", url_helpers.projects_path("en", "2018", "01", "31", :json)
+        assert_equal "/de/projects/2018/01/31.json", url_helpers.projects_path("de", "2018", "01", "31", :json)
+        assert_equal "/projects/2018/01/31.json", url_helpers.projects_path(day: "31", format: :json)
+        assert_equal "/de/projects/2018/01/31.json", url_helpers.projects_path(locale: "de", day: "31", format: :json)
+
+        assert_equal "/projects/2018/02.json", url_helpers.projects_path("en", "2018", "02", "01", :json)
+        assert_equal "/de/projects/2018/02.json", url_helpers.projects_path("de", "2018", "02", "01", :json)
+        assert_equal "/projects/2018/02.json", url_helpers.projects_path(month: "02", format: :json)
+        assert_equal "/de/projects/2018/02.json", url_helpers.projects_path(locale: "de", month: "02", format: :json)
+
+        assert_equal "/projects/2017.json", url_helpers.projects_path("en", "2017", "01", "01", :json)
+        assert_equal "/de/projects/2017.json", url_helpers.projects_path("de", "2017", "01", "01", :json)
+        assert_equal "/projects/2017.json", url_helpers.projects_path(year: "2017", format: :json)
+        assert_equal "/de/projects/2017.json", url_helpers.projects_path(locale: "de", year: "2017", format: :json)
+
+        ## TODO: doesn't work since positional arguments are not correctly mapped to parameters
+        #        by OptimizedUrlHelper#handle_positional_args
+        #
+        # assert_equal "/projects", url_helpers.projects_path("en")
+        # assert_equal "/projects/2018/02", url_helpers.projects_path("en", "2018", "02")
+        # assert_equal "/projects/2017", url_helpers.projects_path("en", "2017")
+        # assert_equal "/de/projects", url_helpers.projects_path("de")
+        # assert_equal "/de/projects/2018/02", url_helpers.projects_path("de", "2018", "02")
+        # assert_equal "/de/projects/2017", url_helpers.projects_path("de", "2017")
+      end
+
+      def test_nested_optional_path_params_with_defaults_and_required_part
+        url_helpers = Class.new {
+          include ActionDispatch::Routing::RouteSet.new.tap { |r|
+            r.draw {
+              get "/projects(/:year(/:month(/:day)))/:required", to: "projects#index", as: :projects,
+                defaults: { year: "2018", month: "01", day: "01", required: "required_part" }
+            }
+          }.url_helpers
+        }.new
+
+        assert_equal "/projects/required_part", url_helpers.projects_path
+        assert_equal "/projects/2018/01/31/required_part", url_helpers.projects_path(day: "31")
+        assert_equal "/projects/2018/02/required_part", url_helpers.projects_path(month: "02")
+        assert_equal "/projects/2017/required_part", url_helpers.projects_path(year: "2017")
+        assert_equal "/projects/2018/01/31/foo", url_helpers.projects_path("2018", "01", "31", "foo")
+        assert_equal "/projects/2017/foo", url_helpers.projects_path(year: "2017", required: "foo")
+
+        assert_equal "/projects/foo.json", url_helpers.projects_path("2018", "01", "01", "foo", :json)
+        assert_equal "/projects/foo.json", url_helpers.projects_path(required: "foo", format: :json)
+        assert_equal "/projects/required_part.json", url_helpers.projects_path(format: :json)
+        assert_equal "/projects/2018/02/required_part.json", url_helpers.projects_path(month: "02", format: :json)
+      end
+
       def add_host!(app = W)
         app.default_url_options[:host] = "www.basecamphq.com"
       end

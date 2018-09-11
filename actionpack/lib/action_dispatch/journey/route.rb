@@ -151,6 +151,18 @@ module ActionDispatch
         end
       end
 
+      # Return hash having parameters names associated with subsequent
+      # optional nested parameters, for example route
+      #
+      #   get "/path(/:one(/:two(/:three/:four)))"
+      #
+      # will have {:one => [:two], :two => [:three, :four]}
+      # as nested_parameters hash.
+      #
+      def nested_parameters
+        @nested_parameters ||= @path_formatter.extract_nested_parameters
+      end
+
       def glob?
         !path.spec.grep(Nodes::Star).empty?
       end

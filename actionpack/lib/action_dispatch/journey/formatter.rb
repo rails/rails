@@ -33,13 +33,17 @@ module ActionDispatch
             parameterized_parts.key?(key) || route.defaults.key?(key)
           end
 
-          defaults       = route.defaults
-          required_parts = route.required_parts
+          defaults          = route.defaults
+          required_parts    = route.required_parts
+          nested_parameters = route.nested_parameters
 
           route.parts.reverse_each do |key|
-            break if defaults[key].nil? && parameterized_parts[key].present?
+            next if defaults[key].nil? && parameterized_parts[key].present?
             next if parameterized_parts[key].to_s != defaults[key].to_s
-            break if required_parts.include?(key)
+            next if required_parts.include?(key)
+            # Keep the part if there are nested parameters
+            next if nested_parameters.key?(key) &&
+                      nested_parameters[key].any? { |nested_key| !parameterized_parts[nested_key].nil? }
 
             parameterized_parts.delete(key)
           end
