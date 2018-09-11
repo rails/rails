@@ -1,3 +1,10 @@
+*   Use MySQL utf8mb4 character set by default.
+
+    `utf8mb4` character set with 4-Byte encoding supports supplementary characters including emoji.
+    The previous default 3-Byte encoding character set `utf8` is not enough to support them.
+
+    *Yasuo Honda*
+
 *   Fix duplicated record creation when using nested attributes with `create_with`.
 
     *Darwin Wu*
