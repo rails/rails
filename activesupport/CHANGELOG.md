@@ -1,3 +1,8 @@
+*   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
+    of mutating the one received as parameter.
+
+    *Thierry Joyal*
+
 *   Define `unfreeze_time` as an alias of `travel_back` in `ActiveSupport::Testing::TimeHelpers`.
 
     The alias is provided for symmetry with `freeze_time`.

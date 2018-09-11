@@ -61,8 +61,15 @@ module ActiveSupport
     end
 
     def self.new(logger)
-      # Ensure we set a default formatter so we aren't extending nil!
-      logger.formatter ||= ActiveSupport::Logger::SimpleFormatter.new
+      logger = logger.dup
+
+      if logger.formatter
+        logger.formatter = logger.formatter.dup
+      else
+        # Ensure we set a default formatter so we aren't extending nil!
+        logger.formatter = ActiveSupport::Logger::SimpleFormatter.new
+      end
+
       logger.formatter.extend Formatter
       logger.extend(self)
     end
