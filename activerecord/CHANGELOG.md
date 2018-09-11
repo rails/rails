@@ -1,3 +1,7 @@
+*   Fix duplicated record creation when using nested attributes with `create_with`.
+
+    *Darwin Wu*
+
 *   Configuration item `config.filter_parameters` could also filter out sensitive value of database column when call `#inspect`.
 
     ```
