@@ -252,9 +252,9 @@ module Arel # :nodoc: all
     end
 
     private
-      def collapse(exprs, existing = nil)
-        exprs = exprs.unshift(existing.expr) if existing
-        exprs = exprs.compact.map { |expr|
+      def collapse(exprs)
+        exprs = exprs.compact
+        exprs.map! { |expr|
           if String === expr
             # FIXME: Don't do this automatically
             Arel.sql(expr)
