@@ -226,6 +226,23 @@ module ActiveRecord
       pluck primary_key
     end
 
+    # Retrieve the records for the relation in raw format, _not_ typecasted.
+    # #select_rows returns an Array of Hashes representing the result set.
+    #
+    # This method is short-hand for
+    # <tt>ActiveRecord::Base.connection.exec_query(relation.to_sql).to_ary</tt>.
+    #
+    #   User.where(id: 1).select_rows
+    #   # => [{ "id" => 1, "name" => "Marco"}]
+    #
+    #   User.select('shard, count(*) as count').group(:shard).select_rows
+    #   # => [{ "shard" => 0, "count" => 16 }, { "shard" => 1, "count" => 17 }]
+    def select_rows
+      relation = spawn
+      result = skip_query_cache_if_necessary { klass.connection.select_all(relation.arel, nil) }
+      result.to_ary
+    end
+
     private
 
       def has_include?(column_name)

@@ -846,6 +846,11 @@ class CalculationsTest < ActiveRecord::TestCase
     assert_equal cool_first.color, Minivan.pick(:color)
   end
 
+  def test_select_rows
+    account = accounts(:signals37)
+    assert_equal [ account.attributes ], Account.where(id: account.id).select_rows
+  end
+
   def test_grouped_calculation_with_polymorphic_relation
     part = ShipPart.create!(name: "has trinket")
     part.trinkets.create!
