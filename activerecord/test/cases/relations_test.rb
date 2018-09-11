@@ -9,6 +9,7 @@ require "models/comment"
 require "models/author"
 require "models/entrant"
 require "models/developer"
+require "models/project"
 require "models/computer"
 require "models/reply"
 require "models/company"
@@ -1373,6 +1374,16 @@ class RelationTest < ActiveRecord::TestCase
 
     hens = hens.create_with(name: "cock")
     assert_equal "cock", hens.new.name
+  end
+
+  def test_create_with_nested_attributes
+    assert_difference("Project.count", 1) do
+      developers = Developer.where(name: "Aaron")
+      developers = developers.create_with(
+        projects_attributes: [{ name: "p1" }]
+      )
+      developers.create!
+    end
   end
 
   def test_except

@@ -1,3 +1,8 @@
+*   Fix duplicated record creation when using nested attributes with `create_with`.
+
+    *Darwin Wu*
+
+
 ## Rails 5.2.1 (August 07, 2018) ##
 
 *   PostgreSQL: Support new relkind for partitioned tables.

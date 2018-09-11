@@ -4,6 +4,7 @@ require "cases/helper"
 require "models/post"
 require "models/comment"
 require "models/developer"
+require "models/project"
 require "models/computer"
 require "models/vehicle"
 require "models/cat"
@@ -364,6 +365,21 @@ class DefaultScopingTest < ActiveRecord::TestCase
   def test_create_with_reset
     jamis = PoorDeveloperCalledJamis.create_with(name: "Aaron").create_with(nil).new
     assert_equal "Jamis", jamis.name
+  end
+
+  def test_create_with_takes_precedence_over_where
+    developer = Developer.where(name: nil).create_with(name: "Aaron").new
+    assert_equal "Aaron", developer.name
+  end
+
+  def test_create_with_nested_attributes
+    assert_difference("Project.count", 1) do
+      Developer.create_with(
+        projects_attributes: [{ name: "p1" }]
+      ).scoping do
+        Developer.create!(name: "Aaron")
+      end
+    end
   end
 
   # FIXME: I don't know if this is *desired* behavior, but it is *today's*

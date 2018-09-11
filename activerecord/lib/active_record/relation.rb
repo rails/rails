@@ -54,7 +54,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      scoping { klass.new(scope_for_create(attributes), &block) }
+      scoping { klass.new(values_for_create(attributes), &block) }
     end
 
     alias build new
@@ -82,7 +82,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create(attr, &block) }
       else
-        scoping { klass.create(scope_for_create(attributes), &block) }
+        scoping { klass.create(values_for_create(attributes), &block) }
       end
     end
 
@@ -96,7 +96,7 @@ module ActiveRecord
       if attributes.is_a?(Array)
         attributes.collect { |attr| create!(attr, &block) }
       else
-        scoping { klass.create!(scope_for_create(attributes), &block) }
+        scoping { klass.create!(values_for_create(attributes), &block) }
       end
     end
 
@@ -464,10 +464,8 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create(attributes = nil)
-      scope = where_values_hash.merge!(create_with_value.stringify_keys)
-      scope.merge!(attributes) if attributes
-      scope
+    def scope_for_create
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.
@@ -613,6 +611,19 @@ module ActiveRecord
         # always convert table names to downcase as in Oracle quoted table names are in uppercase
         # ignore raw_sql_ that is used by Oracle adapter as alias for limit/offset subqueries
         string.scan(/([a-zA-Z_][.\w]+).?\./).flatten.map(&:downcase).uniq - ["raw_sql_"]
+      end
+
+      def values_for_create(attributes = nil)
+        result = attributes ? where_values_hash.merge!(attributes) : where_values_hash
+
+        # NOTE: if there are same keys in both create_with and result, create_with should be used.
+        # This is to make sure nested attributes don't get passed to the klass.new,
+        # while keeping the precedence of the duplicate keys in create_with.
+        create_with_value.stringify_keys.each do |k, v|
+          result[k] = v if result.key?(k)
+        end
+
+        result
       end
   end
 end
