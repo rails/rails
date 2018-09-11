@@ -18,8 +18,7 @@ require "active_job"
 ActiveJob::Base.queue_adapter = :test
 ActiveJob::Base.logger = ActiveSupport::Logger.new(nil)
 
-# Filter out Minitest backtrace while allowing backtrace from other libraries
-# to be shown.
+# Filter out the backtrace from minitest while preserving the one from other libraries.
 Minitest.backtrace_filter = Minitest::BacktraceFilter.new
 
 require "yaml"
