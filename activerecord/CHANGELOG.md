@@ -5,10 +5,6 @@
 
     *Yasuo Honda*
 
-*   Bump minimum MySQL version to 5.7.9.
-
-    *Yasuo Honda*
-
 *   Fix duplicated record creation when using nested attributes with `create_with`.
 
     *Darwin Wu*
