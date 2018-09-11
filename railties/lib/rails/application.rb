@@ -232,7 +232,10 @@ module Rails
 
       if yaml.exist?
         require "erb"
-        (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        require "active_support/ordered_options"
+
+        config = (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
+        ActiveSupport::InheritableOptions.new(config.deep_symbolize_keys)
       else
         raise "Could not load configuration. No such file - #{yaml}"
       end
