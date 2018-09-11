@@ -1,4 +1,4 @@
-*   Make :null_store the default store in the test environment.
+*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
 
     *Michael C. Nelson*
 
