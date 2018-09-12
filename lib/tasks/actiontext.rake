@@ -28,7 +28,7 @@ namespace :action_text do
 
   FIXTURE_TEMPLATE_PATH = File.expand_path("../templates/fixtures.yml", __dir__)
   FIXTURE_APP_DIR_PATH  = Rails.root.join("test/fixtures/action_text")
-  FIXTURE_APP_PATH      = FIXTURE_APP_DIR_PATH.join("fixtures.yml")
+  FIXTURE_APP_PATH      = FIXTURE_APP_DIR_PATH.join("rich_texts.yml")
 
   task :copy_fixtures do
     if File.exist?(FIXTURE_APP_PATH)
