@@ -180,9 +180,7 @@ end_warning
     end
 
     initializer "active_record.set_executor_hooks" do
-      ActiveSupport.on_load(:active_record) do
-        ActiveRecord::QueryCache.install_executor_hooks
-      end
+      ActiveRecord::QueryCache.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
