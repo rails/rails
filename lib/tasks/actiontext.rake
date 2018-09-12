@@ -5,7 +5,7 @@ namespace :action_text do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration, stylesheet, and JavaScript files"
-  task install: %w( environment active_storage:install copy_migration copy_stylesheet )
+  task install: %w( environment active_storage:install copy_migration copy_stylesheet copy_fixtures )
 
   task :copy_migration do
     if Rake::Task.task_defined?("action_text:install:migrations")
@@ -23,6 +23,19 @@ namespace :action_text do
       puts "Won't copy Action Text stylesheet as it already exists"
     else
       FileUtils.cp STYLESHEET_TEMPLATE_PATH, STYLESHEET_APP_PATH
+    end
+  end
+
+  FIXTURE_TEMPLATE_PATH = File.expand_path("../templates/fixtures.yml", __dir__)
+  FIXTURE_APP_DIR_PATH  = Rails.root.join("test/fixtures/action_text")
+  FIXTURE_APP_PATH      = FIXTURE_APP_DIR_PATH.join("fixtures.yml")
+
+  task :copy_fixtures do
+    if File.exist?(FIXTURE_APP_PATH)
+      puts "Won't copy Action Text fixtures as it already exists"
+    else
+      FileUtils.mkdir FIXTURE_APP_DIR_PATH
+      FileUtils.cp FIXTURE_TEMPLATE_PATH, FIXTURE_APP_PATH
     end
   end
 end
