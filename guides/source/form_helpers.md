@@ -149,7 +149,7 @@ URL fields, email fields, number fields, and range fields:
 ```erb
 <%= text_area_tag(:message, "Hi, nice site", size: "24x6") %>
 <%= password_field_tag(:password) %>
-<%= hidden_field_tag(:parent_id, "5") %>
+<%= hidden_field_tag(:parent_id, value: "5") %>
 <%= search_field(:user, :name) %>
 <%= telephone_field(:user, :phone) %>
 <%= date_field(:user, :born_on) %>
