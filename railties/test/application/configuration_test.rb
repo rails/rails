@@ -3,6 +3,7 @@
 require "isolation/abstract_unit"
 require "rack/test"
 require "env_helpers"
+require "set"
 
 class ::MyMailInterceptor
   def self.delivering_email(email); email; end
@@ -2049,7 +2050,7 @@ module ApplicationTests
       RUBY
       app "development"
       assert_equal [ :password, :credit_card_number ], Rails.application.config.filter_parameters
-      assert_equal [ :password, :credit_card_number ], ActiveRecord::Base.filter_attributes
+      assert_equal [ "password", "credit_card_number" ].to_set, ActiveRecord::Base.filter_attributes
     end
 
     private
