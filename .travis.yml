@@ -56,69 +56,13 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=railties"
-    - "GEM=ap,ac"
-    - "GEM=am,amo,as,av,aj,ast"
-    - "GEM=as PRESERVE_TIMEZONES=1"
     - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
-    - "GEM=guides"
-    - "GEM=ac:integration"
 
 rvm:
   - 2.4.4
   - 2.5.1
-  - ruby-head
-
-matrix:
-  include:
-    - rvm: 2.5.1
-      env: "GEM=av:ujs"
-    - rvm: 2.4.4
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.5.1
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: ruby-head
-      env: "GEM=aj:integration"
-      services:
-        - memcached
-        - redis-server
-        - rabbitmq
-    - rvm: 2.5.1
-      env:
-        - "GEM=ar:mysql2 MYSQL=mariadb"
-      addons:
-        mariadb: 10.3
-    - rvm: 2.5.1
-      env:
-        - "GEM=ar:sqlite3_mem"
-    - rvm: 2.5.1
-      env:
-        - "GEM=ar:postgresql POSTGRES=9.2"
-      addons:
-        postgresql: "9.2"
-    - rvm: jruby-head
-      jdk: oraclejdk8
-      env:
-        - "GEM=ap"
-    - rvm: jruby-head
-      jdk: oraclejdk8
-      env:
-        - "GEM=am,amo,aj"
-  allow_failures:
-    - rvm: ruby-head
-    - rvm: jruby-head
-    - env: "GEM=ac:integration"
-  fast_finish: true
 
 notifications:
   email: false
