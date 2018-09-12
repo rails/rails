@@ -4,7 +4,7 @@ module ActionText
 
     attr_reader :fragment
 
-    delegate :blank?, :empty?, :html_safe, :present?, to: :to_s
+    delegate :blank?, :empty?, :html_safe, :present?, to: :to_html # Delegating to to_html to avoid including the layout
 
     def initialize(content = nil)
       @fragment = ActionText::Attachment.fragment_by_canonicalizing_attachments(content)

@@ -37,7 +37,20 @@ module ActionText
         scope :"with_rich_text_#{name}", -> { includes("rich_text_#{name}") }
         scope :"with_rich_text_#{name}_and_embeds", -> { includes("rich_text_#{name}": { embeds_attachments: :blob }) }
 
-        after_save { public_send(name).save if public_send(name).changed? }
+        before_save do
+          # If there's no body set, we need to reset the rich text record such that it is not autosaved.
+          public_send("#{name}=", nil) if public_send(name).body.blank?
+        end
+
+        after_save do
+          rich_text = public_send(name)
+
+          if rich_text.changed? && rich_text.body.present?
+            rich_text.save
+          elsif rich_text.persisted? && rich_text.body.blank?
+            rich_text.destroy
+          end
+        end
       end
     end
   end
