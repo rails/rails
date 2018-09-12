@@ -169,11 +169,11 @@ module ActiveRecord
 
         _enum_methods_module.module_eval do
           pairs = values.respond_to?(:each_pair) ? values.each_pair : values.each_with_index
-          value_checked = {}
+          valid_checked = {}
           pairs.each do |label, value|
             # check a value exist in both key
-            raise ArgumentError, "value #{value} exist in both of #{value_checked[value]}, #{label}" if value_checked[value]
-            value_checked[value] = label
+            raise ArgumentError, "Values must be unique. The value '#{value}' was used on #{valid_checked[value]} and #{label}." if valid_checked[value]
+            valid_checked[value] = label
 
             if enum_prefix == true
               prefix = "#{name}_"
