@@ -114,6 +114,14 @@ module ActiveRecord
         true
       end
 
+      def supports_longer_index_key_prefix?
+        if mariadb?
+          version >= "10.2.2"
+        else
+          version >= "5.7.9"
+        end
+      end
+
       def get_advisory_lock(lock_name, timeout = 0) # :nodoc:
         query_value("SELECT GET_LOCK(#{quote(lock_name.to_s)}, #{timeout})") == 1
       end
@@ -250,8 +258,12 @@ module ActiveRecord
       def create_database(name, options = {})
         if options[:collation]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
+        elsif options[:charset]
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset])}"
+        elsif supports_longer_index_key_prefix?
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8mb4`"
         else
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8mb4')}"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET `utf8`"
         end
       end
 
