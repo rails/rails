@@ -1566,7 +1566,7 @@ class PerformedJobsTest < ActiveJob::TestCase
     end
   end
 
-  def test_assert_performed_wiht_with_global_id_args
+  def test_assert_performed_with_with_global_id_args
     ricardo = Person.new(9)
     assert_performed_with(job: HelloJob, args: [ricardo]) do
       HelloJob.perform_later(ricardo)
