@@ -57,12 +57,8 @@ module ActiveRecord
     end
 
     def build_bind_attribute(column_name, value)
-      attr = build_query_attribute(column_name, value)
+      attr = Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
       Arel::Nodes::BindParam.new(attr)
-    end
-
-    def build_query_attribute(column_name, value)
-      Relation::QueryAttribute.new(column_name.to_s, value, table.type(column_name))
     end
 
     protected
