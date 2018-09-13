@@ -531,7 +531,7 @@ DEPENDENCIES
   libxml-ruby
   listen (>= 3.0.5, < 3.2)
   minitest-bisect
-  mysql2 (>= 0.4.10)
+  mysql2 (~> 0.5.0)
   nokogiri (>= 1.8.1)
   pg (>= 0.18.0, < 1.1)
   psych (~> 3.0)
