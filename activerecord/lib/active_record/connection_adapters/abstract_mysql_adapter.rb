@@ -53,8 +53,8 @@ module ActiveRecord
 
         @statements = StatementPool.new(self.class.type_cast_config_to_integer(config[:statement_limit]))
 
-        if version < "5.1.10"
-          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.1.10."
+        if version < "5.5.8"
+          raise "Your version of MySQL (#{version_string}) is too old. Active Record supports MySQL >= 5.5.8."
         end
       end
 

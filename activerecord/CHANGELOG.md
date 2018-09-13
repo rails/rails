@@ -1,3 +1,7 @@
+*   Bump minimum MySQL version to 5.5.8.
+
+    *Yasuo Honda*
+
 *   Use MySQL utf8mb4 character set by default.
 
     `utf8mb4` character set with 4-Byte encoding supports supplementary characters including emoji.
