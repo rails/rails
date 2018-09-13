@@ -1,3 +1,7 @@
+*   `ActionDispatch::IntegrationTest` includes `ActiveJob::TestHelper` module by default.
+
+    *Ricardo Díaz*
+
 *   Added `enqueue_retry.active_job`, `retry_stopped.active_job`, and `discard.active_job` hooks.
 
     *steves*
