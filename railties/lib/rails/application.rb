@@ -474,7 +474,8 @@ module Rails
         config_path: Rails.root.join(path),
         key_path: Rails.root.join(key_path),
         env_key: env_key,
-        raise_if_missing_key: config.require_master_key
+        raise_if_missing_key: config.require_master_key,
+        rails_env: Rails.env
       )
     end
 
