@@ -1,5 +1,5 @@
 language: ruby
-sudo: true
+sudo: false
 
 cache:
   directories:
@@ -40,10 +40,6 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql_upgrade"
-  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo service mysql restart"
-  - "[[ $GEM != 'ar:postgresql' ]] || sudo mount -o remount,size=50% /var/ramfs"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.
@@ -57,13 +53,30 @@ env:
   global:
     - "JRUBY_OPTS='--dev -J-Xmx1024M'"
   matrix:
-    - "GEM=ar:mysql2"
     - "GEM=ar:sqlite3"
     - "GEM=ar:postgresql"
 
 rvm:
   - 2.4.4
   - 2.5.1
+
+
+matrix:
+  include:
+    - rvm: 2.5.1
+      env: "GEM=ar:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
+    - rvm: 2.4.4
+      env: "GEM=ar:mysql2"
+      sudo: required
+      before_install:
+        - "sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+        - "sudo mysql_upgrade"
+        - "sudo service mysql restart"
 
 notifications:
   email: false
@@ -78,7 +91,3 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
-
-after_failure:
-  - sudo cat /var/log/postgresql/postgresql-*-main.log
-  - sudo df -k
