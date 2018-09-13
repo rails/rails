@@ -26,15 +26,21 @@ module ActiveRecord
     end
 
     def self.run
-      ActiveRecord::Base.connection_handler.connection_pool_list.
-        reject { |p| p.query_cache_enabled }.each { |p| p.enable_query_cache! }
+      handlers = ActiveRecord::Base.connection_handlers.reject do |_, handler|
+        handler.query_cache_enabled
+      end
+
+      handlers.each { |_, handler| handler.enable_query_cache! }
+      handlers
     end
 
-    def self.complete(pools)
-      pools.each { |pool| pool.disable_query_cache! }
+    def self.complete(handlers)
+      handlers.each { |_, handler| handler.disable_query_cache! }
 
-      ActiveRecord::Base.connection_handler.connection_pool_list.each do |pool|
-        pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+      ActiveRecord::Base.connection_handlers.each do |_, handler|
+        handler.connection_pool_list.each do |pool|
+          pool.release_connection if pool.active_connection? && !pool.connection.transaction_open?
+        end
       end
     end
 

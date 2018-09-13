@@ -1,3 +1,10 @@
+*   Move question of whether query cache is on from the pool to the connection
+    handler. This fixes cases where a database is connected after the application
+    is booted. This would occur in development or test in applications that use
+    multiple databases.
+
+    *Eileen M. Uchitelle*, *Aaron Patterson*
+
 *   Add basic API for connection switching to support multiple databases.
 
     1) Adds a `connects_to` method for models to connect to multiple databases. Example:
@@ -73,7 +80,6 @@
         end
 
     *Mehmet Emin İNAÇ*
-
 *   Fix `transaction` reverting for migrations.
 
     Before: Commands inside a `transaction` in a reverted migration ran uninverted.

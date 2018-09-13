@@ -307,10 +307,10 @@ module ActiveRecord
       end
 
       include MonitorMixin
-      include QueryCache::ConnectionPoolConfiguration
 
       attr_accessor :automatic_reconnect, :checkout_timeout, :schema_cache
-      attr_reader :spec, :connections, :size, :reaper
+      attr_reader :spec, :connections, :size, :reaper, :handler
+
 
       # Creates a new ConnectionPool object. +spec+ is a ConnectionSpecification
       # object which describes database connection information (e.g. adapter,
@@ -318,10 +318,12 @@ module ActiveRecord
       # this ConnectionPool.
       #
       # The default ConnectionPool maximum size is 5.
-      def initialize(spec)
+      def initialize(spec, handler = ActiveRecord::Base.connection_handler)
         super()
 
         @spec = spec
+
+        @handler = handler
 
         @checkout_timeout = (spec.config[:checkout_timeout] && spec.config[:checkout_timeout].to_f) || 5
         if @idle_timeout = spec.config.fetch(:idle_timeout, 300)
@@ -363,6 +365,18 @@ module ActiveRecord
         reaping_frequency = spec.config.fetch(:reaping_frequency, 60)
         @reaper = Reaper.new(self, reaping_frequency && reaping_frequency.to_f)
         @reaper.run
+      end
+
+      def enable_query_cache!
+        @handler.enable_query_cache!
+      end
+
+      def disable_query_cache!
+        @handler.disable_query_cache!
+      end
+
+      def query_cache_enabled
+        @handler.query_cache_enabled
       end
 
       def lock_thread=(lock_thread)
@@ -647,6 +661,11 @@ module ActiveRecord
       end
 
       private
+
+        def connection_cache_key(thread)
+          handler.connection_cache_key(thread)
+        end
+
         #--
         # this is unfortunately not concurrent
         def bulk_make_new_connections(num_new_conns_needed)
@@ -659,14 +678,6 @@ module ActiveRecord
           end
         end
 
-        #--
-        # From the discussion on GitHub:
-        #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
-        # This hook-in method allows for easier monkey-patching fixes needed by
-        # JRuby users that use Fibers.
-        def connection_cache_key(thread)
-          thread
-        end
 
         # Take control of all existing connections so a "group" action such as
         # reload/disconnect can be performed safely. It is no longer enough to
@@ -915,6 +926,8 @@ module ActiveRecord
     # about the model. The model needs to pass a specification name to the handler,
     # in order to look up the correct connection pool.
     class ConnectionHandler
+      include QueryCache::ConnectionPoolConfiguration
+
       def self.unowned_pool_finalizer(pid_map) # :nodoc:
         lambda do |_|
           discard_unowned_pools(pid_map)
@@ -940,6 +953,8 @@ module ActiveRecord
         # Backup finalizer: if the forked child never needed a pool, the above
         # early discard has not occurred
         ObjectSpace.define_finalizer self, ConnectionHandler.unowned_pool_finalizer(@owner_to_pool)
+
+        super
       end
 
       def connection_pool_list
@@ -963,10 +978,19 @@ module ActiveRecord
         end
 
         message_bus.instrument("!connection.active_record", payload) do
-          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec)
+          owner_to_pool[spec.name] = ConnectionAdapters::ConnectionPool.new(spec, self)
         end
 
         owner_to_pool[spec.name]
+      end
+
+      #--
+      # From the discussion on GitHub:
+      #  https://github.com/rails/rails/pull/14938#commitcomment-6601951
+      # This hook-in method allows for easier monkey-patching fixes needed by
+      # JRuby users that use Fibers.
+      def connection_cache_key(thread)
+        thread
       end
 
       # Returns true if there are any active connections among the connection

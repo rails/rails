@@ -55,81 +55,6 @@ class QueryCacheTest < ActiveRecord::TestCase
     assert_cache :off
   end
 
-  def test_query_cache_across_threads
-    with_temporary_connection_pool do
-      begin
-        if in_memory_db?
-          # Separate connections to an in-memory database create an entirely new database,
-          # with an empty schema etc, so we just stub out this schema on the fly.
-          ActiveRecord::Base.connection_pool.with_connection do |connection|
-            connection.create_table :tasks do |t|
-              t.datetime :starting
-              t.datetime :ending
-            end
-          end
-          ActiveRecord::FixtureSet.create_fixtures(self.class.fixture_path, ["tasks"], {}, ActiveRecord::Base)
-        end
-
-        ActiveRecord::Base.connection_pool.connections.each do |conn|
-          assert_cache :off, conn
-        end
-
-        assert_not_predicate ActiveRecord::Base.connection, :nil?
-        assert_cache :off
-
-        middleware {
-          assert_cache :clean
-
-          Task.find 1
-          assert_cache :dirty
-
-          thread_1_connection = ActiveRecord::Base.connection
-          ActiveRecord::Base.clear_active_connections!
-          assert_cache :off, thread_1_connection
-
-          started = Concurrent::Event.new
-          checked = Concurrent::Event.new
-
-          thread_2_connection = nil
-          thread = Thread.new {
-            thread_2_connection = ActiveRecord::Base.connection
-
-            assert_equal thread_2_connection, thread_1_connection
-            assert_cache :off
-
-            middleware {
-              assert_cache :clean
-
-              Task.find 1
-              assert_cache :dirty
-
-              started.set
-              checked.wait
-
-              ActiveRecord::Base.clear_active_connections!
-            }.call({})
-          }
-
-          started.wait
-
-          thread_1_connection = ActiveRecord::Base.connection
-          assert_not_equal thread_1_connection, thread_2_connection
-          assert_cache :dirty, thread_2_connection
-          checked.set
-          thread.join
-
-          assert_cache :off, thread_2_connection
-        }.call({})
-
-        ActiveRecord::Base.connection_pool.connections.each do |conn|
-          assert_cache :off, conn
-        end
-      ensure
-        ActiveRecord::Base.connection_pool.disconnect!
-      end
-    end
-  end
-
   def test_middleware_delegates
     called = false
     mw = middleware { |env|
@@ -485,6 +410,39 @@ class QueryCacheTest < ActiveRecord::TestCase
     }.call({})
   end
 
+  test "query cache state is unaffected when another connection is checked in" do
+    with_temporary_connection_pool do
+      middleware {
+        ActiveRecord::Base.connection_pool.with_connection { }
+        assert_cache :clean
+      }.call({})
+    end
+  end
+
+  test "query cache on clear_active_connections" do
+    with_temporary_connection_pool do
+      ActiveRecord::Base.connection_pool.connections.each do |conn|
+        assert_cache :off, conn
+      end
+
+      assert_not_predicate ActiveRecord::Base.connection, :nil?
+      assert_cache :off
+
+      middleware do |env|
+        assert_cache :clean
+
+        Task.find 1
+        assert_cache :dirty
+
+        ActiveRecord::Base.clear_active_connections!
+
+        ActiveRecord::Base.connection_pool.connections.each do |conn|
+          assert_cache :off, conn
+        end
+      end.call({})
+    end
+  end
+
   private
 
     def with_temporary_connection_pool
@@ -613,5 +571,18 @@ class QueryCacheExpiryTest < ActiveRecord::TestCase
     thread_a.join
 
     assert_equal @connection_1, @connection_2
+  end
+
+  unless in_memory_db?
+    test "query cache is applied to all connections in pool regardless of when connection was added to pool" do
+      begin
+        ActiveRecord::Base.remove_connection("primary")
+        pools = ActiveRecord::QueryCache.run
+        ActiveRecord::Base.establish_connection(:arunit)
+        assert_predicate Post.connection, :query_cache_enabled
+      ensure
+        ActiveRecord::QueryCache.complete(pools)
+      end
+    end
   end
 end
