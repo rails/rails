@@ -33,12 +33,10 @@ module ActionController #:nodoc:
         types.each do |type|
           next if _flash_types.include?(type)
 
-          if respond_to? :helper_method
-            define_method(type) do
-              request.flash[type]
-            end
-            helper_method type
+          define_method(type) do
+            request.flash[type]
           end
+          helper_method(type) if respond_to?(:helper_method)
 
           self._flash_types += [type]
         end
