@@ -180,6 +180,8 @@ module ActiveRecord
 
       # Executes the SQL statement in the context of this connection.
       def execute(sql, name = nil)
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.query(sql)
@@ -239,7 +241,7 @@ module ActiveRecord
       end
 
       # Create a new MySQL database with optional <tt>:charset</tt> and <tt>:collation</tt>.
-      # Charset defaults to utf8.
+      # Charset defaults to utf8mb4.
       #
       # Example:
       #   create_database 'charset_test', charset: 'latin1', collation: 'latin1_bin'
@@ -249,7 +251,7 @@ module ActiveRecord
         if options[:collation]
           execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT COLLATE #{quote_table_name(options[:collation])}"
         else
-          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8')}"
+          execute "CREATE DATABASE #{quote_table_name(name)} DEFAULT CHARACTER SET #{quote_table_name(options[:charset] || 'utf8mb4')}"
         end
       end
 

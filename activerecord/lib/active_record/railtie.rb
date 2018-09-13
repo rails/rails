@@ -77,6 +77,10 @@ module ActiveRecord
       ActiveSupport.on_load(:active_record) { self.logger ||= ::Rails.logger }
     end
 
+    initializer "active_record.backtrace_cleaner" do
+      ActiveSupport.on_load(:active_record) { LogSubscriber.backtrace_cleaner = ::Rails.backtrace_cleaner }
+    end
+
     initializer "active_record.migration_error" do
       if config.active_record.delete(:migration_error) == :page_load
         config.app_middleware.insert_after ::ActionDispatch::Callbacks,
@@ -176,9 +180,7 @@ end_warning
     end
 
     initializer "active_record.set_executor_hooks" do
-      ActiveSupport.on_load(:active_record) do
-        ActiveRecord::QueryCache.install_executor_hooks
-      end
+      ActiveRecord::QueryCache.install_executor_hooks
     end
 
     initializer "active_record.add_watchable_files" do |app|
@@ -229,6 +231,12 @@ true by adding the following to your application.rb file:
 MSG
           end
         end
+      end
+    end
+
+    initializer "active_record.set_filter_attributes" do
+      ActiveSupport.on_load(:active_record) do
+        self.filter_attributes += Rails.application.config.filter_parameters
       end
     end
   end

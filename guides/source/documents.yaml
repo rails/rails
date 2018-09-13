@@ -202,6 +202,11 @@
       url: upgrading_ruby_on_rails.html
       description: This guide helps in upgrading applications to latest Ruby on Rails versions.
     -
+      name: Ruby on Rails 6.0 Release Notes
+      work_in_progress: true
+      url: 6_0_release_notes.html
+      description: Release notes for Rails 6.0.
+    -
       name: Ruby on Rails 5.2 Release Notes
       url: 5_2_release_notes.html
       description: Release notes for Rails 5.2.

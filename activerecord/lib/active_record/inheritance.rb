@@ -55,6 +55,10 @@ module ActiveRecord
         if has_attribute?(inheritance_column)
           subclass = subclass_from_attributes(attributes)
 
+          if subclass.nil? && scope_attributes = current_scope&.scope_for_create
+            subclass = subclass_from_attributes(scope_attributes)
+          end
+
           if subclass.nil? && base_class?
             subclass = subclass_from_attributes(column_defaults)
           end

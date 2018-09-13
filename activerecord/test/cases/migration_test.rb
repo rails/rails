@@ -793,12 +793,20 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
     end
 
     def test_adding_multiple_columns
-      assert_queries(1) do
+      classname = ActiveRecord::Base.connection.class.name[/[^:]*$/]
+      expected_query_count = {
+        "Mysql2Adapter"     => 1,
+        "PostgreSQLAdapter" => 2, # one for bulk change, one for comment
+      }.fetch(classname) {
+        raise "need an expected query count for #{classname}"
+      }
+
+      assert_queries(expected_query_count) do
         with_bulk_change_table do |t|
           t.column :name, :string
           t.string :qualification, :experience
           t.integer :age, default: 0
-          t.date :birthdate
+          t.date :birthdate, comment: "This is a comment"
           t.timestamps null: true
         end
       end
@@ -806,6 +814,7 @@ if ActiveRecord::Base.connection.supports_bulk_alter?
       assert_equal 8, columns.size
       [:name, :qualification, :experience].each { |s| assert_equal :string, column(s).type }
       assert_equal "0", column(:age).default
+      assert_equal "This is a comment", column(:birthdate).comment
     end
 
     def test_removing_columns

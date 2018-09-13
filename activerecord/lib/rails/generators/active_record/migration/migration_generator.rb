@@ -8,6 +8,7 @@ module ActiveRecord
       argument :attributes, type: :array, default: [], banner: "field[:type][:index] field[:type][:index]"
 
       class_option :primary_key_type, type: :string, desc: "The type for primary key"
+      class_option :migrations_paths, type: :string, desc: "The migration path for your generated migrations. If this is not set it will default to db/migrate"
 
       def create_migration_file
         set_local_assigns!

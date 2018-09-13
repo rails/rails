@@ -45,8 +45,8 @@ module ActionController #:nodoc:
   # the same origin. Note however that any cross-origin third party domain
   # allowed via {CORS}[https://en.wikipedia.org/wiki/Cross-origin_resource_sharing]
   # will also be able to create XHR requests. Be sure to check your
-  # CORS whitelist before disabling forgery protection for XHR.
-  # 
+  # CORS configuration before disabling forgery protection for XHR.
+  #
   # CSRF protection is turned on with the <tt>protect_from_forgery</tt> method.
   # By default <tt>protect_from_forgery</tt> protects your session with
   # <tt>:null_session</tt> method, which provides an empty session

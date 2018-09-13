@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-# The base controller for all ActiveStorage controllers.
+# The base class for all Active Storage controllers.
 class ActiveStorage::BaseController < ActionController::Base
-  protect_from_forgery with: :exception
+  include ActiveStorage::SetCurrent
 
-  before_action do
-    ActiveStorage::Current.host = request.base_url
-  end
+  protect_from_forgery with: :exception
 end

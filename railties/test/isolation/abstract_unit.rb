@@ -124,26 +124,53 @@ module TestHelpers
             primary:
               <<: *default
               database: db/development.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/development.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/development_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/development_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
           test:
             primary:
               <<: *default
               database: db/test.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/test.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/test_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/test_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              replica: true
           production:
             primary:
               <<: *default
               database: db/production.sqlite3
+            primary_readonly:
+              <<: *default
+              database: db/production.sqlite3
+              replica: true
             animals:
               <<: *default
               database: db/production_animals.sqlite3
               migrations_paths: db/animals_migrate
+            animals_readonly:
+              <<: *default
+              database: db/production_animals.sqlite3
+              migrations_paths: db/animals_migrate
+              readonly: true
           YAML
         end
       else
@@ -170,7 +197,6 @@ module TestHelpers
         config.eager_load = false
         config.session_store :cookie_store, key: "_myapp_session"
         config.active_support.deprecation = :log
-        config.active_support.test_order = :random
         config.action_controller.allow_forgery_protection = false
         config.log_level = :info
       RUBY
@@ -194,7 +220,6 @@ module TestHelpers
       @app.config.eager_load = false
       @app.config.session_store :cookie_store, key: "_myapp_session"
       @app.config.active_support.deprecation = :log
-      @app.config.active_support.test_order = :random
       @app.config.log_level = :info
 
       yield @app if block_given?

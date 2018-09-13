@@ -62,7 +62,7 @@ module ActiveRecord
     #   user = users.new { |user| user.name = 'Oscar' }
     #   user.name # => Oscar
     def new(attributes = nil, &block)
-      scoping { klass.new(scope_for_create(attributes), &block) }
+      scoping { klass.new(attributes, &block) }
     end
 
     alias build new
@@ -87,11 +87,7 @@ module ActiveRecord
     #   users.create(name: nil) # validation on name
     #   # => #<User id: nil, name: nil, ...>
     def create(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create(attr, &block) }
-      else
-        scoping { klass.create(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create(attributes, &block) }
     end
 
     # Similar to #create, but calls
@@ -101,11 +97,7 @@ module ActiveRecord
     # Expects arguments in the same format as
     # {ActiveRecord::Base.create!}[rdoc-ref:Persistence::ClassMethods#create!].
     def create!(attributes = nil, &block)
-      if attributes.is_a?(Array)
-        attributes.collect { |attr| create!(attr, &block) }
-      else
-        scoping { klass.create!(scope_for_create(attributes), &block) }
-      end
+      scoping { klass.create!(attributes, &block) }
     end
 
     def first_or_create(attributes = nil, &block) # :nodoc:
@@ -315,10 +307,7 @@ module ActiveRecord
     # Please check unscoped if you want to remove all previous scopes (including
     # the default_scope) during the execution of a block.
     def scoping
-      previous, klass.current_scope = klass.current_scope(true), self unless @delegate_to_klass
-      yield
-    ensure
-      klass.current_scope = previous unless @delegate_to_klass
+      @delegate_to_klass ? yield : klass._scoping(self) { yield }
     end
 
     def _exec_scope(*args, &block) # :nodoc:
@@ -375,8 +364,12 @@ module ActiveRecord
       @klass.connection.update stmt, "#{@klass} Update All"
     end
 
-    def update(attributes) # :nodoc:
-      each { |record| record.update(attributes) }
+    def update(id = :all, attributes) # :nodoc:
+      if id == :all
+        each { |record| record.update(attributes) }
+      else
+        klass.update(id, attributes)
+      end
     end
 
     def update_counters(counters) # :nodoc:
@@ -550,10 +543,8 @@ module ActiveRecord
       where_clause.to_h(relation_table_name)
     end
 
-    def scope_for_create(attributes = nil)
-      scope = where_values_hash.merge!(create_with_value.stringify_keys)
-      scope.merge!(attributes) if attributes
-      scope
+    def scope_for_create
+      where_values_hash.merge!(create_with_value.stringify_keys)
     end
 
     # Returns true if relation needs eager loading.

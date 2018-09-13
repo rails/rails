@@ -1,3 +1,13 @@
+*   Deprecate calling private model methods from view helpers.
+
+    For example, in methods like `options_from_collection_for_select`
+    and `collection_select` it is possible to call private methods from
+    the objects used.
+
+    Fixes #33546.
+
+    *Ana María Martínez Gómez*
+
 *   Fix issue with `button_to`'s `to_form_params`
 
     `button_to` was throwing exception when invoked with `params` hash that
@@ -66,7 +76,9 @@
     *Simon Coffey*
 
 *   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-    Example :
+
+    Example:
+
         Rails.confirm = function(message, element) {
           return (my_bootstrap_modal_confirm(message));
         }
@@ -74,7 +86,9 @@
     *Mathieu Mahé*
 
 *   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field. Example:
+    field.
+
+    Example:
 
         select :post,
                :category,
@@ -82,7 +96,9 @@
                { selected: "", disabled: "", prompt: "Choose one" },
                { required: true }
 
-    Placeholder option would be selected and disabled. The HTML produced:
+    Placeholder option would be selected and disabled.
+
+    The HTML produced:
 
         <select required="required" name="post[category]" id="post_category">
         <option disabled="disabled" selected="selected" value="">Choose one</option>

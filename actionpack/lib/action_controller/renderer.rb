@@ -81,7 +81,7 @@ module ActionController
     # * <tt>:html</tt> - Renders the provided HTML safe string, otherwise
     #   performs HTML escape on the string first. Sets the content type as <tt>text/html</tt>.
     # * <tt>:json</tt> - Renders the provided hash or object in JSON. You don't
-    #   need to call <tt>.to_json<tt> on the object you want to render.
+    #   need to call <tt>.to_json</tt> on the object you want to render.
     # * <tt>:body</tt> - Renders provided text and sets content type of <tt>text/plain</tt>.
     #
     # If no <tt>options</tt> hash is passed or if <tt>:update</tt> is specified, the default is

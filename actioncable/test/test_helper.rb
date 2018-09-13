@@ -15,6 +15,10 @@ end
 # Require all the stubs and models
 Dir[File.expand_path("stubs/*.rb", __dir__)].each { |file| require file }
 
+# Set test adapter and logger
+ActionCable.server.config.cable = { "adapter" => "test" }
+ActionCable.server.config.logger = Logger.new(nil)
+
 class ActionCable::TestCase < ActiveSupport::TestCase
   include ActiveSupport::Testing::MethodCallAssertions
 

@@ -1078,10 +1078,13 @@ class RequestParameterFilter < BaseRequestTest
       filter_words << lambda { |key, value|
         value.reverse! if key =~ /bargain/
       }
+      filter_words << lambda { |key, value, original_params|
+        value.replace("world!") if original_params["barg"]["blah"] == "bar" && key == "hello"
+      }
 
       parameter_filter = ActionDispatch::Http::ParameterFilter.new(filter_words)
-      before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo" } } }
-      after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]" } } }
+      before_filter["barg"] = { :bargain => "gain", "blah" => "bar", "bar" => { "bargain" => { "blah" => "foo", "hello" => "world" } } }
+      after_filter["barg"]  = { :bargain => "niag", "blah" => "[FILTERED]", "bar" => { "bargain" => { "blah" => "[FILTERED]", "hello" => "world!" } } }
 
       assert_equal after_filter, parameter_filter.filter(before_filter)
     end

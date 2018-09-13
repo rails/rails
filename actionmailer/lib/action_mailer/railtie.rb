@@ -49,7 +49,10 @@ module ActionMailer
         options.each { |k, v| send("#{k}=", v) }
       end
 
-      ActiveSupport.on_load(:action_dispatch_integration_test) { include ActionMailer::TestCase::ClearTestDeliveries }
+      ActiveSupport.on_load(:action_dispatch_integration_test) do
+        include ActionMailer::TestHelper
+        include ActionMailer::TestCase::ClearTestDeliveries
+      end
     end
 
     initializer "action_mailer.compile_config_methods" do

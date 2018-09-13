@@ -44,6 +44,7 @@ class LogSubscriberTest < ActiveRecord::TestCase
   def setup
     @old_logger = ActiveRecord::Base.logger
     Developer.primary_key
+    ActiveRecord::Base.connection.materialize_transactions
     super
     ActiveRecord::LogSubscriber.attach_to(:active_record)
   end

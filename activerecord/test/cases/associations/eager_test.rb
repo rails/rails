@@ -1571,8 +1571,9 @@ class EagerAssociationTest < ActiveRecord::TestCase
 
   # CollectionProxy#reader is expensive, so the preloader avoids calling it.
   test "preloading has_many_through association avoids calling association.reader" do
-    ActiveRecord::Associations::HasManyAssociation.any_instance.expects(:reader).never
-    Author.preload(:readonly_comments).first!
+    assert_not_called_on_instance_of(ActiveRecord::Associations::HasManyAssociation, :reader) do
+      Author.preload(:readonly_comments).first!
+    end
   end
 
   test "preloading through a polymorphic association doesn't require the association to exist" do

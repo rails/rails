@@ -186,6 +186,10 @@ module ActiveRecord
         true
       end
 
+      def supports_lazy_transactions?
+        true
+      end
+
       # REFERENTIAL INTEGRITY ====================================
 
       def disable_referential_integrity # :nodoc:
@@ -212,6 +216,8 @@ module ActiveRecord
       end
 
       def exec_query(sql, name = nil, binds = [], prepare: false)
+        materialize_transactions
+
         type_casted_binds = type_casted_binds(binds)
 
         log(sql, name, binds, type_casted_binds) do
@@ -252,6 +258,8 @@ module ActiveRecord
       end
 
       def execute(sql, name = nil) #:nodoc:
+        materialize_transactions
+
         log(sql, name) do
           ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
             @connection.execute(sql)
@@ -409,12 +417,23 @@ module ActiveRecord
 
         def alter_table(table_name, options = {})
           altered_table_name = "a#{table_name}"
-          caller = lambda { |definition| yield definition if block_given? }
+          foreign_keys = foreign_keys(table_name)
+
+          caller = lambda do |definition|
+            rename = options[:rename] || {}
+            foreign_keys.each do |fk|
+              if column = rename[fk.options[:column]]
+                fk.options[:column] = column
+              end
+              definition.foreign_key(fk.to_table, fk.options)
+            end
+
+            yield definition if block_given?
+          end
 
           transaction do
             disable_referential_integrity do
-              move_table(table_name, altered_table_name,
-                options.merge(temporary: true))
+              move_table(table_name, altered_table_name, options.merge(temporary: true))
               move_table(altered_table_name, table_name, &caller)
             end
           end
@@ -446,6 +465,7 @@ module ActiveRecord
                 primary_key: column_name == from_primary_key
               )
             end
+
             yield @definition if block_given?
           end
           copy_table_indexes(from, to, options[:rename] || {})

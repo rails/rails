@@ -5,6 +5,7 @@ module ActionCable
     extend ActiveSupport::Autoload
 
     autoload :Base
+    autoload :Test
     autoload :SubscriberMap
     autoload :ChannelPrefix
   end

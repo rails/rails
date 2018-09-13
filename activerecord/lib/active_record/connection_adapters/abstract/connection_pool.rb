@@ -188,7 +188,9 @@ module ActiveRecord
             t0 = Time.now
             elapsed = 0
             loop do
-              @cond.wait(timeout - elapsed)
+              ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
+                @cond.wait(timeout - elapsed)
+              end
 
               return remove if any?
 

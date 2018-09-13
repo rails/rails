@@ -20,11 +20,14 @@ addons:
     sources:
       - sourceline: "ppa:mc3man/trusty-media"
       - sourceline: "ppa:ubuntuhandbook1/apps"
+      - mysql-5.7-trusty
     packages:
       - ffmpeg
       - mupdf
       - mupdf-tools
       - poppler-utils
+      - mysql-server
+      - mysql-client
 
 bundler_args: --without test --jobs 3 --retry 3
 before_install:
@@ -37,6 +40,9 @@ before_install:
   - "[[ $GEM != 'av:ujs' ]] || nvm install node"
   - "[[ $GEM != 'av:ujs' ]] || node --version"
   - "[[ $GEM != 'av:ujs' ]] || (cd actionview && npm install)"
+  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql -e \"use mysql; update user set authentication_string='' where User='root'; update user set plugin='mysql_native_password';FLUSH PRIVILEGES;\""
+  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo mysql_upgrade"
+  - "[[ $GEM != 'ar:mysql2' ]] || [[ $MYSQL == 'mariadb' ]] || sudo service mysql restart"
 
 before_script:
   # Set Sauce Labs username and access key. Obfuscated, purposefully not encrypted.

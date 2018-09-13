@@ -1,3 +1,22 @@
+*   Expose `ActionController::Parameters#each_key` which allows iterating over
+    keys without allocating an array.
+
+    *Richard Schneeman*
+
+*   Purpose metadata for signed/encrypted cookies.
+
+    Rails can now thwart attacks that attempt to copy signed/encrypted value
+    of a cookie and use it as the value of another cookie.
+
+    It does so by stashing the cookie-name in the purpose field which is
+    then signed/encrypted along with the cookie value. Then, on a server-side
+    read, we verify the cookie-names and discard any attacked cookies.
+
+    Enable `action_dispatch.use_cookies_with_metadata` to use this feature, which
+    writes cookies with the new purpose and expiry metadata embedded.
+
+    *Assain Jaleel*
+
 *   Raises `ActionController::RespondToMismatchError` with confliciting `respond_to` invocations.
 
     `respond_to` can match multiple types and lead to undefined behavior when
@@ -23,7 +42,7 @@
 
     *Aaron Kromer*
 
-*   Pass along arguments to underlying `get` method in `follow_redirect!`
+*   Pass along arguments to underlying `get` method in `follow_redirect!`.
 
     Now all arguments passed to `follow_redirect!` are passed to the underlying
     `get` method. This for example allows to set custom headers for the
@@ -40,7 +59,7 @@
 
     *Vinicius Stock*
 
-*   Introduce ActionDispatch::DebugExceptions.register_interceptor
+*   Introduce `ActionDispatch::DebugExceptions.register_interceptor`.
 
     Exception aware plugin authors can use the newly introduced
     `.register_interceptor` method to get the processed exception, instead of

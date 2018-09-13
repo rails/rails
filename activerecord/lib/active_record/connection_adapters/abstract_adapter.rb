@@ -80,6 +80,8 @@ module ActiveRecord
       attr_reader :schema_cache, :owner, :logger, :prepared_statements, :lock
       alias :in_use? :owner
 
+      set_callback :checkin, :after, :enable_lazy_transactions!
+
       def self.type_cast_config_to_integer(config)
         if config.is_a?(Integer)
           config
@@ -119,6 +121,14 @@ module ActiveRecord
         else
           @prepared_statements = false
         end
+
+        @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
+          config.fetch(:advisory_locks, true)
+        )
+      end
+
+      def replica?
+        @config[:replica] || false
       end
 
       def migrations_paths # :nodoc:
@@ -338,12 +348,20 @@ module ActiveRecord
         false
       end
 
+      def supports_lazy_transactions?
+        false
+      end
+
       # This is meant to be implemented by the adapters that support extensions
       def disable_extension(name)
       end
 
       # This is meant to be implemented by the adapters that support extensions
       def enable_extension(name)
+      end
+
+      def advisory_locks_enabled? # :nodoc:
+        supports_advisory_locks? && @advisory_locks_enabled
       end
 
       # This is meant to be implemented by the adapters that support advisory
@@ -449,6 +467,7 @@ module ActiveRecord
       # This is useful for when you need to call a proprietary method such as
       # PostgreSQL's lo_* methods.
       def raw_connection
+        disable_lazy_transactions!
         @connection
       end
 
@@ -475,11 +494,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        column_name_from_arel_node(node)
-      end
-
-      def column_name_from_arel_node(node) # :nodoc:
-        visitor.accept(node, Arel::Collectors::SQLString.new).value
+        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:

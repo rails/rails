@@ -28,13 +28,16 @@ module ActiveRecord
       end
 
       def test_establish_connection_uses_spec_name
+        old_config = ActiveRecord::Base.configurations
         config = { "readonly" => { "adapter" => "sqlite3" } }
-        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(config)
+        ActiveRecord::Base.configurations = config
+        resolver = ConnectionAdapters::ConnectionSpecification::Resolver.new(ActiveRecord::Base.configurations)
         spec =   resolver.spec(:readonly)
         @handler.establish_connection(spec.to_hash)
 
         assert_not_nil @handler.retrieve_connection_pool("readonly")
       ensure
+        ActiveRecord::Base.configurations = old_config
         @handler.remove_connection("readonly")
       end
 

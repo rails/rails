@@ -9,7 +9,7 @@ class TextHelperTest < ActionView::TestCase
     super
     # This simulates the fact that instance variables are reset every time
     # a view is rendered.  The cycle helper depends on this behavior.
-    @_cycles = nil if (defined? @_cycles)
+    @_cycles = nil if defined?(@_cycles)
   end
 
   def test_concat

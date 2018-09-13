@@ -371,6 +371,39 @@ class LoadingTest < ActiveSupport::TestCase
     end
   end
 
+  test "active record query cache hooks are installed before first request" do
+    app_file "app/controllers/omg_controller.rb", <<-RUBY
+      begin
+        class OmgController < ActionController::Metal
+          ActiveSupport.run_load_hooks(:action_controller, self)
+          def show
+            if ActiveRecord::Base.connection.query_cache_enabled
+              self.response_body = ["Query cache is enabled."]
+            else
+              self.response_body = ["Expected ActiveRecord::Base.connection.query_cache_enabled to be true"]
+            end
+          end
+        end
+      rescue => e
+        puts "Error loading metal: \#{e.class} \#{e.message}"
+      end
+    RUBY
+
+    app_file "config/routes.rb", <<-RUBY
+      Rails.application.routes.draw do
+        get "/:controller(/:action)"
+      end
+    RUBY
+
+    require "#{rails_root}/config/environment"
+
+    require "rack/test"
+    extend Rack::Test::Methods
+
+    get "/omg/show"
+    assert_equal "Query cache is enabled.", last_response.body
+  end
+
   private
 
     def setup_ar!

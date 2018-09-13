@@ -104,7 +104,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.filter_parameters` used for filtering out the parameters that
 you don't want shown in the logs, such as passwords or credit card
-numbers. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
@@ -211,7 +211,7 @@ The full set of methods that can be used in this block are as follows:
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
-* `test_framework` defines which test framework to use. Defaults to `false` and will use Minitest by default.
+* `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
 
 ### Configuring Middleware
@@ -275,7 +275,7 @@ config.middleware.delete Rack::MethodOverride
 
 All these configuration options are delegated to the `I18n` library.
 
-* `config.i18n.available_locales` whitelists the available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
+* `config.i18n.available_locales` defines the permitted available locales for the app. Defaults to all locale keys found in locale files, usually only `:en` on a new application.
 
 * `config.i18n.default_locale` sets the default locale of an application used for i18n. Defaults to `:en`.
 
@@ -444,7 +444,7 @@ The schema dumper adds two additional configuration options:
 
 * `config.action_controller.action_on_unpermitted_parameters` enables logging or raising an exception if parameters that are not explicitly permitted are found. Set to `:log` or `:raise` to enable. The default value is `:log` in development and test environments, and `false` in all other environments.
 
-* `config.action_controller.always_permitted_parameters` sets a list of whitelisted parameters that are permitted by default. The default values are `['controller', 'action']`.
+* `config.action_controller.always_permitted_parameters` sets a list of permitted parameters that are permitted by default. The default values are `['controller', 'action']`.
 
 * `config.action_controller.enable_fragment_cache_logging` determines whether to log fragment cache reads and writes in verbose format as follows:
 
@@ -515,6 +515,9 @@ Defaults to `'signed cookie'`.
 * `config.action_dispatch.use_authenticated_cookie_encryption` controls whether
   signed and encrypted cookies use the AES-256-GCM cipher or
   the older AES-256-CBC cipher. It defaults to `true`.
+
+* `config.action_dispatch.use_cookies_with_metadata` enables writing
+  cookies with the purpose and expiry metadata embedded. It defaults to `true`.
 
 * `config.action_dispatch.perform_deep_munge` configures whether `deep_munge`
   method should be performed on the parameters. See [Security Guide](security.html#unsafe-query-generation)
@@ -908,7 +911,15 @@ $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database"}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost"}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Here the adapter, host, and database match the information in `ENV['DATABASE_URL']`.
@@ -925,7 +936,15 @@ $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"postgresql", "host"=>"localhost", "database"=>"my_database", "pool"=>5}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"postgresql", "database"=>"my_database", "host"=>"localhost", "pool"=>5}
+    @url="postgresql://localhost/my_database">
+  ]
 ```
 
 Since pool is not in the `ENV['DATABASE_URL']` provided connection information its information is merged in. Since `adapter` is duplicate, the `ENV['DATABASE_URL']` connection information wins.
@@ -941,7 +960,15 @@ $ echo $DATABASE_URL
 postgresql://localhost/my_database
 
 $ rails runner 'puts ActiveRecord::Base.configurations'
-{"development"=>{"adapter"=>"sqlite3", "database"=>"NOT_my_database"}}
+#<ActiveRecord::DatabaseConfigurations:0x00007fd50e209a28>
+
+$ rails runner 'puts ActiveRecord::Base.configurations.inspect'
+#<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
+  #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
+    @env_name="development", @spec_name="primary",
+    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database"}
+    @url="sqlite3:NOT_my_database">
+  ]
 ```
 
 Here the connection information in `ENV['DATABASE_URL']` is ignored, note the different adapter and database name.
@@ -989,6 +1016,14 @@ development:
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
 
+Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
+
+```yaml
+production:
+  adapter: mysql2
+  advisory_locks: false
+```
+
 #### Configuring a PostgreSQL Database
 
 If you choose to use PostgreSQL, your `config/database.yml` will be customized to use PostgreSQL databases:
@@ -1001,12 +1036,13 @@ development:
   pool: 5
 ```
 
-Prepared Statements are enabled by default on PostgreSQL. You can disable prepared statements by setting `prepared_statements` to `false`:
+By default Active Record uses database features like prepared statements and advisory locks. You might need to disable those features if you're using an external connection pooler like PgBouncer:
 
 ```yaml
 production:
   adapter: postgresql
   prepared_statements: false
+  advisory_locks: false
 ```
 
 If enabled, Active Record will create up to `1000` prepared statements per database connection by default. To modify this behavior you can set `statement_limit` to a different value:

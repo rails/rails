@@ -87,7 +87,7 @@ module Rails
         @filters = [ @named_filter, *derive_line_filters(patterns) ].compact
       end
 
-      # Minitest uses === to find matching filters.
+      # minitest uses === to find matching filters.
       def ===(method)
         @filters.any? { |filter| filter === method }
       end
@@ -96,7 +96,7 @@ module Rails
         def derive_named_filter(filter)
           if filter.respond_to?(:named_filter)
             filter.named_filter
-          elsif filter =~ %r%/(.*)/% # Regexp filtering copied from Minitest.
+          elsif filter =~ %r%/(.*)/% # Regexp filtering copied from minitest.
             Regexp.new $1
           elsif filter.is_a?(String)
             filter

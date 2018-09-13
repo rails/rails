@@ -398,7 +398,7 @@ module ActiveRecord
 
       def limited_ids_for(relation)
         values = @klass.connection.columns_for_distinct(
-          connection.column_name_from_arel_node(arel_attribute(primary_key)),
+          connection.visitor.compile(arel_attribute(primary_key)),
           relation.order_values
         )
 

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "active_support/core_ext/object/duplicable"
+require "active_support/core_ext/array/extract"
 
 module ActionDispatch
   module Http
@@ -38,8 +39,8 @@ module ActionDispatch
             end
           end
 
-          deep_regexps, regexps = regexps.partition { |r| r.to_s.include?("\\.".freeze) }
-          deep_strings, strings = strings.partition { |s| s.include?("\\.".freeze) }
+          deep_regexps = regexps.extract! { |r| r.to_s.include?("\\.".freeze) }
+          deep_strings = strings.extract! { |s| s.include?("\\.".freeze) }
 
           regexps << Regexp.new(strings.join("|".freeze), true) unless strings.empty?
           deep_regexps << Regexp.new(deep_strings.join("|".freeze), true) unless deep_strings.empty?
@@ -55,23 +56,23 @@ module ActionDispatch
           @blocks = blocks
         end
 
-        def call(original_params, parents = [])
-          filtered_params = original_params.class.new
+        def call(params, parents = [], original_params = params)
+          filtered_params = params.class.new
 
-          original_params.each do |key, value|
+          params.each do |key, value|
             parents.push(key) if deep_regexps
             if regexps.any? { |r| key =~ r }
               value = FILTERED
             elsif deep_regexps && (joined = parents.join(".")) && deep_regexps.any? { |r| joined =~ r }
               value = FILTERED
             elsif value.is_a?(Hash)
-              value = call(value, parents)
+              value = call(value, parents, original_params)
             elsif value.is_a?(Array)
-              value = value.map { |v| v.is_a?(Hash) ? call(v, parents) : v }
+              value = value.map { |v| v.is_a?(Hash) ? call(v, parents, original_params) : v }
             elsif blocks.any?
               key = key.dup if key.duplicable?
               value = value.dup if value.duplicable?
-              blocks.each { |b| b.call(key, value) }
+              blocks.each { |b| b.arity == 2 ? b.call(key, value) : b.call(key, value, original_params) }
             end
             parents.pop if deep_regexps
 

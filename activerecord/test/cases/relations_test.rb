@@ -9,6 +9,7 @@ require "models/comment"
 require "models/author"
 require "models/entrant"
 require "models/developer"
+require "models/project"
 require "models/person"
 require "models/computer"
 require "models/reply"
@@ -1405,6 +1406,16 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal "cock", hens.new.name
   end
 
+  def test_create_with_nested_attributes
+    assert_difference("Project.count", 1) do
+      developers = Developer.where(name: "Aaron")
+      developers = developers.create_with(
+        projects_attributes: [{ name: "p1" }]
+      )
+      developers.create!
+    end
+  end
+
   def test_except
     relation = Post.where(author_id: 1).order("id ASC").limit(1)
     assert_equal [posts(:welcome)], relation.to_a
@@ -1577,6 +1588,24 @@ class RelationTest < ActiveRecord::TestCase
     topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
     topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
     topics.update(title: "adequaterecord")
+
+    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
+
+    assert_equal "adequaterecord", topic1.reload.title
+    assert_equal "adequaterecord", topic2.reload.title
+    # Testing that the before_update callbacks have run
+    assert_equal "David", topic1.reload.author_name
+    assert_equal "David", topic2.reload.author_name
+  end
+
+  def test_update_with_ids_on_relation
+    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
+    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
+    topics = TopicWithCallbacks.none
+    topics.update(
+      [topic1.id, topic2.id],
+      [{ title: "adequaterecord" }, { title: "adequaterecord" }]
+    )
 
     assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
 

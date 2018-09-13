@@ -16,7 +16,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "New <%= class_name.titleize %>"
 
     <%- attributes_hash.each do |attr, value| -%>
-    fill_in "<%= attr.humanize.titleize %>", with: <%= value %>
+    fill_in "<%= attr.humanize %>", with: <%= value %>
     <%- end -%>
     click_on "Create <%= human_name %>"
 
@@ -29,7 +29,7 @@ class <%= class_name.pluralize %>Test < ApplicationSystemTestCase
     click_on "Edit", match: :first
 
     <%- attributes_hash.each do |attr, value| -%>
-    fill_in "<%= attr.humanize.titleize %>", with: <%= value %>
+    fill_in "<%= attr.humanize %>", with: <%= value %>
     <%- end -%>
     click_on "Update <%= human_name %>"
 

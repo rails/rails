@@ -9,8 +9,6 @@ gemspec
 # We need a newish Rake since Active Job sets its test tasks' descriptions.
 gem "rake", ">= 11.1"
 
-gem "mocha"
-
 gem "capybara", ">= 2.15"
 
 gem "rack-cache", "~> 1.2"
@@ -47,7 +45,6 @@ gem "dalli"
 gem "listen", ">= 3.0.5", "< 3.2", require: false
 gem "libxml-ruby", platforms: :ruby
 gem "connection_pool", require: false
-gem "i18n", "~> 1.0.1"
 
 # for railties app_generator_test
 gem "bootsnap", ">= 1.1.0", require: false
@@ -90,7 +87,6 @@ group :storage do
   gem "azure-storage", require: false
 
   gem "image_processing", "~> 1.2"
-  gem "ffi", "<= 1.9.21"
 end
 
 group :ujs do
@@ -125,7 +121,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
   gem "sqlite3", "~> 1.3.6"
 
   group :db do
-    gem "pg", ">= 0.18.0"
+    gem "pg", ">= 0.18.0", "< 1.1"
     gem "mysql2", ">= 0.4.10"
   end
 end
