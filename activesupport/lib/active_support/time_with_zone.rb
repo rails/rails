@@ -173,6 +173,12 @@ module ActiveSupport
       end
     end
 
+    def to_yaml(options = {})
+      return super if defined?(YAML::ENGINE) && !YAML::ENGINE.syck?
+
+      utc.to_yaml(options)
+    end
+
     # Returns a string of the object's date and time in the format used by
     # HTTP requests.
     #
