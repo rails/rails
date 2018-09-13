@@ -10,6 +10,7 @@ module ActiveRecord
   # application's database configuration hash or url string.
   class DatabaseConfigurations
     attr_reader :configurations
+    delegate :any?, to: :configurations
 
     def initialize(configurations = {})
       @configurations = build_configs(configurations)
