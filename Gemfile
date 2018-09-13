@@ -122,7 +122,7 @@ platforms :ruby, :mswin, :mswin64, :mingw, :x64_mingw do
 
   group :db do
     gem "pg", ">= 0.18.0", "< 1.1"
-    gem "mysql2", ">= 0.4.10"
+    gem "mysql2", "~> 0.5.0"
   end
 end
 
