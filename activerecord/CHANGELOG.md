@@ -1,3 +1,15 @@
+*   SQLite3 adapter supports expression indexes
+
+    ```
+    create_table :users do |t|
+      t.string :email
+    end
+
+    add_index :users, 'lower(email)', name: 'index_users_on_email', unique: true
+    ```
+
+    *Gray Kemmey*
+
 *   Allow subclasses to redefine autosave callbacks for associated records.
 
     Fixes #33305.

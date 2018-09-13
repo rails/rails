@@ -125,6 +125,10 @@ module ActiveRecord
         true
       end
 
+      def supports_expression_index?
+        sqlite_version >= "3.9.0"
+      end
+
       def requires_reloading?
         true
       end

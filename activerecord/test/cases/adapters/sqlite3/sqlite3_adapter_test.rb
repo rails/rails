@@ -345,6 +345,41 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_expression_index?
+        def test_expression_index
+          with_example_table do
+            @conn.add_index "ex", "abs(number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal %w{ abs(number) }, index.columns
+          end
+        end
+
+        def test_expression_index_with_where
+          with_example_table do
+            @conn.add_index "ex", "id % 10, abs(number)", name: "expression", where: "id > 1000"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal ["id % 10", "abs(number)"], index.columns
+            assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_complicated_expression
+          with_example_table do
+            @conn.add_index "ex", "id % 10, (CASE WHEN number > 0 THEN abs(number) END)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal ["id % 10", "(CASE WHEN number > 0 THEN abs(number) END)"], index.columns
+          end
+        end
+
+        def test_not_everything_an_expression
+          with_example_table do
+            @conn.add_index "ex", %w{ id abs(number) }, name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal %w{ id abs(number) }.sort, index.columns.sort
+          end
+        end
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @conn.primary_key("ex")

@@ -21,10 +21,14 @@ module ActiveRecord
               WHERE name = #{quote(row['name'])} AND type = 'index'
             SQL
 
-            /\sWHERE\s+(?<where>.+)$/i =~ index_sql
+            /\sON\s+"(\w+?)"\s+\((?<expressions>.+?)\)(\sWHERE\s+(?<where>.+))?$/i =~ index_sql
 
             columns = exec_query("PRAGMA index_info(#{quote(row['name'])})", "SCHEMA").map do |col|
               col["name"]
+            end
+
+            if columns.any?(&:nil?) # index created with an expression
+              columns = expressions.split(", ").map { |e| e.gsub(/^\"|\"?$/, "") }
             end
 
             # Add info on sort order for columns (only desc order is explicitly specified, asc is
