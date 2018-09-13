@@ -387,7 +387,9 @@ module ActionView
           # details.
           match = filename.match(regex)
           EXTENSIONS.keys.reverse.map do |ext|
-            if match[ext].nil?
+            if ext == :variants && details[ext] == :any
+              match[ext].nil? ? 0 : 1
+            elsif match[ext].nil?
               # No match should be last
               details[ext].length
             else
