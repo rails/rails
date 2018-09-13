@@ -1,3 +1,9 @@
+*   Allow subclasses to redefine autosave callbacks for associated records.
+
+    Fixes #33305.
+
+    *Andrey Subbota*
+
 *   Bump minimum MySQL version to 5.5.8.
 
     *Yasuo Honda*
