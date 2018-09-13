@@ -19,10 +19,11 @@ module ActiveRecord
           when 0 then NullPredicate
           when 1 then predicate_builder.build(attribute, values.first)
           else
-            bind_values = values.map do |v|
-              predicate_builder.build_bind_attribute(attribute.name, v)
-            end
-            attribute.in(bind_values)
+            values.map! do |v|
+              attr = predicate_builder.build_query_attribute(attribute.name, v)
+              attr.value_for_database if attr.boundable?
+            end.compact!
+            values.empty? ? NullPredicate : attribute.in(values)
           end
 
         unless nils.empty?

@@ -18,6 +18,7 @@ require "models/job"
 require "models/subscriber"
 require "models/subscription"
 require "models/book"
+require "models/citation"
 require "models/developer"
 require "models/computer"
 require "models/project"
@@ -28,6 +29,18 @@ require "models/categorization"
 require "models/sponsor"
 require "models/mentor"
 require "models/contract"
+
+class EagerLoadingTooManyIdsTest < ActiveRecord::TestCase
+  fixtures :citations
+
+  def test_preloading_too_many_ids
+    assert_equal Citation.count, Citation.preload(:citations).to_a.size
+  end
+
+  def test_eager_loading_too_may_ids
+    assert_equal Citation.count, Citation.eager_load(:citations).offset(0).size
+  end
+end
 
 class EagerAssociationTest < ActiveRecord::TestCase
   fixtures :posts, :comments, :authors, :essays, :author_addresses, :categories, :categories_posts,
