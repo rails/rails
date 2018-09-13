@@ -1,5 +1,5 @@
 language: ruby
-sudo: false
+sudo: true
 
 cache:
   directories:
@@ -77,3 +77,7 @@ notifications:
     on_failure: always
     rooms:
       - secure: "YA1alef1ESHWGFNVwvmVGCkMe4cUy4j+UcNvMUESraceiAfVyRMAovlQBGs6\n9kBRm7DHYBUXYC2ABQoJbQRLDr/1B5JPf/M8+Qd7BKu8tcDC03U01SMHFLpO\naOs/HLXcDxtnnpL07tGVsm0zhMc5N8tq4/L3SHxK7Vi+TacwQzI="
+
+after_failure:
+  - sudo cat /var/log/postgresql/postgresql-*-main.log
+  - sudo df -k
