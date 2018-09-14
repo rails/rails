@@ -142,10 +142,12 @@ module ActiveRecord
         end
 
         def preloaders_for_reflection(reflection, records, scope)
-          records.group_by { |record| record.association(reflection.name).klass }.map do |rhs_klass, rs|
-            loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
-            loader.run self
-            loader
+          records.group_by { |record| record.association(reflection.name).klass }.flat_map do |rhs_klass, rs|
+            [AlreadyLoaded, preloader_for(reflection)]
+              .zip(rs.partition { |owner| owner.association(reflection.name).loaded? })
+              .reject { |_, owners| owners.empty? }
+              .map { |preloader, owners| preloader.new(rhs_klass, owners, reflection, scope) }
+              .each { |loader| loader.run self }
           end
         end
 
@@ -179,10 +181,7 @@ module ActiveRecord
         # Returns a class containing the logic needed to load preload the data
         # and attach it to a relation. The class returned implements a `run` method
         # that accepts a preloader.
-        def preloader_for(reflection, owners)
-          if owners.first.association(reflection.name).loaded?
-            return AlreadyLoaded
-          end
+        def preloader_for(reflection)
           reflection.check_preloadable!
 
           if reflection.options[:through]
