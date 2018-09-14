@@ -832,6 +832,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is 5 minutes.
 
+* `config.active_storage.routes_prefix` can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+
+  ```ruby
+  config.active_storage.routes_prefix = '/files'
+  ```
+
+  The default is `/rails/active_storage`
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
