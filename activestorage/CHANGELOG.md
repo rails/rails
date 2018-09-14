@@ -1,3 +1,7 @@
+*   Add `ActiveStorage.routes_prefix` for configuring generated routes.
+
+    *Chris Bisnett*
+
 *   `ActiveStorage::Service::AzureStorageService` only handles specifically
     relevant types of `Azure::Core::Http::HTTPError`. It previously obscured
     other types of `HTTPError`, which is the azure-storage gem’s catch-all
