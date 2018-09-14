@@ -487,9 +487,12 @@ module ActiveRecord
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map(&:name)
-            columns = index.columns.map { |c| rename[c] || c }.select do |column|
-              to_column_names.include?(column)
+            columns = index.columns
+            if columns.is_a?(Array)
+              to_column_names = columns(to).map(&:name)
+              columns = columns.map { |c| rename[c] || c }.select do |column|
+                to_column_names.include?(column)
+              end
             end
 
             unless columns.empty?

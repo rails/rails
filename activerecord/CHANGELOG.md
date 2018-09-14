@@ -1,4 +1,4 @@
-*   SQLite3 adapter supports expression indexes
+*   SQLite3 adapter supports expression indexes.
 
     ```
     create_table :users do |t|
