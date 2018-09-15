@@ -229,18 +229,23 @@ module Rails
       else
         yaml = Pathname.new("#{paths["config"].existent.first}/#{name}.yml")
       end
+      path = yaml.to_path
 
       if yaml.exist?
-        require "erb"
-        require "active_support/ordered_options"
-
-        config = (YAML.load(ERB.new(yaml.read).result) || {})[env] || {}
-        ActiveSupport::InheritableOptions.new(config.deep_symbolize_keys)
+        @config_for ||= {}
+        @config_for[path] ||= yaml.read
       else
-        raise "Could not load configuration. No such file - #{yaml}"
+        raise "Could not load configuration. No such file - #{path}"
       end
+
+      require "erb"
+      require "active_support/ordered_options"
+
+      config = YAML.load(ERB.new(@config_for[path]).result) || {}
+
+      ActiveSupport::InheritableOptions.new((config[env] || {}).deep_symbolize_keys)
     rescue Psych::SyntaxError => e
-      raise "YAML syntax error occurred while parsing #{yaml}. " \
+      raise "YAML syntax error occurred while parsing #{path}. " \
         "Please note that YAML must be consistently indented using spaces. Tabs are not allowed. " \
         "Error: #{e.message}"
     end
