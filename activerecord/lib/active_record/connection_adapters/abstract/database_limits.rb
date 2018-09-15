@@ -62,6 +62,11 @@ module ActiveRecord
       def joins_per_query
         256
       end
+
+      private
+        def bind_params_length
+          65535
+        end
     end
   end
 end
