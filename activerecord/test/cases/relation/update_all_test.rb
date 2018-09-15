@@ -94,6 +94,14 @@ class UpdateAllTest < ActiveRecord::TestCase
     assert_equal posts(:welcome),  comments(:greetings).post
   end
 
+  def test_update_counters_with_joins
+    assert_nil pets(:parrot).integer
+
+    Pet.joins(:toys).where(toys: { name: "Bone" }).update_counters(integer: 1)
+
+    assert_equal 1, pets(:parrot).reload.integer
+  end
+
   def test_touch_all_updates_records_timestamps
     david = developers(:david)
     david_previously_updated_at = david.updated_at
