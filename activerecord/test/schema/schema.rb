@@ -1077,6 +1077,16 @@ ActiveRecord::Schema.define do
   create_table :non_primary_keys, force: true, id: false do |t|
     t.integer :id
   end
+
+  create_table :panes, force: true do |t|
+    t.string :name
+    t.integer :window_id
+  end
+
+  create_table :windows, force: true do |t|
+    t.string :name
+    t.integer :panes_count, default: 0, null: false
+  end
 end
 
 Course.connection.create_table :courses, force: true do |t|
