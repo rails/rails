@@ -88,7 +88,6 @@ module ActiveRecord
         if records.empty?
           []
         else
-          records.uniq!
           Array.wrap(associations).flat_map { |association|
             preloaders_on association, records, preload_scope
           }
