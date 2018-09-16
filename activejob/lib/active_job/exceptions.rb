@@ -46,18 +46,15 @@ module ActiveJob
       #  end
       def retry_on(*exceptions, wait: 3.seconds, attempts: 5, queue: nil, priority: nil)
         rescue_from(*exceptions) do |error|
-          payload = {
-            job: self,
-            adapter: self.class.queue_adapter,
-            error: error,
-            wait: wait
-          }
-
           if executions < attempts
-            ActiveSupport::Notifications.instrument("enqueue_retry.active_job", payload) do
-              retry_job wait: determine_delay(wait), queue: queue, priority: priority
-            end
+            retry_job wait: determine_delay(wait), queue: queue, priority: priority, error: error
           else
+            payload = {
+              job: self,
+              adapter: self.class.queue_adapter,
+              error: error
+            }
+
             if block_given?
               ActiveSupport::Notifications.instrument("retry_stopped.active_job", payload) do
                 yield self, error
@@ -127,7 +124,16 @@ module ActiveJob
     #    end
     #  end
     def retry_job(options = {})
-      enqueue options
+      payload = {
+        job: self,
+        adapter: self.class.queue_adapter,
+        error: options[:error],
+        wait: options[:wait]
+      }
+
+      ActiveSupport::Notifications.instrument("enqueue_retry.active_job", payload) do
+        enqueue options
+      end
     end
 
     private
