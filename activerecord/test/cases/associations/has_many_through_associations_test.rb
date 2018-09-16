@@ -71,6 +71,15 @@ class HasManyThroughAssociationsTest < ActiveRecord::TestCase
                  club1.members.sort_by(&:id)
   end
 
+  def test_preload_multiple_instances_of_the_same_record
+    club = Club.create!(name: "Aaron cool banana club")
+    Membership.create! club: club, member: Member.create!(name: "Aaron")
+    Membership.create! club: club, member: Member.create!(name: "Bob")
+
+    preloaded_clubs = Club.joins(:memberships).preload(:membership).to_a
+    assert_no_queries { preloaded_clubs.each(&:membership) }
+  end
+
   def test_ordered_has_many_through
     person_prime = Class.new(ActiveRecord::Base) do
       def self.name; "Person"; end
