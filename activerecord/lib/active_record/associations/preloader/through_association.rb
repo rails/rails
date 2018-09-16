@@ -5,7 +5,7 @@ module ActiveRecord
     class Preloader
       class ThroughAssociation < Association # :nodoc:
         def run(preloader)
-          already_loaded     = owners.first.association(through_reflection.name).loaded?
+          owners_already_loaded = owners.map { |owner| owner.association(through_reflection.name).loaded? }
           through_scope      = through_scope()
           reflection_scope   = target_reflection_scope
           through_preloaders = preloader.preload(owners, through_reflection.name, through_scope)
@@ -13,7 +13,7 @@ module ActiveRecord
           preloaders         = preloader.preload(middle_records, source_reflection.name, reflection_scope)
           @preloaded_records = preloaders.flat_map(&:preloaded_records)
 
-          owners.each do |owner|
+          owners.zip(owners_already_loaded) do |owner, already_loaded|
             through_records = Array(owner.association(through_reflection.name).target)
             if already_loaded
               if source_type = reflection.options[:source_type]
