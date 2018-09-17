@@ -1169,7 +1169,7 @@ module ActiveRecord
 
       def migrations_path=(path)
         ActiveSupport::Deprecation.warn \
-          "ActiveRecord::Migrator.migrations_paths= is now deprecated and will be removed in Rails 6.0." \
+          "`ActiveRecord::Migrator.migrations_path=` is now deprecated and will be removed in Rails 6.0. " \
           "You can set the `migrations_paths` on the `connection` instead through the `database.yml`."
         self.migrations_paths = [path]
       end
