@@ -1,0 +1,10 @@
+class CreateActionMailboxTables < ActiveRecord::Migration[5.2]
+  def change
+    create_table :action_mailbox_inbound_emails do |t|
+      t.integer :status, default: 0, null: false
+
+      t.datetime :created_at, precision: 6
+      t.datetime :updated_at, precision: 6
+    end
+  end
+end
