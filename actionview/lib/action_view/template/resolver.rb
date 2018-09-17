@@ -221,9 +221,7 @@ module ActionView
       end
 
       def query(path, details, formats, outside_app_allowed)
-        query = build_query(path, details)
-
-        template_paths = find_template_paths(query)
+        template_paths = find_template_paths_from_details(path, details)
         template_paths = reject_files_external_to_app(template_paths) unless outside_app_allowed
 
         template_paths.map do |template|
@@ -241,6 +239,11 @@ module ActionView
 
       def reject_files_external_to_app(files)
         files.reject { |filename| !inside_path?(@path, filename) }
+      end
+
+      def find_template_paths_from_details(path, details)
+        query = build_query(path, details)
+        find_template_paths(query)
       end
 
       def find_template_paths(query)
@@ -362,19 +365,56 @@ module ActionView
 
   # An Optimized resolver for Rails' most common case.
   class OptimizedFileSystemResolver < FileSystemResolver #:nodoc:
-    def build_query(path, details)
-      query = escape_entry(File.join(@path, path))
+    private
 
-      exts = EXTENSIONS.map do |ext, prefix|
-        if ext == :variants && details[ext] == :any
-          "{#{prefix}*,}"
-        else
-          "{#{details[ext].compact.uniq.map { |e| "#{prefix}#{e}," }.join}}"
+      def find_template_paths_from_details(path, details)
+        # Instead of checking for every possible path, as our other globs would
+        # do, scan the directory for files with the right prefix.
+        query = "#{escape_entry(File.join(@path, path))}*"
+
+        regex = build_regex(path, details)
+
+        Dir[query].uniq.reject do |filename|
+          # This regex match does double duty of finding only files which match
+          # details (instead of just matching the prefix) and also filtering for
+          # case-insensitive file systems.
+          !filename.match(regex) ||
+            File.directory?(filename)
+        end.sort_by do |filename|
+          # Because we scanned the directory, instead of checking for files
+          # one-by-one, they will be returned in an arbitrary order.
+          # We can use the matches found by the regex and sort by their index in
+          # details.
+          match = filename.match(regex)
+          EXTENSIONS.keys.reverse.map do |ext|
+            if ext == :variants && details[ext] == :any
+              match[ext].nil? ? 0 : 1
+            elsif match[ext].nil?
+              # No match should be last
+              details[ext].length
+            else
+              found = match[ext].to_sym
+              details[ext].index(found)
+            end
+          end
         end
-      end.join
+      end
 
-      query + exts
-    end
+      def build_regex(path, details)
+        query = escape_entry(File.join(@path, path))
+        exts = EXTENSIONS.map do |ext, prefix|
+          match =
+            if ext == :variants && details[ext] == :any
+              ".*?"
+            else
+              details[ext].compact.uniq.map { |e| Regexp.escape(e) }.join("|")
+            end
+          prefix = Regexp.escape(prefix)
+          "(#{prefix}(?<#{ext}>#{match}))?"
+        end.join
+
+        %r{\A#{query}#{exts}\z}
+      end
   end
 
   # The same as FileSystemResolver but does not allow templates to store

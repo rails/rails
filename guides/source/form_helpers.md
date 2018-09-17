@@ -775,7 +775,7 @@ You might want to render a form with a set of edit fields for each of a person's
 <%= form_with model: @person do |person_form| %>
   <%= person_form.text_field :name %>
   <% @person.addresses.each do |address| %>
-    <%= person_form.fields_for address, index: address.id do |address_form|%>
+    <%= person_form.fields_for address, index: address.id do |address_form| %>
       <%= address_form.text_field :city %>
     <% end %>
   <% end %>
@@ -972,7 +972,7 @@ This form allows users to remove addresses:
   <ul>
     <%= f.fields_for :addresses do |addresses_form| %>
       <li>
-        <%= addresses_form.check_box :_destroy%>
+        <%= addresses_form.check_box :_destroy %>
         <%= addresses_form.label :kind %>
         <%= addresses_form.text_field :kind %>
         ...

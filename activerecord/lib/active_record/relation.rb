@@ -349,7 +349,7 @@ module ActiveRecord
 
       stmt = Arel::UpdateManager.new
 
-      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates))
+      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates, table.name))
       stmt.table(table)
 
       if has_join_values? || offset_value
@@ -377,14 +377,14 @@ module ActiveRecord
 
       updates = counters.map do |counter_name, value|
         operator = value < 0 ? "-" : "+"
-        quoted_column = connection.quote_column_name(counter_name)
+        quoted_column = connection.quote_table_name_for_assignment(table.name, counter_name)
         "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
       end
 
       if touch
         names = touch if touch != true
         touch_updates = klass.touch_attributes_with_time(*names)
-        updates << klass.sanitize_sql_for_assignment(touch_updates) unless touch_updates.empty?
+        updates << klass.sanitize_sql_for_assignment(touch_updates, table.name) unless touch_updates.empty?
       end
 
       update_all updates.join(", ")
@@ -414,14 +414,12 @@ module ActiveRecord
     #   Person.where(name: 'David').touch_all
     #   # => "UPDATE \"people\" SET \"updated_at\" = '2018-01-04 22:55:23.132670' WHERE \"people\".\"name\" = 'David'"
     def touch_all(*names, time: nil)
-      updates = touch_attributes_with_time(*names, time: time)
-
       if klass.locking_enabled?
-        quoted_locking_column = connection.quote_column_name(klass.locking_column)
-        updates = sanitize_sql_for_assignment(updates) + ", #{quoted_locking_column} = COALESCE(#{quoted_locking_column}, 0) + 1"
+        names << { time: time }
+        update_counters(klass.locking_column => 1, touch: names)
+      else
+        update_all klass.touch_attributes_with_time(*names, time: time)
       end
-
-      update_all(updates)
     end
 
     # Destroys the records by instantiating each

@@ -224,7 +224,14 @@ module ActionDispatch # :nodoc:
       @status = Rack::Utils.status_code(status)
     end
 
-    # Sets the HTTP content type.
+    # Sets the HTTP response's content MIME type. For example, in the controller
+    # you could write this:
+    #
+    #  response.content_type = "text/plain"
+    #
+    # If a character set has been defined for this response (see charset=) then
+    # the character set information will also be included in the content type
+    # information.
     def content_type=(content_type)
       return unless content_type
       new_header_info = parse_content_type(content_type.to_s)
@@ -234,15 +241,8 @@ module ActionDispatch # :nodoc:
       set_content_type new_header_info.mime_type, charset
     end
 
-    # Sets the HTTP response's content MIME type. For example, in the controller
-    # you could write this:
-    #
-    #  response.content_type = "text/plain"
-    #
-    # If a character set has been defined for this response (see charset=) then
-    # the character set information will also be included in the content type
-    # information.
-
+    # Content type of response.
+    # It returns just MIME type and does NOT contain charset part.
     def content_type
       parsed_content_type_header.mime_type
     end

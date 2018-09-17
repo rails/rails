@@ -71,6 +71,11 @@ module ActiveRecord
         256
       end
       deprecate :joins_per_query
+
+      private
+        def bind_params_length
+          65535
+        end
     end
   end
 end

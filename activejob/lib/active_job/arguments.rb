@@ -34,7 +34,7 @@ module ActiveJob
       arguments.map { |argument| serialize_argument(argument) }
     end
 
-    # Deserializes a set of arguments. Instrinsic types that can safely be
+    # Deserializes a set of arguments. Intrinsic types that can safely be
     # deserialized without mutation are returned as-is. Arrays/Hashes are
     # deserialized element by element. All other types are deserialized using
     # GlobalID.

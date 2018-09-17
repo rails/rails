@@ -149,7 +149,7 @@ module ActiveRecord
       private
 
         def define_non_cyclic_method(name, &block)
-          return if method_defined?(name)
+          return if instance_methods(false).include?(name)
           define_method(name) do |*args|
             result = true; @_already_called ||= {}
             # Loop prevention for validation of associations

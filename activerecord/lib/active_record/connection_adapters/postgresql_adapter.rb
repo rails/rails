@@ -4,6 +4,14 @@
 gem "pg", ">= 0.18", "< 2.0"
 require "pg"
 
+# Use async_exec instead of exec_params on pg versions before 1.1
+class ::PG::Connection
+  unless self.public_method_defined?(:async_exec_params)
+    remove_method :exec_params
+    alias exec_params async_exec
+  end
+end
+
 require "active_record/connection_adapters/abstract_adapter"
 require "active_record/connection_adapters/statement_pool"
 require "active_record/connection_adapters/postgresql/column"
@@ -606,7 +614,7 @@ module ActiveRecord
           type_casted_binds = type_casted_binds(binds)
           log(sql, name, binds, type_casted_binds) do
             ActiveSupport::Dependencies.interlock.permit_concurrent_loads do
-              @connection.async_exec(sql, type_casted_binds)
+              @connection.exec_params(sql, type_casted_binds)
             end
           end
         end

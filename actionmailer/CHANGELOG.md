@@ -1,3 +1,7 @@
+*   `ActionDispatch::IntegrationTest` includes `ActionMailer::TestHelper` module by default.
+
+    *Ricardo Díaz*
+
 *   Add `perform_deliveries` to a payload of `deliver.action_mailer` notification.
 
     *Yoshiyuki Kinjo*

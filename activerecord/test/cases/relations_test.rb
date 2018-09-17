@@ -29,13 +29,6 @@ require "models/subscriber"
 class RelationTest < ActiveRecord::TestCase
   fixtures :authors, :author_addresses, :topics, :entrants, :developers, :people, :companies, :developers_projects, :accounts, :categories, :categorizations, :categories_posts, :posts, :comments, :tags, :taggings, :cars, :minivans
 
-  class TopicWithCallbacks < ActiveRecord::Base
-    self.table_name = :topics
-    cattr_accessor :topic_count
-    before_update { |topic| topic.author_name = "David" if topic.author_name.blank? }
-    after_update { |topic| topic.class.topic_count = topic.class.count }
-  end
-
   def test_do_not_double_quote_string_id
     van = Minivan.last
     assert van
@@ -863,45 +856,6 @@ class RelationTest < ActiveRecord::TestCase
     assert_equal authors(:bob), authors.last
   end
 
-  def test_destroy_all
-    davids = Author.where(name: "David")
-
-    # Force load
-    assert_equal [authors(:david)], davids.to_a
-    assert_predicate davids, :loaded?
-
-    assert_difference("Author.count", -1) { davids.destroy_all }
-
-    assert_equal [], davids.to_a
-    assert_predicate davids, :loaded?
-  end
-
-  def test_delete_all
-    davids = Author.where(name: "David")
-
-    assert_difference("Author.count", -1) { davids.delete_all }
-    assert_not_predicate davids, :loaded?
-  end
-
-  def test_delete_all_loaded
-    davids = Author.where(name: "David")
-
-    # Force load
-    assert_equal [authors(:david)], davids.to_a
-    assert_predicate davids, :loaded?
-
-    assert_difference("Author.count", -1) { davids.delete_all }
-
-    assert_equal [], davids.to_a
-    assert_predicate davids, :loaded?
-  end
-
-  def test_delete_all_with_unpermitted_relation_raises_error
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.distinct.delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.group(:name).delete_all }
-    assert_raises(ActiveRecord::ActiveRecordError) { Author.having("SUM(id) < 3").delete_all }
-  end
-
   def test_select_with_aggregates
     posts = Post.select(:title, :body)
 
@@ -984,14 +938,6 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.includes(:comments).order("comments.id").distinct
     assert_queries(1) { assert_equal 11, posts.size }
     assert_queries(1) { assert_equal 11, posts.load.size }
-  end
-
-  def test_update_all_with_scope
-    tag = Tag.first
-    Post.tagged_with(tag.id).update_all title: "rofl"
-    list = Post.tagged_with(tag.id).all.to_a
-    assert_operator list.length, :>, 0
-    list.each { |post| assert_equal "rofl", post.title }
   end
 
   def test_count_explicit_columns
@@ -1495,132 +1441,6 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_ordering_with_extra_spaces
     assert_equal authors(:david), Author.order("id DESC , name DESC").last
-  end
-
-  def test_update_all_with_blank_argument
-    assert_raises(ArgumentError) { Comment.update_all({}) }
-  end
-
-  def test_update_all_with_joins
-    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id)
-    count    = comments.count
-
-    assert_equal count, comments.update_all(post_id: posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:greetings).post
-  end
-
-  def test_update_all_with_joins_and_limit
-    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).limit(1)
-    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
-  end
-
-  def test_update_all_with_joins_and_limit_and_order
-    comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("comments.id").limit(1)
-    assert_equal 1, comments.update_all(post_id: posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:greetings).post
-    assert_equal posts(:welcome),  comments(:more_greetings).post
-  end
-
-  def test_update_all_with_joins_and_offset
-    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id)
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
-  end
-
-  def test_update_all_with_joins_and_offset_and_order
-    all_comments = Comment.joins(:post).where("posts.id" => posts(:welcome).id).order("posts.id", "comments.id")
-    count        = all_comments.count
-    comments     = all_comments.offset(1)
-
-    assert_equal count - 1, comments.update_all(post_id: posts(:thinking).id)
-    assert_equal posts(:thinking), comments(:more_greetings).post
-    assert_equal posts(:welcome),  comments(:greetings).post
-  end
-
-  def test_touch_all_updates_records_timestamps
-    david = developers(:david)
-    david_previously_updated_at = david.updated_at
-    jamis = developers(:jamis)
-    jamis_previously_updated_at = jamis.updated_at
-    Developer.where(name: "David").touch_all
-
-    assert_not_equal david_previously_updated_at, david.reload.updated_at
-    assert_equal jamis_previously_updated_at, jamis.reload.updated_at
-  end
-
-  def test_touch_all_with_custom_timestamp
-    developer = developers(:david)
-    previously_created_at = developer.created_at
-    previously_updated_at = developer.updated_at
-    Developer.where(name: "David").touch_all(:created_at)
-    developer = developer.reload
-
-    assert_not_equal previously_created_at, developer.created_at
-    assert_not_equal previously_updated_at, developer.updated_at
-  end
-
-  def test_touch_all_with_given_time
-    developer = developers(:david)
-    previously_created_at = developer.created_at
-    previously_updated_at = developer.updated_at
-    new_time = Time.utc(2015, 2, 16, 4, 54, 0)
-    Developer.where(name: "David").touch_all(:created_at, time: new_time)
-    developer = developer.reload
-
-    assert_not_equal previously_created_at, developer.created_at
-    assert_not_equal previously_updated_at, developer.updated_at
-    assert_equal new_time, developer.created_at
-    assert_equal new_time, developer.updated_at
-  end
-
-  def test_touch_all_updates_locking_column
-    person = people(:david)
-
-    assert_difference -> { person.reload.lock_version }, +1 do
-      Person.where(first_name: "David").touch_all
-    end
-  end
-
-  def test_update_on_relation
-    topic1 = TopicWithCallbacks.create! title: "arel", author_name: nil
-    topic2 = TopicWithCallbacks.create! title: "activerecord", author_name: nil
-    topics = TopicWithCallbacks.where(id: [topic1.id, topic2.id])
-    topics.update(title: "adequaterecord")
-
-    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
-
-    assert_equal "adequaterecord", topic1.reload.title
-    assert_equal "adequaterecord", topic2.reload.title
-    # Testing that the before_update callbacks have run
-    assert_equal "David", topic1.reload.author_name
-    assert_equal "David", topic2.reload.author_name
-  end
-
-  def test_update_with_ids_on_relation
-    topic1 = TopicWithCallbacks.create!(title: "arel", author_name: nil)
-    topic2 = TopicWithCallbacks.create!(title: "activerecord", author_name: nil)
-    topics = TopicWithCallbacks.none
-    topics.update(
-      [topic1.id, topic2.id],
-      [{ title: "adequaterecord" }, { title: "adequaterecord" }]
-    )
-
-    assert_equal TopicWithCallbacks.count, TopicWithCallbacks.topic_count
-
-    assert_equal "adequaterecord", topic1.reload.title
-    assert_equal "adequaterecord", topic2.reload.title
-    # Testing that the before_update callbacks have run
-    assert_equal "David", topic1.reload.author_name
-    assert_equal "David", topic2.reload.author_name
-  end
-
-  def test_update_on_relation_passing_active_record_object_is_not_permitted
-    topic = Topic.create!(title: "Foo", author_name: nil)
-    assert_raises(ArgumentError) do
-      Topic.where(id: topic.id).update(topic, title: "Bar")
-    end
   end
 
   def test_distinct

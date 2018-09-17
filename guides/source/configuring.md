@@ -69,7 +69,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
-* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store`.
+* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
@@ -831,6 +831,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
   * `ActiveStorage::Variant#service_url`
 
   The default is 5 minutes.
+
+* `config.active_storage.routes_prefix` can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+
+  ```ruby
+  config.active_storage.routes_prefix = '/files'
+  ```
+
+  The default is `/rails/active_storage`
 
 ### Configuring a Database
 

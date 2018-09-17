@@ -46,11 +46,16 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
         sql, binds = to_sql_and_binds(arel, binds)
+
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
+          preparable = false
+        elsif binds.length > bind_params_length
+          sql, binds = unprepared_statement { to_sql_and_binds(arel) }
           preparable = false
         else
           preparable = visitor.preparable
         end
+
         if prepared_statements && preparable
           select_prepared(sql, name, binds)
         else
