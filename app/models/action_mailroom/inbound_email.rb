@@ -1,5 +1,5 @@
-class ActionMailbox::InboundEmail < ActiveRecord::Base
-  self.table_name = "action_mailbox_inbound_email"
+class ActionMailroom::InboundEmail < ActiveRecord::Base
+  self.table_name = "action_mailroom_inbound_email"
 
   after_create_commit :deliver_to_mailroom_later
   has_one_attached :raw_message
@@ -12,6 +12,6 @@ class ActionMailbox::InboundEmail < ActiveRecord::Base
 
   private
     def deliver_to_mailroom_later
-      ActionMailbox::DeliverInboundEmailToMailroomJob.perform_later self
+      ActionMailroom::DeliverInboundEmailToMailroomJob.perform_later self
     end
 end

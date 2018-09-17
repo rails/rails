@@ -1,5 +1,5 @@
-class ActionMailbox::DeliverInboundEmailToMailroomJob < ApplicationJob
-  queue_as :action_mailbox_inbound_email
+class ActionMailroom::DeliverInboundEmailToMailroomJob < ApplicationJob
+  queue_as :action_mailroom_inbound_email
 
   # Occasional `SSL_read: decryption failed or bad record mac` that resolve on retry
   retry_on OpenSSL::SSL::SSLError

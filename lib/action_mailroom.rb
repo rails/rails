@@ -1,6 +1,6 @@
-require "action_mailbox/engine"
+require "action_mailroom/engine"
 
-module ActionMailbox
+module ActionMailroom
   extend ActiveSupport::Autoload
 
   autoload :Base
