@@ -61,7 +61,7 @@ module ActiveRecord
             ActiveRecord::Base.dump_schemas
           end
 
-        args = ["-s", "-x", "-O", "-f", filename]
+        args = ["-s", "-X", "-x", "-O", "-f", filename]
         args.concat(Array(extra_flags)) if extra_flags
         unless search_path.blank?
           args += search_path.split(",").map do |part|
