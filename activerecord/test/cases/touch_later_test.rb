@@ -125,6 +125,10 @@ class TouchLaterTest < ActiveRecord::TestCase
   class FullCommitTest < ActiveRecord::TestCase
     self.use_transactional_tests = false
 
+    def self.run(*args)
+      super unless current_adapter?(:SQLite3Adapter)
+    end
+
     def test_before_commit_update_deadlocks
       assert_nothing_raised do
         topic1 = Topic.create!
