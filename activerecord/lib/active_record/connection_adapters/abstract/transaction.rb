@@ -116,7 +116,9 @@ module ActiveRecord
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if records && @run_commit_callbacks
+        return unless records && @run_commit_callbacks
+
+        records.uniq.sort_by(&DeadlockPreventionOrder).each(&:before_committed!)
       end
 
       def commit_records
@@ -331,6 +333,59 @@ module ActiveRecord
           return unless transaction.is_a?(RealTransaction)
           return unless error.is_a?(ActiveRecord::PreparedStatementCacheExpired)
           @connection.clear_cache!
+        end
+    end
+
+    class DeadlockPreventionOrder
+      include Comparable
+
+      def self.to_proc
+        method(:new).to_proc
+      end
+
+      def self.association_depth(model, stack: [])
+        @association_depth ||= {}
+        @association_depth.fetch(model.name) do |key|
+          stack << model
+          depths = model.reflect_on_all_associations(:belongs_to).lazy
+            .select { |belonging| belonging.options[:touch] }
+            .map { |belonging|
+              if belonging.polymorphic?
+                1
+              elsif stack.include?(belonging.klass) || belonging.table_name == model.table_name
+                0
+              else
+                association_depth(belonging.klass, stack: stack) + 1
+              end
+            }
+
+          @association_depth[key] = depths.max || 0
+        end
+      end
+
+      delegate :association_depth, to: :class
+
+      attr_reader :object
+
+      def initialize(record)
+        @object = record
+      end
+
+      def <=>(other)
+        by_depth(other) || by_table(other) || by_id(other) || 0
+      end
+
+      private
+        def by_depth(other)
+          (association_depth(other.object.class) <=> association_depth(object.class)).nonzero?
+        end
+
+        def by_table(other)
+          (object.class.table_name <=> other.object.class.table_name).nonzero?
+        end
+
+        def by_id(other)
+          (object.id <=> other.object.id)&.nonzero?
         end
     end
   end
