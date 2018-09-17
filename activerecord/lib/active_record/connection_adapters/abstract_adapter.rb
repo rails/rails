@@ -504,15 +504,17 @@ module ActiveRecord
         @connection
       end
 
-      def case_sensitive_comparison(table, attribute, column, value) # :nodoc:
-        table[attribute].eq(value)
+      def case_sensitive_comparison(attribute, value) # :nodoc:
+        attribute.eq(value)
       end
 
-      def case_insensitive_comparison(table, attribute, column, value) # :nodoc:
+      def case_insensitive_comparison(attribute, value) # :nodoc:
+        column = column_for_attribute(attribute)
+
         if can_perform_case_insensitive_comparison_for?(column)
-          table[attribute].lower.eq(table.lower(value))
+          attribute.lower.eq(attribute.relation.lower(value))
         else
-          table[attribute].eq(value)
+          attribute.eq(value)
         end
       end
 
@@ -657,6 +659,11 @@ module ActiveRecord
           column_name = column_name.to_s
           columns(table_name).detect { |c| c.name == column_name } ||
             raise(ActiveRecordError, "No such column: #{table_name}.#{column_name}")
+        end
+
+        def column_for_attribute(attribute)
+          table_name = attribute.relation.name
+          schema_cache.columns_hash(table_name)[attribute.name.to_s]
         end
 
         def collector
