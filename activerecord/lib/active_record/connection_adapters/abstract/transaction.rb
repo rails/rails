@@ -116,7 +116,12 @@ module ActiveRecord
       end
 
       def before_commit_records
-        records.uniq.each(&:before_committed!) if records && @run_commit_callbacks
+        return unless records && @run_commit_callbacks
+
+        deterministic_order = records.uniq.sort_by do |r|
+          r.class.name + r.id.to_s
+        end
+        deterministic_order.each(&:before_committed!)
       end
 
       def commit_records

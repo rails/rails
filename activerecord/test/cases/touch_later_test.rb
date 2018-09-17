@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "cases/helper"
+require "concurrent/atomic/cyclic_barrier"
 require "models/invoice"
 require "models/line_item"
 require "models/topic"
@@ -119,5 +120,30 @@ class TouchLaterTest < ActiveRecord::TestCase
     assert_not_equal nodes(:parent_a).reload.updated_at, previous_parent_updated_at
     assert_not_equal nodes(:grandparent).reload.updated_at, previous_grandparent_updated_at
     assert_not_equal trees(:root).reload.updated_at, previous_tree_updated_at
+  end
+
+  class FullCommitTest < ActiveRecord::TestCase
+    self.use_transactional_tests = false
+
+    def test_before_commit_update_deadlocks
+      assert_nothing_raised do
+        topic1 = Topic.create!
+        topic2 = Topic.create!
+
+        barrier = Concurrent::CyclicBarrier.new(2)
+
+        threads = [topic1, topic2].permutation.map do |a, b|
+          Thread.new do
+            a.class.transaction(requires_new: true) do
+              a.class.find(a.id).touch_later
+              barrier.wait(1)
+              b.class.find(b.id).touch_later
+            end
+          end
+        end
+
+        threads.each(&:join)
+      end
+    end
   end
 end
