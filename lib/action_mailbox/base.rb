@@ -1,0 +1,2 @@
+class ActionMailbox::Base
+end
