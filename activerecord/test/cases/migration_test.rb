@@ -87,7 +87,6 @@ class MigrationTest < ActiveRecord::TestCase
 
   def test_migrator_versions
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -100,24 +99,18 @@ class MigrationTest < ActiveRecord::TestCase
 
     ActiveRecord::SchemaMigration.create!(version: 3)
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_detection_without_schema_migration_table
     ActiveRecord::Base.connection.drop_table "schema_migrations", if_exists: true
 
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     assert_equal true, migrator.needs_migration?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_any_migrations
-    old_path = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/valid")
 
     assert_predicate migrator, :any_migrations?
@@ -125,8 +118,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator_empty = ActiveRecord::MigrationContext.new(MIGRATIONS_ROOT + "/empty")
 
     assert_not_predicate migrator_empty, :any_migrations?
-  ensure
-    ActiveRecord::MigrationContext.new(old_path)
   end
 
   def test_migration_version
@@ -393,7 +384,6 @@ class MigrationTest < ActiveRecord::TestCase
   def test_internal_metadata_stores_environment
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
 
     migrator.up
@@ -410,7 +400,6 @@ class MigrationTest < ActiveRecord::TestCase
     migrator.up
     assert_equal new_env, ActiveRecord::InternalMetadata[:environment]
   ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
     ENV["RAILS_ENV"] = original_rails_env
     ENV["RACK_ENV"]  = original_rack_env
     migrator.up
@@ -422,16 +411,12 @@ class MigrationTest < ActiveRecord::TestCase
 
     current_env     = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrations_path = MIGRATIONS_ROOT + "/valid"
-    old_path        = ActiveRecord::Migrator.migrations_paths
 
     current_env = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
     migrator = ActiveRecord::MigrationContext.new(migrations_path)
     migrator.up
     assert_equal current_env, ActiveRecord::InternalMetadata[:environment]
     assert_equal "bar", ActiveRecord::InternalMetadata[:foo]
-  ensure
-    migrator = ActiveRecord::MigrationContext.new(old_path)
-    migrator.up
   end
 
   def test_proper_table_name_on_migration
