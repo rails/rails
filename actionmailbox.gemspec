@@ -6,7 +6,7 @@ require "action_mailbox/version"
 # Describe your gem and declare its dependencies:
 Gem::Specification.new do |s|
   s.name     = "actionmailbox"
-  s.version  = ActionText::VERSION
+  s.version  = ActionMailbox::VERSION
   s.authors  = ["Jeremy Daer", "David Heinemeier Hansson"]
   s.email    = ["jeremy@basecamp.com", "david@loudthinking.com"]
   s.summary  = "Receive and process incoming emails in Rails"
