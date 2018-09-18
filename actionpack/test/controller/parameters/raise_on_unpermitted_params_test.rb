@@ -30,4 +30,19 @@ class RaiseOnUnpermittedParamsTest < ActiveSupport::TestCase
       params.permit(book: [:pages])
     end
   end
+
+  test "allows setting the action for just a single Parameters instance" do
+    ActionController::Parameters.action_on_unpermitted_parameters = :log
+
+    params = ActionController::Parameters.new(
+      book: { pages: 65 },
+      fishing: "Turnips",
+    )
+
+    params.action_on_unpermitted_parameters = :raise
+
+    assert_raises(ActionController::UnpermittedParameters) do
+      params.permit(book: [:pages])
+    end
+  end
 end

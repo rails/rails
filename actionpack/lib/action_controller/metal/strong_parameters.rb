@@ -113,6 +113,14 @@ module ActionController
   # environment they should only be set once at boot-time and never mutated at
   # runtime.
   #
+  # If you need more fine-grained control over the action, it's possible to configure
+  # it on a per-instance basis:
+  #
+  #   params = ActionController::Parameters.new(a: "123", b: "456")
+  #   params.action_on_unpermitted_parameters = :raise
+  #   params.permit(:c)
+  #   # => ActionController::UnpermittedParameters: found unpermitted keys: a, b
+  #
   # You can fetch values of <tt>ActionController::Parameters</tt> using either
   # <tt>:key</tt> or <tt>"key"</tt>.
   #
@@ -224,6 +232,10 @@ module ActionController
     #    config.always_permitted_parameters = %w( controller action format )
     cattr_accessor :always_permitted_parameters, default: %w( controller action )
 
+    # Configure the action on unpermitted parameters for just this set of
+    # parameters.
+    attr_accessor :action_on_unpermitted_parameters
+
     # Returns a new instance of <tt>ActionController::Parameters</tt>.
     # Also, sets the +permitted+ attribute to the default value of
     # <tt>ActionController::Parameters.permit_all_parameters</tt>.
@@ -243,6 +255,7 @@ module ActionController
     def initialize(parameters = {})
       @parameters = parameters.with_indifferent_access
       @permitted = self.class.permit_all_parameters
+      @action_on_unpermitted_parameters = self.class.action_on_unpermitted_parameters
     end
 
     # Returns true if another +Parameters+ object contains the same content and
@@ -545,7 +558,7 @@ module ActionController
         end
       end
 
-      unpermitted_parameters!(params) if self.class.action_on_unpermitted_parameters
+      unpermitted_parameters!(params) if action_on_unpermitted_parameters
 
       params.permit!
     end
@@ -868,7 +881,7 @@ module ActionController
       def unpermitted_parameters!(params)
         unpermitted_keys = unpermitted_keys(params)
         if unpermitted_keys.any?
-          case self.class.action_on_unpermitted_parameters
+          case action_on_unpermitted_parameters
           when :log
             name = "unpermitted_parameters.action_controller"
             ActiveSupport::Notifications.instrument(name, keys: unpermitted_keys)
