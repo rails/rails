@@ -173,6 +173,11 @@ class LoggingTest < ActiveSupport::TestCase
     end
   end
 
+  def test_enqueue_retry_logging_on_retry_job
+    perform_enqueued_jobs { RescueJob.perform_later "david" }
+    assert_match(/Retrying RescueJob in nil seconds, due to a nil\. The original exception was nil\./, @logger.messages)
+  end
+
   def test_retry_stopped_logging
     perform_enqueued_jobs do
       RetryJob.perform_later "CustomCatchError", 6

@@ -94,7 +94,7 @@ module ActiveJob
           wait = event.payload[:wait]
 
           error do
-            "Retrying #{job.class} in #{wait} seconds, due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
+            "Retrying #{job.class} in #{wait.inspect} seconds, due to a #{ex&.class.inspect}. The original exception was #{ex&.cause.inspect}."
           end
         end
 
