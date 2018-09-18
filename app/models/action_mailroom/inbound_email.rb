@@ -1,5 +1,5 @@
 class ActionMailroom::InboundEmail < ActiveRecord::Base
-  self.table_name = "action_mailroom_inbound_email"
+  self.table_name = "action_mailroom_inbound_emails"
 
   after_create_commit :deliver_to_mailroom_later
   has_one_attached :raw_message
