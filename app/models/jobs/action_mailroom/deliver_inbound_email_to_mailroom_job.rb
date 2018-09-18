@@ -5,6 +5,6 @@ class ActionMailroom::DeliverInboundEmailToMailroomJob < ApplicationJob
   retry_on OpenSSL::SSL::SSLError
 
   def perform(inbound_email)
-    ApplicationMailbox.receive inbound_email
+    ActionMailroom::Router.receive inbound_email
   end
 end
