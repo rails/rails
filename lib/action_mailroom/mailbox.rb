@@ -1,7 +1,11 @@
+require "active_support/rescuable"
+
 class ActionMailroom::Mailbox
+  include ActiveSupport::Rescuable
+
   class << self
     def receive(inbound_email)
-      new(inbound_email).process
+      new(inbound_email).process_with_state_and_exception_handling
     end
 
     def routing(routes)
@@ -16,6 +20,16 @@ class ActionMailroom::Mailbox
     @inbound_email = inbound_email
   end
 
+  def process_with_state_and_exception_handling
+    inbound_email.processing!
+    process
+    inbound_email.delivered!
+  rescue => exception
+    inbound_email.failed!
+    rescue_with_handler(exception) || raise
+  end
+
   def process
+    # Overwrite in subclasses
   end
 end
