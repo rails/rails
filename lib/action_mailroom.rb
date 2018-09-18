@@ -4,4 +4,5 @@ module ActionMailroom
   extend ActiveSupport::Autoload
 
   autoload :Mailbox
+  autoload :Router
 end
