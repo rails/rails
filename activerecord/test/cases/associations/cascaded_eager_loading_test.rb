@@ -117,9 +117,8 @@ class CascadedEagerLoadingTest < ActiveRecord::TestCase
   end
 
   def test_eager_association_loading_with_has_many_sti_and_subclasses
-    silly = SillyReply.new(title: "gaga", content: "boo-boo", parent_id: 1)
-    silly.parent_id = 1
-    assert silly.save
+    reply = Reply.new(title: "gaga", content: "boo-boo", parent_id: 1)
+    assert reply.save
 
     topics = Topic.all.merge!(includes: :replies, order: ["topics.id", "replies_topics.id"]).to_a
     assert_no_queries do

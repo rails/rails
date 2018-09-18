@@ -827,6 +827,7 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
 
     silly = SillyReply.create(title: "gaga", content: "boo-boo")
     silly.reply = reply
+    silly.save!
 
     assert_equal 1, reply.reload[:replies_count]
     assert_equal 1, reply.replies.size
