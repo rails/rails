@@ -22,7 +22,11 @@ end
 
 class ActiveSupport::TestCase
   private
-    def create_file_blob(filename:, content_type:, metadata: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
+    def create_inbound_email(fixture_name)
+      ActionMailroom::InboundEmail.create!.tap do |inbound_email|
+        inbound_email.raw_email.attach \
+          ActiveStorage::Blob.create_after_upload! \
+            io: file_fixture(fixture_name).open, filename: fixture_name, content_type: 'message/rfc822'
+      end
     end
 end

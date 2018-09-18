@@ -1,7 +1,9 @@
+require "mail"
+
 class ActionMailroom::InboundEmail < ActiveRecord::Base
   self.table_name = "action_mailroom_inbound_emails"
 
-  has_one_attached :raw_message
+  has_one_attached :raw_email
 
   enum status: %i[ pending processing delivered failed bounced ]
 
@@ -9,7 +11,7 @@ class ActionMailroom::InboundEmail < ActiveRecord::Base
 
 
   def mail
-    @mail ||= Mail.new(Mail::Utilities.binary_unsafe_to_crlf(raw_message.download))
+    @mail ||= Mail.new(Mail::Utilities.binary_unsafe_to_crlf(raw_email.download))
   end
 
   private

@@ -1,0 +1,5 @@
+#!/usr/bin/env ruby
+$: << File.expand_path("../test", __dir__)
+
+require "bundler/setup"
+require "rails/plugin/test"
