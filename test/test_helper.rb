@@ -5,6 +5,10 @@ require_relative "../test/dummy/config/environment"
 ActiveRecord::Migrator.migrations_paths = [File.expand_path("../test/dummy/db/migrate", __dir__)]
 require "rails/test_help"
 
+# Filter out Minitest backtrace while allowing backtrace from other libraries
+# to be shown.
+Minitest.backtrace_filter = Minitest::BacktraceFilter.new
+
 require "rails/test_unit/reporter"
 Rails::TestUnitReporter.executable = 'bin/test'
 
@@ -19,7 +23,6 @@ end
 class ActiveSupport::TestCase
   private
     def create_file_blob(filename:, content_type:, metadata: nil)
-      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, 
-      filename: filename, content_type: content_type, metadata: metadata
+      ActiveStorage::Blob.create_after_upload! io: file_fixture(filename).open, filename: filename, content_type: content_type, metadata: metadata
     end
 end
