@@ -2,7 +2,7 @@ require_relative '../test_helper'
 
 class RepliesMailbox < ActionMailroom::Mailbox
   def process
-    $processed = true
+    $processed = mail.subject
   end
 end
 
@@ -15,7 +15,7 @@ module ActionMailroom
 
     test "routed to mailbox" do
       @router.route create_inbound_email("welcome.eml")
-      assert $processed
+      assert_equal $processed, "Discussion: Let's debate these attachments"
     end
   end
 end
