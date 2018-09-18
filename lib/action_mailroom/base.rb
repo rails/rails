@@ -1,2 +1,0 @@
-class ActionMailroom::Base
-end
