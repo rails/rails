@@ -1,7 +1,8 @@
 require "active_support/rescuable"
+require "action_mailroom/mailbox/callbacks"
 
 class ActionMailroom::Mailbox
-  include ActiveSupport::Rescuable
+  include ActiveSupport::Rescuable, Callbacks
 
   class << self
     def receive(inbound_email)
@@ -22,7 +23,11 @@ class ActionMailroom::Mailbox
 
   def perform_processing
     inbound_email.processing!
-    process
+
+    run_callbacks :process do
+      process
+    end
+
     inbound_email.delivered!
   rescue => exception
     inbound_email.failed!
