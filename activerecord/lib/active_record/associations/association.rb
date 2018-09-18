@@ -79,18 +79,6 @@ module ActiveRecord
         target_scope.merge!(association_scope)
       end
 
-      # The scope for this association.
-      #
-      # Note that the association_scope is merged into the target_scope only when the
-      # scope method is called. This is because at that point the call may be surrounded
-      # by scope.scoping { ... } or with_scope { ... } etc, which affects the scope which
-      # actually gets built.
-      def association_scope
-        if klass
-          @association_scope ||= AssociationScope.scope(self)
-        end
-      end
-
       def reset_scope
         @association_scope = nil
       end
@@ -127,12 +115,6 @@ module ActiveRecord
       # polymorphic_type field on the owner.
       def klass
         reflection.klass
-      end
-
-      # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
-      # through association's scope)
-      def target_scope
-        AssociationRelation.create(klass, self).merge!(klass.all)
       end
 
       def extensions
@@ -195,6 +177,24 @@ module ActiveRecord
       end
 
       private
+        # The scope for this association.
+        #
+        # Note that the association_scope is merged into the target_scope only when the
+        # scope method is called. This is because at that point the call may be surrounded
+        # by scope.scoping { ... } or unscoped { ... } etc, which affects the scope which
+        # actually gets built.
+        def association_scope
+          if klass
+            @association_scope ||= AssociationScope.scope(self)
+          end
+        end
+
+        # Can be overridden (i.e. in ThroughAssociation) to merge in other scopes (i.e. the
+        # through association's scope)
+        def target_scope
+          AssociationRelation.create(klass, self).merge!(klass.all)
+        end
+
         def scope_for_create
           scope.scope_for_create
         end
