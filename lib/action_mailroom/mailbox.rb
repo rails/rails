@@ -5,7 +5,7 @@ class ActionMailroom::Mailbox
 
   class << self
     def receive(inbound_email)
-      new(inbound_email).process_with_state_and_exception_handling
+      new(inbound_email).perform_processing
     end
 
     def routing(routes)
@@ -20,7 +20,7 @@ class ActionMailroom::Mailbox
     @inbound_email = inbound_email
   end
 
-  def process_with_state_and_exception_handling
+  def perform_processing
     inbound_email.processing!
     process
     inbound_email.delivered!
