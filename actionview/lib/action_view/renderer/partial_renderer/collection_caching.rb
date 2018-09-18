@@ -21,10 +21,7 @@ module ActionView
         @collection = keyed_collection.reject { |key, _| cached_partials.key?(key) }.values
         rendered_partials = @collection.empty? ? [] : yield
 
-        index = 0
-        fetch_or_cache_partial(cached_partials, order_by: keyed_collection.each_key) do
-          rendered_partials[index].tap { index += 1 }
-        end
+        fetch_or_cache_partial(cached_partials, rendered_partials: rendered_partials, order_by: keyed_collection.each_key)
       end
 
       def callable_cache_key?
@@ -48,12 +45,11 @@ module ActionView
         @digest_path ||= @view.digest_path_from_virtual(@template.virtual_path)
       end
 
-      def fetch_or_cache_partial(cached_partials, order_by:)
+      def fetch_or_cache_partial(cached_partials, rendered_partials:, order_by:)
         order_by.map do |cache_key|
           cached_partials.fetch(cache_key) do
-            yield.tap do |rendered_partial|
-              collection_cache.write(cache_key, rendered_partial)
-            end
+            rendered_partial = rendered_partials.unshift
+            collection_cache.write(cache_key, rendered_partial)
           end
         end
       end
