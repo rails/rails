@@ -20,13 +20,8 @@ if ActiveSupport::TestCase.respond_to?(:fixture_path=)
   ActiveSupport::TestCase.fixtures :all
 end
 
+require "action_mailroom/test_helper"
+
 class ActiveSupport::TestCase
-  private
-    def create_inbound_email(fixture_name)
-      ActionMailroom::InboundEmail.create!.tap do |inbound_email|
-        inbound_email.raw_email.attach \
-          ActiveStorage::Blob.create_after_upload! \
-            io: file_fixture(fixture_name).open, filename: fixture_name, content_type: 'message/rfc822'
-      end
-    end
+  include ActionMailroom::TestHelper
 end
