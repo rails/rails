@@ -154,13 +154,15 @@ def load_schema
   original_stdout = $stdout
   $stdout = StringIO.new
 
-  adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
-  adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
+  ActiveRecord::Base.configurations.configs_for(env_name: "arunit").each do |db_config|
+    adapter_name = ActiveRecord::Base.connection.adapter_name.downcase
+    adapter_specific_schema_file = SCHEMA_ROOT + "/#{adapter_name}_specific_schema.rb"
 
-  load SCHEMA_ROOT + "/schema.rb"
+    load SCHEMA_ROOT + "/schema.rb"
 
-  if File.exist?(adapter_specific_schema_file)
-    load adapter_specific_schema_file
+    if File.exist?(adapter_specific_schema_file)
+      load adapter_specific_schema_file
+    end
   end
 
   ActiveRecord::FixtureSet.reset_cache

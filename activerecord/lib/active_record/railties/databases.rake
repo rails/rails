@@ -234,26 +234,36 @@ db_namespace = namespace :db do
   end
 
   namespace :fixtures do
-    desc "Loads fixtures into the current environment's database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+    desc "Loads fixtures into the current environment's databases."
     task load: :load_config do
-      require "active_record/fixtures"
-
-      base_dir = ActiveRecord::Tasks::DatabaseTasks.fixtures_path
-
-      fixtures_dir = if ENV["FIXTURES_DIR"]
-        File.join base_dir, ENV["FIXTURES_DIR"]
-      else
-        base_dir
+      ActiveRecord::Base.configurations.configs_for(env_name: Rails.env).each do |db_config|
+        db_namespace["fixtures:load:#{db_config.spec_name}"].invoke
       end
+    end
 
-      fixture_files = if ENV["FIXTURES"]
-        ENV["FIXTURES"].split(",")
-      else
-        # The use of String#[] here is to support namespaced fixtures.
-        Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
+    namespace :load do
+      ActiveRecord::Tasks::DatabaseTasks.for_each do |spec_name|
+        desc "Loads fixtures into the current environment's #{spec_name} database. Load specific fixtures using FIXTURES=x,y. Load from subdirectory in test/fixtures using FIXTURES_DIR=z. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."
+        task spec_name => :load_config do
+          require "active_record/fixtures"
+          db_config = ActiveRecord::Base.configurations.configs_for(env_name: Rails.env, spec_name: spec_name)
+          ActiveRecord::Base.establish_connection(db_config.config)
+          base_dir = ActiveRecord::Base.connection.fixtures_path
+          fixtures_dir = if ENV["FIXTURES_DIR"]
+            File.join base_dir, ENV["FIXTURES_DIR"]
+          else
+            base_dir
+          end
+
+          fixture_files = if ENV["FIXTURES"]
+            ENV["FIXTURES"].split(",")
+          else
+            # The use of String#[] here is to support namespaced fixtures.
+            Dir["#{fixtures_dir}/**/*.yml"].map { |f| f[(fixtures_dir.size + 1)..-5] }
+          end
+          ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
+        end
       end
-
-      ActiveRecord::FixtureSet.create_fixtures(fixtures_dir, fixture_files)
     end
 
     # desc "Search for a fixture given a LABEL or ID. Specify an alternative path (eg. spec/fixtures) using FIXTURES_PATH=spec/fixtures."

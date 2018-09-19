@@ -539,18 +539,21 @@ class FixturesTest < ActiveRecord::TestCase
   def test_fixtures_are_set_up_with_database_env_variable
     db_url_tmp = ENV["DATABASE_URL"]
     ENV["DATABASE_URL"] = "sqlite3::memory:"
-    ActiveRecord::Base.stub(:configurations, {}) do
-      test_case = Class.new(ActiveRecord::TestCase) do
-        fixtures :accounts
+    ActiveRecord::ConnectionHandling::DEFAULT_ENV.stub(:call, "arunit") do
+      stub_configs = ActiveRecord::DatabaseConfigurations.new
+      ActiveRecord::Base.stub(:configurations, stub_configs) do
+        test_case = Class.new(ActiveRecord::TestCase) do
+          fixtures :accounts
 
-        def test_fixtures
-          assert accounts(:signals37)
+          def test_fixtures
+            assert accounts(:signals37)
+          end
         end
+
+        result = test_case.new(:test_fixtures).run
+
+        assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
       end
-
-      result = test_case.new(:test_fixtures).run
-
-      assert result.passed?, "Expected #{result.name} to pass:\n#{result}"
     end
   ensure
     ENV["DATABASE_URL"] = db_url_tmp
@@ -696,7 +699,7 @@ class FixturesWithoutInstantiationTest < ActiveRecord::TestCase
   def test_reloading_fixtures_through_accessor_methods
     topic = Struct.new(:title)
     assert_equal "The First Topic", topics(:first).title
-    assert_called(@loaded_fixtures["topics"]["first"], :find, returns: topic.new("Fresh Topic!")) do
+    assert_called(@loaded_fixtures["primary"]["topics"]["first"], :find, returns: topic.new("Fresh Topic!")) do
       assert_equal "Fresh Topic!", topics(:first, true).title
     end
   end
@@ -734,7 +737,7 @@ class MultipleFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(topics developers accounts).sort, fixture_table_names["primary"].sort
   end
 end
 
@@ -766,7 +769,7 @@ class OverlappingFixturesTest < ActiveRecord::TestCase
   fixtures :developers, :accounts
 
   def test_fixture_table_names
-    assert_equal %w(topics developers accounts), fixture_table_names
+    assert_equal %w(topics developers accounts).sort, fixture_table_names["primary"].sort
   end
 end
 
@@ -1030,7 +1033,8 @@ class LoadAllFixturesTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks),
+                   fixture_table_names["primary"].sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -1043,7 +1047,8 @@ class LoadAllFixturesWithPathnameTest < ActiveRecord::TestCase
     self.class.fixtures :all
 
     if File.symlink? FIXTURES_ROOT + "/all/admin"
-      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks), fixture_table_names.sort
+      assert_equal %w(admin/accounts admin/users developers namespaced/accounts people tasks),
+                   fixture_table_names["primary"].sort
     end
   ensure
     ActiveRecord::FixtureSet.reset_cache
@@ -1057,7 +1062,7 @@ class FasterFixturesTest < ActiveRecord::TestCase
   def load_extra_fixture(name)
     fixture = create_fixtures(name).first
     assert fixture.is_a?(ActiveRecord::FixtureSet)
-    @loaded_fixtures[fixture.table_name] = fixture
+    @loaded_fixtures["primary"][fixture.table_name] = fixture
   end
 
   def test_cache
@@ -1071,7 +1076,9 @@ class FasterFixturesTest < ActiveRecord::TestCase
 
     load_extra_fixture("posts")
     assert ActiveRecord::FixtureSet.fixture_is_cached?(ActiveRecord::Base.connection, "posts")
-    self.class.setup_fixture_accessors :posts
+
+    config = ActiveRecord::Base.configurations.configs_for(spec_name: "primary")
+    self.class.setup_fixture_accessors config, :posts
     assert_equal "Welcome to the weblog", posts(:welcome).title
   end
 end
@@ -1366,6 +1373,24 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
     ActiveRecord::Base.connection_handlers = { writing: ActiveRecord::Base.connection_handler }
   end
 
+  fixtures :books
+
+  test "defines shard accessor" do
+    assert respond_to?(:shard_books, true)
+  end
+
+  test "defines primary accessor" do
+    assert respond_to?(:books, true)
+  end
+
+  test "primary accessor returns book from the right database" do
+    assert_instance_of Book, books(:rfr)
+  end
+
+  test "shard accessor returns book from the right database" do
+    assert_instance_of Book, shard_books(:ruby_under_a_microscope)
+  end
+
   private
 
     def with_temporary_connection_pool
@@ -1377,4 +1402,20 @@ class MultipleDatabaseFixturesTest < ActiveRecord::TestCase
     ensure
       ActiveRecord::Base.connection_handler.send(:owner_to_pool)["primary"] = old_pool
     end
+end
+
+class ShardDatabaseFixtureTest < ActiveRecord::TestCase
+  fixtures :books, database: :shard
+
+  test "defines shard accessor" do
+    assert respond_to?(:shard_books, true)
+  end
+
+  test "does not define primary accessor" do
+    assert_not respond_to?(:books, true)
+  end
+
+  test "returns book from the right database" do
+    assert_instance_of Book, shard_books(:ruby_under_a_microscope)
+  end
 end

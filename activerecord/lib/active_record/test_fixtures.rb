@@ -16,7 +16,7 @@ module ActiveRecord
 
     included do
       class_attribute :fixture_path, instance_writer: false
-      class_attribute :fixture_table_names, default: []
+      class_attribute :fixture_table_names, default: Hash.new { |h, k| h[k] = [] }
       class_attribute :fixture_class_names, default: {}
       class_attribute :use_transactional_tests, default: true
       class_attribute :use_instantiated_fixtures, default: false # true, false, or :no_instances
@@ -38,39 +38,46 @@ module ActiveRecord
         self.fixture_class_names = fixture_class_names.merge(class_names.stringify_keys)
       end
 
-      def fixtures(*fixture_set_names)
-        if fixture_set_names.first == :all
-          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
-          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
-          fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
-        else
-          fixture_set_names = fixture_set_names.flatten.map(&:to_s)
-        end
+      def fixtures(*fixture_set_names, database: :all)
+        parent_fixture_table_names = fixture_table_names
+        self.fixture_table_names = Hash.new { |h, k| h[k] = [] }
+        database = database == :all ? nil : database.to_s
+        environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        configs = ActiveRecord::Base.configurations.configs_for(env_name: environment, spec_name: database)
+        Array(configs).each do |db_config|
+          child_fixture_table_names = all_fixtures_for(db_config)
+          child_fixture_table_names &= fixture_set_names.flatten.map(&:to_s) unless fixture_set_names.first == :all
 
-        self.fixture_table_names |= fixture_set_names
-        setup_fixture_accessors(fixture_set_names)
+          config_fixture_table_names = parent_fixture_table_names[db_config.spec_name] + child_fixture_table_names
+          fixture_table_names[db_config.spec_name] |= config_fixture_table_names
+          setup_fixture_accessors(db_config, child_fixture_table_names)
+        end
       end
 
-      def setup_fixture_accessors(fixture_set_names = nil)
-        fixture_set_names = Array(fixture_set_names || fixture_table_names)
+      def setup_fixture_accessors(db_config, fixture_set_names = nil)
+        fixture_set_names = Array(fixture_set_names || fixture_table_names[db_config.spec_name])
         methods = Module.new do
           fixture_set_names.each do |fs_name|
             fs_name = fs_name.to_s
-            accessor_name = fs_name.tr("/", "_").to_sym
+            source = db_config.spec_name
+            prefix = source == "primary" ? nil : source
+            accessor_name = [prefix, fs_name.tr("/", "_")].compact.join("_")
 
             define_method(accessor_name) do |*fixture_names|
               force_reload = fixture_names.pop if fixture_names.last == true || fixture_names.last == :reload
               return_single_record = fixture_names.size == 1
-              fixture_names = @loaded_fixtures[fs_name].fixtures.keys if fixture_names.empty?
+              fixture_names = @loaded_fixtures[source][fs_name].fixtures.keys if fixture_names.empty?
 
-              @fixture_cache[fs_name] ||= {}
+              @fixture_cache[source] ||= {}
+              @fixture_cache[source][fs_name] ||= {}
 
               instances = fixture_names.map do |f_name|
                 f_name = f_name.to_s if f_name.is_a?(Symbol)
-                @fixture_cache[fs_name].delete(f_name) if force_reload
+                @fixture_cache[source][fs_name].delete(f_name) if force_reload
 
-                if @loaded_fixtures[fs_name][f_name]
-                  @fixture_cache[fs_name][f_name] ||= @loaded_fixtures[fs_name][f_name].find
+                if @loaded_fixtures[source][fs_name][f_name]
+                  connection = @fixture_connections[db_config.spec_name.to_sym]
+                  @fixture_cache[source][fs_name][f_name] ||= @loaded_fixtures[source][fs_name][f_name].find
                 else
                   raise StandardError, "No fixture named '#{f_name}' found for fixture set '#{fs_name}'"
                 end
@@ -93,6 +100,19 @@ module ActiveRecord
         @uses_transaction = [] unless defined?(@uses_transaction)
         @uses_transaction.include?(method.to_s)
       end
+
+      private
+
+        def all_fixtures_for(db_config)
+          paths = db_config.fixtures_path || fixture_path
+          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if paths.blank?
+          fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
+          Array(paths).flat_map do |path|
+            Dir["#{path}/{**,*}/*.{yml}"].uniq.map do |fixture|
+              fixture[(path.to_s.size + 1)..-5]
+            end
+          end
+        end
     end
 
     def run_in_transaction?
@@ -106,7 +126,7 @@ module ActiveRecord
       end
 
       @fixture_cache = {}
-      @fixture_connections = []
+      @fixture_connections = {}
       @@already_loaded_fixtures ||= {}
       @connection_subscriber = nil
 
@@ -121,7 +141,7 @@ module ActiveRecord
 
         # Begin transactions for connections already established
         @fixture_connections = enlist_fixture_connections
-        @fixture_connections.each do |connection|
+        @fixture_connections.each do |_spec_name, connection|
           connection.begin_transaction joinable: false, _lazy: false
           connection.pool.lock_thread = true if lock_threads
         end
@@ -137,10 +157,10 @@ module ActiveRecord
               connection = nil
             end
 
-            if connection && !@fixture_connections.include?(connection)
+            if connection && !@fixture_connections.values.include?(connection)
               connection.begin_transaction joinable: false, _lazy: false
               connection.pool.lock_thread = true if lock_threads
-              @fixture_connections << connection
+              @fixture_connections[spec_name] = connection
             end
           end
         end
@@ -160,7 +180,7 @@ module ActiveRecord
       # Rollback changes if a transaction is active.
       if run_in_transaction?
         ActiveSupport::Notifications.unsubscribe(@connection_subscriber) if @connection_subscriber
-        @fixture_connections.each do |connection|
+        @fixture_connections.values.each do |connection|
           connection.rollback_transaction if connection.transaction_open?
           connection.pool.lock_thread = false
         end
@@ -175,7 +195,9 @@ module ActiveRecord
     def enlist_fixture_connections
       setup_shared_connection_pool
 
-      ActiveRecord::Base.connection_handler.connection_pool_list.map(&:connection)
+      ActiveRecord::Base.connection_handler.connection_pool_list.map do |list|
+        [list.spec.name, list.connection]
+      end.to_h
     end
 
     private
@@ -201,8 +223,25 @@ module ActiveRecord
       end
 
       def load_fixtures(config)
-        fixtures = ActiveRecord::FixtureSet.create_fixtures(fixture_path, fixture_table_names, fixture_class_names, config)
-        Hash[fixtures.map { |f| [f.name, f] }]
+        environment = ActiveRecord::ConnectionHandling::DEFAULT_ENV.call
+        all_fixtures = config.configurations.configs_for(env_name: environment).map do |db_config|
+          connection = @fixture_connections[db_config.spec_name.to_sym]
+          fixtures = create_fixtures_for(db_config, connection, config)
+          [db_config.spec_name, Hash[fixtures.map { |f| [f.name, f] }]]
+        end
+
+        Hash[all_fixtures]
+      end
+
+      def create_fixtures_for(db_config, connection, config)
+        ActiveRecord::FixtureSet.create_fixtures(
+          config.connection.fixtures_path,
+          fixture_table_names[db_config.spec_name],
+          fixture_class_names,
+          connection,
+          config,
+
+        )
       end
 
       def instantiate_fixtures
@@ -211,8 +250,10 @@ module ActiveRecord
           ActiveRecord::FixtureSet.instantiate_all_loaded_fixtures(self, load_instances?)
         else
           raise RuntimeError, "Load fixtures before instantiating them." if @loaded_fixtures.nil?
-          @loaded_fixtures.each_value do |fixture_set|
-            ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
+          @loaded_fixtures.each_value do |fixture_sets|
+            fixture_sets.each_value do |fixture_set|
+              ActiveRecord::FixtureSet.instantiate_fixtures(self, fixture_set, load_instances?)
+            end
           end
         end
       end

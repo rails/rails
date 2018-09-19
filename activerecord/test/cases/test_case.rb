@@ -8,6 +8,8 @@ require "active_record/fixtures"
 
 require "cases/validations_repair_helper"
 
+ENV["RAILS_ENV"] = "arunit"
+
 module ActiveRecord
   # = Active Record Test Case
   #

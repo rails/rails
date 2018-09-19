@@ -439,6 +439,12 @@ module ActiveRecord
     # possibly in a folder with the same name.
     #++
 
+    class << self
+      attr_accessor :fixtures_path
+    end
+
+    self.fixtures_path = "test/fixtures"
+
     MAX_ID = 2**30 - 1
 
     @@all_cached_fixtures = Hash.new { |h, k| h[k] = {} }
@@ -531,12 +537,12 @@ module ActiveRecord
         end
       end
 
-      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, config = ActiveRecord::Base)
+      def create_fixtures(fixtures_directory, fixture_set_names, class_names = {}, connection = nil, config = ActiveRecord::Base)
         fixture_set_names = Array(fixture_set_names).map(&:to_s)
         class_names = ClassCache.new class_names, config
 
         # FIXME: Apparently JK uses this.
-        connection = block_given? ? yield : ActiveRecord::Base.connection
+        connection ||= block_given? ? yield : ActiveRecord::Base.connection
 
         fixture_files_to_read = fixture_set_names.reject do |fs_name|
           fixture_is_cached?(connection, fs_name)

@@ -24,7 +24,7 @@ if defined?(ActiveRecord::Base)
     include ActiveRecord::TestDatabases
     include ActiveRecord::TestFixtures
 
-    self.fixture_path = "#{Rails.root}/test/fixtures/"
+    self.fixture_path = ActiveRecord::FixtureSet.fixtures_path
     self.file_fixture_path = fixture_path + "files"
   end
 

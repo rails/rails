@@ -27,16 +27,23 @@ module ARTest
       end
 
       def expand_config(config)
-        config["connections"].each do |adapter, connection|
-          dbs = [["arunit", "activerecord_unittest"], ["arunit2", "activerecord_unittest2"],
-                 ["arunit_without_prepared_statements", "activerecord_unittest"]]
-          dbs.each do |name, dbname|
-            unless connection[name].is_a?(Hash)
-              connection[name] = { "database" => connection[name] }
-            end
+        config["connections"].each do |adapter, connections|
+          dbs = {
+            "arunit" => "activerecord_unittest",
+            "arunit2" => "activerecord_unittest2",
+            "arunit_without_prepared_statements" => "activerecord_unittest",
+          }
 
-            connection[name]["database"] ||= dbname
-            connection[name]["adapter"]  ||= adapter
+          dbs.each do |env_name, dbname|
+            unless connections[env_name].is_a?(Hash)
+              connections[env_name] = { "database" => connections[env_name] }
+            end
+            configs = connections[env_name].keys.include?("primary") ?
+              connections[env_name].values : [connections[env_name]]
+            configs.each do |config|
+              config["database"] ||= dbname
+              config["adapter"]  ||= adapter
+            end
           end
         end
 

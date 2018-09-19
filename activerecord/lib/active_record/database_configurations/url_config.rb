@@ -55,6 +55,10 @@ module ActiveRecord
         config["migrations_paths"]
       end
 
+      def fixtures_path
+        config["fixtures_path"]
+      end
+
       private
 
         def build_url_hash(url)

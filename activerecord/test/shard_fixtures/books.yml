@@ -1,0 +1,7 @@
+ruby_under_a_microscope:
+  author_id: 1
+  id: 1
+  name: "Ruby Under a Microscope"
+  format: "ebook"
+  status: "proposed"
+  read_status: "reading"

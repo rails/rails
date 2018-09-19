@@ -165,6 +165,10 @@ module ActiveRecord
         @config[:migrations_paths] || Migrator.migrations_paths
       end
 
+      def fixtures_path # :nodoc:
+        @config[:fixtures_path] || FixtureSet.fixtures_path
+      end
+
       def migration_context # :nodoc:
         MigrationContext.new(migrations_paths)
       end

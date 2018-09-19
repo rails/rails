@@ -90,16 +90,26 @@ connections:
 
   sqlite3:
     arunit:
-      database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
-      timeout:  5000
+      primary:
+        database: <%= FIXTURES_ROOT %>/fixture_database.sqlite3
+        timeout:  5000
+      shard:
+        database: <%= FIXTURES_ROOT %>/fixture_database_shard.sqlite3
+        fixtures_path: <%= FIXTURES_ROOT %>/../shard_fixtures
+        timeout:  5000
     arunit2:
       database: <%= FIXTURES_ROOT %>/fixture_database_2.sqlite3
       timeout:  5000
 
   sqlite3_mem:
     arunit:
-      adapter: sqlite3
-      database: ':memory:'
+      primary:
+        adapter: sqlite3
+        database: ':memory:'
+      shard:
+        adapter: sqlite3
+        fixtures_path: <%= FIXTURES_ROOT %>/../shard_fixtures
+        database: ':memory:'
     arunit2:
       adapter: sqlite3
       database: ':memory:'

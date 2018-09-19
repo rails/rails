@@ -21,8 +21,8 @@ class DatabaseConfigurationsTest < ActiveRecord::TestCase
   def test_configs_for_getter_with_env_name
     configs = ActiveRecord::Base.configurations.configs_for(env_name: "arunit")
 
-    assert_equal 1, configs.size
-    assert_equal ["arunit"], configs.map(&:env_name)
+    assert_equal 2, configs.size
+    assert_equal ["arunit", "arunit"], configs.map(&:env_name)
   end
 
   def test_configs_for_getter_with_env_and_spec_name
@@ -66,7 +66,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
         ActiveRecord::Base.configurations["readonly"] = config
       end
 
-      assert_equal ["arunit", "arunit2", "arunit_without_prepared_statements", "readonly"], ActiveRecord::Base.configurations.configs_for.map(&:env_name).sort
+      assert_equal ["arunit", "arunit", "arunit2", "arunit_without_prepared_statements", "readonly"], ActiveRecord::Base.configurations.configs_for.map(&:env_name).sort
     ensure
       ActiveRecord::Base.configurations = old_config
       ActiveRecord::Base.establish_connection :arunit
@@ -81,7 +81,7 @@ class LegacyDatabaseConfigurationsTest < ActiveRecord::TestCase
   def test_each_is_deprecated
     assert_deprecated do
       ActiveRecord::Base.configurations.each do |db_config|
-        assert_equal "primary", db_config.spec_name
+        assert_includes %w(primary shard), db_config.spec_name
       end
     end
   end

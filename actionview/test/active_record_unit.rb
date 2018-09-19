@@ -2,6 +2,8 @@
 
 require "abstract_unit"
 
+ENV["RAILS_ENV"] = "sqlite3_ar_integration"
+
 # Define the essentials
 class ActiveRecordTestConnector
   cattr_accessor :able_to_connect

@@ -45,6 +45,10 @@ module ActiveRecord
       def migrations_paths
         config["migrations_paths"]
       end
+
+      def fixtures_path
+        config["fixtures_path"]
+      end
     end
   end
 end
