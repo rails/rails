@@ -1,6 +1,8 @@
 require "mail"
 
 class ActionMailroom::InboundEmail < ActiveRecord::Base
+  include Incineratable
+
   self.table_name = "action_mailroom_inbound_emails"
 
   has_one_attached :raw_email
