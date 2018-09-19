@@ -371,7 +371,10 @@ class FinderTest < ActiveRecord::TestCase
   end
 
   def test_find_an_empty_array
-    assert_equal [], Topic.find([])
+    empty_array = []
+    result = Topic.find(empty_array)
+    assert_equal [], result
+    assert_not_same empty_array, result
   end
 
   def test_find_doesnt_have_implicit_ordering
