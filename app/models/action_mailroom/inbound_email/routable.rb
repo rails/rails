@@ -2,7 +2,7 @@ module ActionMailroom::InboundEmail::Routable
   extend ActiveSupport::Concern
 
   included do
-    after_create_commit :route_later, if: ->(r) { r.pending? }
+    after_create_commit :route_later, if: ->(inbound_email) { inbound_email.pending? }
   end
 
   private
