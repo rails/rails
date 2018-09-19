@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require "zlib"
 require "active_support/core_ext/array/extract_options"
 require "active_support/core_ext/array/wrap"
 require "active_support/core_ext/module/attribute_accessors"
@@ -17,6 +16,8 @@ module ActiveSupport
     autoload :MemCacheStore,    "active_support/cache/mem_cache_store"
     autoload :NullStore,        "active_support/cache/null_store"
     autoload :RedisCacheStore,  "active_support/cache/redis_cache_store"
+
+    autoload :StreamingCompressor, "active_support/cache/streaming_compressor"
 
     # These options mean something to all cache implementations. Individual cache
     # implementations may support additional options.
@@ -86,6 +87,13 @@ module ActiveSupport
 
         expanded_cache_key << retrieve_cache_key(key)
         expanded_cache_key
+      end
+
+      # Object with `.dump` and `.load` methods to compress cached values.
+      attr_writer :compressor
+
+      def compressor
+        @compressor ||= StreamingCompressor
       end
 
       private
@@ -786,20 +794,11 @@ module ActiveSupport
         def compress!(compress_threshold)
           case @value
           when nil, true, false, Numeric
-            uncompressed_size = 0
-          when String
-            uncompressed_size = @value.bytesize
+            # don't compress
           else
-            serialized = Marshal.dump(@value)
-            uncompressed_size = serialized.bytesize
-          end
-
-          if uncompressed_size >= compress_threshold
-            serialized ||= Marshal.dump(@value)
-            compressed = Zlib::Deflate.deflate(serialized)
-
-            if compressed.bytesize < uncompressed_size
-              @value = compressed
+            compressed_value = Cache.compressor.dump(@value, compress_threshold: compress_threshold)
+            if compressed_value
+              @value = compressed_value
               @compressed = true
             end
           end
@@ -810,7 +809,7 @@ module ActiveSupport
         end
 
         def uncompress(value)
-          Marshal.load(Zlib::Inflate.inflate(value))
+          Cache.compressor.load(value)
         end
     end
   end

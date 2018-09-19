@@ -1,3 +1,7 @@
+*   Streaming compressor for cached values.
+
+    *Max Melentiev*
+
 *   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
     of mutating the one received as parameter.
 
