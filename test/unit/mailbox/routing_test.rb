@@ -20,4 +20,11 @@ class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
     ApplicationMailbox.route @inbound_email
     assert_equal "Discussion: Let's debate these attachments", $processed
   end
+
+  test "delayed routing" do
+    perform_enqueued_jobs only: ActionMailroom::DeliverInboundEmailToMailroomJob do
+      another_inbound_email = create_inbound_email("welcome.eml", status: :pending)
+      assert_equal "Discussion: Let's debate these attachments", $processed
+    end
+  end
 end
