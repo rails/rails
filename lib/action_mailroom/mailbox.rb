@@ -20,16 +20,12 @@ class ActionMailroom::Mailbox
   end
 
   def perform_processing
-    inbound_email.processing!
-
-    run_callbacks :process do
-      process
+    track_status_of_inbound_email do
+      run_callbacks :process do
+        process
+      end
     end
-
-    inbound_email.delivered!
   rescue => exception
-    inbound_email.failed!
-    
     # TODO: Include a reference to the inbound_email in the exception raised so error handling becomes easier
     rescue_with_handler(exception) || raise
   end
@@ -37,4 +33,14 @@ class ActionMailroom::Mailbox
   def process
     # Overwrite in subclasses
   end
+  
+  private
+    def track_status_of_inbound_email
+      inbound_email.processing!
+      yield
+      inbound_email.delivered!
+    rescue => exception
+      inbound_email.failed!
+      raise
+    end
 end
