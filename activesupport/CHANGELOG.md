@@ -1,3 +1,17 @@
+*   ActiveSupport::EncryptedConfiguration.new now accepts an optional rail_env
+    parameter. When set, rails_env specific settings are exposed at #env.
+
+        development:
+          foo: development foo
+        production:
+          foo: production foo
+
+    For example, in development mode.
+
+        Rails.application.credentials.env.foo == "development foo"
+
+    *John Gorman*
+
 *   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
     of mutating the one received as parameter.
 

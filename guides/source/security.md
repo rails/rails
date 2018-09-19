@@ -1225,8 +1225,15 @@ For example, with the following decrypted `config/credentials.yml.enc`:
 
     secret_key_base: 3b7cd727ee24e8444053437c36cc66c3
     some_api_key: SOMEKEY
+    development:
+      timer_key: DEVTIMERKEY
+    production:
+      timer_key: PRODUCTIONTIMERKEY
 
 `Rails.application.credentials.some_api_key` returns `SOMEKEY` in any environment.
+
+`Rails.application.credentials.env.timer_key` returns `DEVTIMERKEY`
+in development and `PRODUCTIONTIMERKEY` in production.
 
 If you want an exception to be raised when some key is blank, use the bang
 version:

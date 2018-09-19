@@ -1,3 +1,22 @@
+*   `Rails.application.credentials.env` now exposes the current `Rails.env`
+    slice of the credentials. This is true of all files opened with
+    `Rails.application.encrypted()`.
+
+    The `#env` interface makes it easy to migrate from deprecated encrypted
+    secrets to credentials. Secrets supported environmentally responsive
+    configurations and `#env` brings that convenience to credentials.
+
+        development:
+          foo: development foo
+        production:
+          foo: production foo
+
+    For example, in development mode.
+
+        Rails.application.credentials.env.foo == "development foo"
+
+    *John Gorman*
+
 *   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
 
     *Michael C. Nelson*
