@@ -20,8 +20,8 @@ class ActionMailroom::Mailbox
   end
 
   def perform_processing
-    track_status_of_inbound_email do
-      run_callbacks :process do
+    run_callbacks :process do
+      track_status_of_inbound_email do
         process
       end
     end
