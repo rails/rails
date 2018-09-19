@@ -1047,6 +1047,159 @@ end
 This is generally a much cleaner way to set up the database of a blank
 application.
 
+Using Models in Your Migrations
+-------------------------------
+
+When creating or updating data in a migration it is often tempting to use one
+of your models. After all, they exist to provide easy access to the underlying
+data. This can be done, but some caution should be observed.
+
+For example, problems occur when the model uses database columns which are (1)
+not currently in the database and (2) will be created by this or a subsequent
+migration.
+
+Consider this example, where Alice and Bob are working on the same code base
+which contains a `Product` model:
+
+Bob goes on vacation.
+
+Alice creates a migration for the `products` table which adds a new column and
+initializes it:
+
+```ruby
+# db/migrate/20100513121110_add_flag_to_product.rb
+
+class AddFlagToProduct < ActiveRecord::Migration
+  def change
+    add_column :products, :flag, :boolean
+    reversible do |dir|
+      dir.up { Product.update_all flag: false }
+    end
+  end
+end
+```
+
+She also adds a validation to the `Product` model for the new column:
+
+```ruby
+# app/models/product.rb
+
+class Product < ActiveRecord::Base
+  validates :flag, inclusion: { in: [true, false] }
+end
+```
+
+Alice adds a second migration which adds another column to the `products`
+table and initializes it:
+
+```ruby
+# db/migrate/20100515121110_add_fuzz_to_product.rb
+
+class AddFuzzToProduct < ActiveRecord::Migration
+  def change
+    add_column :products, :fuzz, :string
+    reversible do |dir|
+      dir.up { Product.update_all fuzz: 'fuzzy' }
+    end
+  end
+end
+```
+
+She also adds a validation to the `Product` model for the new column:
+
+```ruby
+# app/models/product.rb
+
+class Product < ActiveRecord::Base
+  validates :flag, inclusion: { in: [true, false] }
+  validates :fuzz, presence: true
+end
+```
+
+Both migrations work for Alice.
+
+Bob comes back from vacation and:
+
+*   Updates the source - which contains both migrations and the latest version
+    of the Product model.
+*   Runs outstanding migrations with `rake db:migrate`, which
+    includes the one that updates the `Product` model.
+
+The migration crashes because when the model attempts to save, it tries to
+validate the second added column, which is not in the database when the _first_
+migration runs:
+
+```
+rake aborted!
+An error has occurred, this and all later migrations canceled:
+
+undefined method `fuzz' for #<Product:0x000001049b14a0>
+```
+
+A fix for this is to create a local model within the migration. This keeps
+Rails from running the validations, so that the migrations run to completion.
+
+When using a local model, it's a good idea to call
+`Product.reset_column_information` to refresh the Active Record cache for the
+`Product` model prior to updating data in the database.
+
+If Alice had done this instead, there would have been no problem:
+
+```ruby
+# db/migrate/20100513121110_add_flag_to_product.rb
+
+class AddFlagToProduct < ActiveRecord::Migration
+  class Product < ActiveRecord::Base
+  end
+
+  def change
+    add_column :products, :flag, :boolean
+    Product.reset_column_information
+    reversible do |dir|
+      dir.up { Product.update_all flag: false }
+    end
+  end
+end
+```
+
+```ruby
+# db/migrate/20100515121110_add_fuzz_to_product.rb
+
+class AddFuzzToProduct < ActiveRecord::Migration
+  class Product < ActiveRecord::Base
+  end
+
+  def change
+    add_column :products, :fuzz, :string
+    Product.reset_column_information
+    reversible do |dir|
+      dir.up { Product.update_all fuzz: 'fuzzy' }
+    end
+  end
+end
+```
+
+There are other ways in which the above example could have gone badly.
+
+For example, imagine that Alice creates a migration that selectively
+updates the `description` field on certain products. She runs the
+migration, commits the code, and then begins working on the next feature,
+which is to add a new column `fuzz` to the products table.
+
+She creates two migrations for this new feature, one which adds the new
+column, and a second which selectively updates the `fuzz` column based on
+other product attributes.
+
+These migrations run just fine, but when Bob comes back from his vacation
+and calls `rake db:migrate` to run all the outstanding migrations, he gets a
+subtle bug: The descriptions have defaults, and the `fuzz` column is present,
+but `fuzz` is `nil` on all products.
+
+The solution is again to use `Product.reset_column_information` before
+referencing the Product model in a migration, ensuring the Active Record's
+knowledge of the table structure is current before manipulating data in those
+records.
+
 Old Migrations
 --------------
 
