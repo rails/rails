@@ -429,7 +429,7 @@ module ActiveRecord
         raise UnknownPrimaryKey.new(@klass) if primary_key.nil?
 
         expects_array = ids.first.kind_of?(Array)
-        return ids.first if expects_array && ids.first.empty?
+        return [] if expects_array && ids.first.empty?
 
         ids = ids.flatten.compact.uniq
 
