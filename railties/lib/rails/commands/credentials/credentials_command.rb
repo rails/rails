@@ -8,6 +8,9 @@ module Rails
     class CredentialsCommand < Rails::Command::Base # :nodoc:
       include Helpers::Editor
 
+      class_option :environment, aliases: "-e", type: :string,
+        desc: "Uses credentials from config/credentials/:environment.yml.enc encrypted by config/credentials/:environment.key key"
+
       no_commands do
         def help
           say "Usage:\n  #{self.class.banner}"
@@ -20,58 +23,78 @@ module Rails
         require_application_and_environment!
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
-        ensure_master_key_has_been_added if Rails.application.credentials.key.nil?
-        ensure_credentials_have_been_added
+
+        encrypted = Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
+
+        ensure_encryption_key_has_been_added(key_path) if encrypted.key.nil?
+        ensure_encrypted_file_has_been_added(content_path, key_path)
 
         catch_editing_exceptions do
-          change_credentials_in_system_editor
+          change_encrypted_file_in_system_editor(content_path, key_path, env_key)
         end
 
-        say "New credentials encrypted and saved."
+        say "File encrypted and saved."
+      rescue ActiveSupport::MessageEncryptor::InvalidMessage
+        say "Couldn't decrypt #{content_path}. Perhaps you passed the wrong key?"
       end
 
       def show
         require_application_and_environment!
 
-        say Rails.application.credentials.read.presence || missing_credentials_message
+        encrypted = Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
+
+        say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: key_path, file_path: content_path)
       end
 
       private
-        def ensure_master_key_has_been_added
-          master_key_generator.add_master_key_file
-          master_key_generator.ignore_master_key_file
+        def content_path
+          options[:environment] ? "config/credentials/#{options[:environment]}.yml.enc" : "config/credentials.yml.enc"
         end
 
-        def ensure_credentials_have_been_added
-          credentials_generator.add_credentials_file_silently
+        def key_path
+          options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
         end
 
-        def change_credentials_in_system_editor
-          Rails.application.credentials.change do |tmp_path|
+        def env_key
+          options[:environment] ? "RAILS_#{options[:environment].upcase}_KEY" : "RAILS_MASTER_KEY"
+        end
+
+
+        def ensure_encryption_key_has_been_added(key_path)
+          encryption_key_file_generator.add_key_file(key_path)
+          encryption_key_file_generator.ignore_key_file(key_path)
+        end
+
+        def ensure_encrypted_file_has_been_added(file_path, key_path)
+          encrypted_file_generator.add_encrypted_file_silently(file_path, key_path)
+        end
+
+        def change_encrypted_file_in_system_editor(file_path, key_path, env_key)
+          Rails.application.encrypted(file_path, key_path: key_path, env_key: env_key).change do |tmp_path|
             system("#{ENV["EDITOR"]} #{tmp_path}")
           end
         end
 
 
-        def master_key_generator
+        def encryption_key_file_generator
           require "rails/generators"
-          require "rails/generators/rails/master_key/master_key_generator"
+          require "rails/generators/rails/encryption_key_file/encryption_key_file_generator"
 
-          Rails::Generators::MasterKeyGenerator.new
+          Rails::Generators::EncryptionKeyFileGenerator.new
         end
 
-        def credentials_generator
+        def encrypted_file_generator
           require "rails/generators"
-          require "rails/generators/rails/credentials/credentials_generator"
+          require "rails/generators/rails/encrypted_file/encrypted_file_generator"
 
-          Rails::Generators::CredentialsGenerator.new
+          Rails::Generators::EncryptedFileGenerator.new
         end
 
-        def missing_credentials_message
-          if Rails.application.credentials.key.nil?
-            "Missing master key to decrypt credentials. See `rails credentials:help`"
+        def missing_encrypted_message(key:, key_path:, file_path:)
+          if key.nil?
+            "Missing '#{key_path}' to decrypt credentials. See `rails credentials:help`"
           else
-            "No credentials have been added yet. Use `rails credentials:edit` to change that."
+            "File '#{file_path}' does not exist. Use `rails credentials:edit` to change that."
           end
         end
     end
