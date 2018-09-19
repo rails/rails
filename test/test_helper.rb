@@ -25,7 +25,8 @@ end
 require "action_mailroom/test_helper"
 
 class ActiveSupport::TestCase
-  include ActionMailroom::TestHelper
+  include ActionMailroom::TestHelper, ActiveJob::TestHelper
+end
 
 if ARGV.include?("-v")
   ActiveRecord::Base.logger = Logger.new(STDOUT)

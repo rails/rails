@@ -1,8 +1,6 @@
 require_relative '../../test_helper'
 
 class ActionMailroom::InboundEmail::IncinerationTest < ActiveSupport::TestCase
-  include ActiveJob::TestHelper
-
   test "incinerate emails 30 days after they have been processed" do
     freeze_time
 
