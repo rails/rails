@@ -22,7 +22,7 @@ class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
   end
 
   test "delayed routing" do
-    perform_enqueued_jobs only: ActionMailroom::DeliverInboundEmailToMailroomJob do
+    perform_enqueued_jobs only: ActionMailroom::RoutingJob do
       another_inbound_email = create_inbound_email("welcome.eml", status: :pending)
       assert_equal "Discussion: Let's debate these attachments", $processed
     end

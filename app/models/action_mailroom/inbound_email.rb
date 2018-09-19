@@ -18,6 +18,6 @@ class ActionMailroom::InboundEmail < ActiveRecord::Base
 
   private
     def deliver_to_mailroom_later
-      ActionMailroom::DeliverInboundEmailToMailroomJob.perform_later self
+      ActionMailroom::RoutingJob.perform_later self
     end
 end
