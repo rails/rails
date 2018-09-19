@@ -5,8 +5,7 @@ class ActionMailroom::InboundEmail::IncinerationTest < ActiveSupport::TestCase
     freeze_time
 
     assert_enqueued_with job: ActionMailroom::InboundEmail::IncinerationJob, at: 30.days.from_now do
-      inbound_email = create_inbound_email("welcome.eml")
-      inbound_email.delivered!
+      create_inbound_email("welcome.eml").delivered!
     end
   end
 end
