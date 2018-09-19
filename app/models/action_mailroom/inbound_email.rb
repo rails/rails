@@ -7,7 +7,7 @@ class ActionMailroom::InboundEmail < ActiveRecord::Base
 
   enum status: %i[ pending processing delivered failed bounced ]
 
-  # after_create_commit :deliver_to_mailroom_later
+  after_create_commit :deliver_to_mailroom_later, if: ->(r) { r.pending? }
 
 
   def mail
