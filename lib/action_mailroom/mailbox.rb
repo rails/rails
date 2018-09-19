@@ -1,21 +1,19 @@
 require "active_support/rescuable"
+
 require "action_mailroom/mailbox/callbacks"
+require "action_mailroom/mailbox/routing"
 
 class ActionMailroom::Mailbox
-  include ActiveSupport::Rescuable, Callbacks
-
-  class << self
-    def receive(inbound_email)
-      new(inbound_email).perform_processing
-    end
-
-    def routing(routes)
-      @router = ActionMailroom::Router.new(routes)
-    end
-  end
+  include ActiveSupport::Rescuable
+  include Callbacks, Routing
 
   attr_reader :inbound_email
   delegate :mail, to: :inbound_email
+
+  def self.receive(inbound_email)
+    new(inbound_email).perform_processing
+  end
+
 
   def initialize(inbound_email)
     @inbound_email = inbound_email

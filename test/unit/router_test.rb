@@ -9,7 +9,8 @@ end
 module ActionMailroom
   class RouterTest < ActiveSupport::TestCase
     setup do
-      @router = ActionMailroom::Router.new('replies@example.com' => :replies)
+      @router = ActionMailroom::Router.new
+      @router.add_routes('replies@example.com' => :replies)
       $processed = false
     end
 

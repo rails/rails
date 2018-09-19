@@ -1,6 +1,10 @@
 class ActionMailroom::Router
-  def initialize(routes)
-    @routes = routes
+  def initialize
+    @routes = {}
+  end
+
+  def add_routes(routes)
+    @routes.merge!(routes)
   end
 
   def route(inbound_email)
