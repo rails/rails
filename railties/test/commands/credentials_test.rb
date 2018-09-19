@@ -55,6 +55,16 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
     end
   end
 
+  test "edit command does not add master key when credentials exists but master key file and env do not exist" do
+    Dir.chdir(app_path) do
+      FileUtils.rm("config/master.key")
+
+      assert_match(/Missing master key to decrypt credentials/, run_edit_command(allow_failure: true))
+      assert_equal 1, $?.exitstatus
+      assert_not File.exist?("config/master.key")
+    end
+  end
+
   test "show credentials" do
     assert_match(/access_key_id: 123/, run_show_command)
   end
@@ -74,9 +84,9 @@ class Rails::Command::CredentialsCommandTest < ActiveSupport::TestCase
   end
 
   private
-    def run_edit_command(editor: "cat")
+    def run_edit_command(editor: "cat", allow_failure: false)
       switch_env("EDITOR", editor) do
-        rails "credentials:edit"
+        rails "credentials:edit", allow_failure: allow_failure
       end
     end
 
