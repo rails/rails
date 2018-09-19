@@ -1,5 +1,3 @@
-require "byebug"
-
 class ActionMailroom::Router
   def initialize(routes)
     @routes = routes
