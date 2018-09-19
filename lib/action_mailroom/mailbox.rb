@@ -31,6 +31,8 @@ class ActionMailroom::Mailbox
     inbound_email.delivered!
   rescue => exception
     inbound_email.failed!
+    
+    # TODO: Include a reference to the inbound_email in the exception raised so error handling becomes easier
     rescue_with_handler(exception) || raise
   end
 
