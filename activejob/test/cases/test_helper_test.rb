@@ -8,6 +8,7 @@ require "jobs/logging_job"
 require "jobs/nested_job"
 require "jobs/rescue_job"
 require "jobs/inherited_job"
+require "jobs/multiple_kwargs_job"
 require "models/person"
 
 class EnqueuedJobsTest < ActiveJob::TestCase
@@ -436,6 +437,12 @@ class EnqueuedJobsTest < ActiveJob::TestCase
     end
   end
 
+  def test_assert_enqueued_with_with_hash_arg
+    assert_enqueued_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
+    end
+  end
+
   def test_assert_enqueued_job_with_global_id_args
     ricardo = Person.new(9)
     assert_enqueued_with(job: HelloJob, args: [ricardo]) do
@@ -858,6 +865,12 @@ class PerformedJobsTest < ActiveJob::TestCase
       assert_performed_with(job: HelloJob, at: Date.today.noon) do
         HelloJob.set(wait_until: Date.tomorrow.noon).perform_later
       end
+    end
+  end
+
+  def test_assert_performed_with_with_hash_arg
+    assert_performed_with(job: MultipleKwargsJob, args: [{ argument1: 1, argument2: { a: 1, b: 2 } }]) do
+      MultipleKwargsJob.perform_later(argument2: { b: 2, a: 1 }, argument1: 1)
     end
   end
 
