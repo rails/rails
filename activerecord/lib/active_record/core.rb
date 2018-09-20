@@ -283,6 +283,33 @@ module ActiveRecord
         TypeCaster::Map.new(self)
       end
 
+      # Allows preloading of associations on a relation or array of records,
+      # in the same way that #preload does. Mutates the +records+ argument.
+      # For example:
+      #
+      #   users = User.all.to_a
+      #   User.load_associations(users, :posts)
+      #   # SELECT "posts".* FROM "posts" WHERE "posts"."user_id" IN (1, 2, 3)
+      #
+      #   users.each do |user|
+      #     user.posts
+      #   end
+      def load_associations(records, *associations)
+        if records.is_a?(ActiveRecord::Relation)
+          records.preload(associations.flatten)
+        else
+          check_if_array_contains_valid_elements!(records)
+          check_if_method_has_arguments!(:load_associations, associations)
+
+          preloader = ActiveRecord::Associations::Preloader.new
+          associations.each do |association|
+            preloader.preload records, association
+          end
+          records
+        end
+      end
+      alias_method :load_association, :load_associations
+
       private
 
         def cached_find_by_statement(key, &block)
@@ -303,6 +330,20 @@ module ActiveRecord
 
         def table_metadata
           TableMetadata.new(self, arel_table)
+        end
+
+        def check_if_method_has_arguments!(method_name, args)
+          if args.blank?
+            raise ArgumentError, "The method .#{method_name}() must contain arguments."
+          end
+        end
+
+        def check_if_array_contains_valid_elements!(records)
+          records.flatten.compact.each do |record|
+            unless record.is_a? ActiveRecord::Base
+              raise ArgumentError, "The method .load_associations() must be given an array of ActiveRecord::Base elements."
+            end
+          end
         end
     end
 

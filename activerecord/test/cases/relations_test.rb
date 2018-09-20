@@ -694,6 +694,12 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
+  def test_abstract_load_association
+    assert_queries(2) do
+      ActiveRecord::Base.load_association(Post.all, :comments).each { |p| p.comments }
+    end
+  end
+
   def test_load_associations_with_invalid_array_elements
     posts = ["helloworld", "foo bar", "my first post"]
     assert_raises(ArgumentError) do
