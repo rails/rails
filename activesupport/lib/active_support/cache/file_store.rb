@@ -26,6 +26,13 @@ module ActiveSupport
         @cache_path = cache_path.to_s
       end
 
+      # Advertise that this cache store can be used
+      # with "recyclable cache keys" otherwise known
+      # as cache versioning.
+      def supports_in_cache_versioning?
+        true
+      end
+
       # Deletes all items from the cache. In this case it deletes all the entries in the specified
       # file store directory except for .keep or .gitkeep. Be careful which directory is specified in your
       # config file when using +FileStore+ because everything in that directory will be deleted.

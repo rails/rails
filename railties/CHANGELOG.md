@@ -1,3 +1,8 @@
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it.
+
+    *Richard Schneeman*
+
 *   Support environment specific credentials file.
 
     For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by

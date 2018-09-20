@@ -47,6 +47,13 @@ module ActiveSupport
           end
       end
 
+      # Advertise that this cache store can be used
+      # with "recyclable cache keys" otherwise known
+      # as cache versioning.
+      def supports_in_cache_versioning?
+        true
+      end
+
       prepend Strategy::LocalCache
       prepend LocalCacheWithRaw
 

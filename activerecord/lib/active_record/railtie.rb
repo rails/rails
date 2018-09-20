@@ -88,6 +88,29 @@ module ActiveRecord
       end
     end
 
+    initializer "Check for cache versioning support" do
+      config.after_initialize do |app|
+        ActiveSupport.on_load(:active_record) do
+          if app.config.active_record.cache_versioning && Rails.cache
+            unless Rails.cache.try(:supports_in_cache_versioning?)
+              raise <<-end_error
+
+You're using a cache store `#{Rails.cache.class}` that does not support
+"recyclable" cache keys, also known as "in cache versioning". To
+fix this issue either disable "recyclable" cache keys by setting:
+
+    config.active_record.cache_versioning = false
+
+Or switching to a cache store that supports this functionality:
+https://guides.rubyonrails.org/caching_with_rails.html#cache-stores
+
+end_error
+            end
+          end
+        end
+      end
+    end
+
     initializer "active_record.check_schema_cache_dump" do
       if config.active_record.delete(:use_schema_cache_dump)
         config.after_initialize do |app|
