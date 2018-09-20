@@ -9,8 +9,8 @@ class Mysql2CaseSensitivityTest < ActiveRecord::Mysql2TestCase
   repair_validations(CollationTest)
 
   def test_columns_include_collation_different_from_table
-    assert_equal "utf8_bin", CollationTest.columns_hash["string_cs_column"].collation
-    assert_equal "utf8_general_ci", CollationTest.columns_hash["string_ci_column"].collation
+    assert_equal "utf8mb4_bin", CollationTest.columns_hash["string_cs_column"].collation
+    assert_equal "utf8mb4_general_ci", CollationTest.columns_hash["string_ci_column"].collation
   end
 
   def test_case_sensitive
