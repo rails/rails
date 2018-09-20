@@ -491,7 +491,7 @@ Add the new remote to your local repository on your local machine:
 $ git remote add fork https://github.com/<your user name>/rails.git
 ```
 
-You may have cloned your local repository from rails/rails or you may have cloned from your forked repository. To avoid ambigity the following git commands assume that you have made a "rails" remote that points to rails/rails.
+You may have cloned your local repository from rails/rails or you may have cloned from your forked repository. To avoid ambiguity the following git commands assume that you have made a "rails" remote that points to rails/rails.
 
 ```bash
 $ git remote add rails https://github.com/rails/rails.git
