@@ -17,7 +17,7 @@ end
 class ActionMailroom::Mailbox::StateTest < ActiveSupport::TestCase
   setup do
     $processed = false
-    @inbound_email = create_inbound_email("welcome.eml")
+    @inbound_email = create_inbound_email_from_fixture("welcome.eml")
   end
 
   test "successful mailbox processing leaves inbound email in delivered state" do

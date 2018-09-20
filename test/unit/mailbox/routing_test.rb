@@ -13,7 +13,7 @@ end
 class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
   setup do
     $processed = false
-    @inbound_email = create_inbound_email("welcome.eml")
+    @inbound_email = create_inbound_email_from_fixture("welcome.eml")
   end
 
   test "string routing" do
@@ -23,7 +23,7 @@ class ActionMailroom::Mailbox::RoutingTest < ActiveSupport::TestCase
 
   test "delayed routing" do
     perform_enqueued_jobs only: ActionMailroom::RoutingJob do
-      another_inbound_email = create_inbound_email("welcome.eml", status: :pending)
+      another_inbound_email = create_inbound_email_from_fixture("welcome.eml", status: :pending)
       assert_equal "Discussion: Let's debate these attachments", $processed
     end
   end

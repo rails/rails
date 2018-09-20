@@ -13,7 +13,7 @@ end
 class ActionMailroom::Mailbox::CallbacksTest < ActiveSupport::TestCase
   setup do
     $before_processing = $after_processing = $around_processing = $processed = false
-    @inbound_email = create_inbound_email("welcome.eml")
+    @inbound_email = create_inbound_email_from_fixture("welcome.eml")
   end
 
   test "all callback types" do
