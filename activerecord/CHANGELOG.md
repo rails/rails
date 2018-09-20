@@ -1,3 +1,7 @@
+*   active_record/test - fix deprecation hash warning.
+
+    *Vitor Oliveira*
+
 *   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
 
     *Gannon McGibbon*, *Kevin Cheng*
