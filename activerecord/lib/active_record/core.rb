@@ -299,7 +299,7 @@ module ActiveRecord
           records.preload(associations.flatten)
         else
           check_if_array_contains_valid_elements!(records)
-          check_if_method_has_arguments!(:load_associations, associations)
+          raise ArgumentError, "`load_associations` must be given an association to load." if associations.blank?
 
           preloader = ActiveRecord::Associations::Preloader.new
           associations.each do |association|
@@ -332,16 +332,10 @@ module ActiveRecord
           TableMetadata.new(self, arel_table)
         end
 
-        def check_if_method_has_arguments!(method_name, args)
-          if args.blank?
-            raise ArgumentError, "The method .#{method_name}() must contain arguments."
-          end
-        end
-
         def check_if_array_contains_valid_elements!(records)
           records.flatten.compact.each do |record|
             unless record.is_a? ActiveRecord::Base
-              raise ArgumentError, "The method .load_associations() must be given an array of ActiveRecord::Base elements."
+              raise ArgumentError, "`load_associations` must be given an array of ActiveRecord::Base elements."
             end
           end
         end
