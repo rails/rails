@@ -10,7 +10,7 @@ module ActionMailroom
       create_inbound_email(StringIO.new(Mail.new(mail_options).to_s), status: status)
     end
 
-    def create_inbound_email(io, filename: 'mail.eml', status: status)
+    def create_inbound_email(io, filename: 'mail.eml', status: :processing)
       ActionMailroom::InboundEmail.create! status: status, raw_email:
         ActiveStorage::Blob.create_after_upload!(io: io, filename: filename, content_type: 'message/rfc822')
     end
