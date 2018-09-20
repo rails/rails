@@ -1,24 +1,46 @@
 require_relative '../test_helper'
 
-class RepliesMailbox < ActionMailroom::Mailbox
+class RootMailbox < ActionMailroom::Mailbox
   def process
-    $processed = mail.subject
+    $processed_by   = self.class.to_s
+    $processed_mail = mail
   end
+end
+
+class FirstMailbox < RootMailbox
+end
+
+class SecondMailbox < RootMailbox
 end
 
 module ActionMailroom
   class RouterTest < ActiveSupport::TestCase
     setup do
       @router = ActionMailroom::Router.new
-      @router.add_routes('replies@example.com' => :replies)
-      $processed = false
+      $processed_by = $processed_mail = nil
     end
 
-    test "routed to mailbox" do
-      @router.route \
-        create_inbound_email_from_mail(to: "replies@example.com", subject: "This is a reply")
+    test "single string route" do
+      @router.add_routes("first@example.com" => :first)
 
-      assert_equal "This is a reply", $processed
+      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "FirstMailbox", $processed_by
+      assert_equal inbound_email.mail, $processed_mail      
+    end
+
+    test "multiple string routes" do
+      @router.add_routes("first@example.com" => :first, "second@example.com" => :second)
+
+      inbound_email = create_inbound_email_from_mail(to: "first@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "FirstMailbox", $processed_by
+      assert_equal inbound_email.mail, $processed_mail
+
+      inbound_email = create_inbound_email_from_mail(to: "second@example.com", subject: "This is a reply")
+      @router.route inbound_email
+      assert_equal "SecondMailbox", $processed_by
+      assert_equal inbound_email.mail, $processed_mail
     end
   end
 end
