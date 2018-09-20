@@ -9,6 +9,8 @@ require "models/event"
 
 module ActiveRecord
   class AdapterTest < ActiveRecord::TestCase
+    include ConnectionHelper
+
     def setup
       @connection = ActiveRecord::Base.connection
       @connection.materialize_transactions
@@ -328,6 +330,15 @@ module ActiveRecord
 
     def test_joins_per_query_is_deprecated
       assert_deprecated { @connection.joins_per_query }
+    end
+
+    unless in_memory_db?
+      def test_configure_in_clause_length
+        run_without_connection do |orig_connection|
+          ActiveRecord::Base.establish_connection(orig_connection.deep_merge(in_clause_length: 1000))
+          assert_equal 1000,  ActiveRecord::Base.connection.in_clause_length
+        end
+      end
     end
   end
 

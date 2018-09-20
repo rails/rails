@@ -125,6 +125,10 @@ module ActiveRecord
         @advisory_locks_enabled = self.class.type_cast_config_to_boolean(
           config.fetch(:advisory_locks, true)
         )
+
+        @in_clause_length = self.class.type_cast_config_to_integer(
+          config.fetch(:in_clause_length, nil)
+        )
       end
 
       def replica?

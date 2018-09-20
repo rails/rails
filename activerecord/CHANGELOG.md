@@ -1,3 +1,13 @@
+*   Add database configuration to configure `in_clause_length`.
+
+    ```
+    production:
+      adapter: mysql2
+      in_clause_length: 1000
+    ```
+
+    *Yasuo Honda*
+
 *   Added `index` option for `change_table` migration helpers.
     With this change you can create indexes while adding new
     columns into the existing tables.
