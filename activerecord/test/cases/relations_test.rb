@@ -683,7 +683,7 @@ class RelationTest < ActiveRecord::TestCase
     end
     assert_not odd_posts.first.comments.loaded?
 
-    assert_queries(0) do
+    assert_no_queries do
       Post.load_associations(even_posts, :comments)
     end
   end
@@ -708,7 +708,7 @@ class RelationTest < ActiveRecord::TestCase
   end
 
   def test_load_associations_with_empty_array
-    assert_queries(0) do
+    assert_no_queries do
       assert_empty Post.load_associations([], :comments)
     end
   end
@@ -742,7 +742,7 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_load_association_with_duplicated_records
+  def test_load_associations_with_duplicated_records
     posts = [Post.first]
     posts.push(posts.first.dup.tap { |d| d.id = posts.first.id })
 
@@ -752,11 +752,14 @@ class RelationTest < ActiveRecord::TestCase
     end
   end
 
-  def test_load_associations_with_different_types
-    records = Author.all.to_a + Post.all.to_a
+  def test_load_associations_on_different_types
+    authors, posts = Author.all.to_a, Post.all.to_a
+
+    # posts->comments, authors->posts, authors->posts->comments
     assert_queries(3) do
-      Author.load_associations(records, :comments)
-      records.each { |r| assert r.comments.loaded? }
+      Author.load_associations(authors + posts, :comments)
+      authors.each { |r| assert r.comments.loaded? }
+      posts.each { |r| assert r.comments.loaded? }
     end
   end
 
