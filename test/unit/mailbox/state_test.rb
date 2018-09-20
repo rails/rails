@@ -17,13 +17,14 @@ end
 class ActionMailroom::Mailbox::StateTest < ActiveSupport::TestCase
   setup do
     $processed = false
-    @inbound_email = create_inbound_email_from_fixture("welcome.eml")
+    @inbound_email = create_inbound_email_from_mail \
+      to: "replies@example.com", subject: "I was processed"
   end
 
   test "successful mailbox processing leaves inbound email in delivered state" do
     SuccessfulMailbox.receive @inbound_email
     assert @inbound_email.delivered?
-    assert_equal "Discussion: Let's debate these attachments", $processed
+    assert_equal "I was processed", $processed
   end
 
   test "unsuccessful mailbox processing leaves inbound email in failed state" do

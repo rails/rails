@@ -6,8 +6,8 @@ module ActionMailroom
       create_inbound_email file_fixture(fixture_name).open, filename: fixture_name, status: status
     end    
 
-    def create_inbound_email_from_mail(status: :processing, &block)
-      create_inbound_email(StringIO.new(Mail.new { instance_eval(&block) }.to_s), status: status)
+    def create_inbound_email_from_mail(status: :processing, **mail_options)
+      create_inbound_email(StringIO.new(Mail.new(mail_options).to_s), status: status)
     end
 
     def create_inbound_email(io, filename: 'mail.eml', status: status)

@@ -15,10 +15,8 @@ module ActionMailroom
     end
 
     test "routed to mailbox" do
-      @router.route create_inbound_email_from_mail {
-        to "replies@example.com"
-        subject "This is a reply"
-      }
+      @router.route \
+        create_inbound_email_from_mail(to: "replies@example.com", subject: "This is a reply")
 
       assert_equal "This is a reply", $processed
     end
