@@ -65,11 +65,6 @@ module ActiveRecord
       end
     end
 
-    # Returns an array of hashes representing each row record.
-    def to_a
-      hash_rows
-    end
-
     def to_hash
       ActiveSupport::Deprecation.warn(<<-MSG.squish)
         `ActiveRecord::Result#to_hash` has been renamed to `to_a`.
@@ -90,6 +85,8 @@ module ActiveRecord
     def to_ary
       hash_rows
     end
+
+    alias :to_a :to_ary
 
     def [](idx)
       hash_rows[idx]
