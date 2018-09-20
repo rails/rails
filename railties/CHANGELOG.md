@@ -1,3 +1,10 @@
+## Master
+
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it.
+
+    *Richard Schneeman*
+
 ## Rails 5.2.1 (August 07, 2018) ##
 
 *   Respect `NODE_ENV` when running `rails yarn:install`.
