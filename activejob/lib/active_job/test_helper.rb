@@ -345,7 +345,7 @@ module ActiveJob
     #   end
     def assert_enqueued_with(job: nil, args: nil, at: nil, queue: nil)
       expected = { job: job, args: args, at: at, queue: queue }.compact
-      serialized_args = serialize_args_for_assertion(expected)
+      expected_args = prepare_args_for_assertion(expected)
 
       if block_given?
         original_enqueued_jobs_count = enqueued_jobs.count
@@ -358,7 +358,8 @@ module ActiveJob
       end
 
       matching_job = jobs.find do |enqueued_job|
-        serialized_args.all? { |key, value| value == enqueued_job[key] }
+        deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        expected_args.all? { |key, value| value == deserialized_job[key] }
       end
 
       assert matching_job, "No enqueued job found with #{expected}"
@@ -396,7 +397,7 @@ module ActiveJob
     #   end
     def assert_performed_with(job: nil, args: nil, at: nil, queue: nil, &block)
       expected = { job: job, args: args, at: at, queue: queue }.compact
-      serialized_args = serialize_args_for_assertion(expected)
+      expected_args = prepare_args_for_assertion(expected)
 
       if block_given?
         original_performed_jobs_count = performed_jobs.count
@@ -408,8 +409,9 @@ module ActiveJob
         jobs = performed_jobs
       end
 
-      matching_job = jobs.find do |performed_job|
-        serialized_args.all? { |key, value| value == performed_job[key] }
+      matching_job = jobs.find do |enqueued_job|
+        deserialized_job = deserialize_args_for_assertion(enqueued_job)
+        expected_args.all? { |key, value| value == deserialized_job[key] }
       end
 
       assert matching_job, "No performed job found with #{expected}"
@@ -552,10 +554,15 @@ module ActiveJob
         end
       end
 
-      def serialize_args_for_assertion(args)
-        args.dup.tap do |serialized_args|
-          serialized_args[:args] = ActiveJob::Arguments.serialize(serialized_args[:args]) if serialized_args[:args]
-          serialized_args[:at]   = serialized_args[:at].to_f if serialized_args[:at]
+      def prepare_args_for_assertion(args)
+        args.dup.tap do |arguments|
+          arguments[:at] = arguments[:at].to_f if arguments[:at]
+        end
+      end
+
+      def deserialize_args_for_assertion(job)
+        job.dup.tap do |job|
+          job[:args] = ActiveJob::Arguments.deserialize(job[:args]) if job[:args]
         end
       end
 
