@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require "qunit/selenium/test_runner"
-require "chromedriver/helper"
+require "chromedriver-helper"
 
 driver_options = Selenium::WebDriver::Chrome::Options.new
 driver_options.add_argument("--headless")

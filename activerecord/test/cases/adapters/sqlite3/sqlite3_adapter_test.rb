@@ -345,6 +345,42 @@ module ActiveRecord
         end
       end
 
+      if ActiveRecord::Base.connection.supports_expression_index?
+        def test_expression_index
+          with_example_table do
+            @conn.add_index "ex", "max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "max(id, number)", index.columns
+          end
+        end
+
+        def test_expression_index_with_where
+          with_example_table do
+            @conn.add_index "ex", "id % 10, max(id, number)", name: "expression", where: "id > 1000"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, max(id, number)", index.columns
+            assert_equal "id > 1000", index.where
+          end
+        end
+
+        def test_complicated_expression
+          with_example_table do
+            @conn.execute "CREATE INDEX expression ON ex (id % 10, (CASE WHEN number > 0 THEN max(id, number) END))WHERE(id > 1000)"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id % 10, (CASE WHEN number > 0 THEN max(id, number) END)", index.columns
+            assert_equal "(id > 1000)", index.where
+          end
+        end
+
+        def test_not_everything_an_expression
+          with_example_table do
+            @conn.add_index "ex", "id, max(id, number)", name: "expression"
+            index = @conn.indexes("ex").find { |idx| idx.name == "expression" }
+            assert_equal "id, max(id, number)", index.columns
+          end
+        end
+      end
+
       def test_primary_key
         with_example_table do
           assert_equal "id", @conn.primary_key("ex")

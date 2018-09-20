@@ -29,6 +29,8 @@ module ApplicationTests
       end
 
       test "`rake initializers` outputs a deprecation warning" do
+        add_to_env_config("development", "config.active_support.deprecation = :stderr")
+
         stderr = capture(:stderr) { run_rake_initializers }
         assert_match(/DEPRECATION WARNING: Using `bin\/rake initializers` is deprecated and will be removed in Rails 6.1/, stderr)
       end

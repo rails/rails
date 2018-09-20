@@ -35,7 +35,7 @@ class I18nValidationTest < ActiveModel::TestCase
 
   def test_errors_full_messages_translates_human_attribute_name_for_model_attributes
     @person.errors.add(:name, "not found")
-    assert_called_with(Person, :human_attribute_name, [:name, default: "Name"], returns: "Person's name") do
+    assert_called_with(Person, :human_attribute_name, ["name", default: "Name"], returns: "Person's name") do
       assert_equal ["Person's name not found"], @person.errors.full_messages
     end
   end
@@ -99,6 +99,63 @@ class I18nValidationTest < ActiveModel::TestCase
     person = Person.new
     assert_equal "cannot be blank", person.errors.full_message(:'contacts/addresses.street', "cannot be blank")
     assert_equal "cannot be blank", person.errors.full_message(:'contacts/addresses.country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_attributes_format
+    ActiveModel::Errors.i18n_full_message = true
+
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Contacts/addresses country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_model_format
+    ActiveModel::Errors.i18n_full_message = true
+
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { 'person/contacts/addresses': { format: "%{message}" } } } })
+
+    person = Person.new
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_with_indexed_deeply_nested_attributes_and_i18n_attribute_name
+    ActiveModel::Errors.i18n_full_message = true
+
+    I18n.backend.store_translations("en", activemodel: {
+      attributes: { 'person/contacts/addresses': { country: "Country" } }
+    })
+
+    person = Person.new
+    assert_equal "Contacts/addresses street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_with_indexed_deeply_nested_attributes_without_i18n_config
+    ActiveModel::Errors.i18n_full_message = false
+
+    I18n.backend.store_translations("en", activemodel: {
+      errors: { models: { 'person/contacts/addresses': { attributes: { street: { format: "%{message}" } } } } } })
+
+    person = Person.new
+    assert_equal "Contacts[0]/addresses[0] street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Contacts[0]/addresses[0] country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
+  end
+
+  def test_errors_full_messages_with_i18n_attribute_name_without_i18n_config
+    ActiveModel::Errors.i18n_full_message = false
+
+    I18n.backend.store_translations("en", activemodel: {
+      attributes: { 'person/contacts[0]/addresses[0]': { country: "Country" } }
+    })
+
+    person = Person.new
+    assert_equal "Contacts[0]/addresses[0] street cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].street', "cannot be blank")
+    assert_equal "Country cannot be blank", person.errors.full_message(:'contacts[0]/addresses[0].country', "cannot be blank")
   end
 
   # ActiveModel::Validations

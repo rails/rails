@@ -67,8 +67,8 @@ module Arel # :nodoc: all
         @connection = connection
       end
 
-      def compile(node, &block)
-        accept(node, Arel::Collectors::SQLString.new, &block).value
+      def compile(node, collector = Arel::Collectors::SQLString.new, &block)
+        accept(node, collector, &block).value
       end
 
       private

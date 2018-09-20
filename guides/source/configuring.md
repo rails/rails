@@ -69,7 +69,7 @@ These configuration methods are to be called on a `Rails::Railtie` object, such 
 * `config.beginning_of_week` sets the default beginning of week for the
 application. Accepts a valid week day symbol (e.g. `:monday`).
 
-* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, or an object that implements the cache API. Defaults to `:file_store`.
+* `config.cache_store` configures which cache store to use for Rails caching. Options include one of the symbols `:memory_store`, `:file_store`, `:mem_cache_store`, `:null_store`, `:redis_cache_store`, or an object that implements the cache API. Defaults to `:file_store`.
 
 * `config.colorize_logging` specifies whether or not to use ANSI color codes when logging information. Defaults to `true`.
 
@@ -104,7 +104,7 @@ application. Accepts a valid week day symbol (e.g. `:monday`).
 
 * `config.filter_parameters` used for filtering out the parameters that
 you don't want shown in the logs, such as passwords or credit card
-numbers. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
+numbers. It also filters out sensitive values of database columns when call `#inspect` on an Active Record object. By default, Rails filters out passwords by adding `Rails.application.config.filter_parameters += [:password]` in `config/initializers/filter_parameter_logging.rb`. Parameters filter works by partial matching regular expression.
 
 * `config.force_ssl` forces all requests to be served over HTTPS by using the `ActionDispatch::SSL` middleware, and sets `config.action_mailer.default_url_options` to be `{ protocol: 'https' }`. This can be configured by setting `config.ssl_options` - see the [ActionDispatch::SSL documentation](http://api.rubyonrails.org/classes/ActionDispatch/SSL.html) for details.
 
@@ -211,7 +211,7 @@ The full set of methods that can be used in this block are as follows:
 * `stylesheets` turns on the hook for stylesheets in generators. Used in Rails for when the `scaffold` generator is run, but this hook can be used in other generates as well. Defaults to `true`.
 * `stylesheet_engine` configures the stylesheet engine (for eg. sass) to be used when generating assets. Defaults to `:css`.
 * `scaffold_stylesheet` creates `scaffold.css` when generating a scaffolded resource. Defaults to `true`.
-* `test_framework` defines which test framework to use. Defaults to `false` and will use Minitest by default.
+* `test_framework` defines which test framework to use. Defaults to `false` and will use minitest by default.
 * `template_engine` defines which template engine to use, such as ERB or Haml. Defaults to `:erb`.
 
 ### Configuring Middleware
@@ -832,6 +832,14 @@ text/javascript image/svg+xml application/postscript application/x-shockwave-fla
 
   The default is 5 minutes.
 
+* `config.active_storage.routes_prefix` can be used to set the route prefix for the routes served by Active Storage. Accepts a string that will be prepended to the generated routes.
+
+  ```ruby
+  config.active_storage.routes_prefix = '/files'
+  ```
+
+  The default is `/rails/active_storage`
+
 ### Configuring a Database
 
 Just about every Rails application will interact with a database. You can connect to the database by setting an environment variable `ENV['DATABASE_URL']` or by using a configuration file called `config/database.yml`.
@@ -954,7 +962,7 @@ The only way to explicitly not use the connection information in `ENV['DATABASE_
 ```
 $ cat config/database.yml
 development:
-  url: sqlite3://NOT_my_database
+  url: sqlite3:NOT_my_database
 
 $ echo $DATABASE_URL
 postgresql://localhost/my_database
@@ -966,8 +974,8 @@ $ rails runner 'puts ActiveRecord::Base.configurations.inspect'
 #<ActiveRecord::DatabaseConfigurations:0x00007fc8eab02880 @configurations=[
   #<ActiveRecord::DatabaseConfigurations::UrlConfig:0x00007fc8eab020b0
     @env_name="development", @spec_name="primary",
-    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database", "host"=>"localhost"}
-    @url="sqlite3://NOT_my_database">
+    @config={"adapter"=>"sqlite3", "database"=>"NOT_my_database"}
+    @url="sqlite3:NOT_my_database">
   ]
 ```
 
@@ -1006,7 +1014,6 @@ If you choose to use MySQL or MariaDB instead of the shipped SQLite3 database, y
 ```yaml
 development:
   adapter: mysql2
-  encoding: utf8
   database: blog_development
   pool: 5
   username: root
@@ -1015,6 +1022,8 @@ development:
 ```
 
 If your development database has a root user with an empty password, this configuration should work for you. Otherwise, change the username and password in the `development` section as appropriate.
+
+NOTE: If your MySQL version is 5.5 or 5.6 and want to use the `utf8mb4` character set by default, please configure your MySQL server to support the longer key prefix by enabling `innodb_large_prefix` system variable.
 
 Advisory Locks are enabled by default on MySQL and are used to make database migrations concurrent safe. You can disable advisory locks by setting `advisory_locks` to `false`:
 

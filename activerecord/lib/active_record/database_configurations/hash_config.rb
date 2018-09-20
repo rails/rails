@@ -12,7 +12,7 @@ module ActiveRecord
     # Becomes:
     #
     #   #<ActiveRecord::DatabaseConfigurations::HashConfig:0x00007fd1acbded10
-    #     @env_name="development", @spec_name="primary", @config={"db_name"}>
+    #     @env_name="development", @spec_name="primary", @config={"database"=>"db_name"}>
     #
     # Options are:
     #
@@ -34,7 +34,7 @@ module ActiveRecord
 
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the `replica` key is present in the config, `replica?` will
-      # return true.
+      # return +true+.
       def replica?
         config["replica"]
       end

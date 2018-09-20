@@ -19,5 +19,5 @@ class RelationCacheTest < ActionView::TestCase
     assert_equal "Hello World", controller.cache_store.read("views/path/projects-#{Project.count}")
   end
 
-  def view_cache_dependencies; end
+  def view_cache_dependencies; []; end
 end

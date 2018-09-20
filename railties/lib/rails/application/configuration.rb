@@ -17,7 +17,7 @@ module Rails
                     :session_options, :time_zone, :reload_classes_only_on_change,
                     :beginning_of_week, :filter_redirect, :x, :enable_dependency_loading,
                     :read_encrypted_secrets, :log_level, :content_security_policy_report_only,
-                    :content_security_policy_nonce_generator, :require_master_key
+                    :content_security_policy_nonce_generator, :require_master_key, :credentials
 
       attr_reader :encoding, :api_only, :loaded_config_version
 
@@ -60,6 +60,9 @@ module Rails
         @content_security_policy_nonce_generator = nil
         @require_master_key                      = false
         @loaded_config_version                   = nil
+        @credentials                             = ActiveSupport::OrderedOptions.new
+        @credentials.content_path                = default_credentials_content_path
+        @credentials.key_path                    = default_credentials_key_path
       end
 
       def load_defaults(target_version)
@@ -273,6 +276,27 @@ module Rails
           true
         end
       end
+
+      private
+        def credentials_available_for_current_env?
+          File.exist?("#{root}/config/credentials/#{Rails.env}.yml.enc")
+        end
+
+        def default_credentials_content_path
+          if credentials_available_for_current_env?
+            File.join(root, "config", "credentials", "#{Rails.env}.yml.enc")
+          else
+            File.join(root, "config", "credentials.yml.enc")
+          end
+        end
+
+        def default_credentials_key_path
+          if credentials_available_for_current_env?
+            File.join(root, "config", "credentials", "#{Rails.env}.key")
+          else
+            File.join(root, "config", "master.key")
+          end
+        end
     end
   end
 end

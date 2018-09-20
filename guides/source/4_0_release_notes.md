@@ -196,7 +196,7 @@ Please refer to the [Changelog](https://github.com/rails/rails/blob/4-0-stable/a
 
 ### Deprecations
 
-* Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from MiniTest instead.
+* Deprecate `ActiveSupport::TestCase#pending` method, use `skip` from minitest instead.
 
 * `ActiveSupport::Benchmarkable#silence` has been deprecated due to its lack of thread safety. It will be removed without replacement in Rails 4.1.
 

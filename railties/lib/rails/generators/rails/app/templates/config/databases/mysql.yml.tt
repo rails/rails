@@ -1,4 +1,4 @@
-# MySQL. Versions 5.1.10 and up are supported.
+# MySQL. Versions 5.5.8 and up are supported.
 #
 # Install the MySQL driver
 #   gem install mysql2
@@ -11,7 +11,6 @@
 #
 default: &default
   adapter: mysql2
-  encoding: utf8
   pool: <%%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
   username: root
   password:

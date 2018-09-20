@@ -34,9 +34,7 @@ module ActiveRecord::Associations::Builder # :nodoc:
           foreign_key  = reflection.foreign_key
           cache_column = reflection.counter_cache_column
 
-          if @_after_replace_counter_called ||= false
-            @_after_replace_counter_called = false
-          elsif association(reflection.name).target_changed?
+          if association(reflection.name).target_changed?
             if reflection.polymorphic?
               model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)

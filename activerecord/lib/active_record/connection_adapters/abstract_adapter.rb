@@ -360,6 +360,10 @@ module ActiveRecord
       def enable_extension(name)
       end
 
+      def advisory_locks_enabled? # :nodoc:
+        supports_advisory_locks? && @advisory_locks_enabled
+      end
+
       # This is meant to be implemented by the adapters that support advisory
       # locks
       #
@@ -490,11 +494,7 @@ module ActiveRecord
       end
 
       def column_name_for_operation(operation, node) # :nodoc:
-        column_name_from_arel_node(node)
-      end
-
-      def column_name_from_arel_node(node) # :nodoc:
-        visitor.accept(node, Arel::Collectors::SQLString.new).value
+        visitor.compile(node)
       end
 
       def default_index_type?(index) # :nodoc:

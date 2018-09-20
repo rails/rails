@@ -76,7 +76,9 @@
     *Simon Coffey*
 
 *   Extract the `confirm` call in its own, overridable method in `rails_ujs`.
-    Example :
+
+    Example:
+
         Rails.confirm = function(message, element) {
           return (my_bootstrap_modal_confirm(message));
         }
@@ -84,7 +86,9 @@
     *Mathieu Mahé*
 
 *   Enable select tag helper to mark `prompt` option as `selected` and/or `disabled` for `required`
-    field. Example:
+    field.
+
+    Example:
 
         select :post,
                :category,
@@ -92,7 +96,9 @@
                { selected: "", disabled: "", prompt: "Choose one" },
                { required: true }
 
-    Placeholder option would be selected and disabled. The HTML produced:
+    Placeholder option would be selected and disabled.
+
+    The HTML produced:
 
         <select required="required" name="post[category]" id="post_category">
         <option disabled="disabled" selected="selected" value="">Choose one</option>

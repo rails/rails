@@ -160,7 +160,7 @@ class LoggingTest < ActiveSupport::TestCase
   end
 
   def test_job_error_logging
-    RescueJob.perform_later "other"
+    perform_enqueued_jobs { RescueJob.perform_later "other" }
   rescue RescueJob::OtherError
     assert_match(/Performing RescueJob \(Job ID: .*?\) from .*? with arguments:.*other/, @logger.messages)
     assert_match(/Error performing RescueJob \(Job ID: .*?\) from .*? in .*ms: RescueJob::OtherError \(Bad hair\):\n.*\brescue_job\.rb:\d+:in `perform'/, @logger.messages)
@@ -171,6 +171,11 @@ class LoggingTest < ActiveSupport::TestCase
       RetryJob.perform_later "DefaultsError", 2
       assert_match(/Retrying RetryJob in \d+ seconds, due to a DefaultsError\. The original exception was nil\./, @logger.messages)
     end
+  end
+
+  def test_enqueue_retry_logging_on_retry_job
+    perform_enqueued_jobs { RescueJob.perform_later "david" }
+    assert_match(/Retrying RescueJob in nil seconds, due to a nil\. The original exception was nil\./, @logger.messages)
   end
 
   def test_retry_stopped_logging

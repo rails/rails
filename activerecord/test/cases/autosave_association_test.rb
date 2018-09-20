@@ -14,6 +14,7 @@ require "models/line_item"
 require "models/order"
 require "models/parrot"
 require "models/pirate"
+require "models/project"
 require "models/ship"
 require "models/ship_part"
 require "models/tag"
@@ -558,6 +559,13 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
     assert_equal no_of_clients + 1, Client.count
   end
 
+  def test_parent_should_save_children_record_with_foreign_key_validation_set_in_before_save_callback
+    company = NewlyContractedCompany.new(name: "test")
+
+    assert company.save
+    assert_not_empty company.reload.new_contracts
+  end
+
   def test_parent_should_not_get_saved_with_duplicate_children_records
     assert_no_difference "Reply.count" do
       assert_no_difference "SillyUniqueReply.count" do
@@ -568,7 +576,13 @@ class TestDefaultAutosaveAssociationOnAHasManyAssociation < ActiveRecord::TestCa
         ])
 
         assert_not reply.save
-        assert_not_empty reply.errors
+        assert_equal ["is invalid"], reply.errors[:silly_unique_replies]
+        assert_empty reply.silly_unique_replies.first.errors
+
+        assert_equal(
+          ["has already been taken"],
+          reply.silly_unique_replies.last.errors[:content]
+        )
       end
     end
   end
@@ -1772,5 +1786,23 @@ class TestAutosaveAssociationOnAHasManyAssociationWithInverse < ActiveRecord::Te
 
     assert_equal 1, post.comments.count
     assert_equal 1, comment.post_comments_count
+  end
+end
+
+class TestAutosaveAssociationOnAHasManyAssociationDefinedInSubclassWithAcceptsNestedAttributes < ActiveRecord::TestCase
+  def test_should_update_children_when_asssociation_redefined_in_subclass
+    agency = Agency.create!(name: "Agency")
+    valid_project = Project.create!(firm: agency, name: "Initial")
+    agency.update!(
+      "projects_attributes" => {
+        "0" => {
+          "name" => "Updated",
+          "id" => valid_project.id
+        }
+      }
+    )
+    valid_project.reload
+
+    assert_equal "Updated", valid_project.name
   end
 end

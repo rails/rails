@@ -20,3 +20,7 @@ class Contract < ActiveRecord::Base
     @bye_count += 1
   end
 end
+
+class NewContract < Contract
+  validates :company_id, presence: true
+end

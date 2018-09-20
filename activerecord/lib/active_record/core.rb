@@ -3,10 +3,13 @@
 require "active_support/core_ext/hash/indifferent_access"
 require "active_support/core_ext/string/filters"
 require "concurrent/map"
+require "set"
 
 module ActiveRecord
   module Core
     extend ActiveSupport::Concern
+
+    FILTERED = "[FILTERED]" # :nodoc:
 
     included do
       ##
@@ -123,6 +126,8 @@ module ActiveRecord
 
       class_attribute :default_connection_handler, instance_writer: false
 
+      self.filter_attributes = []
+
       def self.connection_handler
         ActiveRecord::RuntimeRegistry.connection_handler || default_connection_handler
       end
@@ -134,7 +139,7 @@ module ActiveRecord
       self.default_connection_handler = ConnectionAdapters::ConnectionHandler.new
     end
 
-    module ClassMethods # :nodoc:
+    module ClassMethods
       def initialize_find_by_cache # :nodoc:
         @find_by_statement_cache = { true => Concurrent::Map.new, false => Concurrent::Map.new }
       end
@@ -211,7 +216,7 @@ module ActiveRecord
         generated_association_methods
       end
 
-      def generated_association_methods
+      def generated_association_methods # :nodoc:
         @generated_association_methods ||= begin
           mod = const_set(:GeneratedAssociationMethods, Module.new)
           private_constant :GeneratedAssociationMethods
@@ -221,8 +226,22 @@ module ActiveRecord
         end
       end
 
+      # Returns columns which shouldn't be exposed while calling +#inspect+.
+      def filter_attributes
+        if defined?(@filter_attributes)
+          @filter_attributes
+        else
+          superclass.filter_attributes
+        end
+      end
+
+      # Specifies columns which shouldn't be exposed while calling +#inspect+.
+      def filter_attributes=(attributes_names)
+        @filter_attributes = attributes_names.map(&:to_s).to_set
+      end
+
       # Returns a string like 'Post(id:integer, title:string, body:text)'
-      def inspect
+      def inspect # :nodoc:
         if self == Base
           super
         elsif abstract_class?
@@ -238,7 +257,7 @@ module ActiveRecord
       end
 
       # Overwrite the default class equality method to provide support for decorated models.
-      def ===(object)
+      def ===(object) # :nodoc:
         object.is_a?(self)
       end
 
@@ -492,7 +511,11 @@ module ActiveRecord
       inspection = if defined?(@attributes) && @attributes
         self.class.attribute_names.collect do |name|
           if has_attribute?(name)
-            "#{name}: #{attribute_for_inspect(name)}"
+            if filter_attribute?(name)
+              "#{name}: #{ActiveRecord::Core::FILTERED}"
+            else
+              "#{name}: #{attribute_for_inspect(name)}"
+            end
           end
         end.compact.join(", ")
       else
@@ -510,13 +533,16 @@ module ActiveRecord
         if defined?(@attributes) && @attributes
           column_names = self.class.column_names.select { |name| has_attribute?(name) || new_record? }
           pp.seplist(column_names, proc { pp.text "," }) do |column_name|
-            column_value = read_attribute(column_name)
             pp.breakable " "
             pp.group(1) do
               pp.text column_name
               pp.text ":"
               pp.breakable
-              pp.pp column_value
+              if filter_attribute?(column_name)
+                pp.text ActiveRecord::Core::FILTERED
+              else
+                pp.pp read_attribute(column_name)
+              end
             end
           end
         else
@@ -566,6 +592,10 @@ module ActiveRecord
 
       def custom_inspect_method_defined?
         self.class.instance_method(:inspect).owner != ActiveRecord::Base.instance_method(:inspect).owner
+      end
+
+      def filter_attribute?(attribute_name)
+        self.class.filter_attributes.include?(attribute_name) && !read_attribute(attribute_name).nil?
       end
   end
 end

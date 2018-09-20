@@ -43,7 +43,7 @@ module ActiveRecord
 
       # Determines whether a database configuration is for a replica / readonly
       # connection. If the `replica` key is present in the config, `replica?` will
-      # return true.
+      # return +true+.
       def replica?
         config["replica"]
       end

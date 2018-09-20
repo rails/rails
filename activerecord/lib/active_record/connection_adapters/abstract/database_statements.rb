@@ -20,7 +20,7 @@ module ActiveRecord
             raise "Passing bind parameters with an arel AST is forbidden. " \
               "The values must be stored on the AST directly"
           end
-          sql, binds = visitor.accept(arel_or_sql_string.ast, collector).value
+          sql, binds = visitor.compile(arel_or_sql_string.ast, collector)
           [sql.freeze, binds || []]
         else
           [arel_or_sql_string.dup.freeze, binds]
@@ -32,11 +32,11 @@ module ActiveRecord
       # can be used to query the database repeatedly.
       def cacheable_query(klass, arel) # :nodoc:
         if prepared_statements
-          sql, binds = visitor.accept(arel.ast, collector).value
+          sql, binds = visitor.compile(arel.ast, collector)
           query = klass.query(sql)
         else
           collector = PartialQueryCollector.new
-          parts, binds = visitor.accept(arel.ast, collector).value
+          parts, binds = visitor.compile(arel.ast, collector)
           query = klass.partial_query(parts)
         end
         [query, binds]
@@ -46,11 +46,16 @@ module ActiveRecord
       def select_all(arel, name = nil, binds = [], preparable: nil)
         arel = arel_from_relation(arel)
         sql, binds = to_sql_and_binds(arel, binds)
+
         if !prepared_statements || (arel.is_a?(String) && preparable.nil?)
+          preparable = false
+        elsif binds.length > bind_params_length
+          sql, binds = unprepared_statement { to_sql_and_binds(arel) }
           preparable = false
         else
           preparable = visitor.preparable
         end
+
         if prepared_statements && preparable
           select_prepared(sql, name, binds)
         else

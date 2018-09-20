@@ -160,6 +160,7 @@ ActiveRecord::Schema.define do
   create_table :citations, force: true do |t|
     t.column :book1_id, :integer
     t.column :book2_id, :integer
+    t.references :citation
   end
 
   create_table :clubs, force: true do |t|

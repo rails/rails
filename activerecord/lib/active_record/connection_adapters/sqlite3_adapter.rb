@@ -125,6 +125,10 @@ module ActiveRecord
         true
       end
 
+      def supports_expression_index?
+        sqlite_version >= "3.9.0"
+      end
+
       def requires_reloading?
         true
       end
@@ -483,9 +487,12 @@ module ActiveRecord
               name = name[1..-1]
             end
 
-            to_column_names = columns(to).map(&:name)
-            columns = index.columns.map { |c| rename[c] || c }.select do |column|
-              to_column_names.include?(column)
+            columns = index.columns
+            if columns.is_a?(Array)
+              to_column_names = columns(to).map(&:name)
+              columns = columns.map { |c| rename[c] || c }.select do |column|
+                to_column_names.include?(column)
+              end
             end
 
             unless columns.empty?
@@ -569,7 +576,7 @@ module ActiveRecord
               column
             end
           else
-            basic_structure.to_hash
+            basic_structure.to_a
           end
         end
 

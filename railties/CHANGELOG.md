@@ -1,3 +1,16 @@
+*   Support environment specific credentials file.
+
+    For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
+    `ENV["RAILS_MASTER_KEY"]` or `config/credentials/production.key` master key.
+    Edit given environment credentials file by command `rails credentials:edit --environment production`.
+    Default paths can be overwritten by setting `config.credentials.content_path` and `config.credentials.key_path`.
+
+    *Wojciech Wnętrzak*
+
+*   Make `ActiveSupport::Cache::NullStore` the default cache store in the test environment.
+
+    *Michael C. Nelson*
+
 *   Emit warning for unknown inflection rule when generating model.
 
     *Yoshiyuki Kinjo*
@@ -48,13 +61,13 @@
 
     *Annie-Claude Côté*
 
-*   Don't generate unused files in `app:update` task
+*   Don't generate unused files in `app:update` task.
 
-     Skip the assets' initializer when sprockets isn't loaded.
+    Skip the assets' initializer when sprockets isn't loaded.
 
-     Skip `config/spring.rb` when spring isn't loaded.
+    Skip `config/spring.rb` when spring isn't loaded.
 
-     Skip yarn's contents when yarn integration isn't used.
+    Skip yarn's contents when yarn integration isn't used.
 
     *Tsukuru Tanimichi*
 
