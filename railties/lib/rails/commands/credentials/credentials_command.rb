@@ -24,13 +24,13 @@ module Rails
 
         ensure_editor_available(command: "bin/rails credentials:edit") || (return)
 
-        encrypted = Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
+        encrypted = Rails.application.encrypted(content_path, key_path: key_path)
 
         ensure_encryption_key_has_been_added(key_path) if encrypted.key.nil?
         ensure_encrypted_file_has_been_added(content_path, key_path)
 
         catch_editing_exceptions do
-          change_encrypted_file_in_system_editor(content_path, key_path, env_key)
+          change_encrypted_file_in_system_editor(content_path, key_path)
         end
 
         say "File encrypted and saved."
@@ -41,7 +41,7 @@ module Rails
       def show
         require_application_and_environment!
 
-        encrypted = Rails.application.encrypted(content_path, key_path: key_path, env_key: env_key)
+        encrypted = Rails.application.encrypted(content_path, key_path: key_path)
 
         say encrypted.read.presence || missing_encrypted_message(key: encrypted.key, key_path: key_path, file_path: content_path)
       end
@@ -55,10 +55,6 @@ module Rails
           options[:environment] ? "config/credentials/#{options[:environment]}.key" : "config/master.key"
         end
 
-        def env_key
-          options[:environment] ? "RAILS_#{options[:environment].upcase}_KEY" : "RAILS_MASTER_KEY"
-        end
-
 
         def ensure_encryption_key_has_been_added(key_path)
           encryption_key_file_generator.add_key_file(key_path)
@@ -69,8 +65,8 @@ module Rails
           encrypted_file_generator.add_encrypted_file_silently(file_path, key_path)
         end
 
-        def change_encrypted_file_in_system_editor(file_path, key_path, env_key)
-          Rails.application.encrypted(file_path, key_path: key_path, env_key: env_key).change do |tmp_path|
+        def change_encrypted_file_in_system_editor(file_path, key_path)
+          Rails.application.encrypted(file_path, key_path: key_path).change do |tmp_path|
             system("#{ENV["EDITOR"]} #{tmp_path}")
           end
         end
