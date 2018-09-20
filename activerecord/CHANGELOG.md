@@ -1,3 +1,9 @@
+*   Don't update counter cache unless the record is actually saved.
+
+    Fixes #31493, #33113, #33117.
+
+    *Ryuta Kamizono*
+
 *   Deprecate `ActiveRecord::Result#to_hash` in favor of `ActiveRecord::Result#to_a`.
 
     *Gannon McGibbon*, *Kevin Cheng*

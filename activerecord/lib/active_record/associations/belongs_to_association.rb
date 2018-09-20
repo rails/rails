@@ -50,11 +50,8 @@ module ActiveRecord
         def replace(record)
           if record
             raise_on_type_mismatch!(record)
-            update_counters_on_replace(record)
             set_inverse_instance(record)
             @updated = true
-          else
-            decrement_counters
           end
 
           replace_keys(record)
@@ -78,19 +75,6 @@ module ActiveRecord
 
         def require_counter_update?
           reflection.counter_cache_column && owner.persisted?
-        end
-
-        def update_counters_on_replace(record)
-          if require_counter_update? && different_target?(record)
-            owner.instance_variable_set :@_after_replace_counter_called, true
-            record.increment!(reflection.counter_cache_column, touch: reflection.options[:touch])
-            decrement_counters
-          end
-        end
-
-        # Checks whether record is different to the current target, without loading it
-        def different_target?(record)
-          record._read_attribute(primary_key(record)) != owner._read_attribute(reflection.foreign_key)
         end
 
         def replace_keys(record)
