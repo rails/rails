@@ -56,10 +56,7 @@ module ActiveRecord
       # names +:author+ and +:buyers+.
       #
       # == Parameters
-      # +records+ is an array of ActiveRecord::Base. This array needs not be flat,
-      # i.e. +records+ itself may also contain arrays of records. In any case,
-      # +preload_associations+ will preload the all associations records by
-      # flattening +records+.
+      # +records+ is an array of ActiveRecord::Base.
       #
       # +associations+ specifies one or more associations that you want to
       # preload. It may be:
