@@ -1,3 +1,4 @@
+# coding: utf-8
 # frozen_string_literal: true
 
 ActiveRecord::Schema.define do
@@ -1016,6 +1017,7 @@ ActiveRecord::Schema.define do
   create_table :nodes, force: true do |t|
     t.integer :tree_id
     t.integer :parent_id
+    t.integer :children_count, default: 0, null: false
     t.string :name
     t.datetime :updated_at
   end

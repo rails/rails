@@ -54,6 +54,7 @@ module ActiveRecord
             set_inverse_instance(record)
             @updated = true
           else
+            owner.instance_variable_set :@_after_replace_counter_called, true
             decrement_counters
           end
 
