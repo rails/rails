@@ -16,7 +16,7 @@ class ActionMailroom::Router
   end
 
   def route(inbound_email)
-    if mailbox = locate_mailbox(inbound_email)
+    if mailbox = match_to_mailbox(inbound_email)
       mailbox.receive(inbound_email)
     else
       raise RoutingError
@@ -26,7 +26,7 @@ class ActionMailroom::Router
   private
     attr_reader :routes
 
-    def locate_mailbox(inbound_email)
+    def match_to_mailbox(inbound_email)
       routes.detect { |route| route.match?(inbound_email) }.try(:mailbox_class)
     end
 end
