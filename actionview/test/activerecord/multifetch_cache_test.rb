@@ -16,8 +16,8 @@ class MultifetchCacheTest < ActiveRecordTestCase
         []
       end
 
-      def combined_fragment_cache_key(key)
-        [ :views, key ]
+      def combined_fragment_cache_key(key = nil)
+        [ :views, key ].compact
       end
     end.new(view_paths, {})
   end

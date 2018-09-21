@@ -8,6 +8,7 @@ require "active_support/core_ext/numeric/bytes"
 require "active_support/core_ext/numeric/time"
 require "active_support/core_ext/object/to_param"
 require "active_support/core_ext/string/inflections"
+require "active_support/cache/key"
 
 module ActiveSupport
   # See ActiveSupport::Cache::Store for documentation.
@@ -313,6 +314,8 @@ module ActiveSupport
       #   cache.fetch('foo') # => "bar"
       def fetch(name, options = nil)
         if block_given?
+          original_name = name
+          name = ActiveSupport::Cache::Key(name)
           options = merged_options(options)
           key = normalize_key(name, options)
 
@@ -328,7 +331,7 @@ module ActiveSupport
           if entry
             get_entry_value(entry, name, options)
           else
-            save_block_result_to_cache(name, options) { |_name| yield _name }
+            save_block_result_to_cache(name, options) { yield original_name }
           end
         elsif options && options[:force]
           raise ArgumentError, "Missing block: Calling `Cache#fetch` with `force: true` requires a block."
@@ -348,6 +351,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def read(name, options = nil)
         options = merged_options(options)
+        name    = ActiveSupport::Cache::Key(name)
         key     = normalize_key(name, options)
         version = normalize_version(name, options)
 
@@ -458,7 +462,7 @@ module ActiveSupport
       # Options are passed to the underlying cache implementation.
       def write(name, value, options = nil)
         options = merged_options(options)
-
+        name = ActiveSupport::Cache::Key(name)
         instrument(:write, name, options) do
           entry = Entry.new(value, options.merge(version: normalize_version(name, options)))
           write_entry(normalize_key(name, options), entry, options)
@@ -645,24 +649,8 @@ module ActiveSupport
           end
         end
 
-        # Expands key to be a consistent string value. Invokes +cache_key+ if
-        # object responds to +cache_key+. Otherwise, +to_param+ method will be
-        # called. If the key is a Hash, then keys will be sorted alphabetically.
         def expanded_key(key)
-          return key.cache_key.to_s if key.respond_to?(:cache_key)
-
-          case key
-          when Array
-            if key.size > 1
-              key = key.collect { |element| expanded_key(element) }
-            else
-              key = expanded_key(key.first)
-            end
-          when Hash
-            key = key.sort_by { |k, _| k.to_s }.collect { |k, v| "#{k}=#{v}" }
-          end
-
-          key.to_param
+          ActiveSupport::Cache::Key(key).cache_key
         end
 
         def normalize_version(key, options = nil)
@@ -670,11 +658,7 @@ module ActiveSupport
         end
 
         def expanded_version(key)
-          case
-          when key.respond_to?(:cache_version) then key.cache_version.to_param
-          when key.is_a?(Array)                then key.map { |element| expanded_version(element) }.compact.to_param
-          when key.respond_to?(:to_a)          then expanded_version(key.to_a)
-          end
+          ActiveSupport::Cache::Key(key).cache_version
         end
 
         def instrument(operation, key, options = nil)
@@ -713,7 +697,7 @@ module ActiveSupport
 
         def save_block_result_to_cache(name, options)
           result = instrument(:generate, name, options) do
-            yield(name)
+            yield
           end
 
           write(name, result, options) unless result.nil? && options[:skip_nil]

@@ -55,12 +55,23 @@ module ActionView
         seed = callable_cache_key? ? @options[:cached] : ->(i) { i }
 
         @collection.each_with_object({}) do |item, hash|
-          hash[expanded_cache_key(seed.call(item))] = item
+          key = expanded_cache_key(view_key, seed.call(item))
+          hash[key] = item
         end
       end
 
-      def expanded_cache_key(key)
-        key = @view.combined_fragment_cache_key(@view.cache_fragment_name(key, virtual_path: @template.virtual_path, digest_path: digest_path))
+      def expanded_cache_key(base, item)
+        key = ActiveSupport::Cache::Key.new(base)
+        key << cache_fragment_name(item)
+        key
+      end
+
+      def view_key
+        @view_key ||= ActiveSupport::Cache::Key.new(@view.combined_fragment_cache_key)
+      end
+
+      def cache_fragment_name(key)
+        key = @view.cache_fragment_name(key, virtual_path: @template.virtual_path, digest_path: digest_path)
         key.frozen? ? key.dup : key # #read_multi & #write may require mutability, Dalli 2.6.0.
       end
 
