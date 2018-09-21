@@ -8,7 +8,7 @@ class ActionMailroom::Mailbox
   include Callbacks, Routing
 
   attr_reader :inbound_email
-  delegate :mail, to: :inbound_email
+  delegate :mail, :bounced!, to: :inbound_email
 
   def self.receive(inbound_email)
     new(inbound_email).perform_processing
@@ -37,7 +37,7 @@ class ActionMailroom::Mailbox
     def track_status_of_inbound_email
       inbound_email.processing!
       yield
-      inbound_email.delivered!
+      inbound_email.delivered! unless inbound_email.bounced?
     rescue => exception
       inbound_email.failed!
       raise

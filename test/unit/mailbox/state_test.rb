@@ -14,6 +14,14 @@ class UnsuccessfulMailbox < ActionMailroom::Mailbox
   end
 end
 
+class BouncingMailbox < ActionMailroom::Mailbox
+  def process
+    $processed = :bounced
+    bounced!    
+  end
+end
+
+
 class ActionMailroom::Mailbox::StateTest < ActiveSupport::TestCase
   setup do
     $processed = false
@@ -31,5 +39,11 @@ class ActionMailroom::Mailbox::StateTest < ActiveSupport::TestCase
     UnsuccessfulMailbox.receive @inbound_email
     assert @inbound_email.failed?
     assert_equal :failure, $processed
+  end
+
+  test "bounced inbound emails are not delivered" do
+    BouncingMailbox.receive @inbound_email
+    assert @inbound_email.bounced?
+    assert_equal :bounced, $processed
   end
 end
