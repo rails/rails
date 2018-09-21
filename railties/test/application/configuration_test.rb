@@ -132,7 +132,7 @@ module ApplicationTests
         app "production"
       end
 
-      assert_match(/You're using a cache store/, error.message)
+      assert_match(/You're using a cache/, error.message)
     end
 
     test "a renders exception on pending migration" do
