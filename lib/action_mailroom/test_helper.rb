@@ -1,3 +1,5 @@
+require "mail"
+
 module ActionMailroom
   module TestHelper
     # Create an InboundEmail record using an eml fixture in the format of message/rfc822
