@@ -264,7 +264,7 @@ module ActionDispatch
     # (case-insensitive), which may need to be manually added depending on the
     # choice of JavaScript libraries and frameworks.
     def xml_http_request?
-      get_header("HTTP_X_REQUESTED_WITH") =~ /XMLHttpRequest/i
+      /XMLHttpRequest/i.match?(get_header("HTTP_X_REQUESTED_WITH"))
     end
     alias :xhr? :xml_http_request?
 
