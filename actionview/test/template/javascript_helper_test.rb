@@ -23,6 +23,10 @@ class JavaScriptHelperTest < ActionView::TestCase
 
   def test_escape_javascript
     assert_equal "", escape_javascript(nil)
+    assert_equal "123", escape_javascript(123)
+    assert_equal "en", escape_javascript(:en)
+    assert_equal "false", escape_javascript(false)
+    assert_equal "true", escape_javascript(true)
     assert_equal %(This \\"thing\\" is really\\n netos\\'), escape_javascript(%(This "thing" is really\n netos'))
     assert_equal %(backslash\\\\test), escape_javascript(%(backslash\\test))
     assert_equal %(dont <\\/close> tags), escape_javascript(%(dont </close> tags))
