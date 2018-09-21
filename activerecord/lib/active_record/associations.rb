@@ -1762,6 +1762,7 @@ module ActiveRecord
         #   has_and_belongs_to_many :projects, -> { includes(:milestones, :manager) }
         #   has_and_belongs_to_many :categories, ->(post) {
         #     where("default_category = ?", post.default_category)
+        #   }
         #
         # === Extensions
         #
