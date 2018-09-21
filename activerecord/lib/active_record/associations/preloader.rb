@@ -97,30 +97,27 @@ module ActiveRecord
       private
 
         # Loads all the given data into +records+ for the +association+.
-        def preloaders_on(association, records, scope, polymorphic_parent = false)
+        def preloaders_on(association, records, scope, parent = nil)
           case association
           when Hash
-            preloaders_for_hash(association, records, scope, polymorphic_parent)
+            preloaders_for_hash(association, records, scope, parent)
           when Symbol
-            preloaders_for_one(association, records, scope, polymorphic_parent)
+            preloaders_for_one(association, records, scope, parent)
           when String
-            preloaders_for_one(association.to_sym, records, scope, polymorphic_parent)
+            preloaders_for_one(association.to_sym, records, scope, parent)
           else
             raise ArgumentError, "#{association.inspect} was not recognized for preload"
           end
         end
 
-        def preloaders_for_hash(association, records, scope, polymorphic_parent)
-          association.flat_map { |parent, child|
-            loaders = preloaders_for_one parent, records, scope, polymorphic_parent
+        def preloaders_for_hash(association, records, scope, parent)
+          association.flat_map { |child_parent, child|
+            loaders = preloaders_for_one child_parent, records, scope, parent
 
             recs = loaders.flat_map(&:preloaded_records).uniq
 
-            reflection = records.first.class._reflect_on_association(parent)
-            polymorphic_parent = reflection && reflection.options[:polymorphic]
-
             loaders.concat Array.wrap(child).flat_map { |assoc|
-              preloaders_on assoc, recs, scope, polymorphic_parent
+              preloaders_on assoc, recs, scope, child_parent
             }
             loaders
           }
@@ -138,8 +135,8 @@ module ActiveRecord
         # Additionally, polymorphic belongs_to associations can have multiple associated
         # classes, depending on the polymorphic_type field. So we group by the classes as
         # well.
-        def preloaders_for_one(association, records, scope, polymorphic_parent)
-          grouped_records(association, records, polymorphic_parent).flat_map do |reflection, klasses|
+        def preloaders_for_one(association, records, scope, parent)
+          grouped_records(association, records, parent).flat_map do |reflection, klasses|
             klasses.map do |rhs_klass, rs|
               loader = preloader_for(reflection, rs).new(rhs_klass, rs, reflection, scope)
               loader.run self
@@ -148,10 +145,12 @@ module ActiveRecord
           end
         end
 
-        def grouped_records(association, records, polymorphic_parent)
+        def grouped_records(association, records, parent)
           h = {}
           records.each do |record|
             next unless record
+            reflection = (record.class._reflect_on_association(parent) if parent)
+            polymorphic_parent = reflection && reflection.options[:polymorphic]
             next if polymorphic_parent && !record.class._reflect_on_association(association)
             assoc = record.association(association)
             next unless assoc.klass
