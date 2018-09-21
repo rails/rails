@@ -1075,13 +1075,13 @@ end
 You can use the `includes` method to specify second-order associations that should be eager-loaded when this association is used. For example, consider these models:
 
 ```ruby
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
 class Author < ApplicationRecord
@@ -1089,16 +1089,16 @@ class Author < ApplicationRecord
 end
 ```
 
-If you frequently retrieve authors directly from line items (`@line_item.book.author`), then you can make your code somewhat more efficient by including authors in the association from line items to books:
+If you frequently retrieve authors directly from chapters (`@chapter.book.author`), then you can make your code somewhat more efficient by including authors in the association from chapters to books:
 
 ```ruby
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book, -> { includes :author }
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
 class Author < ApplicationRecord
@@ -1779,8 +1779,8 @@ The `group` method supplies an attribute name to group the result set by, using 
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :line_items, -> { group 'books.id' },
-                        through: :books
+  has_many :chapters, -> { group 'books.id' },
+                      through: :books
 end
 ```
 
@@ -1795,27 +1795,27 @@ end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 ```
 
-If you frequently retrieve line items directly from authors (`@author.books.line_items`), then you can make your code somewhat more efficient by including line items in the association from authors to books:
+If you frequently retrieve chapters directly from authors (`@author.books.chapters`), then you can make your code somewhat more efficient by including chapters in the association from authors to books:
 
 ```ruby
 class Author < ApplicationRecord
-  has_many :books, -> { includes :line_items }
+  has_many :books, -> { includes :chapters }
 end
 
 class Book < ApplicationRecord
   belongs_to :author
-  has_many :line_items
+  has_many :chapters
 end
 
-class LineItem < ApplicationRecord
+class Chapter < ApplicationRecord
   belongs_to :book
 end
 ```
