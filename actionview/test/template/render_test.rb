@@ -15,8 +15,8 @@ module RenderTestCases
     @view = Class.new(ActionView::Base.with_empty_template_cache) do
       def view_cache_dependencies; []; end
 
-      def combined_fragment_cache_key(key)
-        [ :views, key ]
+      def combined_fragment_cache_key(key = nil)
+        [ :views, key ].compact
       end
     end.with_view_paths(paths, @assigns)
 

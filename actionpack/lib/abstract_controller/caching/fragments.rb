@@ -65,7 +65,7 @@ module AbstractController
       # followed by <tt>ENV["RAILS_CACHE_ID"]</tt> or <tt>ENV["RAILS_APP_VERSION"]</tt> if set,
       # followed by any controller-wide key prefix values, ending
       # with the specified +key+ value.
-      def combined_fragment_cache_key(key)
+      def combined_fragment_cache_key(key = nil)
         head = self.class.fragment_cache_keys.map { |k| instance_exec(&k) }
         tail = key.is_a?(Hash) ? url_for(key).split("://").last : key
 
