@@ -1,3 +1,12 @@
+## Master
+
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it. Custom cache keys that do support this feature
+    can bypass this error by implementing the `supports_cache_versioning?` method on their
+    class and returning a truthy value.
+
+    *Richard Schneeman*
+
 ## Rails 5.2.1 (August 07, 2018) ##
 
 *   Respect `NODE_ENV` when running `rails yarn:install`.
