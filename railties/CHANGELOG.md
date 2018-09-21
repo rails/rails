@@ -1,3 +1,10 @@
+*   Raise an error when "recyclable cache keys" are being used by a cache store
+    that does not explicitly support it. Custom cache keys that do support this feature
+    can bypass this error by implementing the `supports_cache_versioning?` method on their
+    class and returning a truthy value.
+
+    *Richard Schneeman*
+
 *   Support environment specific credentials file.
 
     For `production` environment look first for `config/credentials/production.yml.enc` file that can be decrypted by
