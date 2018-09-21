@@ -14,7 +14,6 @@ class ActionMailroom::Mailbox
     new(inbound_email).perform_processing
   end
 
-
   def initialize(inbound_email)
     @inbound_email = inbound_email
   end
