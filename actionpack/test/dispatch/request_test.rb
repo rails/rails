@@ -643,16 +643,16 @@ class RequestProtocol < BaseRequestTest
   test "xml http request" do
     request = stub_request
 
-    assert_not_predicate request, :xml_http_request?
-    assert_not_predicate request, :xhr?
+    assert_equal request.xml_http_request?, false
+    assert_equal request.xhr?, false
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "DefinitelyNotAjax1.0"
-    assert_not_predicate request, :xml_http_request?
-    assert_not_predicate request, :xhr?
+    assert_equal request.xml_http_request?, false
+    assert_equal request.xhr?, false
 
     request = stub_request "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"
-    assert_predicate request, :xml_http_request?
-    assert_predicate request, :xhr?
+    assert_equal request.xml_http_request?, true
+    assert_equal request.xhr?, true
   end
 
   test "reports ssl" do
