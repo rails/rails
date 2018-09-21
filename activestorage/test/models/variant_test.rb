@@ -174,4 +174,14 @@ class ActiveStorage::VariantTest < ActiveSupport::TestCase
       ActiveStorage.variant_processor = :mini_magick
     end
   end
+
+  test "resized variation of BMP blob converts to png" do
+    blob = create_file_blob(filename: "racecar.bmp", content_type: "image/bmp")
+    variant = blob.variant(resize: "100x100").processed
+    assert_match(/racecar\.png/, variant.service_url)
+
+    image = read_image(variant)
+    assert_equal 100, image.width
+    assert_equal 67, image.height
+  end
 end
