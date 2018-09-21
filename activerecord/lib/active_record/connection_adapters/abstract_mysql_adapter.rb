@@ -43,9 +43,11 @@ module ActiveRecord
       }
 
       class StatementPool < ConnectionAdapters::StatementPool # :nodoc:
-        private def dealloc(stmt)
-          stmt.close
-        end
+        private
+
+          def dealloc(stmt)
+            stmt.close
+          end
       end
 
       def initialize(connection, logger, connection_options, config)
