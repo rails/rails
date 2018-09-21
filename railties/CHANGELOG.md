@@ -1,5 +1,3 @@
-## Master
-
 *   Raise an error when "recyclable cache keys" are being used by a cache store
     that does not explicitly support it. Custom cache keys that do support this feature
     can bypass this error by implementing the `supports_cache_versioning?` method on their
