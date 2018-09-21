@@ -21,8 +21,9 @@ module CacheStoreBehavior
   end
 
   def test_fetch_with_cache_miss
-    assert_called_with(@cache, :write, ["foo", "baz", @cache.options]) do
-      assert_equal "baz", @cache.fetch("foo") { "baz" }
+    key = ActiveSupport::Cache::Key.new("foo")
+    assert_called_with(@cache, :write, [key, "baz", @cache.options]) do
+      assert_equal "baz", @cache.fetch(key) { "baz" }
     end
   end
 
@@ -39,8 +40,9 @@ module CacheStoreBehavior
   def test_fetch_with_forced_cache_miss
     @cache.write("foo", "bar")
     assert_not_called(@cache, :read) do
-      assert_called_with(@cache, :write, ["foo", "bar", @cache.options.merge(force: true)]) do
-        @cache.fetch("foo", force: true) { "bar" }
+      key = ActiveSupport::Cache::Key.new("foo")
+      assert_called_with(@cache, :write, [key, "bar", @cache.options.merge(force: true)]) do
+        @cache.fetch(key, force: true) { "bar" }
       end
     end
   end
