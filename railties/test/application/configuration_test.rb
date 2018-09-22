@@ -123,18 +123,6 @@ module ApplicationTests
       assert_equal "MyLogger", Rails.application.config.logger.class.name
     end
 
-    test "raises an error if cache does not support recyclable cache keys" do
-      build_app(initializers: true)
-      add_to_env_config "production", "config.cache_store = Class.new {}.new"
-      add_to_env_config "production", "config.active_record.cache_versioning = true"
-
-      error = assert_raise(RuntimeError) do
-        app "production"
-      end
-
-      assert_match(/You're using a cache/, error.message)
-    end
-
     test "a renders exception on pending migration" do
       add_to_config <<-RUBY
         config.active_record.migration_error    = :page_load

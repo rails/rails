@@ -47,11 +47,6 @@ module ActiveSupport
           end
       end
 
-      # Advertise cache versioning support.
-      def self.supports_cache_versioning?
-        true
-      end
-
       prepend Strategy::LocalCache
       prepend LocalCacheWithRaw
 
