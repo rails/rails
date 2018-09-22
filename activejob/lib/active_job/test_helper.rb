@@ -561,8 +561,8 @@ module ActiveJob
       end
 
       def deserialize_args_for_assertion(job)
-        job.dup.tap do |job|
-          job[:args] = ActiveJob::Arguments.deserialize(job[:args]) if job[:args]
+        job.dup.tap do |new_job|
+          new_job[:args] = ActiveJob::Arguments.deserialize(new_job[:args]) if new_job[:args]
         end
       end
 
