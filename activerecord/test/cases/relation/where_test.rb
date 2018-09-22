@@ -14,6 +14,7 @@ require "models/price_estimate"
 require "models/topic"
 require "models/treasure"
 require "models/vertex"
+require "models/task"
 
 module ActiveRecord
   class WhereTest < ActiveRecord::TestCase
@@ -277,6 +278,34 @@ module ActiveRecord
     def test_where_with_integer_for_binary_column
       count = Binary.where(data: 0).count
       assert_equal 0, count
+    end
+
+    def test_where_for_date_column
+      count = Task.where(starting: Date.today).count
+      assert_equal 0, count
+
+      task = Task.create!(starting: Date.today)
+      task2 = Task.create!
+
+      assert_equal [], Task.where(starting: "not_a_date")
+      assert_equal [task], Task.where(starting: Date.today)
+      assert_equal [task2], Task.where(starting: nil)
+    end
+
+    def test_where_for_uuid_column
+      skip unless current_adapter?(:PostgreSQLAdapter)
+
+      require "models/uuid_child"
+      count = UuidChild.where(uuid_parent_id: SecureRandom.uuid).count
+      assert_equal 0, count
+
+      uuid = SecureRandom.uuid
+      item = UuidChild.create!(uuid_parent_id: uuid)
+      item2 = UuidChild.create!
+
+      assert_equal [], UuidChild.where(uuid_parent_id: "not-a-uuid")
+      assert_equal [item], UuidChild.where(uuid_parent_id: uuid)
+      assert_equal [item2], UuidChild.where(uuid_parent_id: nil)
     end
 
     def test_where_on_association_with_custom_primary_key
