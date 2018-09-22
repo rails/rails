@@ -26,12 +26,13 @@ module ApplicationTests
         FileUtils.rm_rf("#{app_path}/config/database.yml")
       end
 
-      def db_create_and_drop(expected_database)
+      def db_create_and_drop(expected_database, environment_loaded: true)
         Dir.chdir(app_path) do
           output = rails("db:create")
           assert_match(/Created database/, output)
           assert File.exist?(expected_database)
-          assert_equal expected_database, ActiveRecord::Base.connection_config[:database]
+          yield if block_given?
+          assert_equal expected_database, ActiveRecord::Base.connection_config[:database] if environment_loaded
           output = rails("db:drop")
           assert_match(/Dropped database/, output)
           assert_not File.exist?(expected_database)
@@ -62,11 +63,16 @@ module ApplicationTests
           end
         RUBY
 
-        app "development"
+        app_file "lib/tasks/check_env.rake", <<-RUBY
+          Rake::Task["db:create"].enhance do
+            File.write("tmp/config_value", Rails.application.config.read_encrypted_secrets)
+          end
+        RUBY
 
-        assert_equal true, Rails.application.config.read_encrypted_secrets
-
-        db_create_and_drop "db/development.sqlite3"
+        db_create_and_drop("db/development.sqlite3", environment_loaded: false) do
+          assert File.exist?("tmp/config_value")
+          assert_equal "true", File.read("tmp/config_value")
+        end
       end
 
       def with_database_existing
