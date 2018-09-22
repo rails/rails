@@ -480,9 +480,12 @@ Module.new do
     f.puts "require 'rails/all'"
   end
 
+  Dir.chdir(app_template_path) { `yarn add https://github.com/rails/webpacker.git` } # Use the latest version.
+
   # Manually install `webpack` as bin symlinks are not created for subdependencies
   # in workspaces. See https://github.com/yarnpkg/yarn/issues/4964
   Dir.chdir(app_template_path) { `yarn add webpack@4.17.1 --tilde` }
+  Dir.chdir(app_template_path) { `yarn add webpack-cli` }
 
   # Fake 'Bundler.require' -- we run using the repo's Gemfile, not an
   # app-specific one: we don't want to require every gem that lists.
