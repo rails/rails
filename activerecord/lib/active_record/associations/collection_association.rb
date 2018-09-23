@@ -425,7 +425,7 @@ module ActiveRecord
         end
 
         def replace_common_records_in_memory(new_target, original_target)
-          common_records = union(new_target, original_target)
+          common_records = intersection(new_target, original_target)
           common_records.each do |record|
             skip_callbacks = true
             replace_on_target(record, @target.index(record), skip_callbacks)

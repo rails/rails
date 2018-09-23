@@ -170,7 +170,7 @@ module ActiveRecord
           from_set(set_a - set_b)
         end
 
-        def union(a, b)
+        def intersection(a, b)
           set_a = as_set(a)
           set_b = as_set(b)
 

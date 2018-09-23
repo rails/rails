@@ -135,7 +135,7 @@ module ActiveRecord
           a - b
         end
 
-        def union(a, b)
+        def intersection(a, b)
           a & b
         end
     end
