@@ -163,6 +163,36 @@ module ActiveRecord
           end
         end
 
+        def difference(a, b)
+          set_a = as_set(a)
+          set_b = as_set(b)
+
+          from_set(set_a - set_b)
+        end
+
+        def union(a, b)
+          set_a = as_set(a)
+          set_b = as_set(b)
+
+          from_set(set_a & set_b)
+        end
+
+        def as_set(records)
+          records.zip(occurences(records))
+        end
+
+        def from_set(record_set)
+          record_set.map(&:first)
+        end
+
+        def occurences(array)
+          counts = Hash.new(0)
+
+          array.map do |object|
+            counts[object] += 1
+          end
+        end
+
         def through_records_for(record)
           attributes = construct_join_attributes(record)
           candidates = Array.wrap(through_association.target)
