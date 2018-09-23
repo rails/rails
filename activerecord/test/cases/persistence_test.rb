@@ -127,6 +127,11 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_operator previously_written_on, :<, topic.written_on
   end
 
+  def test_increment_with_no_arg
+    topic = topics(:first)
+    assert_raises(ArgumentError) { topic.increment! }
+  end
+
   def test_destroy_many
     clients = Client.find([2, 3])
 
