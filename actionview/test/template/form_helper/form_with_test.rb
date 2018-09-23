@@ -450,13 +450,15 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_doesnt_call_private_or_protected_properties_on_form_object_skipping_value
     obj = Class.new do
-      private def private_property
-        "That would be great."
-      end
+      private
+        def private_property
+          "That would be great."
+        end
 
-      protected def protected_property
-        "I believe you have my stapler."
-      end
+      protected
+        def protected_property
+          "I believe you have my stapler."
+        end
     end.new
 
     form_with(model: obj, scope: "other_name", url: "/", id: "edit-other-name") do |f|
