@@ -1,3 +1,12 @@
+*   Fix `current_page?` sometimes incorrectly returning `false`.
+
+    When called with an URL which had a path ending on `/` and having query
+    parameters, the `current_page?` function would return `false`.
+
+    Fixes #33956.
+
+    *Rien Maertens*
+
 *   ActionView::Helpers::SanitizeHelper: support rails-html-sanitizer 1.1.0.
 
     *Juanito Fatas*
