@@ -559,10 +559,8 @@ module ActionView
         request_uri = url_string.index("?") || check_parameters ? request.fullpath : request.path
         request_uri = URI.parser.unescape(request_uri).force_encoding(Encoding::BINARY)
 
-        if url_string.start_with?("/") && url_string != "/"
-          url_string.chomp!("/")
-          request_uri.chomp!("/")
-        end
+        url_string = remove_trailing_slash(url_string)
+        request_uri = remove_trailing_slash(request_uri)
 
         if %r{^\w+://}.match?(url_string)
           url_string == "#{request.protocol}#{request.host_with_port}#{request_uri}"
@@ -765,6 +763,30 @@ module ActionView
           end
 
           params.sort_by { |pair| pair[:name] }
+        end
+
+        # Returns the given url string with the trailing slash removed,
+        # unless the given url is the root ('/').
+        #
+        #  remove_trailing_slash('/posts/')
+        #  # => '/posts'
+        #
+        #  remove_trailing_slash('/posts/?order=desc')
+        #  # => '/posts?order=desc'
+        #
+        #  remove_trailing_slash('/?locale=en')
+        #  # => '/?locale=en'
+        #
+        #  remove_trailing_slash('https://example.com/?locale=en')
+        #  # => 'https://example.com/?locale=en'
+        #
+        def remove_trailing_slash(url_string)
+          pre, slash, post = url_string.rpartition("/")
+          if pre.empty? || pre == "#{request.protocol}#{request.host_with_port}"
+            url_string
+          else
+            pre + post
+          end
         end
     end
   end
