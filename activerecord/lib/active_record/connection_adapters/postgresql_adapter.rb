@@ -185,7 +185,7 @@ module ActiveRecord
       end
 
       def supports_json?
-        postgresql_version >= 90200
+        true
       end
 
       def supports_comments?
@@ -332,16 +332,16 @@ module ActiveRecord
       end
 
       def supports_ranges?
-        # Range datatypes weren't introduced until PostgreSQL 9.2
-        postgresql_version >= 90200
+        true
       end
+      deprecate :supports_ranges?
 
       def supports_materialized_views?
-        postgresql_version >= 90300
+        true
       end
 
       def supports_foreign_tables?
-        postgresql_version >= 90300
+        true
       end
 
       def supports_pgcrypto_uuid?
@@ -425,8 +425,8 @@ module ActiveRecord
 
       private
         def check_version
-          if postgresql_version < 90100
-            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.1."
+          if postgresql_version < 90300
+            raise "Your version of PostgreSQL (#{postgresql_version}) is too old. Active Record supports PostgreSQL >= 9.3."
           end
         end
 
@@ -589,18 +589,11 @@ module ActiveRecord
         def load_additional_types(oids = nil)
           initializer = OID::TypeMapInitializer.new(type_map)
 
-          if supports_ranges?
-            query = <<~SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
-              FROM pg_type as t
-              LEFT JOIN pg_range as r ON oid = rngtypid
-            SQL
-          else
-            query = <<~SQL
-              SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, t.typtype, t.typbasetype
-              FROM pg_type as t
-            SQL
-          end
+          query = <<~SQL
+            SELECT t.oid, t.typname, t.typelem, t.typdelim, t.typinput, r.rngsubtype, t.typtype, t.typbasetype
+            FROM pg_type as t
+            LEFT JOIN pg_range as r ON oid = rngtypid
+          SQL
 
           if oids
             query += "WHERE t.oid::integer IN (%s)" % oids.join(", ")

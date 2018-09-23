@@ -14,7 +14,7 @@ After reading this guide, you will know:
 
 --------------------------------------------------------------------------------
 
-In order to use the PostgreSQL adapter you need to have at least version 9.1
+In order to use the PostgreSQL adapter you need to have at least version 9.3
 installed. Older versions are not supported.
 
 To get started with PostgreSQL have a look at the

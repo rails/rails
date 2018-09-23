@@ -184,11 +184,6 @@ matrix:
       before_install:
         - "sudo sed -i 's/port = 5433/port = 5432/' /etc/postgresql/10/main/postgresql.conf"
         - "sudo service postgresql restart 10"
-    - rvm: 2.5.1
-      env:
-        - "GEM=ar:postgresql POSTGRES=9.2"
-      addons:
-        postgresql: "9.2"
     - rvm: jruby-head
       jdk: oraclejdk8
       env:

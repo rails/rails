@@ -1,3 +1,7 @@
+*   Bump minimum PostgreSQL version to 9.3.
+
+    *Yasuo Honda*
+
 *   Values of enum are frozen, raising an error when attempting to modify them.
 
     *Emmanuel Byrd*
