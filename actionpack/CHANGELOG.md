@@ -1,3 +1,15 @@
+*   Encode Content-Disposition filenames on `send_data` and `send_file`.
+    Previously, `send_data 'data', filename: "\u{3042}.txt"` sends
+    `"filename=\"\u{3042}.txt\""` as Content-Disposition and it can be
+    garbled.
+    Now it follows [RFC 2231](https://tools.ietf.org/html/rfc2231) and
+    [RFC 5987](https://tools.ietf.org/html/rfc5987) and sends
+    `"filename=\"%3F.txt\"; filename*=UTF-8''%E3%81%82.txt"`.
+    Most browsers can find filename correctly and old browsers fallback to ASCII
+    converted name.
+
+    *Fumiaki Matsushima*
+
 *   Expose `ActionController::Parameters#each_key` which allows iterating over
     keys without allocating an array.
 
