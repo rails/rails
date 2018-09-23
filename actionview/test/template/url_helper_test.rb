@@ -585,6 +585,12 @@ class UrlHelperTest < ActiveSupport::TestCase
     assert current_page?("/posts/")
   end
 
+  def test_current_page_with_trailing_slash_and_params
+    @request = request_for_url("/posts?order=desc")
+
+    assert current_page?("/posts/?order=desc")
+  end
+
   def test_current_page_with_not_get_verb
     @request = request_for_url("/events", method: :post)
 
