@@ -230,6 +230,11 @@ class PersistenceTest < ActiveRecord::TestCase
     assert_operator previously_written_on, :<, topic.written_on
   end
 
+  def test_increment_with_no_arg
+    topic = topics(:first)
+    assert_raises(ArgumentError) { topic.increment! }
+  end
+
   def test_destroy_all
     conditions = "author_name = 'Mary'"
     topics_by_mary = Topic.all.merge!(where: conditions, order: "id").to_a
