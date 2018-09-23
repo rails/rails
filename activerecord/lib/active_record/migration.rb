@@ -161,7 +161,7 @@ module ActiveRecord
 
   class ProtectedEnvironmentError < ActiveRecordError #:nodoc:
     def initialize(env = "production")
-      msg = "You are attempting to run a destructive action against your '#{env}' database.\n".dup
+      msg = +"You are attempting to run a destructive action against your '#{env}' database.\n"
       msg << "If you are sure you want to continue, run the same command with the environment variable:\n"
       msg << "DISABLE_DATABASE_ENVIRONMENT_CHECK=1"
       super(msg)
@@ -170,7 +170,7 @@ module ActiveRecord
 
   class EnvironmentMismatchError < ActiveRecordError
     def initialize(current: nil, stored: nil)
-      msg =  "You are attempting to modify a database that was last run in `#{ stored }` environment.\n".dup
+      msg = +"You are attempting to modify a database that was last run in `#{ stored }` environment.\n"
       msg << "You are running in `#{ current }` environment. "
       msg << "If you are sure you want to continue, first set the environment using:\n\n"
       msg << "        rails db:environment:set"
@@ -891,7 +891,7 @@ module ActiveRecord
         source_migrations.each do |migration|
           source = File.binread(migration.filename)
           inserted_comment = "# This migration comes from #{scope} (originally #{migration.version})\n"
-          magic_comments = "".dup
+          magic_comments = +""
           loop do
             # If we have a magic comment in the original migration,
             # insert our comment after the first newline(end of the magic comment line)
@@ -1299,7 +1299,7 @@ module ActiveRecord
           record_version_state_after_migrating(migration.version)
         end
       rescue => e
-        msg = "An error has occurred, ".dup
+        msg = +"An error has occurred, "
         msg << "this and " if use_transaction?(migration)
         msg << "all later migrations canceled:\n\n#{e}"
         raise StandardError, msg, e.backtrace

@@ -169,7 +169,7 @@ module ActiveSupport
       # element::
       #   XML element to be checked.
       def empty_content?(element)
-        text = "".dup
+        text = +""
         child_nodes = element.child_nodes
         (0...child_nodes.length).each do |i|
           item = child_nodes.item(i)

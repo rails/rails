@@ -290,7 +290,7 @@ module ActiveRecord
       def test_log_invalid_encoding
         error = assert_raises RuntimeError do
           @connection.send :log, "SELECT 'ы' FROM DUAL" do
-            raise "ы".dup.force_encoding(Encoding::ASCII_8BIT)
+            raise (+"ы").force_encoding(Encoding::ASCII_8BIT)
           end
         end
 

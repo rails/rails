@@ -338,14 +338,14 @@ module ActiveRecord
       name = @klass.name
 
       if ids.nil?
-        error = "Couldn't find #{name}".dup
+        error = +"Couldn't find #{name}"
         error << " with#{conditions}" if conditions
         raise RecordNotFound.new(error, name, key)
       elsif Array(ids).size == 1
         error = "Couldn't find #{name} with '#{key}'=#{ids}#{conditions}"
         raise RecordNotFound.new(error, name, key, ids)
       else
-        error = "Couldn't find all #{name.pluralize} with '#{key}': ".dup
+        error = +"Couldn't find all #{name.pluralize} with '#{key}': "
         error << "(#{ids.join(", ")})#{conditions} (found #{result_size} results, but was looking for #{expected_size})."
         error << " Couldn't find #{name.pluralize(not_found_ids.size)} with #{key.to_s.pluralize(not_found_ids.size)} #{not_found_ids.join(', ')}." if not_found_ids
         raise RecordNotFound.new(error, name, key, ids)

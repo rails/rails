@@ -162,7 +162,7 @@ module ActiveRecord
       # this method must only be called while holding connection pool's mutex
       def lease
         if in_use?
-          msg = "Cannot lease connection, ".dup
+          msg = +"Cannot lease connection, "
           if @owner == Thread.current
             msg << "it is already leased by the current thread."
           else

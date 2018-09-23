@@ -155,7 +155,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_find_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = "not a post".dup
+    not_a_post = +"not a post"
     def not_a_post.id; end
     not_a_post.stub(:id, -> { raise StandardError.new("not_a_post had #id called on it") }) do
       assert_nothing_raised do
@@ -420,7 +420,7 @@ class EachTest < ActiveRecord::TestCase
   end
 
   def test_in_batches_should_not_use_records_after_yielding_them_in_case_original_array_is_modified
-    not_a_post = "not a post".dup
+    not_a_post = +"not a post"
     def not_a_post.id
       raise StandardError.new("not_a_post had #id called on it")
     end

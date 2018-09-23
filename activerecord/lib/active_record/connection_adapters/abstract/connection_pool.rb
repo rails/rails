@@ -731,7 +731,7 @@ module ActiveRecord
           # this block can't be easily moved into attempt_to_checkout_all_existing_connections's
           # rescue block, because doing so would put it outside of synchronize section, without
           # being in a critical section thread_report might become inaccurate
-          msg = "could not obtain ownership of all database connections in #{checkout_timeout} seconds".dup
+          msg = +"could not obtain ownership of all database connections in #{checkout_timeout} seconds"
 
           thread_report = []
           @connections.each do |conn|

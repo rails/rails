@@ -379,7 +379,7 @@ module ActiveRecord
           build_fixture_sql(fixtures, table_name)
         end.compact
 
-        table_deletes = tables_to_delete.map { |table| "DELETE FROM #{quote_table_name table}".dup }
+        table_deletes = tables_to_delete.map { |table| +"DELETE FROM #{quote_table_name table}" }
         total_sql = Array.wrap(combine_multi_statements(table_deletes + fixture_inserts))
 
         disable_referential_integrity do

@@ -1380,7 +1380,7 @@ module ActiveRecord
           sm_table = quote_table_name(ActiveRecord::SchemaMigration.table_name)
 
           if versions.is_a?(Array)
-            sql = "INSERT INTO #{sm_table} (version) VALUES\n".dup
+            sql = +"INSERT INTO #{sm_table} (version) VALUES\n"
             sql << versions.map { |v| "(#{quote(v)})" }.join(",\n")
             sql << ";\n\n"
             sql

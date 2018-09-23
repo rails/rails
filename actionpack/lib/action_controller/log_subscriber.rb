@@ -26,7 +26,7 @@ module ActionController
           exception_class_name = payload[:exception].first
           status = ActionDispatch::ExceptionWrapper.status_code_for_exception(exception_class_name)
         end
-        message = "Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms".dup
+        message = +"Completed #{status} #{Rack::Utils::HTTP_STATUS_CODES[status]} in #{event.duration.round}ms"
         message << " (#{additions.join(" | ".freeze)})" unless additions.empty?
         message << "\n\n" if defined?(Rails.env) && Rails.env.development?
 
