@@ -93,8 +93,12 @@ module ActiveJob
           ex = event.payload[:error]
           wait = event.payload[:wait]
 
-          error do
-            "Retrying #{job.class} in #{wait.inspect} seconds, due to a #{ex&.class.inspect}. The original exception was #{ex&.cause.inspect}."
+          info do
+            if ex
+              "Retrying #{job.class} in #{wait.to_i} seconds, due to a #{ex.class}."
+            else
+              "Retrying #{job.class} in #{wait.to_i} seconds."
+            end
           end
         end
 
@@ -103,7 +107,7 @@ module ActiveJob
           ex = event.payload[:error]
 
           error do
-            "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts. The original exception was #{ex.cause.inspect}."
+            "Stopped retrying #{job.class} due to a #{ex.class}, which reoccurred on #{job.executions} attempts."
           end
         end
 
@@ -112,7 +116,7 @@ module ActiveJob
           ex = event.payload[:error]
 
           error do
-            "Discarded #{job.class} due to a #{ex.class}. The original exception was #{ex.cause.inspect}."
+            "Discarded #{job.class} due to a #{ex.class}."
           end
         end
 
