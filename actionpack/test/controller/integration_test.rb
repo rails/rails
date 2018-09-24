@@ -542,9 +542,6 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
     def with_test_route_set
       with_routing do |set|
         controller = ::IntegrationProcessTest::IntegrationController.clone
-        controller.class_eval do
-          include set.url_helpers
-        end
 
         set.draw do
           get "moved" => redirect("/method")
@@ -553,6 +550,10 @@ class IntegrationProcessTest < ActionDispatch::IntegrationTest
             match ":action", to: controller, via: [:get, :post], as: :action
             get "get/:action", to: controller, as: :get_action
           end
+        end
+
+        controller.class_eval do
+          include set.url_helpers
         end
 
         singleton_class.include(set.url_helpers)
