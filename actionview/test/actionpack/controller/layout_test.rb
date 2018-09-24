@@ -49,7 +49,7 @@ class LayoutAutoDiscoveryTest < ActionController::TestCase
   include TemplateHandlerHelper
 
   with_routes do
-    get :hello, to: 'views#hello'
+    get :hello, to: "views#hello"
   end
 
   def setup
@@ -153,8 +153,8 @@ class LayoutSetInResponseTest < ActionController::TestCase
   include TemplateHandlerHelper
 
   with_routes do
-    get :hello, to: 'views#hello'
-    get :hello, to: 'views#goodbye'
+    get :hello, to: "views#hello"
+    get :hello, to: "views#goodbye"
   end
 
   def test_layout_set_when_using_default_layout
@@ -244,7 +244,7 @@ end
 
 class LayoutExceptionRaisedTest < ActionController::TestCase
   with_routes do
-    get :hello, to: 'views#hello'
+    get :hello, to: "views#hello"
   end
 
   def test_exception_raised_when_layout_file_not_found
@@ -261,7 +261,7 @@ end
 
 class LayoutStatusIsRenderedTest < ActionController::TestCase
   with_routes do
-    get :hello, to: 'views#hello'
+    get :hello, to: "views#hello"
   end
 
   def test_layout_status_is_rendered
@@ -278,7 +278,7 @@ unless Gem.win_platform?
 
   class LayoutSymlinkedIsRenderedTest < ActionController::TestCase
     with_routes do
-      get :hello, to: 'views#hello'
+      get :hello, to: "views#hello"
     end
 
     def test_symlinked_layout_is_rendered

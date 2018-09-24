@@ -63,7 +63,7 @@ end
 
 class PolymorphicRoutesTest < ActionController::TestCase
   Routes = ActionDispatch::Routing::RouteSet.new
-  Routes.draw { }
+  Routes.draw {}
   include Routes.url_helpers
 
   default_url_options[:host] = "example.com"

@@ -97,7 +97,7 @@ end
 class ActionDispatch::IntegrationTest < ActiveSupport::TestCase
   def self.build_app(routes = nil)
     routes ||= ActionDispatch::Routing::RouteSet.new.tap { |rs|
-      rs.draw { }
+      rs.draw {}
     }
     RoutedRackApp.new(routes) do |middleware|
       middleware.use ActionDispatch::ShowExceptions, ActionDispatch::PublicExceptions.new("#{FIXTURE_LOAD_PATH}/public")
