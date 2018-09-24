@@ -310,6 +310,53 @@ module ApplicationTests
       assert_equal %w(noop_email).to_set, PostsMailer.instance_variable_get(:@action_methods)
     end
 
+    test "does not eager load attribute methods in development" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      app "development"
+
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app "production"
+
+      assert_includes Post.instance_methods, :title
+    end
+
     test "initialize an eager loaded, cache classes app" do
       add_to_config <<-RUBY
         config.eager_load = true
