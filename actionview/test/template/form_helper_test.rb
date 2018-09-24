@@ -140,6 +140,7 @@ class FormHelperTest < ActionView::TestCase
     @post_delegator.title = "Hello World"
 
     @car = Car.new("#000FFF")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new

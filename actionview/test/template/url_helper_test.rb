@@ -704,7 +704,7 @@ end
 
 class UrlHelperControllerTest < ActionController::TestCase
   class UrlHelperController < ActionController::Base
-    test_routes do
+    ROUTES = test_routes do
       get "url_helper_controller_test/url_helper/show/:id",
         to: "url_helper_controller_test/url_helper#show",
         as: :show
@@ -768,6 +768,11 @@ class UrlHelperControllerTest < ActionController::TestCase
     helper_method :override_url_helper_path
   end
 
+  def setup
+    super
+    @routes = UrlHelperController::ROUTES
+  end
+
   tests UrlHelperController
 
   def test_url_for_shows_only_path
@@ -828,7 +833,7 @@ class UrlHelperControllerTest < ActionController::TestCase
 end
 
 class TasksController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :tasks
   end
 
@@ -849,6 +854,11 @@ end
 
 class LinkToUnlessCurrentWithControllerTest < ActionController::TestCase
   tests TasksController
+
+  def setup
+    super
+    @routes = TasksController::ROUTES
+  end
 
   def test_link_to_unless_current_to_current
     get :index
@@ -882,7 +892,7 @@ class Session
 end
 
 class WorkshopsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -905,7 +915,7 @@ class WorkshopsController < ActionController::Base
 end
 
 class SessionsController < ActionController::Base
-  test_routes do
+  ROUTES = test_routes do
     resources :workshops do
       resources :sessions
     end
@@ -932,6 +942,11 @@ class SessionsController < ActionController::Base
 end
 
 class PolymorphicControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = WorkshopsController::ROUTES
+  end
+
   def test_new_resource
     @controller = WorkshopsController.new
 
@@ -944,6 +959,20 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :show, params: { id: 1 }
     assert_equal %{/workshops/1\n<a href="/workshops/1">Workshop</a>}, @response.body
+  end
+
+  def test_current_page_when_options_does_not_respond_to_to_hash
+    @controller = WorkshopsController.new
+
+    get :edit, params: { id: 1 }
+    assert_equal "false", @response.body
+  end
+end
+
+class PolymorphicSessionsControllerTest < ActionController::TestCase
+  def setup
+    super
+    @routes = SessionsController::ROUTES
   end
 
   def test_new_nested_resource
@@ -965,12 +994,5 @@ class PolymorphicControllerTest < ActionController::TestCase
 
     get :edit, params: { workshop_id: 1, id: 1, format: "json"  }
     assert_equal %{/workshops/1/sessions/1.json\n<a href="/workshops/1/sessions/1.json">Session</a>}, @response.body
-  end
-
-  def test_current_page_when_options_does_not_respond_to_to_hash
-    @controller = WorkshopsController.new
-
-    get :edit, params: { id: 1 }
-    assert_equal "false", @response.body
   end
 end

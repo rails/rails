@@ -290,6 +290,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     @post_delegator.title = "Hello World"
 
     @car = Car.new("#000FFF")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   Routes = ActionDispatch::Routing::RouteSet.new
@@ -306,10 +307,6 @@ class FormWithActsLikeFormForTest < FormWithTest
 
     get "/foo", to: "controller#action"
     root to: "main#index"
-  end
-
-  def _routes
-    Routes
   end
 
   include Routes.url_helpers
