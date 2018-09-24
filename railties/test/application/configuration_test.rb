@@ -566,6 +566,7 @@ module ApplicationTests
       make_basic_app do |application|
         application.secrets.secret_key_base = "b3c631c314c0bbca50c1b2843150fe33"
         application.config.session_store :disabled
+        application.config.action_dispatch.use_json_as_default_cookies_serializer = true
       end
 
       class ::OmgController < ActionController::Base
@@ -578,7 +579,7 @@ module ApplicationTests
       get "/"
 
       secret = app.key_generator.generate_key("signed cookie")
-      verifier = ActiveSupport::MessageVerifier.new(secret)
+      verifier = ActiveSupport::MessageVerifier.new(secret, serializer: JSON)
       assert_equal "some_value", verifier.verify(last_response.body)
     end
 
@@ -2618,6 +2619,17 @@ module ApplicationTests
       assert_not_includes(output, "rails_disk_service")
       assert_not_includes(output, "update_rails_disk_service")
       assert_not_includes(output, "rails_direct_uploads")
+    end
+
+    test "default cookies serializer can be configured in the new framework defaults" do
+      remove_from_config '.*config\.load_defaults.*\n'
+      app_file "config/initializers/new_framework_defaults_6_1.rb", <<-RUBY
+        Rails.application.config.action_dispatch.use_json_as_default_cookies_serializer = true
+      RUBY
+
+      app "development"
+
+      assert Rails.application.config.action_dispatch.use_json_as_default_cookies_serializer
     end
 
     test "hosts include .localhost in development" do

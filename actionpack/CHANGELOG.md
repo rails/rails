@@ -1,3 +1,17 @@
+*   Default cookies_serializer to :json.
+
+    Rails' default `cookies_serializer` is set to `:json` since Rails 4.2 by
+    configuration at `config/initializers/cookies_serializer.rb`. However if
+    no value is provided, it defaults to `:marshal`.
+
+    Instead of always setting the cookies serializer with an initializer, this
+    should default to `:json` from now on. To opt-in and have `:json` as your default
+    cookies serializer set `action_dispatch.use_json_as_default_cookies_serializer = true`.
+
+    In Rails 6.2 the default cookies serializer will be set to `:json`.
+
+    *Alberto Almagro*
+
 *   Allow system test screen shots to be taken more than once in
     a test by prefixing the file name with an incrementing counter.
 

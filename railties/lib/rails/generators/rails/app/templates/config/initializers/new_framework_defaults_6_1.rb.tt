@@ -1,0 +1,17 @@
+# Be sure to restart your server when you modify this file.
+#
+# This file contains migration options to ease your Rails 6.1 upgrade.
+#
+# Once upgraded flip defaults one by one to migrate to the new default.
+#
+# Read the Guide for Upgrading Ruby on Rails for more info on each option.
+
+# Use `json` as default serializer for signed and encrypted cookie jars.
+#
+# Rails' default `cookies_serializer` is set to `:json` since Rails 4.2 by
+# configuration at `config/initializers/cookies_serializer.rb`. However, if
+# no value is provided, it defaults to `:marshal`.
+#
+# In Rails 6.1 the default cookies serializer will be set to `:json`. To opt-in
+# and have `:json` as your default cookies serializer set:
+# Rails.application.config.action_dispatch.use_json_as_default_cookies_serializer = true

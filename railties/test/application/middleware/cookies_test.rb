@@ -52,6 +52,10 @@ module ApplicationTests
     end
 
     test "signed cookies with SHA512 digest and rotated out SHA256 and SHA1 digests" do
+      add_to_config <<-RUBY
+        config.action_dispatch.use_json_as_default_cookies_serializer = true
+      RUBY
+
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
@@ -88,8 +92,8 @@ module ApplicationTests
         sha256_secret = Rails.application.key_generator.generate_key("sha256")
 
         ::TestVerifiers = Class.new do
-          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1")
-          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256")
+          class_attribute :sha1, default: ActiveSupport::MessageVerifier.new(sha1_secret, digest: "SHA1", serializer: JSON)
+          class_attribute :sha256, default: ActiveSupport::MessageVerifier.new(sha256_secret, digest: "SHA256", serializer: JSON)
         end
 
         config.action_dispatch.signed_cookie_digest = "SHA512"
@@ -103,7 +107,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512)
+      verifier_sha512 = ActiveSupport::MessageVerifier.new(app.key_generator.generate_key("sha512 salt"), digest: :SHA512, serializer: JSON)
 
       get "/foo/write_raw_cookie_sha1"
       get "/foo/read_signed"
@@ -121,6 +125,10 @@ module ApplicationTests
     end
 
     test "encrypted cookies rotating multiple encryption keys" do
+      add_to_config <<-RUBY
+        config.action_dispatch.use_json_as_default_cookies_serializer = true
+      RUBY
+
       app_file "config/routes.rb", <<-RUBY
         Rails.application.routes.draw do
           get  ':controller(/:action)'
@@ -157,8 +165,8 @@ module ApplicationTests
         second_secret = Rails.application.key_generator.generate_key("second", 32)
 
         ::TestEncryptors = Class.new do
-          class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm")
-          class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm")
+          class_attribute :first_gcm,  default: ActiveSupport::MessageEncryptor.new(first_secret, cipher: "aes-256-gcm", serializer: JSON)
+          class_attribute :second_gcm, default: ActiveSupport::MessageEncryptor.new(second_secret, cipher: "aes-256-gcm", serializer: JSON)
         end
 
         config.action_dispatch.use_authenticated_cookie_encryption = true
@@ -173,7 +181,7 @@ module ApplicationTests
 
       require "#{app_path}/config/environment"
 
-      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm")
+      encryptor = ActiveSupport::MessageEncryptor.new(app.key_generator.generate_key("salt", 32), cipher: "aes-256-gcm", serializer: JSON)
 
       get "/foo/write_raw_cookie_one"
       get "/foo/read_encrypted"

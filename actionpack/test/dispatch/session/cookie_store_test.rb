@@ -14,7 +14,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
   Rotations = ActiveSupport::Messages::RotationConfiguration.new
 
   Encryptor = ActiveSupport::MessageEncryptor.new(
-    Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: Marshal
+    Generator.generate_key(SessionSalt, 32), cipher: "aes-256-gcm", serializer: JSON
   )
 
   class TestController < ActionController::Base
@@ -121,7 +121,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
 
   def test_disregards_tampered_sessions
     with_test_route_set do
-      encryptor = ActiveSupport::MessageEncryptor.new("A" * 32, cipher: "aes-256-gcm", serializer: Marshal)
+      encryptor = ActiveSupport::MessageEncryptor.new("A" * 32, cipher: "aes-256-gcm", serializer: JSON)
 
       cookies[SessionKey] = encryptor.encrypt_and_sign("foo" => "bar", "session_id" => "abc")
 
@@ -160,8 +160,8 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
     end
   end
 
-  # {:foo=>#<SessionAutoloadTest::Foo bar:"baz">, :session_id=>"ce8b0752a6ab7c7af3cdb8a80e6b9e46"}
-  EncryptedSerializedCookie = "9RZ2Fij0qLveUwM4s+CCjGqhpjyUC8jiBIf/AiBr9M3TB8xh2vQZtvSOMfN3uf6oYbbpIDHAcOFIEl69FcW1ozQYeSrCLonYCazoh34ZdYskIQfGwCiSYleVXG1OD9Z4jFqeVArw4Ewm0paOOPLbN1rc6A==--I359v/KWdZ1ok0ey--JFFhuPOY7WUo6tB/eP05Aw=="
+  # {"session_id"=>"52f14d74802d80ebdf2645b21429c742", "foo"=>"bar"}
+  EncryptedSerializedCookie = "GbokrGhNlZagPQXH/RuKLaC4fv0cpgnsOHucP8guAg6a/l5KyTEq6B/F6mtHcRw4Z+JZcZ4I3LzY7NJHkw==--/UsV3vnVbmOEV+fK--qY2nJV/RP5snPGxWr2s6pg=="
 
   def test_deserializes_unloaded_classes_on_get_id
     with_test_route_set do
@@ -169,7 +169,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         cookies[SessionKey] = EncryptedSerializedCookie
         get "/get_session_id"
         assert_response :success
-        assert_equal "id: ce8b0752a6ab7c7af3cdb8a80e6b9e46", response.body, "should auto-load unloaded class"
+        assert_equal "id: 52f14d74802d80ebdf2645b21429c742", response.body, "should auto-load unloaded class"
       end
     end
   end
@@ -180,7 +180,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         cookies[SessionKey] = EncryptedSerializedCookie
         get "/get_session_value"
         assert_response :success
-        assert_equal 'foo: #<SessionAutoloadTest::Foo bar:"baz">', response.body, "should auto-load unloaded class"
+        assert_equal 'foo: "bar"', response.body, "should auto-load unloaded class"
       end
     end
   end
@@ -387,6 +387,7 @@ class CookieStoreTest < ActionDispatch::IntegrationTest
         config["action_dispatch.secret_key_base"] = SessionSecret
         config["action_dispatch.authenticated_encrypted_cookie_salt"] = SessionSalt
         config["action_dispatch.use_authenticated_cookie_encryption"] = true
+        config["action_dispatch.use_json_as_default_cookies_serializer"] = true
 
         config["action_dispatch.key_generator"] ||= Generator
         config["action_dispatch.cookies_rotations"] ||= Rotations

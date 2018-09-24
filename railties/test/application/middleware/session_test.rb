@@ -167,6 +167,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+        config.action_dispatch.use_json_as_default_cookies_serializer = true
       RUBY
 
       require "#{app_path}/config/environment"
@@ -180,7 +181,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: JSON)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]
@@ -217,6 +218,7 @@ module ApplicationTests
       add_to_config <<-RUBY
         # Enable AEAD cookies
         config.action_dispatch.use_authenticated_cookie_encryption = true
+        config.action_dispatch.use_json_as_default_cookies_serializer = true
       RUBY
 
       require "#{app_path}/config/environment"
@@ -230,7 +232,7 @@ module ApplicationTests
 
       cipher = "aes-256-gcm"
       secret = app.key_generator.generate_key("authenticated encrypted cookie")
-      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher)
+      encryptor = ActiveSupport::MessageEncryptor.new(secret[0, ActiveSupport::MessageEncryptor.key_len(cipher)], cipher: cipher, serializer: JSON)
 
       get "/foo/read_raw_cookie"
       assert_equal 1, encryptor.decrypt_and_verify(last_response.body, purpose: "cookie._myapp_session")["foo"]

@@ -65,6 +65,10 @@ module ActionDispatch
       get_header Cookies::SECRET_KEY_BASE
     end
 
+    def use_json_as_default_cookies_serializer
+      get_header Cookies::USE_JSON_AS_DEFAULT_COOKIES_SERIALIZER
+    end
+
     def cookies_serializer
       get_header Cookies::COOKIES_SERIALIZER
     end
@@ -178,6 +182,7 @@ module ActionDispatch
     ENCRYPTED_COOKIE_CIPHER = "action_dispatch.encrypted_cookie_cipher"
     SIGNED_COOKIE_DIGEST = "action_dispatch.signed_cookie_digest"
     SECRET_KEY_BASE = "action_dispatch.secret_key_base"
+    USE_JSON_AS_DEFAULT_COOKIES_SERIALIZER = "action_dispatch.use_json_as_default_cookies_serializer"
     COOKIES_SERIALIZER = "action_dispatch.cookies_serializer"
     COOKIES_DIGEST = "action_dispatch.cookies_digest"
     COOKIES_ROTATIONS = "action_dispatch.cookies_rotations"
@@ -546,7 +551,7 @@ module ActionDispatch
         end
 
         def serializer
-          serializer = request.cookies_serializer || :marshal
+          serializer = request.cookies_serializer || default_cookies_serializer
           case serializer
           when :marshal
             Marshal
@@ -559,6 +564,11 @@ module ActionDispatch
 
         def digest
           request.cookies_digest || "SHA1"
+        end
+
+      private
+        def default_cookies_serializer
+          request.use_json_as_default_cookies_serializer ? :json : :marshal
         end
     end
 
