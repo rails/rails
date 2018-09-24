@@ -1043,7 +1043,9 @@ class RelationTest < ActiveRecord::TestCase
     posts.where(id: nil).any?
 
     assert_queries(3) do
-      assert posts.any? # Uses COUNT()
+      assert_sql(/SELECT 1 AS one/) do
+        assert posts.any?
+      end
       assert_not_predicate posts.where(id: nil), :any?
 
       assert posts.any? { |p| p.id > 0 }
@@ -1057,25 +1059,40 @@ class RelationTest < ActiveRecord::TestCase
     posts = Post.all
 
     assert_queries(2) do
-      assert posts.many? # Uses COUNT()
+      assert_sql(/SELECT 1 AS one/) do
+        assert posts.many?
+      end
       assert posts.many? { |p| p.id > 0 }
       assert_not posts.many? { |p| p.id < 2 }
     end
 
     assert_predicate posts, :loaded?
+
+    assert_no_queries do
+      assert posts.many? # Uses loaded @records
+    end
+
+    posts = Post.where(author_id: 1)
+    assert posts.many?
+    assert_not_predicate posts, :loaded?
+
+    posts = Post.where(id: 1)
+    assert_not posts.many?
   end
 
   def test_many_with_limits
     posts = Post.all
 
     assert_predicate posts, :many?
-    assert_not_predicate posts.limit(1), :many?
+    assert_sql(/SELECT .posts.\.\*/) do
+      assert_not_predicate posts.limit(1), :many?
+    end
   end
 
   def test_none?
     posts = Post.all
-    assert_queries(1) do
-      assert_not posts.none? # Uses COUNT()
+    assert_sql(/SELECT 1 AS one/) do
+      assert_not posts.none?
     end
 
     assert_not_predicate posts, :loaded?
@@ -1090,8 +1107,8 @@ class RelationTest < ActiveRecord::TestCase
 
   def test_one
     posts = Post.all
-    assert_queries(1) do
-      assert_not posts.one? # Uses COUNT()
+    assert_sql(/SELECT 1 AS one/) do
+      assert_not posts.one?
     end
 
     assert_not_predicate posts, :loaded?
@@ -1102,6 +1119,20 @@ class RelationTest < ActiveRecord::TestCase
     end
 
     assert_predicate posts, :loaded?
+
+    assert_no_queries do
+      assert_not posts.one? # Uses loaded @records
+    end
+
+    posts = Post.where(id: 1)
+    assert posts.one?
+    assert_not_predicate posts, :loaded?
+
+    posts = Post.where(id: 0)
+    assert_not posts.one?
+
+    posts = Post.where(author_id: 1)
+    assert_not posts.one?
   end
 
   def test_to_a_should_dup_target

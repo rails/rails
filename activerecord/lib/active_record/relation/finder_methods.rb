@@ -310,18 +310,7 @@ module ActiveRecord
         MSG
       end
 
-      return false if !conditions || limit_value == 0
-
-      if eager_loading?
-        relation = apply_join_dependency(eager_loading: false)
-        return relation.exists?(conditions)
-      end
-
-      relation = construct_relation_for_exists(conditions)
-
-      skip_query_cache_if_necessary { connection.select_value(relation.arel, "#{name} Exists") } ? true : false
-    rescue ::RangeError
-      false
+      exists_some?(conditions)
     end
 
     # This method is called whenever no records are found with either a single
@@ -358,8 +347,8 @@ module ActiveRecord
         offset_value || 0
       end
 
-      def construct_relation_for_exists(conditions)
-        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(1)
+      def construct_relation_for_exists(conditions, min, max)
+        relation = except(:select, :distinct, :order)._select!(ONE_AS_ONE).limit!(max ? max + 1 : min)
 
         case conditions
         when Array, Hash
@@ -555,6 +544,24 @@ module ActiveRecord
         else
           self
         end
+      end
+
+    protected
+
+      def exists_some?(conditions, min: 1, max: nil)
+        return false if !conditions || limit_value == 0
+
+        if eager_loading?
+          relation = apply_join_dependency(eager_loading: false)
+          return relation.exists_some?(conditions, min: min, max: max)
+        end
+
+        relation = construct_relation_for_exists(conditions, min, max)
+
+        size = skip_query_cache_if_necessary { connection.select_values(relation.arel, "#{name} Exists").size }
+        size >= min && (!max || size <= max)
+      rescue ::RangeError
+        false
       end
   end
 end

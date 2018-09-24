@@ -261,14 +261,24 @@ module ActiveRecord
 
     # Returns true if there is exactly one record.
     def one?
-      return super if block_given?
-      limit_value ? records.one? : size == 1
+      if block_given?
+        super
+      elsif limit_value || loaded?
+        records.one?
+      else
+        exists_some?(:none, max: 1)
+      end
     end
 
     # Returns true if there is more than one record.
     def many?
-      return super if block_given?
-      limit_value ? records.many? : size > 1
+      if block_given?
+        super
+      elsif limit_value || loaded?
+        records.many?
+      else
+        exists_some?(:none, min: 2)
+      end
     end
 
     # Returns a cache key that can be used to identify the records fetched by
