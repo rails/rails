@@ -137,6 +137,14 @@ end_error
       end
     end
 
+    initializer "active_record.define_attribute_methods" do |app|
+      config.after_initialize do
+        ActiveSupport.on_load(:active_record) do
+          descendants.each(&:define_attribute_methods) if app.config.eager_load
+        end
+      end
+    end
+
     initializer "active_record.warn_on_records_fetched_greater_than" do
       if config.active_record.warn_on_records_fetched_greater_than
         ActiveSupport.on_load(:active_record) do
