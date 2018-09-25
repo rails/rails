@@ -53,18 +53,17 @@ module ActiveJob
       private_constant :GLOBALID_KEY, :SYMBOL_KEYS_KEY, :WITH_INDIFFERENT_ACCESS_KEY
 
       def serialize_argument(argument)
-        case argument
-        when *TYPE_WHITELIST
+        if TYPE_WHITELIST.any? { |type| argument.is_a?(type) }
           argument
-        when GlobalID::Identification
+        elsif argument.is_a?(GlobalID::Identification)
           convert_to_global_id_hash(argument)
-        when Array
+        elsif argument.is_a?(Array)
           argument.map { |arg| serialize_argument(arg) }
-        when ActiveSupport::HashWithIndifferentAccess
+        elsif argument.is_a?(ActiveSupport::HashWithIndifferentAccess)
           result = serialize_hash(argument)
           result[WITH_INDIFFERENT_ACCESS_KEY] = serialize_argument(true)
           result
-        when Hash
+        elsif argument.is_a?(Hash)
           symbol_keys = argument.each_key.grep(Symbol).map(&:to_s)
           result = serialize_hash(argument)
           result[SYMBOL_KEYS_KEY] = symbol_keys
