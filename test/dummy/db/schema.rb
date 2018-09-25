@@ -14,6 +14,7 @@ ActiveRecord::Schema.define(version: 2018_02_12_164506) do
 
   create_table "action_mailroom_inbound_emails", force: :cascade do |t|
     t.integer "status", default: 0, null: false
+    t.string "message_id"
     t.datetime "created_at", precision: 6
     t.datetime "updated_at", precision: 6
   end
