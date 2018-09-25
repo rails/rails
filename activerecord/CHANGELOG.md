@@ -1,3 +1,7 @@
+*   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
+
+    *Gannon McGibbon*
+
 *   Don't update counter cache unless the record is actually saved.
 
     Fixes #31493, #33113, #33117.

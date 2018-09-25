@@ -104,7 +104,7 @@ module ActiveRecord
         return configs.configurations if configs.is_a?(DatabaseConfigurations)
 
         build_db_config = configs.each_pair.flat_map do |env_name, config|
-          walk_configs(env_name, "primary", config)
+          walk_configs(env_name.to_s, "primary", config)
         end.compact
 
         if url = ENV["DATABASE_URL"]
@@ -119,7 +119,7 @@ module ActiveRecord
         when String
           build_db_config_from_string(env_name, spec_name, config)
         when Hash
-          build_db_config_from_hash(env_name, spec_name, config)
+          build_db_config_from_hash(env_name, spec_name, config.stringify_keys)
         end
       end
 
