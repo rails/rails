@@ -222,10 +222,8 @@ module Arel # :nodoc: all
     def take(limit)
       if limit
         @ast.limit = Nodes::Limit.new(limit)
-        @ctx.top   = Nodes::Top.new(limit)
       else
         @ast.limit = nil
-        @ctx.top   = nil
       end
       self
     end

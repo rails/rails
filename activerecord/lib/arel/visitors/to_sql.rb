@@ -237,8 +237,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_SelectCore(o, collector)
           collector << "SELECT"
 
-          collector = maybe_visit o.top, collector
-
           collector = maybe_visit o.set_quantifier, collector
 
           collect_nodes_for o.projections, collector, SPACE
@@ -403,11 +401,6 @@ module Arel # :nodoc: all
         def visit_Arel_Nodes_Limit(o, collector)
           collector << "LIMIT "
           visit o.expr, collector
-        end
-
-        # FIXME: this does nothing on most databases, but does on MSSQL
-        def visit_Arel_Nodes_Top(o, collector)
-          collector
         end
 
         def visit_Arel_Nodes_Lock(o, collector)
