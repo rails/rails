@@ -40,7 +40,7 @@ class CaptureHelperTest < ActionView::TestCase
     assert_equal "&lt;em&gt;bar&lt;/em&gt;", string
   end
 
-  def test_capture_used_for_read
+  def test_content_for_used_for_read
     content_for :foo, "foo"
     assert_equal "foo", content_for(:foo)
 
