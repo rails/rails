@@ -168,8 +168,8 @@ module ActiveRecord
           },
         }
         ActiveRecord::Base.configurations = config
-        ActiveRecord::Base.configurations.configs_for.each do |config|
-          assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, config
+        ActiveRecord::Base.configurations.configs_for.each do |db_config|
+          assert_instance_of ActiveRecord::DatabaseConfigurations::HashConfig, db_config
         end
       ensure
         ActiveRecord::Base.configurations = @prev_configs
