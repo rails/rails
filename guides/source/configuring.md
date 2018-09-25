@@ -689,6 +689,9 @@ Defaults to `'signed cookie'`.
   in the `ActionDispatch::SSL` middleware. Defaults to `308` as defined in
   https://tools.ietf.org/html/rfc7538.
 
+* `config.action_dispatch.log_rescued_responses` enables logging those unhandled
+  exceptions configured in `rescue_responses`. It defaults to `true`.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
