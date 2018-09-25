@@ -50,6 +50,8 @@ module ActionDispatch
       end
     end
 
+    cattr_accessor :log_rescued_responses, default: true
+
     cattr_reader :interceptors, instance_accessor: false, default: []
 
     def self.register_interceptor(object = nil, &block)
@@ -175,6 +177,7 @@ module ActionDispatch
         return unless logger
 
         exception = wrapper.exception
+        return if !log_rescued_responses(request) && ActionDispatch::ExceptionWrapper.rescue_responses.key?(exception.class.name)
 
         trace = wrapper.application_trace
         trace = wrapper.framework_trace if trace.empty?
@@ -212,6 +215,11 @@ module ActionDispatch
 
       def api_request?(content_type)
         @response_format == :api && !content_type.html?
+      end
+
+      def log_rescued_responses(request)
+        per_request = request.get_header "action_dispatch.log_rescued_responses"
+        per_request.nil? ? @@log_rescued_responses : per_request
       end
   end
 end

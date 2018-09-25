@@ -448,6 +448,19 @@ class DebugExceptionsTest < ActionDispatch::IntegrationTest
     assert_operator((output.rewind && output.read).lines.count, :>, 10)
   end
 
+  test "skips logging when rescued" do
+    @app = DevelopmentApp
+    output = StringIO.new
+
+    env = { "action_dispatch.show_exceptions" => true,
+           "action_dispatch.log_rescued_responses" => false,
+           "action_dispatch.logger" => Logger.new(output) }
+
+    get "/parameter_missing", headers: env
+    assert_response 400
+    assert_empty (output.rewind && output.read).lines
+  end
+
   test "display backtrace when error type is SyntaxError" do
     @app = DevelopmentApp
 

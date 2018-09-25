@@ -23,6 +23,7 @@ module ActionDispatch
     config.action_dispatch.use_authenticated_cookie_encryption = false
     config.action_dispatch.use_cookies_with_metadata = false
     config.action_dispatch.perform_deep_munge = true
+    config.action_dispatch.log_rescued_responses = true
 
     config.action_dispatch.default_headers = {
       "X-Frame-Options" => "SAMEORIGIN",
@@ -49,6 +50,8 @@ module ActionDispatch
 
       config.action_dispatch.always_write_cookie = Rails.env.development? if config.action_dispatch.always_write_cookie.nil?
       ActionDispatch::Cookies::CookieJar.always_write_cookie = config.action_dispatch.always_write_cookie
+
+      ActionDispatch::DebugExceptions.log_rescued_responses = app.config.action_dispatch.log_rescued_responses
 
       ActionDispatch.test_app = app
     end

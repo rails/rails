@@ -548,6 +548,9 @@ Defaults to `'signed cookie'`.
 
   Any exceptions that are not configured will be mapped to 500 Internal Server Error.
 
+* `config.action_dispatch.log_rescued_responses` enables logging those unhandled
+  exceptions configured in `rescue_responses`. It defaults to `true`.
+
 * `ActionDispatch::Callbacks.before` takes a block of code to run before the request.
 
 * `ActionDispatch::Callbacks.after` takes a block of code to run after the request.
