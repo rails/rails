@@ -10,9 +10,9 @@ class ActionMailroom::Router::Route
   def match?(inbound_email)
     case address
     when String
-      inbound_email.mail.to.include?(address)
+      recipients_from(inbound_email.mail).include?(address)
     when Regexp
-      inbound_email.mail.to.detect { |recipient| address.match?(recipient) }
+      recipients_from(inbound_email.mail).detect { |recipient| address.match?(recipient) }
     when Proc
       address.call(inbound_email)
     else
@@ -23,4 +23,9 @@ class ActionMailroom::Router::Route
   def mailbox_class
     "#{mailbox_name.to_s.capitalize}Mailbox".constantize
   end
+
+  private
+    def recipients_from(mail)
+      Array(mail.to) + Array(mail.cc) + Array(mail.bcc)
+    end
 end
