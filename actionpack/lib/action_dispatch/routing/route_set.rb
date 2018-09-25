@@ -379,6 +379,7 @@ module ActionDispatch
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
         @url_helpers                = nil
+        @deferred_classes           = []
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -434,11 +435,32 @@ module ActionDispatch
       end
       private :eval_block
 
+      def include_helpers(klass, include_path_helpers)
+        if @finalized
+          include_helpers_now klass, include_path_helpers
+        else
+          @deferred_classes << [klass, include_path_helpers]
+        end
+      end
+
+      def include_helpers_now(klass, include_path_helpers)
+        if namespace = klass.parents.detect { |m| m.respond_to?(:railtie_routes_url_helpers) }
+          klass.include(namespace.railtie_routes_url_helpers(include_path_helpers))
+        else
+          klass.include(url_helpers(include_path_helpers))
+        end
+      end
+      private :include_helpers_now
+
       def finalize!
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
         @url_helpers = build_url_helper_module true
+        @deferred_classes.each { |klass, include_path_helpers|
+          include_helpers klass, include_path_helpers
+        }
+        @deferred_classes.clear
       end
 
       def clear!
