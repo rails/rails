@@ -232,6 +232,7 @@ module ActionController
       routes = ActionDispatch::Routing::RouteSet.new
       routes.draw(&block)
       include routes.url_helpers
+      routes
     end
   end
 

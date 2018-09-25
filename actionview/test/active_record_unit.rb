@@ -74,6 +74,18 @@ end
 class ActiveRecordTestCase < ActionController::TestCase
   include ActiveRecord::TestFixtures
 
+  def self.tests(controller)
+    super
+    if defined? controller::ROUTES
+      include Module.new {
+        define_method(:setup) do
+          super()
+          @routes = controller::ROUTES
+        end
+      }
+    end
+  end
+
   # Set our fixture path
   if ActiveRecordTestConnector.able_to_connect
     self.fixture_path = [FIXTURE_LOAD_PATH]

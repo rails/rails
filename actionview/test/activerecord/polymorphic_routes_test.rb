@@ -62,10 +62,14 @@ module Weblog
 end
 
 class PolymorphicRoutesTest < ActionController::TestCase
-  include SharedTestRoutes.url_helpers
+  Routes = ActionDispatch::Routing::RouteSet.new
+  Routes.draw {}
+  include Routes.url_helpers
+
   default_url_options[:host] = "example.com"
 
   def setup
+    super
     @project = Project.new
     @task = Task.new
     @step = Step.new
@@ -763,9 +767,11 @@ class DirectRoutesTest < ActionView::TestCase
   include Routes.url_helpers
 
   def setup
+    super
     @category = Category.new("1")
     @collection = Collection.new("2")
     @product = Product.new("3")
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   def test_direct_routes

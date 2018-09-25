@@ -39,6 +39,14 @@ class ControllerRuntimeLogSubscriberTest < ActionController::TestCase
   include ActiveSupport::LogSubscriber::TestHelper
   tests LogSubscriberController
 
+  with_routes do
+    get :show, to: "#{LogSubscriberController.controller_path}#show"
+    get :zero, to: "#{LogSubscriberController.controller_path}#zero"
+    get :db_after_render, to: "#{LogSubscriberController.controller_path}#db_after_render"
+    get :redirect, to: "#{LogSubscriberController.controller_path}#redirect"
+    post :create, to: "#{LogSubscriberController.controller_path}#create"
+  end
+
   def setup
     @old_logger = ActionController::Base.logger
     super

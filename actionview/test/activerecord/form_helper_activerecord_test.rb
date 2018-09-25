@@ -23,9 +23,12 @@ class FormHelperActiveRecordTest < ActionView::TestCase
 
     @developer.projects << @project
     @developer.save
+    super
+    @controller.singleton_class.include Routes.url_helpers
   end
 
   def teardown
+    super
     Project.delete(321)
     Developer.delete(123)
   end
