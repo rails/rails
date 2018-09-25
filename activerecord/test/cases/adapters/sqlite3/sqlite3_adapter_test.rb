@@ -87,7 +87,7 @@ module ActiveRecord
 
       def test_connection_no_db
         assert_raises(ArgumentError) do
-          Base.sqlite3_connection {}
+          Base.sqlite3_connection { }
         end
       end
 

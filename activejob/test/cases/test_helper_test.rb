@@ -504,7 +504,7 @@ class EnqueuedJobsTest < ActiveJob::TestCase
 
     assert_raise ActiveSupport::TestCase::Assertion do
       LoggingJob.perform_later
-      assert_enqueued_with(job: LoggingJob) {}
+      assert_enqueued_with(job: LoggingJob) { }
     end
 
     error = assert_raise ActiveSupport::TestCase::Assertion do

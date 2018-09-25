@@ -947,7 +947,7 @@ ActiveRecord::Schema.define do
   end
 
   [:circles, :squares, :triangles, :non_poly_ones, :non_poly_twos].each do |t|
-    create_table(t, force: true) {}
+    create_table(t, force: true) { }
   end
 
   create_table :men, force: true do |t|

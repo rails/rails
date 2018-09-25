@@ -66,7 +66,7 @@ class SuppressorTest < ActiveRecord::TestCase
   def test_suppresses_when_nested_multiple_times
     assert_no_difference -> { Notification.count } do
       Notification.suppress do
-        Notification.suppress {}
+        Notification.suppress { }
         Notification.create
         Notification.create!
         Notification.new.save

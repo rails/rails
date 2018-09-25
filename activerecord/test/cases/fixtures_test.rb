@@ -974,7 +974,7 @@ class TransactionalFixturesOnConnectionNotification < ActiveRecord::TestCase
           connection_id: connection.object_id
         }
 
-        message_bus.instrument("!connection.active_record", payload) {}
+        message_bus.instrument("!connection.active_record", payload) { }
       end
     end
 end

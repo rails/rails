@@ -219,7 +219,7 @@ class CaptureHelperTest < ActionView::TestCase
 
   def test_with_output_buffer_does_not_assume_there_is_an_output_buffer
     assert_nil @av.output_buffer
-    assert_equal "", @av.with_output_buffer {}
+    assert_equal "", @av.with_output_buffer { }
   end
 
   def alt_encoding(output_buffer)

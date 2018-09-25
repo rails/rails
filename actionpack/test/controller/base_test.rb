@@ -138,7 +138,7 @@ class ControllerInstanceTests < ActiveSupport::TestCase
 
     response_headers = SimpleController.action("hello").call(
       "REQUEST_METHOD" => "GET",
-      "rack.input" => -> {}
+      "rack.input" => -> { }
     )[1]
 
     assert response_headers.key?("X-Frame-Options")

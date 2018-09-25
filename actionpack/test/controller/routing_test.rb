@@ -309,7 +309,7 @@ class LegacyRouteSetTests < ActiveSupport::TestCase
 
   def test_specific_controller_action_failure
     rs.draw do
-      mount lambda {} => "/foo"
+      mount lambda { } => "/foo"
     end
 
     assert_raises(ActionController::UrlGenerationError) do

@@ -77,7 +77,7 @@ module ActiveStorage::Service::SharedServiceTests
 
     test "downloading a nonexistent file in chunks" do
       assert_raises(ActiveStorage::FileNotFoundError) do
-        @service.download(SecureRandom.base58(24)) {}
+        @service.download(SecureRandom.base58(24)) { }
       end
     end
 
