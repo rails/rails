@@ -34,7 +34,6 @@ module Arel # :nodoc: all
         alias :visit_Arel_Nodes_Ordering          :unary
         alias :visit_Arel_Nodes_Ascending         :unary
         alias :visit_Arel_Nodes_Descending        :unary
-        alias :visit_Arel_Nodes_Top               :unary
         alias :visit_Arel_Nodes_UnqualifiedColumn :unary
 
         def function(o)
