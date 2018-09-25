@@ -1,3 +1,7 @@
+*   Raise an error instead of scanning the filesystem root when `fixture_path` is blank.
+
+    *Gannon McGibbon*, *Max Albrecht*
+
 *   Allow `ActiveRecord::Base.configurations=` to be set with a symbolized hash.
 
     *Gannon McGibbon*
