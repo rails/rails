@@ -444,8 +444,10 @@ module ActionDispatch
       end
 
       def include_helpers_now(klass, include_path_helpers)
-        if namespace = klass.parents.detect { |m| m.respond_to?(:railtie_routes_url_helpers) }
-          klass.include(namespace.railtie_routes_url_helpers(include_path_helpers))
+        namespace = klass.parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
+
+        if namespace && namespace.railtie_namespace.routes != self
+          namespace.railtie_include_helpers(klass, include_path_helpers)
         else
           klass.include(url_helpers(include_path_helpers))
         end

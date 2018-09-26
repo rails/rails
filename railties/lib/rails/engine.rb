@@ -403,6 +403,12 @@ module Rails
               define_method(:railtie_helpers_paths) { railtie.helpers_paths }
             end
 
+            unless mod.respond_to?(:railtie_include_helpers)
+              define_method(:railtie_include_helpers) { |klass, include_path_helpers|
+                railtie.routes.include_helpers(klass, include_path_helpers)
+              }
+            end
+
             unless mod.respond_to?(:railtie_routes_url_helpers)
               define_method(:railtie_routes_url_helpers) { |include_path_helpers = true| railtie.routes.url_helpers(include_path_helpers) }
             end
