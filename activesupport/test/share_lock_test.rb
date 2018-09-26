@@ -11,29 +11,29 @@ class ShareLockTest < ActiveSupport::TestCase
 
   def test_reentrancy
     thread = Thread.new do
-      @lock.sharing   { @lock.sharing   {} }
-      @lock.exclusive { @lock.exclusive {} }
+      @lock.sharing   { @lock.sharing   { } }
+      @lock.exclusive { @lock.exclusive { } }
     end
     assert_threads_not_stuck thread
   end
 
   def test_sharing_doesnt_block
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_latch|
-      assert_threads_not_stuck(Thread.new { @lock.sharing {} })
+      assert_threads_not_stuck(Thread.new { @lock.sharing { } })
     end
   end
 
   def test_sharing_blocks_exclusive
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       @lock.exclusive(no_wait: true) { flunk } # polling should fail
-      exclusive_thread = Thread.new { @lock.exclusive {} }
+      exclusive_thread = Thread.new { @lock.exclusive { } }
       assert_threads_stuck_but_releasable_by_latch exclusive_thread, sharing_thread_release_latch
     end
   end
 
   def test_exclusive_blocks_sharing
     with_thread_waiting_in_lock_section(:exclusive) do |exclusive_thread_release_latch|
-      sharing_thread = Thread.new { @lock.sharing {} }
+      sharing_thread = Thread.new { @lock.sharing { } }
       assert_threads_stuck_but_releasable_by_latch sharing_thread, exclusive_thread_release_latch
     end
   end
@@ -42,7 +42,7 @@ class ShareLockTest < ActiveSupport::TestCase
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       exclusive_threads = (1..2).map do
         Thread.new do
-          @lock.exclusive {}
+          @lock.exclusive { }
         end
       end
 
@@ -53,7 +53,7 @@ class ShareLockTest < ActiveSupport::TestCase
   def test_sharing_is_upgradeable_to_exclusive
     upgrading_thread = Thread.new do
       @lock.sharing do
-        @lock.exclusive {}
+        @lock.exclusive { }
       end
     end
     assert_threads_not_stuck upgrading_thread
@@ -66,7 +66,7 @@ class ShareLockTest < ActiveSupport::TestCase
       upgrading_thread = Thread.new do
         @lock.sharing do
           in_sharing.count_down
-          @lock.exclusive {}
+          @lock.exclusive { }
         end
       end
 
@@ -81,7 +81,7 @@ class ShareLockTest < ActiveSupport::TestCase
         exclusive_threads = (1..2).map do
           Thread.new do
             @lock.send(use_upgrading ? :sharing : :tap) do
-              @lock.exclusive(purpose: :load, compatible: [:load, :unload]) {}
+              @lock.exclusive(purpose: :load, compatible: [:load, :unload]) { }
             end
           end
         end
@@ -95,7 +95,7 @@ class ShareLockTest < ActiveSupport::TestCase
     with_thread_waiting_in_lock_section(:sharing) do |sharing_thread_release_latch|
       thread = Thread.new do
         @lock.sharing do
-          @lock.exclusive {}
+          @lock.exclusive { }
         end
       end
 
@@ -105,7 +105,7 @@ class ShareLockTest < ActiveSupport::TestCase
       sharing_thread_release_latch.count_down
 
       thread = Thread.new do
-        @lock.exclusive {}
+        @lock.exclusive { }
       end
 
       assert_threads_not_stuck thread
@@ -121,13 +121,13 @@ class ShareLockTest < ActiveSupport::TestCase
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
                 together.wait
-                @lock.exclusive(purpose: :red, compatible: [:green, :purple]) {}
+                @lock.exclusive(purpose: :red, compatible: [:green, :purple]) { }
               end
             end,
             Thread.new do
               @lock.send(use_upgrading ? :sharing : :tap) do
                 together.wait
-                @lock.exclusive(purpose: :blue, compatible: [:green]) {}
+                @lock.exclusive(purpose: :blue, compatible: [:green]) { }
               end
             end
           ]
@@ -138,7 +138,7 @@ class ShareLockTest < ActiveSupport::TestCase
           # a sharing block. While it's blocked, it holds no lock, so it
           # doesn't interfere with any other attempts.
           no_purpose_thread = Thread.new do
-            @lock.exclusive {}
+            @lock.exclusive { }
           end
           assert_threads_stuck no_purpose_thread
 
@@ -147,7 +147,7 @@ class ShareLockTest < ActiveSupport::TestCase
           # lock, but as soon as that's released, it can run --
           # regardless of whether those threads hold share locks.
           compatible_thread = Thread.new do
-            @lock.exclusive(purpose: :green, compatible: []) {}
+            @lock.exclusive(purpose: :green, compatible: []) { }
           end
           assert_threads_stuck compatible_thread
 
@@ -231,7 +231,7 @@ class ShareLockTest < ActiveSupport::TestCase
       assert_threads_stuck waiting_exclusive
 
       late_share_attempt = Thread.new do
-        @lock.sharing {}
+        @lock.sharing { }
       end
       assert_threads_stuck late_share_attempt
 
@@ -252,14 +252,14 @@ class ShareLockTest < ActiveSupport::TestCase
         @lock.sharing do
           ready.wait
           attempt_reentrancy.wait
-          @lock.sharing {}
+          @lock.sharing { }
         end
       end
 
       exclusive = Thread.new do
         @lock.sharing do
           ready.wait
-          @lock.exclusive {}
+          @lock.exclusive { }
         end
       end
 
@@ -280,7 +280,7 @@ class ShareLockTest < ActiveSupport::TestCase
       Thread.new do
         @lock.sharing do
           ready.wait
-          @lock.exclusive(purpose: :x, compatible: [:x], after_compatible: [:x]) {}
+          @lock.exclusive(purpose: :x, compatible: [:x], after_compatible: [:x]) { }
           done.wait
         end
       end
@@ -297,7 +297,7 @@ class ShareLockTest < ActiveSupport::TestCase
       Thread.new do
         @lock.sharing do
           ready.wait
-          @lock.exclusive(purpose: :x) {}
+          @lock.exclusive(purpose: :x) { }
           done.wait
         end
       end,
@@ -323,7 +323,7 @@ class ShareLockTest < ActiveSupport::TestCase
       Thread.new do
         @lock.sharing do
           ready.wait
-          @lock.exclusive(purpose: :x) {}
+          @lock.exclusive(purpose: :x) { }
           done.wait
         end
       end,
@@ -352,7 +352,7 @@ class ShareLockTest < ActiveSupport::TestCase
       Thread.new do
         @lock.sharing do
           ready.wait
-          @lock.exclusive(purpose: :x) {}
+          @lock.exclusive(purpose: :x) { }
           done.wait
         end
       end,
@@ -386,7 +386,7 @@ class ShareLockTest < ActiveSupport::TestCase
     incompatible_thread = Thread.new do
       @lock.sharing do
         ready.wait
-        @lock.exclusive(purpose: :x) {}
+        @lock.exclusive(purpose: :x) { }
       end
     end
 
@@ -418,7 +418,7 @@ class ShareLockTest < ActiveSupport::TestCase
 
     incompatible_thread = Thread.new do
       ready.wait
-      @lock.exclusive(purpose: :z) {}
+      @lock.exclusive(purpose: :z) { }
     end
 
     recursive_yield_shares_thread = Thread.new do
@@ -427,7 +427,7 @@ class ShareLockTest < ActiveSupport::TestCase
         @lock.yield_shares(compatible: [:y]) do
           do_nesting.wait
           @lock.sharing do
-            @lock.yield_shares(compatible: [:x, :y]) {}
+            @lock.yield_shares(compatible: [:x, :y]) { }
           end
           after_nesting.wait
         end
@@ -439,12 +439,12 @@ class ShareLockTest < ActiveSupport::TestCase
     assert_threads_stuck incompatible_thread
 
     compatible_thread = Thread.new do
-      @lock.exclusive(purpose: :y) {}
+      @lock.exclusive(purpose: :y) { }
     end
     assert_threads_not_stuck compatible_thread
 
     post_nesting_incompatible_thread = Thread.new do
-      @lock.exclusive(purpose: :x) {}
+      @lock.exclusive(purpose: :x) { }
     end
     assert_threads_stuck post_nesting_incompatible_thread
 

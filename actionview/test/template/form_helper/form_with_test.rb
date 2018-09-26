@@ -2246,7 +2246,7 @@ class FormWithActsLikeFormForTest < FormWithTest
     post.persisted = false
     def post.to_key; nil; end
 
-    form_with(model: post) {}
+    form_with(model: post) { }
 
     expected = whole_form("/posts")
     assert_dom_equal expected, output_buffer
@@ -2254,14 +2254,14 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_with_existing_object_in_list
     @comment.save
-    form_with(model: [@post, @comment]) {}
+    form_with(model: [@post, @comment]) { }
 
     expected = whole_form(post_comment_path(@post, @comment), method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_new_object_in_list
-    form_with(model: [@post, @comment]) {}
+    form_with(model: [@post, @comment]) { }
 
     expected = whole_form(post_comments_path(@post))
     assert_dom_equal expected, output_buffer
@@ -2269,14 +2269,14 @@ class FormWithActsLikeFormForTest < FormWithTest
 
   def test_form_with_with_existing_object_and_namespace_in_list
     @comment.save
-    form_with(model: [:admin, @post, @comment]) {}
+    form_with(model: [:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comment_path(@post, @comment), method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_new_object_and_namespace_in_list
-    form_with(model: [:admin, @post, @comment]) {}
+    form_with(model: [:admin, @post, @comment]) { }
 
     expected = whole_form(admin_post_comments_path(@post))
     assert_dom_equal expected, output_buffer
@@ -2290,13 +2290,13 @@ class FormWithActsLikeFormForTest < FormWithTest
   end
 
   def test_form_with_with_default_method_as_patch
-    form_with(model: @post) {}
+    form_with(model: @post) { }
     expected = whole_form("/posts/123", method: "patch")
     assert_dom_equal expected, output_buffer
   end
 
   def test_form_with_with_data_attributes
-    form_with(model: @post, data: { behavior: "stuff" }) {}
+    form_with(model: @post, data: { behavior: "stuff" }) { }
     assert_match %r|data-behavior="stuff"|, output_buffer
     assert_match %r|data-remote="true"|, output_buffer
   end
@@ -2315,7 +2315,7 @@ class FormWithActsLikeFormForTest < FormWithTest
       end
     end
 
-    form_with(model: @post, builder: builder_class) {}
+    form_with(model: @post, builder: builder_class) { }
     assert_equal 1, initialization_count, "form builder instantiated more than once"
   end
 

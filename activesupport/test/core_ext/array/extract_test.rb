@@ -35,7 +35,7 @@ class ExtractTest < ActiveSupport::TestCase
     empty_array = []
     array_id = empty_array.object_id
 
-    new_empty_array = empty_array.extract! {}
+    new_empty_array = empty_array.extract! { }
 
     assert_equal [], new_empty_array
     assert_equal [], empty_array

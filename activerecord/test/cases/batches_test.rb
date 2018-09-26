@@ -24,7 +24,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_each_should_not_return_query_chain_and_execute_only_one_query
     assert_queries(1) do
-      result = Post.find_each(batch_size: 100000) {}
+      result = Post.find_each(batch_size: 100000) { }
       assert_nil result
     end
   end
@@ -183,7 +183,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_error_on_ignore_the_order
     assert_raise(ArgumentError) do
-      PostWithDefaultScope.find_in_batches(error_on_ignore: true) {}
+      PostWithDefaultScope.find_in_batches(error_on_ignore: true) { }
     end
   end
 
@@ -192,7 +192,7 @@ class EachTest < ActiveRecord::TestCase
     prev = ActiveRecord::Base.error_on_ignored_order
     ActiveRecord::Base.error_on_ignored_order = true
     assert_nothing_raised do
-      PostWithDefaultScope.find_in_batches(error_on_ignore: false) {}
+      PostWithDefaultScope.find_in_batches(error_on_ignore: false) { }
     end
   ensure
     # Set back to default
@@ -204,7 +204,7 @@ class EachTest < ActiveRecord::TestCase
     prev = ActiveRecord::Base.error_on_ignored_order
     ActiveRecord::Base.error_on_ignored_order = true
     assert_raise(ArgumentError) do
-      PostWithDefaultScope.find_in_batches() {}
+      PostWithDefaultScope.find_in_batches() { }
     end
   ensure
     # Set back to default
@@ -213,7 +213,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_error_by_default
     assert_nothing_raised do
-      PostWithDefaultScope.find_in_batches() {}
+      PostWithDefaultScope.find_in_batches() { }
     end
   end
 
@@ -228,7 +228,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_find_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) {}
+      Post.find_in_batches({ batch_size: 42, start: 1 }.freeze) { }
     end
   end
 
@@ -446,7 +446,7 @@ class EachTest < ActiveRecord::TestCase
 
   def test_in_batches_should_not_modify_passed_options
     assert_nothing_raised do
-      Post.in_batches({ of: 42, start: 1 }.freeze) {}
+      Post.in_batches({ of: 42, start: 1 }.freeze) { }
     end
   end
 
@@ -597,15 +597,15 @@ class EachTest < ActiveRecord::TestCase
         table: table_alias,
         predicate_builder: predicate_builder
       )
-      posts.find_each {}
+      posts.find_each { }
     end
   end
 
   test ".find_each bypasses the query cache for its own queries" do
     Post.cache do
       assert_queries(2) do
-        Post.find_each {}
-        Post.find_each {}
+        Post.find_each { }
+        Post.find_each { }
       end
     end
   end
@@ -624,8 +624,8 @@ class EachTest < ActiveRecord::TestCase
   test ".find_in_batches bypasses the query cache for its own queries" do
     Post.cache do
       assert_queries(2) do
-        Post.find_in_batches {}
-        Post.find_in_batches {}
+        Post.find_in_batches { }
+        Post.find_in_batches { }
       end
     end
   end
@@ -644,8 +644,8 @@ class EachTest < ActiveRecord::TestCase
   test ".in_batches bypasses the query cache for its own queries" do
     Post.cache do
       assert_queries(2) do
-        Post.in_batches {}
-        Post.in_batches {}
+        Post.in_batches { }
+        Post.in_batches { }
       end
     end
   end

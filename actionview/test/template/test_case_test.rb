@@ -242,7 +242,7 @@ module ActionView
             @routes ||= ActionDispatch::Routing::RouteSet.new
           end
 
-          routes.draw { get "bar", to: lambda {} }
+          routes.draw { get "bar", to: lambda { } }
 
           def self.call(*)
           end

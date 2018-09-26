@@ -137,6 +137,7 @@ Layout/SpaceBeforeBlockBraces:
 # Use `foo { bar }` not `foo {bar}`.
 Layout/SpaceInsideBlockBraces:
   Enabled: true
+  EnforcedStyleForEmptyBraces: space
 
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:

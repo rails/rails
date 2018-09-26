@@ -489,7 +489,7 @@ class NamedScopingTest < ActiveRecord::TestCase
     [:public_method, :protected_method, :private_method].each do |reserved_method|
       assert Topic.respond_to?(reserved_method, true)
       assert_called(ActiveRecord::Base.logger, :warn) do
-        silence_warnings { Topic.scope(reserved_method, -> {}) }
+        silence_warnings { Topic.scope(reserved_method, -> { }) }
       end
     end
   end

@@ -15,7 +15,7 @@ module ERBTest
   class BlockTestCase < ActiveSupport::TestCase
     def render_content(start, inside, routes = nil)
       routes ||= ActionDispatch::Routing::RouteSet.new.tap do |rs|
-        rs.draw {}
+        rs.draw { }
       end
       context = Class.new(ViewContext) {
         include routes.url_helpers

@@ -953,7 +953,7 @@ module CallbacksTest
 
     def test_proc_arity_2
       assert_raises(ArgumentError) do
-        klass = build_class(->(x, y) {})
+        klass = build_class(->(x, y) { })
         klass.new.run
       end
     end
@@ -1032,7 +1032,7 @@ module CallbacksTest
 
     def test_proc_arity2
       assert_raises(ArgumentError) do
-        object = build_class(->(a, b) {}).new
+        object = build_class(->(a, b) { }).new
         object.run
       end
     end

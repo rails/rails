@@ -117,13 +117,13 @@ module ActiveRecord
       end
 
       def test_invert_create_table_with_options_and_block
-        block = Proc.new {}
+        block = Proc.new { }
         drop_table = @recorder.inverse_of :create_table, [:people_reminders, id: false], &block
         assert_equal [:drop_table, [:people_reminders, id: false], block], drop_table
       end
 
       def test_invert_drop_table
-        block = Proc.new {}
+        block = Proc.new { }
         create_table = @recorder.inverse_of :drop_table, [:people_reminders, id: false], &block
         assert_equal [:create_table, [:people_reminders, id: false], block], create_table
       end
@@ -145,7 +145,7 @@ module ActiveRecord
       end
 
       def test_invert_drop_join_table
-        block = Proc.new {}
+        block = Proc.new { }
         create_join_table = @recorder.inverse_of :drop_join_table, [:musics, :artists, table_name: :catalog], &block
         assert_equal [:create_join_table, [:musics, :artists, table_name: :catalog], block], create_join_table
       end

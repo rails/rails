@@ -892,6 +892,7 @@ module ActiveRecord
 
       def fixtures(*fixture_set_names)
         if fixture_set_names.first == :all
+          raise StandardError, "No fixture path found. Please set `#{self}.fixture_path`." if fixture_path.blank?
           fixture_set_names = Dir["#{fixture_path}/{**,*}/*.{yml}"].uniq
           fixture_set_names.map! { |f| f[(fixture_path.to_s.size + 1)..-5] }
         else
