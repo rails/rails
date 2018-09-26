@@ -61,7 +61,11 @@ module ActiveRecord
 
         def update_counters(by)
           if require_counter_update? && foreign_key_present?
-            reader.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
+            if target && !stale_target?
+              target.increment!(reflection.counter_cache_column, by, touch: reflection.options[:touch])
+            else
+              counter_cache_target.update_counters(reflection.counter_cache_column => by, touch: reflection.options[:touch])
+            end
           end
         end
 
@@ -90,6 +94,11 @@ module ActiveRecord
         def invertible_for?(record)
           inverse = inverse_reflection_for(record)
           inverse && inverse.has_one?
+        end
+
+        def counter_cache_target
+          primary_key = reflection.association_primary_key(klass)
+          klass.unscoped.where!(primary_key => owner._read_attribute(reflection.foreign_key))
         end
 
         def stale_state

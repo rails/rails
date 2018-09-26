@@ -1205,7 +1205,7 @@ class HasManyAssociationsTest < ActiveRecord::TestCase
     reply1 = Reply.create!(title: "re: zoom", content: "speedy quick!")
     reply2 = Reply.create!(title: "re: zoom 2", content: "OMG lol!")
 
-    assert_queries(6) do
+    assert_queries(4) do
       topic.replies << [reply1, reply2]
     end
 
