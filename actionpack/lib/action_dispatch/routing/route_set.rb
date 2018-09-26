@@ -378,6 +378,8 @@ module ActionDispatch
         @disable_clear_and_finalize = false
         @finalized                  = false
         @env_key                    = "ROUTES_#{object_id}_SCRIPT_NAME".freeze
+        @url_helpers                = nil
+        @deferred_classes           = []
 
         @set    = Journey::Routes.new
         @router = Journey::Router.new @set
@@ -433,10 +435,34 @@ module ActionDispatch
       end
       private :eval_block
 
+      def include_helpers(klass, include_path_helpers)
+        if @finalized
+          include_helpers_now klass, include_path_helpers
+        else
+          @deferred_classes << [klass, include_path_helpers]
+        end
+      end
+
+      def include_helpers_now(klass, include_path_helpers)
+        namespace = klass.parents.detect { |m| m.respond_to?(:railtie_include_helpers) }
+
+        if namespace && namespace.railtie_namespace.routes != self
+          namespace.railtie_include_helpers(klass, include_path_helpers)
+        else
+          klass.include(url_helpers(include_path_helpers))
+        end
+      end
+      private :include_helpers_now
+
       def finalize!
         return if @finalized
         @append.each { |blk| eval_block(blk) }
         @finalized = true
+        @url_helpers = build_url_helper_module true
+        @deferred_classes.each { |klass, include_path_helpers|
+          include_helpers klass, include_path_helpers
+        }
+        @deferred_classes.clear
       end
 
       def clear!
@@ -465,11 +491,10 @@ module ActionDispatch
         return if MountedHelpers.method_defined?(name)
 
         routes = self
-        helpers = routes.url_helpers
 
         MountedHelpers.class_eval do
           define_method "_#{name}" do
-            RoutesProxy.new(routes, _routes_context, helpers, script_namer)
+            RoutesProxy.new(routes, _routes_context, routes.url_helpers, script_namer)
           end
         end
 
@@ -480,7 +505,20 @@ module ActionDispatch
         RUBY
       end
 
+      class UnfinalizedRouteSet < StandardError
+      end
+
       def url_helpers(supports_path = true)
+        raise UnfinalizedRouteSet, "routes have not been finalized. Please call `finalize!` or use `draw(&block)`" unless @finalized
+
+        if supports_path
+          @url_helpers
+        else
+          build_url_helper_module false
+        end
+      end
+
+      def build_url_helper_module(supports_path)
         routes = self
 
         Module.new do
