@@ -134,8 +134,9 @@ end
 module ActiveSupport #:nodoc:
   class SafeBuffer < String
     UNSAFE_STRING_METHODS = %w(
-      capitalize chomp chop delete downcase gsub lstrip next reverse rstrip
-      slice squeeze strip sub succ swapcase tr tr_s upcase
+      capitalize chomp chop delete delete_prefix delete_suffix
+      downcase gsub lstrip next reverse rstrip slice squeeze strip
+      sub succ swapcase tr tr_s unicode_normalize upcase
     )
 
     alias_method :original_concat, :concat
@@ -186,8 +187,20 @@ module ActiveSupport #:nodoc:
     end
     alias << concat
 
+    def insert(index, value)
+      super(index, html_escape_interpolated_argument(value))
+    end
+
     def prepend(value)
       super(html_escape_interpolated_argument(value))
+    end
+
+    def replace(value)
+      super(html_escape_interpolated_argument(value))
+    end
+
+    def []=(index, value)
+      super(index, html_escape_interpolated_argument(value))
     end
 
     def +(other)
@@ -222,7 +235,7 @@ module ActiveSupport #:nodoc:
     end
 
     UNSAFE_STRING_METHODS.each do |unsafe_method|
-      if unsafe_method.respond_to?(unsafe_method)
+      if String.method_defined?(unsafe_method)
         class_eval <<-EOT, __FILE__, __LINE__ + 1
           def #{unsafe_method}(*args, &block)       # def capitalize(*args, &block)
             to_str.#{unsafe_method}(*args, &block)  #   to_str.capitalize(*args, &block)

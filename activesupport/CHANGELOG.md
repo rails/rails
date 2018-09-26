@@ -1,3 +1,8 @@
+*   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` results as non-`html_safe`.
+    Ensure safety of arguments for `#insert`, `#[]=` and `#replace` calls on `html_safe` Strings.
+
+    *Janosch Müller*
+
 *   Changed `ActiveSupport::TaggedLogging.new` to return a new logger instance instead
     of mutating the one received as parameter.
 

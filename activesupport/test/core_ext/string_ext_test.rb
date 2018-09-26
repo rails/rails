@@ -892,6 +892,54 @@ class OutputSafetyTest < ActiveSupport::TestCase
     assert_predicate string, :html_safe?
   end
 
+  test "Inserting safe into safe yields safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>".html_safe)
+
+    assert_equal "<b>foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Inserting unsafe into safe yields escaped safe" do
+    string = "foo".html_safe
+    string.insert(0, "<b>")
+
+    assert_equal "&lt;b&gt;foo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with safe yields safe" do
+    string = "foo".html_safe
+    string.replace("<b>".html_safe)
+
+    assert_equal "<b>", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string.replace("<b>")
+
+    assert_equal "&lt;b&gt;", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with safe yields safe" do
+    string = "foo".html_safe
+    string[0] = "<b>".html_safe
+
+    assert_equal "<b>oo", string
+    assert_predicate string, :html_safe?
+  end
+
+  test "Replacing index of safe with unsafe yields escaped safe" do
+    string = "foo".html_safe
+    string[0] = "<b>"
+
+    assert_equal "&lt;b&gt;oo", string
+    assert_predicate string, :html_safe?
+  end
+
   test "emits normal string yaml" do
     assert_equal "foo".to_yaml, "foo".html_safe.to_yaml(foo: 1)
   end
