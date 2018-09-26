@@ -31,24 +31,17 @@ module ActiveRecord::Associations::Builder # :nodoc:
 
       mixin.class_eval do
         def belongs_to_counter_cache_after_update(reflection)
-          foreign_key  = reflection.foreign_key
-          cache_column = reflection.counter_cache_column
-
           if association(reflection.name).target_changed?
             if reflection.polymorphic?
-              model     = attribute_in_database(reflection.foreign_type).try(:constantize)
               model_was = attribute_before_last_save(reflection.foreign_type).try(:constantize)
             else
-              model     = reflection.klass
               model_was = reflection.klass
             end
 
-            foreign_key_was = attribute_before_last_save foreign_key
-            foreign_key     = attribute_in_database foreign_key
+            foreign_key_was = attribute_before_last_save(reflection.foreign_key)
+            cache_column = reflection.counter_cache_column
 
-            if foreign_key && model < ActiveRecord::Base
-              counter_cache_target(reflection, model, foreign_key).update_counters(cache_column => 1)
-            end
+            association(reflection.name).increment_counters
 
             if foreign_key_was && model_was < ActiveRecord::Base
               counter_cache_target(reflection, model_was, foreign_key_was).update_counters(cache_column => -1)
