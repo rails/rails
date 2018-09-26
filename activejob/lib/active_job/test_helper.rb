@@ -331,6 +331,22 @@ module ActiveJob
     #     assert_enqueued_with(job: MyJob, at: Date.tomorrow.noon)
     #   end
     #
+    #
+    # The +args+ argument also accepts a proc which will get passed the actual
+    # job's arguments. Your proc needs to returns a boolean value determining if
+    # the job's arguments matches your expectation. This is useful to check only
+    # for a subset of arguments.
+    #
+    #   def test_assert_enqueued_with
+    #     expected_args = ->(job_args) do
+    #       assert job_args.first.key?(:foo)
+    #     end
+    #
+    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
+    #     assert_enqueued_with(job: MyJob, args: expected_args, queue: 'low')
+    #   end
+    #
+    #
     # If a block is passed, that block should cause the job to be
     # enqueued with the given arguments.
     #
@@ -359,7 +375,14 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        expected_args.all? { |key, value| value == deserialized_job[key] }
+
+        expected_args.all? do |key, value|
+          if value.respond_to?(:call)
+            value.call(deserialized_job[key])
+          else
+            value == deserialized_job[key]
+          end
+        end
       end
 
       assert matching_job, "No enqueued job found with #{expected}"
@@ -380,6 +403,22 @@ module ActiveJob
     #     perform_enqueued_jobs
     #
     #     assert_performed_with(job: MyJob, at: Date.tomorrow.noon)
+    #   end
+    #
+    # The +args+ argument also accepts a proc which will get passed the actual
+    # job's arguments. Your proc needs to returns a boolean value determining if
+    # the job's arguments matches your expectation. This is useful to check only
+    # for a subset of arguments.
+    #
+    #   def test_assert_performed_with
+    #     expected_args = ->(job_args) do
+    #       assert job_args.first.key?(:foo)
+    #     end
+    #     MyJob.perform_later(foo: 'bar', other_arg: 'No need to check in the test')
+    #
+    #     perform_enqueued_jobs
+    #
+    #     assert_performed_with(job: MyJob, args: expected_args, queue: 'high')
     #   end
     #
     # If a block is passed, that block performs all of the jobs that were
@@ -411,7 +450,14 @@ module ActiveJob
 
       matching_job = jobs.find do |enqueued_job|
         deserialized_job = deserialize_args_for_assertion(enqueued_job)
-        expected_args.all? { |key, value| value == deserialized_job[key] }
+
+        expected_args.all? do |key, value|
+          if value.respond_to?(:call)
+            value.call(deserialized_job[key])
+          else
+            value == deserialized_job[key]
+          end
+        end
       end
 
       assert matching_job, "No performed job found with #{expected}"

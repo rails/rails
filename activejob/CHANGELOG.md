@@ -1,3 +1,9 @@
+*   Allow `assert_enqueued_with`/`assert_performed_with` methods to accept
+    a proc for the `args` argument. This is useful to check if only a subset of arguments
+    matches your expectations.
+
+    *Edouard Chin*
+
 *   `ActionDispatch::IntegrationTest` includes `ActiveJob::TestHelper` module by default.
 
     *Ricardo Díaz*
