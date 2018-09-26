@@ -77,6 +77,11 @@ module ActiveRecord
         }]
       end
 
+      # Checks whether the columns hash is already cached for a table.
+      def columns_hash?(table_name)
+        @columns_hash.key?(table_name)
+      end
+
       # Clears out internal caches
       def clear!
         @columns.clear

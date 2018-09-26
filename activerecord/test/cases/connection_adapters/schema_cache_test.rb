@@ -91,6 +91,22 @@ module ActiveRecord
         @cache.clear_data_source_cache!("posts")
       end
 
+      test "#columns_hash? is populated by #columns_hash" do
+        assert_not @cache.columns_hash?("posts")
+
+        @cache.columns_hash("posts")
+
+        assert @cache.columns_hash?("posts")
+      end
+
+      test "#columns_hash? is not populated by #data_source_exists?" do
+        assert_not @cache.columns_hash?("posts")
+
+        @cache.data_source_exists?("posts")
+
+        assert_not @cache.columns_hash?("posts")
+      end
+
       private
 
         def schema_dump_path

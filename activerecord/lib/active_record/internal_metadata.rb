@@ -8,6 +8,10 @@ module ActiveRecord
   # as which environment migrations were run in.
   class InternalMetadata < ActiveRecord::Base # :nodoc:
     class << self
+      def _internal?
+        true
+      end
+
       def primary_key
         "key"
       end

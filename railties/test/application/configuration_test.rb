@@ -331,7 +331,7 @@ module ApplicationTests
       assert_not_includes Post.instance_methods, :title
     end
 
-    test "eager loads attribute methods in production" do
+    test "does not eager load attribute methods in production when the schema cache is empty" do
       app_file "app/models/post.rb", <<-RUBY
         class Post < ActiveRecord::Base
         end
@@ -354,7 +354,69 @@ module ApplicationTests
 
       app "production"
 
+      assert_not_includes Post.instance_methods, :title
+    end
+
+    test "eager loads attribute methods in production when the schema cache is populated" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app_file "config/initializers/schema_cache.rb", <<-RUBY
+        ActiveRecord::Base.connection.schema_cache.add("posts")
+      RUBY
+
+      app "production"
+
       assert_includes Post.instance_methods, :title
+    end
+
+    test "does not attempt to eager load attribute methods for models that aren't connected" do
+      app_file "app/models/post.rb", <<-RUBY
+        class Post < ActiveRecord::Base
+        end
+      RUBY
+
+      app_file "config/initializers/active_record.rb", <<-RUBY
+        ActiveRecord::Base.establish_connection(adapter: "sqlite3", database: ":memory:")
+        ActiveRecord::Migration.verbose = false
+        ActiveRecord::Schema.define(version: 1) do
+          create_table :posts do |t|
+            t.string :title
+          end
+        end
+      RUBY
+
+      add_to_config <<-RUBY
+        config.eager_load = true
+        config.cache_classes = true
+      RUBY
+
+      app_file "app/models/comment.rb", <<-RUBY
+        class Comment < ActiveRecord::Base
+          establish_connection(adapter: "mysql2", database: "does_not_exist")
+        end
+      RUBY
+
+      assert_nothing_raised do
+        app "production"
+      end
     end
 
     test "initialize an eager loaded, cache classes app" do
