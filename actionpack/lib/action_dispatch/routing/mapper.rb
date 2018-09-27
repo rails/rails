@@ -49,11 +49,15 @@ module ActionDispatch
         end
 
         def constraint_args(constraint, request)
-          if constraint.respond_to?(:arity) && constraint.arity == 1
-            [request]
+          arity = if constraint.respond_to?(:arity)
+            constraint.arity
           else
-            [request.path_parameters, request]
+            constraint.method(:call).arity
           end
+
+          return [] if arity < 1
+          return [request] if arity == 1
+          [request.path_parameters, request]
         end
         private :constraint_args
       end
