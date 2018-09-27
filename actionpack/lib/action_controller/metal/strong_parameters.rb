@@ -348,6 +348,14 @@ module ActionController
     end
     alias_method :each, :each_pair
 
+    # Convert all hashes in values into parameters, then yield each value in
+    # the same way as <tt>Hash#each_value</tt>.
+    def each_value(&block)
+      @parameters.each_pair do |key, value|
+        yield [convert_hashes_to_parameters(key, value)]
+      end
+    end
+
     # Attribute that keeps track of converted arrays, if any, to avoid double
     # looping in the common use case permit + mass-assignment. Defined in a
     # method to instantiate it only if needed.
