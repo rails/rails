@@ -732,8 +732,6 @@ module Arel # :nodoc: all
         end
 
         alias :visit_Arel_Nodes_SqlLiteral :literal
-        alias :visit_Bignum                :literal
-        alias :visit_Fixnum                :literal
         alias :visit_Integer               :literal
 
         def quoted(o, a)
