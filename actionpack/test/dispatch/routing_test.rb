@@ -115,6 +115,21 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal 301, status
   end
 
+  def test_accepts_a_constraint_object_responding_to_call
+    constraint = Class.new do
+      def call(*); true; end
+      def matches?(*); false; end
+    end
+
+    draw do
+      get "/", to: "home#show", constraints: constraint.new
+    end
+
+    assert_nothing_raised do
+      get "/"
+    end
+  end
+
   def test_namespace_with_controller_segment
     assert_raise(ArgumentError) do
       draw do
