@@ -616,8 +616,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.parent_title = "debate"
-    reply.save!
+    assert_queries(3) do
+      reply.parent_title = "debate"
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time
@@ -625,8 +627,10 @@ class BelongsToAssociationsTest < ActiveRecord::TestCase
     debate.touch(time: time)
     debate2.touch(time: time)
 
-    reply.topic_with_primary_key = debate2
-    reply.save!
+    assert_queries(3) do
+      reply.topic_with_primary_key = debate2
+      reply.save!
+    end
 
     assert_operator debate.reload.updated_at, :>, time
     assert_operator debate2.reload.updated_at, :>, time

@@ -81,12 +81,18 @@ module ActiveRecord::Associations::Builder # :nodoc:
         BelongsTo.touch_record(record, record.send(changes_method), foreign_key, n, touch, belongs_to_touch_method)
       }}
 
-      unless reflection.counter_cache_column
+      if reflection.counter_cache_column
+        touch_callback = callback.(:saved_changes)
+        update_callback = lambda { |record|
+          instance_exec(record, &touch_callback) unless association(reflection.name).target_changed?
+        }
+        model.after_update update_callback, if: :saved_changes?
+      else
         model.after_create callback.(:saved_changes), if: :saved_changes?
+        model.after_update callback.(:saved_changes), if: :saved_changes?
         model.after_destroy callback.(:changes_to_save)
       end
 
-      model.after_update callback.(:saved_changes), if: :saved_changes?
       model.after_touch callback.(:changes_to_save)
     end
 
