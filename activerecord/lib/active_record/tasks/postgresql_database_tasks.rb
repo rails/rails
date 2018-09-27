@@ -82,7 +82,7 @@ module ActiveRecord
 
       def structure_load(filename, extra_flags)
         set_psql_env
-        args = ["-v", ON_ERROR_STOP_1, "-q", "-f", filename]
+        args = ["-v", ON_ERROR_STOP_1, "-q", "-X", "-f", filename]
         args.concat(Array(extra_flags)) if extra_flags
         args << configuration["database"]
         run_cmd("psql", args, "loading")
