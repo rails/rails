@@ -1,3 +1,19 @@
+*   Adds an option to the model generator to allow setting the
+    migrations paths for that migration. This is useful for
+    applications that use multiple databases and put migrations
+    per database in their own directories.
+
+    ```
+    bin/rails g model Room capacity:integer --migrations-paths=db/kingston_migrate
+          invoke  active_record
+          create    db/kingston_migrate/20180830151055_create_rooms.rb
+    ```
+
+    Because rails scaffolding uses the model generator, you can
+    also specify migrations paths with the scaffold generator.
+
+    *Gannon McGibbon*
+
 *   Raise an error when "recyclable cache keys" are being used by a cache store
     that does not explicitly support it. Custom cache keys that do support this feature
     can bypass this error by implementing the `supports_cache_versioning?` method on their
