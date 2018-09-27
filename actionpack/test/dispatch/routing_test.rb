@@ -1382,6 +1382,22 @@ class TestRoutingMapper < ActionDispatch::IntegrationTest
     assert_equal "projects#index", @response.body
   end
 
+  def test_optionally_scoped_root_unscoped_access
+    draw do
+      scope "(:locale)" do
+        scope "(:platform)" do
+          scope "(:browser)" do
+            root to: "projects#index"
+          end
+        end
+      end
+    end
+
+    assert_equal "/", root_path
+    get "/"
+    assert_equal "projects#index", @response.body
+  end
+
   def test_scope_with_format_option
     draw do
       get "direct/index", as: :no_format_direct, format: false
