@@ -399,10 +399,10 @@ module ActionDispatch
 
       # Invokes Journey::Router::Utils.normalize_path and ensure that
       # (:locale) becomes (/:locale) instead of /(:locale). Except
-      # for root cases, where the latter is the correct one.
+      # for root cases including nesting up to second level.
       def self.normalize_path(path)
         path = Journey::Router::Utils.normalize_path(path)
-        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/\(+[^)]+\)$}
+        path.gsub!(%r{/(\(+)/?}, '\1/') unless path =~ %r{^/(\(+[^)]+\)){1,2}$}
         path
       end
 
