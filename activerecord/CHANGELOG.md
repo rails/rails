@@ -1,3 +1,10 @@
+*   Fix `transaction` reverting for migrations.
+
+    Before: Commands inside a `transaction` in a reverted migration ran uninverted.
+    Now: This change fixes that by reverting commands inside `transaction` block.
+
+    *fatkodima*, *David Verhasselt*
+
 *   Raise an error instead of scanning the filesystem root when `fixture_path` is blank.
 
     *Gannon McGibbon*, *Max Albrecht*

@@ -678,15 +678,13 @@ module ActiveRecord
         if connection.respond_to? :revert
           connection.revert { yield }
         else
-          recorder = CommandRecorder.new(connection)
+          recorder = command_recorder
           @connection = recorder
           suppress_messages do
             connection.revert { yield }
           end
           @connection = recorder.delegate
-          recorder.commands.each do |cmd, args, block|
-            send(cmd, *args, &block)
-          end
+          recorder.replay(self)
         end
       end
     end
@@ -961,6 +959,10 @@ module ActiveRecord
         else
           yield
         end
+      end
+
+      def command_recorder
+        CommandRecorder.new(connection)
       end
   end
 
