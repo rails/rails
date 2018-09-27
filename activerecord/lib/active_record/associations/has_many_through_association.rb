@@ -164,32 +164,24 @@ module ActiveRecord
         end
 
         def difference(a, b)
-          set_a = as_set(a)
-          set_b = as_set(b)
+          distribution = distribution(b)
 
-          from_set(set_a - set_b)
+          a.reject { |record| mark_occurrence(distribution, record) }
         end
 
         def intersection(a, b)
-          set_a = as_set(a)
-          set_b = as_set(b)
+          distribution = distribution(b)
 
-          from_set(set_a & set_b)
+          a.select { |record| mark_occurrence(distribution, record) }
         end
 
-        def as_set(records)
-          records.zip(occurences(records))
+        def mark_occurrence(distribution, record)
+          distribution[record] > 0 && distribution[record] -= 1
         end
 
-        def from_set(record_set)
-          record_set.map(&:first)
-        end
-
-        def occurences(array)
-          counts = Hash.new(0)
-
-          array.map do |object|
-            counts[object] += 1
+        def distribution(array)
+          array.each_with_object(Hash.new(0)) do |record, distribution|
+            distribution[record] += 1
           end
         end
 
