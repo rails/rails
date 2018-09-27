@@ -37,6 +37,10 @@ module Arel # :nodoc: all
           visit o.expr, collector
         end
 
+        def visit_Arel_Nodes_UnqualifiedColumn(o, collector)
+          visit o.expr, collector
+        end
+
         ###
         # :'(
         # http://dev.mysql.com/doc/refman/5.0/en/select.html#id3482214

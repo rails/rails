@@ -348,9 +348,13 @@ module ActiveRecord
       end
 
       stmt = Arel::UpdateManager.new
-
-      stmt.set Arel.sql(@klass.sanitize_sql_for_assignment(updates, table.name))
       stmt.table(table)
+
+      if updates.is_a?(Hash)
+        stmt.set _substitute_values(updates)
+      else
+        stmt.set Arel.sql(klass.sanitize_sql_for_assignment(updates, table.name))
+      end
 
       if has_join_values? || offset_value
         @klass.connection.join_to_update(stmt, arel, arel_attribute(primary_key))
@@ -625,6 +629,14 @@ module ActiveRecord
       end
 
     private
+      def _substitute_values(values)
+        values.map do |name, value|
+          attr = arel_attribute(name)
+          type = klass.type_for_attribute(attr.name)
+          bind = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+          [attr, bind]
+        end
+      end
 
       def has_join_values?
         joins_values.any? || left_outer_joins_values.any?
