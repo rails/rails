@@ -48,10 +48,14 @@ module ActionDispatch
           @strategy.call @app, req
         end
 
-        private
-          def constraint_args(constraint, request)
-            constraint.arity == 1 ? [request] : [request.path_parameters, request]
+        def constraint_args(constraint, request)
+          if constraint.respond_to?(:arity) && constraint.arity == 1
+            [request]
+          else
+            [request.path_parameters, request]
           end
+        end
+        private :constraint_args
       end
 
       class Mapping #:nodoc:
