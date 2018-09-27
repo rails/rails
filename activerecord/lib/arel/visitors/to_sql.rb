@@ -637,7 +637,7 @@ module Arel # :nodoc: all
 
         def visit_Arel_Nodes_Assignment(o, collector)
           case o.right
-          when Arel::Nodes::UnqualifiedColumn, Arel::Attributes::Attribute, Arel::Nodes::BindParam
+          when Arel::Nodes::Node, Arel::Attributes::Attribute
             collector = visit o.left, collector
             collector << " = "
             visit o.right, collector

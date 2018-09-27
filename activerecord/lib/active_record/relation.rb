@@ -379,19 +379,22 @@ module ActiveRecord
     def update_counters(counters) # :nodoc:
       touch = counters.delete(:touch)
 
-      updates = counters.map do |counter_name, value|
-        operator = value < 0 ? "-" : "+"
-        quoted_column = connection.quote_table_name_for_assignment(table.name, counter_name)
-        "#{quoted_column} = COALESCE(#{quoted_column}, 0) #{operator} #{value.abs}"
+      updates = {}
+      counters.each do |counter_name, value|
+        attr = arel_attribute(counter_name)
+        bind = predicate_builder.build_bind_attribute(attr.name, value.abs)
+        expr = table.coalesce(Arel::Nodes::UnqualifiedColumn.new(attr), 0)
+        expr = value < 0 ? expr - bind : expr + bind
+        updates[counter_name] = expr.expr
       end
 
       if touch
         names = touch if touch != true
         touch_updates = klass.touch_attributes_with_time(*names)
-        updates << klass.sanitize_sql_for_assignment(touch_updates, table.name) unless touch_updates.empty?
+        updates.merge!(touch_updates) unless touch_updates.empty?
       end
 
-      update_all updates.join(", ")
+      update_all updates
     end
 
     # Touches all records in the current relation without instantiating records first with the updated_at/on attributes
@@ -632,9 +635,11 @@ module ActiveRecord
       def _substitute_values(values)
         values.map do |name, value|
           attr = arel_attribute(name)
-          type = klass.type_for_attribute(attr.name)
-          bind = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
-          [attr, bind]
+          unless value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+            type = klass.type_for_attribute(attr.name)
+            value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
+          end
+          [attr, value]
         end
       end
 
