@@ -117,6 +117,12 @@ class ResponseTest < ActiveSupport::TestCase
     assert_nil @response.content_type
   end
 
+  def test_set_invalid_status
+    assert_raises(ArgumentError) do
+      @response.status = :not_a_real_status_identifier
+    end
+  end
+
   test "simple output" do
     @response.body = "Hello, World!"
 
