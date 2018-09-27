@@ -5,7 +5,7 @@ namespace :action_mailroom do
   Rake::Task["install:migrations"].clear_comments
 
   desc "Copy over the migration"
-  task install: %w( environment active_storage:install copy_migration )
+  task install: %w( environment copy_migration active_storage:install )
 
   task :copy_migration do
     if Rake::Task.task_defined?("action_mailroom:install:migrations")
