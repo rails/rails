@@ -19,6 +19,8 @@ class ActionMailroom::Router
     if mailbox = match_to_mailbox(inbound_email)
       mailbox.receive(inbound_email)
     else
+      inbound_email.bounced!
+
       raise RoutingError
     end
   end

@@ -85,6 +85,7 @@ module ActionMailroom
       assert_raises(ActionMailroom::Router::RoutingError) do
         inbound_email = create_inbound_email_from_mail(to: "going-nowhere@example.com", subject: "This is a reply")
         @router.route inbound_email
+        assert inbound_email.bounced?
       end
     end
 
