@@ -1,4 +1,6 @@
 # TODO: Add access protection using basic auth with verified tokens. Maybe coming from credentials by default?
+# TODO: Spam/malware catching?
+# TODO: Specific bounces for SMTP good citizenship: 200/404/400
 class ActionMailroom::InboundEmailsController < ActionController::Base
   skip_forgery_protection
   before_action :require_rfc822_message

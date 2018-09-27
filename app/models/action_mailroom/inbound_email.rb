@@ -20,6 +20,8 @@ class ActionMailroom::InboundEmail < ActiveRecord::Base
     private
       def extract_message_id(raw_email)
         mail_from_raw_content(raw_email.read).message_id
+      rescue => e
+        # TODO: Assign message id if it can't be extracted?
       end
   end
 
