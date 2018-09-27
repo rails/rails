@@ -635,7 +635,7 @@ module ActiveRecord
       def _substitute_values(values)
         values.map do |name, value|
           attr = arel_attribute(name)
-          unless value.is_a?(Arel::Node) || value.is_a?(Arel::Attribute) || value.is_a?(Arel::Nodes::SqlLiteral)
+          unless Arel.arel_node?(value)
             type = klass.type_for_attribute(attr.name)
             value = predicate_builder.build_bind_attribute(attr.name, type.cast(value))
           end

@@ -194,9 +194,7 @@ module ActiveRecord
 
       def disallow_raw_sql!(args, permit: COLUMN_NAME) # :nodoc:
         unexpected = args.reject do |arg|
-          arg.kind_of?(Arel::Node) ||
-            arg.is_a?(Arel::Nodes::SqlLiteral) ||
-            arg.is_a?(Arel::Attributes::Attribute) ||
+          Arel.arel_node?(arg) ||
             arg.to_s.split(/\s*,\s*/).all? { |part| permit.match?(part) }
         end
 
