@@ -215,13 +215,9 @@ module ActionCable
         # Subsribe to the channel under test. Optionally pass subscription parameters as a Hash.
         def subscribe(params = {})
           @connection ||= stub_connection
-          # NOTE: Rails < 5.0.1 calls subscribe_to_channel during #initialize.
-          #       We have to stub before it
-          @subscription = self.class.channel_class.allocate
+          @subscription = self.class.channel_class.new(connection, CHANNEL_IDENTIFIER, params.with_indifferent_access)
           @subscription.singleton_class.include(ChannelStub)
-          @subscription.send(:initialize, connection, CHANNEL_IDENTIFIER, params.with_indifferent_access)
-          # Call subscribe_to_channel if it's public (Rails 5.0.1+)
-          @subscription.subscribe_to_channel if ActionCable.gem_version >= Gem::Version.new("5.0.1")
+          @subscription.subscribe_to_channel
           @subscription
         end
 
