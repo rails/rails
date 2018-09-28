@@ -1,3 +1,7 @@
+*   Fix bug to make memcached write_entry expire correctly with unless_exist
+
+    *Jye Lee*
+
 *   Add block support to `ActiveSupport::Testing::TimeHelpers#travel_back`.
 
     *Tim Masliuchenko*

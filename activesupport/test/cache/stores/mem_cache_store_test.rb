@@ -104,6 +104,20 @@ class MemCacheStoreTest < ActiveSupport::TestCase
     end
   end
 
+  def test_unless_exist_expires_when_configured
+    cache = ActiveSupport::Cache.lookup_store(:mem_cache_store)
+    called = nil
+    server = Class.new do
+      define_method(:add) { |*args| called = args }
+      def with
+        yield self
+      end
+    end
+    cache.instance_variable_set(:@data, server.new)
+    assert cache.write("foo", "bar", expires_in: 1, unless_exist: true)
+    assert_equal 1, called[2]
+  end
+
   def test_read_should_return_a_different_object_id_each_time_it_is_called
     @cache.write("foo", "bar")
     value = @cache.read("foo")
