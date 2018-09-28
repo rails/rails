@@ -6,7 +6,7 @@ class ActionMailroom::InboundEmailsController < ActionController::Base
   before_action :require_rfc822_message, only: :create
 
   def create
-    ActionMailroom::InboundEmail.create_from_raw_email!(params[:message])
+    ActionMailroom::InboundEmail.create_and_extract_message_id!(params[:message])
     head :created
   end
 

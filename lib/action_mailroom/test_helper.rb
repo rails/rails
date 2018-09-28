@@ -14,7 +14,7 @@ module ActionMailroom
     end
 
     def create_inbound_email(io, filename: 'mail.eml', status: :processing)
-      ActionMailroom::InboundEmail.create_from_raw_email! \
+      ActionMailroom::InboundEmail.create_and_extract_message_id! \
         ActionDispatch::Http::UploadedFile.new(tempfile: io, filename: filename, type: 'message/rfc822'),
         status: status
     end
