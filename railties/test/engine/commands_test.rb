@@ -24,7 +24,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
   def test_runner_command_work_inside_engine
     output = capture(:stdout) do
-      Dir.chdir(plugin_path) { system("bin/rails runner 'puts Rails.env'") }
+      Dir.chdir(plugin_path) { system({"SKIP_REQUIRE_WEBPACKER" => "true"}, "bin/rails runner 'puts Rails.env'") }
     end
 
     assert_equal "test", output.strip
@@ -67,6 +67,7 @@ class Rails::Engine::CommandsTest < ActiveSupport::TestCase
 
     def spawn_command(command, fd)
       Process.spawn(
+        {"SKIP_REQUIRE_WEBPACKER" => "true"},
         "#{plugin_path}/bin/rails #{command}",
         in: fd, out: fd, err: fd
       )

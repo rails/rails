@@ -68,7 +68,7 @@ module Rails
         class_option :skip_listen,         type: :boolean, default: false,
                                            desc: "Don't generate configuration that depends on the listen gem"
 
-        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: false,
+        class_option :skip_javascript,     type: :boolean, aliases: "-J", default: name == "plugin",
                                            desc: "Skip JavaScript files"
 
         class_option :skip_turbolinks,     type: :boolean, default: false,
@@ -329,7 +329,6 @@ module Rails
 
       def webpacker_gemfile_entry
         return [] if options[:skip_javascript]
-
         GemfileEntry.new "webpacker", nil, "Transpile app-like JavaScript. Read more: https://github.com/rails/webpacker"
       end
 
