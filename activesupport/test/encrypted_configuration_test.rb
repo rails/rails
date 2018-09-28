@@ -42,6 +42,16 @@ class EncryptedConfigurationTest < ActiveSupport::TestCase
     assert @credentials.something[:good]
   end
 
+  test "reading example configuration" do
+    require "rails/generators"
+    require "rails/generators/rails/encrypted_file/encrypted_file_generator"
+
+    encrypted_file_generator = Rails::Generators::EncryptedFileGenerator.new
+    encrypted_file_generator.add_encrypted_file_silently(@credentials_config_path, @credentials_key_path)
+
+    assert_equal @credentials.config, {}
+  end
+
   test "change configuration by key file" do
     @credentials.write({ something: { good: true } }.to_yaml)
     @credentials.change do |config_file|
