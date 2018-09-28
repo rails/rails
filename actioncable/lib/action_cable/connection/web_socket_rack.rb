@@ -3,7 +3,7 @@
 module ActionCable
   module Connection
     class WebSocket
-      # Wrap the `rack.upgrad?` API as an alternative to using websocket/driver and nio4r
+      # Wrap the `rack.upgrade?` API as an alternative to using `websocket/driver` and `nio4r`
       #
       # The `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
       class WebSocketRack # :nodoc:
