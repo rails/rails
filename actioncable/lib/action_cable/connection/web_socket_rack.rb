@@ -19,20 +19,11 @@ module ActionCable
         @event_target = event_target
         @protocol = nil
         @websocket = nil
-        if env[PROTOCOL_NAME_IN]
-          if env[PROTOCOL_NAME_IN].is_a?(String)   # for single list headers such as "json, soap, foo"
-            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each do |i|
-              next unless protocols.include?(i)
-              @protocol = i
-              break
-            end
-          elsif env[PROTOCOL_NAME_IN].is_a?(Array) # for multiple headers such as: "soap" , "json", "foo"
-            env[PROTOCOL_NAME_IN].each do |i|
-              next unless protocols.include?(i)
-              @protocol = i
-              break
-            end
-          end
+        request_protocols = env[PROTOCOL_NAME_IN]
+        return if request_protocols.nil?
+        request_protocols = request_protocols.split(/,\s?/) if request_protocols.is_a?(String)
+        request_protocols.each do |request_protocol|
+          break(@protocol = request_protocol) if protocols.include?(request_protocol)
         end
       end
 
@@ -59,7 +50,7 @@ module ActionCable
       end
 
       def rack_response
-        return [101, { PROTOCOL_NAME_OUT => @protocol }, []] if @protocol
+        return [101, { PROTOCOL_NAME_OUT => protocol }, []] if protocol
         [101, {}, []]
       end
 
