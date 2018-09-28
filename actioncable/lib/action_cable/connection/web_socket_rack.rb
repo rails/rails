@@ -26,7 +26,6 @@ module ActionCable
               @protocol = i
               break
             end
-          end
           elsif env[PROTOCOL_NAME_IN].is_a?(Array) # for multiple headers such as: "soap" , "json", "foo"
             env[PROTOCOL_NAME_IN].each do |i|
               next unless protocols.include?(i)
