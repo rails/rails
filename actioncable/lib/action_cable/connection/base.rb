@@ -56,7 +56,7 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = ActionCable::Connection::WebSocketRack.attempt(env, self, event_loop, ActionCable::INTERNAL[:protocols]) || ActionCable::Connection::WebSocket.new(env, self, event_loop)
+        @websocket      = ActionCable::Connection::WebSocket.new(env, self, event_loop)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 

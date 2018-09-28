@@ -7,7 +7,7 @@ module ActionCable
     # Wrap the real socket to minimize the externally-presented API
     class WebSocket # :nodoc:
       def initialize(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-        @websocket = ::WebSocket::Driver.websocket?(env) ? ClientSocket.new(env, event_target, event_loop, protocols) : nil
+        @websocket = self.class.create_driver(env, event_target, event_loop, protocols)
       end
 
       def possible?
@@ -36,6 +36,27 @@ module ActionCable
 
       private
         attr_reader :websocket
+
+      @driver_selector = nil
+      def self.create_driver(env, event_target, event_loop, protocols)
+        case @driver_selector
+        when :rack
+          puts "Remembered..."
+          return WebSocketRack.attempt(env, event_target, event_loop, protocols)
+        when :driver
+          return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
+        end
+        return nil unless ::WebSocket::Driver.websocket?(env)
+        puts "Calculating memory..."
+        ret = WebSocketRack.attempt(env, event_target, event_loop, protocols)
+        if (ret)
+          @driver_selector = :rack
+          return ret
+        end
+        @driver_selector = :driver 
+        return ClientSocket.new(env, event_target, event_loop, protocols)
+      end
+
     end
   end
 end
