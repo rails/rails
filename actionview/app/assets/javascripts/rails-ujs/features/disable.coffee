@@ -8,7 +8,12 @@ Rails.handleDisabledElement = (e) ->
 
 # Unified function to enable an element (link, button and form)
 Rails.enableElement = (e) ->
-  element = if e instanceof Event then e.target else e
+  if e instanceof Event
+    return if isTurbolinksRedirect(e)
+    element = e.target
+  else
+    element = e
+
   if matches(element, Rails.linkDisableSelector)
     enableLinkElement(element)
   else if matches(element, Rails.buttonDisableSelector) or matches(element, Rails.formEnableSelector)
@@ -80,3 +85,7 @@ enableFormElement = (element) ->
     setData(element, 'ujs:enable-with', null) # clean up cache
   element.disabled = false
   setData(element, 'ujs:disabled', null)
+
+isTurbolinksRedirect = (event) ->
+  if xhr = event.detail?[0]
+    xhr.responseText.indexOf("Turbolinks") == 0

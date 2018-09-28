@@ -320,3 +320,20 @@ asyncTest('button[data-remote][data-disable] re-enables when `ajax:error` event 
     start()
   }, 30)
 })
+
+asyncTest('do not enable element for Turbolinks redirects', 6, function() {
+  var link = $('a[data-disable]').attr('data-remote', true).attr('href', '/echo?with_turbolinks_redirect=true')
+
+  App.checkEnabledState(link, 'Click me')
+
+  link
+    .bindNative('ajax:send', function() {
+      App.checkDisabledState(link, 'Click me')
+    })
+    .triggerNative('click')
+
+  setTimeout(function() {
+    App.checkDisabledState(link, 'Click me')
+    start()
+  }, 30)
+})
