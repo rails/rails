@@ -102,7 +102,7 @@ class ClientTest < ActionCable::TestCase
   end
   if defined?(::Iodine)
     def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
-      ::Iodine::listen2http(app: rack_app, port: port.to_s, address:"127.0.0.1")
+      ::Iodine.listen2http(app: rack_app, port: port.to_s, address: "127.0.0.1")
       ::Iodine.workers = 1 # don't cluster the test
       ::Iodine.threads = 1 # one for the server another for the task
       t = Thread.new { ::Iodine.start }
@@ -110,9 +110,9 @@ class ClientTest < ActionCable::TestCase
       ::Iodine.stop
       t.join
     end
-  else 
+  else
     def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
-        puts "Iodine testing skipped, unsupported?."
+      puts "Iodine testing skipped, unsupported?."
     end
   end
 

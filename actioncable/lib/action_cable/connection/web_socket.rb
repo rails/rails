@@ -35,9 +35,11 @@ module ActionCable
       end
 
       private
-        attr_reader :websocket
+
+      attr_reader :websocket
 
       @driver_selector = nil
+
       def self.create_driver(env, event_target, event_loop, protocols)
         case @driver_selector
         when :rack
@@ -52,9 +54,8 @@ module ActionCable
           return ret
         end
         @driver_selector = :driver 
-        return ClientSocket.new(env, event_target, event_loop, protocols)
+        ClientSocket.new(env, event_target, event_loop, protocols)
       end
-
     end
   end
 end
