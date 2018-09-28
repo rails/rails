@@ -107,6 +107,7 @@ group :test do
   platforms :mri do
     gem "stackprof"
     gem "byebug"
+    gem "iodine"
     # FIXME: Remove this when thor 0.21 is release
     gem "thor", git: "https://github.com/erikhuda/thor.git", ref: "006832ea32480618791f89bb7d9e67b22fc814b9"
   end

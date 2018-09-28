@@ -8,6 +8,8 @@ require "json"
 
 require "active_support/hash_with_indifferent_access"
 
+require "iodine" rescue nil
+
 ####
 # 😷 Warning suppression 😷
 WebSocket::Frame::Handler::Handler03.prepend Module.new {
@@ -64,7 +66,7 @@ class ClientTest < ActionCable::TestCase
     server.config.disable_request_forgery_protection = true
   end
 
-  def with_puma_server(rack_app = ActionCable.server, port = 3099)
+  def with_puma_server(rack_app = ActionCable.server, port = 3099, block)
     server = ::Puma::Server.new(rack_app, ::Puma::Events.strings)
     server.add_tcp_listener "127.0.0.1", port
     server.min_threads = 1
@@ -73,7 +75,7 @@ class ClientTest < ActionCable::TestCase
     thread = server.run
 
     begin
-      yield port
+      block.call(port)
 
     ensure
       server.stop
@@ -98,7 +100,26 @@ class ClientTest < ActionCable::TestCase
       end
     end
   end
+  if defined?(::Iodine)
+    def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
+      ::Iodine::listen2http(app: rack_app, port: port.to_s, address:"127.0.0.1")
+      ::Iodine.workers = 1 # don't cluster the test
+      ::Iodine.threads = 1 # one for the server another for the task
+      t = Thread.new { ::Iodine.start }
+      block.call(port)
+      ::Iodine.stop
+      t.join
+    end
+  else 
+    def with_iodine_server(rack_app = ActionCable.server, port = 3099, block)
+        puts "Iodine testing skipped, unsupported?."
+    end
+  end
 
+  def with_cable_server(rack_app = ActionCable.server, port = 3099, &block)
+    with_puma_server(rack_app, port, block)
+    with_iodine_server(rack_app, port, block)
+  end
   class SyncClient
     attr_reader :pings
 
@@ -205,7 +226,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_single_client
-    with_puma_server do |port|
+    with_cable_server do |port|
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
@@ -217,7 +238,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_interacting_clients
-    with_puma_server do |port|
+    with_cable_server do |port|
       clients = concurrently(10.times) { websocket_client(port) }
 
       barrier_1 = Concurrent::CyclicBarrier.new(clients.size)
@@ -240,7 +261,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_many_clients
-    with_puma_server do |port|
+    with_cable_server do |port|
       clients = concurrently(100.times) { websocket_client(port) }
 
       concurrently(clients) do |c|
@@ -256,7 +277,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_disappearing_client
-    with_puma_server do |port|
+    with_cable_server do |port|
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)  # pop the first welcome message off the stack
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
@@ -275,7 +296,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_unsubscribe_client
-    with_puma_server do |port|
+    with_cable_server do |port|
       app = ActionCable.server
       identifier = JSON.generate(channel: "ClientTest::EchoChannel")
 
@@ -300,7 +321,7 @@ class ClientTest < ActionCable::TestCase
   end
 
   def test_server_restart
-    with_puma_server do |port|
+    with_cable_server do |port|
       c = websocket_client(port)
       assert_equal({ "type" => "welcome" }, c.read_message)
       c.send_message command: "subscribe", identifier: JSON.generate(channel: "ClientTest::EchoChannel")
