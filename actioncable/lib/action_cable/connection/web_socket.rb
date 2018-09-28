@@ -36,26 +36,26 @@ module ActionCable
 
       private
 
-      attr_reader :websocket
+        attr_reader :websocket
 
-      @driver_selector = nil
+        @driver_selector = nil
 
-      def self.create_driver(env, event_target, event_loop, protocols)
-        case @driver_selector
-        when :rack
-          return WebSocketRack.attempt(env, event_target, event_loop, protocols)
-        when :driver
-          return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
+        def self.create_driver(env, event_target, event_loop, protocols)
+          case @driver_selector
+          when :rack
+            return WebSocketRack.attempt(env, event_target, event_loop, protocols)
+          when :driver
+            return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
+          end
+          return nil unless ::WebSocket::Driver.websocket?(env)
+          ret = WebSocketRack.attempt(env, event_target, event_loop, protocols)
+          if (ret)
+            @driver_selector = :rack
+            return ret
+          end
+          @driver_selector = :driver
+          ClientSocket.new(env, event_target, event_loop, protocols)
         end
-        return nil unless ::WebSocket::Driver.websocket?(env)
-        ret = WebSocketRack.attempt(env, event_target, event_loop, protocols)
-        if (ret)
-          @driver_selector = :rack
-          return ret
-        end
-        @driver_selector = :driver 
-        ClientSocket.new(env, event_target, event_loop, protocols)
-      end
     end
   end
 end
