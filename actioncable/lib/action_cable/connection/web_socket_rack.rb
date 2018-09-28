@@ -41,7 +41,7 @@ module ActionCable
       end
 
       def alive?
-        websocket && websocket.open?
+        websocket&.open?
       end
 
       def transmit(data)
@@ -55,7 +55,7 @@ module ActionCable
       end
 
       def close
-        websocket && websocket.close
+        websocket&.close
       end
 
       def rack_response
@@ -69,7 +69,6 @@ module ActionCable
       end
 
       def on_close(client)
-        # @event_target.on_error(message) # Rack doesn't support error notifications, they are irrelevant network details.
         @event_target.on_close(1000, CLOSE_REASON)
       end
 

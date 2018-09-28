@@ -56,7 +56,7 @@ module ActionCable
         @worker_pool = server.worker_pool
         @logger = new_tagged_logger
 
-        @websocket      = websocket_create(env, self, event_loop)
+        @websocket      = ActionCable::Connection::WebSocketRack.attempt(env, self, event_loop, ActionCable::INTERNAL[:protocols]) || ActionCable::Connection::WebSocket.new(env, self, event_loop)
         @subscriptions  = ActionCable::Connection::Subscriptions.new(self)
         @message_buffer = ActionCable::Connection::MessageBuffer.new(self)
 
@@ -222,10 +222,6 @@ module ActionCable
         def new_tagged_logger
           TaggedLoggerProxy.new server.logger,
             tags: server.config.log_tags.map { |tag| tag.respond_to?(:call) ? tag.call(request) : tag.to_s.camelize }
-        end
-
-        def websocket_create(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-          ActionCable::Connection::WebSocketRack.attempt(env, event_target, event_loop, protocols) || ActionCable::Connection::WebSocket.new(env, event_target, event_loop)
         end
 
         def started_request_message
