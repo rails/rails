@@ -1,3 +1,8 @@
+*   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
+    with symbol arguments
+
+    *Abraham Chan*
+
 *   Treat `#delete_prefix`, `#delete_suffix` and `#unicode_normalize` results as non-`html_safe`.
     Ensure safety of arguments for `#insert`, `#[]=` and `#replace` calls on `html_safe` Strings.
 
