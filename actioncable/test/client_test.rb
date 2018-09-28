@@ -8,7 +8,12 @@ require "json"
 
 require "active_support/hash_with_indifferent_access"
 
-require "iodine" rescue nil
+# test with iodine if platform allows
+begin
+  require "iodine" rescue nil
+rescue Exception => e
+  nil
+end
 
 ####
 # 😷 Warning suppression 😷
