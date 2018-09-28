@@ -17,7 +17,7 @@ class Rails::Conductor::ActionMailroom::InboundEmailsController < Rails::Conduct
 
   private
     def new_mail
-      Mail.new params.require(:mail).permit(:from, :to, :cc, :bcc, :subject, :body)
+      Mail.new params.require(:mail).permit(:from, :to, :cc, :bcc, :subject, :body).to_h
     end
 
     def create_inbound_email(mail)
