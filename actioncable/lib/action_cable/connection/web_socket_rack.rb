@@ -6,11 +6,14 @@ module ActionCable
     #
     # This variation leverages the `rack.upgrade?` approach detailed here: https://github.com/rack/rack/pull/1272
     class WebSocketRack # :nodoc:
-      UPGRADE_EXISTS = "rack.upgrade?".freeze
-      UPGRADE = "rack.upgrade".freeze
-      PROTOCOL_NAME_IN = "HTTP_SEC_WEBSOCKET_PROTOCOL".freeze
-      PROTOCOL_NAME_OUT = "Sec-Websocket-Protocol".freeze
-      CLOSE_REASON = "".freeze
+      UPGRADE_EXISTS = "rack.upgrade?"
+      UPGRADE = "rack.upgrade"
+      PROTOCOL_NAME_IN = "HTTP_SEC_WEBSOCKET_PROTOCOL"
+      PROTOCOL_NAME_OUT = "Sec-Websocket-Protocol"
+      CLOSE_REASON = ""
+
+      attr_reader :protocol
+
       def initialize(env, event_target, event_loop, protocols)
         env[UPGRADE] = self
         @event_target = event_target
@@ -18,9 +21,18 @@ module ActionCable
         @websocket = nil
         if env[PROTOCOL_NAME_IN]
           if env[PROTOCOL_NAME_IN].is_a?(String)   # for single list headers such as "json, soap, foo"
-            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each { |i| next unless protocols.include?(i); @protocol = i; break; }
+            env[PROTOCOL_NAME_IN].split(/,[\s]?/).each do |i|
+              next unless protocols.include?(i)
+              @protocol = i
+              break
+            end
+          end
           elsif env[PROTOCOL_NAME_IN].is_a?(Array) # for multiple headers such as: "soap" , "json", "foo"
-            env[PROTOCOL_NAME_IN].each { |i| next unless protocols.include?(i); @protocol = i; break; }
+            env[PROTOCOL_NAME_IN].each do |i|
+              next unless protocols.include?(i)
+              @protocol = i
+              break
+            end
           end
         end
       end
@@ -44,11 +56,7 @@ module ActionCable
       end
 
       def close
-        websocket.close
-      end
-
-      def protocol
-        @protocol
+        websocket && websocket.close
       end
 
       def rack_response
@@ -60,16 +68,18 @@ module ActionCable
         @websocket = client
         @event_target.on_open
       end
+
       def on_close(client)
         # @event_target.on_error(message) # Rack doesn't support error notifications, they are irrelevant network details.
         @event_target.on_close(1000, CLOSE_REASON)
       end
+
       def on_message(client, data)
         @event_target.on_message(data)
       end
 
-      def self.okay?(env)
-        env[UPGRADE_EXISTS] == :websocket
+      def self.attempt(env, event_target, event_loop, protocols)
+        env[UPGRADE_EXISTS] == :websocket && self.new(env, event_target, event_loop, protocols)
       end
 
       private

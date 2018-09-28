@@ -225,8 +225,7 @@ module ActionCable
         end
 
         def websocket_create(env, event_target, event_loop, protocols: ActionCable::INTERNAL[:protocols])
-          return ActionCable::Connection::WebSocketRack.new(env, event_target, event_loop, protocols) if ActionCable::Connection::WebSocketRack.okay?(env)
-          ActionCable::Connection::WebSocket.new(env, event_target, event_loop)
+          ActionCable::Connection::WebSocketRack.attempt(env, event_target, event_loop, protocols) || ActionCable::Connection::WebSocket.new(env, event_target, event_loop)
         end
 
         def started_request_message
