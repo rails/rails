@@ -41,13 +41,11 @@ module ActionCable
       def self.create_driver(env, event_target, event_loop, protocols)
         case @driver_selector
         when :rack
-          puts "Remembered..."
           return WebSocketRack.attempt(env, event_target, event_loop, protocols)
         when :driver
           return ::WebSocket::Driver.websocket?(env) && ClientSocket.new(env, event_target, event_loop, protocols)
         end
         return nil unless ::WebSocket::Driver.websocket?(env)
-        puts "Calculating memory..."
         ret = WebSocketRack.attempt(env, event_target, event_loop, protocols)
         if (ret)
           @driver_selector = :rack
