@@ -198,8 +198,10 @@ module SharedGeneratorTests
   def test_generator_for_active_storage
     run_generator [destination_root, "--no-skip-javascript"]
 
-    assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
-      assert_match(/^import \* as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+    unless generator_class.name == "Rails::Generators::PluginGenerator"
+      assert_file "#{application_path}/app/javascript/packs/application.js" do |content|
+        assert_match(/^import \* as ActiveStorage from "activestorage"\nActiveStorage.start\(\)/, content)
+      end
     end
 
     assert_file "#{application_path}/config/environments/development.rb" do |content|
