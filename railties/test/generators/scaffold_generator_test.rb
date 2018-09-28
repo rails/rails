@@ -476,10 +476,12 @@ class ScaffoldGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_scaffold_generator_migrations_paths
-    run_generator ["posts", "--migrations-paths=db/kingston_migrate"]
+  def test_scaffold_generator_database
+    with_secondary_database_configuration do
+      run_generator ["posts", "--database=secondary"]
 
-    assert_migration "db/kingston_migrate/create_posts.rb"
+      assert_migration "db/secondary_migrate/create_posts.rb"
+    end
   end
 
   def test_scaffold_generator_password_digest
