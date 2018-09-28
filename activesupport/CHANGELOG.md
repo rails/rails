@@ -1,3 +1,9 @@
+*   Allow passing a custom method name to the `delegate` method using the `:as` parameter.
+
+        delegate :address, to: :client, as: :home_address
+
+    *Dmitry Tsepelev*
+
 *   Fix bug where `#without` for `ActiveSupport::HashWithIndifferentAccess` would fail
     with symbol arguments
 

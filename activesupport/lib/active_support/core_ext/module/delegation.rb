@@ -20,10 +20,12 @@ class Module
   #
   # ==== Options
   # * <tt>:to</tt> - Specifies the target object
-  # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix
+  # * <tt>:prefix</tt> - Prefixes the new method with the target name or a custom prefix. Does not work with :as.
   # * <tt>:allow_nil</tt> - If set to true, prevents a +Module::DelegationError+
   #   from being raised
   # * <tt>:private</tt> - If set to true, changes method visibility to private
+  # * <tt>:as</tt> - Changes the name of the new method to the passed value. Allows to delegate only one method,
+  #   does not work with :prefix.
   #
   # The macro receives one or more method names (specified as symbols or
   # strings) and the name of the target object via the <tt>:to</tt> option
@@ -114,6 +116,21 @@ class Module
   #   invoice.customer_name    # => 'John Doe'
   #   invoice.customer_address # => 'Vimmersvej 13'
   #
+  # Delegates can optionally generate a method with the custom name using <tt>:as</tt> option.
+  # Only one method can be delegated when <tt>:as</tt> option is specified. Also, it does should
+  # not be passed along with <tt>:prefix</tt>. Only one method can be delegated when <tt>:as</tt>
+  # option is specified.
+  #
+  #   Person = Struct.new(:address)
+  #
+  #   class Parcel < Struct.new(:client)
+  #     delegate :address, to: :client, as: :destination
+  #   end
+  #
+  #   person = Person.new('Vimmersvej 13')
+  #   invoice = Parcel.new(person)
+  #   invoice.destination # => "Vimmersvej 13"
+  #
   # The delegated methods are public by default.
   # Pass <tt>private: true</tt> to change that.
   #
@@ -168,13 +185,25 @@ class Module
   #   Foo.new("Bar").name # raises NoMethodError: undefined method `name'
   #
   # The target method must be public, otherwise it will raise +NoMethodError+.
-  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil)
+  def delegate(*methods, to: nil, prefix: nil, allow_nil: nil, private: nil, as: nil)
     unless to
       raise ArgumentError, "Delegation needs a target. Supply an options hash with a :to key as the last argument (e.g. delegate :hello, to: :greeter)."
     end
 
+    if prefix && as
+      raise ArgumentError, "Delegation does not allow providing both :prefix and :as options."
+    end
+
     if prefix == true && /^[^a-z_]/.match?(to)
       raise ArgumentError, "Can only automatically set the delegation prefix when delegating to a method."
+    end
+
+    if as
+      if /^[^a-z_]/.match?(as)
+        raise ArgumentError, "Delegation cannot generate method '#{as}'."
+      elsif methods.count > 1
+        raise ArgumentError, "Delegation can accept only one method when :as option is passed."
+      end
     end
 
     method_prefix = \
@@ -202,9 +231,12 @@ class Module
       # On the other hand it could be that the target has side-effects,
       # whereas conceptually, from the user point of view, the delegator should
       # be doing one call.
+
+      method_name = as || [method_prefix, method].join
+
       if allow_nil
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
+          "def #{method_name}(#{definition})",
           "_ = #{to}",
           "if !_.nil? || nil.respond_to?(:#{method})",
           "  _.#{method}(#{definition})",
@@ -212,10 +244,10 @@ class Module
         "end"
         ].join ";"
       else
-        exception = %(raise DelegationError, "#{self}##{method_prefix}#{method} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
+        exception = %(raise DelegationError, "#{self}##{method_name} delegated to #{to}.#{method}, but #{to} is nil: \#{self.inspect}")
 
         method_def = [
-          "def #{method_prefix}#{method}(#{definition})",
+          "def #{method_name}(#{definition})",
           " _ = #{to}",
           "  _.#{method}(#{definition})",
           "rescue NoMethodError => e",
