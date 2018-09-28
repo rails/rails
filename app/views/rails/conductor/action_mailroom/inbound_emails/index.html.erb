@@ -6,10 +6,10 @@
   <tr><th>Message ID</th><th>Status</th></tr>
   <% @inbound_emails.each do |inbound_email| %>
     <tr>
-      <td><%= link_to inbound_email.message_id, main_app.rails_inbound_email_path(inbound_email) %></td>
+      <td><%= link_to inbound_email.message_id, main_app.rails_conductor_inbound_email_path(inbound_email) %></td>
       <td><%= inbound_email.status %></td>
     </tr>
   <% end %>
 </table>
 
-<%= link_to "Deliver new inbound email", main_app.new_rails_inbound_email_path %>
+<%= link_to "Deliver new inbound email", main_app.new_rails_conductor_inbound_email_path %>

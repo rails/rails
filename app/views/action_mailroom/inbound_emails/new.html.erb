@@ -1,8 +1,0 @@
-<% provide :title, "Deliver new inbound email" %>
-
-<h1>Deliver new inbound email</h1>
-
-<%= form_with(url: main_app.rails_inbound_emails_url, remote: false) do |form| %>
-  <%= form.file_field :message, size: "150x50", autofocus: true %><br>
-  <%= form.submit "Deliver inbound email" %>
-<% end %>

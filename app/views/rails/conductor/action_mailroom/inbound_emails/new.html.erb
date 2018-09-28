@@ -1,0 +1,27 @@
+<% provide :title, "Deliver new inbound email" %>
+
+<h1>Deliver new inbound email</h1>
+
+<%= form_with(url: main_app.rails_conductor_inbound_emails_path, scope: :mail, local: true) do |form| %>
+  <div>
+    <%= form.label :from, "From" %><br>
+    <%= form.text_field :from %>
+  </div>
+
+  <div>
+    <%= form.label :to, "To" %><br>
+    <%= form.text_field :to %>
+  </div>
+
+  <div>
+    <%= form.label :subject, "Subject" %><br>
+    <%= form.text_field :subject %>
+  </div>
+
+  <div>
+    <%= form.label :body, "Body" %><br>
+    <%= form.text_area :body, size: "40x20" %>
+  </div>
+
+  <%= form.submit "Deliver inbound email" %>
+<% end %>
