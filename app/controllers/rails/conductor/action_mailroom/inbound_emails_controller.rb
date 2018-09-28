@@ -21,10 +21,7 @@ class Rails::Conductor::ActionMailroom::InboundEmailsController < Rails::Conduct
     end
 
     def create_inbound_email(mail)
-      ActionMailroom::InboundEmail.create! raw_email: new_raw_email(mail), message_id: mail.message_id
-    end
-
-    def new_raw_email(mail)
-      { io: StringIO.new(new_mail.to_s), filename: 'inbound.eml', content_type: 'message/rfc822', identify: false }
+      ActionMailroom::InboundEmail.create! raw_email: \
+        { io: StringIO.new(mail.to_s), filename: 'inbound.eml', content_type: 'message/rfc822', identify: false }
     end
 end
