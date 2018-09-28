@@ -392,11 +392,13 @@ class ModelGeneratorTest < Rails::Generators::TestCase
     end
   end
 
-  def test_migrations_paths_puts_migrations_in_that_folder
-    run_generator ["account", "--migrations_paths=db/test_migrate"]
-    assert_migration "db/test_migrate/create_accounts.rb" do |content|
-      assert_method :change, content do |change|
-        assert_match(/create_table :accounts/, change)
+  def test_database_puts_migrations_in_configured_folder
+    with_secondary_database_configuration do
+      run_generator ["account", "--database=secondary"]
+      assert_migration "db/secondary_migrate/create_accounts.rb" do |content|
+        assert_method :change, content do |change|
+          assert_match(/create_table :accounts/, change)
+        end
       end
     end
   end
