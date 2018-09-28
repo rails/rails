@@ -4,8 +4,10 @@
   "description": "WebSocket framework for Ruby on Rails.",
   "main": "lib/assets/compiled/action_cable.js",
   "files": [
-    "lib/assets/compiled/*.js"
+    "app/assets/javascripts/*.js",
+    "src/*.js"
   ],
+  "homepage": "http://rubyonrails.org/",
   "repository": {
     "type": "git",
     "url": "rails/rails"
@@ -20,5 +22,30 @@
   "bugs": {
     "url": "https://github.com/rails/rails/issues"
   },
-  "homepage": "http://rubyonrails.org/"
+  "devDependencies": {
+    "babel-core": "^6.25.0",
+    "babel-plugin-external-helpers": "^6.22.0",
+    "babel-preset-env": "^1.6.0",
+    "eslint": "^4.3.0",
+    "eslint-plugin-import": "^2.7.0",
+    "karma": "~2.0.5",
+    "karma-babel-preprocessor": "~7.0.0",
+    "karma-phantomjs-launcher": "~1.0.4",
+    "karma-qunit": "1.0.0",
+    "karma-requirejs": "~1.1.0",
+    "karma-rollup-preprocessor": "~6.0.0",
+    "mock-socket": "~8.0.2",
+    "qunitjs": "1.14.0",
+    "rollup": "^0.58.2",
+    "rollup-plugin-babel": "^3.0.4",
+    "rollup-plugin-commonjs": "^9.1.0",
+    "rollup-plugin-node-resolve": "^3.3.0",
+    "rollup-plugin-uglify": "^3.0.0"
+  },
+  "scripts": {
+    "prebuild": "yarn lint",
+    "build": "rollup --config rollup.config.js",
+    "lint": "eslint app/javascript",
+    "prepublishOnly": "rm -rf src && cp -R app/javascript/actioncable src"
+  }
 }
